@@ -249,29 +249,29 @@ function testPrecise () {
 
     // bool false
 
-    assert (Precise.stringEquals (undefined, '1') === false);
-    assert (Precise.stringEquals ('1', undefined) === false);
-    assert (Precise.stringEquals (undefined, undefined) === false);
+    assert (!Precise.stringEquals (undefined, '1'));
+    assert (!Precise.stringEquals ('1', undefined));
+    assert (!Precise.stringEquals (undefined, undefined));
 
-    assert (Precise.stringEq (undefined, '1') === false);
-    assert (Precise.stringEq ('1', undefined) === false);
-    assert (Precise.stringEq (undefined, undefined) === false);
+    assert (!Precise.stringEq (undefined, '1'));
+    assert (!Precise.stringEq ('1', undefined));
+    assert (!Precise.stringEq (undefined, undefined));
 
-    assert (Precise.stringGt (undefined, '1') === false);
-    assert (Precise.stringGt ('1', undefined) === false);
-    assert (Precise.stringGt (undefined, undefined) === false);
+    assert (!Precise.stringGt (undefined, '1'));
+    assert (!Precise.stringGt ('1', undefined));
+    assert (!Precise.stringGt (undefined, undefined));
 
-    assert (Precise.stringGe (undefined, '1') === false);
-    assert (Precise.stringGe ('1', undefined) === false);
-    assert (Precise.stringGe (undefined, undefined) === false);
+    assert (!Precise.stringGe (undefined, '1'));
+    assert (!Precise.stringGe ('1', undefined));
+    assert (!Precise.stringGe (undefined, undefined));
 
-    assert (Precise.stringLt (undefined, '1') === false);
-    assert (Precise.stringLt ('1', undefined) === false);
-    assert (Precise.stringLt (undefined, undefined) === false);
+    assert (!Precise.stringLt (undefined, '1'));
+    assert (!Precise.stringLt ('1', undefined));
+    assert (!Precise.stringLt (undefined, undefined));
 
-    assert (Precise.stringLe (undefined, '1') === false);
-    assert (Precise.stringLe ('1', undefined) === false);
-    assert (Precise.stringLe (undefined, undefined) === false);
+    assert (!Precise.stringLe (undefined, '1'));
+    assert (!Precise.stringLe ('1', undefined));
+    assert (!Precise.stringLe (undefined, undefined));
 }
 
 export default testPrecise;

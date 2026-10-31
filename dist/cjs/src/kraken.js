@@ -272,10 +272,7 @@ class kraken extends kraken$1["default"] {
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
-                'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
-                },
+                'networks': {},
                 'depositMethods': {
                     '1INCH': '1inch' + ' ' + '(1INCH)',
                     'AAVE': 'Aave',
@@ -1591,7 +1588,7 @@ class kraken extends kraken$1["default"] {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        const trades = this.safeValue(result, id);
+        const trades = this.safeList(result, id, []);
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
         if (length <= 0) {
@@ -1759,7 +1756,7 @@ class kraken extends kraken$1["default"] {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        let orderSymbols = [];
+        const orderSymbols = [];
         let symbol = undefined;
         let market = undefined;
         for (let i = 0; i < orders.length; i++) {
@@ -1789,7 +1786,7 @@ class kraken extends kraken$1["default"] {
             const orderRequest = this.orderRequest('createOrders', marketId, type, req, amount, price, orderParams);
             ordersRequests.push(orderRequest[0]);
         }
-        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        this.marketSymbols(orderSymbols, undefined, false, true, true);
         let response = undefined;
         let request = {
             'orders': ordersRequests,
@@ -2009,13 +2006,7 @@ class kraken extends kraken$1["default"] {
         const orderOmitted = this.omit(order, 'usingCost');
         const description = this.safeDict(orderOmitted, 'descr', {});
         const orderDescriptionObj = this.safeDict(orderOmitted, 'descr'); // can be null
-        let orderDescription = undefined;
-        if (orderDescriptionObj !== undefined) {
-            orderDescription = this.safeString(orderDescriptionObj, 'order');
-        }
-        else {
-            orderDescription = this.safeString(orderOmitted, 'descr');
-        }
+        const orderDescription = (orderDescriptionObj !== undefined) ? this.safeString(orderDescriptionObj, 'order') : this.safeString(orderOmitted, 'descr');
         let side = undefined;
         let rawType = undefined;
         let marketId = undefined;
@@ -2026,7 +2017,7 @@ class kraken extends kraken$1["default"] {
         if (orderDescription !== undefined) {
             const parts = orderDescription.split(' ');
             side = this.safeString(parts, 0);
-            if (isUsingCost !== true) {
+            if (!isUsingCost) {
                 amount = this.safeString(parts, 1);
             }
             else {
@@ -2271,10 +2262,9 @@ class kraken extends kraken$1["default"] {
                 request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        let close = this.safeDict(paramsOmitted2, 'close');
-        if (close !== undefined) {
-            close = this.extend({}, close);
-            close = (close === undefined) ? {} : close;
+        const rawClose = this.safeDict(paramsOmitted2, 'close');
+        if (rawClose !== undefined) {
+            const close = this.extend({}, rawClose);
             const closePrice = this.safeValue(close, 'price');
             if (closePrice !== undefined) {
                 close['price'] = this.priceToPrecision(symbol, closePrice);
@@ -2291,7 +2281,7 @@ class kraken extends kraken$1["default"] {
         }
         const isMarket = (type === 'market');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarket, false, paramsOmitted2);
-        if (postOnly === true) {
+        if (postOnly) {
             let extendedPostFlags = 'post';
             if (flags !== undefined) {
                 extendedPostFlags = flags + ',post';
@@ -2347,7 +2337,7 @@ class kraken extends kraken$1["default"] {
         const isMarket = (type === 'market');
         let postOnly = undefined;
         [postOnly, paramsOmitted] = this.handlePostOnly(isMarket, false, paramsOmitted);
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         if (amount !== undefined) {
@@ -2485,17 +2475,20 @@ class kraken extends kraken$1["default"] {
         const options = this.safeDict(this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger(options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;
-        let numBatches = this.parseToInt(numTradeIds / batchSize);
-        numBatches = this.sum(numBatches, 1);
-        let result = [];
-        for (let j = 0; j < numBatches; j++) {
-            const requestIds = [];
-            for (let k = 0; k < batchSize; k++) {
-                const index = this.sum(j * batchSize, k);
-                if (index < numTradeIds) {
-                    requestIds.push(tradeIds[index]);
-                }
+        // full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
+        const batches = [];
+        let batch = [];
+        for (let i = 0; i < numTradeIds; i++) {
+            batch.push(tradeIds[i]);
+            if (batch.length >= batchSize) {
+                batches.push(batch);
+                batch = [];
             }
+        }
+        batches.push(batch);
+        let result = [];
+        for (let j = 0; j < batches.length; j++) {
+            const requestIds = batches[j];
             const request = {
                 'txid': requestIds.join(','),
             };
@@ -3250,7 +3243,7 @@ class kraken extends kraken$1["default"] {
     }
     addPaginationCursorToResult(result) {
         const cursor = this.safeString(result, 'next_cursor');
-        const data = this.safeValue(result, 'withdrawals');
+        const data = this.safeList(result, 'withdrawals', []);
         const dataLength = data.length;
         if (cursor !== undefined && dataLength > 0) {
             const last = data[dataLength - 1];
@@ -3315,7 +3308,8 @@ class kraken extends kraken$1["default"] {
         //         ]
         //     }
         //
-        return this.safeValue(response, 'result');
+        const result = this.safeList(response, 'result', []);
+        return result;
     }
     /**
      * @method
@@ -3332,8 +3326,9 @@ class kraken extends kraken$1["default"] {
         }
         const currency = this.currency(code);
         let network = this.safeStringUpper(params, 'network');
-        const networks = this.safeDict(this.options, 'networks', {});
-        network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         const paramsOmitted = this.omit(params, 'network');
         let codeResolved = code;
         if ((code === 'USDT') && (network === 'TRC20')) {
@@ -3659,15 +3654,16 @@ class kraken extends kraken$1["default"] {
             'status': 'sucess',
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/' + this.version + '/' + api + '/' + path;
-        if (api === 'public') {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let url = '/' + this.version + '/' + apiName + '/' + path;
+        if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + this.urlencodeNested(params);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             const price = this.safeString(params, 'price');
             let isTriggerPercent = false;
             if (price !== undefined) {
@@ -3703,7 +3699,7 @@ class kraken extends kraken$1["default"] {
             else {
                 headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
-            const baseApiUrl = this.safeString(this.urls['api'], api);
+            const baseApiUrl = this.safeString(this.urls['api'], apiName);
             if (baseApiUrl === undefined) {
                 throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
             }
@@ -3713,11 +3709,11 @@ class kraken extends kraken$1["default"] {
         else {
             url = '/' + path;
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        return { 'url': apiUrl + url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': apiUrl + url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);

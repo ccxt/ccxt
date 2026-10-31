@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import bybit from './bybit.js';
+import bybit from '../abstract/pro/bybitid.js';
 import bybitidRest from '../bybitid.js';
 
 // ---------------------------------------------------------------------------

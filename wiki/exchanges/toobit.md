@@ -59,7 +59,6 @@ the latest known information on the availability of the exchange API
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -211,6 +210,8 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.price | <code>string</code> | No | "mark" or "index" for mark price and index price candles |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 
 
 ```javascript
@@ -254,7 +255,7 @@ fetches the last price for multiple markets
 **See**
 
 - https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
 
 
 | Param | Type | Required | Description |
@@ -279,7 +280,7 @@ fetches the bid and ask price and volume for multiple markets
 **See**
 
 - https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
 
 
 | Param | Type | Required | Description |

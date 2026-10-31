@@ -192,32 +192,36 @@ class p2b(Exchange, ImplicitAPI):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': [
-                        [self.parse_number('0'), self.parse_number('0.2')],
-                        [self.parse_number('1'), self.parse_number('0.19')],
-                        [self.parse_number('5'), self.parse_number('0.18')],
-                        [self.parse_number('10'), self.parse_number('0.17')],
-                        [self.parse_number('25'), self.parse_number('0.16')],
-                        [self.parse_number('75'), self.parse_number('0.15')],
-                        [self.parse_number('100'), self.parse_number('0.14')],
-                        [self.parse_number('150'), self.parse_number('0.13')],
-                        [self.parse_number('300'), self.parse_number('0.12')],
-                        [self.parse_number('450'), self.parse_number('0.11')],
-                        [self.parse_number('500'), self.parse_number('0.1')],
-                    ],
-                    'maker': [
-                        [self.parse_number('0'), self.parse_number('0.2')],
-                        [self.parse_number('1'), self.parse_number('0.18')],
-                        [self.parse_number('5'), self.parse_number('0.16')],
-                        [self.parse_number('10'), self.parse_number('0.14')],
-                        [self.parse_number('25'), self.parse_number('0.12')],
-                        [self.parse_number('75'), self.parse_number('0.1')],
-                        [self.parse_number('100'), self.parse_number('0.08')],
-                        [self.parse_number('150'), self.parse_number('0.06')],
-                        [self.parse_number('300'), self.parse_number('0.04')],
-                        [self.parse_number('450'), self.parse_number('0.02')],
-                        [self.parse_number('500'), self.parse_number('0.01')],
-                    ],
+                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.002'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.002')],
+                            [self.parse_number('1'), self.parse_number('0.0019')],
+                            [self.parse_number('5'), self.parse_number('0.0018')],
+                            [self.parse_number('10'), self.parse_number('0.0017')],
+                            [self.parse_number('25'), self.parse_number('0.0016')],
+                            [self.parse_number('75'), self.parse_number('0.0015')],
+                            [self.parse_number('100'), self.parse_number('0.0014')],
+                            [self.parse_number('150'), self.parse_number('0.0013')],
+                            [self.parse_number('300'), self.parse_number('0.0012')],
+                            [self.parse_number('450'), self.parse_number('0.0011')],
+                            [self.parse_number('500'), self.parse_number('0.001')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.002')],
+                            [self.parse_number('1'), self.parse_number('0.0018')],
+                            [self.parse_number('5'), self.parse_number('0.0016')],
+                            [self.parse_number('10'), self.parse_number('0.0014')],
+                            [self.parse_number('25'), self.parse_number('0.0012')],
+                            [self.parse_number('75'), self.parse_number('0.001')],
+                            [self.parse_number('100'), self.parse_number('0.0008')],
+                            [self.parse_number('150'), self.parse_number('0.0006')],
+                            [self.parse_number('300'), self.parse_number('0.0004')],
+                            [self.parse_number('450'), self.parse_number('0.0002')],
+                            [self.parse_number('500'), self.parse_number('0.0001')],
+                        ],
+                    },
                 },
             },
             'features': {
@@ -1103,16 +1107,25 @@ class p2b(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        until = self.safe_integer(params, 'until')
+        untilParam = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
-        if until is None:
-            if since is None:
-                until = self.milliseconds()
+        until = None
+        sinceResolved = 0
+        if untilParam is not None:
+            until = untilParam
+            if since is not None:
+                if (untilParam - since) > 86400000:
+                    raise BadRequest(self.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours')
+                sinceResolved = since
             else:
-                until = since + 86400000
-        sinceResolved = (until - 86400000) if (since is None) else since
-        if (until - sinceResolved) > 86400000:
-            raise BadRequest(self.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours')
+                sinceResolved = untilParam - 86400000
+        elif since is not None:
+            until = since + 86400000
+            sinceResolved = since
+        else:
+            now = self.milliseconds()
+            until = now
+            sinceResolved = now - 86400000
         market = self.market(symbol)
         sinceSec = self.parse_to_int(sinceResolved / 1000)
         untilSec = self.parse_to_int(until / 1000)
@@ -1172,19 +1185,28 @@ class p2b(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        until = self.safe_integer(params, 'until')
+        untilParam = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        if until is None:
-            if since is None:
-                until = self.milliseconds()
+        until = None
+        sinceResolved = 0
+        if untilParam is not None:
+            until = untilParam
+            if since is not None:
+                if (untilParam - since) > 86400000:
+                    raise BadRequest(self.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours')
+                sinceResolved = since
             else:
-                until = since + 86400000
-        sinceResolved = (until - 86400000) if (since is None) else since
-        if (until - sinceResolved) > 86400000:
-            raise BadRequest(self.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours')
+                sinceResolved = untilParam - 86400000
+        elif since is not None:
+            until = since + 86400000
+            sinceResolved = since
+        else:
+            now = self.milliseconds()
+            until = now
+            sinceResolved = now - 86400000
         sinceSec = self.parse_to_int(sinceResolved / 1000)
         untilSec = self.parse_to_int(until / 1000)
         request = {
@@ -1300,8 +1322,9 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
@@ -1310,7 +1333,7 @@ class p2b(Exchange, ImplicitAPI):
         if method == 'GET':
             if len(paramsOmitted) > 0:
                 url += '?' + self.urlencode(paramsOmitted)
-        if api == 'private':
+        if apiName == 'private':
             paramsOmitted['request'] = '/api/v2/' + path
             # p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             # the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
@@ -1324,7 +1347,7 @@ class p2b(Exchange, ImplicitAPI):
             }
             bodyJson = self.json(paramsOmitted)
             return {'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
@@ -1335,12 +1358,13 @@ class p2b(Exchange, ImplicitAPI):
         #     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         #
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             errorCode = self.safe_string(response, 'errorCode')
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             codeAsString = str(code)
-            if (code < 400) or not (codeAsString in self.httpExceptions):
+            statusCode = self.parse_to_int(code)
+            if (statusCode < 400) or not (codeAsString in self.httpExceptions):
                 # an error envelope must always throw — also for statuses the http-status handler has no entry for
                 raise ExchangeError(feedback)
             # unmapped codes on the remaining error statuses fall through to the default http-status handler

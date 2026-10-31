@@ -24,7 +24,10 @@ func testFetchMyLiquidationsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.IC
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	items := r.Value
+	var items any = nil
+	if r.Value != nil {
+		items = ccxt.LiquidationsToList(r.Value)
+	}
 	Assert(IsArray(items), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), code), " must return an array. "), exchange.Json(items)))
 	// const now = exchange.Getmilliseconds() ();
 	for i := 0; i < GetArrayLength(items); i++ {

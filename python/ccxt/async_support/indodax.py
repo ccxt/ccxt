@@ -227,7 +227,7 @@ class indodax(Exchange, ImplicitAPI):
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'XLM': 'Stellar Token',
-                    'BSC': 'bep20',
+                    'BEP20': 'bep20',
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     # 'BEP2': 'bep2',
@@ -640,7 +640,7 @@ class indodax(Exchange, ImplicitAPI):
             market = self.safe_market(marketId)
             parsed = self.parse_ticker(rawTicker, market)
             parsedTickers[marketId] = parsed
-        return self.filter_by_array(parsedTickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(parsedTickers, 'symbol', symbols)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'date')
@@ -729,7 +729,10 @@ class indodax(Exchange, ImplicitAPI):
             request['from'] = int(math.floor(since / 1000))
         else:
             duration = self.parse_timeframe(timeframe)
-            request['from'] = now - limitResolved * duration - 1
+            if limit is None:
+                request['from'] = now - 1000 * duration - 1
+            else:
+                request['from'] = now - limit * duration - 1
         response = await self.publicGetTradingviewHistoryV2(self.extend(request, paramsOmitted))
         #
         #     [
@@ -745,7 +748,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limitResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'open': 'open',
             'filled': 'closed',
@@ -1343,7 +1346,7 @@ class indodax(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'success': 'ok',
         }
@@ -1401,9 +1404,7 @@ class indodax(Exchange, ImplicitAPI):
         addresses = self.safe_dict(data, 'address', {})
         networks = self.safe_dict(data, 'network', {})
         addressKeys = list(addresses.keys())
-        result = {
-            'info': data,
-        }
+        result = []
         for i in range(0, len(addressKeys)):
             marketId = addressKeys[i]
             code = self.safe_currency_code(marketId)
@@ -1430,23 +1431,24 @@ class indodax(Exchange, ImplicitAPI):
                             network = _netIdTmp.upper()
                 finalNetwork = network  # java req
                 if code is not None:
-                    result[code] = {
+                    result.append({
                         'info': {},
                         'currency': code,
                         'network': finalNetwork,
                         'address': address,
                         'tag': None,
-                    }
-        return result
+                    })
+        return self.to_array(result)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl
         privateBody = None
         privateHeaders = None
-        isPublic = (api == 'public')
+        isPublic = (apiName == 'public')
         if isPublic:
             query = self.omit(params, self.extract_params(path))
             requestPath = '/' + self.implode_params(path, params)
@@ -1467,10 +1469,10 @@ class indodax(Exchange, ImplicitAPI):
             }
         requestBody = privateBody
         if isPublic:
-            requestBody = body
+            requestBody = None
         requestHeaders = privateHeaders
         if isPublic:
-            requestHeaders = headers
+            requestHeaders = None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

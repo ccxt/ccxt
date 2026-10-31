@@ -834,7 +834,7 @@ public partial class hashkey : ccxt.hashkey
         if ((snapshot == true))
         {
             object messageHash = add(add(type, ":"), "fetchBalanceSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
@@ -848,11 +848,11 @@ public partial class hashkey : ccxt.hashkey
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, }));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
-            client.resolve(getValue(this.balance, type), ("balance:" + (type)));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), ("balance:" + (type)));
         }
     }
 

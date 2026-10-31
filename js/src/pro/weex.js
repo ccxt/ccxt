@@ -92,7 +92,7 @@ export default class weex extends weexRest {
         const id = this.requestId();
         let method = 'SUBSCRIBE';
         const unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
-        if (unsubscribe === true) {
+        if (unsubscribe) {
             method = 'UNSUBSCRIBE';
         }
         const message = {
@@ -117,7 +117,7 @@ export default class weex extends weexRest {
         this.authenticate(url);
         let method = 'SUBSCRIBE';
         const unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
-        if (unsubscribe === true) {
+        if (unsubscribe) {
             method = 'UNSUBSCRIBE';
         }
         const id = this.requestId();
@@ -1615,7 +1615,7 @@ export default class weex extends weexRest {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':' + 'balance';
@@ -1627,7 +1627,7 @@ export default class weex extends weexRest {
         }
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1929,7 +1929,7 @@ export default class weex extends weexRest {
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id, {});
         const unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
-        if (unsubscribe === true) {
+        if (unsubscribe) {
             const subHashIsPrefix = this.safeBool(subscription, 'subHashIsPrefix', false);
             const messageHashes = this.safeList(subscription, 'messageHashes', []);
             const subHashes = this.safeList(subscription, 'subMessageHashes', []);
@@ -1951,7 +1951,7 @@ export default class weex extends weexRest {
         //     }
         //
         const result = this.safeBool(message, 'result', true);
-        if (result !== true) {
+        if (!result) {
             const msg = this.safeString(message, 'msg', '');
             const feedback = this.id + ' ' + this.json(message);
             try {

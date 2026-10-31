@@ -1,5 +1,5 @@
 import Exchange from './abstract/paymium.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress, NullableDict, Order } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress, Order } from './base/types.js';
 /**
  * @class paymium
  * @augments Exchange
@@ -123,6 +123,6 @@ export default class paymium extends Exchange {
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

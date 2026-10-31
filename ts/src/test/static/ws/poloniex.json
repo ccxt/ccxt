@@ -1136,6 +1136,105 @@
                 ],
                 "disabledGO": "go: injected ticker frame does not resolve the watch future (hangs) - same parity backlog as other disabledGO entries"
             }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "spot trades unsubscribe acknowledged for the symbol; frame shape from a live public channel unsubscribe",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.poloniex.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "channel": "trades",
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "unsubscribe",
+                        "channel": [
+                            "trades"
+                        ],
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTradesForSymbols": [
+            {
+                "description": "spot trades unsubscribe for two symbols in one request - poloniex sends a single acknowledgement listing both symbols, not necessarily in request order (seen live)",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ],
+                "url": "wss://ws.poloniex.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "channel": "trades",
+                        "symbols": [
+                            "ETH_USDT",
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "unsubscribe",
+                        "channel": [
+                            "trades"
+                        ],
+                        "symbols": [
+                            "BTC_USDT",
+                            "ETH_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "spot ohlcv 1h unsubscribe, the channel carries poloniex's timeframe name (candles_hour_1)",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT",
+                    "1h"
+                ],
+                "url": "wss://ws.poloniex.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "channel": "candles_hour_1",
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "unsubscribe",
+                        "channel": [
+                            "candles_hour_1"
+                        ],
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }

@@ -813,11 +813,10 @@ class bitflyer extends bitflyer$1["default"] {
             'count': limit,
         };
         const response = await this.privateGetGetchildorders(this.extend(request, params));
-        let orders = this.parseOrders(response, market, since, limit);
         if (symbol !== undefined) {
-            orders = this.filterBy(orders, 'symbol', symbol);
+            return this.filterBy(this.parseOrders(response, market, since, limit), 'symbol', symbol);
         }
-        return orders;
+        return this.parseOrders(response, market, since, limit);
     }
     /**
      * @method
@@ -1224,11 +1223,12 @@ class bitflyer extends bitflyer$1["default"] {
             'interval': undefined,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let bodySigned = undefined;
         let headersSigned = undefined;
         let request = '/' + this.version + '/';
-        if (api === 'private') {
+        if (apiName === 'private') {
             request += 'me/';
         }
         request += path;
@@ -1243,15 +1243,16 @@ class bitflyer extends bitflyer$1["default"] {
         }
         const baseUrl = this.implodeHostname(apiUrl);
         const url = baseUrl + request;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const content = [nonce, method, request];
             let auth = content.join('');
             if (Object.keys(params).length > 0) {
                 if (method !== 'GET') {
-                    bodySigned = this.json(params);
-                    auth += bodySigned;
+                    const body = this.json(params);
+                    bodySigned = body;
+                    auth += body;
                 }
             }
             headersSigned = {
@@ -1261,8 +1262,8 @@ class bitflyer extends bitflyer$1["default"] {
                 'Content-Type': 'application/json',
             };
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

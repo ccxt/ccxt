@@ -726,7 +726,7 @@ class OrderRouter {
      * @returns {undefined}
      */
     assertBalancesApplied(route, params) {
-        if (this.boolAt(params, 'requireBalancesApplied', true) !== true) {
+        if (!this.boolAt(params, 'requireBalancesApplied', true)) {
             //  the caller opted out, with their eyes open
             return;
         }

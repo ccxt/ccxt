@@ -62,7 +62,7 @@
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reserveRequestWeight](#reserverequestweight)
-* [createAccount](#createaccount)
+* [createSubAccount](#createsubaccount)
 * [createOrdersWs](#createordersws)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
@@ -644,6 +644,7 @@ cancels an open order
 | params.vaultAddress | <code>string</code> | No | the vault address for order |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
 | params.twap | <code>boolean</code> | No | whether the order to cancel is a twap order, (default is false) |
+| params.fast | <code>boolean</code> | No | whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false) |
 
 
 ```javascript
@@ -673,6 +674,7 @@ cancel multiple orders
 | params.clientOrderId | <code>string</code>, <code>Array&lt;string&gt;</code> | No | client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef) |
 | params.vaultAddress | <code>string</code> | No | the vault address |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.fast | <code>boolean</code> | No | whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false) |
 
 
 ```javascript
@@ -723,6 +725,7 @@ build the request payload for cancelling multiple orders
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No |  |
+| params.fast | <code>boolean</code> | No | whether to send the cancel with the fast flag, rejected for trigger orders, (default is false) |
 
 
 ```javascript
@@ -750,6 +753,7 @@ cancel multiple orders for multiple symbols
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.vaultAddress | <code>string</code> | No | the vault address |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.fast | <code>boolean</code> | No | whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false) |
 
 
 ```javascript
@@ -1231,16 +1235,27 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer  
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-from-spot-account-to-perp-account-and-vice-versa
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-between-sub-accounts
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#send-asset
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | amount to transfer |
-| fromAccount | <code>string</code> | Yes | account to transfer from *spot, swap* |
-| toAccount | <code>string</code> | Yes | account to transfer to *swap, spot or address* |
+| fromAccount | <code>string</code> | Yes | account to transfer from *spot, swap, main or a sub-account address* |
+| toAccount | <code>string</code> | Yes | account to transfer to *swap, spot, main or a sub-account address* |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.vaultAddress | <code>string</code> | No | the vault address for order |
+| params.vaultAddress | <code>string</code> | No | spot <> swap only, moves the balance inside this vault or sub-account instead of the main account |
+| params.type | <code>string</code> | No | main <> sub-account only, 'spot' moves the spot ledger instead of the perp ledger |
+| params.method | <code>string</code> | No | main <> sub-account only, 'sendAsset' forces the unified-account route, 'subAccountTransfer' forces the legacy sub-account actions; defaults to sendAsset when the account abstraction is unifiedAccount |
+| params.enableUnifiedMargin | <code>boolean</code> | No | main <> sub-account only, skips the abstraction lookup and states whether the account is unified |
+| params.sourceDex | <code>string</code> | No | sendAsset only, perp dex to move from, '' for the default USDC perp dex or 'spot', defaults to 'spot' |
+| params.destinationDex | <code>string</code> | No | sendAsset only, perp dex to move to, '' for the default USDC perp dex or 'spot', defaults to 'spot' |
+| params.user | <code>string</code> | No | sendAsset only, the master wallet address, defaults to walletAddress |
 
 
 ```javascript
@@ -1457,9 +1472,9 @@ hyperliquid.reserveRequestWeight (weight, params?)
 ```
 
 
-<a name="createAccount" id="createaccount"></a>
+<a name="createSubAccount" id="createsubaccount"></a>
 
-### createAccount{docsify-ignore}
+### createSubAccount{docsify-ignore}
 creates a sub-account under the main account
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
@@ -1474,7 +1489,7 @@ creates a sub-account under the main account
 
 
 ```javascript
-hyperliquid.createAccount (name, params?)
+hyperliquid.createSubAccount (name, params?)
 ```
 
 

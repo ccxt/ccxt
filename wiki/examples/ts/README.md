@@ -8,6 +8,8 @@
 
 - [Arbitrage Pairs](./examples/ts/arbitrage-pairs.md)
 
+- [Backpack Stocks](./examples/ts/backpack-stocks.md)
+
 - [Basic Chart](./examples/ts/basic-chart.md)
 
 - [Basic Orderbook Polling](./examples/ts/basic-orderbook-polling.md)

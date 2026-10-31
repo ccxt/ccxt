@@ -25,6 +25,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Arbitrage Pairs](./examples/js/arbitrage-pairs.md)
 
+- [Backpack Stocks](./examples/js/backpack-stocks.md)
+
 - [Basic Chart](./examples/js/basic-chart.md)
 
 - [Basic Orderbook Polling](./examples/js/basic-orderbook-polling.md)

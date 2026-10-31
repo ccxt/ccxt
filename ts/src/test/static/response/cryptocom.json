@@ -1945,6 +1945,32 @@
                         "USD": 29.01316839415396
                     }
                 }
+            },
+            {
+                "description": "fetchBalance for an unfunded account, data is an empty array",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "id": 1793260909580,
+                    "method": "private/user-balance",
+                    "code": 0,
+                    "result": {
+                        "data": []
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": 1793260909580,
+                        "method": "private/user-balance",
+                        "code": 0,
+                        "result": {
+                            "data": []
+                        }
+                    },
+                    "free": {},
+                    "used": {},
+                    "total": {}
+                }
             }
         ],
         "fetchPositions": [
@@ -2001,6 +2027,7 @@
                         "markPrice": null,
                         "notional": null,
                         "leverage": null,
+                        "positionMargin": null,
                         "collateral": 310.16670833333336,
                         "initialMargin": 330.598,
                         "maintenanceMargin": null,
@@ -2312,6 +2339,7 @@
                   "markPrice": null,
                   "notional": null,
                   "leverage": null,
+                  "positionMargin": null,
                   "collateral": 9.9728,
                   "initialMargin": 9.9728,
                   "maintenanceMargin": null,

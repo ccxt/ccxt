@@ -830,7 +830,8 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         Int64? nonce = this.safeInteger(message, "nonce");
-        if (isGreaterThan(nonce, getValue(orderbook, "nonce")))
+        Int64? currentNonce = this.safeInteger(orderbook, "nonce");
+        if (((nonce != null)) && ((currentNonce != null)) && ((nonce != null && (currentNonce == null || nonce > currentNonce))))
         {
             this.handleDeltas(getValue(orderbook, "asks"), this.safeList(message, "asks", new List<object>() {}));
             this.handleDeltas(getValue(orderbook, "bids"), this.safeList(message, "bids", new List<object>() {}));
@@ -864,7 +865,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             return;
         }
-        if (isEqual(getValue(orderbook, "nonce"), null))
+        if ((((object)((orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))) == null))
         {
             object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});
             // multi-symbol watches share one subscription object, so the
@@ -1057,7 +1058,7 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 continue;
             }
-            object subscription = getValue(client.subscriptions, key);
+            object subscription = (client.subscriptions != null && key != null && client.subscriptions.ContainsKey(key) ? client.subscriptions[key] : null);
             string subHash = key.Replace("unsubscribe:", (string)"");
             this.cleanCache(subscription);
             this.cleanUnsubscription(client, subHash, key);

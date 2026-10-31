@@ -937,12 +937,11 @@ public partial class bitflyer : Exchange
             { "count", limitVar },
         };
         List<object> response = await this.privateGetGetchildorders(this.extend(request, parameters));
-        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar));
         if ((symbol != null))
         {
-            orders = this.filterBy(orders, "symbol", symbol);
+            return ccxt.BaseExchange.ToOrderList(this.filterBy(ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar)), "symbol", symbol));
         }
-        return ccxt.BaseExchange.ToOrderList(orders);
+        return this.parseOrders(response, market, since, limitVar);
     }
 
     /**
@@ -1408,24 +1407,25 @@ public partial class bitflyer : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string? bodySigned = null;
         Dictionary<string, object> headersSigned = null;
         object request = (("/" + this.version) + "/");
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
-            request = add(request, "me/");
+            request = (request + ("me/"));
         }
-        request = add(request, path);
+        request = (request + path);
         if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                request = add(request, ("?" + this.urlencode(parameters)));
+                request = (request + (("?" + this.urlencode(parameters))));
             }
         }
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
@@ -1435,7 +1435,7 @@ public partial class bitflyer : Exchange
         }
         object baseUrl = this.implodeHostname(apiUrl);
         string? url = ((string)add(baseUrl, request));
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
@@ -1445,8 +1445,9 @@ public partial class bitflyer : Exchange
             {
                 if ((method != "GET"))
                 {
-                    bodySigned = this.json(parameters);
-                    auth = auth + bodySigned;
+                    string body = this.json(parameters);
+                    bodySigned = body;
+                    auth = auth + body;
                 }
             }
             headersSigned = new Dictionary<string, object>() {
@@ -1456,8 +1457,8 @@ public partial class bitflyer : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object headersResolved = ((headersSigned == null)) ? headers : headersSigned;
-        object bodyResolved = ((bodySigned == null)) ? body : bodySigned;
+        Dictionary<string, object> headersResolved = headersSigned;
+        string? bodyResolved = bodySigned;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

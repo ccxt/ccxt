@@ -846,7 +846,7 @@
                         "status": "open",
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0"
+                            "cost": 0
                         },
                         "trades": [],
                         "reduceOnly": null,
@@ -958,7 +958,7 @@
                         "status": "canceled",
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0"
+                            "cost": 0
                         },
                         "trades": [],
                         "reduceOnly": null,
@@ -1070,7 +1070,7 @@
                         "status": "closed",
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0"
+                            "cost": 0
                         },
                         "trades": [],
                         "reduceOnly": null,

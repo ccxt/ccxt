@@ -10,7 +10,6 @@ import "strings"
 
 type Apex struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newApex() *Apex {
@@ -57,7 +56,7 @@ func (this *Apex) Describe() any {
 			"createStopOrder":               true,
 			"createTriggerOrder":            true,
 			"editOrder":                     false,
-			"fetchAccounts":                 true,
+			"fetchAccounts":                 false,
 			"fetchAllGreeks":                false,
 			"fetchBalance":                  true,
 			"fetchBorrowInterest":           false,
@@ -117,8 +116,8 @@ func (this *Apex) Describe() any {
 			"fetchTrades":                   true,
 			"fetchTradingFee":               false,
 			"fetchTradingFees":              false,
-			"fetchTransfer":                 true,
-			"fetchTransfers":                true,
+			"fetchTransfer":                 false,
+			"fetchTransfers":                false,
 			"fetchVolatilityHistory":        false,
 			"fetchWithdrawal":               false,
 			"fetchWithdrawals":              false,
@@ -445,12 +444,12 @@ func (this *Apex) ParseBalance(response any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Apex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -470,10 +469,10 @@ func (this *Apex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseBalance(data)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil
 }
-func (this *Apex) ParseAccount(account any) any {
+func (this *Apex) ParseAccount(account any) map[string]any {
 	var accountId *string = this.SafeString(account, "id", "0")
 	return map[string]any{
 		"id":   accountId,
@@ -491,12 +490,12 @@ func (this *Apex) ParseAccount(account any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Apex) FetchAccountAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchAccountAsync(optionalArgs ...any) <-chan AsyncResult[Account] {
+	ch := make(chan AsyncResult[Account], 1)
 	go this.fetchAccountBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchAccountBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchAccountBody(ch chan AsyncResult[Account], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -516,7 +515,7 @@ func (this *Apex) fetchAccountBody(ch chan AsyncResult[any], optionalArgs ...any
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseAccount(data)}
+	ch <- AsyncResult[Account]{Value: AccountFromMap(this.ParseAccount(data))}
 	return nil
 }
 
@@ -528,12 +527,12 @@ func (this *Apex) fetchAccountBody(ch chan AsyncResult[any], optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Apex) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -639,10 +638,10 @@ func (this *Apex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 	var rows []any = SafeListTypedDefault(spotConfig, "assets", []any{})
 	var chains any = this.SafeList(multiChain, "chains", []any{})
 	this.Options.Store("_temp_currencies_chains", chains)
-	var result any = this.ParseCurrencies(rows)
+	var result map[string]any = this.ParseCurrencies(rows)
 	this.Options.Delete("_temp_currencies_chains")
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[map[string]any]{Value: result}
 	return nil
 }
 func (this *Apex) ParseCurrency(currency any) map[string]any {
@@ -737,12 +736,12 @@ func (this *Apex) ParseCurrency(currency any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Apex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -811,7 +810,7 @@ func (this *Apex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any
 	//         }
 	//     ]
 	// }
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(perpetualContract)}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(perpetualContract))}
 	return nil
 }
 func (this *Apex) ParseMarket(market any) any {
@@ -964,12 +963,12 @@ func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Apex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Apex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Apex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -994,7 +993,7 @@ func (this *Apex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	var tickers []any = SafeListTyped(response, "data")
 	var rawTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(rawTicker, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(rawTicker, market)}
 	return nil
 }
 
@@ -1007,12 +1006,12 @@ func (this *Apex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Apex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1034,7 +1033,7 @@ func (this *Apex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any
 	var response map[string]any = r1.Value
 	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbols)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbols))}
 	return nil
 }
 
@@ -1051,12 +1050,12 @@ func (this *Apex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Apex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1081,10 +1080,10 @@ func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 	}
 	// default is 200 when requested with `since`, max 200
 	var limitResolved any = func() any {
-		if limit == nil {
+		if (limit == nil) || (limit != nil && *limit > 200) {
 			return 200
 		}
-		return mathMin(limit, 200)
+		return limit
 	}()
 	request["limit"] = limitResolved
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params, 0.001)
@@ -1100,7 +1099,7 @@ func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 	var data map[string]any = SafeMapTyped(response, "data")
 	var OHLCVs []any = SafeListTypedDefault(data, this.SafeString(market, "id2"), []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(OHLCVs, market, timeframe, since, limitResolved)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(OHLCVs, market, timeframe, since, limitResolved))}
 	return nil
 }
 func (this *Apex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -1132,12 +1131,12 @@ func (this *Apex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Apex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Apex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Apex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1198,7 +1197,7 @@ func (this *Apex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol
 	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "b", "a")
 	orderbook["nonce"] = this.SafeInteger(data, "u")
 
-	ch <- AsyncResult[map[string]any]{Value: orderbook}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
 	return nil
 }
 
@@ -1215,12 +1214,12 @@ func (this *Apex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Apex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Apex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1275,7 +1274,7 @@ func (this *Apex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 	//
 	var trades []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limitResolved)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limitResolved))}
 	return nil
 }
 func (this *Apex) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1328,12 +1327,12 @@ func (this *Apex) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Apex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Apex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OpenInterest] {
+	ch := make(chan AsyncResult[OpenInterest], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Apex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1358,10 +1357,10 @@ func (this *Apex) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], sym
 	var tickers []any = SafeListTyped(response, "data")
 	var rawTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOpenInterest(rawTicker, market)}
+	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(rawTicker, market)}
 	return nil
 }
-func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
+func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
 	//
 	// {
 	//     "symbol": "BTCUSDT",
@@ -1408,12 +1407,12 @@ func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) map[strin
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *Apex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingRateHistory] {
+	ch := make(chan AsyncResult[[]FundingRateHistory], 1)
 	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHistory], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1493,7 +1492,7 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optional
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)}
+	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbol, since, limit))}
 	return nil
 }
 func (this *Apex) ParseOrder(order any, optionalArgs ...any) Order {
@@ -1641,12 +1640,11 @@ func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = delimiter
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
-	var marketResolved any = nil
+	var marketResolved any = market
 	if (market == nil) && (marketId != nil) {
-		var marketsMap any = this.Markets
 		var marketsById any = this.Markets_by_id
-		if (!IsEqual(marketsMap, nil)) && (InOp(marketsMap, marketId)) {
-			marketResolved = GetValue(marketsMap, marketId)
+		if (this.Markets != nil) && (InOp(this.Markets, marketId)) {
+			marketResolved = GetValue(this.Markets, marketId)
 		} else if (!IsEqual(marketsById, nil)) && (InOp(marketsById, marketId)) {
 			marketResolved = GetValue(marketsById, marketId)
 		} else {
@@ -1655,20 +1653,14 @@ func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
 				var markets any = GetValue(marketsById, newMarketId)
 				var numMarkets int = GetArrayLength(markets)
 				if numMarkets > 0 {
-					if IsEqual(GetValue(GetValue(GetValue(marketsById, newMarketId), 0), "id2"), marketId) {
-						marketResolved = GetValue(GetValue(marketsById, newMarketId), 0)
+					if IsEqual(GetValue(GetValue(markets, 0), "id2"), marketId) {
+						marketResolved = GetValue(markets, 0)
 					}
 				}
 			}
 		}
 	}
-	var marketValue any = func() any {
-		if IsEqual(marketResolved, nil) {
-			return market
-		}
-		return marketResolved
-	}()
-	return MarketTyped(this.Exchange.SafeMarket(marketId, marketValue, delimiter, marketType))
+	return MarketTyped(this.Exchange.SafeMarket(marketId, marketResolved, delimiter, marketType))
 }
 func (this *Apex) GenerateRandomClientIdOmni(_accountId any) any {
 	var hasAccountId bool = (!IsEqual(_accountId, nil)) && (!IsEqual(_accountId, ""))
@@ -1696,12 +1688,12 @@ func (this *Apex) GetSeeds() any {
 	}
 	return seeds
 }
-func (this *Apex) GetAccountIdAsync() <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) GetAccountIdAsync() <-chan AsyncResult[*string] {
+	ch := make(chan AsyncResult[*string], 1)
 	go this.getAccountIdBody(ch)
 	return ch
 }
-func (this *Apex) getAccountIdBody(ch chan AsyncResult[any]) any {
+func (this *Apex) getAccountIdBody(ch chan AsyncResult[*string]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var accountId *string = this.SafeString(this.Options, "accountId", "0")
@@ -1711,11 +1703,11 @@ func (this *Apex) getAccountIdBody(ch chan AsyncResult[any]) any {
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var accountData map[string]any = MapTyped(r.Value)
+		var accountData map[string]any = StructResultMap(r.Value, AccountToMap)
 		this.Options.Store("accountId", this.SafeString(accountData, "id", "0"))
 	}
 
-	ch <- AsyncResult[any]{Value: GetValue(this.Options, "accountId")}
+	ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "accountId")}
 	return nil
 }
 
@@ -1739,12 +1731,12 @@ func (this *Apex) getAccountIdBody(ch chan AsyncResult[any]) any {
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Apex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Apex) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1814,17 +1806,19 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "timeInForce")
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, "postOnly")
-	var clientOrderId any = DerefScalar(this.SafeStringN(paramsOmitted2, []any{"clientId", "clientOrderId", "client_order_id"}))
+	var clientOrderId *string = this.SafeStringN(paramsOmitted2, []any{"clientId", "clientOrderId", "client_order_id"})
 
 	r1 := <-this.GetAccountIdAsync()
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	accountId := r1.Value
-	if IsEqual(clientOrderId, nil) {
-		clientOrderId = this.GenerateRandomClientIdOmni(accountId)
-	}
-	var finalClientOrderId any = clientOrderId // java req
+	var finalClientOrderId any = func() any {
+		if clientOrderId != nil {
+			return clientOrderId
+		}
+		return this.GenerateRandomClientIdOmni(accountId)
+	}()
 	var paramsOmitted3 map[string]any = this.OmitDict(paramsOmitted2, []any{"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"})
 	var finalOrderPrice any = orderPrice // java req
 	var orderToSign map[string]any = map[string]any{
@@ -1854,7 +1848,7 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 		"size":        orderSize,
 		"price":       finalOrderPrice,
 		"limitFee":    limitFee,
-		"expiration":  MathFloor(Add(float64(timeNow)/1000, (30*24)*60*60)),
+		"expiration":  this.ParseToInt(float64(timeNow)/1000) + (30*24)*60*60,
 		"timeInForce": timeInForce,
 		"clientId":    finalClientOrderId,
 		"brokerId":    this.SafeString(this.Options, "brokerId", "6956"),
@@ -1871,7 +1865,7 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 	var response map[string]any = r3.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -1887,12 +1881,12 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
  * @param {string} [params.transferId] UUID, which is unique across the platform
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Apex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Apex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Apex) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1945,7 +1939,8 @@ func (this *Apex) transferBody(ch chan AsyncResult[map[string]any], code string,
 	var accountId *string = this.SafeString(accountData, "id", "")
 	var currency any = map[string]any{}
 	var assets any = []any{}
-	if ToLower(fromAccount) == "contract" {
+	var isContract bool = (ToLower(fromAccount) == "contract")
+	if isContract {
 		assets = contractAssets
 	} else {
 		assets = spotAssets
@@ -1964,15 +1959,27 @@ func (this *Apex) transferBody(ch chan AsyncResult[map[string]any], code string,
 		return *decimalsNum
 	}()
 	var mathPowResult float64 = (math.Pow(10, decimalsNumber))
-	var amountNumber int64 = this.ParseToInt(Multiply(amount, mathPowResult))
-	var timestampSeconds int64 = this.ParseToInt(float64(this.Milliseconds()) / 1000)
-	var clientOrderId any = DerefScalar(this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"}))
-	if IsEqual(clientOrderId, nil) {
-		clientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
+	var amountNum *float64
+	if derefNum, isNum := this.ParseNumber(amount).(float64); isNum {
+		amountNum = &derefNum
 	}
-	var finalClientOrderId any = clientOrderId // java req
+	var amountValue float64 = func() float64 {
+		if amountNum == nil {
+			return 0
+		}
+		return *amountNum
+	}()
+	var amountNumber int64 = this.ParseToInt(amountValue * mathPowResult)
+	var timestampSeconds int64 = this.ParseToInt(float64(this.Milliseconds()) / 1000)
+	var clientOrderId *string = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
+	var finalClientOrderId any = func() any {
+		if clientOrderId != nil {
+			return clientOrderId
+		}
+		return this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
+	}()
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientId", "clientOrderId", "client_order_id"})
-	if ToLower(fromAccount) == "contract" {
+	if isContract {
 		var formattedUint32 string = "4294967295"
 		var zkSignAccountId *string = Precise.StringMod(accountId, formattedUint32)
 		var expireTime int64 = timestampSeconds + (3600*24)*28
@@ -1993,7 +2000,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[map[string]any], code string,
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		signature := r3.Value
+		var signature any = r3.Value
 		var request map[string]any = map[string]any{
 			"amount":           amount,
 			"expireTime":       expireTime,
@@ -2015,13 +2022,13 @@ func (this *Apex) transferBody(ch chan AsyncResult[map[string]any], code string,
 			parsedAmount = &derefNum
 		}
 
-		ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
+		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(TransferEntryToMap(this.ParseTransfer(data, this.Currency(code))), map[string]any{
 			"timestamp":   currentTime,
 			"datetime":    this.Iso8601(currentTime),
 			"amount":      parsedAmount,
 			"fromAccount": "contract",
 			"toAccount":   "spot",
-		})}
+		}))}
 		return nil
 	} else {
 		var orderToSign map[string]any = map[string]any{
@@ -2068,24 +2075,24 @@ func (this *Apex) transferBody(ch chan AsyncResult[map[string]any], code string,
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 		var currentTime int64 = this.Milliseconds()
 
-		ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
+		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(TransferEntryToMap(this.ParseTransfer(data, this.Currency(code))), map[string]any{
 			"timestamp":   currentTime,
 			"datetime":    this.Iso8601(currentTime),
 			"amount":      this.ParseNumber(amount),
 			"fromAccount": "spot",
 			"toAccount":   "contract",
-		})}
+		}))}
 		return nil
 	}
 }
-func (this *Apex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
+func (this *Apex) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "coin")
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
 	var fromAccount *string = this.SafeString(transfer, "fromAccount")
 	var toAccount *string = this.SafeString(transfer, "toAccount")
-	return map[string]any{
+	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString2(transfer, "transferId", "id"),
 		"timestamp":   timestamp,
@@ -2095,7 +2102,7 @@ func (this *Apex) ParseTransfer(transfer any, optionalArgs ...any) map[string]an
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
 		"status":      this.SafeString(transfer, "status"),
-	}
+	})
 }
 
 /**
@@ -2107,12 +2114,12 @@ func (this *Apex) ParseTransfer(transfer any, optionalArgs ...any) map[string]an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2140,7 +2147,7 @@ func (this *Apex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.ParseOrder(data, market))}}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.ParseOrder(data, market))})}
 	return nil
 }
 
@@ -2154,12 +2161,12 @@ func (this *Apex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Apex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Apex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Apex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2188,7 +2195,7 @@ func (this *Apex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(data))}
+	ch <- AsyncResult[Order]{Value: this.SafeOrder(data)}
 	return nil
 }
 
@@ -2204,12 +2211,12 @@ func (this *Apex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Apex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Apex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2245,7 +2252,7 @@ func (this *Apex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data)}
 	return nil
 }
 
@@ -2260,12 +2267,12 @@ func (this *Apex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2291,7 +2298,7 @@ func (this *Apex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	var response map[string]any = r1.Value
 	var orders []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, nil, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, nil, since, limit))}
 	return nil
 }
 
@@ -2312,12 +2319,12 @@ func (this *Apex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {boolean} [params.page] Page numbers start from 0
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2366,7 +2373,7 @@ func (this *Apex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any)
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
 }
 
@@ -2382,12 +2389,12 @@ func (this *Apex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Apex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, optionalArgs ...any) any {
+func (this *Apex) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2422,7 +2429,7 @@ func (this *Apex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, opti
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(orders, nil, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(orders, nil, since, limit))}
 	return nil
 }
 
@@ -2441,12 +2448,12 @@ func (this *Apex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, opti
  * @param {boolean} [params.page] Page numbers start from 0
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Apex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2495,7 +2502,7 @@ func (this *Apex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...an
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(orders, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(orders, market, since, limit))}
 	return nil
 }
 
@@ -2513,12 +2520,12 @@ func (this *Apex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...an
  * @param {boolean} [params.page] Page numbers start from 0
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *Apex) FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingHistory] {
+	ch := make(chan AsyncResult[[]FundingHistory], 1)
 	go this.fetchFundingHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2567,7 +2574,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs
 	var data map[string]any = SafeMapTyped(response, "data")
 	var fundingValues []any = SafeListTypedDefault(data, "fundingValues", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseIncomes(fundingValues, market, since, limit)}
+	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(fundingValues, market, since, limit))}
 	return nil
 }
 func (this *Apex) ParseIncome(income any, optionalArgs ...any) any {
@@ -2613,12 +2620,12 @@ func (this *Apex) ParseIncome(income any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Apex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Apex) setLeverageBody(ch chan AsyncResult[any], leverage int64, optionalArgs ...any) any {
+func (this *Apex) setLeverageBody(ch chan AsyncResult[map[string]any], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2650,7 +2657,7 @@ func (this *Apex) setLeverageBody(ch chan AsyncResult[any], leverage int64, opti
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: data}
+	ch <- AsyncResult[map[string]any]{Value: data}
 	return nil
 }
 
@@ -2663,12 +2670,12 @@ func (this *Apex) setLeverageBody(ch chan AsyncResult[any], leverage int64, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Apex) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Apex) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Position] {
+	ch := make(chan AsyncResult[[]Position], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Apex) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2691,10 +2698,10 @@ func (this *Apex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...a
 	var data map[string]any = SafeMapTyped(response, "data")
 	var positions []any = SafeListTypedDefault(data, "positions", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParsePositions(positions, symbols)}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbols))}
 	return nil
 }
-func (this *Apex) ParsePosition(position any, optionalArgs ...any) any {
+func (this *Apex) ParsePosition(position any, optionalArgs ...any) Position {
 	//
 	// {
 	//     "symbol": "BTC-USDT",
@@ -2750,17 +2757,14 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) any {
 	})
 }
 func (this *Apex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -2771,7 +2775,7 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 	var signPath string = "/api/" + path
-	var signBody any = body
+	var signBody *string = nil
 	if strings.ToUpper(method) != "POST" {
 		if len(ObjectKeys(params)) > 0 {
 			signPath += "?" + this.Rawencode(params)
@@ -2779,14 +2783,14 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 		}
 	} else {
 		var sortedQuery map[string]any = this.Keysort(params)
-		signBody = this.Rawencode(sortedQuery)
+		signBody = SafeStringPtr(this.Rawencode(sortedQuery))
 	}
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		var messageString any = timestamp + strings.ToUpper(method) + signPath
+		var messageString string = timestamp + strings.ToUpper(method) + signPath
 		if signBody != nil {
-			messageString = Add(messageString, signBody)
+			messageString = messageString + *signBody
 		}
 		var signature string = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), sha256, "base64")
 		headersValue["APEX-SIGNATURE"] = signature
@@ -2831,7 +2835,6 @@ func (this *Apex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
 	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
 }
 
 // typed methods
@@ -2866,7 +2869,7 @@ func (this *Apex) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -2883,7 +2886,7 @@ func (this *Apex) FetchAccount(params ...any) (Account, error) {
 	if r.Err != nil {
 		return Account{}, r.Err
 	}
-	var res Account = NewAccount(r.Value)
+	var res Account = r.Value
 	return res, nil
 }
 
@@ -2917,7 +2920,7 @@ func (this *Apex) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -2941,7 +2944,7 @@ func (this *Apex) FetchTicker(symbol string, options ...FetchTickerOptions) (Tic
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -2965,7 +2968,7 @@ func (this *Apex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) 
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -2993,7 +2996,7 @@ func (this *Apex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -3018,7 +3021,7 @@ func (this *Apex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -3046,7 +3049,7 @@ func (this *Apex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -3070,7 +3073,7 @@ func (this *Apex) FetchOpenInterest(symbol string, options ...FetchOpenInterestO
 	if r.Err != nil {
 		return OpenInterest{}, r.Err
 	}
-	var res OpenInterest = NewOpenInterest(r.Value)
+	var res OpenInterest = r.Value
 	return res, nil
 }
 
@@ -3098,7 +3101,7 @@ func (this *Apex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
+	var res []FundingRateHistory = r.Value
 	return res, nil
 }
 
@@ -3133,7 +3136,7 @@ func (this *Apex) CreateOrder(symbol string, typeVar string, side string, amount
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3160,7 +3163,7 @@ func (this *Apex) Transfer(code string, amount float64, fromAccount string, toAc
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 
@@ -3184,7 +3187,7 @@ func (this *Apex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -3209,7 +3212,7 @@ func (this *Apex) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3236,7 +3239,7 @@ func (this *Apex) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3262,7 +3265,7 @@ func (this *Apex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -3294,7 +3297,7 @@ func (this *Apex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -3321,7 +3324,7 @@ func (this *Apex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -3351,7 +3354,7 @@ func (this *Apex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -3380,7 +3383,7 @@ func (this *Apex) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingHistory = NewFundingHistoryArray(r.Value)
+	var res []FundingHistory = r.Value
 	return res, nil
 }
 
@@ -3405,7 +3408,7 @@ func (this *Apex) SetLeverage(leverage int64, options ...SetLeverageOptions) (ma
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -3429,561 +3432,6 @@ func (this *Apex) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Apex) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Apex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrders(ids, options...)
-}
-func (this *Apex) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Apex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
-}
-func (this *Apex) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Apex) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Apex) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Apex) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.CreateDepositAddress(code, options...)
-}
-func (this *Apex) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Apex) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Apex) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Apex) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Apex) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)
-}
-func (this *Apex) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Apex) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
-}
-func (this *Apex) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Apex) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Apex) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrders(orders, options...)
-}
-func (this *Apex) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Apex) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Apex) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Apex) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Apex) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Apex) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
-}
-func (this *Apex) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Apex) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Apex) FetchAccounts(params ...any) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
-func (this *Apex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Apex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchBidsAsks(options...)
-}
-func (this *Apex) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Apex) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Apex) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
-}
-func (this *Apex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrders(options...)
-}
-func (this *Apex) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Apex) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Apex) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Apex) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Apex) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Apex) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Apex) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddress(code, options...)
-}
-func (this *Apex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Apex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Apex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDeposits(options...)
-}
-func (this *Apex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Apex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Apex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
-}
-func (this *Apex) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Apex) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Apex) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Apex) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Apex) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingRates(options...)
-}
-func (this *Apex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Apex) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Apex) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Apex) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Apex) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
-	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Apex) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedger(options...)
-}
-func (this *Apex) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Apex) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
-	return this.exchangeTyped.FetchLeverage(symbol, options...)
-}
-func (this *Apex) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
-	return this.exchangeTyped.FetchLeverages(options...)
-}
-func (this *Apex) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
-	return this.exchangeTyped.FetchLeverageTiers(options...)
-}
-func (this *Apex) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Apex) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Apex) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Apex) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Apex) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Apex) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
-	return this.exchangeTyped.FetchMarginModes(options...)
-}
-func (this *Apex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Apex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Apex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
-}
-func (this *Apex) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Apex) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Apex) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Apex) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
-}
-func (this *Apex) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Apex) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Apex) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Apex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Apex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Apex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Apex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
-	return this.exchangeTyped.FetchPosition(symbol, options...)
-}
-func (this *Apex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Apex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
-	return this.exchangeTyped.FetchPositionMode(options...)
-}
-func (this *Apex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Apex) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
-func (this *Apex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsRisk(options...)
-}
-func (this *Apex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Apex) FetchStatus(params ...any) (Status, error) {
-	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Apex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
-	return this.exchangeTyped.FetchTradingFee(symbol, options...)
-}
-func (this *Apex) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
-}
-func (this *Apex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Apex) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Apex) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Apex) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Apex) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Apex) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
-}
-func (this *Apex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawals(options...)
-}
-func (this *Apex) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Apex) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
-}
-func (this *Apex) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Apex) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
-	return this.exchangeTyped.Withdraw(code, amount, address, options...)
-}
-func (this *Apex) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Apex) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Apex) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Apex) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Apex) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Apex) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Apex) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Apex) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Apex) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Apex) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Apex) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Apex) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Apex) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Apex) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Apex) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Apex) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Apex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Apex) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Apex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Apex) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Apex) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Apex) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Apex) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Apex) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Apex) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Apex) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Apex) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Apex) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Apex) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Apex) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Apex) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Apex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Apex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Apex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Apex) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Apex) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Apex) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Apex) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Apex) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Apex) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Apex) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Apex) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Apex) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Apex) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Apex) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Apex) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Apex) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Apex) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Apex) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Apex) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Apex) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Apex) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Apex) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Apex) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Apex) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Apex) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Apex) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Apex) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Apex) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Apex) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Apex) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Apex) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Apex) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Apex) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Apex) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

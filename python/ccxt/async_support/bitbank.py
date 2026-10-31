@@ -604,7 +604,10 @@ class bitbank(Exchange, ImplicitAPI):
         windowLimit = 1000 if (limit is None) else limit
         limitResolved = windowLimit if (since is None) else limit
         duration = self.parse_timeframe(timeframe)
-        sinceResolved = self.milliseconds() - duration * 1000 * windowLimit if (since is None) else since
+        windowMs = duration * 1000 * 1000
+        if limit is not None:
+            windowMs = duration * 1000 * limit
+        sinceResolved = self.milliseconds() - windowMs if (since is None) else since
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -705,7 +708,7 @@ class bitbank(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'UNFILLED': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -1047,15 +1050,16 @@ class bitbank(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         query = self.omit(params, self.extract_params(path))
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + '/'
         requestBody = None
         requestHeaders = None
-        if (api == 'public') or (api == 'markets'):
+        if (apiName == 'public') or (apiName == 'markets'):
             url += self.implode_params(path, params)
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
@@ -1075,14 +1079,15 @@ class bitbank(Exchange, ImplicitAPI):
                 auth = requestTime + timeWindow
             url += self.version + '/' + self.implode_params(path, params)
             if method == 'POST':
-                requestBody = self.json(query)
-                auth += requestBody
+                jsonBody = self.json(query)
+                requestBody = jsonBody
+                auth += jsonBody
             else:
                 auth += '/' + self.version + '/' + path
                 if len(query) > 0:
-                    query = self.urlencode(query)
-                    url += '?' + query
-                    auth += '?' + query
+                    queryString = self.urlencode(query)
+                    url += '?' + queryString
+                    auth += '?' + queryString
             requestHeaders = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,
@@ -1093,8 +1098,8 @@ class bitbank(Exchange, ImplicitAPI):
                 requestHeaders['ACCESS-TIME-WINDOW'] = timeWindow
             else:
                 requestHeaders['ACCESS-NONCE'] = nonce
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

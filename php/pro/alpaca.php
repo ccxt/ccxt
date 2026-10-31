@@ -286,7 +286,7 @@ class alpaca extends \ccxt\async\alpaca {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
-        if ($isSnapshot === true) {
+        if ($isSnapshot) {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'b', 'a', 'p', 's');
             $orderbook->reset($snapshot);
         } else {
@@ -307,7 +307,7 @@ class alpaca extends \ccxt\async\alpaca {
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }

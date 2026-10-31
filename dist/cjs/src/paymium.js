@@ -618,7 +618,7 @@ class paymium extends paymium$1["default"] {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const baseApiUrl = this.safeString(this.urls['api'], 'rest');
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -626,7 +626,7 @@ class paymium extends paymium$1["default"] {
         const baseUrl = baseApiUrl;
         let url = baseUrl + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
+        if (api[0] === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
@@ -641,7 +641,7 @@ class paymium extends paymium$1["default"] {
                 'Api-Nonce': nonce,
             };
             const hasQuery = Object.keys(query).length > 0;
-            let signedBody = body;
+            let signedBody = undefined;
             if (method === 'POST' && hasQuery) {
                 signedBody = this.json(query);
             }
@@ -661,7 +661,7 @@ class paymium extends paymium$1["default"] {
             signedHeaders['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

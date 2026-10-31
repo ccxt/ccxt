@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import type { ADL, Account, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, Status, MarginLoan } from './base/types.js';
+import type { ADL, Account, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, Num, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, Status, MarginLoan } from './base/types.js';
 /**
  * @class woo
  * @augments Exchange
@@ -289,7 +289,7 @@ export default class woo extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseTimeInForce(timeInForce: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     /**
      * @method
      * @name woo#fetchOrderBook
@@ -401,9 +401,9 @@ export default class woo extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    getDedicatedNetworkId(currency: any, params: Dict): any;
+    getDedicatedNetworkId(currency: any, params: Dict): [Str, Dict];
     parseDepositAddress(depositEntry: Dict, currency?: Currency): DepositAddress;
-    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<any>;
     /**
      * @method
      * @name woo#fetchLedger
@@ -418,7 +418,7 @@ export default class woo extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryType(type: Str): Str;
-    getCurrencyFromChaincode(networkizedCode: any, currency: any): any;
+    getCurrencyFromChaincode(networkizedCode: any, currency: any): CurrencyInterface;
     /**
      * @method
      * @name woo#fetchDeposits
@@ -511,7 +511,7 @@ export default class woo extends Exchange {
     repayMargin(code: string, amount: number, symbol?: Str, params?: Dict): Promise<MarginLoan>;
     parseMarginLoan(info: Dict, currency?: Currency): MarginLoan;
     nonce(): number;
-    sign(path: string, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, section?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     parseIncome(income: Dict, market?: Market): object;
     /**

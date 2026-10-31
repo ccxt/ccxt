@@ -72,7 +72,7 @@ export default class predictfun extends Exchange {
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    parseEvent(rawTopic: Dict): any;
+    parseEvent(rawTopic: Dict): Dict;
     /**
      * @ignore
      * @method
@@ -663,7 +663,7 @@ export default class predictfun extends Exchange {
      * @param {object} details the event's details block
      * @returns {object} the outcome object, or a stub when the market is not cached
      */
-    walletEventOutcome(details: Dict): any;
+    walletEventOutcome(details: Dict): Dict;
     /**
      * @ignore
      * @method
@@ -717,14 +717,12 @@ export default class predictfun extends Exchange {
      * @name predictfun#sign
      * @description builds the request URL and attaches the API key header required by every endpoint
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the API group and access level
+     * @param {string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: any;

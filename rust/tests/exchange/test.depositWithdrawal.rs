@@ -20,7 +20,7 @@ pub fn testDepositWithdrawal(mut exchange: Value, mut skippedProperties: Value, 
             m.insert("txid".to_string(), Value::Str("0x1345FEG45EAEF7".into()));
             m.insert("timestamp".to_string(), Value::Int(1502962946216));
             m.insert("datetime".to_string(), Value::Str("2017-08-17 12:42:48.000".into()));
-            m.insert("network".to_string(), Value::Str("ETH".into()));
+            m.insert("network".to_string(), Value::Str("ERC20".into()));
             m.insert("address".to_string(), Value::Str("0xEFE3487358AEF352345345".into()));
             m.insert("addressTo".to_string(), Value::Str("0xEFE3487358AEF352345123".into()));
             m.insert("addressFrom".to_string(), Value::Str("0xEFE3487358AEF352345456".into()));
@@ -42,6 +42,7 @@ pub fn testDepositWithdrawal(mut exchange: Value, mut skippedProperties: Value, 
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
+    crate::tests_support::shared::assert_unified_network_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), exchange.safe_string(entry.clone(), Value::Str("network".into()), &[]).clone()]);
     //
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".into()).clone(), Value::from(vec![Value::Str("ok".into()), Value::Str("pending".into()), Value::Str("failed".into()), Value::Str("rejected".into()), Value::Str("canceled".into())]).clone()]);
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()).clone(), Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())]).clone()]);

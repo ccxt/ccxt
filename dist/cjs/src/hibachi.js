@@ -323,7 +323,7 @@ class hibachi extends hibachi$1["default"] {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'underlyingDecimals'))),
-                'price': this.parseNumber(this.safeValue(this.safeList(market, 'orderbookGranularities', []), 0)) / 10000.0,
+                'price': this.parseNumber(Precise["default"].stringDiv(this.safeString(this.safeList(market, 'orderbookGranularities', []), 0), '10000')),
             },
             'limits': {
                 'leverage': {
@@ -888,7 +888,7 @@ class hibachi extends hibachi$1["default"] {
         const makerFee = this.safeNumber(market, 'maker', this.safeNumber(this.options, 'defaultMakerFee', 0.00015));
         const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
         const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = Math.max(takerFeeValue, makerFeeValue);
+        const feeRate = this.parseNumber(Precise["default"].stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -1021,7 +1021,7 @@ class hibachi extends hibachi$1["default"] {
         const makerFee = this.safeNumber(market, 'maker', 0);
         const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
         const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = Math.max(takerFeeValue, makerFeeValue);
+        const feeRate = this.parseNumber(Precise["default"].stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage(message, this.privateKey);
         const request = {
@@ -1781,9 +1781,10 @@ class hibachi extends hibachi$1["default"] {
             'percentage': undefined,
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const endpoint = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1800,11 +1801,11 @@ class hibachi extends hibachi$1["default"] {
         if (hasJsonBody) {
             headersValue['Content-Type'] = 'application/json';
         }
-        let bodyResult = body;
+        let bodyResult = undefined;
         if (hasJsonBody) {
             bodyResult = this.json(params);
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             headersValue['Authorization'] = this.apiKey;
         }

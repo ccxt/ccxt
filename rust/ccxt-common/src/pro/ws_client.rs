@@ -136,6 +136,17 @@ fn parse_binary(b: &[u8]) -> Value {
     crate::exchange_stubs::bytes_to_value(b)
 }
 
+/// Decode a binary frame for a client with `decompressBinary` off (mexc
+/// protobuf, paradex SBE): JSON is still read as text, as some venues send it
+/// over the binary opcode, everything else is carried through as raw bytes.
+/// No utf-8 fallback here: a binary payload can pass for utf-8 text.
+fn parse_raw_binary(b: &[u8]) -> Value {
+    match serde_json::from_slice::<serde_json::Value>(b) {
+        Ok(j) => Value::from_json(&j),
+        Err(_) => crate::exchange_stubs::bytes_to_value(b),
+    }
+}
+
 impl ClientState {
     fn push_incoming(&self, v: Value) {
         self.incoming.lock().unwrap().push_back(v);
@@ -339,6 +350,11 @@ impl ClientState {
     pub fn has_queued_messages(&self) -> bool {
         !self.incoming.lock().unwrap().is_empty()
     }
+    /// Pop the oldest un-consumed inbound frame (static-WS harness: replay the
+    /// acks an unWatch* fixture holds beyond the one that resolved the call).
+    pub fn pop_queued_message(&self) -> Option<Value> {
+        self.incoming.lock().unwrap().pop_front()
+    }
     pub fn mark_ws_test_completed(&self) { *self.ws_test_completed.lock().unwrap() = true; }
     pub fn is_ws_test_completed(&self) -> bool { *self.ws_test_completed.lock().unwrap() }
     /// Reject every pending future so a fixture whose frames don't resolve the
@@ -476,8 +492,28 @@ pub fn value_sub_field_write(subref: &str, key: &str, val: Value) {
 /// Open an HTTP CONNECT tunnel to `proxy` and hand the raw stream to
 /// tungstenite. `connect_async` has no proxy support of its own, so a venue
 /// reached through `wsProxy` / `wssProxy` has to be dialed this way.
+fn upgrade_request(
+    url: &str,
+    headers: &[(String, String)],
+) -> Result<tokio_tungstenite::tungstenite::handshake::client::Request, String> {
+    use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+    use tokio_tungstenite::tungstenite::http::{HeaderName, HeaderValue};
+    let mut request = url
+        .into_client_request()
+        .map_err(|e| format!("[NetworkError] ws url {url}: {e}"))?;
+    for (key, value) in headers {
+        let name = HeaderName::from_bytes(key.as_bytes())
+            .map_err(|e| format!("[BadRequest] ws header {key}: {e}"))?;
+        let value = HeaderValue::from_str(value)
+            .map_err(|e| format!("[BadRequest] ws header {key}: {e}"))?;
+        request.headers_mut().insert(name, value);
+    }
+    Ok(request)
+}
+
 async fn connect_via_proxy(
     url: &str,
+    headers: &[(String, String)],
     proxy: &str,
 ) -> Result<tokio_tungstenite::WebSocketStream<
         tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, String> {
@@ -518,13 +554,23 @@ async fn connect_via_proxy(
     if !first.contains(" 200") {
         return Err(format!("[NetworkError] ws proxy {proxy} refused CONNECT: {first}"));
     }
-    let (ws, _resp) = tokio_tungstenite::client_async_tls(url, stream)
+    let (ws, _resp) = tokio_tungstenite::client_async_tls(upgrade_request(url, headers)?, stream)
         .await
         .map_err(|e| format!("[NetworkError] ws connect {url} via {proxy}: {e}"))?;
     Ok(ws)
 }
 
-pub async fn ensure_client(url: &str, proxy: Option<String>) -> Result<Arc<ClientState>, String> {
+pub async fn ensure_client(url: &str, proxy: Option<String>, decompress_binary: bool) -> Result<Arc<ClientState>, String> {
+    ensure_client_with_headers(url, &[], proxy, decompress_binary).await
+}
+
+/// `ensure_client` with extra upgrade-request headers (TS `options.ws.options.headers`).
+pub async fn ensure_client_with_headers(
+    url: &str,
+    headers: &[(String, String)],
+    proxy: Option<String>,
+    decompress_binary: bool,
+) -> Result<Arc<ClientState>, String> {
     let state = ensure_slot(url);
     if *state.connected.lock().unwrap() {
         return Ok(state);
@@ -537,9 +583,9 @@ pub async fn ensure_client(url: &str, proxy: Option<String>) -> Result<Arc<Clien
         return Ok(state);
     }
     let ws = match proxy.as_deref().filter(|p| !p.is_empty()) {
-        Some(p) => connect_via_proxy(url, p).await?,
+        Some(p) => connect_via_proxy(url, headers, p).await?,
         None => {
-            let (ws, _resp) = tokio_tungstenite::connect_async(url)
+            let (ws, _resp) = tokio_tungstenite::connect_async(upgrade_request(url, headers)?)
                 .await
                 .map_err(|e| format!("[NetworkError] ws connect {url}: {e}"))?;
             ws
@@ -566,7 +612,7 @@ pub async fn ensure_client(url: &str, proxy: Option<String>) -> Result<Arc<Clien
         while let Some(frame) = read.next().await {
             match frame {
                 Ok(Message::Text(t)) => st.push_incoming(parse_text(&t)),
-                Ok(Message::Binary(b)) => st.push_incoming(parse_binary(&b)),
+                Ok(Message::Binary(b)) => st.push_incoming(if decompress_binary { parse_binary(&b) } else { parse_raw_binary(&b) }),
                 Ok(Message::Pong(_)) => st.on_pong(),
                 // tungstenite answers Ping frames with Pong automatically.
                 Ok(Message::Ping(_)) => {}
@@ -682,6 +728,9 @@ pub fn mock_has_pending_futures(url: &str) -> bool {
 }
 pub fn mock_has_queued_messages(url: &str) -> bool {
     get_client(url).map(|c| c.has_queued_messages()).unwrap_or(false)
+}
+pub fn mock_pop_message(url: &str) -> Option<Value> {
+    get_client(url).and_then(|c| c.pop_queued_message())
 }
 pub fn mock_mark_completed(url: &str) {
     if let Some(c) = get_client(url) { c.mark_ws_test_completed(); }
@@ -1003,9 +1052,34 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn upgrade_request_carries_option_headers() {
+        use tokio_tungstenite::tungstenite::handshake::server::{Request, Response};
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let (tx, rx) = tokio::sync::oneshot::channel::<Option<String>>();
+        tokio::spawn(async move {
+            if let Ok((stream, _)) = listener.accept().await {
+                let mut seen = None;
+                let callback = |req: &Request, resp: Response| {
+                    seen = req.headers().get("X-Gate-Size-Decimal").map(|v| v.to_str().unwrap().to_string());
+                    Ok(resp)
+                };
+                let ws = tokio_tungstenite::accept_hdr_async(stream, callback).await.unwrap();
+                let _ = tx.send(seen);
+                drop(ws);
+            }
+        });
+        let url = format!("ws://{addr}");
+        let headers = vec![("X-Gate-Size-Decimal".to_string(), "1".to_string())];
+        ensure_client_with_headers(&url, &headers, None, true).await.expect("connect");
+        assert_eq!(rx.await.unwrap().as_deref(), Some("1"));
+        drop_client(&url);
+    }
+
+    #[tokio::test]
     async fn transport_roundtrip() {
         let url = spawn_mock_server().await;
-        let client = ensure_client(&url, None).await.expect("connect");
+        let client = ensure_client(&url, None, true).await.expect("connect");
 
         // Send a subscribe frame once (idempotent per hash).
         assert!(client.subscribe_once("ticker:BTC/USDT", Value::Null));
@@ -1219,5 +1293,16 @@ mod tests {
         e.write_all(b"{\"x\":true}").unwrap();
         let gz = e.finish().unwrap();
         assert!(matches!(parse_binary(&gz), Value::Dict(_)));
+    }
+
+    #[test]
+    fn raw_binary_frames_stay_bytes() {
+        // an SBE heartbeat header is all small integers, so the frame is valid
+        // utf-8, it must still reach the exchange as bytes with decompressBinary off
+        let frame: Vec<u8> = vec![0x10, 0x00, 0x28, 0x00, 0x01, 0x00, 0x02, 0x00, 0x41, 0x42, 0x43, 0x01];
+        assert!(std::str::from_utf8(&frame).is_ok());
+        assert_eq!(parse_raw_binary(&frame), crate::exchange_stubs::bytes_to_value(&frame));
+        // json over the binary opcode is still parsed
+        assert!(matches!(parse_raw_binary(b"{\"x\":true}"), Value::Dict(_)));
     }
 }

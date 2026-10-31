@@ -94,6 +94,7 @@
 	- [paymium](exchanges/paymium.md)
 	- [phemex](exchanges/phemex.md)
 	- [poloniex](exchanges/poloniex.md)
+	- [polymarket](exchanges/polymarket.md)
 	- [revolutx](exchanges/revolutx.md)
 	- [tokocrypto](exchanges/tokocrypto.md)
 	- [toobit](exchanges/toobit.md)

@@ -4,6 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import io.github.ccxt.base.Precise;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ public class TestPosition extends BaseTest {
                 put( "marginRatio", true );
                 put( "liquidationPrice", true );
                 put( "markPrice", true );
+                put( "positionMargin", true );
                 put( "collateral", true );
                 put( "percentage", true );
             }}, skippedProperties);
@@ -60,12 +62,13 @@ public class TestPosition extends BaseTest {
             put( "marginRatio", exchange.parseNumber("1.234") );
             put( "liquidationPrice", exchange.parseNumber("1.234") );
             put( "markPrice", exchange.parseNumber("1.234") );
+            put( "positionMargin", exchange.parseNumber("1.234") );
             put( "collateral", exchange.parseNumber("1.234") );
             put( "marginMode", "cross" );
             put( "side", "long" );
             put( "percentage", exchange.parseNumber("1.234") );
         }};
-        List<String> emptyotAllowedFor = new ArrayList<String>(Arrays.asList("liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"));
+        List<String> emptyotAllowedFor = new ArrayList<String>(Arrays.asList("positionMargin", "liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyotAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
@@ -85,6 +88,86 @@ public class TestPosition extends BaseTest {
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "liquidationPrice", "0");
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "markPrice", "0");
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "collateral", "0");
+        // TestSharedMethods.AssertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); // percentage might be < 0
+        String marginMode = exchange.safeString(entry, "marginMode");
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
+            String side = exchange.safeString(entry, "side");
+            String entryPriceString = exchange.safeString(entry, "entryPrice");
+            String liquidationPriceString = exchange.safeString(entry, "liquidationPrice");
+            String contractsString = exchange.safeString(entry, "contracts");
+            String contractSizeString = exchange.safeString(entry, "contractSize");
+            String maintenanceMarginString = exchange.safeString(entry, "maintenanceMargin");
+            String collateralString = exchange.safeString(entry, "collateral");
+            String initialMarginString = exchange.safeString(entry, "initialMargin");
+            String unrealizedPnlString = exchange.safeString(entry, "unrealizedPnl");
+            if ((!java.util.Objects.equals(entryPriceString, null)) && (!java.util.Objects.equals(liquidationPriceString, null)) && Precise.stringGt(entryPriceString, "0") && Precise.stringGt(liquidationPriceString, "0"))
+            {
+                if (java.util.Objects.equals(side, "long"))
+                {
+                    TestSharedMethods.AssertLess(exchange, skippedProperties, method, entry, "liquidationPrice", entryPriceString);
+                } else if (java.util.Objects.equals(side, "short"))
+                {
+                    TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "liquidationPrice", entryPriceString);
+                }
+            }
+            String marginString = exchange.safeString(entry, "positionMargin");
+            if ((!java.util.Objects.equals(marginString, null)) && (!java.util.Objects.equals(collateralString, null)) && (!java.util.Objects.equals(unrealizedPnlString, null)))
+            {
+                // collateral is margin + unrealizedPnl
+                String expectedCollateral = Precise.stringAdd(marginString, unrealizedPnlString);
+                String collateralDiff = Precise.stringAbs(Precise.stringSub(collateralString, expectedCollateral));
+                String collateralTolerance = Precise.stringMul(Precise.stringAbs(marginString), "0.05");
+                Assert(Precise.stringLe(collateralDiff, collateralTolerance), ("collateral should equal margin + unrealizedPnl" + logText));
+            }
+            String entryMarginString = marginString;
+            if ((java.util.Objects.equals(entryMarginString, null)) && (!java.util.Objects.equals(collateralString, null)))
+            {
+                if ((!java.util.Objects.equals(unrealizedPnlString, null)) && !Precise.stringEq(collateralString, initialMarginString))
+                {
+                    entryMarginString = Precise.stringSub(collateralString, unrealizedPnlString);
+                } else
+                {
+                    entryMarginString = collateralString;
+                }
+            } else if ((java.util.Objects.equals(entryMarginString, null)) && (!java.util.Objects.equals(initialMarginString, null)))
+            {
+                entryMarginString = initialMarginString;
+            }
+            Boolean hasEntryMargin = (!java.util.Objects.equals(entryMarginString, null)) && Precise.stringGt(entryMarginString, "0");
+            Boolean hasEntryPrice = (!java.util.Objects.equals(entryPriceString, null)) && Precise.stringGt(entryPriceString, "0");
+            Boolean hasLiqPrice = (!java.util.Objects.equals(liquidationPriceString, null)) && Precise.stringGt(liquidationPriceString, "0");
+            Boolean hasContracts = (!java.util.Objects.equals(contractsString, null)) && Precise.stringGt(contractsString, "0");
+            Boolean hasContractSize = (!java.util.Objects.equals(contractSizeString, null)) && Precise.stringGt(contractSizeString, "0");
+            Boolean hasMm = (!java.util.Objects.equals(maintenanceMarginString, null)) && Precise.stringGt(maintenanceMarginString, "0");
+            if (Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasEntryPrice) && Boolean.TRUE.equals(hasLiqPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize) && Boolean.TRUE.equals(hasMm))
+            {
+                Object symbolForMarket = (((!java.util.Objects.equals(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
+                Object market = null;
+                if ((!java.util.Objects.equals(symbolForMarket, null)) && (!java.util.Objects.equals(exchange.markets, null)) && (((Map<?, ?>)exchange.markets).containsKey(symbolForMarket)))
+                {
+                    market = exchange.market(symbolForMarket);
+                }
+                Boolean isInverse = (!java.util.Objects.equals(market, null)) && Helpers.isTrue(exchange.safeBool(market, "inverse", false));
+                String priceDiff = null;
+                if (Boolean.TRUE.equals(isInverse))
+                {
+                    String invEntry = Precise.stringDiv("1", entryPriceString);
+                    String invLiq = Precise.stringDiv("1", liquidationPriceString);
+                    priceDiff = Precise.stringAbs(Precise.stringSub(invEntry, invLiq));
+                } else
+                {
+                    priceDiff = Precise.stringAbs(Precise.stringSub(entryPriceString, liquidationPriceString));
+                }
+                String lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                String calculatedMm = Precise.stringSub(entryMarginString, lossFromEntry);
+                Assert(Precise.stringGt(calculatedMm, "0"), ((("isolated position remaining collateral at liquidationPrice (" + calculatedMm) + ") should be greater than 0") + logText));
+                String mmDiff = Precise.stringAbs(Precise.stringSub(calculatedMm, maintenanceMarginString));
+                String maxTolerance = Precise.stringMul(entryMarginString, "0.05");
+                Assert(Precise.stringLe(mmDiff, maxTolerance), ((((("isolated position maintenanceMargin (" + maintenanceMarginString) + ") does not match remaining collateral at liquidationPrice (") + calculatedMm) + ")") + logText));
+            }
+        }
     }
 
 }

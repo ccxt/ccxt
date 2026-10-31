@@ -171,6 +171,9 @@ const SCALARS: Record<string, Resolved> = {
     'OrderType': { 't': 'str' },
     'MarketType': { 't': 'str' },
     'SubType': { 't': 'str' },
+    'DefaultType': { 't': 'str' },
+    'DefaultSubType': { 't': 'str' },
+    'ExchangeOptions': { 't': 'dict', 'value': 'any' },
     'IndexType': { 't': 'str' },
     'Dict': { 't': 'dict', 'value': 'any' },
 };
@@ -222,7 +225,7 @@ export function resolveTsType (ir: TypesIR, tsType: string, context?: { owner: s
         if (text.indexOf ('|') >= 0) {
             // a union of string literals with Str/string behaves as a string
             const members = text.split ('|').map ((p) => p.trim ());
-            const stringy = members.every ((m) => m.startsWith ("'") || m === 'string' || m === 'Str');
+            const stringy = members.every ((m) => m.startsWith ("'") || m === 'string' || m === 'Str' || m === '(string & {})');
             if (stringy) {
                 return { 't': 'str' };
             }
@@ -392,6 +395,10 @@ export function csExprOf (idiom: string, recv: string, key: string, elem: string
     }
     if (idiom === 'doubleList') {
         return recv + '.ContainsKey(' + k + ') ? ((IEnumerable<object>)' + recv + '[' + k + ']).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null';
+    }
+    if (idiom === 'objectList') {
+        // mixed-type rows (e.g. L3 order book [price, amount, orderId]) keep their raw elements
+        return recv + '.ContainsKey(' + k + ') ? ((IEnumerable<object>)' + recv + '[' + k + ']).Select(x => ((IEnumerable<object>)x).ToList()).ToList() : null';
     }
     if (idiom === 'safeValueDict') {
         return 'Exchange.SafeValue(' + recv + ', ' + k + ') != null ? (Dictionary<string, object>)Exchange.SafeValue(' + recv + ', ' + k + ') : null';

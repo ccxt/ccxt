@@ -1368,19 +1368,24 @@ class bullish extends bullish$1["default"] {
             '_pageSize': maxLimit,
         };
         const [requestUntil, paramsUntil] = this.handleUntilOption('createdAtDatetime[lte]', request, paramsPaginate);
-        let until = this.safeInteger(requestUntil, 'createdAtDatetime[lte]');
+        const untilParam = this.safeInteger(requestUntil, 'createdAtDatetime[lte]');
+        let until = undefined;
+        if (untilParam !== undefined) {
+            until = untilParam;
+        }
         const duration = this.parseTimeframe(timeframe);
-        const maxDelta = 1000 * duration * maxLimit;
+        const maxDelta = duration * maxLimit * 1000;
         let startTime = since;
         // both of since and until are required
-        if (startTime === undefined && until === undefined) {
-            until = this.milliseconds();
-            startTime = until - maxDelta;
+        if (since === undefined && untilParam === undefined) {
+            const now = this.milliseconds();
+            until = now;
+            startTime = now - maxDelta;
         }
-        else if (startTime === undefined) {
-            startTime = until - maxDelta;
+        else if ((since === undefined) && (untilParam !== undefined)) {
+            startTime = untilParam - maxDelta;
         }
-        else if (until === undefined) {
+        else if (untilParam === undefined) {
             until = this.sum(startTime, maxDelta);
         }
         requestUntil['createdAtDatetime[gte]'] = this.iso8601(startTime);
@@ -1499,7 +1504,7 @@ class bullish extends bullish$1["default"] {
         await Promise.all([this.loadMarkets(), this.handleToken()]);
         const tradingAccountId = await this.loadAccount(params);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const paramsPagination = this.handlePaginationParams('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, paramsPagination, 100);
         }
@@ -1575,23 +1580,30 @@ class bullish extends bullish$1["default"] {
         return paramsExtended;
     }
     handleSinceAndUntil(since = undefined, params = {}, sinceKey = 'createdAtDatetime[gte]', untilKey = 'createdAtDatetime[lte]') {
-        let until = this.safeInteger(params, 'until');
-        const sinceFromUntil = (since === undefined) && (until !== undefined);
+        const untilParam = this.safeInteger(params, 'until');
+        let until = undefined;
+        if (untilParam !== undefined) {
+            until = untilParam;
+        }
+        const sinceFromUntil = (since === undefined) && (untilParam !== undefined);
         let paramsResult = params;
         if (sinceFromUntil) {
             paramsResult = this.omit(params, 'until');
         }
-        if ((since !== undefined) || (until !== undefined)) {
+        if ((since !== undefined) || (untilParam !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             let sinceResolved = since;
-            if (since === undefined) {
-                sinceResolved = until - timeDelta;
+            if ((since === undefined) && (untilParam !== undefined)) {
+                sinceResolved = untilParam - timeDelta;
             }
-            if ((since !== undefined) && (until === undefined)) {
-                until = this.sum(since, timeDelta);
+            if ((since !== undefined) && (untilParam === undefined)) {
                 const now = this.milliseconds();
-                if (until > now) {
+                const latestSince = now - timeDelta;
+                if (since > latestSince) {
                     until = now;
+                }
+                else {
+                    until = this.sum(since, timeDelta);
                 }
             }
             const sinceDate = this.iso8601(sinceResolved);
@@ -1603,6 +1615,9 @@ class bullish extends bullish$1["default"] {
     }
     getClosestLimit(limit) {
         let pageSize = 5;
+        if (limit === undefined) {
+            return pageSize;
+        }
         if ((limit > 5) && (limit < 26)) {
             pageSize = 25;
         }
@@ -1837,7 +1852,7 @@ class bullish extends bullish$1["default"] {
             request['type'] = type.toUpperCase();
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if (postOnly === true) {
+        if (postOnly) {
             request['type'] = 'POST_ONLY';
         }
         if (amount !== undefined) {
@@ -1846,7 +1861,7 @@ class bullish extends bullish$1["default"] {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const paramsOmitted = (postOnly === true) ? this.omit(params, 'postOnly') : params;
+        const paramsOmitted = (postOnly) ? this.omit(params, 'postOnly') : params;
         const response = await this.privatePostV2Command(this.extend(request, paramsOmitted));
         return this.parseOrder(response, market);
     }
@@ -2242,9 +2257,8 @@ class bullish extends bullish$1["default"] {
         return this.safeString(statuses, status, status);
     }
     async loadAccount(params = {}) {
-        let tradingAccountId = undefined;
-        let paramsTradingAccountId = undefined;
-        [tradingAccountId, paramsTradingAccountId] = this.handleOptionStringAndParams(params, 'loadAccount', 'tradingAccountId');
+        const [tradingAccountIdOption, paramsTradingAccountId] = this.handleOptionStringAndParams(params, 'loadAccount', 'tradingAccountId');
+        let tradingAccountId = tradingAccountIdOption;
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
             const accounts = this.toArray(response);
@@ -2261,7 +2275,7 @@ class bullish extends bullish$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
         }
         this.options['tradingAccountId'] = tradingAccountId;
-        return tradingAccountId;
+        return this.safeString(this.options, 'tradingAccountId');
     }
     /**
      * @method
@@ -2392,14 +2406,15 @@ class bullish extends bullish$1["default"] {
         const safeResponse = this.toArray(response);
         const length = safeResponse.length;
         let data = this.safeDict(safeResponse, 0, {});
-        let network = undefined;
-        network = this.handleNetworkCodeAndParams(params)[0];
-        const networkDefinedByUser = network !== undefined;
+        const networkAndParams = this.handleNetworkCodeAndParams(params);
+        const networkParam = networkAndParams[0];
+        const networkDefinedByUser = networkParam !== undefined;
+        let network = networkParam;
         if ((length > 1) || (networkDefinedByUser)) {
             // some currencies have multiple networks
             if (network === undefined) {
                 // use default network if not specified and multiple are available
-                network = this.defaultNetworkCode(code);
+                network = this.safeString(this.safeDict(this.options, 'defaultNetworks', {}), code, this.safeString(this.options, 'defaultNetwork'));
             }
             if (network !== undefined) {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
@@ -2698,7 +2713,7 @@ class bullish extends bullish$1["default"] {
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer(response, currency);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2781,7 +2796,7 @@ class bullish extends bullish$1["default"] {
         const [requestUntil, paramsUntil] = this.handleUntilOption('createdAtDatetime[lte]', request, params);
         let until = this.safeInteger(requestUntil, 'createdAtDatetime[lte]');
         // current endpoint requires both since and until parameters
-        if (startTimestamp === undefined) {
+        if (since === undefined) {
             startTimestamp = now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
         }
         if (until === undefined) {
@@ -2938,17 +2953,18 @@ class bullish extends bullish$1["default"] {
             'quoteVolume': undefined,
         }, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.microseconds().toString();
             const timestamp = this.getTimestamp().toString();

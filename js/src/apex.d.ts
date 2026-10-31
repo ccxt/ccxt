@@ -127,7 +127,7 @@ export default class apex extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name apex#fetchFundingRateHistory
@@ -144,13 +144,13 @@ export default class apex extends Exchange {
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(timeInForce: Str): Str;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     generateRandomClientIdOmni(_accountId: Str): string;
     addHyphenBeforeUsdt(symbol: string): string;
     getSeeds(): string;
-    getAccountId(): Promise<any>;
+    getAccountId(): Promise<Str>;
     /**
      * @method
      * @name apex#createOrder
@@ -317,6 +317,6 @@ export default class apex extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

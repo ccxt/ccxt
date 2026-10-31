@@ -321,7 +321,7 @@ public partial class bigone : Exchange
                     { "DOGE", "Dogecoin" },
                     { "XEC", "ECash" },
                     { "EOS", "EOS" },
-                    { "ETH", "Ethereum" },
+                    { "ERC20", "Ethereum" },
                     { "ETC", "EthereumClassic" },
                     { "ETHW", "EthereumPow" },
                     { "FTM", "Fantom" },
@@ -1487,23 +1487,23 @@ public partial class bigone : Exchange
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitResolved },
         };
-        if (sinceIsDefined)
+        if ((since != null))
         {
             // const start = this.parseToInt (since / 1000);
             int duration = this.parseTimeframe(timeframeVar);
-            object endByLimit = this.sum(since, ((limitResolved * duration) * 1000));
-            if (untilIsDefined)
+            Int64? endByLimit = this.parseToInt(this.sum(since, ((limitResolved * duration) * 1000)));
+            if ((until != null))
             {
                 request["time"] = this.iso8601(mathMin(endByLimit, (until + 1)));
             } else
             {
                 request["time"] = this.iso8601(endByLimit);
             }
-        } else if (untilIsDefined)
+        } else if ((until != null))
         {
             request["time"] = this.iso8601((until + 1));
         }
-        object paramsOmitted = this.omit(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         Dictionary<string, object> response = await this.publicGetAssetPairsAssetPairNameCandles(this.extend(request, paramsOmitted));
         //
         //     {
@@ -1573,7 +1573,7 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         string? type = this.safeString(parameters, "type", "");
-        object paramsOmitted = this.omit(parameters, "type");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
         Dictionary<string, object> response = null;
         if (type == "funding" || type == "fund")
         {
@@ -1754,7 +1754,7 @@ public partial class bigone : Exchange
         bool? exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
         bool? postOnly = null;
         object query = null;
-        IList<object> postOnlyqueryVariable = (IList<object>)this.handlePostOnly(uppercaseType == "MARKET", (exchangeSpecificParam == true), parameters);
+        IList<object> postOnlyqueryVariable = (IList<object>)this.handlePostOnly(uppercaseType == "MARKET", exchangeSpecificParam, parameters);
         postOnly = (bool?)postOnlyqueryVariable[0];
         query = postOnlyqueryVariable[1];
         string? triggerPrice = this.safeStringN(query, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
@@ -2145,18 +2145,20 @@ public partial class bigone : Exchange
 
     public override Int64 nonce()
     {
-        Int64? exchangeTimeCorrection = (this.safeInteger(this.options, "exchangeMillisecondsCorrection", 0) * 1000000);
+        Int64? exchangeMillisecondsCorrection = this.safeInteger(this.options, "exchangeMillisecondsCorrection", 0);
+        Int64? exchangeTimeCorrection = (exchangeMillisecondsCorrection * 1000000);
         return ((Int64)((object)(this.sum((this.microseconds() * 1000), exchangeTimeCorrection)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string? bodySigned = null;
         object query = this.omit(parameters, this.extractParams(path));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2164,7 +2166,7 @@ public partial class bigone : Exchange
         string baseUrl = this.implodeHostname(apiUrl);
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
-        if ((api is "public") || (api is "webExchange") || (api is "contractPublic"))
+        if ((apiName is "public") || (apiName is "webExchange") || (apiName is "contractPublic"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -2194,7 +2196,7 @@ public partial class bigone : Exchange
             }
         }
         headersValue["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
-        object bodyResolved = ((bodySigned == null)) ? body : bodySigned;
+        string? bodyResolved = bodySigned;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -2251,7 +2253,7 @@ public partial class bigone : Exchange
             throw new ExchangeError ((this.id + " fetchDepositAddress() returned empty address response")) ;
         }
         Dictionary<string, object> chainsIndexedById = this.indexBy(data, "chain");
-        object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
+        object selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false);
         IDictionary<string, object> addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new Dictionary<string, object>() {});
         string? address = this.safeString(addressObject, "value");
         string? tag = this.safeString(addressObject, "memo");

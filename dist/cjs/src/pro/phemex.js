@@ -277,11 +277,11 @@ class phemex extends phemex$1["default"] {
         //
         const tickers = [];
         if ('market24h' in message) {
-            const ticker = this.safeValue(message, 'market24h');
+            const ticker = this.safeDict(message, 'market24h', {});
             tickers.push(this.parseSwapTicker(ticker));
         }
         else if ('spot_market24h' in message) {
-            const ticker = this.safeValue(message, 'spot_market24h');
+            const ticker = this.safeDict(message, 'spot_market24h', {});
             tickers.push(this.parseTicker(ticker));
         }
         else if ('data' in message) {
@@ -782,8 +782,14 @@ class phemex extends phemex$1["default"] {
             const book = this.safeDict2(message, 'book', 'orderbook_p', {});
             const snapshot = this.customParseOrderBook(book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
             snapshot['nonce'] = nonce;
-            const orderbook = this.orderBook(snapshot, depth);
-            this.orderbooks[symbol] = orderbook;
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after a re-subscription snapshot
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, depth);
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
         }
         else {
@@ -954,7 +960,8 @@ class phemex extends phemex$1["default"] {
             cachedTrades.append(parsed);
             const symbol = parsed['symbol'];
             if (type === undefined) {
-                type = (market['settle'] === 'USDT') ? 'perpetual' : market['type'];
+                const marketSettle = this.safeString(market, 'settle');
+                type = (marketSettle === 'USDT') ? 'perpetual' : market['type'];
             }
             if (symbol !== undefined) {
                 marketIds[symbol] = true;

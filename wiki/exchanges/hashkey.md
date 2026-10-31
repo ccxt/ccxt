@@ -343,7 +343,7 @@ fetch the deposit address for a currency associated with this account
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code (default is 'USDT') |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.network | <code>string</code> | No | network for fetch deposit address (default is 'ETH') |
+| params.network | <code>string</code> | No | network for fetch deposit address (default is 'ERC20') |
 
 
 ```javascript

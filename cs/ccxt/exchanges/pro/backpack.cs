@@ -12,7 +12,8 @@ public partial class backpack : ccxt.backpack
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
-                { "watchBalance", false },
+                { "watchBalance", true },
+                { "unWatchBalance", true },
                 { "watchBidsAsks", true },
                 { "watchMyTrades", false },
                 { "watchOHLCV", true },
@@ -53,6 +54,210 @@ public partial class backpack : ccxt.backpack
                 { "keepAlive", 119000 },
             } },
         });
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#prepareWsStockParams
+     * @description validates the stock selector before market loading and preserves it locally
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @returns {object} local parameters with the validated stock selector
+     */
+    public async virtual Task<object> prepareWsStockParams(object methodName, object parameters)
+    {
+        (bool?, object) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock");
+        bool? stock = stockqueryVariable.Item1;
+        IDictionary<string, object> query = ((IDictionary<string, object>)stockqueryVariable.Item2);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        if ((stock == null))
+        {
+            return query;
+        }
+        return this.extend(query, new Dictionary<string, object>() {
+            { "stock", stock },
+        });
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#wsVenueMarketId
+     * @description rejects undocumented provider and RFQ venue streams
+     * @param {string} methodName calling method
+     * @param {object} market resolved market
+     * @param {object} params local parameters
+     * @returns {string} venue market id
+     */
+    public virtual object wsVenueMarketId(object methodName, object market, object parameters)
+    {
+        if ((market == null))
+        {
+            throw new BadSymbol ((((this.id + " ") + (methodName)) + "() requires a market")) ;
+        }
+        this.handleStockParams(methodName, parameters, market);
+        string? source = this.safeString(parameters, "source", "Venue");
+        if ((source == "External") || ((this.safeString(market, "executionModel") == "rfq")) || ((this.safeString(getValue(market, "info"), "marketType") == "RFQ")))
+        {
+            throw new NotSupported ((((this.id + " ") + (methodName)) + "() requires a venue order-book market; provider and RFQ streams are not documented for this method")) ;
+        }
+        if (source != "Venue")
+        {
+            throw new BadRequest ((((this.id + " ") + (methodName)) + "() source must be Venue")) ;
+        }
+        return getValue(market, "id");
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#subscribeWsTickers
+     * @description subscribes to venue statistics or stock provider streams with explicit symbol routing
+     * @param {string} methodName calling method
+     * @param {string[]} [symbols] unified symbols
+     * @param {object} [params] local parameters
+     * @param {boolean} [bidAsk] whether bid and ask data is requested
+     * @param {boolean} [unwatch] whether to unsubscribe
+     * @returns {object} unified tickers
+     */
+    public async virtual Task<object> subscribeWsTickers(object methodName, object symbols = null, object parameters = null, object bidAsk = null, object unwatch = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        bidAsk ??= false;
+        unwatch ??= false;
+        object query = await this.prepareWsStockParams(methodName, parameters);
+        bool? stock = this.safeBool(query, "stock", false);
+        string? explicitSource = this.safeString(query, "source");
+        string? channel = this.safeString(query, "channel");
+        IList<object> normalized = this.marketSymbols(symbols, null, false);
+        List<object> symbolsResolved = new List<object>() {};
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
+        var client = this.client(url);
+        string kind = isTrue((bidAsk)) ? "bidask" : "ticker";
+        for (int i = 0; i < (normalized?.Count ?? 0); i++)
+        {
+            Dictionary<string, object> market = this.market(normalized[i]);
+            if (((symbols == null)) && ((stock == true) || (explicitSource == "External") || ((channel != null))) && ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true)))
+            {
+                continue;
+            }
+            object marketSelection = this.handleStockParams(methodName, query, market);
+            bool? marketStock = this.safeBool(marketSelection, 0, false);
+            IDictionary<string, object> marketParams = this.safeDict(marketSelection, 1, new Dictionary<string, object>() {});
+            bool isRfq = (this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ");
+            string? source = explicitSource;
+            if ((source == null))
+            {
+                source = (isRfq && !isTrue(bidAsk)) ? "External" : "Venue";
+            }
+            Dictionary<string, object> requestParams = this.extend(marketParams, new Dictionary<string, object>() {
+                { "stock", marketStock },
+                { "source", source },
+            });
+            object request = this.stockDataRequest(methodName, requestParams, market);
+            string topic = ("ticker." + this.safeString(request, "symbol"));
+            if ((channel != null))
+            {
+                if ((channel != "stockPrice") && (channel != "stockIndicativeQuote"))
+                {
+                    throw new BadRequest ((((this.id + " ") + (methodName)) + "() channel must be stockPrice or stockIndicativeQuote")) ;
+                }
+                if ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true))
+                {
+                    throw new BadSymbol ((((this.id + " ") + (methodName)) + "() stock quote channels require a stock market")) ;
+                }
+                string? baseId = this.safeString(market, "baseId", "");
+                string ticker = baseId.Replace(".US", (string)"");
+                topic = ((channel + ".") + ticker);
+            } else if (isTrue(bidAsk))
+            {
+                if ((source == "External") || ((this.safeString(market, "executionModel") == "rfq")) || isRfq)
+                {
+                    if ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true))
+                    {
+                        throw new NotSupported ((((this.id + " ") + (methodName)) + "() RFQ quote streams require a stock market")) ;
+                    }
+                    string? baseId = this.safeString(market, "baseId", "");
+                    string ticker = baseId.Replace(".US", (string)"");
+                    string quoteChannel = (source == "External") ? "stockPrice" : "stockIndicativeQuote";
+                    topic = ((quoteChannel + ".") + ticker);
+                } else
+                {
+                    topic = ("bookTicker." + (this.wsVenueMarketId(methodName, market, query)));
+                }
+            } else if (source == "External")
+            {
+                topic = (("externalTicker." + ((market.ContainsKey("baseId") ? market["baseId"] : null))) + "_USDC");
+            } else if (((this.safeString(market, "executionModel") == "rfq")) && ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true)))
+            {
+                throw new NotSupported ((((this.id + " ") + (methodName)) + "() RFQ venue tickers are only mapped for stock data")) ;
+            }
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string messageHash = ((((kind + ":") + symbol) + "@") + topic);
+            string subscriptionKey = ("marketData:" + topic);
+            IDictionary<string, object> subscriptions = this.safeDict(client.subscriptions, subscriptionKey, new Dictionary<string, object>() {});
+            if (isTrue(unwatch))
+            {
+                subscriptions = this.omit(subscriptions, messageHash);
+                this.cleanUnsubscription(client, messageHash, ("unsubscribe:" + messageHash));
+                if (isTrue(bidAsk))
+                {
+                    this.bidsasks.Remove(symbol);
+                } else
+                {
+                    this.tickers.Remove(symbol);
+                }
+            } else
+            {
+                subscriptions[(string)messageHash] = new Dictionary<string, object>() {
+                    { "symbol", symbol },
+                    { "bidAsk", bidAsk },
+                };
+                messageHashes.Add(messageHash);
+            }
+            ((IDictionary<string,object>)client.subscriptions)[subscriptionKey] = subscriptions;
+            List<object> subscriptionHashes = new List<object>(subscriptions.Keys);
+            int subscriptionsLength = subscriptionHashes.Count;
+            if (!isTrue(unwatch) || ((subscriptionsLength == 0)))
+            {
+                if (!this.inArray(topic, topics))
+                {
+                    topics.Add(topic);
+                }
+            }
+            symbolsResolved.Add(symbol);
+        }
+        int symbolsResolvedLength = (symbolsResolved?.Count ?? 0);
+        if ((symbolsResolvedLength == 0))
+        {
+            throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires at least one matching market")) ;
+        }
+        object payload = this.omit(query, new List<object>() {"stock", "source", "interval", "channel"});
+        if (isTrue(unwatch))
+        {
+            int topicsLength = (topics?.Count ?? 0);
+            if (topicsLength > 0)
+            {
+                Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
+                    { "method", "UNSUBSCRIBE" },
+                    { "params", topics },
+                }, payload);
+                string messageHash = ("unsubscribe:marketData:" + String.Join(",", topics.ToArray()));
+                this.watchMultiple(url, new List<object>() {messageHash}, request);
+                client.resolve(true, messageHash);
+            }
+        } else
+        {
+            await this.watchPublic(topics, messageHashes, payload);
+        }
+        object tickers = isTrue((bidAsk)) ? this.bidsasks : this.tickers;
+        return this.filterByArray(tickers, "symbol", symbolsResolved);
     }
 
     public async virtual Task<object> watchPublic(object topics, object messageHashes, object parameters = null, object unwatch = null)
@@ -216,20 +421,17 @@ public partial class backpack : ccxt.backpack
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ ticker symbols default to External
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote for quotes instead of statistics
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
-        {
-            await this.loadMarkets();
-        }
-        Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string topic = (("ticker" + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
-        string messageHash = (("ticker" + ":") + symbolValue);
-        return ccxt.BaseExchange.ToTicker(await this.watchPublic(new List<object>() {topic}, new List<object>() {messageHash}, parameters));
+        object tickers = await this.subscribeWsTickers("watchTicker", new List<object>() {symbol}, parameters);
+        return ccxt.BaseExchange.ToTicker(getValue(tickers, this.symbol(symbol)));
     }
 
     /**
@@ -239,12 +441,17 @@ public partial class backpack : ccxt.backpack
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External, matching the subscription
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTickers(new List<object>() {symbol}, parameters);
+        await this.subscribeWsTickers("watchTicker", new List<object>() {symbol}, parameters, false, true);
+        return null;
     }
 
     /**
@@ -254,27 +461,16 @@ public partial class backpack : ccxt.backpack
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock markets only; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External; RFQ ticker symbols default to External
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote for quotes instead of statistics
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
-        {
-            await this.loadMarkets();
-        }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        List<object> messageHashes = new List<object>() {};
-        List<object> topics = new List<object>() {};
-        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
-        {
-            string? symbol = ((string)symbolsNormalized[i]);
-            string? marketId = this.marketId(symbol);
-            messageHashes.Add(("ticker:" + symbol));
-            topics.Add(("ticker." + marketId));
-        }
-        await this.watchPublic(topics, messageHashes, parameters);
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToTickers(await this.subscribeWsTickers("watchTickers", symbols, parameters));
     }
 
     /**
@@ -284,26 +480,17 @@ public partial class backpack : ccxt.backpack
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock markets only; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External, matching the subscription
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
-        {
-            await this.loadMarkets();
-        }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        List<object> topics = new List<object>() {};
-        List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
-        {
-            string? symbol = ((string)symbolsNormalized[i]);
-            string? marketId = this.marketId(symbol);
-            topics.Add(("ticker." + marketId));
-            messageHashes.Add(("unsubscribe:ticker:" + symbol));
-        }
-        return await this.watchPublic(topics, messageHashes, parameters, true);
+        await this.subscribeWsTickers("watchTickers", symbols, parameters, false, true);
+        return null;
     }
 
     public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
@@ -326,13 +513,39 @@ public partial class backpack : ccxt.backpack
         //     }
         //
         IDictionary<string, object> ticker = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        string? stream = this.safeString(message, "stream", "");
+        IDictionary<string, object> subscriptions = this.safeDict(client.subscriptions, ("marketData:" + stream), new Dictionary<string, object>() {});
+        List<object> hashes = new List<object>(subscriptions.Keys);
+        int hashesLength = hashes.Count;
+        for (int i = 0; i < hashesLength; i++)
+        {
+            string? messageHash = ((string)(hashes != null && i < hashes.Count ? hashes[i] : null));
+            IDictionary<string, object> subscription = this.safeDict(subscriptions, messageHash, new Dictionary<string, object>() {});
+            string? symbol = this.safeString(subscription, "symbol");
+            if ((symbol == null))
+            {
+                continue;
+            }
+            Dictionary<string, object> market = this.market(symbol);
+            Dictionary<string, object> mappedTicker = this.extend(ticker, new Dictionary<string, object>() {
+                { "s", (market.ContainsKey("id") ? market["id"] : null) },
+            });
+            Dictionary<string, object> parsedTicker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(mappedTicker, market));
+            parsedTicker["info"] = ticker;
+            this.tickers[(string)symbol] = parsedTicker;
+            client.resolve(parsedTicker, messageHash);
+        }
+        if (hashesLength > 0)
+        {
+            return;
+        }
         string? marketId = this.safeString(ticker, "s");
-        Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = this.safeSymbol(marketId, market);
-        ccxt.Ticker parsedTicker = this.parseWsTicker(ticker, market);
-        string messageHash = (("ticker" + ":") + symbol);
-        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedTicker);
-        client.resolve(ccxt.BaseExchange.FromTicker(parsedTicker), messageHash);
+        Dictionary<string, object> fallbackMarket = this.safeMarket(marketId);
+        string? fallbackSymbol = this.safeSymbol(marketId, fallbackMarket);
+        ccxt.Ticker fallbackTicker = this.parseWsTicker(ticker, fallbackMarket);
+        string fallbackHash = (("ticker" + ":") + fallbackSymbol);
+        this.tickers[(string)fallbackSymbol] = ccxt.BaseExchange.FromTicker(fallbackTicker);
+        client.resolve(ccxt.BaseExchange.FromTicker(fallbackTicker), fallbackHash);
     }
 
     public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
@@ -383,33 +596,69 @@ public partial class backpack : ccxt.backpack
     }
 
     /**
+     * @ignore
+     * @method
+     * @name backpack#handleStockTicker
+     * @description routes provider and indicative stock quotes without treating mid prices as trades
+     * @param {object} client websocket client
+     * @param {object} message stream envelope
+     * @returns {boolean} whether a subscription was updated
+     */
+    public virtual bool handleStockTicker(WebSocketClient client, object message)
+    {
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        string? stream = this.safeString(message, "stream", "");
+        IDictionary<string, object> subscriptions = this.safeDict(client.subscriptions, ("marketData:" + stream), new Dictionary<string, object>() {});
+        List<object> hashes = new List<object>(subscriptions.Keys);
+        int hashesLength = hashes.Count;
+        for (int i = 0; i < hashesLength; i++)
+        {
+            string? messageHash = ((string)(hashes != null && i < hashes.Count ? hashes[i] : null));
+            IDictionary<string, object> subscription = this.safeDict(subscriptions, messageHash, new Dictionary<string, object>() {});
+            string? symbol = this.safeString(subscription, "symbol");
+            if ((symbol == null))
+            {
+                continue;
+            }
+            Dictionary<string, object> market = this.market(symbol);
+            Int64? timestamp = this.safeInteger(data, "timestamp");
+            ccxt.Ticker parsed = this.safeTicker(new Dictionary<string, object>() {
+                { "symbol", symbol },
+                { "timestamp", timestamp },
+                { "datetime", this.iso8601(timestamp) },
+                { "bid", this.safeString(data, "bid") },
+                { "ask", this.safeString(data, "ask") },
+                { "info", data },
+            }, market);
+            if ((this.safeBool(subscription, "bidAsk", false) == true))
+            {
+                this.bidsasks[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
+            } else
+            {
+                this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
+            }
+            client.resolve(ccxt.BaseExchange.FromTicker(parsed), messageHash);
+        }
+        return hashesLength > 0;
+    }
+
+    /**
      * @method
      * @name backpack#watchBidsAsks
      * @description watches best bid & ask for symbols
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Book-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock quotes; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External; RFQ quotes default to indicative quotes
+     * @param {string} [params.interval] External data interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, unavailable prices remain undefined
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
-        {
-            await this.loadMarkets();
-        }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        List<object> topics = new List<object>() {};
-        List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
-        {
-            string? symbol = ((string)symbolsNormalized[i]);
-            string? marketId = this.marketId(symbol);
-            topics.Add(("bookTicker." + marketId));
-            messageHashes.Add(("bidask:" + symbol));
-        }
-        await this.watchPublic(topics, messageHashes, parameters);
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToTickers(await this.subscribeWsTickers("watchBidsAsks", symbols, parameters, true));
     }
 
     /**
@@ -418,26 +667,17 @@ public partial class backpack : ccxt.backpack
      * @description unWatches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock markets only; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External, matching the subscription
+     * @param {string} [params.interval] External data interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
-        {
-            await this.loadMarkets();
-        }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        List<object> topics = new List<object>() {};
-        List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
-        {
-            string? symbol = ((string)symbolsNormalized[i]);
-            string? marketId = this.marketId(symbol);
-            topics.Add(("bookTicker." + marketId));
-            messageHashes.Add(("unsubscribe:bidask:" + symbol));
-        }
-        return await this.watchPublic(topics, messageHashes, parameters, true);
+        await this.subscribeWsTickers("watchBidsAsks", symbols, parameters, true, true);
+        return null;
     }
 
     public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
@@ -458,13 +698,35 @@ public partial class backpack : ccxt.backpack
         //         stream: 'bookTicker.ETH_USDC'
         //     }
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        string? stream = this.safeString(message, "stream", "");
+        IDictionary<string, object> subscriptions = this.safeDict(client.subscriptions, ("marketData:" + stream), new Dictionary<string, object>() {});
+        List<object> hashes = new List<object>(subscriptions.Keys);
+        int hashesLength = hashes.Count;
+        for (int i = 0; i < hashesLength; i++)
+        {
+            string? messageHash = ((string)(hashes != null && i < hashes.Count ? hashes[i] : null));
+            IDictionary<string, object> subscription = this.safeDict(subscriptions, messageHash, new Dictionary<string, object>() {});
+            string? symbol = this.safeString(subscription, "symbol");
+            if ((symbol == null))
+            {
+                continue;
+            }
+            Dictionary<string, object> market = this.market(symbol);
+            Dictionary<string, object> parsedBidAsk = this.parseWsBidAsk(data, market);
+            this.bidsasks[(string)symbol] = parsedBidAsk;
+            client.resolve(parsedBidAsk, messageHash);
+        }
+        if (hashesLength > 0)
+        {
+            return;
+        }
         string? marketId = this.safeString(data, "s");
-        Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = this.safeSymbol(marketId, market);
-        Dictionary<string, object> parsedBidAsk = this.parseWsBidAsk(data, market);
-        string messageHash = (("bidask" + ":") + symbol);
-        this.bidsasks[(string)symbol] = parsedBidAsk;
-        client.resolve(parsedBidAsk, messageHash);
+        Dictionary<string, object> fallbackMarket = this.safeMarket(marketId);
+        string? fallbackSymbol = this.safeSymbol(marketId, fallbackMarket);
+        Dictionary<string, object> fallbackBidAsk = this.parseWsBidAsk(data, fallbackMarket);
+        string fallbackHash = (("bidask" + ":") + fallbackSymbol);
+        this.bidsasks[(string)fallbackSymbol] = fallbackBidAsk;
+        client.resolve(fallbackBidAsk, fallbackHash);
     }
 
     public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
@@ -513,6 +775,8 @@ public partial class backpack : ccxt.backpack
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects stock spot order-book candles, RFQ candles are unsupported
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -520,7 +784,8 @@ public partial class backpack : ccxt.backpack
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
+        object query = await this.prepareWsStockParams("watchOHLCV", parameters);
+        Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, query));
         return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && result.ContainsKey(symbol) ? result[symbol] : null), timeframeVar));
     }
 
@@ -532,6 +797,8 @@ public partial class backpack : ccxt.backpack
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects stock spot order-book candles
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
@@ -539,7 +806,8 @@ public partial class backpack : ccxt.backpack
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, parameters);
+        object query = await this.prepareWsStockParams("watchOHLCV", parameters);
+        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, query);
     }
 
     /**
@@ -551,11 +819,14 @@ public partial class backpack : ccxt.backpack
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets, not RFQ markets
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
         if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -574,10 +845,10 @@ public partial class backpack : ccxt.backpack
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, tf, tf);
-            topics.Add(((("kline." + interval) + ".") + ((market.ContainsKey("id") ? market["id"] : null))));
+            topics.Add(((("kline." + interval) + ".") + (this.wsVenueMarketId("watchOHLCVForSymbols", market, query))));
             messageHashes.Add(((("candles:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + interval));
         }
-        var symboltimeframecandlesVariable = await this.watchPublic(topics, messageHashes, parameters);
+        var symboltimeframecandlesVariable = await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"}));
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
         var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
@@ -597,11 +868,14 @@ public partial class backpack : ccxt.backpack
      * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> unWatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
         if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -620,10 +894,10 @@ public partial class backpack : ccxt.backpack
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, tf, tf);
-            topics.Add(((("kline." + interval) + ".") + ((market.ContainsKey("id") ? market["id"] : null))));
+            topics.Add(((("kline." + interval) + ".") + (this.wsVenueMarketId("watchOHLCVForSymbols", market, query))));
             messageHashes.Add(((("unsubscribe:candles:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + interval));
         }
-        return await this.watchPublic(topics, messageHashes, parameters, true);
+        return await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"}), true);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -701,12 +975,15 @@ public partial class backpack : ccxt.backpack
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market, RFQ public trades are unsupported
+     * @param {string} [params.source] Venue only
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        object query = await this.prepareWsStockParams("watchTrades", parameters);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), query);
     }
 
     /**
@@ -716,12 +993,15 @@ public partial class backpack : ccxt.backpack
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market
+     * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+        object query = await this.prepareWsStockParams("watchTrades", parameters);
+        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, query);
     }
 
     /**
@@ -733,11 +1013,14 @@ public partial class backpack : ccxt.backpack
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets, not RFQ markets
+     * @param {string} [params.source] Venue only
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object query = await this.prepareWsStockParams("watchTradesForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -753,11 +1036,11 @@ public partial class backpack : ccxt.backpack
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            string? marketId = this.marketId(symbol);
-            topics.Add(("trade." + marketId));
+            object marketId = this.wsVenueMarketId("watchTradesForSymbols", this.market(symbol), query);
+            topics.Add(("trade." + (marketId)));
             messageHashes.Add(("trades:" + symbol));
         }
-        object trades = await this.watchPublic(topics, messageHashes, parameters);
+        object trades = await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"}));
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
@@ -776,11 +1059,14 @@ public partial class backpack : ccxt.backpack
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets
+     * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object query = await this.prepareWsStockParams("watchTradesForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -796,11 +1082,11 @@ public partial class backpack : ccxt.backpack
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            string? marketId = this.marketId(symbol);
-            topics.Add(("trade." + marketId));
+            object marketId = this.wsVenueMarketId("watchTradesForSymbols", this.market(symbol), query);
+            topics.Add(("trade." + (marketId)));
             messageHashes.Add(("unsubscribe:trades:" + symbol));
         }
-        return await this.watchPublic(topics, messageHashes, parameters, true);
+        return await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"}), true);
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -913,12 +1199,15 @@ public partial class backpack : ccxt.backpack
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market, not an RFQ market
+     * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        object query = await this.prepareWsStockParams("watchOrderBook", parameters);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), query);
     }
 
     /**
@@ -929,30 +1218,36 @@ public partial class backpack : ccxt.backpack
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets, not RFQ markets
+     * @param {string} [params.source] Venue only
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object query = await this.prepareWsStockParams("watchOrderBookForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        IList<object> marketIds = this.marketIds(symbolsNormalized);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
             messageHashes.Add(("orderbook:" + symbol));
-            string? marketId = ((string)(marketIds != null && i < marketIds.Count ? marketIds[i] : null));
-            string topic = ("depth." + marketId);
+            object marketId = this.wsVenueMarketId("watchOrderBookForSymbols", this.market(symbol), query);
+            string topic = ("depth." + (marketId));
             topics.Add(topic);
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            }
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topics, messageHashes, parameters));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());  // todo check if limit is needed
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"})));
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     /**
@@ -961,12 +1256,15 @@ public partial class backpack : ccxt.backpack
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market
+     * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
+        object query = await this.prepareWsStockParams("watchOrderBook", parameters);
+        return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, query);
     }
 
     /**
@@ -975,29 +1273,31 @@ public partial class backpack : ccxt.backpack
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets
+     * @param {string} [params.source] Venue only
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBookForSymbols(IList<object> symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object query = await this.prepareWsStockParams("watchOrderBookForSymbols", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        IList<object> marketIds = this.marketIds(symbolsNormalized);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
             messageHashes.Add(("unsubscribe:orderbook:" + symbol));
-            string? marketId = ((string)(marketIds != null && i < marketIds.Count ? marketIds[i] : null));
-            string topic = ("depth." + marketId);
+            object marketId = this.wsVenueMarketId("watchOrderBookForSymbols", this.market(symbol), query);
+            string topic = ("depth." + (marketId));
             topics.Add(topic);
         }
-        return await this.watchPublic(topics, messageHashes, parameters, true);
+        return await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"}), true);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -1034,14 +1334,17 @@ public partial class backpack : ccxt.backpack
         if ((nonce == null))
         {
             int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
-            // the rest API is very delayed
-            // usually it takes at least 9 deltas to resolve
-            object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 10);
+            // cache the triggering delta before a synchronous snapshot can inspect the cache
+            (storedOrderBook as ccxt.pro.OrderBook).cache.Add(data);
+            // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
+            Dictionary<string, object> market = this.market(symbol);
+            bool isStockMarket = ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)) || (((marketId != null)) && ((marketId.IndexOf(".US_", StringComparison.Ordinal) >= 0) || (marketId.IndexOf(".HK_", StringComparison.Ordinal) >= 0)));
+            int defaultSnapshotDelay = isStockMarket ? 0 : 10;
+            object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay);
             if (isEqual(cacheLength, snapshotDelay))
             {
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
             }
-            (storedOrderBook as ccxt.pro.OrderBook).cache.Add(data);
             return;
         } else if (((deltaNonce != null)) && ((nonce != null && (deltaNonce == null || nonce > deltaNonce))))
         {
@@ -1053,7 +1356,8 @@ public partial class backpack : ccxt.backpack
 
     public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
-        Int64? timestamp = this.parseToInt(((double?)this.safeInteger(delta, "T", 0) / 1000));
+        Int64? microseconds = this.safeInteger(delta, "T", 0);
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         orderbook["timestamp"] = timestamp;
         orderbook["datetime"] = this.iso8601(timestamp);
         orderbook["nonce"] = this.safeInteger(delta, "u");
@@ -1081,9 +1385,10 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         Int64? firstDeltaStart = this.safeInteger(firstDelta, "U");
+        int cacheLength = cache?.Count ?? 0;
         if ((nonce == null))
         {
-            return cache?.Count ?? 0;
+            return cacheLength;
         }
         if ((firstDeltaStart == null))
         {
@@ -1093,21 +1398,21 @@ public partial class backpack : ccxt.backpack
         {
             return -1;
         }
-        for (int i = 0; i < (cache?.Count ?? 0); i++)
+        for (int i = 0; i < cacheLength; i++)
         {
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
             if (((deltaStart == null)) || ((deltaEnd == null)))
             {
-                return cache?.Count ?? 0;
+                return cacheLength;
             }
-            if ((isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if ((((deltaStart - 1) == null || nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
         }
-        return cache?.Count ?? 0;
+        return cacheLength;
     }
 
     /**
@@ -1119,11 +1424,13 @@ public partial class backpack : ccxt.backpack
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders, RFQ markets use account.rfqUpdate
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object query = await this.prepareWsStockParams("watchOrders", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1132,6 +1439,7 @@ public partial class backpack : ccxt.backpack
         if ((symbol != null))
         {
             market = this.market(symbol);
+            this.handleStockParams("watchOrders", query, market);
         }
         object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         string topic = "account.orderUpdate";
@@ -1139,15 +1447,29 @@ public partial class backpack : ccxt.backpack
         if ((market != null))
         {
             topic = ("account.orderUpdate." + ((market.ContainsKey("id") ? market["id"] : null)));
+            if ((this.safeString(market, "executionModel") == "rfq"))
+            {
+                topic = ("account.rfqUpdate." + ((market.ContainsKey("id") ? market["id"] : null)));
+            }
             messageHash = ("orders:" + (symbolResolved));
         }
-        object orders = await this.watchPrivate(new List<object>() {topic}, new List<object>() {messageHash}, parameters);
+        List<object> topics = new List<object>() {topic};
+        if ((market == null))
+        {
+            topics.Add("account.rfqUpdate");
+        }
+        object orders = await this.watchPrivate(topics, new List<object>() {messageHash}, this.omit(query, "stock"));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        IList<object> filtered = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        if ((this.safeBool(query, "stock", false) == true))
+        {
+            return ccxt.BaseExchange.ToOrderList(this.filterStockStructures(filtered));
+        }
+        return ccxt.BaseExchange.ToOrderList(filtered);
     }
 
     /**
@@ -1157,11 +1479,13 @@ public partial class backpack : ccxt.backpack
      * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock order subscriptions
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object query = await this.prepareWsStockParams("watchOrders", parameters);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1170,6 +1494,7 @@ public partial class backpack : ccxt.backpack
         if ((symbol != null))
         {
             market = this.market(symbol);
+            this.handleStockParams("watchOrders", query, market);
         }
         object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
         string topic = "account.orderUpdate";
@@ -1177,9 +1502,18 @@ public partial class backpack : ccxt.backpack
         if ((market != null))
         {
             topic = ("account.orderUpdate." + ((market.ContainsKey("id") ? market["id"] : null)));
+            if ((this.safeString(market, "executionModel") == "rfq"))
+            {
+                topic = ("account.rfqUpdate." + ((market.ContainsKey("id") ? market["id"] : null)));
+            }
             messageHash = ("unsubscribe:orders:" + (symbolResolved));
         }
-        return await this.watchPrivate(new List<object>() {topic}, new List<object>() {messageHash}, parameters, true);
+        List<object> topics = new List<object>() {topic};
+        if ((market == null))
+        {
+            topics.Add("account.rfqUpdate");
+        }
+        return await this.watchPrivate(topics, new List<object>() {messageHash}, this.omit(query, "stock"), true);
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -1213,7 +1547,15 @@ public partial class backpack : ccxt.backpack
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        ccxt.Order parsed = this.parseWsOrder(data, market);
+        string? eventVar = this.safeString(data, "e", "");
+        object parsed = null;
+        if ((((eventVar?.IndexOf("rfq", StringComparison.Ordinal) ?? -1) == 0)) || (((eventVar?.IndexOf("quote", StringComparison.Ordinal) ?? -1) == 0)))
+        {
+            parsed = this.parseWsRfqOrder(data, market);
+        } else
+        {
+            parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(data, market));
+        }
         ccxt.pro.ArrayCache orders = this.orders;
         if ((orders == null))
         {
@@ -1221,10 +1563,157 @@ public partial class backpack : ccxt.backpack
             orders = new ArrayCacheBySymbolById(limit);
             this.orders = orders;
         }
-        orders.append(ccxt.BaseExchange.FromOrder(parsed));
+        orders.append(parsed);
         client.resolve(orders, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#parseWsRfqOrder
+     * @description maps documented RFQ lifecycle fields to the REST order parser without inventing fills or fees
+     * @param {object} data RFQ update payload
+     * @param {object} [market] resolved RFQ market
+     * @returns {object} unified order
+     */
+    public virtual object parseWsRfqOrder(IDictionary<string, object> data, object market = null)
+    {
+        string? eventVar = this.safeString(data, "e", "");
+        bool quoteEvent = ((eventVar?.IndexOf("quote", StringComparison.Ordinal) ?? -1) == 0);
+        Int64? microseconds = this.safeInteger(data, "E", 0);
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "rfqId", this.safeString(data, "R") },
+            { "clientId", this.safeString(data, "C") },
+            { "symbol", this.safeString(data, "s") },
+            { "side", this.safeString(data, "S") },
+            { "quantity", this.safeString(data, "q") },
+            { "quoteQuantity", this.safeString(data, "Q") },
+            { "price", this.safeString(data, "p") },
+            { "status", this.safeString(data, "X") },
+            { "createdAt", timestamp },
+            { "submissionTime", this.safeInteger(data, "w") },
+            { "expiryTime", this.safeInteger(data, "W") },
+            { "systemOrderType", this.safeString(data, "o") },
+        };
+        if (quoteEvent)
+        {
+            request["id"] = this.safeString(data, "u");
+        }
+        Dictionary<string, object> marketResolved = this.safeMarket(this.safeString(data, "s"), market);
+        Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseOrder(request, marketResolved));
+        parsed["info"] = data;
+        if (eventVar == "rfqFilled")
+        {
+            Int64? tradeMicroseconds = this.safeInteger(data, "T", 0);
+            parsed["lastTradeTimestamp"] = this.parseToInt(((double?)tradeMicroseconds / 1000));
+        }
+        return parsed;
+    }
+
+    /**
+     * @method
+     * @name backpack#watchBalance
+     * @description watches absolute capital-account asset updates accumulated since subscription, without an initial snapshot
+     * @see https://docs.backpack.exchange/#tag/Streams/Private/Balance-update
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] return tokenized stock assets only; explicit because this method has no symbol
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object query = await this.prepareWsStockParams("watchBalance", parameters);
+        bool? stock = this.safeBool(query, "stock", false);
+        if ((stock == true) && ((this.safeList(this.options, "securities") == null)))
+        {
+            await this.fetchSecurities();
+        }
+        object response = await this.watchPrivate(new List<object>() {"account.balanceUpdate"}, new List<object>() {"balance"}, this.omit(query, "stock"));
+        IDictionary<string, object> balances = this.safeDict(new Dictionary<string, object>() {
+            { "balances", response },
+        }, "balances", new Dictionary<string, object>() {});
+        if ((stock == true))
+        {
+            List<object> securities = this.safeList(this.options, "securities", new List<object>() {});
+            Dictionary<string, object> result = new Dictionary<string, object>() {
+                { "timestamp", this.safeInteger(balances, "timestamp") },
+                { "datetime", this.safeString(balances, "datetime") },
+                { "info", this.safeDict(balances, "info") },
+            };
+            for (int i = 0; i < securities.Count; i++)
+            {
+                IDictionary<string, object> security = this.safeDict(securities, i, new Dictionary<string, object>() {});
+                string? code = this.safeCurrencyCode(this.safeString(security, "asset"));
+                if ((code == null))
+                {
+                    continue;
+                }
+                IDictionary<string, object> account = this.safeDict(balances, code);
+                if ((account != null))
+                {
+                    result[(string)code] = account;
+                }
+            }
+            return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
+        }
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(balances));
+    }
+
+    /**
+     * @method
+     * @name backpack#unWatchBalance
+     * @description unsubscribes from all capital-account asset updates
+     * @see https://docs.backpack.exchange/#tag/Streams/Private/Balance-update
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] accepts the tokenized stock view selector; explicit because this method has no symbol
+     * @returns {object} unsubscription result
+     */
+    public async virtual Task<object> unWatchBalance(IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object query = await this.prepareWsStockParams("watchBalance", parameters);
+        return await this.watchPrivate(new List<object>() {"account.balanceUpdate"}, new List<object>() {"unsubscribe:balance"}, this.omit(query, "stock"), true);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#handleBalance
+     * @description merges absolute asset balances using the REST capital parser
+     * @param {object} client websocket client
+     * @param {object} message stream envelope
+     * @returns {boolean} whether a balance was updated
+     */
+    public virtual bool handleBalance(WebSocketClient client, object message)
+    {
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        string? assetId = this.safeString(data, "a");
+        if ((assetId == null))
+        {
+            return false;
+        }
+        IDictionary<string, object> assets = this.safeDict(this.options, "wsBalanceAssets", new Dictionary<string, object>() {});
+        assets[(string)assetId] = new Dictionary<string, object>() {
+            { "available", this.safeString(data, "A") },
+            { "locked", this.safeString(data, "L") },
+            { "staked", this.safeString(data, "S") },
+        };
+        this.options["wsBalanceAssets"] = assets;
+        Dictionary<string, object> response = this.parseBalance(assets);
+        IDictionary<string, object> parsed = this.safeDict(new Dictionary<string, object>() {
+            { "balances", response },
+        }, "balances", new Dictionary<string, object>() {});
+        Int64? microseconds = this.safeInteger(data, "E", 0);
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
+        parsed["timestamp"] = timestamp;
+        parsed["datetime"] = this.iso8601(timestamp);
+        parsed["info"] = assets;
+        this.balance = parsed;
+        client.resolve(parsed, "balance");
+        return true;
     }
 
     public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
@@ -1486,7 +1975,7 @@ public partial class backpack : ccxt.backpack
         string? side = "long";
         if ((netQuantity != null))
         {
-            if (isLessThan(netQuantity, 0))
+            if (((netQuantity == null || 0 > netQuantity)))
             {
                 side = "short";
             }
@@ -1529,13 +2018,22 @@ public partial class backpack : ccxt.backpack
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }
         IDictionary<string, object> data = this.safeDict(message, "data");
         string? eventVar = this.safeString(data, "e");
-        if (eventVar == "ticker")
+        if ((eventVar == "stockPrice") || (eventVar == "stockIndicativeQuote"))
+        {
+            this.handleStockTicker(client, message);
+        } else if (eventVar == "balanceUpdate")
+        {
+            this.handleBalance(client, message);
+        } else if ((eventVar == "rfqAccepted") || (eventVar == "rfqCandidate") || (eventVar == "rfqAcceptedBinding") || (eventVar == "rfqFilled") || (eventVar == "rfqCancelled") || (eventVar == "quoteAccepted") || (eventVar == "quoteCancelled"))
+        {
+            this.handleOrder(client, (Dictionary<string, object>)message);
+        } else if ((eventVar == "ticker") || (eventVar == "externalTicker"))
         {
             this.handleTicker(client, (Dictionary<string, object>)message);
         } else if (eventVar == "bookTicker")

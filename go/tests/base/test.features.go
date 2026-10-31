@@ -22,7 +22,7 @@ func testFeaturesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange
 		var marketType string = keys[i]
 		var value any = GetValue(features, marketType)
 		// Assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
-		if IsEqual(value, nil) {
+		if value == nil {
 			continue
 		}
 		if marketType == "spot" {
@@ -34,7 +34,7 @@ func testFeaturesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange
 				AssertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes)
 				var subValue any = GetValue(value, subKey)
 				// sometimes it might not be available for exchange, eg. future>inverse)
-				if !IsEqual(subValue, nil) {
+				if subValue != nil {
 					TestFeaturesInner(exchange, skippedProperties, subValue)
 				}
 			}

@@ -87,7 +87,7 @@ export default class woo extends wooRest {
 
     async watchPublic (messageHash: string, message: Dict) {
         let urlUid: Str = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
@@ -99,9 +99,9 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async unwatchPublic (subHash: string, symbol: Str, topic: string, params = {}): Promise<any> {
+    async unwatchPublic (subHash: string, symbol: Str, topic: string, params: Dict = {}): Promise<any> {
         let urlUid: Str = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
@@ -148,7 +148,7 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         const topic = market['id'] + '@' + method;
         let urlUid: Str = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
@@ -305,7 +305,8 @@ export default class woo extends wooRest {
                 if (ts === undefined) {
                     continue;
                 }
-                if (ts < orderbook['timestamp']) {
+                const orderbookTimestamp = this.safeInteger (orderbook, 'timestamp');
+                if ((orderbookTimestamp !== undefined) && (ts < orderbookTimestamp)) {
                     continue;
                 } else {
                     this.handleOrderBookMessage (client, messageItem, orderbook);
@@ -339,7 +340,7 @@ export default class woo extends wooRest {
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -531,7 +532,7 @@ export default class woo extends wooRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data');
+        const data = this.safeList (message, 'data', []);
         const timestamp = this.safeInteger (message, 'ts');
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
@@ -993,12 +994,12 @@ export default class woo extends wooRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let topic: Str = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreportv2';
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
             messageHash += ':' + symbolResolved;
         }
@@ -1034,12 +1035,12 @@ export default class woo extends wooRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let topic: Str = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreportv2';
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = 'myTrades';
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
             messageHash += ':' + symbolResolved;
         }
@@ -1485,7 +1486,7 @@ export default class woo extends wooRest {
         //    }
         //
         const data = this.safeDict (message, 'data');
-        const balances = this.safeValue (data, 'balances');
+        const balances = this.safeDict (data, 'balances', {});
         const keys = Object.keys (balances);
         const ts = this.safeInteger (message, 'ts');
         this.balance['info'] = data;

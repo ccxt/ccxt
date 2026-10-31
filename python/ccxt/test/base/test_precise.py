@@ -212,21 +212,21 @@ def test_precise():
     assert Precise.string_max('1', None) is None
     assert Precise.string_max(None, None) is None
     # bool false
-    assert Precise.string_equals(None, '1') is False
-    assert Precise.string_equals('1', None) is False
-    assert Precise.string_equals(None, None) is False
-    assert Precise.string_eq(None, '1') is False
-    assert Precise.string_eq('1', None) is False
-    assert Precise.string_eq(None, None) is False
-    assert Precise.string_gt(None, '1') is False
-    assert Precise.string_gt('1', None) is False
-    assert Precise.string_gt(None, None) is False
-    assert Precise.string_ge(None, '1') is False
-    assert Precise.string_ge('1', None) is False
-    assert Precise.string_ge(None, None) is False
-    assert Precise.string_lt(None, '1') is False
-    assert Precise.string_lt('1', None) is False
-    assert Precise.string_lt(None, None) is False
-    assert Precise.string_le(None, '1') is False
-    assert Precise.string_le('1', None) is False
-    assert Precise.string_le(None, None) is False
+    assert not Precise.string_equals(None, '1')
+    assert not Precise.string_equals('1', None)
+    assert not Precise.string_equals(None, None)
+    assert not Precise.string_eq(None, '1')
+    assert not Precise.string_eq('1', None)
+    assert not Precise.string_eq(None, None)
+    assert not Precise.string_gt(None, '1')
+    assert not Precise.string_gt('1', None)
+    assert not Precise.string_gt(None, None)
+    assert not Precise.string_ge(None, '1')
+    assert not Precise.string_ge('1', None)
+    assert not Precise.string_ge(None, None)
+    assert not Precise.string_lt(None, '1')
+    assert not Precise.string_lt('1', None)
+    assert not Precise.string_lt(None, None)
+    assert not Precise.string_le(None, '1')
+    assert not Precise.string_le('1', None)
+    assert not Precise.string_le(None, None)

@@ -12,8 +12,8 @@ func TestInArray() {
 		"id": "regirock",
 	}, map[string]any{}, exchange)
 	var array []any = []any{1, 2, 3}
-	Assert((exchange.InArray(1, array) == true))
-	Assert((exchange.InArray(2, array) == true))
-	Assert((exchange.InArray(3, array) == true))
-	Assert((exchange.InArray(4, array) == false))
+	Assert(exchange.InArray(1, array))
+	Assert(exchange.InArray(2, array))
+	Assert(exchange.InArray(3, array))
+	Assert(!ccxt.EvalTruthy(exchange.InArray(4, array)))
 }

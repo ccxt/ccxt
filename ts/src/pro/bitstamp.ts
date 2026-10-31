@@ -613,7 +613,7 @@ export default class bitstamp extends bitstampRest {
         const marketResolved: Market = this.safeMarket (undefined, market);
         const symbol = marketResolved['symbol'];
         const feeCost = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,

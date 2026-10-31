@@ -70,12 +70,12 @@ func (this *Bittrade) RequestId() string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bittrade) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Bittrade) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -122,7 +122,7 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], 
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved)}
 	return nil
 }
 func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
@@ -171,12 +171,12 @@ func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bittrade) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Bittrade) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, optionalArgs ...any) any {
+func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -223,7 +223,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol an
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
 func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
@@ -258,18 +258,18 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsEqual(tradesCache, nil) {
+	if tradesCache == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesCache = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, tradesCache)
 	}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}(), market)))
+		}(), market))
 		tradesCache.(ccxt.Appender).Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)
@@ -287,12 +287,12 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bittrade) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Bittrade) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.OHLCV] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.OHLCV], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol string, optionalArgs ...any) any {
+func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -342,7 +342,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol str
 		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbolValue, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
 func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
@@ -374,7 +374,7 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
-	if ccxt.IsEqual(stored, nil) {
+	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
@@ -402,11 +402,11 @@ func (this *Bittrade) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-
 func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if (limit != nil) && (!ccxt.IsEqual(limit, 150)) {
+	if (limit != nil) && (limit == nil || *limit != 150) {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook accepts limit = 150 only"))
 	}
 	if this.Markets == nil {
@@ -419,13 +419,8 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	// only supports a limit of 150 at this time
-	var limitValue any = func() any {
-		if limit == nil {
-			return 150
-		}
-		return limit
-	}()
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".mbp."), ccxt.ToString(limitValue)))
+	var limitValue int = 150
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("market.", market["id"]), ".mbp.150"))
 	var api *string = this.SafeString(this.Options, "api", "api")
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
@@ -479,7 +474,11 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	if orderbook == nil {
+		// the book was removed (unwatch/cleanCache) before the snapshot arrived
+		return
+	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 	snapshot["nonce"] = this.SafeInteger(data, "seqNum")
@@ -494,12 +493,12 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Bittrade) WatchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Bittrade) WatchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookSnapshotBody(ch, client, message, subscription)
 	return ch
 }
-func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[any], client any, message any, subscription any) any {
+func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], client any, message any, subscription any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	chSent := false
@@ -552,7 +551,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[any], 
 			}
 			var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-			ch <- ccxt.AsyncResult[any]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
+			ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 			chSent = true
 			return nil
 
@@ -602,7 +601,8 @@ func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook 
 	if (prevSeqNum == nil) || (seqNum == nil) {
 		return orderbook
 	}
-	if (ccxt.IsLessThanOrEqual(prevSeqNum, ccxt.GetValue(orderbook, "nonce"))) && (ccxt.IsGreaterThan(seqNum, ccxt.GetValue(orderbook, "nonce"))) {
+	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
+	if (nonce != nil) && (prevSeqNum == nil || *prevSeqNum <= *nonce) && (seqNum != nil && *seqNum > *nonce) {
 		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
@@ -638,12 +638,19 @@ func (this *Bittrade) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString(message, "ch")
-	var ch any = this.SafeValue(message, "ch")
-	var parts []string = ccxt.Split(ch, ".")
+	var ch *string = this.SafeString(message, "ch")
+	if ch == nil {
+		return
+	}
+	var parts []string = strings.Split(*ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId)
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	if ccxt.IsEqual(ccxt.GetValue(orderbook, "nonce"), nil) {
+	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	if orderbook == nil {
+		// no active subscription holds a book for this symbol, drop the delta
+		return
+	}
+	if this.SafeInteger(orderbook, "nonce") == nil {
 		ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
 	} else {
 		this.HandleOrderBookMessage(client, message, orderbook)
@@ -682,7 +689,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message any) any {
 	var subscription any = this.SafeDict(subscriptionsById, id)
 	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
-		if !ccxt.IsEqual(method, nil) {
+		if method != nil {
 			return ccxt.CallDynamically(method, client, message, subscription)
 		}
 		// clean up
@@ -726,8 +733,11 @@ func (this *Bittrade) HandleSubject(client any, message any) {
 	//         }
 	//     }
 	//
-	var ch any = this.SafeValue(message, "ch")
-	var parts []string = ccxt.Split(ch, ".")
+	var ch *string = this.SafeString(message, "ch")
+	if ch == nil {
+		return
+	}
+	var parts []string = strings.Split(*ch, ".")
 	var typeVar *string = this.SafeString(parts, 0)
 	if typeVar != nil && *typeVar == "market" {
 		var methodName *string = this.SafeString(parts, 2)
@@ -738,17 +748,17 @@ func (this *Bittrade) HandleSubject(client any, message any) {
 			"kline":  this.HandleOHLCV,
 		}
 		var method any = this.SafeValue(methods, methodName)
-		if !ccxt.IsEqual(method, nil) {
+		if method != nil {
 			ccxt.CallDynamically(method, client, message)
 		}
 	}
 }
-func (this *Bittrade) PongAsync(client any, message any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Bittrade) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Bittrade) pongBody(ch chan ccxt.AsyncResult[any], client any, message any) any {
+func (this *Bittrade) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//
@@ -786,6 +796,8 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 		var subscription any = this.SafeDict(subscriptionsById, id)
 		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
+			var errorMessage *string = this.SafeString(message, "err-msg")
+			var feedback string = this.Id + " " + this.Json(message)
 
 			{
 				func(this *Bittrade) (ret_ any) {
@@ -807,8 +819,10 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 						}
 					}()
 					// try block:
-					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, this.Json(message))
-					return nil
+					this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
+					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
+					panic(ccxt.ExchangeError(feedback))
+
 				}(this)
 
 			}
@@ -874,7 +888,7 @@ func (this *Bittrade) WatchTicker(symbol string, options ...ccxt.WatchTickerOpti
 	if r.Err != nil {
 		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
+	var res ccxt.Ticker = r.Value
 	return res, nil
 }
 
@@ -899,7 +913,7 @@ func (this *Bittrade) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -925,7 +939,7 @@ func (this *Bittrade) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
+	var res []ccxt.OHLCV = r.Value
 	return res, nil
 }
 

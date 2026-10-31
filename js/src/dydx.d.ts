@@ -1,5 +1,5 @@
 import Exchange from './abstract/dydx.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class dydx
  * @augments Exchange
@@ -161,12 +161,12 @@ export default class dydx extends Exchange {
     };
     signOnboardingAction(): object;
     signDydxTx(privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee?: any): string;
-    retrieveCredentials(): any;
+    retrieveCredentials(): Dict;
     fetchDydxAccount(): Promise<Dict>;
-    pow(n: string, m: Str): string | undefined;
+    pow(n: string, m: Str): Str;
     createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: {}): any[];
     createOrderIdFromParts(address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string;
-    fetchLatestBlockHeight(params?: {}): Promise<int>;
+    fetchLatestBlockHeight(params?: Dict): Promise<int>;
     /**
      * @method
      * @name dydx#createOrder
@@ -330,7 +330,7 @@ export default class dydx extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    fetchTransactionsHelper(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
+    fetchTransactionsHelper(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name dydx#fetchAccounts
@@ -353,7 +353,7 @@ export default class dydx extends Exchange {
     parseBalance(response: any): Balances;
     nonce(): number;
     getWalletAddress(): string;
-    sign(path: string, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, section?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     setSandboxMode(enable: boolean): void;
 }

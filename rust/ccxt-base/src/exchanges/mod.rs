@@ -369,6 +369,10 @@ pub mod phemex_api;
 pub mod poloniex;
 #[cfg(feature = "poloniex")]
 pub mod poloniex_api;
+#[cfg(feature = "polymarket")]
+pub mod polymarket;
+#[cfg(feature = "polymarket")]
+pub mod polymarket_api;
 #[cfg(feature = "revolutx")]
 pub mod revolutx;
 #[cfg(feature = "revolutx")]

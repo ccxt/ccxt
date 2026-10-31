@@ -1,5 +1,5 @@
 import Exchange from './abstract/blofin.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, NullableDict, PositionModeInfo } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, PositionModeInfo } from './base/types.js';
 /**
  * @class blofin
  * @augments Exchange
@@ -188,6 +188,20 @@ export default class blofin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
+    /**
+     * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name blofin#fetchOpenOrders
@@ -534,5 +548,5 @@ export default class blofin extends Exchange {
     fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: string, method?: any, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

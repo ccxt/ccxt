@@ -1415,8 +1415,8 @@ class luno extends luno$1["default"] {
         await this.loadAccounts();
         let currency = undefined;
         let id = this.safeString(params, 'id'); // account id
-        let min_row = this.safeValue(params, 'min_row');
-        let max_row = this.safeValue(params, 'max_row');
+        const minRowParam = this.safeInteger(params, 'min_row');
+        const maxRowParam = this.safeInteger(params, 'max_row');
         if (id === undefined) {
             if (code === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchLedger() requires a currency code argument if no account id specified in params');
@@ -1429,22 +1429,16 @@ class luno extends luno$1["default"] {
             }
             id = this.safeString(account, 'id');
         }
-        if (min_row === undefined && max_row === undefined) {
-            max_row = 0; // Default to most recent transactions
-            min_row = -1000; // Maximum number of records supported
-        }
-        else if (min_row === undefined || max_row === undefined) {
+        if ((minRowParam === undefined || maxRowParam === undefined) && (minRowParam !== undefined || maxRowParam !== undefined)) {
             throw new errors.ExchangeError(this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
         }
-        if (limit !== undefined && max_row - min_row > limit) {
-            if (max_row <= 0) {
-                min_row = max_row - limit;
-            }
-            else if (min_row > 0) {
-                max_row = min_row + limit;
-            }
-        }
-        if (max_row - min_row > 1000) {
+        const maxRowBase = this.safeInteger(params, 'max_row', 0); // Default to most recent transactions
+        const minRowBase = this.safeInteger(params, 'min_row', -1000); // Maximum number of records supported
+        const limitApplies = (limit !== undefined) && (maxRowBase - minRowBase > limit);
+        const min_row = (limitApplies && (limit !== undefined) && maxRowBase <= 0) ? maxRowBase - limit : minRowBase;
+        const max_row = (limitApplies && maxRowBase > 0 && minRowBase > 0) ? minRowBase + limit : maxRowBase;
+        const limitAdjusts = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
+        if ((limitAdjusts && limit > 1000) || (!limitAdjusts && maxRowBase - minRowBase > 1000)) {
             throw new errors.ExchangeError(this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
         }
         const request = {
@@ -1691,8 +1685,9 @@ class luno extends luno$1["default"] {
         result['withdraw']['percentage'] = false;
         return this.assignDefaultDepositWithdrawFees(result, currency);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1702,15 +1697,15 @@ class luno extends luno$1["default"] {
         if (Object.keys(query).length > 0) {
             url += '?' + this.urlencode(query);
         }
-        if ((api === 'private') || (api === 'exchangePrivate')) {
+        if ((apiName === 'private') || (apiName === 'exchangePrivate')) {
             this.checkRequiredCredentials();
             const auth = this.stringToBase64(this.apiKey + ':' + this.secret);
             requestHeaders = {
                 'Authorization': 'Basic ' + auth,
             };
         }
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headersResolved };
+        const headersResolved = requestHeaders;
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

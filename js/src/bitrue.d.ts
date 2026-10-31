@@ -292,7 +292,7 @@ export default class bitrue extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name bitrue#fetchDepositWithdrawFees
@@ -358,7 +358,7 @@ export default class bitrue extends Exchange {
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
     setMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
 }

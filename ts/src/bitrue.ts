@@ -1877,7 +1877,7 @@ export default class bitrue extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'INIT': 'open',
             'PENDING_CREATE': 'open',
@@ -2558,8 +2558,9 @@ export default class bitrue extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const limitResolved: Int = (limit === undefined) ? undefined : Math.min (limit, 1000);
-        if (limitResolved !== undefined) {
+        let limitResolved: Int = undefined;
+        if (limit !== undefined) {
+            limitResolved = (limit > 1000) ? 1000 : limit;
             request['limit'] = limitResolved;
         }
         if (market['swap'] === true) {
@@ -2875,7 +2876,7 @@ export default class bitrue extends Exchange {
             currencyId = this.safeString (parts, 0);
             const networkId = this.safeString (parts, 1);
             if (networkId !== undefined) {
-                network = networkId.toUpperCase ();
+                network = this.networkIdToCode (networkId.toUpperCase ());
             }
         }
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -2963,7 +2964,7 @@ export default class bitrue extends Exchange {
         return this.parseTransaction (data as Dict, currency);
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //   {
         //       "coin": "adx",
@@ -3093,8 +3094,9 @@ export default class bitrue extends Exchange {
         if (since !== undefined) {
             request['beginTime'] = since;
         }
-        const limitResolved: Int = (limit === undefined) ? undefined : Math.min (limit, 200);
-        if (limitResolved !== undefined) {
+        let limitResolved: Int = undefined;
+        if (limit !== undefined) {
+            limitResolved = (limit > 200) ? 200 : limit;
             request['limit'] = limitResolved;
         }
         const until = this.safeInteger (params, 'until');
@@ -3259,7 +3261,7 @@ export default class bitrue extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         const type = this.safeString (api, 0);
@@ -3337,8 +3339,8 @@ export default class bitrue extends Exchange {
                 url += '?' + this.urlencode (paramsOmitted);
             }
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
@@ -3349,7 +3351,8 @@ export default class bitrue extends Exchange {
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (code >= 400) {
+        const statusCode = this.parseToInt (code);
+        if (statusCode >= 400) {
             if (body.indexOf ('Price * QTY is zero or less') >= 0) {
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
             }
@@ -3367,7 +3370,7 @@ export default class bitrue extends Exchange {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool (response, 'success', true);
         let parsedMessage: NullableDict = undefined;
-        if (success !== true) {
+        if (!success) {
             const messageInner = this.safeString (response, 'msg');
             if (messageInner !== undefined) {
                 try {
@@ -3402,21 +3405,22 @@ export default class bitrue extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
-        if (success !== true) {
+        if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger (params, 'limit');
             const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit <= entry[0]) {
+                const threshold = this.safeInteger (entry, 0);
+                if (limit !== undefined && threshold !== undefined && limit <= threshold) {
                     return entry[1];
                 }
             }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/btse.js';
-import type { Balances, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry, OpenInterest } from './base/types.js';
+import type { NullableDict, Balances, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry, OpenInterest } from './base/types.js';
 /**
  * @class btse
  * @augments Exchange
@@ -141,7 +141,7 @@ export default class btse extends Exchange {
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name btse#fetchFundingRate
@@ -593,11 +593,17 @@ export default class btse extends Exchange {
      */
     setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: {}): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: {
+            'request-api': string;
+            'request-nonce': string;
+            'request-sign': string;
+            'Content-Type': string;
+            'BROKER-ID': string;
+        } | undefined;
     };
     futuresRequestId(market: any): string;
     cleanPath(path: string): string;

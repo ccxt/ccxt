@@ -353,13 +353,13 @@ export default class upbit extends Exchange {
         const walletLocked = this.safeBool (memberInfo, 'wallet_locked');
         const locked = this.safeBool (memberInfo, 'locked');
         let active = true;
-        if ((canWithdraw !== undefined) && (canWithdraw !== true)) {
+        if ((canWithdraw !== undefined) && (!canWithdraw)) {
             active = false;
         } else if (walletState !== 'working') {
             active = false;
-        } else if ((walletLocked !== undefined) && (walletLocked === true)) {
+        } else if ((walletLocked !== undefined) && (walletLocked)) {
             active = false;
-        } else if ((locked !== undefined) && (locked === true)) {
+        } else if ((locked !== undefined) && (locked)) {
             active = false;
         }
         const maxOnetimeWithdrawal = this.safeString (withdrawLimits, 'onetime');
@@ -884,7 +884,7 @@ export default class upbit extends Exchange {
         return this.parseTickers (tickers, symbolsNormalized);
     }
 
-    idsQueryStrings (ids: Strings, maxQueryLength: number): string[] {
+    idsQueryStrings (ids: Strings, maxQueryLength: int): string[] {
         if (ids === undefined) {
             return [];
         }
@@ -1239,7 +1239,7 @@ export default class upbit extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limitResolved);
     }
 
-    calcOrderPrice (symbol: string, amount: Num, price: Num = undefined, params = {}): Str {
+    calcOrderPrice (symbol: string, amount: Num, price: Num = undefined, params: Dict = {}): Str {
         let quoteAmount: Str = undefined;
         const createMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice');
         const cost = this.safeString (params, 'cost');
@@ -1367,7 +1367,7 @@ export default class upbit extends Exchange {
         }
         let response: Dict;
         const paramsRequest = this.omit (paramsOrdType, [ 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ]);
-        if (test === true) {
+        if (test) {
             response = await this.privatePostOrdersTest (this.extend (request, paramsRequest));
         } else {
             response = await this.privatePostOrders (this.extend (request, paramsRequest));
@@ -1625,7 +1625,7 @@ export default class upbit extends Exchange {
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposit (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
+    async fetchDeposit (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1716,7 +1716,7 @@ export default class upbit extends Exchange {
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
+    async fetchWithdrawal (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1747,7 +1747,7 @@ export default class upbit extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'submitting': 'pending', // 처리 중
             'submitted': 'pending', // 처리 완료
@@ -1829,7 +1829,7 @@ export default class upbit extends Exchange {
         } as Transaction;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'wait': 'open',
             'done': 'closed',
@@ -2433,8 +2433,9 @@ export default class upbit extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const baseApiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2448,13 +2449,13 @@ export default class upbit extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        const hasBody = (api === 'private') && (method !== 'GET') && (method !== 'DELETE');
-        let requestBody = body;
+        const hasBody = (apiName === 'private') && (method !== 'GET') && (method !== 'DELETE');
+        let requestBody = undefined;
         if (hasBody) {
             requestBody = this.json (params);
         }
         let privateHeaders: NullableDict = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             privateHeaders = {};
             const nonce = this.uuid ();
@@ -2478,7 +2479,7 @@ export default class upbit extends Exchange {
             const token = jwt (request, this.encode (this.secret), sha256);
             privateHeaders['Authorization'] = 'Bearer ' + token;
         }
-        const requestHeaders = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

@@ -188,32 +188,36 @@ export default class p2b extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': [
-                        [this.parseNumber('0'), this.parseNumber('0.2')],
-                        [this.parseNumber('1'), this.parseNumber('0.19')],
-                        [this.parseNumber('5'), this.parseNumber('0.18')],
-                        [this.parseNumber('10'), this.parseNumber('0.17')],
-                        [this.parseNumber('25'), this.parseNumber('0.16')],
-                        [this.parseNumber('75'), this.parseNumber('0.15')],
-                        [this.parseNumber('100'), this.parseNumber('0.14')],
-                        [this.parseNumber('150'), this.parseNumber('0.13')],
-                        [this.parseNumber('300'), this.parseNumber('0.12')],
-                        [this.parseNumber('450'), this.parseNumber('0.11')],
-                        [this.parseNumber('500'), this.parseNumber('0.1')],
-                    ],
-                    'maker': [
-                        [this.parseNumber('0'), this.parseNumber('0.2')],
-                        [this.parseNumber('1'), this.parseNumber('0.18')],
-                        [this.parseNumber('5'), this.parseNumber('0.16')],
-                        [this.parseNumber('10'), this.parseNumber('0.14')],
-                        [this.parseNumber('25'), this.parseNumber('0.12')],
-                        [this.parseNumber('75'), this.parseNumber('0.1')],
-                        [this.parseNumber('100'), this.parseNumber('0.08')],
-                        [this.parseNumber('150'), this.parseNumber('0.06')],
-                        [this.parseNumber('300'), this.parseNumber('0.04')],
-                        [this.parseNumber('450'), this.parseNumber('0.02')],
-                        [this.parseNumber('500'), this.parseNumber('0.01')],
-                    ],
+                    'taker': this.parseNumber('0.002'),
+                    'maker': this.parseNumber('0.002'),
+                    'tiers': {
+                        'taker': [
+                            [this.parseNumber('0'), this.parseNumber('0.002')],
+                            [this.parseNumber('1'), this.parseNumber('0.0019')],
+                            [this.parseNumber('5'), this.parseNumber('0.0018')],
+                            [this.parseNumber('10'), this.parseNumber('0.0017')],
+                            [this.parseNumber('25'), this.parseNumber('0.0016')],
+                            [this.parseNumber('75'), this.parseNumber('0.0015')],
+                            [this.parseNumber('100'), this.parseNumber('0.0014')],
+                            [this.parseNumber('150'), this.parseNumber('0.0013')],
+                            [this.parseNumber('300'), this.parseNumber('0.0012')],
+                            [this.parseNumber('450'), this.parseNumber('0.0011')],
+                            [this.parseNumber('500'), this.parseNumber('0.001')],
+                        ],
+                        'maker': [
+                            [this.parseNumber('0'), this.parseNumber('0.002')],
+                            [this.parseNumber('1'), this.parseNumber('0.0018')],
+                            [this.parseNumber('5'), this.parseNumber('0.0016')],
+                            [this.parseNumber('10'), this.parseNumber('0.0014')],
+                            [this.parseNumber('25'), this.parseNumber('0.0012')],
+                            [this.parseNumber('75'), this.parseNumber('0.001')],
+                            [this.parseNumber('100'), this.parseNumber('0.0008')],
+                            [this.parseNumber('150'), this.parseNumber('0.0006')],
+                            [this.parseNumber('300'), this.parseNumber('0.0004')],
+                            [this.parseNumber('450'), this.parseNumber('0.0002')],
+                            [this.parseNumber('500'), this.parseNumber('0.0001')],
+                        ],
+                    },
                 },
             },
             'features': {
@@ -1123,19 +1127,30 @@ export default class p2b extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let until = this.safeInteger(params, 'until');
+        const untilParam = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
-        if (until === undefined) {
-            if (since === undefined) {
-                until = this.milliseconds();
+        let until = undefined;
+        let sinceResolved = 0;
+        if (untilParam !== undefined) {
+            until = untilParam;
+            if (since !== undefined) {
+                if ((untilParam - since) > 86400000) {
+                    throw new BadRequest(this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
+                }
+                sinceResolved = since;
             }
             else {
-                until = since + 86400000;
+                sinceResolved = untilParam - 86400000;
             }
         }
-        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
-        if ((until - sinceResolved) > 86400000) {
-            throw new BadRequest(this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
+        else if (since !== undefined) {
+            until = since + 86400000;
+            sinceResolved = since;
+        }
+        else {
+            const now = this.milliseconds();
+            until = now;
+            sinceResolved = now - 86400000;
         }
         const market = this.market(symbol);
         const sinceSec = this.parseToInt(sinceResolved / 1000);
@@ -1198,23 +1213,34 @@ export default class p2b extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let until = this.safeInteger(params, 'until');
+        const untilParam = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        if (until === undefined) {
-            if (since === undefined) {
-                until = this.milliseconds();
+        let until = undefined;
+        let sinceResolved = 0;
+        if (untilParam !== undefined) {
+            until = untilParam;
+            if (since !== undefined) {
+                if ((untilParam - since) > 86400000) {
+                    throw new BadRequest(this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
+                }
+                sinceResolved = since;
             }
             else {
-                until = since + 86400000;
+                sinceResolved = untilParam - 86400000;
             }
         }
-        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
-        if ((until - sinceResolved) > 86400000) {
-            throw new BadRequest(this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
+        else if (since !== undefined) {
+            until = since + 86400000;
+            sinceResolved = since;
+        }
+        else {
+            const now = this.milliseconds();
+            until = now;
+            sinceResolved = now - 86400000;
         }
         const sinceSec = this.parseToInt(sinceResolved / 1000);
         const untilSec = this.parseToInt(until / 1000);
@@ -1334,8 +1360,9 @@ export default class p2b extends Exchange {
             'trades': undefined,
         }, marketResolved);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1347,7 +1374,7 @@ export default class p2b extends Exchange {
                 url += '?' + this.urlencode(paramsOmitted);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             paramsOmitted['request'] = '/api/v2/' + path;
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
@@ -1362,7 +1389,7 @@ export default class p2b extends Exchange {
             const bodyJson = this.json(paramsOmitted);
             return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -1374,12 +1401,13 @@ export default class p2b extends Exchange {
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
         const success = this.safeBool(response, 'success', true);
-        if (success !== true) {
+        if (!success) {
             const errorCode = this.safeString(response, 'errorCode');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             const codeAsString = code.toString();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            const statusCode = this.parseToInt(code);
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new ExchangeError(feedback);
             }

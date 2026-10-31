@@ -685,6 +685,135 @@
                 ]
             },
             {
+                "description": "linear swap trades with decimal contract size",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "url": "wss://fx-ws.gateio.ws/v4/ws/usdt",
+                "messages": [
+                    {
+                        "time": 1786540580,
+                        "time_ms": 1786540580651,
+                        "id": 1,
+                        "conn_id": "7131b1698f971b30",
+                        "trace_id": "10272d21f20811233bcce89196cbfcf2",
+                        "channel": "futures.trades",
+                        "event": "subscribe",
+                        "payload": [
+                            "ETH_USDT"
+                        ],
+                        "result": {
+                            "status": "success"
+                        }
+                    },
+                    {
+                        "time": 1786540580,
+                        "time_ms": 1786540580715,
+                        "channel": "futures.trades",
+                        "event": "update",
+                        "result": [
+                            {
+                                "id": 943796820,
+                                "size": "90.7",
+                                "create_time": 1786540580,
+                                "create_time_ms": 1786540580715,
+                                "price": "2367.75",
+                                "contract": "ETH_USDT"
+                            }
+                        ]
+                    },
+                    {
+                        "time": 1786540580,
+                        "time_ms": 1786540580824,
+                        "channel": "futures.trades",
+                        "event": "update",
+                        "result": [
+                            {
+                                "id": 943796821,
+                                "size": "-9.3",
+                                "create_time": 1786540580,
+                                "create_time_ms": 1786540580824,
+                                "price": "2367.75",
+                                "contract": "ETH_USDT"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "time": 1786540578,
+                        "channel": "futures.trades",
+                        "event": "subscribe",
+                        "payload": [
+                            "ETH_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "id": 943796820,
+                                "size": "90.7",
+                                "create_time": 1786540580,
+                                "create_time_ms": 1786540580715,
+                                "price": "2367.75",
+                                "contract": "ETH_USDT"
+                            },
+                            "id": "943796820",
+                            "timestamp": 1786540580715,
+                            "datetime": "2026-08-12T13:16:20.715Z",
+                            "symbol": "ETH/USDT:USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 2367.75,
+                            "amount": 90.7,
+                            "cost": 2147.54925,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "id": 943796821,
+                                "size": "-9.3",
+                                "create_time": 1786540580,
+                                "create_time_ms": 1786540580824,
+                                "price": "2367.75",
+                                "contract": "ETH_USDT"
+                            },
+                            "id": "943796821",
+                            "timestamp": 1786540580824,
+                            "datetime": "2026-08-12T13:16:20.824Z",
+                            "symbol": "ETH/USDT:USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 2367.75,
+                            "amount": 9.3,
+                            "cost": 220.20075,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "time",
+                    "id"
+                ]
+            },
+            {
                 "description": "spot trades",
                 "input": [
                     "BTC/USDT"

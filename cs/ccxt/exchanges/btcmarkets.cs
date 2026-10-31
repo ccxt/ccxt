@@ -1600,16 +1600,17 @@ public partial class btcmarkets : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
         string request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Dictionary<string, object> query = this.keysort(this.omit(parameters, this.extractParams(path)));
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
@@ -1635,21 +1636,21 @@ public partial class btcmarkets : Exchange
                 { "BM-AUTH-TIMESTAMP", nonce },
                 { "BM-AUTH-SIGNATURE", signature },
             };
-        } else if ((api is "public"))
+        } else if ((apiName is "public"))
         {
             if ((new List<object>(query.Keys)).Count > 0)
             {
                 request = request + ("?" + this.urlencode(query));
             }
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + request);
-        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
+        Dictionary<string, object> headersResult = requestHeaders;
+        string? bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

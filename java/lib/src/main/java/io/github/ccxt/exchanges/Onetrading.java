@@ -1233,7 +1233,8 @@ public class Onetrading extends OnetradingApi
         {
             throw new ExchangeError((this.id + " parseOHLCV() missing timestamp")) ;
         }
-        Object alignedTimestamp = Helpers.multiply(duration, this.parseToInt((((double) timestamp) / ((double) duration))));
+        Long periods = this.parseToInt((((double) timestamp) / ((double) duration)));
+        Long alignedTimestamp = (duration * periods);
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
         String volumeField = this.safeString(options, "volume", "total_amount");
         return new ArrayList<Object>(Arrays.asList(alignedTimestamp, this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, volumeField, (Object) null)));
@@ -1362,11 +1363,13 @@ public class Onetrading extends OnetradingApi
             String feeCurrencyId = this.safeString(feeInfo, "fee_currency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
             String feeRateString = this.safeString(feeInfo, "fee_percentage");
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrencyCode,
-                "rate", feeRateString
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                hx4NewMap0.put("rate", feeRateString);
+                fee = hx4NewMap0;
+            }
             takerOrMaker = this.safeStringLower(feeInfo, "fee_type");
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
@@ -2160,35 +2163,36 @@ public class Onetrading extends OnetradingApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
                 put( "Authorization", ("Bearer " + Onetrading.this.apiKey) );
             }};
-            String bodyJson = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? this.json(query) : body;
+            String bodyJson = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? this.json(query) : null;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 headersSigned.put("Content-Type", "application/json");
             } else
             {
-                if (Helpers.objectKeys(query).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -2206,8 +2210,8 @@ public class Onetrading extends OnetradingApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
-            h2kMap1.put("headers", headers);
+            h2kMap1.put("body", null);
+            h2kMap1.put("headers", null);
             return h2kMap1;
         }
     }

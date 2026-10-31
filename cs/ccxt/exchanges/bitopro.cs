@@ -258,11 +258,8 @@ public partial class bitopro : Exchange
             { "options", new Dictionary<string, object>() {
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ERC20" },
-                    { "ETH", "ERC20" },
-                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
                     { "BEP20", "BSC" },
-                    { "BSC", "BSC" },
                 } },
                 { "fetchCurrencies", new Dictionary<string, object>() {
                     { "fiatCurrencies", new List<object>() {"TWD"} },
@@ -970,19 +967,21 @@ public partial class bitopro : Exchange
         };
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        object limitResolved = ((limit == null)) ? 500 : mathMin(limit, 75000);
+        Int64? limitResolved = this.parseToInt(((limit == null)) ? 500 : mathMin(limit, 75000));
         int timeframeInSeconds = this.parseTimeframe(timeframeVar);
-        object alignedSince = null;
+        Int64? alignedSince = null;
         if ((since == null))
         {
-            request["to"] = this.seconds();
-            request["from"] = subtract((request != null && request.ContainsKey("to") ? request["to"] : null), (multiply(limitResolved, timeframeInSeconds)));
+            Int64 toSeconds = this.seconds();
+            request["to"] = toSeconds;
+            request["from"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(toSeconds, ((limitResolved * timeframeInSeconds)));
         } else
         {
             Int64 timeframeInMilliseconds = (timeframeInSeconds * 1000L);
-            alignedSince = multiply((Math.Floor(Double.Parse((((double?)since / timeframeInMilliseconds)).ToString()))), timeframeInMilliseconds);
-            request["from"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
-            request["to"] = this.sum((request != null && request.ContainsKey("from") ? request["from"] : null), multiply(limitResolved, timeframeInSeconds));
+            alignedSince = (this.parseToInt((Math.Floor(Double.Parse((((double?)since / timeframeInMilliseconds)).ToString())))) * timeframeInMilliseconds);
+            double fromSeconds = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
+            request["from"] = fromSeconds;
+            request["to"] = this.sum(fromSeconds, (limitResolved * timeframeInSeconds));
         }
         Dictionary<string, object> response = await this.publicGetTradingHistoryPair(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
@@ -1001,10 +1000,10 @@ public partial class bitopro : Exchange
         //     }
         //
         IList<object> sparse = this.parseOHLCVs(data, market,timeframeVar, since, limitResolved);
-        return ccxt.BaseExchange.ToOHLCVList(this.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limitResolved));
+        return ccxt.BaseExchange.ToOHLCVList(this.insertMissingCandles(sparse, (timeframeInSeconds * 1000L), alignedSince, limitResolved));
     }
 
-    public virtual object insertMissingCandles(IList<object> candles, object distance, object since, object limit)
+    public virtual object insertMissingCandles(IList<object> candles, object distanceInMs, object since, object limit)
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
@@ -1044,9 +1043,9 @@ public partial class bitopro : Exchange
                 copy[Convert.ToInt32(5)] = this.parseNumber("0");
                 result.Add(copy);
             }
-            timestamp = this.sum(timestamp, multiply(distance, 1000));
+            timestamp = this.sum(timestamp, distanceInMs);
             resultLength = (result?.Count ?? 0);
-            copyFrom = getValue(result, subtract(resultLength, 1));
+            copyFrom = getValue(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(resultLength, 1));
         }
         return result;
     }
@@ -1613,7 +1612,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "statusKind", "DONE" },
         };
-        return ccxt.BaseExchange.ToOrderList(this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters)));
+        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
     }
 
     /**
@@ -1968,7 +1967,7 @@ public partial class bitopro : Exchange
         {
             IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             string? requestedNetwork = this.safeStringUpper(paramsWithdrawTag, "network");
-            string? networkId = ((requestedNetwork == null)) ? null : this.safeString(networks, requestedNetwork);
+            string? networkId = ((requestedNetwork == null)) ? null : this.safeString(networks, this.safeString(this.networkAliases, requestedNetwork, requestedNetwork));
             if ((networkId == null))
             {
                 throw new ExchangeError (((this.id + " invalid network ") + requestedNetwork)) ;
@@ -2060,32 +2059,33 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes, "currency"));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object requestHeaders = ((headers == null)) ? new Dictionary<string, object>() {} : headers;
-        bool isSignedBody = ((api is "private")) && (((method == "POST")) || ((method == "PUT")));
+        Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
+        bool isSignedBody = ((apiName is "private")) && (((method == "POST")) || ((method == "PUT")));
         string signedBody = this.json(parameters);
-        object requestBody = body;
+        string? requestBody = null;
         if (isSignedBody)
         {
             requestBody = signedBody;
         }
-        ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-API"] = "ccxt";
-        if ((api is "private"))
+        requestHeaders["X-BITOPRO-API"] = "ccxt";
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             if ((method == "POST") || (method == "PUT"))
             {
                 string payload = this.stringToBase64(signedBody);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-APIKEY"] = this.apiKey;
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-PAYLOAD"] = payload;
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-SIGNATURE"] = signature;
+                requestHeaders["X-BITOPRO-APIKEY"] = this.apiKey;
+                requestHeaders["X-BITOPRO-PAYLOAD"] = payload;
+                requestHeaders["X-BITOPRO-SIGNATURE"] = signature;
             } else if ((method == "GET") || (method == "DELETE"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -2099,11 +2099,11 @@ public partial class bitopro : Exchange
                 string data = this.json(rawData);
                 string payload = this.stringToBase64(data);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-APIKEY"] = this.apiKey;
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-PAYLOAD"] = payload;
-                ((IDictionary<string,object>)requestHeaders)["X-BITOPRO-SIGNATURE"] = signature;
+                requestHeaders["X-BITOPRO-APIKEY"] = this.apiKey;
+                requestHeaders["X-BITOPRO-PAYLOAD"] = payload;
+                requestHeaders["X-BITOPRO-SIGNATURE"] = signature;
             }
-        } else if ((api is "public") && (method == "GET"))
+        } else if ((apiName is "public") && (method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -2130,7 +2130,8 @@ public partial class bitopro : Exchange
         {
             return null;  // fallback to the default error handler
         }
-        if (isGreaterThanOrEqual(code, 200) && isLessThan(code, 300))
+        Int64? statusCode = this.parseToInt(code);
+        if ((statusCode >= 200) && ((statusCode == null || statusCode < 300)))
         {
             return null;
         }

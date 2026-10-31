@@ -245,7 +245,7 @@ public partial class foxbit : Exchange
                     { "cardano", "ADA" },
                     { "cosmos", "ATOM" },
                     { "dogecoin", "DOGE" },
-                    { "erc20", "ETH" },
+                    { "erc20", "ERC20" },
                     { "hedera", "HBAR" },
                     { "litecoin", "LTC" },
                     { "near", "NEAR" },
@@ -269,7 +269,7 @@ public partial class foxbit : Exchange
                     { "ADA", "cardano" },
                     { "ATOM", "cosmos" },
                     { "DOGE", "dogecoin" },
-                    { "ETH", "erc20" },
+                    { "ERC20", "erc20" },
                     { "HBAR", "hedera" },
                     { "LTC", "litecoin" },
                     { "NEAR", "near" },
@@ -1098,7 +1098,7 @@ public partial class foxbit : Exchange
         {
             request["client_order_id"] = clientOrderId;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"timeInForce", "postOnly", "triggerPrice", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"timeInForce", "postOnly", "triggerPrice", "clientOrderId"}));
         Dictionary<string, object> response = await this.v3PrivatePostOrders(this.extend(request, paramsOmitted));
         // {
         //     "id": 1234567890,
@@ -1933,6 +1933,15 @@ public partial class foxbit : Exchange
         IDictionary<string, object> bestBid = this.safeDict(best, "bid");
         IDictionary<string, object> lastTrade = this.safeDict(ticker, "last_trade");
         string? lastPrice = this.safeString(lastTrade, "price");
+        string? change = this.safeString(rolling_24h, "price_change");
+        string? percentage = this.safeString(rolling_24h, "price_change_percent");
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise.stringEq(lastPrice, "0"))
+        {
+            lastPrice = null;
+            change = null;
+            percentage = null;
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", this.parseDate(this.safeString(lastTrade, "date")) },
@@ -1948,8 +1957,8 @@ public partial class foxbit : Exchange
             { "close", lastPrice },
             { "last", lastPrice },
             { "previousClose", null },
-            { "change", this.safeString(rolling_24h, "price_change") },
-            { "percentage", this.safeString(rolling_24h, "price_change_percent") },
+            { "change", change },
+            { "percentage", percentage },
             { "average", null },
             { "baseVolume", this.safeString(rolling_24h, "volume") },
             { "quoteVolume", this.safeString(rolling_24h, "quote_volume") },
@@ -2111,7 +2120,7 @@ public partial class foxbit : Exchange
         string? address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
         string? sn = this.safeString(transaction, "sn");
         string type = "withdrawal";
-        if ((sn != null) && isEqual(getValue(sn, 0), "D"))
+        if ((sn != null) && (((object)((sn != null ? sn[0].ToString() : null))) is "D"))
         {
             type = "deposit";
         }
@@ -2141,7 +2150,7 @@ public partial class foxbit : Exchange
             { "txid", this.safeString(cryptoDetails, "transaction_id") },
             { "timestamp", timestamp },
             { "datetime", datetime },
-            { "network", this.safeString(transaction, "network_code") },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network_code"), currencyCode) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
@@ -2203,22 +2212,19 @@ public partial class foxbit : Exchange
         {
             throw new ArgumentsRequired ((this.id + " parseLedgerEntry() requires a amount argument")) ;
         }
-        if (isLessThan(amount, 0))
-        {
-            direction = "out";
-            if ((amount == null))
-            {
-                throw new ArgumentsRequired ((this.id + " parseLedgerEntry() requires a amount argument")) ;
-            }
-            realAmount = multiply(amount, -1);
-        }
         if ((balance == null))
         {
             throw new ExchangeError ((this.id + " parseLedgerEntry() missing balance")) ;
         }
-        if ((amount == null))
+        object before = null;
+        if ((amount != null) && (balance != null))
         {
-            throw new ArgumentsRequired ((this.id + " parseLedgerEntry() requires a amount argument")) ;
+            before = (balance - amount);
+            if (((amount == null || 0 > amount)))
+            {
+                direction = "out";
+                realAmount = (amount = -amount);
+            }
         }
         return new Dictionary<string, object>() {
             { "id", id },
@@ -2232,14 +2238,14 @@ public partial class foxbit : Exchange
             { "type", type },
             { "currency", currencySymbol },
             { "amount", realAmount },
-            { "before", subtract(balance, amount) },
+            { "before", before },
             { "after", balance },
             { "status", "ok" },
             { "fee", fee },
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2266,6 +2272,7 @@ public partial class foxbit : Exchange
         {
             List<object> paramKeys = new List<object>(((IDictionary<string,object>)paramsOmitted).Keys);
             int paramKeysLength = paramKeys.Count;
+            int lastKeyIndex = (paramKeysLength - 1);
             if (paramKeysLength > 0)
             {
                 query = this.urlencode(paramsOmitted);
@@ -2279,18 +2286,18 @@ public partial class foxbit : Exchange
                 {
                     signatureQuery = add(signatureQuery, add(add(key, "="), value));
                 }
-                if ((i < (paramKeysLength - 1)))
+                if (i < lastKeyIndex)
                 {
-                    signatureQuery = add(signatureQuery, "&");
+                    signatureQuery = (signatureQuery + ("&"));
                 }
             }
         }
-        object requestBody = body;
+        string? requestBody = null;
         if ((method == "POST") || (method == "PUT"))
         {
             requestBody = this.json(paramsOmitted);
         }
-        object bodyToSignature = "";
+        string? bodyToSignature = "";
         if ((requestBody != null))
         {
             bodyToSignature = requestBody;
@@ -2303,7 +2310,7 @@ public partial class foxbit : Exchange
         if ((urlPath is "private"))
         {
             this.checkRequiredCredentials();
-            string preHash = ((((this.numberToString(timestamp) + method) + fullPath) + (signatureQuery)) + (bodyToSignature));
+            string preHash = ((((this.numberToString(timestamp) + method) + fullPath) + (signatureQuery)) + bodyToSignature);
             string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
             headersValue["X-FB-ACCESS-KEY"] = this.apiKey;
             headersValue["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);

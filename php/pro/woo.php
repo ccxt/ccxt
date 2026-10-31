@@ -98,7 +98,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_watch_public(string $messageHash, array $message) {
         $urlUid = '';
-        if ($this->uid !== '') {
+        if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
         $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
@@ -116,7 +116,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_unwatch_public(string $subHash, ?string $symbol, string $topic, $params = array()) {
         $urlUid = '';
-        if ($this->uid !== '') {
+        if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
         $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
@@ -167,7 +167,7 @@ class woo extends \ccxt\async\woo {
         $market = $this->market($symbol);
         $topic = $market['id'] . '@' . $method;
         $urlUid = '';
-        if ($this->uid !== '') {
+        if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
         $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
@@ -332,7 +332,8 @@ class woo extends \ccxt\async\woo {
                 if ($ts === null) {
                     continue;
                 }
-                if ($ts < $orderbook['timestamp']) {
+                $orderbookTimestamp = $this->safe_integer($orderbook, 'timestamp');
+                if (($orderbookTimestamp !== null) && ($ts < $orderbookTimestamp)) {
                     continue;
                 } else {
                     $this->handle_order_book_message($client, $messageItem, $orderbook);
@@ -366,7 +367,7 @@ class woo extends \ccxt\async\woo {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -570,7 +571,7 @@ class woo extends \ccxt\async\woo {
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_list($message, 'data', array());
         $timestamp = $this->safe_integer($message, 'ts');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -1072,12 +1073,12 @@ class woo extends \ccxt\async\woo {
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $topic = 'executionreport';
-        if ($trigger === true) {
+        if ($trigger) {
             $topic = 'algoexecutionreportv2';
         }
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
         if ($symbolResolved !== null) {
             $messageHash .= ':' . $symbolResolved;
         }
@@ -1117,12 +1118,12 @@ class woo extends \ccxt\async\woo {
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $topic = 'executionreport';
-        if ($trigger === true) {
+        if ($trigger) {
             $topic = 'algoexecutionreportv2';
         }
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = 'myTrades';
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
         if ($symbolResolved !== null) {
             $messageHash .= ':' . $symbolResolved;
         }
@@ -1580,7 +1581,7 @@ class woo extends \ccxt\async\woo {
         //    }
         //
         $data = $this->safe_dict($message, 'data');
-        $balances = $this->safe_value($data, 'balances');
+        $balances = $this->safe_dict($data, 'balances', array());
         $keys = is_array($balances) ? array_keys($balances) : array();
         $ts = $this->safe_integer($message, 'ts');
         $this->balance['info'] = $data;

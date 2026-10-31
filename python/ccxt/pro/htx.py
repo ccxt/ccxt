@@ -537,17 +537,17 @@ class htx(ccxt.async_support.htx):
             snapshotOrderBook = self.order_book(snapshot, snapshotLimit)
             client.resolve(snapshotOrderBook, id)
             if (sequence is None) or (nonce < sequence):
-                maxAttempts = self.handle_option('watchOrderBook', 'maxRetries', 3)
+                maxAttempts = self.parse_to_int(self.handle_option('watchOrderBook', 'maxRetries', 3))
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
                 # retry to synchronize if we have not reached maxAttempts yet
                 if numAttempts < maxAttempts:
                     # safety guard
                     if messageHash in client.subscriptions:
-                        numAttempts = self.sum(numAttempts, 1)
+                        nextAttempts = self.sum(numAttempts, 1)
                         delayTime = 1000
                         if (lastTimestamp is not None) and (snapshotTimestamp is not None):
                             delayTime = self.sum(1000, lastTimestamp - snapshotTimestamp)
-                        subscription['numAttempts'] = numAttempts
+                        subscription['numAttempts'] = nextAttempts
                         client.subscriptions[messageHash] = subscription
                         self.delay(delayTime, self.watch_order_book_snapshot, client, message, subscription)
                 else:
@@ -609,7 +609,7 @@ class htx(ccxt.async_support.htx):
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -680,7 +680,7 @@ class htx(ccxt.async_support.htx):
         #         "ts":1645023376098
         #     }
         #
-        ch = self.safe_value(message, 'ch')
+        ch = self.safe_string(message, 'ch', '')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
@@ -696,18 +696,19 @@ class htx(ccxt.async_support.htx):
             snapshot = self.parse_order_book(tick, symbol, timestamp)
             orderbook.reset(snapshot)
             orderbook['nonce'] = version
-        if (prevSeqNum is not None) and prevSeqNum > self.safe_integer(orderbook, 'nonce', 0):
+        orderbookNonce = self.safe_integer(orderbook, 'nonce', 0)
+        if (prevSeqNum is not None) and prevSeqNum > orderbookNonce:
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
             if checksum is True:
                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
         spotConditon = (market['spot'] is True) and (prevSeqNum == orderbook['nonce'])
         nonSpotCondition = (market['contract'] is True) and (version is not None) and (version - 1 == orderbook['nonce'])
-        if (spotConditon is True) or (nonSpotCondition is True):
+        if (spotConditon) or (nonSpotCondition):
             asks = self.safe_list(tick, 'asks', [])
             bids = self.safe_list(tick, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
-            orderbook['nonce'] = seqNum if (spotConditon is True) else version
+            orderbook['nonce'] = seqNum if (spotConditon) else version
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
 
@@ -1402,7 +1403,7 @@ class htx(ccxt.async_support.htx):
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
         avgPrice = self.safe_string(order, 'trade_avg_price')
-        rawTrades = self.safe_value(order, 'trade')
+        rawTrades = self.safe_list(order, 'trade')
         typeSideParts = []
         type = None
         if typeSide is not None:
@@ -1483,7 +1484,7 @@ class htx(ccxt.async_support.htx):
         aggressor = self.safe_bool(trade, 'aggressor')
         takerOrMaker = None
         if aggressor is not None:
-            takerOrMaker = 'taker' if (aggressor is True) else 'maker'
+            takerOrMaker = 'taker' if (aggressor) else 'maker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1736,7 +1737,7 @@ class htx(ccxt.async_support.htx):
             prefix = 'accounts'
             messageHash = prefix
             if subType == 'linear':
-                if isUnifiedAccount is True:
+                if isUnifiedAccount:
                     # usdt contracts account
                     prefix = 'accounts_unify'
                     messageHash = prefix
@@ -2503,8 +2504,9 @@ class htx(ccxt.async_support.htx):
                 contractCode = self.safe_string(message, 'contract_code')
                 market = self.safe_market(contractCode) if (contractCode is not None) else None
                 if isinstance(data, list):
-                    for i in range(0, len(data)):
-                        parsed = self.parse_ws_trade(data[i], market)
+                    dataList = self.safe_list(message, 'data', [])
+                    for i in range(0, len(dataList)):
+                        parsed = self.parse_ws_trade(dataList[i], market)
                         symbol = self.safe_string(parsed, 'symbol')
                         if symbol is not None:
                             cachedTrades.append(parsed)
@@ -2601,7 +2603,7 @@ class htx(ccxt.async_support.htx):
         aggressor = self.safe_bool(trade, 'aggressor')
         takerOrMaker = None
         if aggressor is not None:
-            takerOrMaker = 'taker' if (aggressor is True) else 'maker'
+            takerOrMaker = 'taker' if (aggressor) else 'maker'
         else:
             takerOrMaker = self.safe_string_lower(trade, 'role')
         type = None

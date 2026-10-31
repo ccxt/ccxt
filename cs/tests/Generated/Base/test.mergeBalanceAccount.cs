@@ -23,29 +23,29 @@ public partial class BaseTest
             btcAccount["used"] = "0.5";
             btcAccount["debt"] = "0.1";
             Dictionary<string, object> result = exchange.mergeBalanceAccount(new Dictionary<string, object>() {}, "BTC", btcAccount);
-            Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "free"), "1"));
+            Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("BTC") ? result["BTC"] : null), "free"), "1"));
             Dictionary<string, object> btcAccount2 = exchange.account();
             btcAccount2["free"] = "2";
             btcAccount2["used"] = "0.25";
             btcAccount2["total"] = "2.25";
             result = exchange.mergeBalanceAccount(result, "BTC", btcAccount2);
-            Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "free"), "3"));
-            Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "used"), "0.75"));
-            Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "total"), "2.25"));
-            Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "debt"), "0.1"));
+            Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("BTC") ? result["BTC"] : null), "free"), "3"));
+            Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("BTC") ? result["BTC"] : null), "used"), "0.75"));
+            Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("BTC") ? result["BTC"] : null), "total"), "2.25"));
+            Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("BTC") ? result["BTC"] : null), "debt"), "0.1"));
             Dictionary<string, object> usdtAccount = exchange.account();
             usdtAccount["free"] = "5";
             result = exchange.mergeBalanceAccount(result, "USDT", usdtAccount);
-            Assert(isEqual(exchange.safeString(getValue(result, "USDT"), "free"), "5"));
-            Assert(isEqual(exchange.safeString(getValue(result, "USDT"), "used"), null));
+            Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("USDT") ? result["USDT"] : null), "free"), "5"));
+            Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("USDT") ? result["USDT"] : null), "used"), null));
             List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
             Assert((keys.Count == 2));
             // the merged dict is a regular safeBalance input. safeBalance parses to a number,
             // and each port spells that number differently (JS "3", PHP "3.0"), so Assert on
             // the parsed value rather than on its string form
             Dictionary<string, object> balance = toDict(exchange.safeBalance(result));
-            Assert(isEqual(exchange.safeNumber((balance != null && ((IDictionary<string, object>)balance).ContainsKey("BTC") ? ((IDictionary<string, object>)balance)["BTC"] : null), "free"), exchange.parseNumber("3")));
-            Assert(isEqual(exchange.safeNumber((balance != null && ((IDictionary<string, object>)balance).ContainsKey("free") ? ((IDictionary<string, object>)balance)["free"] : null), "USDT"), exchange.parseNumber("5")));
-            Assert(isEqual(exchange.safeNumber((balance != null && ((IDictionary<string, object>)balance).ContainsKey("debt") ? ((IDictionary<string, object>)balance)["debt"] : null), "BTC"), exchange.parseNumber("0.1")));
+            Assert(isEqual(exchange.safeNumber((balance != null && balance.ContainsKey("BTC") ? balance["BTC"] : null), "free"), exchange.parseNumber("3")));
+            Assert(isEqual(exchange.safeNumber((balance != null && balance.ContainsKey("free") ? balance["free"] : null), "USDT"), exchange.parseNumber("5")));
+            Assert(isEqual(exchange.safeNumber((balance != null && balance.ContainsKey("debt") ? balance["debt"] : null), "BTC"), exchange.parseNumber("0.1")));
         }
 }

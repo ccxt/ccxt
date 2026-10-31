@@ -221,7 +221,7 @@ class indodax extends indodax$1["default"] {
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'XLM': 'Stellar Token',
-                    'BSC': 'bep20',
+                    'BEP20': 'bep20',
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     // 'BEP2': 'bep2',
@@ -643,7 +643,7 @@ class indodax extends indodax$1["default"] {
             const parsed = this.parseTicker(rawTicker, market);
             parsedTickers[marketId] = parsed;
         }
-        return this.filterByArray(parsedTickers, 'symbol', symbols);
+        return this.filterByArrayTickers(parsedTickers, 'symbol', symbols);
     }
     parseTrade(trade, market = undefined) {
         const timestamp = this.safeTimestamp(trade, 'date');
@@ -737,7 +737,12 @@ class indodax extends indodax$1["default"] {
         }
         else {
             const duration = this.parseTimeframe(timeframe);
-            request['from'] = now - limitResolved * duration - 1;
+            if (limit === undefined) {
+                request['from'] = now - 1000 * duration - 1;
+            }
+            else {
+                request['from'] = now - limit * duration - 1;
+            }
         }
         const response = await this.publicGetTradingviewHistoryV2(this.extend(request, paramsOmitted));
         //
@@ -1450,9 +1455,7 @@ class indodax extends indodax$1["default"] {
         const addresses = this.safeDict(data, 'address', {});
         const networks = this.safeDict(data, 'network', {});
         const addressKeys = Object.keys(addresses);
-        const result = {
-            'info': data,
-        };
+        const result = [];
         for (let i = 0; i < addressKeys.length; i++) {
             const marketId = addressKeys[i];
             const code = this.safeCurrencyCode(marketId);
@@ -1487,27 +1490,28 @@ class indodax extends indodax$1["default"] {
                 }
                 const finalNetwork = network; // java req
                 if (code !== undefined) {
-                    result[code] = {
+                    result.push({
                         'info': {},
                         'currency': code,
                         'network': finalNetwork,
                         'address': address,
                         'tag': undefined,
-                    };
+                    });
                 }
             }
         }
-        return result;
+        return this.toArray(result);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl;
         let privateBody = undefined;
         let privateHeaders = undefined;
-        const isPublic = (api === 'public');
+        const isPublic = (apiName === 'public');
         if (isPublic) {
             const query = this.omit(params, this.extractParams(path));
             const requestPath = '/' + this.implodeParams(path, params);
@@ -1531,11 +1535,11 @@ class indodax extends indodax$1["default"] {
         }
         let requestBody = privateBody;
         if (isPublic) {
-            requestBody = body;
+            requestBody = undefined;
         }
         let requestHeaders = privateHeaders;
         if (isPublic) {
-            requestHeaders = headers;
+            requestHeaders = undefined;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }

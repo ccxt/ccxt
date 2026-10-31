@@ -425,36 +425,36 @@ public class Bitbns extends BitbnsApi
                 {
                     uppercaseId = (((baseId + "_") + quoteId));
                 }
-                ((List<Object>)result).add(Helpers.newMap(
-                    "id", id,
-                    "uppercaseId", uppercaseId,
-                    "symbol", ((base + "/") + quote),
-                    "base", base,
-                    "quote", quote,
-                    "settle", null,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", null,
-                    "type", "spot",
-                    "spot", true,
-                    "margin", false,
-                    "swap", false,
-                    "future", false,
-                    "option", false,
-                    "active", this.safeBool(market, "active", (Object) null),
-                    "contract", false,
-                    "linear", null,
-                    "inverse", null,
-                    "contractSize", null,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", id);
+                    j39v1.put("uppercaseId", uppercaseId);
+                    j39v1.put("symbol", ((base + "/") + quote));
+                    j39v1.put("base", base);
+                    j39v1.put("quote", quote);
+                    j39v1.put("settle", null);
+                    j39v1.put("baseId", baseId);
+                    j39v1.put("quoteId", quoteId);
+                    j39v1.put("settleId", null);
+                    j39v1.put("type", "spot");
+                    j39v1.put("spot", true);
+                    j39v1.put("margin", false);
+                    j39v1.put("swap", false);
+                    j39v1.put("future", false);
+                    j39v1.put("option", false);
+                    j39v1.put("active", this.safeBool(market, "active", (Object) null));
+                    j39v1.put("contract", false);
+                    j39v1.put("linear", null);
+                    j39v1.put("inverse", null);
+                    j39v1.put("contractSize", null);
+                    j39v1.put("expiry", null);
+                    j39v1.put("expiryDatetime", null);
+                    j39v1.put("strike", null);
+                    j39v1.put("optionType", null);
+                    j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Bitbns.this.parseNumber(Bitbns.this.parsePrecision(Bitbns.this.safeString(marketPrecision, "amount"))) );
                         put( "price", Bitbns.this.parseNumber(Bitbns.this.parsePrecision(Bitbns.this.safeString(marketPrecision, "price"))) );
-                    }},
-                    "limits", new HashMap<String, Object>() {{
+                    }});
+                    j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -471,10 +471,10 @@ public class Bitbns extends BitbnsApi
                             put( "min", Bitbns.this.safeNumber(costLimits, "min", (Object) null) );
                             put( "max", Bitbns.this.safeNumber(costLimits, "max", (Object) null) );
                         }} );
-                    }},
-                    "created", null,
-                    "info", market
-                ));
+                    }});
+                    j39v1.put("created", null);
+                    j39v1.put("info", market);
+                    yield j39v1; } }));
             }
             return result;
         });
@@ -1137,10 +1137,12 @@ public class Bitbns extends BitbnsApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyCode = (String) marketResolved.get("quote");
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("info", trade);
@@ -1376,7 +1378,7 @@ public class Bitbns extends BitbnsApi
 
     }
 
-    public Object parseTransactionStatusByType(String status, String type)
+    public String parseTransactionStatusByType(String status, String type)
     {
         Map<String, Object> statusesByType = new HashMap<String, Object>() {{
             put( "deposit", new HashMap<String, Object>() {{
@@ -1444,10 +1446,12 @@ public class Bitbns extends BitbnsApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("currency", code);
+                hx4NewMap1.put("cost", feeCost);
+                fee = hx4NewMap1;
+            }
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
@@ -1527,22 +1531,23 @@ public class Bitbns extends BitbnsApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object urls = this.urls;
-        if (!(((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(java.util.Objects.requireNonNullElse(api, "www"))))
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        if (!(((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(apiName)))
         {
-            throw new ExchangeError((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "www")) + " endpoints")) ;
+            throw new ExchangeError((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
-        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "www"), "www"))
+        if (!java.util.Objects.equals(apiName, "www"))
         {
             this.checkRequiredCredentials(true);
         }
         Map<String, Object> apiKeyHeaders = new HashMap<String, Object>() {{
             put( "X-BITBNS-APIKEY", Bitbns.this.apiKey );
         }};
-        Object requestHeaders = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "www"), "www")))) ? apiKeyHeaders : headers;
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "www"));
+        Object requestHeaders = (((!java.util.Objects.equals(apiName, "www")))) ? apiKeyHeaders : null;
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1551,13 +1556,13 @@ public class Bitbns extends BitbnsApi
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         String nonce = String.valueOf(this.nonce());
-        Integer queryLength = Helpers.objectKeys(query).size();
+        Integer queryLength = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
         String postBody = "{}";
         if ((queryLength != null && queryLength > 0))
         {
             postBody = this.json(query);
         }
-        String requestBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? postBody : body;
+        String requestBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? postBody : null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if ((queryLength != null && queryLength > 0))

@@ -794,8 +794,9 @@ public partial class gemini : Exchange
         {
             throw new NotSupported (error) ;
         }
-        List<object> rows = ((string)(tables != null && 1 < tables.Count ? tables[1] : null)).Split(new [] {"\n<tr>\n"}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
-        int numRows = (rows?.Count ?? 0);
+        string? table = this.safeString(tables, 1, "");
+        List<object> rows = table.Split(new [] {"\n<tr>\n"}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
+        int numRows = rows.Count;
         if (numRows < 2)
         {
             throw new NotSupported (error) ;
@@ -806,7 +807,7 @@ public partial class gemini : Exchange
         {
             string? row = ((string)(rows != null && i < rows.Count ? rows[i] : null));
             List<object> cells = row.Split(new [] {"</td>\n"}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
-            int numCells = (cells?.Count ?? 0);
+            int numCells = cells.Count;
             if (numCells < 5)
             {
                 throw new NotSupported (error) ;
@@ -818,17 +819,21 @@ public partial class gemini : Exchange
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            string marketId = ((string)(cells != null && 0 < cells.Count ? cells[0] : null)).Replace("<td>", (string)"");
-            marketId = marketId.Replace("*", (string)"");
+            string? cell0 = this.safeString(cells, 0, "");
+            string marketIdRaw = cell0.Replace("<td>", (string)"");
+            string marketId = marketIdRaw.Replace("*", (string)"");
             // const base = this.safeCurrencyCode (baseId);
-            string minAmountString = ((string)(cells != null && 1 < cells.Count ? cells[1] : null)).Replace("<td>", (string)"");
+            string? cell1 = this.safeString(cells, 1, "");
+            string minAmountString = cell1.Replace("<td>", (string)"");
             List<object> minAmountParts = minAmountString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             double? minAmount = this.safeNumber(minAmountParts, 0);
-            string amountPrecisionString = ((string)(cells != null && 2 < cells.Count ? cells[2] : null)).Replace("<td>", (string)"");
+            string? cell2 = this.safeString(cells, 2, "");
+            string amountPrecisionString = cell2.Replace("<td>", (string)"");
             List<object> amountPrecisionParts = amountPrecisionString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
-            object idLength = ((marketId?.Length ?? 0) - 0);
-            object startingIndex = subtract(idLength, 3);
-            string pricePrecisionString = ((string)(cells != null && 3 < cells.Count ? cells[3] : null)).Replace("<td>", (string)"");
+            int idLength = marketId.Length;
+            int startingIndex = (idLength - 3);
+            string? cell3 = this.safeString(cells, 3, "");
+            string pricePrecisionString = cell3.Replace("<td>", (string)"");
             List<object> pricePrecisionParts = pricePrecisionString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             string? quoteId = this.safeStringLower(pricePrecisionParts, 1, slice(marketId, startingIndex, idLength));
             string? baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.Replace(quoteId, (string)""));
@@ -1055,9 +1060,9 @@ public partial class gemini : Exchange
         //     }
         //
         object marketId = null;
-        object baseId = null;
-        object quoteId = null;
-        object settleId = null;
+        string? baseId = null;
+        string? quoteId = null;
+        string? settleId = null;
         double? tickSize = null;
         double? amountPrecision = null;
         double? minSize = null;
@@ -1099,21 +1104,21 @@ public partial class gemini : Exchange
             if (conflictingMarkets.ContainsKey(lowerCaseId))
             {
                 object conflictingMarket = (lowerCaseId != null && conflictingMarkets.ContainsKey(lowerCaseId) ? conflictingMarkets[lowerCaseId] : null);
-                baseId = getValue(conflictingMarket, "base");
-                quoteId = getValue(conflictingMarket, "quote");
+                baseId = this.safeString(conflictingMarket, "base");
+                quoteId = this.safeString(conflictingMarket, "quote");
                 if (isPerp)
                 {
-                    settleId = getValue(conflictingMarket, "quote");
+                    settleId = this.safeString(conflictingMarket, "quote");
                 }
             } else
             {
                 object quoteCurrencies = this.handleOption("fetchMarketsFromAPI", "quoteCurrencies", new List<object>() {});
                 for (int i = 0; i < getArrayLength(quoteCurrencies); i++)
                 {
-                    object quoteCurrency = getValue(quoteCurrencies, i);
-                    if (marketIdWithoutPerp.EndsWith(((string)quoteCurrency)))
+                    string? quoteCurrency = this.safeString(quoteCurrencies, i, "");
+                    if (marketIdWithoutPerp.EndsWith(quoteCurrency))
                     {
-                        Int64? quoteLength = this.parseToInt(multiply(-1, getArrayLength(quoteCurrency)));
+                        Int64? quoteLength = this.parseToInt(((Int64)(-1) * quoteCurrency.Length));
                         baseId = slice(marketIdWithoutPerp, 0, quoteLength);
                         quoteId = quoteCurrency;
                         if (isPerp)
@@ -1388,7 +1393,7 @@ public partial class gemini : Exchange
         }
         if (((symbol == null)) && ((marketResolved != null)))
         {
-            symbol = ((string)GetValue(marketResolved, "symbol"));
+            symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
             baseId = this.safeStringUpper(marketResolved, "baseId");
             quoteId = this.safeStringUpper(marketResolved, "quoteId");
         }
@@ -1996,7 +2001,7 @@ public partial class gemini : Exchange
         // timeInForce and postOnly are consumed only by non-trigger orders
         List<object> omitKeys = new List<object>() {"clientOrderId", "client_order_id", "type", "triggerPrice", "stop_price", "stopPrice"};
         List<object> optionKeys = ((triggerPrice == null)) ? new List<object>() {"timeInForce", "postOnly"} : new List<object>() {};
-        object paramsOmitted = this.omit(parameters, this.arrayConcat(omitKeys, optionKeys));
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, this.arrayConcat(omitKeys, optionKeys)));
         if (typeValue == "stopLimit")
         {
             throw new ArgumentsRequired ((((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ") + typeValue) + " orders")) ;
@@ -2357,7 +2362,7 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> indexedByNetwork = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
         string? networkCode = this.handleNetworkCodeAndParams(parameters).Item1;
-        return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedByNetwork, networkCode));
+        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(indexedByNetwork, networkCode));
     }
 
     /**
@@ -2391,24 +2396,25 @@ public partial class gemini : Exchange
             { "network", networkId },
         };
         List<object> response = await this.privatePostV1AddressesNetwork(this.extend(request, paramsNetworkCode));
-        object results = this.parseDepositAddresses(response, new List<object>() {codeValue}, false, new Dictionary<string, object>() {
+        List<object> results = ((List<object>)this.parseDepositAddresses(response, new List<object>() {codeValue}, false, new Dictionary<string, object>() {
             { "network", networkCode },
             { "currency", codeValue },
-        });
+        }));
         // one address structure per network, like every other venue (the endpoint is scoped to a
         // single network, so the last address the venue lists for it wins — same as before)
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(results, "network"));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> headersSigned = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             object apiKey = this.apiKey;
@@ -2439,14 +2445,14 @@ public partial class gemini : Exchange
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string fullUrl = (apiUrl + url);
-        object headersResolved = ((api is "private")) ? headersSigned : headers;
-        object bodyResolved = body;
+        Dictionary<string, object> headersResolved = ((apiName is "private")) ? headersSigned : null;
+        string? bodyResolved = null;
         if (((method == "POST")) || ((method == "DELETE")))
         {
             bodyResolved = this.json(query);

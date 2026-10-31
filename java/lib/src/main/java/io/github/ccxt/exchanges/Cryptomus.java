@@ -521,7 +521,7 @@ public class Cryptomus extends CryptomusApi
             //
             List<Object> coins = (List<Object>) this.safeList(response, "result", (Object) null);
             Map<String,Object> groupedById = this.groupBy(coins, "currency_code");
-            Object groupedArray = Helpers.objectValues(groupedById);
+            Object groupedArray = new ArrayList<Object>(groupedById.values());
             return this.parseCurrencies(groupedArray);
         });
 
@@ -839,7 +839,7 @@ public class Cryptomus extends CryptomusApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(balance); i++)
+        for (var i = 0; i < (switch ((Object)(balance)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             Map<String, Object> balanceEntry = (Map<String, Object>) this.safeDict(balance, i, (Object) null);
             String currencyId = this.safeString(balanceEntry, "ticker");
@@ -1209,10 +1209,12 @@ public class Cryptomus extends CryptomusApi
         String feeCurrency = this.safeString(firstTx, "feeCurrency");
         if (!java.util.Objects.equals(feeCurrency, null))
         {
-            fee = Helpers.newMap(
-                "currency", this.safeCurrencyCode(feeCurrency, (Map<String, Object>) null),
-                "cost", this.safeNumber(firstTx, "fee", (Object) null)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("currency", this.safeCurrencyCode(feeCurrency, (Map<String, Object>) null));
+                hx4NewMap0.put("cost", this.safeNumber(firstTx, "fee", (Object) null));
+                fee = hx4NewMap0;
+            }
         }
         if (java.util.Objects.equals(price, null))
         {
@@ -1376,17 +1378,18 @@ public class Cryptomus extends CryptomusApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String endpoint = (String) this.implodeParams(path, parameters);
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((apiUrl + "/") + endpoint);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String jsonParams = "";
@@ -1409,7 +1412,7 @@ public class Cryptomus extends CryptomusApi
             String stringToSign = (jsonParamsBase64 + this.secret);
             Object signature = this.hash(this.encode(stringToSign), md5());
             privateHeaders.put("sign", signature);
-            String privateBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? jsonParams : body;
+            String privateBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? jsonParams : null;
             {
                 HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
                 h2kMap0.put("url", url);
@@ -1430,8 +1433,8 @@ public class Cryptomus extends CryptomusApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
-            h2kMap1.put("headers", headers);
+            h2kMap1.put("body", null);
+            h2kMap1.put("headers", null);
             return h2kMap1;
         }
     }
@@ -1442,13 +1445,13 @@ public class Cryptomus extends CryptomusApi
         {
             return null;
         }
-        if (Helpers.inOp(response, "code"))
+        if ((switch ((Object)(response)) { case List<?> j39v7 -> j39v7.contains("code"); case Map<?, ?> j39v6 -> j39v6.containsKey("code"); case null, default -> false; }))
         {
             String code = this.safeString(response, "code");
             String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
             throw new ExchangeError(feedback) ;
-        } else if (Helpers.inOp(response, "message"))
+        } else if ((switch ((Object)(response)) { case List<?> j39v5 -> j39v5.contains("message"); case Map<?, ?> j39v4 -> j39v4.containsKey("message"); case null, default -> false; }))
         {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}

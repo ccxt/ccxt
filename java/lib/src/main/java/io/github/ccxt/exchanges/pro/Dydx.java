@@ -463,7 +463,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents", (Object) null);
         List<Object> candles = (List<Object>) this.safeList(content, "candles", (Object) null);
         String messageHash = ("ohlcv:" + symbol);
-        Object ohlcv = this.safeDict(candles, 0, content);
+        Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(candles, 0, content);
         List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);

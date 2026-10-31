@@ -52,7 +52,22 @@
                 "method": "fetchCrossBorrowRate",
                 "url": "https://api.kucoin.com/api/ua/v1/account/interest-limits?currency=ETH",
                 "input": [
-                    "ETH"
+                    "ETH",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch cross borrow rate classic account",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.kucoin.com/api/v3/margin/borrowRate?currency=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "uta": false
+                    }
                 ],
                 "output": null
             }

@@ -380,7 +380,7 @@ export default class bitvavo extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name bitvavo#fetchDepositWithdrawFees
@@ -391,7 +391,7 @@ export default class bitvavo extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
 }

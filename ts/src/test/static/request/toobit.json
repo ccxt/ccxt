@@ -3,6 +3,49 @@
     "skipKeys": [ "timestamp", "signature", "newClientOrderId", "clientOrderId" ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetchIndexOHLCV with since",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.toobit.com/quote/v1/index/klines?symbol=BTCUSDT&interval=1h&from=1789760220000&to=1789771020000&limit=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1789760220000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetchMarkOHLCV with until",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.toobit.com/quote/v1/markPrice/klines?symbol=BTC-SWAP-USDT&interval=1h&to=1789771000000&limit=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    3,
+                    {
+                        "until": 1789771000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchMarkOHLCV with since",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.toobit.com/quote/v1/markPrice/klines?symbol=BTC-SWAP-USDT&interval=1h&from=1789760220000&to=1789771020000&limit=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1789760220000,
+                    3
+                ],
+                "output": null
+            }
+        ],
         "withdraw": [
             {
                 "description": "withdraw USDT on SOL",

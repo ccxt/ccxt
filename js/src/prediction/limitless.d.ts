@@ -40,8 +40,8 @@ export default class limitless extends Exchange {
      * @param {object[]} rawRows raw listing rows, single-market and group rows mixed
      * @returns {object[]} raw single-market rows only
      */
-    expandGroupRows(rawRows: any[]): any[];
-    parseEvent(event: Dict): any;
+    expandGroupRows(rawRows: any[]): Dict[];
+    parseEvent(event: Dict): PredictionEvent;
     /**
      * @method
      * @name limitless#fetchTicker
@@ -230,10 +230,10 @@ export default class limitless extends Exchange {
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     createOrder(outcome: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<PredictionOrder>;
-    signOrderRequest(signRequest: Dict, marketSymbol: any): string;
+    signOrderRequest(signRequest: Dict, marketSymbol: Str): string;
     hashMessage(message: any): string;
-    signHash(hash: any, privateKey: any): string;
-    signMessage(message: any, privateKey: any): string;
+    signHash(hash: string, privateKey: string): string;
+    signMessage(message: any, privateKey: string): string;
     signEvmTransaction(tx: Dict, privateKey: string): string;
     /**
      * @method
@@ -380,14 +380,12 @@ export default class limitless extends Exchange {
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the api group and access level
+     * @param {string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: any;

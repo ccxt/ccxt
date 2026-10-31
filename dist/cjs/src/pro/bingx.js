@@ -307,13 +307,7 @@ class bingx extends bingx$1["default"] {
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        let inverse = false;
-        if (isInverse === undefined) {
-            inverse = marketResolved['inverse'] === true;
-        }
-        else {
-            inverse = isInverse;
-        }
+        const inverse = (isInverse === true) || ((isInverse === undefined) && (marketResolved['inverse'] === true));
         const baseVolumeKey = inverse ? 'm' : 'v';
         return this.safeTicker({
             'symbol': marketResolved['symbol'],
@@ -879,7 +873,7 @@ class bingx extends bingx$1["default"] {
         const marketOptions = this.safeDict(this.options, marketType);
         const timeframes = this.safeDict(marketOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
-        if (this.safeValue(this.ohlcvs[symbol], rawTimeframe) === undefined) {
+        if (this.safeValue(this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
             const subscriptionHash = dataType;
             const subscription = this.safeDict(client.subscriptions, subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
@@ -1106,7 +1100,7 @@ class bingx extends bingx$1["default"] {
         }
         const uuid = this.uuid();
         let baseUrl = undefined;
-        let request = {};
+        let request = undefined;
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new errors.NotSupported(this.id + ' watchMyTrades is not supported for inverse swap markets yet');
@@ -1310,7 +1304,7 @@ class bingx extends bingx$1["default"] {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append(position);
             }
         }
@@ -1494,7 +1488,7 @@ class bingx extends bingx$1["default"] {
         const time = this.milliseconds();
         const lastAuthenticatedTime = this.safeInteger(this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
-        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
+        if ((listenKeyRefreshRate !== undefined) && (time - lastAuthenticatedTime > listenKeyRefreshRate)) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             // different keys and the key rides the private url, so losers
@@ -1928,7 +1922,7 @@ class bingx extends bingx$1["default"] {
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool(subscription, 'unsubscribe', false);
-        if (isUnSubMessage === true) {
+        if (isUnSubMessage) {
             this.handleUnSubscription(client, subscription);
         }
         return message;

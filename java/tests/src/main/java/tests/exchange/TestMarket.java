@@ -193,7 +193,7 @@ public class TestMarket extends BaseTest {
         } else
         {
             // if not spot, any of the below should be true
-            Assert((java.util.Objects.equals(contract, true)) && ((java.util.Objects.equals(future, true)) || (java.util.Objects.equals(swap, true)) || (java.util.Objects.equals(option, true)) || (java.util.Objects.equals(isIndex, true))), ("for non-spot markets, any of (future/swap/option/index) should be set" + logText));
+            Assert((java.util.Objects.equals(contract, true)) && ((java.util.Objects.equals(future, true)) || (java.util.Objects.equals(swap, true)) || (java.util.Objects.equals(option, true)) || Boolean.TRUE.equals(isIndex)), ("for non-spot markets, any of (future/swap/option/index) should be set" + logText));
         }
         String contractSize = exchange.safeString(market, "contractSize");
         // contract fields
@@ -228,7 +228,7 @@ public class TestMarket extends BaseTest {
         // future, swap and option should be mutually exclusive
         if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
         {
-            Assert((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (!java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)) && (!java.util.Objects.equals(isIndex, true)), ("market swap and option must be false when \"future\" is true" + logText));
+            Assert((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (!java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)) && (!Boolean.TRUE.equals(isIndex)), ("market swap and option must be false when \"future\" is true" + logText));
         } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
         {
             Assert((!java.util.Objects.equals(future, true)) && (!java.util.Objects.equals(option, true)), ("market future and option must be false when \"swap\" is true" + logText));
