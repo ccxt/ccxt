@@ -6,7 +6,6 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type Modetrade struct {

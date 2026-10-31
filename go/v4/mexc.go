@@ -4,7 +4,6 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type Mexc struct {
@@ -1506,11 +1505,11 @@ func (this *Mexc) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 		return nil
 	}
 
-	listEp1492 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp1492.Err != nil {
-		panic(listEp1492.Err)
+	listEp1493 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp1493.Err != nil {
+		panic(listEp1493.Err)
 	}
-	var response []any = listEp1492.Value
+	var response []any = listEp1493.Value
 
 	//
 	// {
@@ -3510,11 +3509,11 @@ func (this *Mexc) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, o
 		"batchOrders": this.Json(ordersRequests),
 	}
 
-	listEp3384 := <-this.SpotPrivatePostBatchOrders(request)
-	if listEp3384.Err != nil {
-		panic(listEp3384.Err)
+	listEp3385 := <-this.SpotPrivatePostBatchOrders(request)
+	if listEp3385.Err != nil {
+		panic(listEp3385.Err)
 	}
-	var response []any = listEp3384.Value
+	var response []any = listEp3385.Value
 
 	//
 	// [
@@ -4037,18 +4036,18 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 				panic(BadRequest(this.Id + " fetchOpenOrders() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
-			listEp3869 := <-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))
-			if listEp3869.Err != nil {
-				panic(listEp3869.Err)
+			listEp3870 := <-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))
+			if listEp3870.Err != nil {
+				panic(listEp3870.Err)
 			}
-			response = listEp3869.Value
+			response = listEp3870.Value
 		} else {
 
-			listEp3872 := <-this.SpotPrivateGetOpenOrders(this.Extend(request, query))
-			if listEp3872.Err != nil {
-				panic(listEp3872.Err)
+			listEp3873 := <-this.SpotPrivateGetOpenOrders(this.Extend(request, query))
+			if listEp3873.Err != nil {
+				panic(listEp3873.Err)
 			}
-			response = listEp3872.Value
+			response = listEp3873.Value
 		}
 
 		//
@@ -4166,8 +4165,8 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3986, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes326415 []any = listRecv3986
+	listRecv3987, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes326415 []any = listRecv3987
 	if retRes326415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
@@ -4210,8 +4209,8 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv4025, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes328115 []any = listRecv4025
+	listRecv4026, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes328115 []any = listRecv4026
 	if retRes328115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
@@ -6319,11 +6318,11 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-	listEp5980 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
-	if listEp5980.Err != nil {
-		panic(listEp5980.Err)
+	listEp5981 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
+	if listEp5981.Err != nil {
+		panic(listEp5981.Err)
 	}
-	var response []any = listEp5980.Value
+	var response []any = listEp5981.Value
 	//
 	//    [
 	//        {
@@ -6541,11 +6540,11 @@ func (this *Mexc) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		return params
 	}()
 
-	listEp6178 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
-	if listEp6178.Err != nil {
-		panic(listEp6178.Err)
+	listEp6179 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
+	if listEp6179.Err != nil {
+		panic(listEp6179.Err)
 	}
-	var response []any = listEp6178.Value
+	var response []any = listEp6179.Value
 
 	//
 	// [
@@ -6620,11 +6619,11 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		request["limit"] = limit
 	}
 
-	listEp6250 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
-	if listEp6250.Err != nil {
-		panic(listEp6250.Err)
+	listEp6251 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
+	if listEp6251.Err != nil {
+		panic(listEp6251.Err)
 	}
-	var response []any = listEp6250.Value
+	var response []any = listEp6251.Value
 
 	//
 	// [
@@ -7689,11 +7688,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any], 
 		}
 	}
 
-	listEp7249 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7249.Err != nil {
-		panic(listEp7249.Err)
+	listEp7250 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7250.Err != nil {
+		panic(listEp7250.Err)
 	}
-	var response []any = listEp7249.Value
+	var response []any = listEp7250.Value
 
 	//
 	//    [
@@ -7816,11 +7815,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]De
 		}
 	}
 
-	listEp7369 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7369.Err != nil {
-		panic(listEp7369.Err)
+	listEp7370 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7370.Err != nil {
+		panic(listEp7370.Err)
 	}
-	var response []any = listEp7369.Value
+	var response []any = listEp7370.Value
 
 	//
 	//    [

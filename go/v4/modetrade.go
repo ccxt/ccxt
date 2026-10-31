@@ -4,7 +4,6 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type Modetrade struct {
@@ -3887,8 +3886,8 @@ func (this *Modetrade) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3641, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3641
+	listRecv3642, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3642
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -4088,8 +4087,8 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transa
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3829, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3829
+	listRecv3830, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3830
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 	//

@@ -4,7 +4,6 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type Paymium struct {
@@ -491,11 +490,11 @@ func (this *Paymium) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"currency": market["id"],
 	}
 
-	listEp464 := <-this.PublicGetDataCurrencyTrades(this.Extend(request, params))
-	if listEp464.Err != nil {
-		panic(listEp464.Err)
+	listEp465 := <-this.PublicGetDataCurrencyTrades(this.Extend(request, params))
+	if listEp465.Err != nil {
+		panic(listEp465.Err)
 	}
-	var response []any = listEp464.Value
+	var response []any = listEp465.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
@@ -623,11 +622,11 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 		}
 	}
 
-	listEp575 := <-this.PrivateGetUserAddresses(params)
-	if listEp575.Err != nil {
-		panic(listEp575.Err)
+	listEp576 := <-this.PrivateGetUserAddresses(params)
+	if listEp576.Err != nil {
+		panic(listEp576.Err)
 	}
-	var response []any = listEp575.Value
+	var response []any = listEp576.Value
 
 	//
 	//     [

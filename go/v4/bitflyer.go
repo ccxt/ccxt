@@ -4,7 +4,6 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type Bitflyer struct {
@@ -357,11 +356,11 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp357 := <-this.PublicGetGetmarkets(params)
-	if listEp357.Err != nil {
-		panic(listEp357.Err)
+	listEp358 := <-this.PublicGetGetmarkets(params)
+	if listEp358.Err != nil {
+		panic(listEp358.Err)
 	}
-	var jp_markets []any = listEp357.Value
+	var jp_markets []any = listEp358.Value
 	//
 	//     [
 	//         // spot
@@ -379,11 +378,11 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//     ];
 	//
 
-	listEp375 := <-this.PublicGetGetmarketsUsa(params)
-	if listEp375.Err != nil {
-		panic(listEp375.Err)
+	listEp376 := <-this.PublicGetGetmarketsUsa(params)
+	if listEp376.Err != nil {
+		panic(listEp376.Err)
 	}
-	var us_markets []any = listEp375.Value
+	var us_markets []any = listEp376.Value
 	//
 	//     [
 	//         { "product_code": "BTC_USD", "market_type": "Spot" },
@@ -391,11 +390,11 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//     ];
 	//
 
-	listEp383 := <-this.PublicGetGetmarketsEu(params)
-	if listEp383.Err != nil {
-		panic(listEp383.Err)
+	listEp384 := <-this.PublicGetGetmarketsEu(params)
+	if listEp384.Err != nil {
+		panic(listEp384.Err)
 	}
-	var eu_markets []any = listEp383.Value
+	var eu_markets []any = listEp384.Value
 	//
 	//     [
 	//         { "product_code": "BTC_EUR", "market_type": "Spot" },
@@ -627,11 +626,11 @@ func (this *Bitflyer) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		}
 	}
 
-	listEp601 := <-this.PrivateGetGetbalance(params)
-	if listEp601.Err != nil {
-		panic(listEp601.Err)
+	listEp602 := <-this.PrivateGetGetbalance(params)
+	if listEp602.Err != nil {
+		panic(listEp602.Err)
 	}
-	var response []any = listEp601.Value
+	var response []any = listEp602.Value
 
 	//
 	//     [
@@ -873,11 +872,11 @@ func (this *Bitflyer) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		request["count"] = limit
 	}
 
-	listEp826 := <-this.PublicGetGetexecutions(this.Extend(request, params))
-	if listEp826.Err != nil {
-		panic(listEp826.Err)
+	listEp827 := <-this.PublicGetGetexecutions(this.Extend(request, params))
+	if listEp827.Err != nil {
+		panic(listEp827.Err)
 	}
-	var response []any = listEp826.Value
+	var response []any = listEp827.Value
 
 	//
 	//    [
@@ -1157,11 +1156,11 @@ func (this *Bitflyer) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		"count":        limit,
 	}
 
-	listEp1085 := <-this.PrivateGetGetchildorders(this.Extend(request, params))
-	if listEp1085.Err != nil {
-		panic(listEp1085.Err)
+	listEp1086 := <-this.PrivateGetGetchildorders(this.Extend(request, params))
+	if listEp1086.Err != nil {
+		panic(listEp1086.Err)
 	}
-	var response []any = listEp1085.Value
+	var response []any = listEp1086.Value
 	if symbol != nil {
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBy(this.ParseOrders(response, market, since, limit), "symbol", symbol))}
@@ -1349,11 +1348,11 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["count"] = limit
 	}
 
-	listEp1256 := <-this.PrivateGetGetexecutions(this.Extend(request, params))
-	if listEp1256.Err != nil {
-		panic(listEp1256.Err)
+	listEp1257 := <-this.PrivateGetGetexecutions(this.Extend(request, params))
+	if listEp1257.Err != nil {
+		panic(listEp1257.Err)
 	}
-	var response []any = listEp1256.Value
+	var response []any = listEp1257.Value
 
 	//
 	//    [
@@ -1533,11 +1532,11 @@ func (this *Bitflyer) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		request["count"] = limit // default 100
 	}
 
-	listEp1420 := <-this.PrivateGetGetcoinins(this.Extend(request, params))
-	if listEp1420.Err != nil {
-		panic(listEp1420.Err)
+	listEp1421 := <-this.PrivateGetGetcoinins(this.Extend(request, params))
+	if listEp1421.Err != nil {
+		panic(listEp1421.Err)
 	}
-	var response []any = listEp1420.Value
+	var response []any = listEp1421.Value
 
 	//
 	//     [
@@ -1600,11 +1599,11 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		request["count"] = limit // default 100
 	}
 
-	listEp1480 := <-this.PrivateGetGetcoinouts(this.Extend(request, params))
-	if listEp1480.Err != nil {
-		panic(listEp1480.Err)
+	listEp1481 := <-this.PrivateGetGetcoinouts(this.Extend(request, params))
+	if listEp1481.Err != nil {
+		panic(listEp1481.Err)
 	}
-	var response []any = listEp1480.Value
+	var response []any = listEp1481.Value
 
 	//
 	//     [

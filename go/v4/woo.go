@@ -4,7 +4,6 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type Woo struct {
@@ -3869,8 +3868,8 @@ func (this *Woo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3661, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3661
+	listRecv3662, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3662
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -4081,8 +4080,8 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3857, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3857
+	listRecv3858, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3858
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 
