@@ -183282,7 +183282,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
      * @param {object} result the code-keyed balance dict being built
      * @param {string} code unified currency code
      * @param {object} account a balance account with string free/used/total/debt
-     * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+     * @returns {object} result — callers MUST reassign the return value to their own result: PHP arrays are passed by value, so the mutation is not visible through the argument
      */ mergeBalanceAccount(result, code, account) {
         if (!(code in result)) {
             result[code] = account;
@@ -210123,7 +210123,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined && stock) {
             limitResolved = Math.min(limit, 100);
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             if (stock) {
                 request['size'] = limitResolved;
             } else {
@@ -211455,10 +211455,10 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             limitContract = Math.min(limit, 1000);
         }
         let limitResolved = limitContract;
-        if (limitContract !== undefined && stock) {
-            limitResolved = Math.min(limitContract, 100);
+        if (limit !== undefined && stock) {
+            limitResolved = Math.min(limit, 100);
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             if (stock) {
                 request['size'] = limitResolved;
             } else {

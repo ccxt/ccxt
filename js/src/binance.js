@@ -8059,7 +8059,7 @@ export default class binance extends Exchange {
         if (limit !== undefined && stock) {
             limitResolved = Math.min(limit, 100);
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             if (stock) {
                 request['size'] = limitResolved;
             }
@@ -9425,10 +9425,10 @@ export default class binance extends Exchange {
             limitContract = Math.min(limit, 1000);
         }
         let limitResolved = limitContract;
-        if (limitContract !== undefined && stock) {
-            limitResolved = Math.min(limitContract, 100);
+        if (limit !== undefined && stock) {
+            limitResolved = Math.min(limit, 100);
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             if (stock) {
                 request['size'] = limitResolved;
             }
