@@ -969,7 +969,7 @@ impl AlpacaCore {
         if (type_var == Value::Null) {
             return Value::Null;
         }
-        if Value::Int(type_var.as_str().and_then(|__s| __s.find("limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if type_var.as_str().unwrap_or("").contains("limit") {
             // might be limit or stop-limit
             type_var = Value::Str("limit".into());
         }
@@ -1000,11 +1000,11 @@ impl AlpacaCore {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         let mut client: Value = self.client(&[url.clone()]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1027,7 +1027,7 @@ impl AlpacaCore {
                     m
                 });
             }
-            self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash, future.clone()]).await;
+            self.watch(url, Value::from(messageHash.clone()), &[Value::Map(request), Value::from(messageHash), future.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

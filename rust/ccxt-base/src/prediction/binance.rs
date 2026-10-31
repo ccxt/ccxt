@@ -522,8 +522,8 @@ impl BinanceCore {
                 collected.push(pageTopics.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            let mut hasMore: Value = self.safe_bool_k(response, "hasMore", &[Value::Bool(false)]);
-            if (!(hasMore.as_bool() == Some(true))) || (pageTopicsLength.as_f64().unwrap_or(f64::NAN) < reqLimit.as_f64().unwrap_or(f64::NAN)) {
+            let mut hasMore: bool = self.safe_bool_k_opt(response, "hasMore", &[Value::Bool(false)]).unwrap_or(false);
+            if (!(hasMore)) || (pageTopicsLength.as_f64().unwrap_or(f64::NAN) < reqLimit.as_f64().unwrap_or(f64::NAN)) {
                 break;
             }
             offset = self.sum(&[offset.clone(), pageTopicsLength]);
@@ -628,8 +628,8 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut allowUnscopedFetchEvents: Value = self.safe_bool_k(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]);
-        if !(allowUnscopedFetchEvents.as_bool() == Some(true)) {
+        let mut allowUnscopedFetchEvents: bool = self.safe_bool_k_opt(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]).unwrap_or(false);
+        if !(allowUnscopedFetchEvents) {
             self.require_event_query(&[params.clone()]);
         }
         let mut queries: Vec<Value> = self.parse_search_queries(&[params.clone()]).as_array().cloned().unwrap_or_default();
@@ -903,8 +903,8 @@ impl BinanceCore {
         let mut topicId: Option<String> = self.safe_string_k_opt(rawTopic.clone(), "marketTopicId", &[]);
         let mut slug: Option<String> = self.safe_string_k_opt(rawTopic.clone(), "slug", &[]);
         let mut title: Option<String> = self.safe_string_k_opt(rawTopic.clone(), "title", &[]);
-        let mut endDate: Value = self.safe_integer_k(rawTopic.clone(), "endDate", &[]);
-        let mut created: Value = self.safe_integer2(rawTopic.clone(), Value::Str("publishedAt".into()), Value::Str("startDate".into()), &[]);
+        let mut endDate: Option<i64> = self.safe_integer_k(rawTopic.clone(), "endDate", &[]).as_i64();
+        let mut created: Option<i64> = self.safe_integer2(rawTopic.clone(), Value::Str("publishedAt".into()), Value::Str("startDate".into()), &[]).as_i64();
         let mut status: Option<String> = self.safe_string_k(rawTopic.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = anyActive;
         if (rawMarketsLength == 0.0) {
@@ -927,10 +927,10 @@ impl BinanceCore {
         m.insert("liquidity".to_string(), self.safe_number_k(rawTopic.clone(), "liquidity", &[]));
         m.insert("url".to_string(), Value::Null);
         m.insert("image".to_string(), self.safe_string_k(rawTopic.clone(), "imageUrl", &[]));
-        m.insert("created".to_string(), created.clone());
-        m.insert("createdDatetime".to_string(), self.iso8601(created));
-        m.insert("end".to_string(), endDate.clone());
-        m.insert("endDatetime".to_string(), self.iso8601(endDate));
+        m.insert("created".to_string(), Value::from(created));
+        m.insert("createdDatetime".to_string(), self.iso8601(Value::from(created)));
+        m.insert("end".to_string(), Value::from(endDate));
+        m.insert("endDatetime".to_string(), self.iso8601(Value::from(endDate)));
         m.insert("category".to_string(), self.safe_string_k(rawTopic.clone(), "chartType", &[]));
         m.insert("resolved".to_string(), resolved);
         m.insert("info".to_string(), rawTopic);
@@ -1457,14 +1457,14 @@ impl BinanceCore {
             outcomeObjResolved = self.safe_outcome(outcomeName, &[]);
         }
         let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "createTime", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "createTime", &[]).as_i64();
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("info".to_string(), order.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "outcome", &[]));
@@ -1541,11 +1541,11 @@ impl BinanceCore {
         let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchOpenOrders".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut pageKey: Value = Value::Str("ccxtPageKey".into());
+        let mut pageKey: String = "ccxtPageKey".to_string();
         if paginate.as_bool() == Some(true) {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOpenOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), paramsMaxEntriesPerRequest.clone(), pageKey.clone(), maxEntriesPerRequest.clone()]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOpenOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), paramsMaxEntriesPerRequest.clone(), Value::from(pageKey.clone()), maxEntriesPerRequest.clone()]).await;
         }
-        let mut page: Value = (match (&(self.safe_integer(paramsMaxEntriesPerRequest.clone(), pageKey, &[Value::Int(1)])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+        let mut page: Value = (match (&(self.safe_integer(paramsMaxEntriesPerRequest.clone(), Value::from(pageKey), &[Value::Int(1)])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1644,11 +1644,11 @@ impl BinanceCore {
         let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchOrders".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut pageKey: Value = Value::Str("ccxtPageKey".into());
+        let mut pageKey: String = "ccxtPageKey".to_string();
         if paginate.as_bool() == Some(true) {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), paramsMaxEntriesPerRequest.clone(), pageKey.clone(), maxEntriesPerRequest.clone()]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), paramsMaxEntriesPerRequest.clone(), Value::from(pageKey.clone()), maxEntriesPerRequest.clone()]).await;
         }
-        let mut page: Value = (match (&(self.safe_integer(paramsMaxEntriesPerRequest.clone(), pageKey, &[Value::Int(1)])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+        let mut page: Value = (match (&(self.safe_integer(paramsMaxEntriesPerRequest.clone(), Value::from(pageKey), &[Value::Int(1)])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1896,7 +1896,7 @@ impl BinanceCore {
             outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome).into())).into());
             outcomeObjResolved = self.safe_outcome(outcomeName, &[]);
         }
-        let mut timestamp: Value = self.safe_integer_k(position.clone(), "createdTime", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "createdTime", &[]).as_i64();
         let mut totalCost: Value = self.parse_number(self.safe_string_k(position.clone(), "totalCost", &[]), &[]);
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1904,8 +1904,8 @@ impl BinanceCore {
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string2(outcomeObjResolved.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObjResolved, "market", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("isolated".to_string(), Value::Bool(false));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("long".into()));
@@ -1966,11 +1966,11 @@ impl BinanceCore {
         let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchMyTrades".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut pageKey: Value = Value::Str("ccxtPageKey".into());
+        let mut pageKey: String = "ccxtPageKey".to_string();
         if paginate.as_bool() == Some(true) {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[outcome.clone(), since.clone(), limit.clone(), paramsMaxEntriesPerRequest.clone(), pageKey.clone(), maxEntriesPerRequest.clone()]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[outcome.clone(), since.clone(), limit.clone(), paramsMaxEntriesPerRequest.clone(), Value::from(pageKey.clone()), maxEntriesPerRequest.clone()]).await;
         }
-        let mut page: Value = (match (&(self.safe_integer(paramsMaxEntriesPerRequest.clone(), pageKey, &[Value::Int(1)])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+        let mut page: Value = (match (&(self.safe_integer(paramsMaxEntriesPerRequest.clone(), Value::from(pageKey), &[Value::Int(1)])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2094,7 +2094,7 @@ impl BinanceCore {
             outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome).into())).into());
             outcomeObjResolved = self.safe_outcome(outcomeName, &[]);
         }
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "createTime", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "createTime", &[]).as_i64();
         let mut filled: Option<String> = self.safe_string_k_opt(trade.clone(), "filledShareQty", &[]);
         let mut cost: Option<String> = self.safe_string_k_opt(trade.clone(), "filledUsdtAmount", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
@@ -2115,8 +2115,8 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
         m.insert("info".to_string(), trade.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "label", &[]));
@@ -2274,8 +2274,8 @@ impl BinanceCore {
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(outcomeObj.clone(), "market", &[]);
         let mut market: Value = self.market(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut typeUpper: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-        let mut sideUpper: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut typeUpper: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut sideUpper: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut wallet: Value = self.fetch_wallet(Value::Str("createOrder".into()), &[params.clone()]).await;
         let mut defaultSlippage: Value = self.safe_string_k(self.options.clone(), "defaultSlippage", &[Value::Str("0.05".into())]);
         let mut slippage: Value = self.safe_string_k(params.clone(), "slippage", &[defaultSlippage]);
@@ -2290,13 +2290,13 @@ impl BinanceCore {
         });
         let mut amountStr: Value = self.number_to_string(amount.clone());
         let mut priceStr: Value = self.number_to_string(price.clone());
-        let mut defaultTif: Value = Value::Str("FOK".into());
+        let mut defaultTif: String = "FOK".to_string();
         if (typeUpper.as_str() == Some("LIMIT")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("createOrder requires price for limit order".into()))));
             }
             commonRequest.insert("priceLimit".into(), self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), price.clone()));
-            defaultTif = Value::Str("GTC".into());
+            defaultTif = "GTC".to_string();
         }
         if (sideUpper.as_str() == Some("BUY")) {
             if (cost.is_some()) {
@@ -2317,7 +2317,7 @@ impl BinanceCore {
                 amountStr = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&amountStr, &priceStr), &fee);
             }
         }
-        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[defaultTif]);
+        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[Value::from(defaultTif)]);
         let mut accountType: Option<String> = self.safe_string_k_opt(params.clone(), "accountType", &[]);
         if (accountType.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires accountType (SPOT, FUNDING)".into()))));

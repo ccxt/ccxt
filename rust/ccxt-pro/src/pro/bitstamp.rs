@@ -454,7 +454,7 @@ impl BitstampCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts, Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut storedOrderBook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
@@ -631,9 +631,9 @@ impl BitstampCore {
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut symbol: Value = self.safe_string_k(marketResolved.clone(), "symbol", &[Value::Str("".into())]);
         let mut sideRaw: Option<i64> = self.safe_integer_k(trade.clone(), "type", &[]).as_i64();
-        let mut side: Value = Value::Str("sell".into());
+        let mut side: String = "sell".to_string();
         if (sideRaw == Some(0)) {
-            side = Value::Str("buy".into());
+            side = "buy".to_string();
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -645,7 +645,7 @@ impl BitstampCore {
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
@@ -683,7 +683,7 @@ impl BitstampCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts, Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -758,7 +758,7 @@ impl BitstampCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts, Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -797,12 +797,12 @@ impl BitstampCore {
         }
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut channel: Value = Value::Str("private-my_orders".into());
+        let mut channel: String = "private-my_orders".to_string();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbolValue.clone());
                 m.insert("limit".to_string(), limit.clone());
-                m.insert("type".to_string(), channel.clone());
+                m.insert("type".to_string(), Value::from(channel.clone()));
                 m.insert("params".to_string(), params.clone());
             m
         });
@@ -877,13 +877,13 @@ impl BitstampCore {
         }
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut channel: Value = Value::Str("private-my_trades".into());
+        let mut channel: String = "private-my_trades".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("_".into())).into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into());
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbolValue.clone());
                 m.insert("limit".to_string(), limit.clone());
-                m.insert("type".to_string(), channel);
+                m.insert("type".to_string(), Value::from(channel));
                 m.insert("params".to_string(), params.clone());
             m
         });
@@ -1103,9 +1103,9 @@ impl BitstampCore {
         //
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "id_str", &[]);
         let mut orderTypeRaw: Option<String> = self.safe_string_lower_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
-        let mut side: Value = Value::Str("buy".into());
+        let mut side: String = "buy".to_string();
         if (orderTypeRaw.as_deref() == Some("1")) {
-            side = Value::Str("sell".into());
+            side = "sell".to_string();
         }
         let mut orderSubTypeRaw: Option<String> = self.safe_string_lower_k(order.clone(), "order_subtype", &[]).as_str().map(str::to_owned); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         let mut orderType: Value = Value::Null;
@@ -1160,7 +1160,7 @@ impl BitstampCore {
         m.insert("type".to_string(), orderType);
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
@@ -1185,7 +1185,7 @@ impl BitstampCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts, Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1215,7 +1215,7 @@ impl BitstampCore {
         if (channel.is_none()) {
             return;
         }
-        if Value::Int(channel.as_deref().and_then(|__s| __s.find("order_book")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        if channel.as_deref().unwrap_or("").contains("order_book") {
             self.handle_order_book_subscription(client, message);
         }
 }
@@ -1248,8 +1248,8 @@ impl BitstampCore {
         // the unsubscribed symbols instead, so the markets that are still
         // subscribed keep their cached history
         if (topic.as_deref() == Some("orders")) && (self.orders.clone() != Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-            let mut freshOrdersCache = ArrayCacheBySymbolById::new(limit.clone());
+            let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64();
+            let mut freshOrdersCache = ArrayCacheBySymbolById::new(Value::from(limit));
             { let __t = self.prune_cached_by_symbols(freshOrdersCache, self.orders.clone(), symbols.clone()); self.orders = __t; }
         }  else if (topic.as_deref() == Some("myTrades")) && (self.myTrades.clone() != Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);

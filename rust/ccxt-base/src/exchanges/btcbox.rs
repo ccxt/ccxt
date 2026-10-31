@@ -466,11 +466,11 @@ impl BtcboxCore {
             let mut __for_first_470: bool = true;
             while { if !__for_first_470 { i += 1; } __for_first_470 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut symbolParts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut symbolParts: Value = Value::Array(if let Some(__s) = marketId.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseCurr: Value = self.safe_string(symbolParts.clone(), Value::Int(0), &[Value::Str("".into())]);
             let mut quote: Value = self.safe_string(symbolParts, Value::Int(1), &[Value::Str("".into())]);
-            let mut quoteId: Value = quote.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-            let mut id: Value = baseCurr.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            let mut quoteId: String = quote.as_str().map(str::to_lowercase).unwrap_or_default();
+            let mut id: Value = (if let Some(__s) = baseCurr.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
             let mut res: indexmap::IndexMap<String, Value> = self.safe_dict(response1.clone(), marketId, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -493,7 +493,7 @@ impl BtcboxCore {
         m.insert("base".to_string(), baseCurr);
         m.insert("baseId".to_string(), id);
         m.insert("quote".to_string(), quote);
-        m.insert("quoteId".to_string(), quoteId);
+        m.insert("quoteId".to_string(), Value::from(quoteId));
         m.insert("settle".to_string(), Value::Null);
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("spot".into()));
@@ -1244,8 +1244,8 @@ impl BtcboxCore {
         if code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
             return Value::Null;
         }
-        let mut result: Value = self.safe_bool_k(response.clone(), "result", &[]);
-        if (result == Value::Null) || result.as_bool() == Some(true) {
+        let mut result: Option<bool> = self.safe_bool_k_opt(response.clone(), "result", &[]);
+        if (result.is_none()) || result == Some(true) {
             return Value::Null;
         }
         let mut codeError: Option<String> = self.safe_string_k_opt(response, "code", &[]);

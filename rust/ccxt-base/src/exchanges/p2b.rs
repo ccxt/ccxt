@@ -948,15 +948,15 @@ impl P2bCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut lastId: Value = self.safe_integer_k(params.clone(), "lastId", &[]);
-        if (lastId == Value::Null) {
+        let mut lastId: Option<i64> = self.safe_integer_k(params.clone(), "lastId", &[]).as_i64();
+        if (lastId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades () requires an extra parameter params[\"lastId\"]".into()))));
         }
         let mut market: Value = self.market(symbol);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("lastId".to_string(), lastId);
+                m.insert("lastId".to_string(), Value::from(lastId));
             m
         });
         if (limit != Value::Null) {
@@ -1848,8 +1848,8 @@ impl P2bCore {
         //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
-        let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
-        if !(success.as_bool() == Some(true)) {
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
+        if !(success) {
             let mut errorCode: Option<String> = self.safe_string_k_opt(response, "errorCode", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());

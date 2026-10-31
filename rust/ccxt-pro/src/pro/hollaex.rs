@@ -741,8 +741,8 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut messageHash: Value = Value::Str("wallet".into());
-        return self.watch_private(messageHash, &[params]).await;
+        let mut messageHash: String = "wallet".to_string();
+        return self.watch_private(Value::from(messageHash), &[params]).await;
 
     Value::Null
 }
@@ -781,7 +781,7 @@ impl HollaexCore {
             let mut __for_first_391: bool = true;
             while { if !__for_first_391 { i += 1; } __for_first_391 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parts: Value = Value::Array(key.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = key.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut currencyId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: Value = self.account();

@@ -615,10 +615,10 @@ impl BitoproCore {
                 m
             });
         }
-        let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
-        if (isMaker != Value::Null) {
-            if isMaker.as_bool() == Some(true) {
+        if (isMaker.is_some()) {
+            if isMaker == Some(true) {
                 takerOrMaker = Value::Str("maker".into());
             }  else {
                 takerOrMaker = Value::Str("taker".into());
@@ -701,9 +701,9 @@ impl BitoproCore {
         let mut event: Option<String> = match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
         let mut result: Value = self.parse_ticker(message.clone(), &[market.clone()]);
         if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[])); } // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
-        let mut timestamp: Value = self.safe_integer_k(message, "timestamp", &[]);
-        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
-        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); } // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
+        let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
+        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
+        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(Value::from(timestamp))); } // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
         if (event.is_some()) {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into());
@@ -783,14 +783,14 @@ impl BitoproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut messageHash: Value = Value::Str("ACCOUNT_BALANCE".into());
+        let mut messageHash: String = "ACCOUNT_BALANCE".to_string();
         let mut wsUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[]);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() has no private websocket url".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), Value::Str("account-balance".into())).into());
         self.authenticate(url.clone());
-        return self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
+        return self.watch(url, Value::from(messageHash.clone()), &[Value::Null, Value::from(messageHash.clone())]).await;
 
     Value::Null
 }

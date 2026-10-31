@@ -1218,7 +1218,7 @@ impl LunoCore {
         //         "type": "BID"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "creation_timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "creation_timestamp", &[]).as_i64();
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut side: Value = Value::Null;
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -1256,8 +1256,8 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -1426,15 +1426,15 @@ impl LunoCore {
         //     "rolling_24_hour_volume":"1.89510000",
         //     "status":"ACTIVE"
         // }
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last_trade", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -1601,13 +1601,13 @@ impl LunoCore {
                 feeCost = feeCounterString.map(Value::from).unwrap_or(Value::Null);
             }
         }
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
@@ -1884,7 +1884,7 @@ impl LunoCore {
         let mut response: Value = Value::Null;
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         if (type_var.as_str() == Some("market")) {
-            request.insert("type".into(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            request.insert("type".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side.as_str() == Some("buy")) {
                 request.insert("counter_volume".into(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount.clone()));
@@ -1997,10 +1997,10 @@ impl LunoCore {
         }
         self.load_accounts(&[]).await;
         let mut currency: Value = Value::Null;
-        let mut id: Value = self.safe_string_k(params.clone(), "id", &[]); // account id
+        let mut id: Option<String> = self.safe_string_k_opt(params.clone(), "id", &[]); // account id
         let mut minRowParam: Value = self.safe_integer_k(params.clone(), "min_row", &[]);
         let mut maxRowParam: Value = self.safe_integer_k(params.clone(), "max_row", &[]);
-        if (id == Value::Null) {
+        if (id.is_none()) {
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a currency code argument if no account id specified in params".into()))));
             }
@@ -2010,7 +2010,7 @@ impl LunoCore {
             if (account == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".into())).into()), code)));
             }
-            id = self.safe_string_k(account, "id", &[]);
+            id = self.safe_string_k_opt(account, "id", &[]);
         }
         if ((minRowParam == Value::Null) || (maxRowParam == Value::Null)) && ((minRowParam != Value::Null) || (maxRowParam != Value::Null)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined".into()))));
@@ -2032,7 +2032,7 @@ impl LunoCore {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), id);
+                m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                 m.insert("min_row".to_string(), min_row);
                 m.insert("max_row".to_string(), max_row);
             m
@@ -2046,7 +2046,7 @@ impl LunoCore {
 }
 
     pub fn parse_ledger_comment(&self, mut comment: Value) -> Value {
-        let mut words: Value = Value::Array(comment.as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
+        let mut words: Value = Value::Array(if let Some(__s) = comment.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
         let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Withdrawal".to_string(), Value::Str("fee".into()));
@@ -2088,7 +2088,7 @@ impl LunoCore {
         // const details = this.safeValue (entry, 'details', {});
         let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "row_index", &[]);
         let mut account_id: Option<String> = self.safe_string_k_opt(entry.clone(), "account_id", &[]);
-        let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency.clone()]);
         let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
@@ -2130,8 +2130,8 @@ impl LunoCore {
         m.insert("type".to_string(), resultType.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code);
         m.insert("amount".to_string(), self.parse_to_numeric(amount));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("before".to_string(), self.parse_to_numeric(before));
         m.insert("after".to_string(), self.parse_to_numeric(after.map(Value::from).unwrap_or(Value::Null)));
         m.insert("status".to_string(), status);

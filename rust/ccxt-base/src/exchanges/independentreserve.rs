@@ -1020,14 +1020,14 @@ impl IndependentreserveCore {
         let mut orderType: Value = self.safe_string2(order.clone(), Value::Str("Type".into()), Value::Str("OrderType".into()), &[]);
         let mut side: Value = Value::Null;
         if (orderType != Value::Null) {
-            if Value::Int(orderType.as_str().and_then(|__s| __s.find("Bid")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if orderType.as_str().unwrap_or("").contains("Bid") {
                 side = Value::Str("buy".into());
-            }  else if Value::Int(orderType.as_str().and_then(|__s| __s.find("Offer")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if orderType.as_str().unwrap_or("").contains("Offer") {
                 side = Value::Str("sell".into());
             }
-            if Value::Int(orderType.as_str().and_then(|__s| __s.find("Market")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if orderType.as_str().unwrap_or("").contains("Market") {
                 orderType = Value::Str("market".into());
-            }  else if Value::Int(orderType.as_str().and_then(|__s| __s.find("Limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if orderType.as_str().unwrap_or("").contains("Limit") {
                 orderType = Value::Str("limit".into());
             }
         }
@@ -1239,14 +1239,14 @@ impl IndependentreserveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut pageIndex: Value = self.safe_integer_k(params.clone(), "pageIndex", &[Value::Int(1)]);
+        let mut pageIndex: Option<i64> = self.safe_integer_k(params.clone(), "pageIndex", &[Value::Int(1)]).as_i64();
         let mut limitResolved: Value = limit;
         if (limitResolved == Value::Null) {
             limitResolved = Value::Int(50);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pageIndex".to_string(), pageIndex);
+                m.insert("pageIndex".to_string(), Value::from(pageIndex));
                 m.insert("pageSize".to_string(), limitResolved.clone());
             m
         });
@@ -1267,11 +1267,11 @@ impl IndependentreserveCore {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "TradeTimestampUtc", &[]));
         let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "TradeGuid", &[]);
         let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "OrderGuid", &[]);
-        let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("Price".into()), Value::Str("SecondaryCurrencyTradePrice".into()), &[]);
-        let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("VolumeTraded".into()), Value::Str("PrimaryCurrencyAmount".into()), &[]);
-        let mut price: Value = self.parse_number(priceString.clone(), &[]);
-        let mut amount: Value = self.parse_number(amountString.clone(), &[]);
-        let mut cost: Value = self.parse_number(crate::precise::Precise::stringMul(&priceString, &amountString), &[]);
+        let mut priceString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("Price".into()), Value::Str("SecondaryCurrencyTradePrice".into()), &[]);
+        let mut amountString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("VolumeTraded".into()), Value::Str("PrimaryCurrencyAmount".into()), &[]);
+        let mut price: Value = self.parse_number(priceString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut amount: Value = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut cost: Value = self.parse_number(crate::precise::Precise::stringMul(&priceString.clone().map(Value::from).unwrap_or(Value::Null), &amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(trade.clone(), "PrimaryCurrencyCode", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(trade.clone(), "SecondaryCurrencyCode", &[]);
         let mut marketId: Value = Value::Null;
@@ -1281,9 +1281,9 @@ impl IndependentreserveCore {
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("/".into())]);
         let mut side: Value = self.safe_string_k(trade.clone(), "OrderType", &[]);
         if (side != Value::Null) {
-            if Value::Int(side.as_str().and_then(|__s| __s.find("Bid")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if side.as_str().unwrap_or("").contains("Bid") {
                 side = Value::Str("buy".into());
-            }  else if Value::Int(side.as_str().and_then(|__s| __s.find("Offer")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if side.as_str().unwrap_or("").contains("Offer") {
                 side = Value::Str("sell".into());
             }
         }
@@ -1727,7 +1727,7 @@ impl IndependentreserveCore {
             });
             query.insert("apiKey".into(), self.apiKey.clone());
             query.insert("nonce".into(), nonce);
-            query.insert("signature".into(), signature.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            query.insert("signature".into(), (if let Some(__s) = signature.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_837: bool = true;

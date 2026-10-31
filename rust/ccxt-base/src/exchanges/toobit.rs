@@ -1654,7 +1654,7 @@ impl ToobitCore {
         let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[Value::Str("".into())]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteAsset", &[]);
-        let mut baseParts: Value = Value::Array(baseId.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+        let mut baseParts: Value = Value::Array(if let Some(__s) = baseId.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let mut baseIdClean: Option<String> = self.safe_string_opt(baseParts, Value::Int(0), &[]);
         let mut base: Value = self.safe_currency_code(baseIdClean.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1897,19 +1897,19 @@ impl ToobitCore {
         //            "realizedPnl": "0",                      // only in CONTRACT
         //        },
         //
-        let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("t".into()), Value::Str("time".into()), &[]);
-        let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]);
-        let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("q".into()), Value::Str("qty".into()), &[]);
-        let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "isBuyer", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("t".into()), Value::Str("time".into()), &[]).as_i64();
+        let mut priceString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]);
+        let mut amountString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("q".into()), Value::Str("qty".into()), &[]);
+        let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
         let mut side: Value = Value::Null;
-        let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "ibm", &[]);
-        let mut isBuyerTaker: Value = self.safe_bool_k(trade.clone(), "m", &[]);
-        if (isBuyerMaker != Value::Null) {
-            side = (if (isBuyerMaker.as_bool() == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
-        }  else if (isBuyerTaker != Value::Null) {
-            side = (if (isBuyerTaker.as_bool() == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "ibm", &[]);
+        let mut isBuyerTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
+        if (isBuyerMaker.is_some()) {
+            side = (if (isBuyerMaker == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+        }  else if (isBuyerTaker.is_some()) {
+            side = (if (isBuyerTaker == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }  else {
-            if (isBuyer.as_bool() == Some(true)) {
+            if (isBuyer == Some(true)) {
                 side = Value::Str("buy".into());
             }  else {
                 side = Value::Str("sell".into());
@@ -1926,25 +1926,25 @@ impl ToobitCore {
                 m
             });
         }
-        let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
-        if (isMaker != Value::Null) {
-            takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+        if (isMaker.is_some()) {
+            takerOrMaker = (if isMaker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("v".into()), &[]));
         m.insert("order".to_string(), self.safe_string_k(trade, "orderId", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
-        m.insert("amount".to_string(), amountString);
-        m.insert("price".to_string(), priceString);
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("fee".to_string(), fee);
@@ -1995,17 +1995,17 @@ impl ToobitCore {
         let mut endpoint: Value = endpointparamsPriceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPrice: Value = endpointparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isPriceKlines: bool = (endpoint.as_str() == Some("index")) || (endpoint.as_str() == Some("mark"));
-        let mut startKey: Value = Value::Str("startTime".into());
-        let mut endKey: Value = Value::Str("endTime".into());
+        let mut startKey: String = "startTime".to_string();
+        let mut endKey: String = "endTime".to_string();
         if isPriceKlines {
-            startKey = Value::Str("from".into());
-            endKey = Value::Str("to".into());
+            startKey = "from".to_string();
+            endKey = "to".to_string();
         }
         if (since != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&startKey), since.clone());
+            request.insert(startKey.clone(), since.clone());
         }
         if (until != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&endKey), until);
+            request.insert(endKey.clone(), until);
         }  else if isPriceKlines && (since != Value::Null) {
             // mark and index klines walk backwards from `to` and ignore a lone `from`
             let mut duration: Value = self.parse_timeframe(timeframe.clone());
@@ -2135,7 +2135,7 @@ impl ToobitCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "s", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "t", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "t", &[]).as_i64();
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "c", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "v", &[]);
         let mut contractSize: Value = self.safe_number_k(marketResolved.clone(), "contractSize", &[]);
@@ -2146,8 +2146,8 @@ impl ToobitCore {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "h", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "l", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "b", &[]));
@@ -2292,11 +2292,11 @@ impl ToobitCore {
         // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "t", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "t", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("bid".to_string(), self.safe_number_k(ticker.clone(), "b", &[]));
         m.insert("bidVolume".to_string(), self.safe_number_k(ticker.clone(), "bq", &[]));
@@ -2351,7 +2351,7 @@ impl ToobitCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(contract.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]);
         let mut nextFundingRate: Value = self.safe_number_k(contract.clone(), "rate", &[]);
-        let mut nextFundingRateTimestamp: Value = self.safe_integer_k(contract.clone(), "nextFundingTime", &[]);
+        let mut nextFundingRateTimestamp: Option<i64> = self.safe_integer_k(contract.clone(), "nextFundingTime", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract);
@@ -2369,8 +2369,8 @@ impl ToobitCore {
         m.insert("previousFundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
         m.insert("fundingRate".to_string(), nextFundingRate);
-        m.insert("fundingTimestamp".to_string(), nextFundingRateTimestamp.clone());
-        m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingRateTimestamp));
+        m.insert("fundingTimestamp".to_string(), Value::from(nextFundingRateTimestamp));
+        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(nextFundingRateTimestamp)));
         m.insert("interval".to_string(), Value::Null);
     m
 });
@@ -2429,15 +2429,15 @@ impl ToobitCore {
 
     pub fn parse_funding_rate_history(&self, mut contract: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Value = self.safe_integer_k(contract.clone(), "settleTime", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(contract.clone(), "settleTime", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(contract.clone(), "symbol", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "settleRate", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
     m
 });
 
@@ -2566,7 +2566,7 @@ impl ToobitCore {
         let mut request: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), id.clone());
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         };
         if (price != Value::Null) {
@@ -2589,7 +2589,7 @@ impl ToobitCore {
         if isPostOnly.as_bool() == Some(true) {
             request.insert("type".into(), Value::Str("LIMIT_MAKER".into()));
         }  else {
-            request.insert("type".into(), type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            request.insert("type".into(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
         }
         return Value::from(vec![Value::Map(request), paramsPostOnly]);
 
@@ -2629,7 +2629,7 @@ impl ToobitCore {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }
         if self.in_array(type_var.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("LIMIT".into())])).as_bool() == Some(true) {
-            request.insert("type".into(), type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            request.insert("type".into(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }  else if (type_var.as_str() == Some("market")) {
             request.insert("type".into(), Value::Str("LIMIT".into()));; // weird, but exchange works this way
@@ -2750,22 +2750,22 @@ impl ToobitCore {
         //        "activeStatus": "0"                  // only in CONTRACT fetchClosedOrders
         //    }
         //
-        let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("transactTime".into()), Value::Str("time".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("transactTime".into()), Value::Str("time".into()), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
-        let mut rawSideLower: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
+        let mut rawSideLower: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
         let mut reduceOnly: Value = Value::Null;
-        if (rawSideLower != Value::Null) {
+        if (rawSideLower.is_some()) {
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
-            let mut sideParts: Value = Value::Array(rawSideLower.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut sideParts: Value = Value::Array(if let Some(__s) = rawSideLower.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut sideSuffix: Option<String> = self.safe_string(sideParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             if (sideSuffix.is_some()) {
                 reduceOnly = (Value::Bool(sideSuffix.as_deref() == Some("close")));
             }
-            rawSideLower = self.safe_string(sideParts, Value::Int(0), &[]);
+            rawSideLower = self.safe_string_opt(sideParts, Value::Int(0), &[]);
         }
         // omitZero already maps '0.0' to undefined
         let mut triggerPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[]));
@@ -2774,8 +2774,8 @@ impl ToobitCore {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOrderId", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "updateTime", &[]));
         m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null));
@@ -2783,7 +2783,7 @@ impl ToobitCore {
         m.insert("type".to_string(), self.parse_order_type(rawType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), (Value::Bool(rawType.as_deref() == Some("LIMIT_MAKER"))));
-        m.insert("side".to_string(), rawSideLower);
+        m.insert("side".to_string(), rawSideLower.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "price", &[])));
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("cost".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "cumulativeQuoteQty", &[])));
@@ -3385,21 +3385,21 @@ impl ToobitCore {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "coinId", &[]);
         let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut timestamp: Value = self.safe_integer_k(item.clone(), "created", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "created", &[]).as_i64();
         let mut after: Value = self.safe_number_k(item.clone(), "total", &[]);
         let mut amountRaw: Value = self.safe_string_k(item.clone(), "change", &[Value::Str("".into())]);
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]);
-        let mut direction: Value = Value::Str("in".into());
+        let mut direction: String = "in".to_string();
         if (amountRaw.as_str().unwrap_or("").starts_with("-")) {
-            direction = Value::Str("out".into());
+            direction = "out".to_string();
         }
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("direction".to_string(), direction);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
@@ -3658,9 +3658,9 @@ impl ToobitCore {
         //         "refuseReason":"" // failure rejection reason
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "time", &[]);
-        let mut currencyId: Value = self.safe_string2(transaction.clone(), Value::Str("coin".into()), Value::Str("coinId".into()), &[]);
-        let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "time", &[]).as_i64();
+        let mut currencyId: Option<String> = self.safe_string2_opt(transaction.clone(), Value::Str("coin".into()), Value::Str("coinId".into()), &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut feeString: Option<String> = self.safe_string_k_opt(transaction.clone(), "fee", &[]);
         let mut feeCoin: Option<String> = self.safe_string_k_opt(transaction.clone(), "feeCoinName", &[]);
         let mut fee: Value = Value::Null;
@@ -3672,7 +3672,7 @@ impl ToobitCore {
                 m
             });
         }
-        let mut tagTo: Value = self.safe_string2(transaction.clone(), Value::Str("addressTag".into()), Value::Str("addressExt".into()), &[]);
+        let mut tagTo: Option<String> = self.safe_string2_opt(transaction.clone(), Value::Str("addressTag".into()), Value::Str("addressExt".into()), &[]);
         let mut tagFrom: Option<String> = self.safe_string_k_opt(transaction.clone(), "fromAddressTag", &[]);
         let mut addressTo: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         let mut addressFrom: Option<String> = self.safe_string_k_opt(transaction.clone(), "fromAddress", &[]);
@@ -3683,14 +3683,14 @@ impl ToobitCore {
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txId", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
-        m.insert("tagTo".to_string(), tagTo);
+        m.insert("tagTo".to_string(), tagTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), tagFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone());
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "quantity", &[]));
@@ -3876,11 +3876,11 @@ impl ToobitCore {
         if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".into()))));
         }
-        let mut marginModeValue: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut marginModeValue: String = marginMode.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("marginType".to_string(), marginModeValue);
+                m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
         let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
@@ -3971,17 +3971,17 @@ impl ToobitCore {
 
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_string2(leverage.clone(), Value::Str("symbolId".into()), Value::Str("symbol".into()), &[]);
-        let mut leverageValue: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
+        let mut marketId: Option<String> = self.safe_string2_opt(leverage.clone(), Value::Str("symbolId".into()), Value::Str("symbol".into()), &[]);
+        let mut leverageValue: Option<i64> = self.safe_integer_k(leverage.clone(), "leverage", &[]).as_i64();
         let mut marginType: Option<String> = self.safe_string_lower_k(leverage.clone(), "marginType", &[]).as_str().map(str::to_owned);
         let mut marginMode: Value = (if (marginType.as_deref() == Some("cross")) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
         m.insert("marginMode".to_string(), marginMode);
-        m.insert("longLeverage".to_string(), leverageValue.clone());
-        m.insert("shortLeverage".to_string(), leverageValue);
+        m.insert("longLeverage".to_string(), Value::from(leverageValue));
+        m.insert("shortLeverage".to_string(), Value::from(leverageValue));
     m
 });
 
@@ -4035,7 +4035,7 @@ impl ToobitCore {
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(position.clone(), "side", &[]);
         let mut quantity: Option<String> = self.safe_string_k_opt(position.clone(), "position", &[]);
-        let mut leverage: Value = self.safe_integer_k(position.clone(), "leverage", &[]);
+        let mut leverage: Option<i64> = self.safe_integer_k(position.clone(), "leverage", &[]).as_i64();
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -4057,7 +4057,7 @@ impl ToobitCore {
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.safe_number_k(position, "margin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), leverage);
+        m.insert("leverage".to_string(), Value::from(leverage));
         m.insert("liquidationPrice".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);

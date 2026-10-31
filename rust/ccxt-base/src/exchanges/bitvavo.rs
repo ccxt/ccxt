@@ -1130,7 +1130,7 @@ impl BitvavoCore {
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "market", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("-".into())]);
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         let mut baseVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "volume", &[]);
         let mut quoteVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "volumeQuote", &[]);
@@ -1138,8 +1138,8 @@ impl BitvavoCore {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -1298,15 +1298,15 @@ impl BitvavoCore {
         //
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("fillId".into()), &[]);
+        let mut id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("id".into()), Value::Str("fillId".into()), &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "market", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("-".into())]);
-        let mut taker: Value = self.safe_bool_k(trade.clone(), "taker", &[]);
+        let mut taker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "taker", &[]);
         let mut takerOrMaker: Value = Value::Null;
-        if (taker != Value::Null) {
-            takerOrMaker = (if taker.as_bool() == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+        if (taker.is_some()) {
+            takerOrMaker = (if taker == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }
         let mut feeCostString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
@@ -1324,10 +1324,10 @@ impl BitvavoCore {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -2095,7 +2095,7 @@ impl BitvavoCore {
         });
         let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
         let mut amountRemaining: Value = self.safe_number_k(params.clone(), "amountRemaining", &[]);
-        let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]);
+        let mut triggerPrice: Option<String> = self.safe_string_n_opt(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("amountRemaining".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]);
         if (price != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("price".into()), self.price_to_precision(symbol.clone(), price));
@@ -2106,8 +2106,8 @@ impl BitvavoCore {
         if (amountRemaining != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("amountRemaining".into()), self.amount_to_precision(symbol.clone(), amountRemaining));
         }
-        if (triggerPrice != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("triggerAmount".into()), self.price_to_precision(symbol, triggerPrice));
+        if (triggerPrice.is_some()) {
+            add_element_to_object(&mut request, &Value::Str("triggerAmount".into()), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
         }
         request = self.extend(request.clone(), &[paramsOmitted.clone()]);
         if self.is_empty(request.clone()).as_bool() == Some(true) {
@@ -2517,7 +2517,7 @@ impl BitvavoCore {
         //     }
         //
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "orderId", &[]);
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "created", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "created", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -2548,19 +2548,19 @@ impl BitvavoCore {
         }
         let mut rawTrades: Value = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(order.clone(), "timeInForce", &[]);
-        let mut postOnly: Value = self.safe_bool_k(order.clone(), "postOnly", &[]);
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "postOnly", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("postOnly".to_string(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.safe_number_k(order, "triggerPrice", &[]));
@@ -2738,16 +2738,16 @@ impl BitvavoCore {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut rawType: Option<String> = self.safe_string_k_opt(item.clone(), "type", &[]);
         let mut type_var: Value = self.parse_ledger_entry_type(rawType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut currencyId: Value = self.safe_string_k(item.clone(), "receivedCurrency", &[]);
-        let mut amount: Value = self.safe_string_k(item.clone(), "receivedAmount", &[]);
-        let mut direction: Value = Value::Str("in".into());
-        if (amount == Value::Null) {
-            currencyId = self.safe_string_k(item.clone(), "sentCurrency", &[]);
-            amount = self.safe_string_k(item.clone(), "sentAmount", &[]);
-            direction = Value::Str("out".into());
+        let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "receivedCurrency", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(item.clone(), "receivedAmount", &[]);
+        let mut direction: String = "in".to_string();
+        if (amount.is_none()) {
+            currencyId = self.safe_string_k_opt(item.clone(), "sentCurrency", &[]);
+            amount = self.safe_string_k_opt(item.clone(), "sentAmount", &[]);
+            direction = "out".to_string();
         }
-        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        let mut currencyResolved: Value = self.safe_currency(currencyId, &[currency]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "executedAt", &[]));
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<String> = self.safe_string_k_opt(item.clone(), "feesAmount", &[]);
@@ -2765,13 +2765,13 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "transactionId", &[]));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "transactionId", &[]));
         m.insert("referenceAccount".to_string(), self.safe_string_k(item, "address", &[]));
         m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code);
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);
@@ -3021,7 +3021,7 @@ impl BitvavoCore {
         //     }
         //
         let mut id: Value = Value::Null;
-        let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "symbol", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
@@ -3050,8 +3050,8 @@ impl BitvavoCore {
         m.insert("info".to_string(), transaction);
         m.insert("id".to_string(), id);
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));

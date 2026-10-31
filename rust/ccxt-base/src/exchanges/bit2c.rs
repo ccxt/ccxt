@@ -597,7 +597,7 @@ impl Bit2cCore {
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currency: Value = self.currency(code.clone());
             let mut currencyId: Value = self.safe_string_k(currency, "id", &[Value::Str("".into())]);
-            let mut uppercase: Value = currencyId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let mut uppercase: Value = (if let Some(__s) = currencyId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             if (self.safe_string(response.clone(), uppercase.clone(), &[]) != Value::Null) {
                 account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".into()), uppercase).into()), &[]));
                 account.insert("total".into(), self.safe_string(response.clone(), uppercase, &[]));
@@ -1267,7 +1267,7 @@ impl Bit2cCore {
 
     pub fn remove_comma_from_value(&self, mut str_val: Value) -> Option<String> {
         let mut newString: Value = Value::Str("".into());
-        let mut strParts: Vec<Value> = Value::Array(str_val.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut strParts: Vec<Value> = Value::Array(if let Some(__s) = str_val.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_334: bool = true;
@@ -1330,13 +1330,13 @@ impl Bit2cCore {
                 price = self.remove_comma_from_value(rawPrice.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             }
             amount = self.safe_string_k(trade.clone(), "firstAmount", &[]);
-            let mut reference_parts: Vec<Value> = Value::Array(reference.as_deref().map(|__s| __s.split("|").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            let mut reference_parts: Vec<Value> = Value::Array(if let Some(__s) = reference.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "pair", &[]);
             let mut marketByPair: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]);
             tradeMarket = self.safe_market(&[reference_parts.get(0).cloned().unwrap_or(Value::Null), marketByPair]);
-            let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
-            makerOrTaker = (if (isMaker.as_bool() == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
-            orderId = (if (isMaker.as_bool() == Some(true)) { reference_parts.get(2).cloned().unwrap_or(Value::Null) } else { reference_parts.get(1).cloned().unwrap_or(Value::Null) });
+            let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
+            makerOrTaker = (if (isMaker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            orderId = (if (isMaker == Some(true)) { reference_parts.get(2).cloned().unwrap_or(Value::Null) } else { reference_parts.get(1).cloned().unwrap_or(Value::Null) });
             let mut action: Option<i64> = self.safe_integer_k(trade.clone(), "action", &[]).as_i64();
             if (action == Some(0)) {
                 side = Value::Str("buy".into());
@@ -1522,14 +1522,14 @@ impl Bit2cCore {
         //     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
         //     { "Error" : "No order found." }
         //
-        let mut error: Value = self.safe_string_k(response.clone(), "error", &[]);
-        if (error == Value::Null) {
-            error = self.safe_string_k(response, "Error", &[]);
+        let mut error: Option<String> = self.safe_string_k_opt(response.clone(), "error", &[]);
+        if (error.is_none()) {
+            error = self.safe_string_k_opt(response, "Error", &[]);
         }
-        if (error != Value::Null) {
+        if (error.is_some()) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error, feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

@@ -803,24 +803,24 @@ impl BtcturkCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "pair", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         let mut open: Option<String> = self.safe_string_k_opt(ticker.clone(), "open", &[]);
-        let mut change: Value = self.safe_string_k(ticker.clone(), "daily", &[]);
-        let mut percentage: Value = self.safe_string_k(ticker.clone(), "dailyPercent", &[]);
-        let mut average: Value = self.safe_string_k(ticker.clone(), "average", &[]);
+        let mut change: Option<String> = self.safe_string_k_opt(ticker.clone(), "daily", &[]);
+        let mut percentage: Option<String> = self.safe_string_k_opt(ticker.clone(), "dailyPercent", &[]);
+        let mut average: Option<String> = self.safe_string_k_opt(ticker.clone(), "average", &[]);
         if (open.is_some()) && (last.is_some()) && !(crate::precise::Precise::stringEq(&open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
             // The reported daily fields can disagree with last - open.
             // Let safeTicker derive the unified change, percentage and average from these prices.
-            change = Value::Null;
-            percentage = Value::Null;
-            average = Value::Null;
+            change = None;
+            percentage = None;
+            average = None;
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -832,9 +832,9 @@ impl BtcturkCore {
         m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), change);
-        m.insert("percentage".to_string(), percentage);
-        m.insert("average".to_string(), average);
+        m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
+        m.insert("percentage".to_string(), percentage.map(Value::from).unwrap_or(Value::Null));
+        m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "volume", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
@@ -923,14 +923,14 @@ impl BtcturkCore {
         //       "tax": "0"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("date".into()), Value::Str("timestamp".into()), &[]);
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("tid".into()), Value::Str("id".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("date".into()), Value::Str("timestamp".into()), &[]).as_i64();
+        let mut id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("tid".into()), Value::Str("id".into()), &[]);
         let mut order: Option<String> = self.safe_string_k_opt(trade.clone(), "orderId", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Value = crate::precise::Precise::stringAbs(&self.safe_string_k(trade.clone(), "amount", &[]));
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
-        let mut side: Value = self.safe_string2(trade.clone(), Value::Str("side".into()), Value::Str("orderType".into()), &[]);
+        let mut side: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("side".into()), Value::Str("orderType".into()), &[]);
         let mut fee: Value = Value::Null;
         let mut feeAmountString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         if (feeAmountString.is_some()) {
@@ -945,13 +945,13 @@ impl BtcturkCore {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), order.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString);
@@ -1375,15 +1375,15 @@ impl BtcturkCore {
         //
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "id", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
-        let mut amountString: Value = self.safe_string2(order.clone(), Value::Str("amount".into()), Value::Str("quantity".into()), &[]);
-        let mut amount: Value = crate::precise::Precise::stringAbs(&amountString);
+        let mut amountString: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("amount".into()), Value::Str("quantity".into()), &[]);
+        let mut amount: Value = crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null));
         let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "leftAmount", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "pairSymbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
         let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut type_var: Option<String> = self.safe_string_k_opt(order.clone(), "method", &[]);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "orderClientId", &[]);
-        let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("updateTime".into()), Value::Str("datetime".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("updateTime".into()), Value::Str("datetime".into()), &[]).as_i64();
         let mut rawStatus: Option<String> = self.safe_string_k_opt(order.clone(), "status", &[]);
         let mut status: Value = self.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         return self.safe_order(Value::Map({
@@ -1400,8 +1400,8 @@ impl BtcturkCore {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("fee".to_string(), Value::Null);
     m

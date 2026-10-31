@@ -87,7 +87,7 @@ impl crate::exchange_generated::ExchangeBase for SxbetCore {
                 "fetch_positions" => self.fetch_positions(&args[..]).await,
                 "fetch_raw_markets_paged" => self.fetch_raw_markets_paged(&args[..]).await,
                 "fetch_settlements" => self.fetch_settlements(&args[..]).await,
-                "fetch_sxbet_best_odds" => self.fetch_sxbet_best_odds(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_sxbet_best_odds" => self.fetch_sxbet_best_odds(args.get(0).cloned().unwrap_or_default().to_str_vec(), &args[1.min(args.len())..]).await,
                 "fetch_sxbet_book_snapshot" => self.fetch_sxbet_book_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
                 "fetch_sxbet_proxy" => self.fetch_sxbet_proxy().await,
                 "fetch_sxbet_realtime_token" => self.fetch_sxbet_realtime_token().await,
@@ -747,7 +747,7 @@ impl SxbetCore {
     m
 }));
         self.require_event_query(&[params.clone()]);
-        let mut eventId: Value = self.safe_string2(params.clone(), Value::Str("eventId".into()), Value::Str("slug".into()), &[]);
+        let mut eventId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("eventId".into()), Value::Str("slug".into()), &[]);
         let mut leagueId: Option<String> = self.safe_string_k_opt(params.clone(), "leagueId", &[]);
         let mut sportId: Option<String> = self.safe_string_k_opt(params.clone(), "sportId", &[]);
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
@@ -762,16 +762,16 @@ impl SxbetCore {
         }
         let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("leagueId".into()), Value::Str("sportId".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]);
         let mut rawMarkets: Value = Value::Null;
-        if (eventId != Value::Null) {
+        if (eventId.is_some()) {
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("sportXeventId".to_string(), eventId.clone());
+        m.insert("sportXeventId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }), &[rest.clone()]);
             rawMarkets = self.fetch_raw_markets_paged(&[__ws_arg_1, Value::Null]).await;
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
             // returning every fixture) — enforce the scope client-side
-            rawMarkets = self.filter_raw_markets_by_fixture(rawMarkets.clone(), eventId);
+            rawMarkets = self.filter_raw_markets_by_fixture(rawMarkets.clone(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
         }  else if (leagueId.is_some()) {
             let __ws_arg_2 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -930,7 +930,7 @@ impl SxbetCore {
                 if (field == Value::Null) {
                     continue;
                 }
-                let mut fieldLower: Value = field.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                let mut fieldLower: Value = (if let Some(__s) = field.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                 if (Value::Int(query.as_str().zip(fieldLower.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (Value::Int(fieldLower.as_str().zip(query.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
                     return Value::Bool(true);
                 }
@@ -1113,11 +1113,11 @@ impl SxbetCore {
  * @returns {string} the token's on-chain name
  */
     pub async fn fetch_erc20_name(&mut self, mut rpcUrl: Value, mut tokenAddress: Value) -> Value {
-        let mut nameCallData: Value = Value::Str("0x06fdde03".into()); // name()
+        let mut nameCallData: String = "0x06fdde03".to_string();
         let mut result: Value = self.eth_rpc(rpcUrl, Value::Str("eth_call".into()), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("to".to_string(), tokenAddress);
-        m.insert("data".to_string(), nameCallData);
+        m.insert("data".to_string(), Value::from(nameCallData));
     m
 }), Value::Str("latest".into())])).await;
         let mut hex: Value = self.remove0x_prefix(result);
@@ -1125,10 +1125,10 @@ impl SxbetCore {
         let mut lengthHex: Value = hex.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(64); let __j = __l.min(128); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         let mut length: Value = self.parse_to_int(self.hex_to_int(lengthHex));
         let mut dataEnd: Value = self.sum(&[Value::Int(128), (match (&(length), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        let mut dataHex: Value = (match (&(hex), (match &(Value::Int(128)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(dataEnd) { Value::Int(__n) => Some(*__n),
-            Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-            __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+        let mut dataHex: Value = (match (&(hex), 128i64, (match &(dataEnd) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
+            __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
+            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
+            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
         return self.decode(self.base16_to_binary(dataHex, &[]));
 
     Value::Null
@@ -1143,8 +1143,8 @@ impl SxbetCore {
  * @returns {int} the parsed integer
  */
     pub fn hex_to_int(&self, mut hex: Value) -> Value {
-        let mut digits: Value = Value::Str("0123456789abcdef".into());
-        let mut lowerHex: Value = hex.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut digits: String = "0123456789abcdef".to_string();
+        let mut lowerHex: Value = (if let Some(__s) = hex.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut hexLength: f64 = ((lowerHex.len() as i64) as f64);
         let mut result: Value = self.parse_to_int(Value::Int(0));
         {
@@ -1152,7 +1152,7 @@ impl SxbetCore {
             let mut __for_first_1495: bool = true;
             while { if !__for_first_1495 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1495 = false; i.as_f64().unwrap_or(f64::NAN) < hexLength } {
             let mut ch: Value = get_value(&lowerHex, &i);
-            let mut digitValue: Value = self.parse_to_int(Value::Int(digits.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)));
+            let mut digitValue: Value = self.parse_to_int(Value::Int(Some(digits.as_str()).zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)));
             let mut shifted: Value = (match (&(result), &(Value::Int(16))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             result = self.parse_to_int(self.sum(&[shifted, digitValue]));
         }
@@ -1205,8 +1205,8 @@ impl SxbetCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" approve() requires params.amount - the USDC amount to move into the proxy wallet".into()))));
         }
         let mut proxy: Value = self.fetch_sxbet_proxy().await;
-        let mut deployed: Value = self.safe_bool_k(proxy, "deployed", &[Value::Bool(false)]);
-        if !(deployed.as_bool() == Some(true)) {
+        let mut deployed: bool = self.safe_bool_k_opt(proxy, "deployed", &[Value::Bool(false)]).unwrap_or(false);
+        if !(deployed) {
             self.sxbet_private_post_user_deploy_proxy(&[]).await;
             {
                                 let mut i: Value = Value::Int(0);
@@ -1225,7 +1225,7 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut chainId: Value = self.safe_integer_k(obv3.clone(), "chainId", &[]);
+        let mut chainId: Option<i64> = self.safe_integer_k(obv3.clone(), "chainId", &[]).as_i64();
         let mut usdcAddress: Option<String> = self.safe_string_k_opt(activeAsset, "baseToken", &[]);
         // the permit spender is the venue's transfer-to-proxy executor, published in /metadata/obv3
         let mut executorAddress: Option<String> = self.safe_string_k_opt(obv3, "transferToProxyExecutorAddress", &[]);
@@ -1243,13 +1243,13 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut chainConfig: Value = self.safe_dict(chains, self.number_to_string(chainId.clone()), &[Value::Map({
+        let mut chainConfig: Value = self.safe_dict(chains, self.number_to_string(Value::from(chainId)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut rpcUrl: Value = self.safe_string_k(paramsSpender.clone(), "rpcUrl", &[self.safe_string(chainConfig, Value::Str("rpcUrl".into()), &[])]);
         if (rpcUrl == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() has no RPC endpoint configured for chainId ".into())).into()), self.number_to_string(chainId.clone())).into()), Value::Str(" - pass params.rpcUrl".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() has no RPC endpoint configured for chainId ".into())).into()), self.number_to_string(Value::from(chainId))).into()), Value::Str(" - pass params.rpcUrl".into()))));
         }
         let mut owner: Value = self.walletAddress.clone();
         let mut nonceCallData: Value = Value::Str(format!("{}{}", Value::Str("0x7ecebe00".into()), self.pad_hex_address(owner.clone())).into()); // nonces(address)
@@ -1269,7 +1269,7 @@ impl SxbetCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), tokenName);
                 m.insert("version".to_string(), Value::Str("1".into()));
-                m.insert("chainId".to_string(), chainId);
+                m.insert("chainId".to_string(), Value::from(chainId));
                 m.insert("verifyingContract".to_string(), tokenAddress.clone());
             m
         });
@@ -1379,8 +1379,8 @@ impl SxbetCore {
         }
         // the venue has no post-only or trigger mechanics - reject the unified params instead
         // of forwarding fields the exchange would silently ignore
-        let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        if postOnly.as_bool() == Some(true) {
+        let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
+        if postOnly {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support postOnly - GTC orders may cross on entry".into()))));
         }
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).as_str().map(str::to_owned);
@@ -1420,11 +1420,11 @@ impl SxbetCore {
         let mut saltHex: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), saltHexPadded).into());
         let mut defaultExpirySeconds: Value = self.safe_integer_k(self.options.clone(), "defaultOrderExpirySeconds", &[Value::Int(86400)]);
         let mut expiry: Value = self.safe_integer_k(params.clone(), "expiry", &[self.sum(&[self.seconds(), defaultExpirySeconds])]);
-        let mut defaultTif: Value = Value::Str("IOC".into());
+        let mut defaultTif: String = "IOC".to_string();
         if (type_var.as_str() == Some("limit")) {
-            defaultTif = Value::Str("GTC".into());
+            defaultTif = "GTC".to_string();
         }
-        let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[defaultTif]).as_array().cloned().unwrap_or_default();
+        let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::from(defaultTif)]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
@@ -1514,20 +1514,20 @@ impl SxbetCore {
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        let mut useBetCredits: Value = self.safe_bool_k(paramsTimeInForce.clone(), "useBetCredits", &[]);
-        if (useBetCredits != Value::Null) {
-            orderItem.insert("useBetCredits".into(), useBetCredits);
+        let mut useBetCredits: Option<bool> = self.safe_bool_k_opt(paramsTimeInForce.clone(), "useBetCredits", &[]);
+        if (useBetCredits.is_some()) {
+            orderItem.insert("useBetCredits".into(), useBetCredits.map(Value::Bool).unwrap_or(Value::Null));
         }
         let mut externalUserId: Option<String> = self.safe_string_k_opt(paramsTimeInForce.clone(), "externalUserId", &[]);
         if (externalUserId.is_some()) {
             orderItem.insert("externalUserId".into(), externalUserId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut waitForOutcome: Value = self.safe_bool_k(paramsTimeInForce.clone(), "waitForOutcome", &[Value::Bool(true)]);
+        let mut waitForOutcome: bool = self.safe_bool_k_opt(paramsTimeInForce.clone(), "waitForOutcome", &[Value::Bool(true)]).unwrap_or(true);
         let mut rest: Value = self.omit(paramsTimeInForce, Value::from(vec![Value::Str("salt".into()), Value::Str("expiry".into()), Value::Str("clientOrderId".into()), Value::Str("waitForOutcome".into()), Value::Str("useBetCredits".into()), Value::Str("externalUserId".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), Value::from(vec![Value::Map(orderItem)]));
-                m.insert("waitForOutcome".to_string(), waitForOutcome);
+                m.insert("waitForOutcome".to_string(), Value::Bool(waitForOutcome));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[rest]);
@@ -1798,16 +1798,16 @@ impl SxbetCore {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut eventId: Value = self.safe_string2(params.clone(), Value::Str("eventId".into()), Value::Str("sportXeventId".into()), &[]);
+        let mut eventId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("eventId".into()), Value::Str("sportXeventId".into()), &[]);
         let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("eventId".into()), Value::Str("sportXeventId".into())]), &[]);
-        let mut isEventScoped: bool = eventId != Value::Null;
+        let mut isEventScoped: bool = eventId.is_some();
         let mut response: Value = Value::Null;
         if isEventScoped {
             // the event route takes eventId in the QUERY string, not the body - sign() urlencodes
             // body-less DELETE params
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("eventId".to_string(), eventId.clone());
+                    m.insert("eventId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
             let __ws_arg_9 = self.extend(Value::Map(request), &[rest.clone()]);
@@ -1833,7 +1833,7 @@ impl SxbetCore {
             if isEventScoped {
                 let mut nextRequest: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("eventId".to_string(), eventId.clone());
+                        m.insert("eventId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
                     m
                 });
                 let __ws_arg_10 = self.extend(Value::Map(nextRequest), &[rest.clone()]);
@@ -1882,11 +1882,11 @@ impl SxbetCore {
         //         "updatedAt": "2026-07-31T18:45:42.838Z"
         //     }
         //
-        let mut orderId: Value = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]);
+        let mut orderId: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]);
         let mut marketHash: Value = self.safe_string_k(order.clone(), "marketHash", &[Value::Str("".into())]);
-        let mut isBettingOutcomeOne: Value = self.safe_bool_k(order.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]);
+        let mut isBettingOutcomeOne: bool = self.safe_bool_k_opt(order.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Value = Value::Null;
-        if isBettingOutcomeOne.as_bool() == Some(true) {
+        if isBettingOutcomeOne {
             outcomeId = marketHash.clone();
         }  else {
             outcomeId = (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into()));
@@ -1904,27 +1904,27 @@ impl SxbetCore {
         let mut remaining: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingSize, &usdcDecimals, &Value::Int(6)), &[]);
         let mut orderStatus: Option<String> = self.safe_string_upper_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut inactiveReason: Option<String> = self.safe_string_upper_k(order.clone(), "inactiveReason", &[]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Str("open".into());
+        let mut status: String = "open".to_string();
         if (orderStatus.as_deref() == Some("INACTIVE")) {
             // documented inactiveReason enum: FILLED, USER_REQUESTED, EXPIRED, NO_LIQUIDITY,
             // INSUFFICIENT_BALANCE, EVENT_LIFECYCLE, MARKET_HALTED, HEARTBEAT_TIMEOUT, SYSTEM
             if (inactiveReason.as_deref() == Some("FILLED")) {
-                status = Value::Str("closed".into());
+                status = "closed".to_string();
             }  else if (inactiveReason.as_deref() == Some("EXPIRED")) {
-                status = Value::Str("expired".into());
+                status = "expired".to_string();
             }  else {
-                status = Value::Str("canceled".into());
+                status = "canceled".to_string();
             }
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "createdAt", &[]));
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), orderId);
+        m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOrderId", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "updatedAt", &[])));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status));
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
@@ -2221,9 +2221,9 @@ impl SxbetCore {
         //     }
         //
         let mut marketHash: Value = self.safe_string_k(fill.clone(), "marketHash", &[Value::Str("".into())]);
-        let mut isBettingOutcomeOne: Value = self.safe_bool_k(fill.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]);
+        let mut isBettingOutcomeOne: bool = self.safe_bool_k_opt(fill.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Value = Value::Null;
-        if isBettingOutcomeOne.as_bool() == Some(true) {
+        if isBettingOutcomeOne {
             outcomeId = marketHash.clone();
         }  else {
             outcomeId = (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into()));
@@ -2237,10 +2237,10 @@ impl SxbetCore {
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&fillAmount, &usdcDecimals, &Value::Int(6)), &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(fill.clone(), "createdAt", &[]));
         // isMaker: true when the account's order was the resting one - absent on older rows
-        let mut isMaker: Value = self.safe_bool_k(fill.clone(), "isMaker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(fill.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
-        if (isMaker != Value::Null) {
-            takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+        if (isMaker.is_some()) {
+            takerOrMaker = (if isMaker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2424,9 +2424,9 @@ impl SxbetCore {
         //     }
         //
         let mut marketHash: Value = self.safe_string_k(raw.clone(), "marketHash", &[Value::Str("".into())]);
-        let mut isOutcomeOneMaxWin: Value = self.safe_bool_k(raw.clone(), "isOutcomeOneMaxWin", &[Value::Bool(true)]);
+        let mut isOutcomeOneMaxWin: bool = self.safe_bool_k_opt(raw.clone(), "isOutcomeOneMaxWin", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Value = Value::Null;
-        if isOutcomeOneMaxWin.as_bool() == Some(true) {
+        if isOutcomeOneMaxWin {
             outcomeId = marketHash.clone();
         }  else {
             outcomeId = (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into()));
@@ -2439,7 +2439,7 @@ impl SxbetCore {
     m
 })]);
         let mut ownOdds: Value = Value::Null;
-        if isOutcomeOneMaxWin.as_bool() == Some(true) {
+        if isOutcomeOneMaxWin {
             ownOdds = self.safe_string_k(odds.clone(), "outcomeOne", &[]);
         }  else {
             ownOdds = self.safe_string_k(odds, "outcomeTwo", &[]);
@@ -2558,9 +2558,9 @@ impl SxbetCore {
         //     }
         //
         let mut marketHash: Value = self.safe_string_k(trade.clone(), "marketHash", &[Value::Str("".into())]);
-        let mut isBettingOutcomeOne: Value = self.safe_bool_k(trade.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]);
+        let mut isBettingOutcomeOne: bool = self.safe_bool_k_opt(trade.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Value = Value::Null;
-        if isBettingOutcomeOne.as_bool() == Some(true) {
+        if isBettingOutcomeOne {
             outcomeId = marketHash.clone();
         }  else {
             outcomeId = (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into()));
@@ -2572,7 +2572,7 @@ impl SxbetCore {
 })]);
         let mut winner: Value = self.safe_integer_k(settlement.clone(), "outcome", &[]);
         let mut isVoid: bool = winner.as_f64() == Some(0.0);
-        let mut heldNumber: Value = (if isBettingOutcomeOne.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(2) });
+        let mut heldNumber: Value = (if isBettingOutcomeOne { Value::Int(1) } else { Value::Int(2) });
         let mut won: Value = (if ((winner != Value::Null) && !isVoid) { (Value::Bool(winner.as_f64() == heldNumber.as_f64())) } else { Value::Null });
         let mut usdcDecimals: Value = Value::Str("1000000".into());
         let mut stake: Value = crate::precise::Precise::stringDivPrec(&self.safe_string_k(trade.clone(), "totalStake", &[Value::Str("0".into())]), &usdcDecimals, &Value::Int(6));
@@ -2587,11 +2587,11 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut labelKey: Value = Value::Str("outcomeTwoName".into());
+            let mut labelKey: String = "outcomeTwoName".to_string();
             if (winner.as_f64() == Some(1.0)) {
-                labelKey = Value::Str("outcomeOneName".into());
+                labelKey = "outcomeOneName".to_string();
             }
-            resultLabel = self.safe_string(info, labelKey, &[self.number_to_string(winner)]);
+            resultLabel = self.safe_string(info, Value::from(labelKey), &[self.number_to_string(winner)]);
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(settlement, "settleDate", &[]));
         let mut settlePrice: Value = Value::Null;
@@ -2681,14 +2681,14 @@ impl SxbetCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
  */
-    pub async fn fetch_sxbet_best_odds(&mut self, mut marketHashes: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_sxbet_best_odds(&mut self, marketHashes: Vec<String>, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("marketHashes".to_string(), Value::Str(marketHashes.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                m.insert("marketHashes".to_string(), Value::Str(marketHashes.join(",").into()));
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
@@ -2819,7 +2819,7 @@ impl SxbetCore {
                 end = self.parse_to_int(hashesLength.clone());
             }
             let mut chunk: Value = self.array_slice(hashesOrder.clone(), start, &[end]);
-            let mut rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk, &[params.clone()]).await.as_array().cloned().unwrap_or_default();
+            let mut rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk.to_str_vec(), &[params.clone()]).await.as_array().cloned().unwrap_or_default();
             let mut rowsLength: f64 = ((rows.len() as i64) as f64);
             {
                                 let mut j: Value = Value::Int(0);
@@ -3212,7 +3212,7 @@ impl SxbetCore {
 }
 
     pub fn handle_text_message(&mut self, mut client: Value, mut message: Value) {
-        let mut lines: Vec<Value> = Value::Array(message.as_str().map(|__s| __s.split("\n").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut lines: Vec<Value> = Value::Array(if let Some(__s) = message.as_str() { __s.split("\n").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut linesLength: f64 = ((lines.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
@@ -3307,7 +3307,7 @@ impl SxbetCore {
         }  else {
             rows = Value::from(vec![data]);
         }
-        let mut parts: Value = Value::Array(channel.as_deref().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let mut channelType: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (channelType.as_deref() == Some("orderbook_v3")) {
             self.handle_order_book(client.clone(), rows.clone());
@@ -3317,9 +3317,9 @@ impl SxbetCore {
             self.handle_trades(client.clone(), rows.clone());
         }  else if (channelType.as_deref() == Some("account")) {
             // per-account channels: account:orders_v3_#addr / account:fills_v3_#addr
-            if Value::Int(channel.as_deref().and_then(|__s| __s.find("orders_v3")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if channel.as_deref().unwrap_or("").contains("orders_v3") {
                 self.handle_order(client.clone(), rows.clone());
-            }  else if Value::Int(channel.as_deref().and_then(|__s| __s.find("fills_v3")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if channel.as_deref().unwrap_or("").contains("fills_v3") {
                 self.handle_my_trade(client, rows);
             }
         }
@@ -3510,7 +3510,7 @@ impl SxbetCore {
         let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
         self.connect_sxbet_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut channel: Value = Value::Str("best_odds_v3:global".into());
+        let mut channel: String = "best_odds_v3:global".to_string();
         let mut hydrated: bool = false;
         if (self.safe_value(self.tickers.clone(), sym.clone(), &[]) == Value::Null) {
             // hydrate from the REST snapshot so the first call does not hang until the
@@ -3523,18 +3523,18 @@ impl SxbetCore {
             hydrated = true;
         }
         let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
-        self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), channel.clone());
+        self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), Value::from(channel.clone()));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 }));
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut future: Value = self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[Value::Map(subscribeMsg), channel]).await;
+        let mut future: Value = self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
         if hydrated {
             client.resolve(&[self.safe_value(self.tickers.clone(), sym, &[]), messageHash]);
         }
@@ -3649,9 +3649,9 @@ impl SxbetCore {
  */
     pub fn parse_sxbet_v3_public_trade(&self, mut trade: Value) -> Value {
         let mut marketHash: Value = self.safe_string_k(trade.clone(), "marketHash", &[Value::Str("".into())]);
-        let mut isBettingOutcomeOne: Value = self.safe_bool_k(trade.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]);
+        let mut isBettingOutcomeOne: bool = self.safe_bool_k_opt(trade.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Value = Value::Null;
-        if isBettingOutcomeOne.as_bool() == Some(true) {
+        if isBettingOutcomeOne {
             outcomeId = marketHash.clone();
         }  else {
             outcomeId = (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into()));

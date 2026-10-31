@@ -686,13 +686,13 @@ impl BitbankCore {
     pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "buy", &[]));
@@ -800,11 +800,11 @@ impl BitbankCore {
         //        "executed_at": "1694249441593"
         //    }
         //
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "executed_at", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "executed_at", &[]).as_i64();
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("transaction_id".into()), Value::Str("trade_id".into()), &[]);
+        let mut id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("transaction_id".into()), Value::Str("trade_id".into()), &[]);
         let mut takerOrMaker: Option<String> = self.safe_string_k_opt(trade.clone(), "maker_taker", &[]);
         let mut fee: Value = Value::Null;
         let mut feeCostString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_amount_quote", &[]);
@@ -821,10 +821,10 @@ impl BitbankCore {
         let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -1116,7 +1116,7 @@ impl BitbankCore {
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "order_id", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "pair", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "ordered_at", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "ordered_at", &[]).as_i64();
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "start_amount", &[]);
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "executed_amount", &[]);
@@ -1129,8 +1129,8 @@ impl BitbankCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));

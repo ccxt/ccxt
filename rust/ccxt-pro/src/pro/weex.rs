@@ -426,15 +426,15 @@ impl WeexCore {
     m
 }));
         let mut id: Value = self.request_id().map(Value::from).unwrap_or(Value::Null);
-        let mut method: Value = Value::Str("SUBSCRIBE".into());
-        let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
-        if unsubscribe.as_bool() == Some(true) {
-            method = Value::Str("UNSUBSCRIBE".into());
+        let mut method: String = "SUBSCRIBE".to_string();
+        let mut unsubscribe: bool = self.safe_bool_k_opt(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
+        if unsubscribe {
+            method = "UNSUBSCRIBE".to_string();
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
-                m.insert("method".to_string(), method);
+                m.insert("method".to_string(), Value::from(method));
                 m.insert("params".to_string(), channels);
             m
         });
@@ -443,11 +443,11 @@ impl WeexCore {
                 m.insert("id".to_string(), id);
             m
         })]);
-        let mut type_var: Value = Value::Str("spot".into());
+        let mut type_var: String = "spot".to_string();
         if isContract {
-            type_var = Value::Str("contract".into());
+            type_var = "contract".to_string();
         }
-        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[Value::Str("".into())]), Value::Str("/public".into())).into());
+        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(type_var), &[Value::Str("".into())]), Value::Str("/public".into())).into());
         let __ws_arg_0 = self.deep_extend(Value::Map(message), &[params]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), subscriptionExtended]).await;
 
@@ -464,22 +464,22 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut type_var: Value = Value::Str("spot".into());
+        let mut type_var: String = "spot".to_string();
         if isContract {
-            type_var = Value::Str("contract".into());
+            type_var = "contract".to_string();
         }
-        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[Value::Str("".into())]), Value::Str("/private".into())).into());
+        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(type_var), &[Value::Str("".into())]), Value::Str("/private".into())).into());
         self.authenticate(url.clone());
-        let mut method: Value = Value::Str("SUBSCRIBE".into());
-        let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
-        if unsubscribe.as_bool() == Some(true) {
-            method = Value::Str("UNSUBSCRIBE".into());
+        let mut method: String = "SUBSCRIBE".to_string();
+        let mut unsubscribe: bool = self.safe_bool_k_opt(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
+        if unsubscribe {
+            method = "UNSUBSCRIBE".to_string();
         }
         let mut id: Value = self.request_id().map(Value::from).unwrap_or(Value::Null);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
-                m.insert("method".to_string(), method);
+                m.insert("method".to_string(), Value::from(method));
                 m.insert("params".to_string(), Value::from(vec![channel]));
             m
         });
@@ -597,7 +597,7 @@ impl WeexCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
-        let mut topic: Value = Value::Str("ticker".into());
+        let mut topic: String = "ticker".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut channels: Vec<Value> = Vec::new();
         {
@@ -672,7 +672,7 @@ impl WeexCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
-        let mut topic: Value = Value::Str("ticker".into());
+        let mut topic: String = "ticker".to_string();
         let mut subHashes: Vec<Value> = Vec::new();
         let mut channels: Vec<Value> = Vec::new();
         let mut unSubHashes: Vec<Value> = Vec::new();
@@ -697,7 +697,7 @@ impl WeexCore {
                 m.insert("symbols".to_string(), symbolsNormalized);
                 m.insert("messageHashes".to_string(), Value::from(unSubHashes.clone()));
                 m.insert("subMessageHashes".to_string(), Value::from(subHashes));
-                m.insert("topic".to_string(), topic);
+                m.insert("topic".to_string(), Value::from(topic.clone()));
             m
         });
         return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[isContract, params, Value::Map(subscription)]).await;
@@ -769,7 +769,7 @@ impl WeexCore {
         //         "i": "2185.2025"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "C", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "C", &[]).as_i64();
         let mut close: Option<String> = self.safe_string_k_opt(ticker.clone(), "c", &[]);
         let mut symbol: Value = Value::Null;
         if (market == Value::Null) {
@@ -780,8 +780,8 @@ impl WeexCore {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "h", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "l", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "b", &[]));
@@ -856,7 +856,7 @@ impl WeexCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
-        let mut topic: Value = Value::Str("trade".into());
+        let mut topic: String = "trade".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut channels: Vec<Value> = Vec::new();
         {
@@ -925,7 +925,7 @@ impl WeexCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
-        let mut topic: Value = Value::Str("trade".into());
+        let mut topic: String = "trade".to_string();
         let mut subHashes: Vec<Value> = Vec::new();
         let mut channels: Vec<Value> = Vec::new();
         let mut unSubHashes: Vec<Value> = Vec::new();
@@ -1028,26 +1028,26 @@ impl WeexCore {
         //         "m": false
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "T", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "T", &[]).as_i64();
         let mut symbol: Value = Value::Null;
         if (market == Value::Null) {
             symbol = Value::Null;
         }  else {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         }
-        let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "m", &[]); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
-        if (isBuyerMaker != Value::Null) {
-            side = (if isBuyerMaker.as_bool() == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+        if (isBuyerMaker.is_some()) {
+            side = (if isBuyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
             takerOrMaker = Value::Str("taker".into()); // a public trade is reported from the aggressor's side, same as parseTrade
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "t", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
@@ -1385,8 +1385,8 @@ impl WeexCore {
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("watchOrderBookForSymbols".into())]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("callerMethodName".into()), &[]);
-        let mut depth: Value = Value::Str("200".into());
-        let depthOptionparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, callerMethodName, Value::Str("depth".into()), &[depth]).as_array().cloned().unwrap_or_default();
+        let mut depth: String = "200".to_string();
+        let depthOptionparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, callerMethodName, Value::Str("depth".into()), &[Value::from(depth.clone())]).as_array().cloned().unwrap_or_default();
         let mut depthOption: Value = depthOptionparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDepth: Value = depthOptionparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1463,8 +1463,8 @@ impl WeexCore {
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("unWatchOrderBookForSymbols".into())]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("callerMethodName".into()), &[]);
-        let mut depth: Value = Value::Str("200".into());
-        let depthOptionparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, callerMethodName, Value::Str("depth".into()), &[depth]).as_array().cloned().unwrap_or_default();
+        let mut depth: String = "200".to_string();
+        let depthOptionparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, callerMethodName, Value::Str("depth".into()), &[Value::from(depth.clone())]).as_array().cloned().unwrap_or_default();
         let mut depthOption: Value = depthOptionparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDepth: Value = depthOptionparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut subHashes: Vec<Value> = Vec::new();
@@ -1708,7 +1708,7 @@ impl WeexCore {
 
     pub fn parse_ws_bid_ask(&self, mut message: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "E", &[]).as_i64();
         let mut symbol: Value = Value::Null;
         if (market == Value::Null) {
             symbol = Value::Null;
@@ -1718,8 +1718,8 @@ impl WeexCore {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("ask".to_string(), self.safe_string_k(message.clone(), "a", &[]));
         m.insert("askVolume".to_string(), self.safe_string_k(message.clone(), "A", &[]));
         m.insert("bid".to_string(), self.safe_string_k(message.clone(), "b", &[]));
@@ -1772,8 +1772,8 @@ impl WeexCore {
         if (symbolResolved.is_some()) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
         }
-        let mut channel: Value = Value::Str("fill".into());
-        let mut trades: Value = self.subscribe_private(messageHash, subscriptionHash, channel, &[isContract, paramsMarketType]).await;
+        let mut channel: String = "fill".to_string();
+        let mut trades: Value = self.subscribe_private(messageHash, subscriptionHash, Value::from(channel), &[isContract, paramsMarketType]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), limit);
@@ -1807,22 +1807,22 @@ impl WeexCore {
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
-        let mut subHash: Value = Value::Str("myTrades".into());
+        let mut subHash: String = "myTrades".to_string();
         if matches!(&isContract, Value::Bool(true)) {
-            subHash = Value::Str("myContractTrades".into());
+            subHash = "myContractTrades".to_string();
         }
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subHash).into());
-        let mut channel: Value = Value::Str("fill".into());
+        let mut channel: String = "fill".to_string();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("messageHashes".to_string(), Value::from(vec![unSubHash.clone()]));
-                m.insert("subMessageHashes".to_string(), Value::from(vec![subHash]));
+                m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subHash)]));
                 m.insert("topic".to_string(), Value::Str("myTrades".into()));
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[isContract, paramsMarketType, Value::Map(subscription)]).await;
+        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), Value::from(channel), &[isContract, paramsMarketType, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -1902,11 +1902,11 @@ impl WeexCore {
             trades.append(parsed);
         }
         }
-        let mut messageHash: Value = Value::Str("myTrades".into());
+        let mut messageHash: String = "myTrades".to_string();
         let mut symbolKeys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut market: Value = self.get_market_from_symbols(&[symbolKeys.clone()]);
         if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
-            messageHash = Value::Str("myContractTrades".into());
+            messageHash = "myContractTrades".to_string();
         }
         {
                         let mut j: i64 = 0;
@@ -1917,7 +1917,7 @@ impl WeexCore {
             client.resolve(&[trades.clone(), symbolMessageHash]);
         }
         }
-        client.resolve(&[trades, messageHash]);
+        client.resolve(&[trades, Value::from(messageHash.clone())]);
 }
 
     pub fn parse_ws_my_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1939,7 +1939,7 @@ impl WeexCore {
         //         updatedTime: '1776174283564'
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "createdTime", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "createdTime", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
         let mut marketType: String = "spot".to_string();
         let mut positionSide: Option<String> = self.safe_string_k(trade.clone(), "positionSide", &[]).as_str().map(str::to_owned);
@@ -1971,8 +1971,8 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
@@ -2029,8 +2029,8 @@ impl WeexCore {
         if (symbolResolved.is_some()) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
         }
-        let mut channel: Value = Value::Str("orders".into());
-        let mut orders: Value = self.subscribe_private(messageHash, subscriptionHash, channel, &[isContract, paramsMarketType]).await;
+        let mut channel: String = "orders".to_string();
+        let mut orders: Value = self.subscribe_private(messageHash, subscriptionHash, Value::from(channel), &[isContract, paramsMarketType]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), limit);
@@ -2063,22 +2063,22 @@ impl WeexCore {
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
-        let mut subHash: Value = Value::Str("orders".into());
+        let mut subHash: String = "orders".to_string();
         if matches!(&isContract, Value::Bool(true)) {
-            subHash = Value::Str("contractOrders".into());
+            subHash = "contractOrders".to_string();
         }
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subHash).into());
-        let mut channel: Value = Value::Str("orders".into());
+        let mut channel: String = "orders".to_string();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("messageHashes".to_string(), Value::from(vec![unSubHash.clone()]));
-                m.insert("subMessageHashes".to_string(), Value::from(vec![subHash]));
+                m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subHash)]));
                 m.insert("topic".to_string(), Value::Str("orders".into()));
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[isContract, paramsMarketType, Value::Map(subscription)]).await;
+        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), Value::from(channel), &[isContract, paramsMarketType, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -2159,11 +2159,11 @@ impl WeexCore {
             }
         }
         }
-        let mut messageHash: Value = Value::Str("orders".into());
+        let mut messageHash: String = "orders".to_string();
         let mut symbolKeys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut market: Value = self.get_market_from_symbols(&[symbolKeys.clone()]);
         if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
-            messageHash = Value::Str("contractOrders".into());
+            messageHash = "contractOrders".to_string();
         }
         {
                         let mut i: i64 = 0;
@@ -2174,7 +2174,7 @@ impl WeexCore {
             client.resolve(&[orders.clone(), symbolMessageHash]);
         }
         }
-        client.resolve(&[self.orders.clone(), messageHash]);
+        client.resolve(&[self.orders.clone(), Value::from(messageHash.clone())]);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2264,7 +2264,7 @@ impl WeexCore {
         //         "updatedTime": "1747203188148"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "createdTime", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "createdTime", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketType: String = "spot".to_string();
         let mut positionSide: Option<String> = self.safe_string_k(order.clone(), "positionSide", &[]).as_str().map(str::to_owned);
@@ -2319,8 +2319,8 @@ impl WeexCore {
         m.insert("cost".to_string(), self.safe_string_k(order.clone(), "cumFillValue", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "cumFillSize", &[]));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("fee".to_string(), fee);
         m.insert("status".to_string(), self.parent.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -2358,18 +2358,18 @@ impl WeexCore {
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isContract: Value = (Value::Bool(type_var.as_str() != Some("spot")));
-        let mut urlType: Value = Value::Str("spot".into());
+        let mut urlType: String = "spot".to_string();
         if matches!(&isContract, Value::Bool(true)) {
-            urlType = Value::Str("contract".into());
+            urlType = "contract".to_string();
         }
-        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), urlType, &[Value::Str("".into())]), Value::Str("/private".into())).into());
+        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[Value::Str("".into())]), Value::Str("/private".into())).into());
         self.authenticate(url.clone());
         let mut client: Value = self.client(&[url]);
         self.set_balance_cache(client.clone(), type_var.clone());
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
-        let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options, "awaitBalanceSnapshot", &[Value::Bool(true)]);
-        if fetchBalanceSnapshot.as_bool() == Some(true) && awaitBalanceSnapshot.as_bool() == Some(true) {
+        if fetchBalanceSnapshot && awaitBalanceSnapshot.as_bool() == Some(true) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
         }
         return self.subscribe_private(Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into()), type_var, Value::Str("account".into()), &[isContract, paramsMarketType]).await;
@@ -2383,8 +2383,8 @@ impl WeexCore {
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
-        let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
-        if fetchBalanceSnapshot.as_bool() == Some(true) {
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
+        if fetchBalanceSnapshot {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
             if !(__ch.has_future(&messageHash)) {
                 client.future(&[messageHash.clone()]);
@@ -2483,7 +2483,7 @@ impl WeexCore {
         //
         let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
         let mut accountType: Value = Value::Str("spot".into());
-        if Value::Int(url.as_str().and_then(|__s| __s.find("contract")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if url.as_str().unwrap_or("").contains("contract") {
             accountType = Value::Str("swap".into());
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", accountType, Value::Str(":balance".into())).into());
@@ -2555,7 +2555,7 @@ impl WeexCore {
         if (symbolsNormalized != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into())).into());
         }
-        let mut channel: Value = Value::Str("positions".into());
+        let mut channel: String = "positions".to_string();
         self.set_positions_cache(client.clone(), &[params.clone()]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
@@ -2565,7 +2565,7 @@ impl WeexCore {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
-        let mut newPositions: Value = self.subscribe_private(messageHash, subscriptionHash, channel, &[Value::Bool(true), params]).await;
+        let mut newPositions: Value = self.subscribe_private(messageHash, subscriptionHash, Value::from(channel), &[Value::Bool(true), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2631,19 +2631,19 @@ impl WeexCore {
         if (symbols != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols.".into()))));
         }
-        let mut subHash: Value = Value::Str("positions".into());
+        let mut subHash: String = "positions".to_string();
         let mut unSubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subHash).into());
-        let mut channel: Value = Value::Str("positions".into());
+        let mut channel: String = "positions".to_string();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("messageHashes".to_string(), Value::from(vec![unSubHash.clone()]));
-                m.insert("subMessageHashes".to_string(), Value::from(vec![subHash]));
+                m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subHash)]));
                 m.insert("topic".to_string(), Value::Str("positions".into()));
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), channel, &[Value::Bool(true), params, Value::Map(subscription)]).await;
+        return self.subscribe_private(unSubHash.clone(), unSubHash.clone(), Value::from(channel), &[Value::Bool(true), params, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -2714,9 +2714,9 @@ impl WeexCore {
             let mut __for_first_686: bool = true;
             while { if !__for_first_686 { i += 1; } __for_first_686 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions, messageHash]);
@@ -2737,12 +2737,12 @@ impl WeexCore {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
-        let mut marketType: Value = Value::Str("spot".into());
-        if Value::Int(url.as_str().and_then(|__s| __s.find("contract")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            marketType = Value::Str("swap".into());
+        let mut marketType: String = "spot".to_string();
+        if url.as_str().unwrap_or("").contains("contract") {
+            marketType = "swap".to_string();
         }
         let mut marketId: Value = (match message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
+        let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::from(marketType)]);
         return market;
 
     Value::Null
@@ -2782,8 +2782,8 @@ impl WeexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
-        if unsubscribe.as_bool() == Some(true) {
+        let mut unsubscribe: bool = self.safe_bool_k_opt(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
+        if unsubscribe {
             let mut subHashIsPrefix: Value = self.safe_bool_k(subscription.clone(), "subHashIsPrefix", &[Value::Bool(false)]);
             let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]);
             let mut subHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);

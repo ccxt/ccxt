@@ -826,15 +826,15 @@ impl BitbnsCore {
         //         "average":4452925.68
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -900,7 +900,7 @@ impl BitbnsCore {
             let mut __for_first_338: bool = true;
             while { if !__for_first_338 { i += 1; } __for_first_338 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parts: Value = Value::Array(key.as_str().map(|__s| __s.split("availableorder").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = key.as_str() { __s.split("availableorder").map(Value::from).collect() } else { Vec::new() });
             let mut numParts: f64 = ((parts.len() as i64) as f64);
             if numParts > ((1i64) as f64) {
                 let usedCurrencyId: String = self.safe_string_opt(parts.clone(), Value::Int(1), &[Value::Str("".into())]).unwrap_or_default();
@@ -992,7 +992,7 @@ impl BitbnsCore {
         //        "code": 200
         //    }
         //
-        let mut id: Value = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("entry_id".into()), &[]);
+        let mut id: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("id".into()), Value::Str("entry_id".into()), &[]);
         let mut datetime: Option<String> = self.safe_string_k_opt(order.clone(), "time", &[]);
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(order.clone(), "t_rate", &[]);
         let mut side: Value = self.safe_string_k(order.clone(), "type", &[]);
@@ -1011,7 +1011,7 @@ impl BitbnsCore {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
@@ -1071,14 +1071,14 @@ impl BitbnsCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("t_rate".into())]), &[]);
+        let mut triggerPrice: Option<String> = self.safe_string_n_opt(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("t_rate".into())]), &[]);
         let mut targetRate: Option<String> = self.safe_string_k_opt(params.clone(), "target_rate", &[]);
         let mut trailRate: Option<String> = self.safe_string_k_opt(params.clone(), "trail_rate", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("trail_rate".into()), Value::Str("target_rate".into()), Value::Str("t_rate".into())]), &[]);
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("uppercaseId")).cloned().unwrap_or(Value::Null));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
@@ -1088,8 +1088,8 @@ impl BitbnsCore {
         }  else {
             request.insert("market".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
         }
-        if (triggerPrice != Value::Null) {
-            request.insert("t_rate".into(), self.price_to_precision(symbol.clone(), triggerPrice));
+        if (triggerPrice.is_some()) {
+            request.insert("t_rate".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
         }
         if (targetRate.is_some()) {
             request.insert("target_rate".into(), self.price_to_precision(symbol.clone(), targetRate.map(Value::from).unwrap_or(Value::Null)));
@@ -1148,7 +1148,7 @@ impl BitbnsCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
+        let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1157,7 +1157,7 @@ impl BitbnsCore {
             m
         });
         let mut response: Value = Value::Null;
-        let mut tail: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("StopLossOrder".into()) } else { Value::Str("Order".into()) });
+        let mut tail: Value = (if (isTrigger == Some(true)) { Value::Str("StopLossOrder".into()) } else { Value::Str("Order".into()) });
         let mut quoteSide: Value = (if (market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) { Value::Str("usdtcancel".into()) } else { Value::Str("cancel".into()) });
         quoteSide = Value::Str(format!("{}{}", quoteSide, tail).into());
         request.insert("side".into(), quoteSide);
@@ -1201,8 +1201,8 @@ impl BitbnsCore {
                 m.insert("entry_id".to_string(), id.clone());
             m
         });
-        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        if (trigger.as_bool() == Some(true)) {
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
+        if (trigger == Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder cannot fetch stop orders".into()))));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -1270,17 +1270,17 @@ impl BitbnsCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
+        let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        let mut quoteSide: Value = Value::Str("listOpen".into());
+        let mut quoteSide: String = "listOpen".to_string();
         if (market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) {
-            quoteSide = Value::Str("usdtListOpen".into());
+            quoteSide = "usdtListOpen".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("uppercaseId")).cloned().unwrap_or(Value::Null));
                 m.insert("page".to_string(), Value::Int(0));
-                m.insert("side".to_string(), (if (isTrigger.as_bool() == Some(true)) { (Value::Str(format!("{}{}", quoteSide, Value::Str("StopOrders".into())).into())) } else { (Value::Str(format!("{}{}", quoteSide, Value::Str("Orders".into())).into())) }));
+                m.insert("side".to_string(), (if (isTrigger == Some(true)) { (Value::Str(format!("{}{}", quoteSide, Value::Str("StopOrders".into())).into())) } else { (Value::Str(format!("{}{}", quoteSide, Value::Str("Orders".into())).into())) }));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
@@ -1345,16 +1345,16 @@ impl BitbnsCore {
         //     }
         //
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
-        let mut orderId: Value = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[]);
+        let mut orderId: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "date", &[]));
         timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[timestamp.clone()]);
-        let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("rate".into()), Value::Str("price".into()), &[]);
+        let mut priceString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("rate".into()), Value::Str("price".into()), &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "type", &[]);
         if (side != Value::Null) {
-            if Value::Int(side.as_str().and_then(|__s| __s.find("buy")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if side.as_str().unwrap_or("").contains("buy") {
                 side = Value::Str("buy".into());
-            }  else if Value::Int(side.as_str().and_then(|__s| __s.find("sell")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if side.as_str().unwrap_or("").contains("sell") {
                 side = Value::Str("sell".into());
             }
         }
@@ -1384,12 +1384,12 @@ impl BitbnsCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
-        m.insert("id".to_string(), orderId.clone());
-        m.insert("order".to_string(), orderId);
+        m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), priceString);
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString);
         m.insert("cost".to_string(), costString);
         m.insert("fee".to_string(), fee);
@@ -1684,10 +1684,10 @@ impl BitbnsCore {
         let mut expTime: Value = self.safe_string_k(transaction.clone(), "expTime", &[Value::Str("".into())]);
         let mut status: Value = Value::Null;
         if (type_var != Value::Null) {
-            if Value::Int(type_var.as_str().and_then(|__s| __s.find("deposit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if type_var.as_str().unwrap_or("").contains("deposit") {
                 type_var = Value::Str("deposit".into());
                 status = Value::Str("ok".into());
-            }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("withdraw")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || Value::Int(expTime.as_str().and_then(|__s| __s.find("withdraw")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if type_var.as_str().unwrap_or("").contains("withdraw") || expTime.as_str().unwrap_or("").contains("withdraw") {
                 type_var = Value::Str("withdrawal".into());
             }
         }

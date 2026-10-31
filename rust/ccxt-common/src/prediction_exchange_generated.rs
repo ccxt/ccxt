@@ -313,9 +313,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // of the same tag compare equal — venues surface tags in different forms and callers
         // pass any of them. keeping the word boundary avoids cross-word false positives that
         // plain concatenation would create ("us open" vs "household")
-        let mut lower: Value = tag.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut allowed: Value = Value::Str("abcdefghijklmnopqrstuvwxyz0123456789".into());
-        let mut chars: Vec<Value> = self.string_to_chars_array(lower).as_array().cloned().unwrap_or_default();
+        let mut lower: String = tag.as_str().map(str::to_lowercase).unwrap_or_default();
+        let mut allowed: String = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();
+        let mut chars: Vec<Value> = self.string_to_chars_array(Value::from(lower)).as_array().cloned().unwrap_or_default();
         let mut s: Value = Value::Str("".into());
         let mut pendingSep: bool = false;
         {
@@ -323,7 +323,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_193: bool = true;
             while { if !__for_first_193 { i += 1; } __for_first_193 = false; i < (chars.len() as i64) } {
             let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
-            if Value::Int(allowed.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if Value::Int(Some(allowed.as_str()).zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 if pendingSep && (s.as_str() != Some("")) {
                     s = Value::Str(format!("{}{}", s, Value::Str(" ".into())).into());
                 }
@@ -663,8 +663,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut stopWords: Value = Value::from(vec![Value::Str("will".into()), Value::Str("the".into()), Value::Str("a".into()), Value::Str("an".into()), Value::Str("after".into()), Value::Str("before".into()), Value::Str("in".into()), Value::Str("at".into()), Value::Str("by".into()), Value::Str("of".into()), Value::Str("there".into()),
             Value::Str("be".into()), Value::Str("to".into()), Value::Str("or".into()), Value::Str("and".into()), Value::Str("for".into()), Value::Str("on".into()), Value::Str("its".into()), Value::Str("that".into()), Value::Str("this".into()), Value::Str("from".into()), Value::Str("with".into()), Value::Str("as".into()), Value::Str("is".into()),
             Value::Str("are".into()), Value::Str("was".into()), Value::Str("were".into()), Value::Str("?".into()), Value::Str("how".into()), Value::Str("many".into()), Value::Str("who".into()), Value::Str("what".into()), Value::Str("when".into()), Value::Str("where".into()), Value::Str("which".into()), Value::Str("much".into())]);
-        let mut lower: Value = (if (slug == Value::Null) { Value::Str("".into()) } else { slug.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null) });
-        let mut allowed: Value = Value::Str("abcdefghijklmnopqrstuvwxyz0123456789".into());
+        let mut lower: Value = (if (slug == Value::Null) { Value::Str("".into()) } else { (if let Some(__s) = slug.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) });
+        let mut allowed: String = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();
         let mut chars: Vec<Value> = self.string_to_chars_array(lower).as_array().cloned().unwrap_or_default();
         let mut s: Value = Value::Str("".into());
         let mut lastDash: bool = true; // start true to drop leading separators
@@ -673,7 +673,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_200: bool = true;
             while { if !__for_first_200 { i += 1; } __for_first_200 = false; i < (chars.len() as i64) } {
             let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
-            if Value::Int(allowed.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if Value::Int(Some(allowed.as_str()).zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 s = Value::Str(format!("{}{}", s, ch).into());
                 lastDash = false;
             }  else if !(lastDash) {
@@ -694,7 +694,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
         }
         }
-        let mut rawParts: Vec<Value> = Value::Array(s.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut rawParts: Vec<Value> = Value::Array(if let Some(__s) = s.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut parts: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -707,7 +707,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         }
         let mut joined: Value = Value::Str(parts.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("_").into());
-        return joined.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        return (if let Some(__s) = joined.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
 
     Value::Null
 }
@@ -739,8 +739,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        let mut upper: Value = (if (outcome == Value::Null) { Value::Str("".into()) } else { outcome.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null) });
-        let mut allowed: Value = Value::Str("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".into());
+        let mut upper: Value = (if (outcome == Value::Null) { Value::Str("".into()) } else { (if let Some(__s) = outcome.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) });
+        let mut allowed: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".to_string();
         let mut chars: Vec<Value> = self.string_to_chars_array(upper.clone()).as_array().cloned().unwrap_or_default();
         let mut label: Value = Value::Str("".into());
         let mut pendingSep: bool = false;
@@ -749,7 +749,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_203: bool = true;
             while { if !__for_first_203 { i += 1; } __for_first_203 = false; i < (chars.len() as i64) } {
             let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
-            if Value::Int(allowed.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if Value::Int(Some(allowed.as_str()).zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 if pendingSep && (label.as_str() != Some("")) {
                     label = Value::Str(format!("{}{}", label, Value::Str("_".into())).into());
                 }
@@ -861,7 +861,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
                         }
-                        ocSymbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", ocSymbol, Value::Str("_".into())).into()), suffix.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)).into());
+                        ocSymbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", ocSymbol, Value::Str("_".into())).into()), (if let Some(__s) = suffix.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into());
                     }
                 }
                 add_element_to_object(&mut oc, &Value::Str("outcome".into()), ocSymbol.clone());
@@ -918,9 +918,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_208: bool = true;
             while { if !__for_first_208 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_208 = false; i.as_f64().unwrap_or(f64::NAN) < marketsLength } {
             let mut m: Value = markets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut marketHandle: Value = self.safe_string2(m.clone(), Value::Str("market".into()), Value::Str("symbol".into()), &[]);
-            if (marketHandle != Value::Null) {
-                if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketHandle), m); }
+            let mut marketHandle: Option<String> = self.safe_string2_opt(m.clone(), Value::Str("market".into()), Value::Str("symbol".into()), &[]);
+            if (marketHandle.is_some()) {
+                if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketHandle.as_deref().unwrap_or("null").to_string(), m); }
             }
         }
         }
@@ -1043,8 +1043,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     return self.safe_outcome(outcomeSymbol.clone(), &[]);
                 }
             }
-            let mut loadAll: Value = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]);
-            if loadAll.as_bool() == Some(true) && !wasWarm {
+            let mut loadAll: bool = self.safe_bool_k_opt(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]).unwrap_or(false);
+            if loadAll && !wasWarm {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1068,20 +1068,20 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut marketPart: Value = outcomeSymbol.clone();
         let mut colonIndex: Value = Value::Int(outcomeSymbol.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1));
         if colonIndex.as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            marketPart = (match (&(outcomeSymbol), (match &(Value::Int(0)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(colonIndex) { Value::Int(__n) => Some(*__n),
-                Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-                __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+            marketPart = (match (&(outcomeSymbol), 0i64, (match &(colonIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
+                __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
+                __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
+                Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
         }
         if (Value::Int(marketPart.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             return Value::Null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-        let mut normalized: Value = (marketPart.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.replace("-", "_").into())).unwrap_or_else(|| (marketPart.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)).clone());
-        let mut rawWords: Vec<Value> = Value::Array(normalized.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut normalized: Value = ((if let Some(__s) = marketPart.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).as_str().map(|__s| Value::Str(__s.replace("-", "_").into())).unwrap_or_else(|| ((if let Some(__s) = marketPart.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).clone());
+        let mut rawWords: Vec<Value> = Value::Array(if let Some(__s) = normalized.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut words: Vec<Value> = Vec::new();
         let mut hasLetters: bool = false;
-        let mut letters: Value = Value::Str("abcdefghijklmnopqrstuvwxyz".into());
+        let mut letters: String = "abcdefghijklmnopqrstuvwxyz".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_213: bool = true;
@@ -1098,8 +1098,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 let mut ci: i64 = 0;
                 let mut __for_first_212: bool = true;
                 while { if !__for_first_212 { ci += 1; } __for_first_212 = false; ci < (chars.len() as i64) } {
-                if (match (&(letters), &(chars.get(ci as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
-                    Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
+                if (match (&(Value::from(letters.clone())), &(chars.get(ci as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y,
+                    (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
                     (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s),
                     Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     wordHasLetters = true;
@@ -1140,12 +1140,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // token id) override this with a cheaper single fetch and fall back to super on a miss.
         let mut searchQuery: Value = self.outcome_search_query(outcomeSymbol.clone());
         if (searchQuery != Value::Null) && matches!(self.safe_bool_k(self.has.clone(), "fetchEvents", &[Value::Bool(false)]), Value::Bool(true)) {
-            let mut searchLimit: Value = self.safe_integer_k(self.options.clone(), "fetchOutcomeSearchLimit", &[Value::Int(10)]);
+            let mut searchLimit: Option<i64> = self.safe_integer_k(self.options.clone(), "fetchOutcomeSearchLimit", &[Value::Int(10)]).as_i64();
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.fetch_events(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("query".to_string(), searchQuery);
-        m.insert("limit".to_string(), searchLimit);
+        m.insert("limit".to_string(), Value::from(searchLimit));
     m
 })]).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
@@ -1853,7 +1853,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cost: Value = self.safe_string_k(outcomeOrder.clone(), "cost", &[]);
         let mut average: Value = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "average", &[]));
         let mut price: Value = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "price", &[]));
-        let mut side: Value = self.safe_string_k(outcomeOrder.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "side", &[]);
         let mut status: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "status", &[]);
         let mut lastTradeTimestamp: Value = self.safe_integer_k(outcomeOrder.clone(), "lastTradeTimestamp", &[]);
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
@@ -1881,8 +1881,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (tradeCost.is_some()) {
                     cost = crate::precise::Precise::stringAdd(&cost, &tradeCost.clone().map(Value::from).unwrap_or(Value::Null));
                 }
-                if (side == Value::Null) {
-                    side = self.safe_string_k(trade.clone(), "side", &[]);
+                if (side.is_none()) {
+                    side = self.safe_string_k_opt(trade.clone(), "side", &[]);
                 }
                 let mut tradeTimestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
                 if (tradeTimestamp != Value::Null) {
@@ -1941,23 +1941,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else if (postOnlyValue == Value::Null) {
             derivedPostOnly = (Value::Bool(timeInForce.as_str() == Some("PO")));
         }
-        let mut timestamp: Value = self.safe_integer_k(outcomeOrder.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(outcomeOrder.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Value = self.safe_string_k(outcomeOrder.clone(), "datetime", &[]);
         if (datetime == Value::Null) {
-            datetime = self.iso8601(timestamp.clone());
+            datetime = self.iso8601(Value::from(timestamp));
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(outcomeOrder.clone(), "id", &[]));
                 m.insert("clientOrderId".to_string(), self.safe_string_k(outcomeOrder.clone(), "clientOrderId", &[]));
-                m.insert("timestamp".to_string(), timestamp);
+                m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), datetime);
                 m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
                 m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(outcomeOrder.clone(), "lastUpdateTimestamp", &[]));
                 m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("timeInForce".to_string(), timeInForce);
-                m.insert("side".to_string(), side);
+                m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("price".to_string(), self.parse_number(price, &[]));
                 m.insert("average".to_string(), self.parse_number(average, &[]));
                 m.insert("amount".to_string(), self.parse_number(amount, &[]));
@@ -1990,16 +1990,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (cost == Value::Null) && (price.is_some()) && (amount.is_some()) {
             cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Value = self.safe_string_k(trade.clone(), "datetime", &[]);
         if (datetime == Value::Null) {
-            datetime = self.iso8601(timestamp.clone());
+            datetime = self.iso8601(Value::from(timestamp));
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
                 m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order", &[]));
-                m.insert("timestamp".to_string(), timestamp);
+                m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), datetime);
                 m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
                 m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
@@ -2041,14 +2041,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (average == Value::Null) && (open != Value::Null) && (close != Value::Null) {
             average = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&open, &close), &Value::Str("2".into()));
         }
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Value = self.safe_string_k(ticker.clone(), "datetime", &[]);
         if (datetime == Value::Null) {
-            datetime = self.iso8601(timestamp.clone());
+            datetime = self.iso8601(Value::from(timestamp));
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timestamp".to_string(), timestamp);
+                m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), datetime);
                 m.insert("high".to_string(), self.safe_number_k(ticker.clone(), "high", &[]));
                 m.insert("low".to_string(), self.safe_number_k(ticker.clone(), "low", &[]));
@@ -2081,15 +2081,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn safe_prediction_position(&self, mut position: Value) -> Value {
         // build the prediction position directly (no crypto safePosition, which carries the whole
         // leverage/marginMode/liquidation block the prediction type omits)
-        let mut timestamp: Value = self.safe_integer_k(position.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Value = self.safe_string_k(position.clone(), "datetime", &[]);
         if (datetime == Value::Null) {
-            datetime = self.iso8601(timestamp.clone());
+            datetime = self.iso8601(Value::from(timestamp));
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
-                m.insert("timestamp".to_string(), timestamp);
+                m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), datetime);
                 m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "contracts", &[]));
                 m.insert("contractSize".to_string(), self.safe_number_k(position.clone(), "contractSize", &[]));

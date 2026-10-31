@@ -823,7 +823,7 @@ impl NadoCore {
         let mut paramsRecvWindow: Value = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut nonce: Value = self.create_order_nonce(recvWindow).map(Value::from).unwrap_or(Value::Null);
         let mut requestId: Value = self.safe_integer_k(paramsRecvWindow.clone(), "id", &[]);
-        let mut spotLeverage: Value = self.safe_bool2(paramsRecvWindow.clone(), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]);
+        let mut spotLeverage: Option<bool> = self.safe_bool2_opt(paramsRecvWindow.clone(), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]);
         let mut sender: Value = self.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
         let mut order: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -842,8 +842,8 @@ impl NadoCore {
         if (requestId != Value::Null) {
             placeOrder.insert("id".into(), requestId);
         }
-        if (spotLeverage != Value::Null) {
-            placeOrder.insert("spot_leverage".into(), spotLeverage);
+        if (spotLeverage.is_some()) {
+            placeOrder.insert("spot_leverage".into(), spotLeverage.map(Value::Bool).unwrap_or(Value::Null));
         }
         let mut isBuy: bool = side.as_str() == Some("buy");
         let mut triggerPrice: Value = self.safe_string2(paramsRecvWindow.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
@@ -856,9 +856,9 @@ impl NadoCore {
         if isStopOrder {
             // the final omit drops triggerDirection from the request
             let mut triggerDirection: Option<String> = self.safe_string(self.handle_trigger_direction_and_params(paramsRecvWindow.clone(), &[]), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut directionSuffix: Value = Value::Str("below".into());
+            let mut directionSuffix: String = "below".to_string();
             if (triggerDirection.as_deref() == Some("ascending")) {
-                directionSuffix = Value::Str("above".into());
+                directionSuffix = "above".to_string();
             }
             let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone()).map(Value::from).unwrap_or(Value::Null);
             let mut priceRequirement: Value = Value::Map({
@@ -1056,7 +1056,7 @@ impl NadoCore {
             appendix = self.create_order_appendix(false.clone(), &[paramsRecvWindow.clone()]).map(Value::from).unwrap_or(Value::Null);
         }
         let mut requestId: Value = self.safe_integer_k(paramsRecvWindow.clone(), "id", &[]);
-        let mut spotLeverage: Value = self.safe_bool2(paramsRecvWindow.clone(), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]);
+        let mut spotLeverage: Option<bool> = self.safe_bool2_opt(paramsRecvWindow.clone(), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]);
         let mut placeRequiresUnfilled: Value = self.safe_bool2(paramsRecvWindow.clone(), Value::Str("placeRequiresUnfilled".into()), Value::Str("place_requires_unfilled".into()), &[self.safe_bool_k(editOrderOptions, "placeRequiresUnfilled", &[Value::Bool(true)])]);
         let mut paramsOmitted: Value = self.omit(paramsRecvWindow, Value::from(vec![Value::Str("expiration".into()), Value::Str("nonce".into()), Value::Str("appendix".into()), Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("id".into()), Value::Str("spotLeverage".into()),
             Value::Str("spot_leverage".into()), Value::Str("placeRequiresUnfilled".into()), Value::Str("place_requires_unfilled".into())]), &[]);
@@ -1097,8 +1097,8 @@ impl NadoCore {
         if (requestId != Value::Null) {
             placeOrder.insert("id".into(), requestId);
         }
-        if (spotLeverage != Value::Null) {
-            placeOrder.insert("spot_leverage".into(), spotLeverage);
+        if (spotLeverage.is_some()) {
+            placeOrder.insert("spot_leverage".into(), spotLeverage.map(Value::Bool).unwrap_or(Value::Null));
         }
         let mut cancelAndPlace: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1168,11 +1168,11 @@ impl NadoCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut request: Value = self.cancel_all_orders_request(&[symbol, paramsOmitted]).await;
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if (trigger == Some(true)) {
             response = self.trigger_private_post_execute(&[request.clone()]).await;
         }  else {
             response = self.gateway_private_post_execute(&[request]).await;
@@ -1289,11 +1289,11 @@ impl NadoCore {
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut request: Value = self.cancel_orders_request(ids, &[symbol, paramsOmitted]).await;
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if (trigger == Some(true)) {
             response = self.trigger_private_post_execute(&[request.clone()]).await;
         }  else {
             response = self.gateway_private_post_execute(&[request]).await;
@@ -1488,9 +1488,9 @@ impl NadoCore {
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut sender: Value = self.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
-        let mut trigger: Value = self.safe_bool2(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: Value = self.omit(paramsSubaccount, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
-        if (trigger.as_bool() != Some(true)) {
+        if (trigger != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders only support trigger".into()))));
         }
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_integer_and_params(paramsOmitted, Value::Str("fetchOrders".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
@@ -1588,8 +1588,8 @@ impl NadoCore {
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut sender: Value = self.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
-        let mut trigger: Value = self.safe_bool2(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
-        if (trigger.as_bool() == Some(true)) {
+        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        if (trigger == Some(true)) {
             let __ws_arg_6 = self.extend(paramsSubaccount.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status_types".to_string(), Value::from(vec![Value::Str("waiting_price".into()), Value::Str("waiting_dependency".into())]));
@@ -1686,8 +1686,8 @@ impl NadoCore {
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut sender: Value = self.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
-        let mut trigger: Value = self.safe_bool2(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
-        if (trigger.as_bool() == Some(true)) {
+        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        if (trigger == Some(true)) {
             let __ws_arg_8 = self.extend(paramsSubaccount.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status_types".to_string(), Value::from(vec![Value::Str("triggered".into()), Value::Str("triggering".into()), Value::Str("twap_executing".into()), Value::Str("twap_completed".into())]));
@@ -2390,11 +2390,11 @@ impl NadoCore {
             if (previous == Value::Null) {
                 assetsByCode.insert(crate::runtime::stringify_param(&assetCode), rawAsset.clone());
             }  else {
-                let mut previousDeposit: Value = self.safe_bool_k(previous.clone(), "can_deposit", &[Value::Bool(false)]);
-                let mut previousWithdraw: Value = self.safe_bool_k(previous, "can_withdraw", &[Value::Bool(false)]);
-                let mut currentDeposit: Value = self.safe_bool_k(rawAsset.clone(), "can_deposit", &[Value::Bool(false)]);
-                let mut currentWithdraw: Value = self.safe_bool_k(rawAsset.clone(), "can_withdraw", &[Value::Bool(false)]);
-                if (!(previousDeposit.as_bool() == Some(true))) && (!(previousWithdraw.as_bool() == Some(true))) && (currentDeposit.as_bool() == Some(true) || currentWithdraw.as_bool() == Some(true)) {
+                let mut previousDeposit: bool = self.safe_bool_k_opt(previous.clone(), "can_deposit", &[Value::Bool(false)]).unwrap_or(false);
+                let mut previousWithdraw: bool = self.safe_bool_k_opt(previous, "can_withdraw", &[Value::Bool(false)]).unwrap_or(false);
+                let mut currentDeposit: bool = self.safe_bool_k_opt(rawAsset.clone(), "can_deposit", &[Value::Bool(false)]).unwrap_or(false);
+                let mut currentWithdraw: bool = self.safe_bool_k_opt(rawAsset.clone(), "can_withdraw", &[Value::Bool(false)]).unwrap_or(false);
+                if (!(previousDeposit)) && (!(previousWithdraw)) && (currentDeposit || currentWithdraw) {
                     assetsByCode.insert(crate::runtime::stringify_param(&assetCode), rawAsset);
                 }
             }
@@ -2421,8 +2421,8 @@ impl NadoCore {
                 type_var = Value::Str("swap".into());
             }
             let mut contract: Value = (Value::Bool(type_var.as_str() == Some("swap")));
-            let mut tickerId: Value = self.safe_string2(pair.clone(), Value::Str("ticker_id".into()), Value::Str("tickerId".into()), &[]);
-            if (tickerId == Value::Null) {
+            let mut tickerId: Option<String> = self.safe_string2_opt(pair.clone(), Value::Str("ticker_id".into()), Value::Str("tickerId".into()), &[]);
+            if (tickerId.is_none()) {
                 continue;
             }
             let mut rawBaseId: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
@@ -2513,7 +2513,7 @@ impl NadoCore {
         let __ws_arg_16 = self.safe_string_k(asset.clone(), "name", &[]);
         m.insert("info".to_string(), self.extend(market, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ticker_id".to_string(), tickerId);
+        m.insert("ticker_id".to_string(), tickerId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), __ws_arg_16);
         m.insert("v2Pair".to_string(), pair);
         m.insert("v2Asset".to_string(), asset);
@@ -2558,14 +2558,14 @@ impl NadoCore {
                 continue;
             }
             let mut previous: Value = self.safe_dict(Value::Map(result.clone()), code.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut canDeposit: Value = self.safe_bool_k(currency.clone(), "can_deposit", &[Value::Bool(false)]);
-            let mut canWithdraw: Value = self.safe_bool_k(currency, "can_withdraw", &[Value::Bool(false)]);
+            let mut canDeposit: bool = self.safe_bool_k_opt(currency.clone(), "can_deposit", &[Value::Bool(false)]).unwrap_or(false);
+            let mut canWithdraw: bool = self.safe_bool_k_opt(currency, "can_withdraw", &[Value::Bool(false)]).unwrap_or(false);
             if (previous == Value::Null) {
                 result.insert(code.as_deref().unwrap_or("null").to_string(), parsed.clone());
             }  else {
-                let mut previousDeposit: Value = self.safe_bool_k(previous.clone(), "deposit", &[Value::Bool(false)]);
-                let mut previousWithdraw: Value = self.safe_bool_k(previous, "withdraw", &[Value::Bool(false)]);
-                if (!(previousDeposit.as_bool() == Some(true))) && (!(previousWithdraw.as_bool() == Some(true))) && (canDeposit.as_bool() == Some(true) || canWithdraw.as_bool() == Some(true)) {
+                let mut previousDeposit: bool = self.safe_bool_k_opt(previous.clone(), "deposit", &[Value::Bool(false)]).unwrap_or(false);
+                let mut previousWithdraw: bool = self.safe_bool_k_opt(previous, "withdraw", &[Value::Bool(false)]).unwrap_or(false);
+                if (!(previousDeposit)) && (!(previousWithdraw)) && (canDeposit || canWithdraw) {
                     result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
                 }
             }
@@ -3170,9 +3170,9 @@ impl NadoCore {
             }
         }
         let mut takerOrMaker: Value = Value::Null;
-        let mut isTaker: Value = self.safe_bool_k(trade.clone(), "is_taker", &[]);
-        if (isTaker != Value::Null) {
-            if isTaker.as_bool() == Some(true) {
+        let mut isTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_taker", &[]);
+        if (isTaker.is_some()) {
+            if isTaker == Some(true) {
                 takerOrMaker = Value::Str("taker".into());
             }  else {
                 takerOrMaker = Value::Str("maker".into());
@@ -3390,8 +3390,8 @@ impl NadoCore {
 }
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
-        let mut canDeposit: Value = self.safe_bool_k(rawCurrency.clone(), "can_deposit", &[Value::Bool(false)]);
-        let mut canWithdraw: Value = self.safe_bool_k(rawCurrency.clone(), "can_withdraw", &[Value::Bool(false)]);
+        let mut canDeposit: bool = self.safe_bool_k_opt(rawCurrency.clone(), "can_deposit", &[Value::Bool(false)]).unwrap_or(false);
+        let mut canWithdraw: bool = self.safe_bool_k_opt(rawCurrency.clone(), "can_withdraw", &[Value::Bool(false)]).unwrap_or(false);
         let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "product_id", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "symbol", &[]);
         let mut code: Value = self.safe_currency_code(self.remove_market_suffix(currencyId.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), &[]);
@@ -3407,8 +3407,8 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("deposit".to_string(), canDeposit);
-        m.insert("withdraw".to_string(), canWithdraw);
+        m.insert("deposit".to_string(), Value::Bool(canDeposit));
+        m.insert("withdraw".to_string(), Value::Bool(canWithdraw));
         m.insert("type".to_string(), Value::Str("crypto".into()));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3607,7 +3607,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut markPriceX18: Value = self.safe_string2(risk, Value::Str("price_x18".into()), Value::Str("oracle_price_x18".into()), &[]);
+        let mut markPriceX18: Option<String> = self.safe_string2_opt(risk, Value::Str("price_x18".into()), Value::Str("oracle_price_x18".into()), &[]);
         let mut vQuoteBalance: Option<String> = self.safe_string_k_opt(balance, "v_quote_balance", &[]);
         let mut side: Value = Value::Null;
         let mut contracts: Value = Value::Null;
@@ -3625,9 +3625,9 @@ impl NadoCore {
             if (vQuoteBalance.is_some()) && !(crate::precise::Precise::stringEquals(&absoluteAmount, &Value::Str("0".into())).as_bool() == Some(true)) {
                 entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteBalance.clone().map(Value::from).unwrap_or(Value::Null)), &absoluteAmount), &[]);
             }
-            if (markPriceX18 != Value::Null) {
-                markPrice = self.parse_x18(markPriceX18.clone());
-                let mut notionalX36: Value = crate::precise::Precise::stringMul(&absoluteAmount, &markPriceX18);
+            if (markPriceX18.is_some()) {
+                markPrice = self.parse_x18(markPriceX18.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut notionalX36: Value = crate::precise::Precise::stringMul(&absoluteAmount, &markPriceX18.clone().map(Value::from).unwrap_or(Value::Null));
                 notional = self.parse_number(crate::precise::Precise::stringDiv(&notionalX36, &Value::Str("1000000000000000000000000000000000000".into())), &[]);
             }
         }
@@ -3854,7 +3854,7 @@ impl NadoCore {
             }  else {
                 let mut rawStatus: Value = self.safe_string_k(order.clone(), "status", &[Value::Str("rejected".into())]);
                 status = rawStatus.clone();
-                if (rawStatus.as_str() == Some("success")) || (Value::Int(rawStatus.as_str().and_then(|__s| __s.find("waiting")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+                if (rawStatus.as_str() == Some("success")) || (rawStatus.as_str().unwrap_or("").contains("waiting")) {
                     status = Value::Str("open".into());
                 }
             }
@@ -3937,7 +3937,7 @@ impl NadoCore {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
-        let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut postOnly: Value = self.is_post_only(Value::Bool(false), Value::Null, &[params.clone()]);
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params, "timeInForce", &[]).as_str().map(str::to_owned);
         let mut orderType: i64 = 0;
@@ -3954,11 +3954,11 @@ impl NadoCore {
         if (((orderType as f64) != 0.0)) {
             appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&self.number_to_string(Value::Int(orderType)), &Value::Str("512".into())));
         }
-        if reduceOnly.as_bool() == Some(true) {
+        if reduceOnly {
             appendix = crate::precise::Precise::stringAdd(&appendix, &Value::Str("2048".into()));
         }
-        let mut buildFee: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]);
-        if buildFee.as_bool() == Some(true) {
+        let mut buildFee: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(true)]).unwrap_or(true);
+        if buildFee {
             let mut builder: Value = self.safe_string_k(self.options.clone(), "builder", &[Value::Str("4500".into())]);
             let mut builderFeeRate: Value = self.safe_string_k(self.options.clone(), "feeRate", &[Value::Str("10".into())]); // 10 units = 0.01%
             appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&builder, &Value::Str("281474976710656".into()))); // 1<<48
@@ -4020,7 +4020,7 @@ impl NadoCore {
 
     pub fn pad_hex(&self, mut value: Value, mut length: Value, optional_args: &[Value]) -> Option<String> {
         let left: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
-        let mut zeros: Value = Value::Str("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".into());
+        let mut zeros: String = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".to_string();
         if left {
             let mut paddedLeft: Value = Value::Str(format!("{}{}", zeros, value).into());
             let mut start: Value = (match (&(Value::Int(paddedLeft.len() as i64)), &(self.parse_to_int(length.clone()))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -4030,10 +4030,10 @@ impl NadoCore {
                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }).as_str().map(str::to_owned);
         }
         let mut paddedRight: Value = Value::Str(format!("{}{}", value, zeros).into());
-        return (match (&(paddedRight), (match &(Value::Int(0)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(length) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64),
-            Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-            __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }).as_str().map(str::to_owned);
+        return (match (&(paddedRight), 0i64, (match &(length) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
+            __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
+            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
+            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }).as_str().map(str::to_owned);
 }
 
     pub fn sign_order(&self, mut order: Value, mut productId: Value, mut chainId: Value) -> Option<String> {

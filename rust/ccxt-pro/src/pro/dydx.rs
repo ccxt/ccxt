@@ -694,7 +694,7 @@ impl DydxCore {
         // }
         //
         let mut id: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut part: Value = Value::Array(id.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
+        let mut part: Value = Value::Array(if let Some(__s) = id.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let mut interval: Option<String> = self.safe_string_opt(part.clone(), Value::Int(1), &[]);
         let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut marketId: Option<String> = self.safe_string_opt(part, Value::Int(0), &[]);

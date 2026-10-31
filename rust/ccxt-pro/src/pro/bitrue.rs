@@ -366,7 +366,7 @@ impl BitrueCore {
     m
 }));
         let mut url: Value = self.authenticate(&[]).await;
-        let mut messageHash: Value = Value::Str("balance".into());
+        let mut messageHash: String = "balance".to_string();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
@@ -378,7 +378,7 @@ impl BitrueCore {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash.clone())]).await;
 
     Value::Null
 }
@@ -433,8 +433,8 @@ impl BitrueCore {
         //
         let mut balances: Value = (match message.get("B") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         self.parse_ws_balances(balances);
-        let mut messageHash: Value = Value::Str("balance".into());
-        client.resolve(&[self.balance.clone(), messageHash]);
+        let mut messageHash: String = "balance".to_string();
+        client.resolve(&[self.balance.clone(), Value::from(messageHash)]);
 }
 
     pub fn parse_ws_balances(&mut self, mut balances: Value) {
@@ -513,7 +513,7 @@ impl BitrueCore {
             symbolResolved = self.safe_string_k(market, "symbol", &[]);
         }
         let mut url: Value = self.authenticate(&[]).await;
-        let mut messageHash: Value = Value::Str("orders".into());
+        let mut messageHash: String = "orders".to_string();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
@@ -525,7 +525,7 @@ impl BitrueCore {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut orders: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+        let mut orders: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -566,8 +566,8 @@ impl BitrueCore {
         }
         let mut orders: Value = self.orders.clone();
         orders.append(parsed);
-        let mut messageHash: Value = Value::Str("orders".into());
-        client.resolve(&[self.orders.clone(), messageHash]);
+        let mut messageHash: String = "orders".to_string();
+        client.resolve(&[self.orders.clone(), Value::from(messageHash)]);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -595,15 +595,15 @@ impl BitrueCore {
         //        "Y": "0"
         //    }
         //
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "E", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "E", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_upper_k_opt(order.clone(), "s", &[]);
         let mut typeId: Option<String> = self.safe_string_k_opt(order.clone(), "o", &[]);
         let mut sideId: Option<i64> = self.safe_integer_k(order.clone(), "S", &[]).as_i64();
         // 1: buy
         // 2: sell
-        let mut side: Value = Value::Str("sell".into());
+        let mut side: String = "sell".to_string();
         if (sideId == Some(1)) {
-            side = Value::Str("buy".into());
+            side = "buy".to_string();
         }
         let mut statusId: Option<String> = self.safe_string_k_opt(order.clone(), "X", &[]);
         let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(order.clone(), "N", &[]);
@@ -612,14 +612,14 @@ impl BitrueCore {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "i", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "c", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "T", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]));
         m.insert("type".to_string(), self.parse_ws_order_type(typeId.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "p", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "q", &[]));
@@ -724,7 +724,7 @@ impl BitrueCore {
         //     }
         //
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut channelKind: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut isFutures: bool = channelKind.as_deref() == Some("e");
         let mut market: Value = Value::Null;
@@ -912,7 +912,7 @@ impl BitrueCore {
         //     }
         //
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut wsBaseQuote: Value = self.safe_string_lower(parts, Value::Int(2), &[]);
         let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote);
         let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
@@ -949,7 +949,7 @@ impl BitrueCore {
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "ts", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "ts", &[]).as_i64();
         let mut sideLower: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "side", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut rawVol: Value = self.safe_number_k(trade.clone(), "vol", &[]);
@@ -958,8 +958,8 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
@@ -1064,7 +1064,7 @@ impl BitrueCore {
         //     }
         //
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut wsBaseQuote: Value = self.safe_string_lower(parts.clone(), Value::Int(2), &[]);
         let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1184,7 +1184,7 @@ impl BitrueCore {
         //     }
         //
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut wsBaseQuote: Value = self.safe_string_lower(parts, Value::Int(2), &[]);
         let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote);
         let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
@@ -1293,13 +1293,13 @@ impl BitrueCore {
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("channel"))) {
             let mut channel: Option<String> = match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-            if Value::Int(channel.as_deref().and_then(|__s| __s.find("_depth_step")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            if channel.as_deref().unwrap_or("").contains("_depth_step") {
                 self.handle_order_book(client.clone(), message.clone());
-            }  else if Value::Int(channel.as_deref().and_then(|__s| __s.find("_trade_ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            }  else if channel.as_deref().unwrap_or("").contains("_trade_ticker") {
                 self.handle_trades(client.clone(), message.clone());
-            }  else if Value::Int(channel.as_deref().and_then(|__s| __s.find("_kline_")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            }  else if channel.as_deref().unwrap_or("").contains("_kline_") {
                 self.handle_ohlcv(client.clone(), message.clone());
-            }  else if Value::Int(channel.as_deref().and_then(|__s| __s.find("_ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            }  else if channel.as_deref().unwrap_or("").contains("_ticker") {
                 self.handle_ticker(client.clone(), message.clone());
             }
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("ping"))) {

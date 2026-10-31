@@ -853,9 +853,9 @@ impl ExtendedCore {
             let mut __for_first_324: bool = true;
             while { if !__for_first_324 { i += 1; } __for_first_324 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
             let mut filtered: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(filtered.clone()).as_bool() == Some(true)) {
                 client.resolve(&[filtered, messageHash]);
@@ -1022,7 +1022,7 @@ impl ExtendedCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(fundingRate.clone(), "m", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        let mut fundingTimestamp: Value = self.safe_integer_k(fundingRate.clone(), "T", &[]);
+        let mut fundingTimestamp: Option<i64> = self.safe_integer_k(fundingRate.clone(), "T", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fundingRate.clone());
@@ -1034,8 +1034,8 @@ impl ExtendedCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(fundingRate, "f", &[]));
-        m.insert("fundingTimestamp".to_string(), fundingTimestamp.clone());
-        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
+        m.insert("fundingTimestamp".to_string(), Value::from(fundingTimestamp));
+        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(fundingTimestamp)));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);

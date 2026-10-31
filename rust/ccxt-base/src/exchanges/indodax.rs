@@ -1180,7 +1180,7 @@ impl IndodaxCore {
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
             filled = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("receive_".into()), baseId).into()), &[]);
         }
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "submit_time", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "submit_time", &[]).as_i64();
         let mut fee: Value = Value::Null;
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "order_id", &[]);
         return self.safe_order(Value::Map({
@@ -1188,8 +1188,8 @@ impl IndodaxCore {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client_order_id", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Str("limit".into()));
@@ -1986,26 +1986,26 @@ impl IndodaxCore {
                     if (networkId.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".into()))));
                     }
-                    if Value::Int(networkId.as_deref().and_then(|__s| __s.find(",")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                    if networkId.as_deref().unwrap_or("").contains(",") {
                         network = Value::from(vec![]);
                         if (networkId.is_none()) {
                             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".into()))));
                         }
-                        let mut networkIds: Vec<Value> = Value::Array(networkId.as_deref().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                        let mut networkIds: Vec<Value> = Value::Array(if let Some(__s) = networkId.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
                             let mut __for_first_844: bool = true;
                             while { if !__for_first_844 { j += 1; } __for_first_844 = false; j < (networkIds.len() as i64) } {
                             let mut _netIdTmp: Value = self.network_id_to_code(&[networkIds.get(j as usize).cloned().unwrap_or(Value::Null), code.clone()]);
                             if (_netIdTmp != Value::Null) {
-                                if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push(_netIdTmp.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)); };
+                                if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push((if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); };
                             }
                         }
                         }
                     }  else {
                         let mut _netIdTmp: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
                         if (_netIdTmp != Value::Null) {
-                            network = _netIdTmp.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+                            network = (if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
                         }
                     }
                 }

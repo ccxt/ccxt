@@ -564,12 +564,12 @@ impl P2bCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut name: Value = Value::Str("depth.subscribe".into());
+        let mut name: String = "depth.subscribe".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut interval: Value = self.safe_string_k(params.clone(), "interval", &[Value::Str("0.001".into())]);
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
         let mut request: Value = Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), limitResolved, interval]);
-        let mut orderbook: Value = self.subscribe(name, messageHash, request, &[params]).await;
+        let mut orderbook: Value = self.subscribe(Value::from(name), messageHash, request, &[params]).await;
         return orderbook.limit();
 
     Value::Null
@@ -599,7 +599,7 @@ impl P2bCore {
         let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
         let mut data: Value = self.safe_list(params, Value::Int(0), &[]);
         let mut method: Option<String> = match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        let mut splitMethod: Value = Value::Array(method.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut splitMethod: Value = Value::Array(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut channel: Option<String> = self.safe_string_opt(splitMethod, Value::Int(0), &[]);
         let mut marketId: Option<String> = self.safe_string_opt(data.clone(), Value::Int(7), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -720,7 +720,7 @@ impl P2bCore {
         let mut marketId: Option<String> = self.safe_string_opt(data.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut method: Option<String> = match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        let mut splitMethod: Value = Value::Array(method.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut splitMethod: Value = Value::Array(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut messageHashStart: Option<String> = self.safe_string_opt(splitMethod, Value::Int(0), &[]);
         let mut tickerData: Value = self.safe_dict(data.clone(), Value::Int(1), &[]);
         let mut ticker: Value = Value::Null;
@@ -770,7 +770,7 @@ impl P2bCore {
         //    }
         //
         let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut isFullUpdate: Value = self.safe_bool(params.clone(), Value::Int(0), &[Value::Bool(false)]);
+        let mut isFullUpdate: bool = self.safe_bool_opt(params.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut data: Value = self.safe_dict(params.clone(), Value::Int(1), &[]);
         let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[]);
         let mut bids: Value = self.safe_list_k(data, "bids", &[]);
@@ -791,7 +791,7 @@ impl P2bCore {
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             orderbook = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }
-        if isFullUpdate.as_bool() == Some(true) {
+        if isFullUpdate {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger

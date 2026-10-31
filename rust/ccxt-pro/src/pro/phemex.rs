@@ -699,15 +699,15 @@ impl PhemexCore {
                 let mut usedEv: Value = self.safe_string_k(balance.clone(), "totalUsedBalanceEv", &[]);
                 if (usedEv == Value::Null) {
                     let mut lockedTradingBalanceEv: Option<String> = self.safe_string_k_opt(balance.clone(), "lockedTradingBalanceEv", &[]);
-                    let mut lockedWithdrawEv: Value = self.safe_string2(balance.clone(), Value::Str("lockedWithdrawEv".into()), Value::Str("lockedWithdrawRv".into()), &[]);
-                    usedEv = crate::precise::Precise::stringAdd(&lockedTradingBalanceEv.clone().map(Value::from).unwrap_or(Value::Null), &lockedWithdrawEv);
+                    let mut lockedWithdrawEv: Option<String> = self.safe_string2_opt(balance.clone(), Value::Str("lockedWithdrawEv".into()), Value::Str("lockedWithdrawRv".into()), &[]);
+                    usedEv = crate::precise::Precise::stringAdd(&lockedTradingBalanceEv.clone().map(Value::from).unwrap_or(Value::Null), &lockedWithdrawEv.clone().map(Value::from).unwrap_or(Value::Null));
                 }
                 used = self.from_en(usedEv, scale.clone());
             }
             let mut total: Value = self.safe_string_k(balance.clone(), "accountBalanceRv", &[]);
             if (total == Value::Null) {
-                let mut totalEv: Value = self.safe_string2(balance.clone(), Value::Str("accountBalanceEv".into()), Value::Str("balanceEv".into()), &[]);
-                total = self.from_en(totalEv, scale);
+                let mut totalEv: Option<String> = self.safe_string2_opt(balance.clone(), Value::Str("accountBalanceEv".into()), Value::Str("balanceEv".into()), &[]);
+                total = self.from_en(totalEv.map(Value::from).unwrap_or(Value::Null), scale);
             }
             account.insert("used".into(), used);
             account.insert("total".into(), total);
@@ -748,7 +748,7 @@ impl PhemexCore {
         //         "type": "snapshot",
         //     }
         //
-        let mut name: Value = Value::Str("trade".into());
+        let mut name: String = "trade".to_string();
         let mut marketId: Option<String> = self.safe_string_k_opt(message.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -975,9 +975,9 @@ impl PhemexCore {
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap.as_bool() == Some(true)) && settleIsUSDT;
-        let mut name: Value = Value::Str("trade".into());
+        let mut name: String = "trade".to_string();
         if isUsdtSwap {
-            name = Value::Str("trade_p".into());
+            name = "trade_p".to_string();
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbolValue).into());
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".into())).into());
@@ -1028,9 +1028,9 @@ impl PhemexCore {
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap.as_bool() == Some(true)) && settleIsUSDT;
-        let mut name: Value = Value::Str("orderbook".into());
+        let mut name: String = "orderbook".to_string();
         if isUsdtSwap {
-            name = Value::Str("orderbook_p".into());
+            name = "orderbook_p".to_string();
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbolValue).into());
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".into())).into());
@@ -1080,9 +1080,9 @@ impl PhemexCore {
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap.as_bool() == Some(true)) && settleIsUSDT;
-        let mut name: Value = Value::Str("kline".into());
+        let mut name: String = "kline".to_string();
         if isUsdtSwap {
-            name = Value::Str("kline_p".into());
+            name = "kline_p".to_string();
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into());
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".into())).into());
@@ -1179,7 +1179,7 @@ impl PhemexCore {
             Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } },
             _ => Value::Null
         });
-        let mut name: Value = Value::Str("orderbook".into());
+        let mut name: String = "orderbook".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), symbol).into());
         let mut nonce: Value = (match __pro_message.get("sequence").cloned() {
             Some(Value::Int(__n)) => Value::Int(__n),
@@ -1385,7 +1385,7 @@ impl PhemexCore {
         //        ...
         //    ]
         //
-        let mut channel: Value = Value::Str("trades".into());
+        let mut channel: String = "trades".to_string();
         let mut tradesLength: f64 = ((message.len() as i64) as f64);
         if (tradesLength == 0.0) {
             return;
@@ -2023,7 +2023,7 @@ impl PhemexCore {
             }
         }
         let mut methodName: Value = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        if (matches!(&message, Value::Dict(__d) if __d.contains_key("market24h"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) || (Value::Int(methodName.as_str().and_then(|__s| __s.find("perp_market24h_pack_p")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+        if (matches!(&message, Value::Dict(__d) if __d.contains_key("market24h"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) || (methodName.as_str().unwrap_or("").contains("perp_market24h_pack_p")) {
             self.handle_ticker(client.clone(), message.clone());
             return;
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("trades"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("trades_p"))) {
@@ -2044,15 +2044,15 @@ impl PhemexCore {
             self.handle_orders(client.clone(), orders);
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("wallets"))) {
-            let mut type_var: Value = Value::Str("spot".into());
+            let mut type_var: String = "spot".to_string();
             if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) {
-                type_var = Value::Str("swap".into());
+                type_var = "swap".to_string();
             }
             if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) {
-                type_var = Value::Str("perpetual".into());
+                type_var = "perpetual".to_string();
             }
             let mut accounts: Value = self.safe_list_n(message.clone(), Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]);
-            self.handle_balance(type_var, client, accounts);
+            self.handle_balance(Value::from(type_var), client, accounts);
         }
 }
 
@@ -2096,22 +2096,22 @@ impl PhemexCore {
         let mut requestId: Value = self.seconds();
         let mut settleIsUSDT: bool = self.safe_string_k(params.clone(), "settle", &[Value::Str("".into())]).as_str() == Some("USDT");
         let mut paramsOmitted: Value = self.omit(params, Value::Str("settle".into()), &[]);
-        let mut channel: Value = Value::Str("aop.subscribe".into());
+        let mut channel: String = "aop.subscribe".to_string();
         if (type_var.as_str() == Some("spot")) {
-            channel = Value::Str("wo.subscribe".into());
+            channel = "wo.subscribe".to_string();
         }
         if settleIsUSDT {
-            channel = Value::Str("aop_p.subscribe".into());
+            channel = "aop_p.subscribe".to_string();
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
-                m.insert("method".to_string(), channel.clone());
+                m.insert("method".to_string(), Value::from(channel.clone()));
                 m.insert("params".to_string(), Value::from(vec![]));
             m
         });
         request = self.extend(request.clone(), &[paramsOmitted]);
-        return self.watch(url, messageHash, &[request, channel]).await;
+        return self.watch(url, messageHash, &[request, Value::from(channel)]).await;
 
     Value::Null
 }
@@ -2133,10 +2133,10 @@ impl PhemexCore {
             let mut expiration: Value = (match (&(self.seconds()), &(expiryDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut payload: Value = Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(format!("{}", expiration).into())).into());
             let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            let mut method: Value = Value::Str("user.auth".into());
+            let mut method: String = "user.auth".to_string();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("method".to_string(), method);
+                    m.insert("method".to_string(), Value::from(method));
                     m.insert("params".to_string(), Value::from(vec![Value::Str("API".into()), self.apiKey.clone(), signature, expiration]));
                     m.insert("id".to_string(), requestId.clone());
                 m

@@ -395,9 +395,9 @@ impl ParadexCore {
         let mut url: Value = self.get_ws_url();
         let mut client: Value = self.client(&[url.clone()]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         let mut future: Value = client.reusable_future(Value::Str("authenticated".into()));
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut token: Value = self.parent.authenticate_rest(&[]).await;
             let mut requestId: Value = self.request_id();
@@ -419,7 +419,7 @@ impl ParadexCore {
                 m
             });
             let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-            self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone(), Value::Map(subscription)]).await;
+            self.watch(url, Value::from(messageHash.clone()), &[__ws_arg_0, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -740,7 +740,7 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut channel: Value = Value::Str("markets_summary".into());
+        let mut channel: String = "markets_summary".to_string();
         let mut url: Value = self.get_ws_url();
         let mut messageHashes: Value = Value::from(vec![]);
         if (symbolsNormalized != Value::Null) && (matches!(&symbolsNormalized, Value::Arr(_))) {
@@ -753,9 +753,9 @@ impl ParadexCore {
             }
             }
         }  else {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(channel.clone()); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(channel.clone())); }
         }
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -874,8 +874,8 @@ impl ParadexCore {
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         self.orders.append(parsed);
-        let mut messageHash: Value = Value::Str("orders".into());
-        client.resolve(&[self.orders.clone(), messageHash.clone()]);
+        let mut messageHash: String = "orders".to_string();
+        client.resolve(&[self.orders.clone(), Value::from(messageHash.clone())]);
         if (symbol.is_some()) {
             let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into());
             client.resolve(&[self.orders.clone(), symbolMessageHash]);
@@ -975,8 +975,8 @@ impl ParadexCore {
         }
         let mut trades: Value = self.myTrades.clone();
         trades.append(trade);
-        let mut messageHash: Value = Value::Str("myTrades".into());
-        client.resolve(&[trades.clone(), messageHash.clone()]);
+        let mut messageHash: String = "myTrades".to_string();
+        client.resolve(&[trades.clone(), Value::from(messageHash.clone())]);
         if (symbol.is_some()) {
             client.resolve(&[trades, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())]);
         }
@@ -1007,7 +1007,7 @@ impl ParadexCore {
         self.authenticate(&[]).await;
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         // one channel carries every market
-        let mut channel: Value = Value::Str("positions".into());
+        let mut channel: String = "positions".to_string();
         let mut url: Value = self.get_ws_url();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut symbolsLength: i64 = 0;
@@ -1015,7 +1015,7 @@ impl ParadexCore {
             symbolsLength = symbolsNormalized.len() as i64;
         }
         if (((symbolsLength as f64) == 0.0)) {
-            messageHashes.push(channel.clone());
+            messageHashes.push(Value::from(channel.clone()));
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
@@ -1025,7 +1025,7 @@ impl ParadexCore {
             }
             }
         }
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel.clone()).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -1033,7 +1033,7 @@ impl ParadexCore {
             m
         });
         let __ws_arg_7 = self.deep_extend(Value::Map(request), &[params]);
-        let mut newPositions: Value = self.watch_multiple(url, Value::from(messageHashes), &[__ws_arg_7, Value::from(vec![channel]), Value::Map(subscription)]).await;
+        let mut newPositions: Value = self.watch_multiple(url, Value::from(messageHashes), &[__ws_arg_7, Value::from(vec![Value::from(channel.clone())]), Value::Map(subscription)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -1133,18 +1133,18 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         self.authenticate(&[]).await;
-        let mut channel: Value = Value::Str("account".into());
+        let mut channel: String = "account".to_string();
         let mut url: Value = self.get_ws_url();
-        let mut messageHash: Value = Value::Str("balance".into());
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel.clone()).as_map().cloned().unwrap_or_default();
+        let mut messageHash: String = "balance".to_string();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("messageHashes".to_string(), Value::from(vec![messageHash.clone()]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
             m
         });
         let __ws_arg_10 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(url, messageHash, &[__ws_arg_10, channel, Value::Map(subscription)]).await;
+        return self.watch(url, Value::from(messageHash), &[__ws_arg_10, Value::from(channel), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -1217,12 +1217,12 @@ impl ParadexCore {
         // the account channel carries margin, not token holdings: the account value (collateral with
         // unrealized pnl) is the total, the free collateral what can still back a new position, and the
         // initial margin the part the open positions hold, free + used = total as the venue computes them
-        let mut timestamp: Value = self.safe_integer_k(data.clone(), "updated_at", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "updated_at", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), data.clone());
-                m.insert("timestamp".to_string(), timestamp.clone());
-                m.insert("datetime".to_string(), self.iso8601(timestamp));
+                m.insert("timestamp".to_string(), Value::from(timestamp));
+                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
             m
         });
         let mut code: Value = self.safe_currency_code(self.safe_string_k(data.clone(), "settlement_asset", &[]), &[]);
@@ -1306,10 +1306,10 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         let mut symbolValue: Value = self.symbol(symbol.clone());
-        let mut channel: Value = Value::Str("funding_data".into());
+        let mut channel: String = "funding_data".to_string();
         let mut url: Value = self.get_ws_url();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolValue).into());
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel)).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -1341,7 +1341,7 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut channel: Value = Value::Str("funding_data".into());
+        let mut channel: String = "funding_data".to_string();
         let mut url: Value = self.get_ws_url();
         let mut messageHashes: Value = Value::from(vec![]);
         if (symbolsNormalized != Value::Null) {
@@ -1356,12 +1356,12 @@ impl ParadexCore {
                 }
                 }
             }  else {
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(channel.clone()); }; // if an empty array is passed, subscribe to all funding rates
+                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(channel.clone())); }; // if an empty array is passed, subscribe to all funding rates
             }
         }  else {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(channel.clone()); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(channel.clone())); }
         }
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -1441,7 +1441,7 @@ impl ParadexCore {
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(contract.clone(), "market", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]);
-        let mut timestamp: Value = self.safe_integer_k(contract.clone(), "created_at", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(contract.clone(), "created_at", &[]).as_i64();
         let mut fundingPeriod: Option<String> = self.safe_string_k_opt(contract.clone(), "funding_period_hours", &[]);
         let mut interval: Value = Value::Null;
         if (fundingPeriod.is_some()) {
@@ -1455,8 +1455,8 @@ impl ParadexCore {
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".into()), &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
@@ -1550,7 +1550,7 @@ impl ParadexCore {
 
     pub fn sbe_read_uint(&self, mut frameHex: Value, mut offset: Value, mut length: Value) -> Value {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
-        let mut digits: Value = Value::Str("0123456789abcdef".into());
+        let mut digits: String = "0123456789abcdef".to_string();
         let mut result: Value = Value::Int(0);
         let mut factor: Value = Value::Int(1);
         let mut count: Value = self.parse_to_int(length);
@@ -1563,14 +1563,14 @@ impl ParadexCore {
             // plain variables as slice bounds, php gets end - start unparenthesized
             let mut middle: Value = (match (&(position), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut next: Value = (match (&(position), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            let mut high: Value = (match (&(digits), &((match (&(frameHex), (match &(position) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(middle) { Value::Int(__n) => Some(*__n),
-                Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
+            let mut high: Value = (match (&(Value::from(digits.clone())), &((match (&(frameHex), (match &(position) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0),
+                (match &(middle) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) },
+                match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } },
                 _ => Value::Null }))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x),
                 Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),
                 Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s), Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) });
-            let mut low: Value = (match (&(digits), &((match (&(frameHex), (match &(middle) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(next) { Value::Int(__n) => Some(*__n),
+            let mut low: Value = (match (&(Value::from(digits.clone())), &((match (&(frameHex), (match &(middle) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(next) { Value::Int(__n) => Some(*__n),
                 Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
                 Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } },
@@ -2329,7 +2329,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (data != Value::Null) {
             let mut channel: Option<String> = self.safe_string_k_opt(data, "channel", &[]);
-            let mut parts: Value = Value::Array(channel.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
             let mut name: Option<String> = self.safe_string_opt(parts, Value::Int(0), &[]);
             let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

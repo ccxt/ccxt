@@ -370,13 +370,13 @@ impl OnetradingCore {
 }));
         self.authenticate(&[params.clone()]).await;
         let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
-        let mut messageHash: Value = Value::Str("balance".into());
-        let mut subscribeHash: Value = Value::Str("ACCOUNT_HISTORY".into());
-        let mut bpRemainingQuota: Value = self.safe_integer_k(self.options.clone(), "bp_remaining_quota", &[Value::Int(200)]);
+        let mut messageHash: String = "balance".to_string();
+        let mut subscribeHash: String = "ACCOUNT_HISTORY".to_string();
+        let mut bpRemainingQuota: Option<i64> = self.safe_integer_k(self.options.clone(), "bp_remaining_quota", &[Value::Int(200)]).as_i64();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("bp_remaining_quota".to_string(), bpRemainingQuota);
+                m.insert("bp_remaining_quota".to_string(), Value::from(bpRemainingQuota));
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("ACCOUNT_HISTORY".into()));
@@ -385,7 +385,7 @@ impl OnetradingCore {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash, &[request.clone(), subscribeHash, request.clone()]).await;
+        return self.watch(url.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[request.clone(), Value::from(subscribeHash), request.clone()]).await;
 
     Value::Null
 }
@@ -447,8 +447,8 @@ impl OnetradingCore {
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        let mut messageHash: Value = Value::Str("balance".into());
-        client.resolve(&[self.balance.clone(), messageHash]);
+        let mut messageHash: String = "balance".to_string();
+        client.resolve(&[self.balance.clone(), Value::from(messageHash)]);
 }
 
 /*
@@ -470,7 +470,7 @@ impl OnetradingCore {
         }
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-        let mut subscriptionHash: Value = Value::Str("MARKET_TICKER".into());
+        let mut subscriptionHash: String = "MARKET_TICKER".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker.".into()), symbolValue).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -483,7 +483,7 @@ impl OnetradingCore {
 })]));
             m
         });
-        return self.watch_many(messageHash, Value::Map(request), subscriptionHash, &[Value::from(vec![symbolValue]), params]).await;
+        return self.watch_many(messageHash, Value::Map(request), Value::from(subscriptionHash), &[Value::from(vec![symbolValue]), params]).await;
 
     Value::Null
 }
@@ -508,8 +508,8 @@ impl OnetradingCore {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut symbolsList: Value = (if (symbolsNormalized == Value::Null) { Value::from(vec![]) } else { symbolsNormalized });
-        let mut subscriptionHash: Value = Value::Str("MARKET_TICKER".into());
-        let mut messageHash: Value = Value::Str("tickers".into());
+        let mut subscriptionHash: String = "MARKET_TICKER".to_string();
+        let mut messageHash: String = "tickers".to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -521,7 +521,7 @@ impl OnetradingCore {
 })]));
             m
         });
-        let mut tickers: Value = self.watch_many(messageHash, Value::Map(request), subscriptionHash, &[symbolsList.clone(), params]).await;
+        let mut tickers: Value = self.watch_many(Value::from(messageHash), Value::Map(request), Value::from(subscriptionHash), &[symbolsList.clone(), params]).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsList]);
 
     Value::Null
@@ -640,12 +640,12 @@ impl OnetradingCore {
         }
         self.authenticate(&[params.clone()]).await;
         let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
-        let mut subscribeHash: Value = Value::Str("ACCOUNT_HISTORY".into());
-        let mut bpRemainingQuota: Value = self.safe_integer_k(self.options.clone(), "bp_remaining_quota", &[Value::Int(200)]);
+        let mut subscribeHash: String = "ACCOUNT_HISTORY".to_string();
+        let mut bpRemainingQuota: Option<i64> = self.safe_integer_k(self.options.clone(), "bp_remaining_quota", &[Value::Int(200)]).as_i64();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("bp_remaining_quota".to_string(), bpRemainingQuota);
+                m.insert("bp_remaining_quota".to_string(), Value::from(bpRemainingQuota));
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("ACCOUNT_HISTORY".into()));
@@ -654,7 +654,7 @@ impl OnetradingCore {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params.clone()]);
-        let mut trades: Value = self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash, &[request.clone(), subscribeHash, request.clone()]).await;
+        let mut trades: Value = self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash, &[request.clone(), Value::from(subscribeHash), request.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
@@ -691,7 +691,7 @@ impl OnetradingCore {
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("book:".into()), symbolValue).into());
-        let mut subscriptionHash: Value = Value::Str("ORDER_BOOK".into());
+        let mut subscriptionHash: String = "ORDER_BOOK".to_string();
         let mut depth: Value = Value::Int(0);
         if (limit != Value::Null) {
             depth = limit.clone();
@@ -707,7 +707,7 @@ impl OnetradingCore {
 })]));
             m
         });
-        let mut orderbook: Value = self.watch_many(messageHash, Value::Map(request), subscriptionHash, &[Value::from(vec![symbolValue]), params]).await;
+        let mut orderbook: Value = self.watch_many(messageHash, Value::Map(request), Value::from(subscriptionHash), &[Value::from(vec![symbolValue]), params]).await;
         return orderbook.limit();
 
     Value::Null
@@ -836,11 +836,11 @@ impl OnetradingCore {
         self.authenticate(&[params.clone()]).await;
         let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
         let mut subscribeHash: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("ACCOUNT_HISTORY".into())]);
-        let mut bpRemainingQuota: Value = self.safe_integer_k(self.options.clone(), "bp_remaining_quota", &[Value::Int(200)]);
+        let mut bpRemainingQuota: Option<i64> = self.safe_integer_k(self.options.clone(), "bp_remaining_quota", &[Value::Int(200)]).as_i64();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("bp_remaining_quota".to_string(), bpRemainingQuota);
+                m.insert("bp_remaining_quota".to_string(), Value::from(bpRemainingQuota));
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), subscribeHash.clone());
@@ -1113,8 +1113,8 @@ impl OnetradingCore {
         //
         //
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-            self.orders = ArrayCacheBySymbolById::new(limit.clone());
+            let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64();
+            self.orders = ArrayCacheBySymbolById::new(Value::from(limit));
         }
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -1376,8 +1376,8 @@ impl OnetradingCore {
         //     }
         //
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-            self.orders = ArrayCacheBySymbolById::new(limit.clone());
+            let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64();
+            self.orders = ArrayCacheBySymbolById::new(Value::from(limit));
         }
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -1392,7 +1392,7 @@ impl OnetradingCore {
         let mut updateType: Value = self.safe_string_k(update.clone(), "type", &[]);
         if (updateType.as_str() == Some("ORDER_REJECTED")) || (updateType.as_str() == Some("ORDER_CLOSED")) || (updateType.as_str() == Some("STOP_ORDER_TRIGGERED")) {
             let mut orderId: Option<String> = self.safe_string_k_opt(update.clone(), "order_id", &[]);
-            let mut datetime: Value = self.safe_string2(update.clone(), Value::Str("time".into()), Value::Str("timestamp".into()), &[]);
+            let mut datetime: Option<String> = self.safe_string2_opt(update.clone(), Value::Str("time".into()), Value::Str("timestamp".into()), &[]);
             let mut previousOrderArray: Value = self.filter_by_array(self.orders.clone(), Value::Str("id".into()), &[orderId.clone().map(Value::from).unwrap_or(Value::Null), Value::Bool(false)]);
             let mut previousOrder: Value = self.safe_dict(previousOrderArray, Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1409,8 +1409,8 @@ impl OnetradingCore {
                     m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("status".to_string(), status);
-                    m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
-                    m.insert("datetime".to_string(), datetime);
+                    m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                 m
             });
             orders.append(orderObject);
@@ -1515,7 +1515,7 @@ impl OnetradingCore {
         let mut subscriptionHash: Value = Value::Str("CANDLESTICKS".into());
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut type_var: Value = Value::Str("SUBSCRIBE".into());
+        let mut type_var: String = "SUBSCRIBE".to_string();
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1527,9 +1527,9 @@ impl OnetradingCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut marketSubscribed: Value = self.safe_bool(ohlcvMarket, timeframe.clone(), &[Value::Bool(false)]);
-                if !(marketSubscribed.as_bool() == Some(true)) {
-                    type_var = Value::Str("UPDATE_SUBSCRIPTION".into());
+                let mut marketSubscribed: bool = self.safe_bool_opt(ohlcvMarket, timeframe.clone(), &[Value::Bool(false)]).unwrap_or(false);
+                if !(marketSubscribed) {
+                    type_var = "UPDATE_SUBSCRIPTION".to_string();
                     __ch.add_subscription(&subscriptionHash, Value::Null);
                 }
             }  else {
@@ -1580,7 +1580,7 @@ impl OnetradingCore {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), type_var);
+                m.insert("type".to_string(), Value::from(type_var.clone()));
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("CANDLESTICKS".into()));
@@ -1799,7 +1799,7 @@ impl OnetradingCore {
         let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut type_var: Value = Value::Str("SUBSCRIBE".into());
+        let mut type_var: String = "SUBSCRIBE".to_string();
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1812,9 +1812,9 @@ impl OnetradingCore {
                     let mut __for_first_575: bool = true;
                     while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Value = marketIds.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
-                    let mut marketSubscribed: Value = self.safe_bool(subscription.clone(), marketId.clone(), &[Value::Bool(false)]);
-                    if !(marketSubscribed.as_bool() == Some(true)) {
-                        type_var = Value::Str("UPDATE_SUBSCRIPTION".into());
+                    let mut marketSubscribed: bool = self.safe_bool_opt(subscription.clone(), marketId.clone(), &[Value::Bool(false)]).unwrap_or(false);
+                    if !(marketSubscribed) {
+                        type_var = "UPDATE_SUBSCRIPTION".to_string();
                         __ch.add_subscription(&subscriptionHash, Value::Null);
                     }
                 }
@@ -1834,7 +1834,7 @@ impl OnetradingCore {
             add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
         }
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), type_var); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::from(type_var.clone())); }
         add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("channels".into())), &Value::Int(0)), &Value::Str("instrument_codes".into()), object_keys(&subscription));
         let __ws_arg_1 = self.deep_extend(request, &[params]);
         return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash, &[__ws_arg_1, subscriptionHash, subscription]).await;
@@ -1850,9 +1850,9 @@ impl OnetradingCore {
         let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         let mut future: Value = client.reusable_future(Value::Str("authenticated".into()));
-        let mut authenticated: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut authenticated: Value = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             self.check_required_credentials(&[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1862,7 +1862,7 @@ impl OnetradingCore {
                 m
             });
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[__ws_arg_2, messageHash.clone()]).await;
+            self.watch(url.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_2, Value::from(messageHash.clone())]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

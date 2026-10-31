@@ -588,7 +588,7 @@ impl PaymiumCore {
         let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut baseId: Value = self.safe_string_k(marketResolved.clone(), "base", &[Value::Str("".into())]);
-        let mut amountField: Value = Value::Str(format!("{}{}", Value::Str("traded_".into()), baseId.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)).into());
+        let mut amountField: Value = Value::Str(format!("{}{}", Value::Str("traded_".into()), (if let Some(__s) = baseId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
         let mut amount: Option<String> = self.safe_string_opt(trade.clone(), amountField, &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -845,7 +845,7 @@ impl PaymiumCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        if Value::Int(toAccount.as_str().and_then(|__s| __s.find("@")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
+        if !toAccount.as_str().unwrap_or("").contains("@") {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows transfers to an email address".into()))));
         }
         if (code.as_str() != Some("BTC")) && (code.as_str() != Some("EUR")) {

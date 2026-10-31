@@ -1548,15 +1548,15 @@ impl WooCore {
     m
 })]);
         let mut statusCode: Option<String> = self.safe_string_k(data, "status", &[]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Str("maintenance".into());
+        let mut status: String = "maintenance".to_string();
         if (statusCode.is_none()) {
-            status = Value::Str("error".into());
+            status = "error".to_string();
         }  else if (statusCode.as_deref() == Some("0")) {
-            status = Value::Str("ok".into());
+            status = "ok".to_string();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1647,7 +1647,7 @@ impl WooCore {
 
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut parts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = marketId.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut first: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut marketType: Value = Value::Null;
         let mut spot: Value = Value::Bool(false);
@@ -1843,10 +1843,10 @@ impl WooCore {
         //     }
         //
         let mut isFromFetchOrder: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("id"));
-        let mut timestampString: Value = self.safe_string2(trade.clone(), Value::Str("executed_timestamp".into()), Value::Str("executedTimestamp".into()), &[]);
+        let mut timestampString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("executed_timestamp".into()), Value::Str("executedTimestamp".into()), &[]);
         let mut timestamp: Value = Value::Null;
-        if (timestampString != Value::Null) {
-            if Value::Int(timestampString.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        if (timestampString.is_some()) {
+            if timestampString.as_deref().unwrap_or("").contains(".") {
                 timestamp = self.safe_timestamp2(trade.clone(), Value::Str("executed_timestamp".into()), Value::Str("executedTimestamp".into()), &[]);
             }  else {
                 timestamp = self.safe_integer_k(trade.clone(), "executedTimestamp", &[]);
@@ -1855,11 +1855,11 @@ impl WooCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "symbol", &[]);
-        let mut price: Value = self.safe_string2(trade.clone(), Value::Str("executed_price".into()), Value::Str("executedPrice".into()), &[]);
-        let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("executed_quantity".into()), Value::Str("executedQuantity".into()), &[]);
-        let mut order_id: Value = self.safe_string2(trade.clone(), Value::Str("order_id".into()), Value::Str("orderId".into()), &[]);
+        let mut price: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("executed_price".into()), Value::Str("executedPrice".into()), &[]);
+        let mut amount: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("executed_quantity".into()), Value::Str("executedQuantity".into()), &[]);
+        let mut order_id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("order_id".into()), Value::Str("orderId".into()), &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(trade.clone(), Value::from(vec![Value::Str("fee_asset".into()), Value::Str("feeAsset".into())]), Value::from(vec![Value::Str("fee".into())]));
-        let mut cost: Value = crate::precise::Precise::stringMul(&price, &amount);
+        let mut cost: Value = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null));
         let mut side: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "side", &[]);
         let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "id", &[]);
         let mut takerOrMaker: Value = Value::Null;
@@ -1874,10 +1874,10 @@ impl WooCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost);
-        m.insert("order".to_string(), order_id);
+        m.insert("order".to_string(), order_id.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("type".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
@@ -2435,14 +2435,14 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
-        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -2462,18 +2462,18 @@ impl WooCore {
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
         let mut algoType: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "algoType", &[]).as_str().map(str::to_owned);
         let mut trailingTriggerPrice: Value = self.safe_string2(paramsMarginMode.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[self.number_to_string(price.clone())]);
-        let mut trailingAmount: Value = self.safe_string2(paramsMarginMode.clone(), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]);
-        let mut trailingPercent: Value = self.safe_string2(paramsMarginMode.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]);
-        let mut isTrailingAmountOrder: bool = trailingAmount != Value::Null;
-        let mut isTrailingPercentOrder: bool = trailingPercent != Value::Null;
+        let mut trailingAmount: Option<String> = self.safe_string2_opt(paramsMarginMode.clone(), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]);
+        let mut trailingPercent: Option<String> = self.safe_string2_opt(paramsMarginMode.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]);
+        let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
+        let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
         let mut isConditional: bool = isTrailing || (triggerPrice != Value::Null) || hasStopLoss || hasTakeProfit || (self.safe_list_k(paramsMarginMode.clone(), "childOrders", &[]) != Value::Null);
         let mut isMarket: bool = orderType.as_str() == Some("MARKET");
         let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsMarginMode.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[paramsMarginMode.clone()]);
-        let mut clientOrderIdKey: Value = Value::Str("clientOrderId".into());
+        let mut clientOrderIdKey: String = "clientOrderId".to_string();
         if isConditional {
-            clientOrderIdKey = Value::Str("clientAlgoOrderId".into());
+            clientOrderIdKey = "clientAlgoOrderId".to_string();
         }
         request.insert("type".into(), orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if !(isConditional) {
@@ -2485,8 +2485,8 @@ impl WooCore {
                 request.insert("type".into(), Value::Str("IOC".into()));
             }
         }
-        if (reduceOnly.as_bool() == Some(true)) {
-            request.insert("reduceOnly".into(), reduceOnly);
+        if (reduceOnly == Some(true)) {
+            request.insert("reduceOnly".into(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
         }
         if !(isMarket) && (price != Value::Null) {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
@@ -2498,12 +2498,12 @@ impl WooCore {
         }
         if isMarketNotConditional {
             // for market buy it requires the amount of quote currency to spend
-            let mut cost: Value = self.safe_string_n(paramsMarginMode, Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]);
+            let mut cost: Option<String> = self.safe_string_n_opt(paramsMarginMode, Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]);
             let mut isPriceProvided: bool = price != Value::Null;
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (isPriceProvided || (cost != Value::Null)) {
+            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (isPriceProvided || (cost.is_some())) {
                 let mut quoteAmount: Value = Value::Null;
-                if (cost != Value::Null) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), cost);
+                if (cost.is_some()) {
+                    quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null));
                 }  else {
                     let mut amountString: Value = self.number_to_string(amount.clone());
                     let mut priceString: Value = self.number_to_string(price);
@@ -2517,9 +2517,9 @@ impl WooCore {
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
             request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
         }
-        let mut clientOrderId: Value = self.safe_string_n(paramsCost.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
-        if (clientOrderId != Value::Null) {
-            request.insert(crate::runtime::stringify_param(&clientOrderIdKey), clientOrderId);
+        let mut clientOrderId: Option<String> = self.safe_string_n_opt(paramsCost.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
+        if (clientOrderId.is_some()) {
+            request.insert(clientOrderIdKey.clone(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         if isTrailing {
             if (trailingTriggerPrice == Value::Null) {
@@ -2528,9 +2528,9 @@ impl WooCore {
             request.insert("activatedPrice".into(), self.price_to_precision(symbol.clone(), trailingTriggerPrice));
             request.insert("algoType".into(), Value::Str("TRAILING_STOP".into()));
             if isTrailingAmountOrder {
-                request.insert("callbackValue".into(), trailingAmount);
+                request.insert("callbackValue".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
             }  else if isTrailingPercentOrder {
-                let mut convertedTrailingPercent: Value = crate::precise::Precise::stringDiv(&trailingPercent, &Value::Str("100".into()));
+                let mut convertedTrailingPercent: Value = crate::precise::Precise::stringDiv(&trailingPercent.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
                 request.insert("callbackRate".into(), convertedTrailingPercent);
             }
         }  else if (triggerPrice != Value::Null) {
@@ -2541,15 +2541,15 @@ impl WooCore {
         }  else if hasStopLoss || hasTakeProfit {
             request.insert("algoType".into(), Value::Str("BRACKET".into()));
             let mut childOrders: Vec<Value> = Vec::new();
-            let mut closeSide: Value = Value::Str("BUY".into());
+            let mut closeSide: String = "BUY".to_string();
             if (orderSide.as_str() == Some("BUY")) {
-                closeSide = Value::Str("SELL".into());
+                closeSide = "SELL".to_string();
             }
             if hasStopLoss {
                 let mut stopLossPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[stopLoss.clone()]);
                 let mut stopLossOrder: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), closeSide.clone());
+                        m.insert("side".to_string(), Value::from(closeSide.clone()));
                         m.insert("algoType".to_string(), Value::Str("STOP_LOSS".into()));
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice));
                         m.insert("type".to_string(), Value::Str("CLOSE_POSITION".into()));
@@ -2562,7 +2562,7 @@ impl WooCore {
                 let mut takeProfitPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[takeProfit.clone()]);
                 let mut takeProfitOrder: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), closeSide);
+                        m.insert("side".to_string(), Value::from(closeSide));
                         m.insert("algoType".to_string(), Value::Str("TAKE_PROFIT".into()));
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol, takeProfitPrice));
                         m.insert("type".to_string(), Value::Str("CLOSE_POSITION".into()));
@@ -2660,34 +2660,34 @@ impl WooCore {
         if (amount != Value::Null) {
             request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
         }
-        let mut clientOrderIdUnified: Value = self.safe_string2(params.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "client_order_id", &[clientOrderIdUnified]);
+        let mut clientOrderIdUnified: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]);
+        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]);
         if (triggerPrice != Value::Null) {
             request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }
         let mut trailingTriggerPrice: Value = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[self.number_to_string(price)]);
-        let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]);
-        let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]);
-        let mut isTrailingAmountOrder: bool = trailingAmount != Value::Null;
-        let mut isTrailingPercentOrder: bool = trailingPercent != Value::Null;
+        let mut trailingAmount: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]);
+        let mut trailingPercent: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]);
+        let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
+        let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
         if isTrailing {
             if (trailingTriggerPrice != Value::Null) {
                 request.insert("activatedPrice".into(), self.price_to_precision(symbol, trailingTriggerPrice));
             }
             if isTrailingAmountOrder {
-                request.insert("callbackValue".into(), trailingAmount);
+                request.insert("callbackValue".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
             }  else if isTrailingPercentOrder {
-                let mut convertedTrailingPercent: Value = crate::precise::Precise::stringDiv(&trailingPercent, &Value::Str("100".into()));
+                let mut convertedTrailingPercent: Value = crate::precise::Precise::stringDiv(&trailingPercent.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
                 request.insert("callbackRate".into(), convertedTrailingPercent);
             }
         }
-        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
+        let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()),
             Value::Str("trailingTriggerPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        let mut isConditional: bool = isTrigger.as_bool() == Some(true) || isTrailing || (triggerPrice != Value::Null) || (self.safe_list_k(paramsOmitted.clone(), "childOrders", &[]) != Value::Null);
+        let mut isConditional: bool = isTrigger || isTrailing || (triggerPrice != Value::Null) || (self.safe_list_k(paramsOmitted.clone(), "childOrders", &[]) != Value::Null);
         let mut response: Value = Value::Null;
         if isConditional {
             if isByClientOrder {
@@ -2748,9 +2748,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
+        let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        if (!(isTrigger.as_bool() == Some(true))) && (symbol == Value::Null) {
+        if (!(isTrigger)) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -2764,12 +2764,12 @@ impl WooCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut clientOrderIdUnified: Value = self.safe_string2(paramsOmitted.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(paramsOmitted.clone(), "client_order_id", &[clientOrderIdUnified]);
+        let mut clientOrderIdUnified: Option<String> = self.safe_string2_opt(paramsOmitted.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]);
+        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(paramsOmitted.clone(), "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
         let mut response: Value = Value::Null;
-        if isTrigger.as_bool() == Some(true) {
+        if isTrigger {
             if isByClientOrder {
                 request.insert("clientAlgoOrderId".into(), clientOrderIdExchangeSpecific.clone());
             }  else {
@@ -2831,7 +2831,7 @@ impl WooCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2842,7 +2842,7 @@ impl WooCore {
             request.insert("symbol".into(), market.get("id").cloned().unwrap_or(Value::Null));
         }
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if (trigger == Some(true)) {
             response = self.v3_private_delete_trade_algo_orders(&[paramsOmitted.clone()]).await;
         }  else {
             // cancels both regular and algo orders
@@ -2929,16 +2929,16 @@ impl WooCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut clientOrderId: Value = self.safe_string2(paramsOmitted.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]);
+        let mut clientOrderId: Option<String> = self.safe_string2_opt(paramsOmitted.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]);
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
-            if (clientOrderId != Value::Null) {
+        if (trigger == Some(true)) {
+            if (clientOrderId.is_some()) {
                 request.insert("clientAlgoOrderId".into(), id.clone());
             }  else {
                 request.insert("algoOrderId".into(), id.clone());
@@ -2946,8 +2946,8 @@ impl WooCore {
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.v3_private_get_trade_algo_order(&[__ws_arg_11]).await;
         }  else {
-            if (clientOrderId != Value::Null) {
-                request.insert("clientOrderId".into(), clientOrderId);
+            if (clientOrderId.is_some()) {
+                request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 request.insert("orderId".into(), id);
             }
@@ -3001,7 +3001,7 @@ impl WooCore {
             m
         });
         let mut market: Value = Value::Null;
-        let mut trigger: Value = self.safe_bool2(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         if (symbol != Value::Null) {
             market = self.market(symbol);
@@ -3019,7 +3019,7 @@ impl WooCore {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if (trigger == Some(true)) {
             let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[paramsOmitted2.clone()]);
             response = self.v3_private_get_trade_algo_orders(&[__ws_arg_13]).await;
         }  else {
@@ -3209,7 +3209,7 @@ impl WooCore {
         let mut timestamp: Value = Value::Null;
         let mut timestrampString: Option<String> = self.safe_string_k_opt(order.clone(), "createdTime", &[]);
         if (timestrampString.is_some()) {
-            if Value::Int(timestrampString.as_deref().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if timestrampString.as_deref().unwrap_or("").contains(".") {
                 timestamp = self.safe_timestamp_k(order.clone(), "createdTime", &[]); // algo orders
             }  else {
                 timestamp = self.safe_integer_k(order.clone(), "createdTime", &[]); // regular orders
@@ -3218,7 +3218,7 @@ impl WooCore {
         if (timestamp == Value::Null) {
             timestamp = self.safe_integer_k(order.clone(), "timestamp", &[]);
         }
-        let mut orderId: Value = self.safe_string2(order.clone(), Value::Str("orderId".into()), Value::Str("algoOrderId".into()), &[]);
+        let mut orderId: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("orderId".into()), Value::Str("algoOrderId".into()), &[]);
         let mut clientOrderId: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clientAlgoOrderId".into()), &[])); // Somehow, this always returns 0 for limit order
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
@@ -3226,9 +3226,9 @@ impl WooCore {
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "quantity", &[]); // This is base amount
         let mut orderType: Option<String> = self.safe_string_lower_k_opt(order.clone(), "type", &[]);
-        let mut status: Value = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]);
+        let mut status: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
-        let mut filled: Value = self.safe_string2(order.clone(), Value::Str("executed".into()), Value::Str("totalExecutedQuantity".into()), &[]);
+        let mut filled: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("executed".into()), Value::Str("totalExecutedQuantity".into()), &[]);
         let mut average: Value = self.omit_zero(self.safe_string_k(order.clone(), "averageExecutedPrice", &[]));
         // const remaining = Precise.stringSub (cost, filled);
         let mut fee: Value = self.safe_number_k(order.clone(), "totalFee", &[]);
@@ -3237,7 +3237,7 @@ impl WooCore {
         let mut lastUpdateTimestampString: Option<String> = self.safe_string_k_opt(order.clone(), "updatedTime", &[]);
         let mut lastUpdateTimestamp: Value = Value::Null;
         if (lastUpdateTimestampString.is_some()) {
-            if Value::Int(lastUpdateTimestampString.as_deref().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if lastUpdateTimestampString.as_deref().unwrap_or("").contains(".") {
                 lastUpdateTimestamp = self.safe_timestamp_k(order.clone(), "updatedTime", &[]); // algo orders
             }  else {
                 lastUpdateTimestamp = self.safe_integer_k(order.clone(), "updatedTime", &[]); // regular orders
@@ -3249,13 +3249,13 @@ impl WooCore {
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), orderId);
+        m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
-        m.insert("status".to_string(), self.parse_order_status(status).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_order_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), orderType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_time_in_force(orderType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
@@ -3268,7 +3268,7 @@ impl WooCore {
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("average".to_string(), average);
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("filled".to_string(), filled);
+        m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
@@ -3388,12 +3388,12 @@ impl WooCore {
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "24hHigh", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "24hLow", &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -3544,7 +3544,7 @@ impl WooCore {
     m
 })]);
         let mut rows: Vec<Value> = self.safe_list_k(data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut timestamp: Value = self.safe_integer_k(response, "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(response, "timestamp", &[]).as_i64();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3560,7 +3560,7 @@ impl WooCore {
             }
             let mut ticker: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("timestamp".to_string(), timestamp.clone());
+                    m.insert("timestamp".to_string(), Value::from(timestamp));
                 m
             }), &[row]);
             result.push(self.parse_ticker(ticker, &[]));
@@ -4206,9 +4206,9 @@ impl WooCore {
         let mut currencyResolved: Value = self.safe_currency(code.clone(), &[currency]);
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
         let mut side: Option<String> = self.safe_string_k(item.clone(), "tokenSide", &[]).as_str().map(str::to_owned);
-        let mut direction: Value = Value::Str("out".into());
+        let mut direction: String = "out".to_string();
         if (side.as_deref() == Some("DEPOSIT")) {
-            direction = Value::Str("in".into());
+            direction = "in".to_string();
         }
         let mut timestamp: Value = self.safe_timestamp_k(item.clone(), "createdTime", &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::from(vec![Value::Str("feeToken".into())]), Value::from(vec![Value::Str("feeAmount".into())]));
@@ -4224,7 +4224,7 @@ impl WooCore {
         m.insert("amount".to_string(), amount);
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), Value::from(direction));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item, "type", &[])).map(Value::from).unwrap_or(Value::Null));
@@ -4250,7 +4250,7 @@ impl WooCore {
         if (currency != Value::Null) {
             return currency;
         }  else {
-            let mut parts: Value = Value::Array(networkizedCode.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = networkizedCode.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut partsLength: f64 = ((parts.len() as i64) as f64);
             let mut firstPart: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[firstPart.map(Value::from).unwrap_or(Value::Null)]);
@@ -4388,8 +4388,8 @@ impl WooCore {
             movementDirection = Value::Str("withdrawal".into());
         }
         let mut fee: Value = self.parse_token_and_fee_temp(transaction.clone(), Value::from(vec![Value::Str("fee_token".into()), Value::Str("feeToken".into())]), Value::from(vec![Value::Str("fee_amount".into()), Value::Str("feeAmount".into())]));
-        let mut addressTo: Value = self.safe_string_n(transaction.clone(), Value::from(vec![Value::Str("target_address".into()), Value::Str("targetAddress".into()), Value::Str("addressTo".into())]), &[]);
-        let mut addressFrom: Value = self.safe_string2(transaction.clone(), Value::Str("source_address".into()), Value::Str("sourceAddress".into()), &[]);
+        let mut addressTo: Option<String> = self.safe_string_n_opt(transaction.clone(), Value::from(vec![Value::Str("target_address".into()), Value::Str("targetAddress".into()), Value::Str("addressTo".into())]), &[]);
+        let mut addressFrom: Option<String> = self.safe_string2_opt(transaction.clone(), Value::Str("source_address".into()), Value::Str("sourceAddress".into()), &[]);
         let mut timestamp: Value = self.safe_timestamp_n(transaction.clone(), Value::from(vec![Value::Str("created_time".into()), Value::Str("createdTime".into())]), &[self.safe_integer_k(transaction.clone(), "timestamp", &[])]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4399,8 +4399,8 @@ impl WooCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), Value::Null);
-        m.insert("addressFrom".to_string(), addressFrom);
-        m.insert("addressTo".to_string(), addressTo);
+        m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string2(transaction.clone(), Value::Str("extra".into()), Value::Str("tag".into()), &[]));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
@@ -4489,8 +4489,8 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if fillResponseFromRequest.as_bool() == Some(true) {
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
+        if fillResponseFromRequest {
             if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
             if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
             if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }
@@ -4623,10 +4623,10 @@ impl WooCore {
         //
         let mut code: Value = self.safe_currency_code(self.safe_string_k(transfer.clone(), "token", &[]), &[currency]);
         let mut timestamp: Value = self.safe_timestamp2(transfer.clone(), Value::Str("createdTime".into()), Value::Str("timestamp".into()), &[]);
-        let mut success: Value = self.safe_bool_k(transfer.clone(), "success", &[]);
+        let mut success: Option<bool> = self.safe_bool_k_opt(transfer.clone(), "success", &[]);
         let mut status: Value = Value::Null;
-        if (success != Value::Null) {
-            status = (if success.as_bool() == Some(true) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
+        if (success.is_some()) {
+            status = (if success == Some(true) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
         }
         let mut fromAccount: Value = self.safe_dict_k(transfer.clone(), "from", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4831,11 +4831,11 @@ impl WooCore {
         }  else {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) && ((path.as_str() == Some("trade/algoOrder")) || (path.as_str() == Some("trade/order"))) {
-                let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-                if !(isSandboxMode.as_bool() == Some(true)) {
-                    let mut applicationId: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".into());
-                    let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[applicationId]);
-                    let mut isTrigger: bool = Value::Int(path.as_str().and_then(|__s| __s.find("algo")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
+                let mut isSandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
+                if !(isSandboxMode) {
+                    let mut applicationId: String = "bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string();
+                    let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::from(applicationId)]);
+                    let mut isTrigger: bool = path.as_str().unwrap_or("").contains("algo");
                     if isTrigger {
                         paramsSorted.insert("brokerId".into(), brokerId.clone());
                     }  else {
@@ -4904,9 +4904,9 @@ impl WooCore {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        let mut success: Value = self.safe_bool_k(response.clone(), "success", &[]);
+        let mut success: Option<bool> = self.safe_bool_k_opt(response.clone(), "success", &[]);
         let mut errorCode: Option<String> = self.safe_string_k_opt(response.clone(), "code", &[]);
-        if (success.as_bool() != Some(true)) {
+        if (success != Some(true)) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback);
@@ -4937,7 +4937,7 @@ impl WooCore {
         let mut amount: Value = self.safe_string_k(income.clone(), "fundingFee", &[]);
         let mut code: Value = self.safe_currency_code(Value::Str("USD".into()), &[]);
         let mut id: Option<String> = self.safe_string_k_opt(income.clone(), "id", &[]);
-        let mut timestamp: Value = self.safe_integer_k(income.clone(), "updatedTime", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(income.clone(), "updatedTime", &[]).as_i64();
         let mut rate: Value = self.safe_number_k(income.clone(), "fundingRate", &[]);
         let mut paymentType: Option<String> = self.safe_string_k(income.clone(), "paymentType", &[]).as_str().map(str::to_owned);
         amount = (if (paymentType.as_deref() == Some("Pay")) { crate::precise::Precise::stringNeg(&amount) } else { amount.clone() });
@@ -4946,8 +4946,8 @@ impl WooCore {
         m.insert("info".to_string(), income);
         m.insert("symbol".to_string(), symbol);
         m.insert("code".to_string(), code);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("rate".to_string(), rate);
@@ -5069,9 +5069,9 @@ impl WooCore {
         //
         let mut symbol: Option<String> = self.safe_string_k_opt(fundingRate.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.market(symbol.map(Value::from).unwrap_or(Value::Null));
-        let mut nextFundingTimestamp: Value = self.safe_integer2(fundingRate.clone(), Value::Str("nextFundingTime".into()), Value::Str("fundingTs".into()), &[]);
-        let mut estFundingRateTimestamp: Value = self.safe_integer_k(fundingRate.clone(), "estFundingRateTimestamp", &[]);
-        let mut lastFundingRateTimestamp: Value = self.safe_integer_k(fundingRate.clone(), "lastFundingRateTimestamp", &[]);
+        let mut nextFundingTimestamp: Option<i64> = self.safe_integer2(fundingRate.clone(), Value::Str("nextFundingTime".into()), Value::Str("fundingTs".into()), &[]).as_i64();
+        let mut estFundingRateTimestamp: Option<i64> = self.safe_integer_k(fundingRate.clone(), "estFundingRateTimestamp", &[]).as_i64();
+        let mut lastFundingRateTimestamp: Option<i64> = self.safe_integer_k(fundingRate.clone(), "lastFundingRateTimestamp", &[]).as_i64();
         let mut intervalString: Option<String> = self.safe_string_k_opt(fundingRate.clone(), "estFundingIntervalHours", &[]);
         let mut interval: Value = Value::Null;
         if (intervalString.is_some()) {
@@ -5085,17 +5085,17 @@ impl WooCore {
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".into()), &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), estFundingRateTimestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(estFundingRateTimestamp));
+        m.insert("timestamp".to_string(), Value::from(estFundingRateTimestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(estFundingRateTimestamp)));
         m.insert("fundingRate".to_string(), self.safe_number2(fundingRate.clone(), Value::Str("estFundingRate".into()), Value::Str("fundingRate".into()), &[]));
-        m.insert("fundingTimestamp".to_string(), nextFundingTimestamp.clone());
-        m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
+        m.insert("fundingTimestamp".to_string(), Value::from(nextFundingTimestamp));
+        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(nextFundingTimestamp)));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
         m.insert("previousFundingRate".to_string(), self.safe_number_k(fundingRate, "lastFundingRate", &[]));
-        m.insert("previousFundingTimestamp".to_string(), lastFundingRateTimestamp.clone());
-        m.insert("previousFundingDatetime".to_string(), self.iso8601(lastFundingRateTimestamp));
+        m.insert("previousFundingTimestamp".to_string(), Value::from(lastFundingRateTimestamp));
+        m.insert("previousFundingDatetime".to_string(), self.iso8601(Value::from(lastFundingRateTimestamp)));
         m.insert("interval".to_string(), interval);
     m
 });
@@ -5313,14 +5313,14 @@ impl WooCore {
             while { if !__for_first_1165 { i += 1; } __for_first_1165 = false; i < (rows.len() as i64) } {
             let mut entry: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
-            let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingRateTimestamp", &[]);
+            let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "fundingRateTimestamp", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
-                    m.insert("timestamp".to_string(), timestamp.clone());
-                    m.insert("datetime".to_string(), self.iso8601(timestamp));
+                    m.insert("timestamp".to_string(), Value::from(timestamp));
+                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                 m
             }));
         }
@@ -5777,21 +5777,21 @@ impl WooCore {
             side = Value::Str("short".into());
         }
         let mut contractSize: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
-        let mut markPrice: Value = self.safe_string2(position.clone(), Value::Str("markPrice".into()), Value::Str("mark_price".into()), &[]);
+        let mut markPrice: Option<String> = self.safe_string2_opt(position.clone(), Value::Str("markPrice".into()), Value::Str("mark_price".into()), &[]);
         let mut timestampString: Option<String> = self.safe_string_k_opt(position.clone(), "timestamp", &[]);
         let mut timestamp: Value = Value::Null;
         if (timestampString.is_some()) {
-            if Value::Int(timestampString.as_deref().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            if timestampString.as_deref().unwrap_or("").contains(".") {
                 timestamp = self.safe_timestamp_k(position.clone(), "timestamp", &[]);
             }  else {
                 timestamp = self.safe_integer_k(position.clone(), "timestamp", &[]);
             }
         }
-        let mut entryPrice: Value = self.safe_string2(position.clone(), Value::Str("averageOpenPrice".into()), Value::Str("average_open_price".into()), &[]);
-        let mut priceDifference: Value = crate::precise::Precise::stringSub(&markPrice, &entryPrice);
+        let mut entryPrice: Option<String> = self.safe_string2_opt(position.clone(), Value::Str("averageOpenPrice".into()), Value::Str("average_open_price".into()), &[]);
+        let mut priceDifference: Value = crate::precise::Precise::stringSub(&markPrice.clone().map(Value::from).unwrap_or(Value::Null), &entryPrice.clone().map(Value::from).unwrap_or(Value::Null));
         let mut unrealisedPnl: Value = crate::precise::Precise::stringMul(&priceDifference, &size);
         size = crate::precise::Precise::stringAbs(&size);
-        let mut notional: Value = crate::precise::Precise::stringMul(&size, &markPrice);
+        let mut notional: Value = crate::precise::Precise::stringMul(&size, &markPrice.clone().map(Value::from).unwrap_or(Value::Null));
         let mut positionSide: Option<String> = self.safe_string_k(position.clone(), "positionSide", &[]).as_str().map(str::to_owned); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
         let mut marginMode: Value = self.safe_string_lower2(position.clone(), Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]);
         let mut positionMargin: Value = Value::Null;
@@ -5810,7 +5810,7 @@ impl WooCore {
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("entryPrice".to_string(), self.parse_number(entryPrice, &[]));
+        m.insert("entryPrice".to_string(), self.parse_number(entryPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("notional".to_string(), self.parse_number(notional, &[]));
         m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl, &[]));
@@ -5818,7 +5818,7 @@ impl WooCore {
         m.insert("contractSize".to_string(), self.parse_number(contractSize.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number2(position, Value::Str("estLiqPrice".into()), Value::Str("est_liq_price".into()), &[]));
-        m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("positionMargin".to_string(), positionMargin);
         m.insert("collateral".to_string(), Value::Null);
@@ -5856,8 +5856,8 @@ impl WooCore {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sellToken".to_string(), fromCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
-                m.insert("buyToken".to_string(), toCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("sellToken".to_string(), (if let Some(__s) = fromCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+                m.insert("buyToken".to_string(), (if let Some(__s) = toCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("sellQuantity".to_string(), self.number_to_string(amount));
             m
         });
@@ -6104,16 +6104,16 @@ impl WooCore {
         //         "createdTime": ""
         //     }
         //
-        let mut timestamp: Value = self.safe_integer2(conversion.clone(), Value::Str("expireTimestamp".into()), Value::Str("createdTime".into()), &[]);
-        let mut fromCurr: Value = self.safe_string2(conversion.clone(), Value::Str("sellToken".into()), Value::Str("buyAsset".into()), &[]);
-        let mut fromCode: Value = self.safe_currency_code(fromCurr, &[fromCurrency]);
-        let mut to: Value = self.safe_string2(conversion.clone(), Value::Str("buyToken".into()), Value::Str("sellAsset".into()), &[]);
-        let mut toCode: Value = self.safe_currency_code(to, &[toCurrency]);
+        let mut timestamp: Option<i64> = self.safe_integer2(conversion.clone(), Value::Str("expireTimestamp".into()), Value::Str("createdTime".into()), &[]).as_i64();
+        let mut fromCurr: Option<String> = self.safe_string2_opt(conversion.clone(), Value::Str("sellToken".into()), Value::Str("buyAsset".into()), &[]);
+        let mut fromCode: Value = self.safe_currency_code(fromCurr.map(Value::from).unwrap_or(Value::Null), &[fromCurrency]);
+        let mut to: Option<String> = self.safe_string2_opt(conversion.clone(), Value::Str("buyToken".into()), Value::Str("sellAsset".into()), &[]);
+        let mut toCode: Value = self.safe_currency_code(to.map(Value::from).unwrap_or(Value::Null), &[toCurrency]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), conversion.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("id".to_string(), self.safe_string_k(conversion.clone(), "quoteId", &[]));
         m.insert("fromCurrency".to_string(), fromCode);
         m.insert("fromAmount".to_string(), self.safe_number2(conversion.clone(), Value::Str("sellQuantity".into()), Value::Str("sellAmount".into()), &[]));
@@ -6317,7 +6317,7 @@ impl WooCore {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(info.clone(), "symbol", &[]);
-        let mut timestamp: Value = self.safe_integer_k(info.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(info.clone(), "timestamp", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
@@ -6325,8 +6325,8 @@ impl WooCore {
         m.insert("rank".to_string(), self.safe_number_k(info, "adlQuantile", &[]));
         m.insert("rating".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
     m
 });
 

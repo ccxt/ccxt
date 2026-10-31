@@ -375,7 +375,7 @@ impl DeepcoinCore {
 
     pub fn ping(&self, mut client: Value) -> Value {
         let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
-        if Value::Int(url.as_str().and_then(|__s| __s.find("private")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if url.as_str().unwrap_or("").contains("private") {
             crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
         }
         return Value::Str("ping".into());
@@ -408,15 +408,15 @@ impl DeepcoinCore {
         if (self.safe_string_k(market.clone(), "type", &[]).as_str() == Some("swap")) {
             marketId = Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market, "quoteId", &[Value::Str("".into())])).into()); // swap markets use symbol without slash
         }
-        let mut action: Value = Value::Str("1".into()); // subscribe
+        let mut action: String = "1".to_string();
         if unWatch {
-            action = Value::Str("0".into()); // unsubscribe
+            action = "0".to_string(); // unsubscribe
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sendTopicAction".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Action".to_string(), action);
+        m.insert("Action".to_string(), Value::from(action));
         m.insert("FilterValue".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("DeepCoin_".into()), marketId).into()), suffix).into()));
         m.insert("LocalNo".to_string(), requestId);
         m.insert("ResumeNo".to_string(), Value::Int(-1));
@@ -705,7 +705,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         AP1: 109345.2
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "U", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "U", &[]).as_i64();
         let mut high: Value = self.safe_number_k(ticker.clone(), "H", &[]);
         let mut low: Value = self.safe_number_k(ticker.clone(), "L", &[]);
         let mut open: Value = self.safe_number_k(ticker.clone(), "O", &[]);
@@ -722,8 +722,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), high);
         m.insert("low".to_string(), low);
         m.insert("bid".to_string(), bid);
@@ -1648,7 +1648,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut listenKey: Value = self.authenticate(&[]).await;
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut messageHash: Value = Value::Str("positions".into());
+        let mut messageHash: String = "positions".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         if (symbolsNormalized != Value::Null) {
             {
@@ -1661,7 +1661,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }  else {
-            messageHashes.push(messageHash);
+            messageHashes.push(Value::from(messageHash.clone()));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("?listenKey=".into())).into()), listenKey).into());
         let mut positions: Value = self.watch_multiple(url, Value::from(messageHashes), &[params, Value::from(vec![Value::Str("private".into())])]).await;
@@ -1742,15 +1742,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "u": 0
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(position.clone(), "U", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "U", &[]).as_i64();
         let mut direction: Option<String> = self.safe_string_k_opt(position.clone(), "p", &[]);
         let mut marginMode: Option<String> = self.safe_string_k_opt(position.clone(), "i", &[]);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
         m.insert("id".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("contracts".to_string(), self.safe_string_k(position.clone(), "Po", &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("side".to_string(), self.parse_position_side(direction.map(Value::from).unwrap_or(Value::Null)));

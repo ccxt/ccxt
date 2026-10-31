@@ -647,7 +647,7 @@ impl DeriveCore {
         })]);
         let mut topic: Value = self.safe_string_k(params, "channel", &[Value::Str("".into())]);
         // the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-        let mut parts: Value = Value::Array(topic.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut ticker: Value = self.parse_ticker(data.clone(), &[market.clone()]);
@@ -780,7 +780,7 @@ impl DeriveCore {
 }
 
     pub fn handle_order_book_un_subscription(&mut self, mut client: Value, mut topic: Value) {
-        let mut parsedTopic: Value = Value::Array(topic.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parsedTopic: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parsedTopic, Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -791,7 +791,7 @@ impl DeriveCore {
 }
 
     pub fn handle_trades_un_subscription(&mut self, mut client: Value, mut topic: Value) {
-        let mut parsedTopic: Value = Value::Array(topic.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parsedTopic: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parsedTopic, Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
@@ -803,7 +803,7 @@ impl DeriveCore {
 
     pub fn handle_ticker_un_subscription(&mut self, mut client: Value, mut topic: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut parsedTopic: Value = Value::Array(topic.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parsedTopic: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parsedTopic, Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
@@ -853,7 +853,7 @@ impl DeriveCore {
                 let mut __for_first_310: bool = true;
                 while { if !__for_first_310 { i += 1; } __for_first_310 = false; i < (topics.len() as i64) } {
                 let mut topic: Value = topics.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut parsedTopic: Value = Value::Array(topic.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+                let mut parsedTopic: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
                 let mut suffix: Option<String> = self.safe_string(parsedTopic, Value::Int(1), &[]).as_str().map(str::to_owned);
                 if (Value::Int(topic.as_str().and_then(|__s| __s.find("orderbook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
                     self.handle_order_book_un_subscription(client.clone(), topic.clone());
@@ -936,7 +936,7 @@ impl DeriveCore {
             m
         })]);
         let mut topic: Value = self.safe_string_k(params, "channel", &[Value::Str("".into())]);
-        let mut parsedTopic: Value = Value::Array(topic.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parsedTopic: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parsedTopic, Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
@@ -966,9 +966,9 @@ impl DeriveCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut messageHash: String = "authenticated".to_string();
+        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut requestId: Value = self.request_id(url.clone());
             let mut now: Value = self.number_to_string(self.nonce());
@@ -995,7 +995,7 @@ impl DeriveCore {
             //     'params': params,
             // }
             let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone(), message.clone()]).await;
+            self.watch(url, Value::from(messageHash.clone()), &[message.clone(), Value::from(messageHash.clone()), message.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1597,7 +1597,7 @@ impl DeriveCore {
         //
         let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".into())]);
-        let mut topicParts: Value = Value::Array(topic.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut topicParts: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut subaccountIdKey: Value = self.safe_string(topicParts, Value::Int(0), &[]);
         let mut data: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
         if (self.balance.clone() == Value::Null) {
@@ -1621,7 +1621,7 @@ impl DeriveCore {
                 m
             })]);
             let mut name: Value = self.safe_string_k(entry.clone(), "name", &[Value::Str("".into())]);
-            if Value::Int(name.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if name.as_str().unwrap_or("").contains("-") {
                 // position deltas carry instrument names and do not belong into the balance structure
                 if (self.positions.clone() != Value::Null) && (self.positions.as_map().is_some_and(|__m| subaccountIdKey.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                     let mut position: Value = self.handle_position_delta(subaccountIdKey.clone(), entry.clone());
@@ -1718,9 +1718,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (params != Value::Null) {
             let mut channel: Value = self.safe_string_k(params, "channel", &[]);
             if (channel != Value::Null) {
-                let mut parsedChannel: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
-                if (Value::Int(channel.as_str().and_then(|__s| __s.find("orders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (Value::Int(channel.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) ||
-                    (Value::Int(channel.as_str().and_then(|__s| __s.find("balances")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
+                let mut parsedChannel: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
+                if (channel.as_str().unwrap_or("").contains("orders")) || (Value::Int(channel.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) || (Value::Int(channel.as_str().and_then(|__s| __s.find("balances")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                     event = self.safe_string(parsedChannel.clone(), Value::Int(1), &[]);
                     // {subaccount_id}.trades
                     if (event.as_str() == Some("trades")) {

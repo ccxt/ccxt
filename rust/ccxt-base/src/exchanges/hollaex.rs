@@ -865,9 +865,9 @@ impl HollaexCore {
         let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut withdrawalLimits: Value = self.safe_list_k(rawCurrency.clone(), "withdrawal_limits", &[Value::from(vec![])]);
         let mut rawType: Option<String> = self.safe_string_k(rawCurrency.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = Value::Str("other".into());
+        let mut type_var: String = "other".to_string();
         if (rawType.as_deref() == Some("blockchain")) {
-            type_var = Value::Str("crypto".into());
+            type_var = "crypto".to_string();
         }
         let mut rawNetworks: Value = self.safe_dict_k(rawCurrency.clone(), "withdrawal_fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -940,7 +940,7 @@ impl HollaexCore {
     m
 }));
         m.insert("networks".to_string(), Value::Map(networks));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.clone()));
     m
 }));
 
@@ -1792,7 +1792,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut postOnly: Value = self.safe_bool_k(meta, "post_only", &[Value::Bool(false)]);
+        let mut postOnly: bool = self.safe_bool_k_opt(meta, "post_only", &[Value::Bool(false)]).unwrap_or(false);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1804,7 +1804,7 @@ impl HollaexCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("postOnly".to_string(), Value::Bool(postOnly));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.safe_string_k(order.clone(), "stop", &[]));
@@ -2022,14 +2022,14 @@ impl HollaexCore {
         //         "created_at":"2021-05-12T02:43:05.446Z"
         //     }
         //
-        let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[]);
+        let mut address: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address", &[]);
         let mut tag: Value = Value::Null;
-        if (address != Value::Null) {
-            let mut parts: Value = Value::Array(address.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
-            address = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        if (address.is_some()) {
+            let mut parts: Value = Value::Array(if let Some(__s) = address.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
+            address = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             tag = self.safe_string(parts, Value::Int(1), &[]);
         }
-        self.check_address(&[address.clone()]);
+        self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "currency", &[]);
         let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_map().cloned().unwrap_or_default();
         let mut networkId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "network", &[]);
@@ -2038,7 +2038,7 @@ impl HollaexCore {
         m.insert("info".to_string(), depositAddress);
         m.insert("currency".to_string(), currencyResolved.get("code").cloned().unwrap_or(Value::Null));
         m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyResolved.get("code").cloned().unwrap_or(Value::Null)]));
-        m.insert("address".to_string(), address);
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tag);
     m
 });
@@ -2363,30 +2363,30 @@ impl HollaexCore {
         let mut updated: Value = self.parse8601(self.safe_string_k(transaction.clone(), "updated_at", &[]));
         let mut type_var: Option<String> = self.safe_string_k_opt(transaction.clone(), "type", &[]);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
-        let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
+        let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         let mut addressTo: Value = Value::Null;
         let mut addressFrom: Value = Value::Null;
         let mut tag: Value = Value::Null;
         let mut tagTo: Value = Value::Null;
         let mut tagFrom: Value = Value::Null;
-        if (address != Value::Null) {
-            let mut parts: Value = Value::Array(address.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
-            address = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        if (address.is_some()) {
+            let mut parts: Value = Value::Array(if let Some(__s) = address.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
+            address = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             tag = self.safe_string(parts, Value::Int(1), &[]);
-            addressTo = address.clone();
+            addressTo = address.clone().map(Value::from).unwrap_or(Value::Null);
             tagTo = tag.clone();
         }
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
         let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut completed: Value = self.safe_bool_k(transaction.clone(), "status", &[]);
-        let mut dismissed: Value = self.safe_bool_k(transaction.clone(), "dismissed", &[]);
-        let mut rejected: Value = self.safe_bool_k(transaction.clone(), "rejected", &[]);
+        let mut completed: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "status", &[]);
+        let mut dismissed: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "dismissed", &[]);
+        let mut rejected: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "rejected", &[]);
         let mut status: Value = Value::Null;
-        if (completed.as_bool() == Some(true)) {
+        if (completed == Some(true)) {
             status = Value::Str("ok".into());
-        }  else if (dismissed.as_bool() == Some(true)) {
+        }  else if (dismissed == Some(true)) {
             status = Value::Str("canceled".into());
-        }  else if (rejected.as_bool() == Some(true)) {
+        }  else if (rejected == Some(true)) {
             status = Value::Str("failed".into());
         }  else {
             status = Value::Str("pending".into());
@@ -2412,7 +2412,7 @@ impl HollaexCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), addressFrom);
-        m.insert("address".to_string(), address);
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo);
         m.insert("tagFrom".to_string(), tagFrom);
         m.insert("tag".to_string(), tag);
@@ -2532,8 +2532,8 @@ impl HollaexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut allowWithdrawal: Value = self.safe_bool_k(fee.clone(), "allow_withdrawal", &[]);
-        if (allowWithdrawal.as_bool() == Some(true)) {
+        let mut allowWithdrawal: Option<bool> = self.safe_bool_k_opt(fee.clone(), "allow_withdrawal", &[]);
+        if (allowWithdrawal == Some(true)) {
             result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(fee.clone(), "withdrawal_fee", &[]));
@@ -2557,7 +2557,7 @@ impl HollaexCore {
                 if (networkCode == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a networkCode argument".into()))));
                 }
-                let mut networkCodeUpper: Value = networkCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null); // default to the upper case network code
+                let mut networkCodeUpper: Value = (if let Some(__s) = networkCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }); // default to the upper case network code
                 let mut withdrawalFee: Value = self.safe_number_k(value, "value", &[]);
                 networks.insert(crate::runtime::stringify_param(&networkCodeUpper), Value::Map({
     let mut m = indexmap::IndexMap::new();

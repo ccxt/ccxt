@@ -695,10 +695,10 @@ impl CexCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut isFiat: Value = self.safe_bool_k(rawCurrency.clone(), "fiat", &[Value::Bool(false)]);
-        let mut type_var: Value = Value::Str("crypto".into());
-        if isFiat.as_bool() == Some(true) {
-            type_var = Value::Str("fiat".into());
+        let mut isFiat: bool = self.safe_bool_k_opt(rawCurrency.clone(), "fiat", &[Value::Bool(false)]).unwrap_or(false);
+        let mut type_var: String = "crypto".to_string();
+        if isFiat {
+            type_var = "fiat".to_string();
         }
         let mut currencyPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
         let mut networks: indexmap::IndexMap<String, Value> = ({
@@ -757,7 +757,7 @@ impl CexCore {
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code);
         m.insert("name".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.clone()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), self.safe_bool_k(rawCurrency.clone(), "walletDeposit", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(rawCurrency.clone(), "walletWithdrawal", &[]));
@@ -1850,7 +1850,7 @@ impl CexCore {
             fee.insert("currency".into(), feeCode);
             fee.insert("cost".into(), feeAmount);
         }
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "serverCreateTimestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "serverCreateTimestamp", &[]).as_i64();
         let mut requestedBase: Value = self.safe_number_k(order.clone(), "requestedAmountCcy1", &[]);
         let mut executedBase: Value = self.safe_number_k(order.clone(), "executedAmountCcy1", &[]);
         // const requestedQuote = this.safeNumber (order, 'requestedAmountCcy2');
@@ -1859,8 +1859,8 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOrderId", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "lastUpdateTimestamp", &[]));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
@@ -1923,8 +1923,8 @@ impl CexCore {
                 m.insert("currency1".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
                 m.insert("currency2".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
                 m.insert("accountId".to_string(), accountId);
-                m.insert("orderType".to_string(), self.capitalize(type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)));
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("orderType".to_string(), self.capitalize((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("timestamp".to_string(), self.milliseconds());
                 m.insert("amountCcy1".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
@@ -2283,9 +2283,9 @@ impl CexCore {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
         let mut direction: Option<String> = self.safe_string_k(transaction.clone(), "direction", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = Value::Str("deposit".into());
+        let mut type_var: String = "deposit".to_string();
         if (direction.as_deref() == Some("withdraw")) {
-            type_var = Value::Str("withdrawal".into());
+            type_var = "withdrawal".to_string();
         }
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut updatedAt: Option<String> = self.safe_string_k_opt(transaction.clone(), "updatedAt", &[]);
@@ -2295,7 +2295,7 @@ impl CexCore {
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "txId", &[]));
         m.insert("txid".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
@@ -2675,7 +2675,7 @@ impl CexCore {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
-        if Value::Int(url.as_str().and_then(|__s| __s.find("do_my_new_order")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if url.as_str().unwrap_or("").contains("do_my_new_order") {
             let mut data: Value = self.safe_dict_k(responseParsed, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

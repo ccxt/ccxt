@@ -439,14 +439,14 @@ impl BullishCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into());
-        let mut url: Value = Value::Str("/trading-api/v1/market-data/trades".into());
+        let mut url: String = "/trading-api/v1/market-data/trades".to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("anonymousTrades".into()));
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut trades: Value = self.watch_public(url, messageHash, &[Value::Map(request), params]).await;
+        let mut trades: Value = self.watch_public(Value::from(url), messageHash, &[Value::Map(request), params]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);
@@ -636,7 +636,7 @@ impl BullishCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut url: Value = Value::Str("/trading-api/v1/market-data/orderbook".into());
+        let mut url: String = "/trading-api/v1/market-data/orderbook".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -644,7 +644,7 @@ impl BullishCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut orderbook: Value = self.watch_public(url, messageHash, &[Value::Map(request), params]).await;
+        let mut orderbook: Value = self.watch_public(Value::from(url), messageHash, &[Value::Map(request), params]).await;
         return orderbook.limit();
 
     Value::Null
@@ -751,8 +751,8 @@ impl BullishCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut subscribeHash: Value = Value::Str("orders".into());
-        let mut messageHash: Value = subscribeHash.clone();
+        let mut subscribeHash: String = "orders".to_string();
+        let mut messageHash: Value = Value::from(subscribeHash.clone());
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             symbolResolved = self.symbol(symbol.clone());
@@ -768,7 +768,7 @@ impl BullishCore {
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut orders: Value = self.watch_private(messageHash, subscribeHash, &[Value::Map(request), paramsOmitted]).await;
+        let mut orders: Value = self.watch_private(messageHash, Value::from(subscribeHash), &[Value::Map(request), paramsOmitted]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -859,8 +859,8 @@ impl BullishCore {
                 }
             }
             }
-            let mut messageHash: Value = Value::Str("orders".into());
-            client.resolve(&[orders.clone(), messageHash.clone()]);
+            let mut messageHash: String = "orders".to_string();
+            client.resolve(&[orders.clone(), Value::from(messageHash.clone())]);
             let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
@@ -897,8 +897,8 @@ impl BullishCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut subscribeHash: Value = Value::Str("myTrades".into());
-        let mut messageHash: Value = subscribeHash.clone();
+        let mut subscribeHash: String = "myTrades".to_string();
+        let mut messageHash: Value = Value::from(subscribeHash.clone());
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             symbolResolved = self.symbol(symbol.clone());
@@ -914,7 +914,7 @@ impl BullishCore {
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut trades: Value = self.watch_private(messageHash, subscribeHash, &[Value::Map(request), paramsOmitted]).await;
+        let mut trades: Value = self.watch_private(messageHash, Value::from(subscribeHash), &[Value::Map(request), paramsOmitted]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved, limit);
@@ -998,8 +998,8 @@ impl BullishCore {
                 }
             }
             }
-            let mut messageHash: Value = Value::Str("myTrades".into());
-            client.resolve(&[trades, messageHash.clone()]);
+            let mut messageHash: String = "myTrades".to_string();
+            client.resolve(&[trades, Value::from(messageHash.clone())]);
             let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
@@ -1135,9 +1135,9 @@ impl BullishCore {
             if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&tradingAccountId)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
             { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), tradingAccountId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tradingAccountId), __be_tmp); } }
         }
-        let mut messageHash: Value = Value::Str("balance".into());
+        let mut messageHash: String = "balance".to_string();
         let mut tradingAccountIdHash: Value = Value::Str(format!("{}{}", Value::Str("::".into()), tradingAccountId).into());
-        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), tradingAccountId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.clone()]);
+        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), tradingAccountId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(messageHash.clone())]);
         client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), tradingAccountId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str(format!("{}{}", messageHash, tradingAccountIdHash).into())]);
 }
 
@@ -1163,8 +1163,8 @@ impl BullishCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut subscribeHash: Value = Value::Str("positions".into());
-        let mut messageHash: Value = subscribeHash.clone();
+        let mut subscribeHash: String = "positions".to_string();
+        let mut messageHash: Value = Value::from(subscribeHash.clone());
         let mut hasSymbols: bool = (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true));
         let mut symbolsNormalized: Value = symbols.clone();
         if hasSymbols {
@@ -1178,7 +1178,7 @@ impl BullishCore {
                 m.insert("topic".to_string(), Value::Str("derivativesPositionsV2".into()));
             m
         });
-        let mut positions: Value = self.watch_private(messageHash, subscribeHash, &[Value::Map(request), params]).await;
+        let mut positions: Value = self.watch_private(messageHash, Value::from(subscribeHash), &[Value::Map(request), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
@@ -1224,9 +1224,9 @@ impl BullishCore {
             let mut __for_first_183: bool = true;
             while { if !__for_first_183 { i += 1; } __for_first_183 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
             let mut symbolPositions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(symbolPositions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[symbolPositions, messageHash]);

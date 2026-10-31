@@ -1242,7 +1242,7 @@ impl CoinmateCore {
         //         "id": 2132583,
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "amountCurrency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         return Value::Map({
@@ -1255,8 +1255,8 @@ impl CoinmateCore {
         m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "walletType", &[]), code.clone()]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "transferStatus", &[])).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "destination", &[]));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
@@ -1368,8 +1368,8 @@ impl CoinmateCore {
     m
 })]);
         let mut transaction: indexmap::IndexMap<String, Value> = self.parse_transaction(data, &[currency]).as_map().cloned().unwrap_or_default();
-        let mut fillResponseFromRequest: Value = self.safe_bool_k(withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if fillResponseFromRequest.as_bool() == Some(true) {
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
+        if fillResponseFromRequest {
             transaction.insert("amount".into(), amount);
             transaction.insert("currency".into(), code);
             transaction.insert("address".into(), address);
@@ -1462,7 +1462,7 @@ impl CoinmateCore {
         let mut type_var: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "orderType", &[]);
         let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "orderId", &[]);
         let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "transactionId", &[]);
-        let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("timestamp".into()), Value::Str("createdTimestamp".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("timestamp".into()), Value::Str("createdTimestamp".into()), &[]).as_i64();
         let mut fee: Value = Value::Null;
         let mut feeCostString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         if (feeCostString.is_some()) {
@@ -1479,8 +1479,8 @@ impl CoinmateCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
@@ -1754,11 +1754,11 @@ impl CoinmateCore {
         //    }
         //
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "id", &[]);
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "timestamp", &[]).as_i64();
         let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "type", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(order.clone(), "originalAmount", &[]);
-        let mut remainingString: Value = self.safe_string2(order.clone(), Value::Str("remainingAmount".into()), Value::Str("amount".into()), &[]);
+        let mut remainingString: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("remainingAmount".into()), Value::Str("amount".into()), &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut type_var: Value = self.parse_order_type(self.safe_string_k(order.clone(), "orderTradeType", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut averageString: Option<String> = self.safe_string_k_opt(order.clone(), "avgPrice", &[]);
@@ -1769,8 +1769,8 @@ impl CoinmateCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
@@ -1783,7 +1783,7 @@ impl CoinmateCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), averageString.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), Value::Null);
-        m.insert("remaining".to_string(), remainingString);
+        m.insert("remaining".to_string(), remainingString.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status);
         m.insert("trades".to_string(), Value::Null);
         m.insert("info".to_string(), order);
@@ -1981,7 +1981,7 @@ impl CoinmateCore {
                     m.insert("clientId".to_string(), self.uid.clone());
                     m.insert("nonce".to_string(), nonce);
                     m.insert("publicKey".to_string(), self.apiKey.clone());
-                    m.insert("signature".to_string(), signature.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                    m.insert("signature".to_string(), (if let Some(__s) = signature.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m
             }), &[params]);
             bodySigned = self.urlencode(__ws_arg_10, &[]);

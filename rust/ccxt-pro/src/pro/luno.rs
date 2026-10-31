@@ -501,7 +501,7 @@ impl LunoCore {
         //
         let mut symbol: Value = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
-        let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.indexed_order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -517,12 +517,12 @@ impl LunoCore {
             }
         }
         if (asks != Value::Null) {
-            let mut snapshot: Value = self.custom_parse_order_book(message.clone(), symbol, &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into()), Value::Str("id".into())]);
+            let mut snapshot: Value = self.custom_parse_order_book(message.clone(), symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into()), Value::Str("id".into())]);
             orderbook.reset(snapshot);
         }  else {
             self.handle_book_delta(orderbook.clone(), message);
-            orderbook.set_book_meta("timestamp", timestamp.clone());
-            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+            orderbook.set_book_meta("timestamp", Value::from(timestamp));
+            orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }
         let mut nonce: Value = (match __pro_message.get("sequence").cloned() {
             Some(Value::Int(__n)) => Value::Int(__n),

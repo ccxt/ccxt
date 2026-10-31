@@ -563,7 +563,7 @@ impl ZaifCore {
         if (name.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing name".into()))));
         }
-        let mut nameParts: Value = Value::Array(name.as_deref().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
+        let mut nameParts: Value = Value::Array(if let Some(__s) = name.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let mut baseId: Option<String> = self.safe_string_opt(nameParts.clone(), Value::Int(0), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(nameParts, Value::Int(1), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -829,14 +829,14 @@ impl ZaifCore {
         let mut side: Value = self.safe_string_k(trade.clone(), "trade_type", &[]);
         side = (if (side.as_str() == Some("bid")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "date", &[]);
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tid".into()), &[]);
+        let mut id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("id".into()), Value::Str("tid".into()), &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "currency_pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1039,10 +1039,10 @@ impl ZaifCore {
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]);
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "amount", &[]);
-        let mut id: Value = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("order_id".into()), &[]);
+        let mut id: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("id".into()), Value::Str("order_id".into()), &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1362,8 +1362,8 @@ impl ZaifCore {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        let mut success: Value = self.safe_bool_k(response, "success", &[Value::Bool(true)]);
-        if !(success.as_bool() == Some(true)) {
+        let mut success: bool = self.safe_bool_k_opt(response, "success", &[Value::Bool(true)]).unwrap_or(true);
+        if !(success) {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

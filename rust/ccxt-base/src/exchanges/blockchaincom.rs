@@ -920,8 +920,8 @@ impl BlockchaincomCore {
         let mut exchangeOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "exOrdId", &[]);
         let mut price: Value = (if (type_var.as_deref() != Some("market")) { self.safe_string_k(order.clone(), "price", &[]) } else { Value::Null });
         let mut average: Value = self.safe_number_k(order.clone(), "avgPx", &[]);
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "timestamp", &[]);
-        let mut datetime: Value = self.iso8601(timestamp.clone());
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "timestamp", &[]).as_i64();
+        let mut datetime: Value = self.iso8601(Value::from(timestamp));
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "cumQty", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "leavesQty", &[]);
         let mut result: Value = self.safe_order(Value::Map({
@@ -929,7 +929,7 @@ impl BlockchaincomCore {
         m.insert("id".to_string(), exchangeOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("datetime".to_string(), datetime);
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), state);
         m.insert("symbol".to_string(), symbol);
@@ -976,7 +976,7 @@ impl BlockchaincomCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut orderType: Value = self.safe_string_k(params.clone(), "ordType", &[type_var]);
-        let mut uppercaseOrderType: Value = orderType.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut uppercaseOrderType: Value = (if let Some(__s) = orderType.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[self.uuid16(&[])]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("ordType".into()), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]);
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
@@ -984,7 +984,7 @@ impl BlockchaincomCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("ordType".to_string(), uppercaseOrderType.clone());
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("orderQty".to_string(), self.amount_to_precision(symbol.clone(), amount));
                 m.insert("clOrdId".to_string(), clientOrderId);
             m
@@ -1167,8 +1167,8 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut state: Value = Value::Str("CANCELED".into());
-        return self.fetch_orders_by_state(state, &[symbol, since, limit, params]).await;
+        let mut state: String = "CANCELED".to_string();
+        return self.fetch_orders_by_state(Value::from(state), &[symbol, since, limit, params]).await;
 
     Value::Null
 }
@@ -1192,8 +1192,8 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut state: Value = Value::Str("FILLED".into());
-        return self.fetch_orders_by_state(state, &[symbol, since, limit, params]).await;
+        let mut state: String = "FILLED".to_string();
+        return self.fetch_orders_by_state(Value::from(state), &[symbol, since, limit, params]).await;
 
     Value::Null
 }
@@ -1217,8 +1217,8 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut state: Value = Value::Str("OPEN".into());
-        return self.fetch_orders_by_state(state, &[symbol, since, limit, params]).await;
+        let mut state: String = "OPEN".to_string();
+        return self.fetch_orders_by_state(Value::from(state), &[symbol, since, limit, params]).await;
 
     Value::Null
 }
@@ -1273,8 +1273,8 @@ impl BlockchaincomCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "qty", &[]);
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
-        let mut datetime: Value = self.iso8601(timestamp.clone());
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
+        let mut datetime: Value = self.iso8601(Value::from(timestamp));
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
         let mut symbol: Value = self.safe_string_k(marketResolved.clone(), "symbol", &[Value::Str("".into())]);
         let mut fee: Value = Value::Null;
@@ -1291,7 +1291,7 @@ impl BlockchaincomCore {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), tradeId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), datetime);
         m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -1379,7 +1379,7 @@ impl BlockchaincomCore {
         let mut tag: Value = Value::Null;
         let mut address: Value = Value::Null;
         if (rawAddress.is_some()) {
-            let mut addressParts: Value = Value::Array(rawAddress.as_deref().map(|__s| __s.split(";").map(Value::from).collect()).unwrap_or_default());
+            let mut addressParts: Value = Value::Array(if let Some(__s) = rawAddress.as_deref() { __s.split(";").map(Value::from).collect() } else { Vec::new() });
             // if a tag or memo is used it is separated by a colon in the 'address' value
             tag = self.safe_string(addressParts.clone(), Value::Int(0), &[]);
             address = self.safe_string(addressParts, Value::Int(1), &[]);
@@ -1440,7 +1440,7 @@ impl BlockchaincomCore {
         let mut type_var: Value = Value::Null;
         let mut id: Value = Value::Null;
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
-        let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut state: Option<String> = self.safe_string_k_opt(transaction.clone(), "state", &[]);
@@ -1470,8 +1470,8 @@ impl BlockchaincomCore {
         m.insert("info".to_string(), transaction);
         m.insert("id".to_string(), id);
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));

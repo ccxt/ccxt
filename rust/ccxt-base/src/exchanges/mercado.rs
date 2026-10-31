@@ -603,9 +603,9 @@ impl MercadoCore {
             while { if !__for_first_943 { i += 1; } __for_first_943 = false; i < (coins.len() as i64) } {
             let mut coin: Value = self.safe_string(coins.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut baseId: Value = coin.clone();
-            let mut quoteId: Value = Value::Str("BRL".into());
+            let mut quoteId: String = "BRL".to_string();
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-            let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+            let mut quote: Value = self.safe_currency_code(Value::from(quoteId.clone()), &[]);
             if (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
@@ -618,7 +618,7 @@ impl MercadoCore {
                     m.insert("quote".to_string(), quote);
                     m.insert("settle".to_string(), Value::Null);
                     m.insert("baseId".to_string(), baseId.clone());
-                    m.insert("quoteId".to_string(), quoteId);
+                    m.insert("quoteId".to_string(), Value::from(quoteId));
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::Str("spot".into()));
                     m.insert("spot".to_string(), Value::Bool(true));
@@ -793,11 +793,11 @@ impl MercadoCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_timestamp2(trade.clone(), Value::Str("date".into()), Value::Str("executed_timestamp".into()), &[]);
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("tid".into()), Value::Str("operation_id".into()), &[]);
+        let mut id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("tid".into()), Value::Str("operation_id".into()), &[]);
         let mut type_var: Value = Value::Null;
         let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
-        let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("amount".into()), Value::Str("quantity".into()), &[]);
+        let mut amount: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("amount".into()), Value::Str("quantity".into()), &[]);
         let mut feeCost: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_rate", &[]);
         let mut fee: Value = Value::Null;
         if (feeCost.is_some()) {
@@ -810,7 +810,7 @@ impl MercadoCore {
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -820,7 +820,7 @@ impl MercadoCore {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m

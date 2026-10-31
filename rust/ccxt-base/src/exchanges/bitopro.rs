@@ -673,8 +673,8 @@ impl BitoproCore {
         let mut fiatCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".into()), Value::Str("fiatCurrencies".into()), &[Value::from(vec![])]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut deposit: Value = self.safe_bool_k(rawCurrency.clone(), "deposit", &[]);
-        let mut withdraw: Value = self.safe_bool_k(rawCurrency.clone(), "withdraw", &[]);
+        let mut deposit: Option<bool> = self.safe_bool_k_opt(rawCurrency.clone(), "deposit", &[]);
+        let mut withdraw: Option<bool> = self.safe_bool_k_opt(rawCurrency.clone(), "withdraw", &[]);
         let mut isFiat: Value = self.in_array(code.clone(), fiatCurrencies);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -683,9 +683,9 @@ impl BitoproCore {
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("type".to_string(), (if isFiat.as_bool() == Some(true) { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
         m.insert("name".to_string(), Value::Null);
-        m.insert("active".to_string(), (Value::Bool((deposit.as_bool() == Some(true)) && (withdraw.as_bool() == Some(true)))));
-        m.insert("deposit".to_string(), deposit);
-        m.insert("withdraw".to_string(), withdraw);
+        m.insert("active".to_string(), (Value::Bool((deposit == Some(true)) && (withdraw == Some(true)))));
+        m.insert("deposit".to_string(), deposit.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("withdraw".to_string(), withdraw.map(Value::Bool).unwrap_or(Value::Null));
         m.insert("fee".to_string(), self.safe_number_k(rawCurrency.clone(), "withdrawFee", &[]));
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
@@ -737,7 +737,7 @@ impl BitoproCore {
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));
         }
-        let mut uppercaseId: Value = id.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut uppercaseId: String = id.as_deref().map(str::to_uppercase).unwrap_or_default();
         let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quote", &[]);
         let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -777,7 +777,7 @@ impl BitoproCore {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("uppercaseId".to_string(), uppercaseId);
+        m.insert("uppercaseId".to_string(), Value::from(uppercaseId));
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base.clone());
         m.insert("quote".to_string(), quote.clone());
@@ -994,16 +994,16 @@ impl BitoproCore {
         let mut type_var: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "type", &[]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "action", &[]);
         if (side == Value::Null) {
-            let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "isBuyer", &[]);
-            if (isBuyer.as_bool() == Some(true)) {
+            let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
+            if (isBuyer == Some(true)) {
                 side = Value::Str("buy".into());
             }  else {
                 side = Value::Str("sell".into());
             }
         }
-        let mut amount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
-        if (amount == Value::Null) {
-            amount = self.safe_string_k(trade.clone(), "baseAmount", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
+        if (amount.is_none()) {
+            amount = self.safe_string_k_opt(trade.clone(), "baseAmount", &[]);
         }
         let mut fee: Value = Value::Null;
         let mut feeAmount: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
@@ -1017,10 +1017,10 @@ impl BitoproCore {
                 m
             });
         }
-        let mut isTaker: Value = self.safe_bool_k(trade.clone(), "isTaker", &[]);
+        let mut isTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isTaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
-        if (isTaker != Value::Null) {
-            if isTaker.as_bool() == Some(true) {
+        if (isTaker.is_some()) {
+            if isTaker == Some(true) {
                 takerOrMaker = Value::Str("taker".into());
             }  else {
                 takerOrMaker = Value::Str("maker".into());
@@ -1038,7 +1038,7 @@ impl BitoproCore {
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
@@ -1426,14 +1426,14 @@ impl BitoproCore {
         //             "updatedTimestamp":1644899002598
         //         }
         //
-        let mut id: Value = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]);
-        let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("timestamp".into()), Value::Str("createdTimestamp".into()), &[]);
+        let mut id: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("timestamp".into()), Value::Str("createdTimestamp".into()), &[]).as_i64();
         let mut side: Value = self.safe_string_k(order.clone(), "action", &[]);
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOrder() returned no side".into()))));
         }
-        side = side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut amount: Value = self.safe_string2(order.clone(), Value::Str("amount".into()), Value::Str("originalAmount".into()), &[]);
+        side = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut amount: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("amount".into()), Value::Str("originalAmount".into()), &[]);
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "pair", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
@@ -1462,10 +1462,10 @@ impl BitoproCore {
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "updatedTimestamp", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -1474,7 +1474,7 @@ impl BitoproCore {
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
@@ -1522,17 +1522,17 @@ impl BitoproCore {
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
-        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (orderType.as_str() == Some("LIMIT")) {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }
         if (orderType.as_str() == Some("STOP_LIMIT")) {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
-            let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-            if (triggerPrice == Value::Null) {
+            let mut triggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+            if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
             }  else {
-                request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice));
+                request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             }
             let mut condition: Option<String> = self.safe_string_k_opt(params.clone(), "condition", &[]);
             if (condition.is_none()) {
@@ -1968,7 +1968,7 @@ impl BitoproCore {
         //
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         let mut tag: Option<String> = self.safe_string_k_opt(transaction.clone(), "message", &[]);
         let mut status: Option<String> = self.safe_string_k_opt(transaction.clone(), "status", &[]);
@@ -1986,8 +1986,8 @@ impl BitoproCore {
         m.insert("network".to_string(), self.network_id_to_code(&[networkId, code.clone()]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "total", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));

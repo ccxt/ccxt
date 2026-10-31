@@ -363,7 +363,7 @@ impl DeribitCore {
     m
 }));
         self.authenticate(&[params.clone()]).await;
-        let mut messageHash: Value = Value::Str("balance".into());
+        let mut messageHash: String = "balance".to_string();
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut currencies: Value = self.safe_list_k(self.options.clone(), "currencies", &[Value::from(vec![])]);
         let mut channels: Vec<Value> = Vec::new();
@@ -388,7 +388,7 @@ impl DeribitCore {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url, messageHash.clone(), &[request.clone(), messageHash.clone(), request.clone()]).await;
+        return self.watch(url, Value::from(messageHash.clone()), &[request.clone(), Value::from(messageHash.clone()), request.clone()]).await;
 
     Value::Null
 }
@@ -454,8 +454,8 @@ impl DeribitCore {
         if (currencyCode != Value::Null) {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&currencyCode), balance.clone()); }
         }
-        let mut messageHash: Value = Value::Str("balance".into());
-        client.resolve(&[self.balance.clone(), messageHash]);
+        let mut messageHash: String = "balance".to_string();
+        client.resolve(&[self.balance.clone(), Value::from(messageHash)]);
 }
 
 /*
@@ -721,12 +721,12 @@ impl DeribitCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "instrument_name", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "symbol", &[]);
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "best_ask_price", &[]));
         m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "best_ask_amount", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "best_bid_price", &[]));
@@ -828,7 +828,7 @@ impl DeribitCore {
     m
 }) });
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".into())]);
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(1), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1091,7 +1091,7 @@ impl DeribitCore {
             m
         })]);
         let mut channel: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
-        let mut parts: Value = Value::Array(channel.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut descriptor: Value = Value::Str("".into());
         let mut partsLength: f64 = ((parts.len() as i64) as f64);
         let mut isDetailed: bool = partsLength == 5.0;
@@ -1103,7 +1103,7 @@ impl DeribitCore {
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "instrument_name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.counted_order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
@@ -1112,9 +1112,9 @@ impl DeribitCore {
         let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
         self.handle_deltas(storedOrderBook.book_field("asks"), asks);
         self.handle_deltas(storedOrderBook.book_field("bids"), bids);
-        storedOrderBook.set_book_meta("nonce", timestamp.clone());
-        storedOrderBook.set_book_meta("timestamp", timestamp.clone());
-        storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
+        storedOrderBook.set_book_meta("nonce", Value::from(timestamp));
+        storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
+        storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         storedOrderBook.set_book_meta("symbol", symbol.clone());
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), storedOrderBook.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book|".into()), symbol).into()), Value::Str("|".into())).into()), descriptor).into());
@@ -1385,7 +1385,7 @@ impl DeribitCore {
     m
 }) });
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".into())]);
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(2), &[]);
         let mut rawTimeframe: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(3), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1561,7 +1561,7 @@ impl DeribitCore {
         let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut channel: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
         if (channel.is_some()) {
-            let mut parts: Value = Value::Array(channel.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
             let mut channelId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             let mut userHandlers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1615,8 +1615,8 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut messageHash: Value = Value::Str("authenticated".into());
-        client.resolve(&[message.clone(), messageHash]);
+        let mut messageHash: String = "authenticated".to_string();
+        client.resolve(&[message.clone(), Value::from(messageHash)]);
         return message;
 
     Value::Null
@@ -1638,7 +1638,7 @@ impl DeribitCore {
         if (future == Value::Null) {
             self.check_required_credentials(&[]);
             let mut requestId: Value = self.request_id();
-            let mut lineBreak: Value = Value::Str("\n".into()); // eslint-disable-line quotes
+            let mut lineBreak: String = "\n".to_string();
             let mut signature: Value = self.hmac(self.encode(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timeString, lineBreak).into()), nonce).into()), lineBreak).into())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

@@ -891,11 +891,11 @@ impl BitsoCore {
             while { if !__for_first_419 { i += 1; } __for_first_419 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "book", &[]);
-            let mut parts: Value = Value::Array(id.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]);
             let mut quoteId: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
-            let mut base: Value = self.safe_currency_code(baseId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), &[]);
-            let mut quote: Value = self.safe_currency_code(quoteId.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), &[]);
+            let mut base: Value = self.safe_currency_code((if let Some(__s) = baseId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]);
+            let mut quote: Value = self.safe_currency_code((if let Some(__s) = quoteId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]);
             if (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
@@ -2176,20 +2176,20 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut address: Value = self.safe_string_k(payload, "account_identifier", &[]);
+        let mut address: Option<String> = self.safe_string_k_opt(payload, "account_identifier", &[]);
         let mut tag: Value = Value::Null;
-        if Value::Int(address.as_str().and_then(|__s| __s.find("?dt=")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-            let mut parts: Value = Value::Array(address.as_str().map(|__s| __s.split("?dt=").map(Value::from).collect()).unwrap_or_default());
-            address = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        if address.as_deref().unwrap_or("").contains("?dt=") {
+            let mut parts: Value = Value::Array(if let Some(__s) = address.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() });
+            address = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             tag = self.safe_string(parts, Value::Int(1), &[]);
         }
-        self.check_address(&[address.clone()]);
+        self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address);
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tag);
     m
 });
@@ -2621,8 +2621,8 @@ impl BitsoCore {
         //         }
         //     }
         //
-        let mut currencyId: Value = self.safe_string2(transaction.clone(), Value::Str("currency".into()), Value::Str("asset".into()), &[]);
-        let mut currencyResolved: Value = self.safe_currency(currencyId.clone(), &[currency]);
+        let mut currencyId: Option<String> = self.safe_string2_opt(transaction.clone(), Value::Str("currency".into()), Value::Str("asset".into()), &[]);
+        let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut details: Value = self.safe_dict_k(transaction.clone(), "details", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2630,11 +2630,11 @@ impl BitsoCore {
         let mut datetime: Option<String> = self.safe_string_k_opt(transaction.clone(), "created_at", &[]);
         let mut withdrawalAddress: Value = self.safe_string_k(details.clone(), "withdrawal_address", &[]);
         let mut receivingAddress: Value = self.safe_string_k(details.clone(), "receiving_address", &[]);
-        let mut networkId: Value = self.safe_string2(transaction.clone(), Value::Str("network".into()), Value::Str("method".into()), &[]);
+        let mut networkId: Option<String> = self.safe_string2_opt(transaction.clone(), Value::Str("network".into()), Value::Str("method".into()), &[]);
         let mut status: Option<String> = self.safe_string_k_opt(transaction.clone(), "status", &[]);
         let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "wid", &[]).as_str().map(str::to_owned);
-        let mut networkCode: Value = self.network_id_to_code(&[networkId, self.safe_string_k(currencyResolved.clone(), "code", &[])]);
-        let mut networkCodeUpper: Value = (if (networkCode != Value::Null) { networkCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null) } else { Value::Null });
+        let mut networkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(currencyResolved.clone(), "code", &[])]);
+        let mut networkCodeUpper: Value = (if (networkCode != Value::Null) { (if let Some(__s) = networkCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("wid".into()), Value::Str("fid".into()), &[]));
@@ -2647,7 +2647,7 @@ impl BitsoCore {
         m.insert("addressTo".to_string(), withdrawalAddress);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("type".to_string(), (if (withdrawId.is_none()) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) }));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currencyResolved]));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currencyResolved]));
         m.insert("status".to_string(), self.parse_transaction_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
@@ -2745,8 +2745,8 @@ impl BitsoCore {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
-            let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]);
-            if !(success.as_bool() == Some(true)) {
+            let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
+            if !(success) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
                 let mut error: Value = self.safe_dict_k(response, "error", &[]);
                 if (error == Value::Null) {

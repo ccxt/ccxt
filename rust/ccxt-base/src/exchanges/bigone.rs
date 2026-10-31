@@ -933,8 +933,8 @@ impl BigoneCore {
             let mut chain: Value = chains.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(chain.clone(), "gateway_name", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
-            let mut deposit: Value = self.safe_bool_k(chain.clone(), "is_deposit_enabled", &[]);
-            let mut withdraw: Value = self.safe_bool_k(chain.clone(), "is_withdrawal_enabled", &[]);
+            let mut deposit: Option<bool> = self.safe_bool_k_opt(chain.clone(), "is_deposit_enabled", &[]);
+            let mut withdraw: Option<bool> = self.safe_bool_k_opt(chain.clone(), "is_withdrawal_enabled", &[]);
             let mut minDepositAmount: Option<String> = self.safe_string_k_opt(chain.clone(), "min_deposit_amount", &[]);
             let mut minWithdrawalAmount: Option<String> = self.safe_string_k_opt(chain.clone(), "min_withdrawal_amount", &[]);
             let mut withdrawalFee: Option<String> = self.safe_string_k_opt(chain.clone(), "withdrawal_fee", &[]);
@@ -945,8 +945,8 @@ impl BigoneCore {
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("margin".to_string(), Value::Null);
-        m.insert("deposit".to_string(), deposit);
-        m.insert("withdraw".to_string(), withdraw);
+        m.insert("deposit".to_string(), deposit.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("withdraw".to_string(), withdraw.map(Value::Bool).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.parse_number(withdrawalFee.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("precision".to_string(), self.parse_number(precision, &[]));
@@ -1193,7 +1193,7 @@ impl BigoneCore {
                 continue;
             }
             let mut settle: Value = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut inverse: Value = self.safe_bool_k(market.clone(), "isInverse", &[]);
+            let mut inverse: Option<bool> = self.safe_bool_k_opt(market.clone(), "isInverse", &[]);
             result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -1212,8 +1212,8 @@ impl BigoneCore {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "enable", &[]));
         m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), (Value::Bool(inverse.as_bool() != Some(true))));
-        m.insert("inverse".to_string(), inverse);
+        m.insert("linear".to_string(), (Value::Bool(inverse != Some(true))));
+        m.insert("inverse".to_string(), inverse.map(Value::Bool).unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "multiplier", &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1311,13 +1311,13 @@ impl BigoneCore {
         //        "openInterest": 1141372.0
         //    }
         //
-        let mut marketType: Value = Value::Str("swap".into());
+        let mut marketType: String = "swap".to_string();
         if (self.safe_string_k(ticker.clone(), "asset_pair_name", &[]) != Value::Null) {
-            marketType = Value::Str("spot".into());
+            marketType = "spot".to_string();
         }
-        let mut marketId: Value = self.safe_string2(ticker.clone(), Value::Str("asset_pair_name".into()), Value::Str("symbol".into()), &[]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("-".into()), marketType]);
-        let mut close: Value = self.safe_string2(ticker.clone(), Value::Str("close".into()), Value::Str("latestPrice".into()), &[]);
+        let mut marketId: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("asset_pair_name".into()), Value::Str("symbol".into()), &[]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("-".into()), Value::from(marketType)]);
+        let mut close: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("close".into()), Value::Str("latestPrice".into()), &[]);
         let mut bid: Value = self.safe_dict_k(ticker.clone(), "bid", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1339,8 +1339,8 @@ impl BigoneCore {
         m.insert("askVolume".to_string(), self.safe_string_k(ask, "quantity", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "open", &[]));
-        m.insert("close".to_string(), close.clone());
-        m.insert("last".to_string(), close);
+        m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("last".to_string(), close.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "daily_change", &[]));
         m.insert("percentage".to_string(), Value::Null);
@@ -2055,13 +2055,13 @@ impl BigoneCore {
         }  else {
             side = Value::Str("sell".into());
         }
-        let mut triggerPrice: Value = self.safe_string_k(order.clone(), "stop_price", &[]);
-        if crate::precise::Precise::stringEq(&triggerPrice, &Value::Str("0".into())).as_bool() == Some(true) {
-            triggerPrice = Value::Null;
+        let mut triggerPrice: Option<String> = self.safe_string_k_opt(order.clone(), "stop_price", &[]);
+        if crate::precise::Precise::stringEq(&triggerPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            triggerPrice = None;
         }
-        let mut immediateOrCancel: Value = self.safe_bool_k(order.clone(), "immediate_or_cancel", &[]);
+        let mut immediateOrCancel: Option<bool> = self.safe_bool_k_opt(order.clone(), "immediate_or_cancel", &[]);
         let mut timeInForce: Value = Value::Null;
-        if (immediateOrCancel.as_bool() == Some(true)) {
+        if (immediateOrCancel == Some(true)) {
             timeInForce = Value::Str("IOC".into());
         }
         let mut type_var: Value = self.parse_type(self.safe_string_k(order.clone(), "type", &[])).map(Value::from).unwrap_or(Value::Null);
@@ -2089,7 +2089,7 @@ impl BigoneCore {
         m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "post_only", &[]));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), triggerPrice);
+        m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avg_deal_price", &[]));
@@ -2164,21 +2164,21 @@ impl BigoneCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut isBuy: bool = side.as_str() == Some("buy");
-        let mut requestSide: Value = Value::Str("ASK".into());
+        let mut requestSide: String = "ASK".to_string();
         if isBuy {
-            requestSide = Value::Str("BID".into());
+            requestSide = "BID".to_string();
         }
-        let mut uppercaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut isLimit: bool = uppercaseType.as_str() == Some("LIMIT");
         let mut exchangeSpecificParam: Value = self.safe_bool_k(params.clone(), "post_only", &[Value::Bool(false)]);
         let mut postOnly: Value = Value::Null;
         let mut query: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(uppercaseType.as_str() == Some("MARKET")), exchangeSpecificParam, &[params]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut triggerPrice: Value = self.safe_string_n(query.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
+        let mut triggerPrice: Option<String> = self.safe_string_n_opt(query.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_pair_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("side".to_string(), requestSide);
+                m.insert("side".to_string(), Value::from(requestSide));
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
             m
         });
@@ -2217,8 +2217,8 @@ impl BigoneCore {
                 request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount));
             }
         }
-        if (triggerPrice != Value::Null) {
-            request.insert("stop_price".into(), self.price_to_precision(symbol, triggerPrice));
+        if (triggerPrice.is_some()) {
+            request.insert("stop_price".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             request.insert("operator".into(), (if isBuy { Value::Str("GTE".into()) } else { Value::Str("LTE".into()) }));
             if isLimit {
                 uppercaseType = Value::Str("STOP_LIMIT".into());
@@ -2843,11 +2843,11 @@ impl BigoneCore {
         let mut txid: Option<String> = self.safe_string_k_opt(transaction.clone(), "txid", &[]);
         let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "target_address", &[]);
         let mut tag: Option<String> = self.safe_string_k_opt(transaction.clone(), "memo", &[]);
-        let mut type_var: Value = Value::Str("deposit".into());
+        let mut type_var: String = "deposit".to_string();
         if (self.safe_string_k(transaction.clone(), "customer_id", &[]) != Value::Null) {
-            type_var = Value::Str("withdrawal".into());
+            type_var = "withdrawal".to_string();
         }
-        let mut internal: Value = self.safe_bool_k(transaction.clone(), "is_internal", &[]);
+        let mut internal: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "is_internal", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
@@ -2862,14 +2862,14 @@ impl BigoneCore {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagTo".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);
         m.insert("updated".to_string(), updated);
         m.insert("fee".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
-        m.insert("internal".to_string(), internal);
+        m.insert("internal".to_string(), internal.map(Value::Bool).unwrap_or(Value::Null));
     m
 });
 
@@ -3052,8 +3052,8 @@ impl BigoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if fillResponseFromRequest.as_bool() == Some(true) {
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
+        if fillResponseFromRequest {
             if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
             if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }
             if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }

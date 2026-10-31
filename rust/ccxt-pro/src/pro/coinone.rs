@@ -368,7 +368,7 @@ impl CoinoneCore {
             return;
         }
         let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
-        let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
             orderbook = self.order_book(&[]);
@@ -380,8 +380,8 @@ impl CoinoneCore {
         let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids);
-        orderbook.set_book_meta("timestamp", timestamp.clone());
-        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+        orderbook.set_book_meta("timestamp", Value::from(timestamp));
+        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         client.resolve(&[orderbook, messageHash]);
@@ -503,7 +503,7 @@ impl CoinoneCore {
         //         "yesterday_target_volume": "220.09232233"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(ticker.clone(), "target_currency", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(ticker.clone(), "quote_currency", &[]);
@@ -516,8 +516,8 @@ impl CoinoneCore {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_number_k(ticker.clone(), "bid_best_price", &[]));
@@ -644,12 +644,12 @@ impl CoinoneCore {
         if (base != Value::Null) && (quote != Value::Null) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         }
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut marketResolved: Value = self.safe_market(&[symbol, market]);
-        let mut isSellerMaker: Value = self.safe_bool_k(trade.clone(), "is_seller_maker", &[]);
+        let mut isSellerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_seller_maker", &[]);
         let mut side: Value = Value::Null;
-        if (isSellerMaker != Value::Null) {
-            side = (if isSellerMaker.as_bool() == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+        if (isSellerMaker.is_some()) {
+            side = (if isSellerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         }
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "qty", &[]);
@@ -657,8 +657,8 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
         m.insert("info".to_string(), trade);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("order".to_string(), Value::Null);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);

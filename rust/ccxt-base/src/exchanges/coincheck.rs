@@ -646,7 +646,7 @@ impl CoincheckCore {
         //     }
         //
         let mut exchangeStatuses: Value = self.safe_list_k(response.clone(), "exchange_status", &[Value::from(vec![])]);
-        let mut status: Value = Value::Str("ok".into());
+        let mut status: String = "ok".to_string();
         let mut updated: Value = Value::Null;
         {
                         let mut i: i64 = 0;
@@ -658,13 +658,13 @@ impl CoincheckCore {
                 updated = self.safe_timestamp_k(exchangeStatus, "timestamp", &[]);
             }
             if (rawStatus.as_deref() != Some("available")) {
-                status = Value::Str("maintenance".into());
+                status = "maintenance".to_string();
             }
         }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status.clone()));
         m.insert("updated".to_string(), updated);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1565,8 +1565,8 @@ impl CoincheckCore {
         //     {"success":false,"error":"disabled API Key"}'
         //     {"success":false,"error":"invalid authentication"}
         //
-        let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
-        if !(success.as_bool() == Some(true)) {
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
+        if !(success) {
             let mut error: Option<String> = self.safe_string_k_opt(response.clone(), "error", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), feedback.clone());

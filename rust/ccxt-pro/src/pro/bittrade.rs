@@ -386,7 +386,7 @@ impl BittradeCore {
         if (ch.is_none()) {
             return message;
         }
-        let mut parts: Value = Value::Array(ch.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = ch.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut ticker: Value = self.parse_ticker(tick, &[market]);
@@ -508,7 +508,7 @@ impl BittradeCore {
         if (ch.is_none()) {
             return message;
         }
-        let mut parts: Value = Value::Array(ch.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = ch.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -628,7 +628,7 @@ impl BittradeCore {
         if (ch == Value::Null) {
             return;
         }
-        let mut parts: Value = Value::Array(ch.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = ch.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -775,7 +775,7 @@ impl BittradeCore {
         let mut messageHash: Option<String> = self.safe_string_k_opt(subscription.clone(), "messageHash", &[]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
-            let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
+            let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[]).as_i64();
             let mut params: indexmap::IndexMap<String, Value> = self.safe_dict_k(subscription, "params", &[]).as_map().cloned().unwrap_or_default();
             let mut api: Value = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]);
             let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
@@ -810,7 +810,7 @@ impl BittradeCore {
                     m.insert("id".to_string(), requestId.clone());
                     m.insert("messageHash".to_string(), messageHash.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("limit".to_string(), limit.clone());
+                    m.insert("limit".to_string(), Value::from(limit));
                     m.insert("params".to_string(), Value::Map(params));
                     m.insert("method".to_string(), Value::Str("handle_order_book_snapshot".into()).clone());
                 m
@@ -911,7 +911,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (ch.is_none()) {
             return;
         }
-        let mut parts: Value = Value::Array(ch.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = ch.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol, &[]);
@@ -1011,7 +1011,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (ch.is_none()) {
             return;
         }
-        let mut parts: Value = Value::Array(ch.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = ch.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut type_var: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("market")) {
             let mut methodName: Option<String> = self.safe_string_opt(parts, Value::Int(2), &[]);

@@ -458,7 +458,7 @@ impl IndependentreserveCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let depth: String = self.safe_string_opt(parts.clone(), Value::Int(1), &[Value::Str("".into())]).unwrap_or_default();
         let mut baseId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(2), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(parts, Value::Int(3), &[]);
