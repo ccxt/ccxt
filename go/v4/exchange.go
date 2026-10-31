@@ -164,7 +164,7 @@ type BaseExchange struct {
 	Trades         TradesCache
 	Tickers        TickerCache
 	Orders         WsArrayCache // cache object, not a map
-	MyTrades       any          // *ArrayCache  // cache object, not a map
+	MyTrades       WsArrayCache // cache object, not a map
 	Orderbooks     OrderBookCache
 	Liquidations   any // *ArrayCacheBySymbolBySide
 	FundingRates   map[string]any
