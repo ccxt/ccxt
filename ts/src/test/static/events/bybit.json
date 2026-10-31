@@ -1,0 +1,256 @@
+[
+	{
+		"info": {
+			"symbolId": 5000623,
+			"symbol": "ETHUSDT-20SEP26-2520-BELOW",
+			"baseCoin": "ETH",
+			"quoteCoin": "USDT",
+			"settleCoin": "USDT",
+			"eventContractType": "Target",
+			"durationWindow": 0,
+			"rvThreshold": "0.62",
+			"rebate": "0.2",
+			"takerFeeRate": "0.045",
+			"makerFeeRate": "0",
+			"launchTime": "1789714380000",
+			"deliveryTime": "1789891200000",
+			"status": "Trading",
+			"targetPrice": "2520",
+			"lowerBound": "0",
+			"upperBound": "0",
+			"callOptionSymbolId": 0,
+			"putOptionSymbolId": 429434,
+			"feeRateRule": [
+				{
+					"minSecToDelivery": 0,
+					"maxSecToDelivery": 259200,
+					"baseMarkup": "0.12"
+				},
+				{
+					"minSecToDelivery": 259200,
+					"maxSecToDelivery": 315360000,
+					"baseMarkup": "0.09"
+				}
+			],
+			"quotationLimit": [
+				{
+					"minSecToDelivery": 0,
+					"maxSecToDelivery": 259200,
+					"quoteMaxAmountPerUser": "10000000",
+					"quoteMinAmountPerUser": "5000",
+					"quoteMinAmount": "500"
+				},
+				{
+					"minSecToDelivery": 259200,
+					"maxSecToDelivery": 315360000,
+					"quoteMaxAmountPerUser": "10000000",
+					"quoteMinAmountPerUser": "3000",
+					"quoteMinAmount": "500"
+				}
+			],
+			"lotSizeFilter": {
+				"minOrderAmount": "5",
+				"maxOrderAmount": "500",
+				"orderAmountTickSize": "1",
+				"quoteMaxValidMs": 300000,
+				"quoteMinIntervalPerUserMs": 5000
+			}
+		},
+		"id": "ETHUSDT-20SEP26-2520",
+		"event": "ETHUSDT-20SEP26-2520",
+		"slug": "ETHUSDT-20SEP26-2520",
+		"title": "ETHUSDT-20SEP26-2520",
+		"markets": [
+			{
+				"id": "ETHUSDT-20SEP26-2520-BELOW",
+				"market": "ETHUSDT-20SEP26-2520-BELOW",
+				"event": "ETHUSDT-20SEP26-2520",
+				"base": "ETH",
+				"quote": "USDT",
+				"settle": "USDT",
+				"baseId": "ETH",
+				"quoteId": "USDT",
+				"settleId": "USDT",
+				"type": "prediction",
+				"marketType": "binary",
+				"executionModel": "quote",
+				"spot": false,
+				"margin": false,
+				"swap": false,
+				"future": false,
+				"option": false,
+				"prediction": true,
+				"active": true,
+				"resolved": false,
+				"resolvedOutcome": null,
+				"contract": false,
+				"linear": null,
+				"inverse": null,
+				"contractSize": null,
+				"expiry": 1789891200000,
+				"expiryDatetime": "2026-09-19T00:00:00.000Z",
+				"strike": 2520,
+				"optionType": null,
+				"taker": 0.045,
+				"maker": 0,
+				"percentage": true,
+				"tierBased": false,
+				"feeSide": "quote",
+				"precision": {
+					"amount": 1,
+					"price": null
+				},
+				"limits": {
+					"leverage": {
+						"min": 1,
+						"max": 1
+					},
+					"amount": {
+						"min": 5,
+						"max": 500
+					},
+					"price": {
+						"min": 0,
+						"max": 1
+					},
+					"cost": {
+						"min": null,
+						"max": null
+					}
+				},
+				"outcomes": [
+					{
+						"id": "5000623",
+						"outcomeId": "5000623",
+						"outcome": "ETHUSDT-20SEP26-2520-BELOW:BELOW",
+						"market": "ETHUSDT-20SEP26-2520-BELOW",
+						"event": "ETHUSDT-20SEP26-2520",
+						"label": "BELOW",
+						"active": true,
+						"winner": null,
+						"settleFraction": null,
+						"precision": {
+							"amount": 1,
+							"price": null
+						},
+						"info": {
+							"symbolId": 5000623,
+							"symbol": "ETHUSDT-20SEP26-2520-BELOW",
+							"baseCoin": "ETH",
+							"quoteCoin": "USDT",
+							"settleCoin": "USDT",
+							"eventContractType": "Target",
+							"durationWindow": 0,
+							"rvThreshold": "0.62",
+							"rebate": "0.2",
+							"takerFeeRate": "0.045",
+							"makerFeeRate": "0",
+							"launchTime": "1789714380000",
+							"deliveryTime": "1789891200000",
+							"status": "Trading",
+							"targetPrice": "2520",
+							"lowerBound": "0",
+							"upperBound": "0",
+							"callOptionSymbolId": 0,
+							"putOptionSymbolId": 429434,
+							"feeRateRule": [
+								{
+									"minSecToDelivery": 0,
+									"maxSecToDelivery": 259200,
+									"baseMarkup": "0.12"
+								},
+								{
+									"minSecToDelivery": 259200,
+									"maxSecToDelivery": 315360000,
+									"baseMarkup": "0.09"
+								}
+							],
+							"quotationLimit": [
+								{
+									"minSecToDelivery": 0,
+									"maxSecToDelivery": 259200,
+									"quoteMaxAmountPerUser": "10000000",
+									"quoteMinAmountPerUser": "5000",
+									"quoteMinAmount": "500"
+								},
+								{
+									"minSecToDelivery": 259200,
+									"maxSecToDelivery": 315360000,
+									"quoteMaxAmountPerUser": "10000000",
+									"quoteMinAmountPerUser": "3000",
+									"quoteMinAmount": "500"
+								}
+							],
+							"lotSizeFilter": {
+								"minOrderAmount": "5",
+								"maxOrderAmount": "500",
+								"orderAmountTickSize": "1",
+								"quoteMaxValidMs": 300000,
+								"quoteMinIntervalPerUserMs": 5000
+							}
+						}
+					}
+				],
+				"info": {
+					"symbolId": 5000623,
+					"symbol": "ETHUSDT-20SEP26-2520-BELOW",
+					"baseCoin": "ETH",
+					"quoteCoin": "USDT",
+					"settleCoin": "USDT",
+					"eventContractType": "Target",
+					"durationWindow": 0,
+					"rvThreshold": "0.62",
+					"rebate": "0.2",
+					"takerFeeRate": "0.045",
+					"makerFeeRate": "0",
+					"launchTime": "1789714380000",
+					"deliveryTime": "1789891200000",
+					"status": "Trading",
+					"targetPrice": "2520",
+					"lowerBound": "0",
+					"upperBound": "0",
+					"callOptionSymbolId": 0,
+					"putOptionSymbolId": 429434,
+					"feeRateRule": [
+						{
+							"minSecToDelivery": 0,
+							"maxSecToDelivery": 259200,
+							"baseMarkup": "0.12"
+						},
+						{
+							"minSecToDelivery": 259200,
+							"maxSecToDelivery": 315360000,
+							"baseMarkup": "0.09"
+						}
+					],
+					"quotationLimit": [
+						{
+							"minSecToDelivery": 0,
+							"maxSecToDelivery": 259200,
+							"quoteMaxAmountPerUser": "10000000",
+							"quoteMinAmountPerUser": "5000",
+							"quoteMinAmount": "500"
+						},
+						{
+							"minSecToDelivery": 259200,
+							"maxSecToDelivery": 315360000,
+							"quoteMaxAmountPerUser": "10000000",
+							"quoteMinAmountPerUser": "3000",
+							"quoteMinAmount": "500"
+						}
+					],
+					"lotSizeFilter": {
+						"minOrderAmount": "5",
+						"maxOrderAmount": "500",
+						"orderAmountTickSize": "1",
+						"quoteMaxValidMs": 300000,
+						"quoteMinIntervalPerUserMs": 5000
+					}
+				},
+				"created": 1789714380000
+			}
+		],
+		"active": true,
+		"resolved": false
+	}
+]
