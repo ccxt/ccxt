@@ -3913,7 +3913,6 @@ func (this *Bitstamp) withdrawBody(ch chan AsyncResult[Transaction], code string
 	// Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTag *string = nil
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	if this.Markets() == nil {
 

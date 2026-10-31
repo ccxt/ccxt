@@ -5802,7 +5802,6 @@ func (this *Xt) withdrawBody(ch chan AsyncResult[Transaction], code string, amou
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var tagWithdrawTag *string = nil
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
