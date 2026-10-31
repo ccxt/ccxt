@@ -603,8 +603,11 @@ class BaseExchange(SyncExchange):
             # connection closed by the user or due to an error
             pass
         else:
-            # server disconnected a working connection
-            if client.url in self.clients:
+            # server disconnected a working connection: only unregister
+            # the client that actually closed, a stale on_close for an
+            # already-replaced URL must not unregister the replacement
+            # client created for the same URL in the meantime (#31073)
+            if self.clients.get(client.url) is client:
                 del self.clients[client.url]
 
     async def close_ws_clients(self):
