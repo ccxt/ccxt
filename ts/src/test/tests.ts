@@ -3734,10 +3734,53 @@ class testMainClass {
             reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
+        // the exchange only accepts a 13 digit signature timestamp, in milliseconds
+        const orderRequest = jsonParse (exchange.last_request_body);
+        const signatureTimestamp = exchange.safeString (orderRequest, 'signature_timestamp');
+        assert ((signatureTimestamp as string).length === 13, 'paradex - signature_timestamp ' + signatureTimestamp + ' is not in milliseconds');
+        // orders the exchange would reject are refused before anything is sent
+        assert (await this.paradexOrderNotSent (exchange, 'limit', 20000, { 'timeInForce': 'FOK', 'clientOrderId': 'fokOrder' }), 'paradex - FOK order was sent');
+        assert (await this.paradexOrderNotSent (exchange, 'limit', 20000, { 'timeInForce': 'GTD', 'clientOrderId': 'gtdOrder' }), 'paradex - GTD order was sent');
+        assert (await this.paradexOrderNotSent (exchange, 'market', undefined, { 'timeInForce': 'RPI', 'clientOrderId': 'marketRpiOrder' }), 'paradex - market RPI order was sent');
+        assert (await this.paradexOrderNotSent (exchange, 'limit', 20000, { 'triggerPrice': 19000, 'postOnly': true, 'clientOrderId': 'triggerPostOnlyOrder' }), 'paradex - trigger post only order was sent');
+        assert (await this.paradexOrderNotSent (exchange, 'limit', 20000, { 'stopLossPrice': 19000, 'timeInForce': 'RPI', 'clientOrderId': 'stopLossRpiOrder' }), 'paradex - stop loss RPI order was sent');
+        // setMarginMode without a leverage keeps the current one instead of resetting it to 1x
+        setFetchResponse (exchange, { 'configs': [ { 'market': 'BTC-USD-PERP', 'leverage': 7, 'margin_type': 'CROSS' } ] });
+        const marginArgs = [ 'cross', 'BTC/USD:USDC' ];
+        try {
+            if (!isSync ()) {
+                await callExchangeMethodDynamically (exchange, 'setMarginMode', marginArgs);
+            } else {
+                callExchangeMethodDynamicallySync (exchange, 'setMarginMode', marginArgs);
+            }
+        } catch (e) {
+            assert (false, 'paradex - setMarginMode failed on a mocked response: ' + exceptionMessage (e));
+        }
+        setFetchResponse (exchange, undefined);
+        const marginRequest = jsonParse (exchange.last_request_body);
+        const leverage = exchange.safeInteger (marginRequest, 'leverage');
+        assert (leverage === 7, 'paradex - setMarginMode sent leverage ' + exchange.safeString (marginRequest, 'leverage') + ' instead of the current 7');
         if (!isSync ()) {
             await close (exchange);
         }
         return true;
+    }
+
+    async paradexOrderNotSent (exchange: any, type: string, price: any, params: Dict) {
+        let notSent = false;
+        const args = [ 'BTC/USD:USDC', type, 'buy', 1, price, params ];
+        try {
+            if (!isSync ()) {
+                await callExchangeMethodDynamically (exchange, 'createOrder', args);
+            } else {
+                callExchangeMethodDynamicallySync (exchange, 'createOrder', args);
+            }
+        } catch (e) {
+            // refused locally, or failed on the offline proxy after being sent
+            const lastRequest = jsonParse (exchange.last_request_body);
+            notSent = exchange.safeString (lastRequest, 'client_id') !== exchange.safeString (params, 'clientOrderId');
+        }
+        return notSent;
     }
 
     async testHashkey () {
