@@ -4046,7 +4046,7 @@ public class BaseExchange {
         return (String)str;
     }
 
-    public Object binaryToBase58(Object buff2) {
+    public String binaryToBase58(Object buff2) {
         // bitcoin-alphabet base58, mirrors TS `binaryToBase58 = base58.encode` (@scure/base);
         // used by pacifica request signing — must NOT be hex
         return Encode.binaryToBase58(buff2);

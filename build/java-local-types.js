@@ -428,7 +428,7 @@ for (const name of JAVA_STRING_RETURN_METHODS_CAST) {
 // venue file and never classify — no ts/src file outside base/ declares any of them).
 export const JAVA_STRING_HELPER_PLAIN = new Set ([
     'json', 'urlencode', 'urlencodeNested', 'urlencodeWithArrayRepeat', 'urlencodeBase64',
-    'rawencode', 'stringToBase64', 'binaryToBase64', 'binaryToBase16', 'intToBase16',
+    'rawencode', 'stringToBase64', 'binaryToBase64', 'binaryToBase58', 'binaryToBase16', 'intToBase16',
     'jwt', 'rsa', 'totp', 'decode', 'uuid', 'uuidv1', 'uuid16', 'uuid22', 'uuid5',
     'capitalize', 'numberToString', 'decimalToPrecision',
 ]);
@@ -461,7 +461,7 @@ export function isGuardedStringHelper (name) {
 
 // hx11 M510: base helpers declared `byte[]` in the hand-written Java base (BaseExchange.base64ToBinary
 // returns Encode.base64ToBinary's byte[] on every path). Declaration-only retype of the local.
-export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'base64ToBinary' ]);
+export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'base64ToBinary', 'base58ToBinary' ]);
 
 // the only consumers a byte[] local may feed: this.<m>(..) whose Java parameters are all Object,
 // so the static type change binds the same overload
@@ -547,6 +547,7 @@ const LOCAL_THIS_RETURN_TYPES = {
     'parseNumber': { type: 'Double' },
     'iso8601': { type: 'String' },
     'base64ToBinary': { type: 'byte[]' },
+    'base58ToBinary': { type: 'byte[]' },
     'safeInteger2': { type: 'Long', cast: '(Long)' },
     'safeSymbol': { type: 'String', cast: '(String)' },
     'safeCurrencyCode': { type: 'String', cast: '(String)' },
@@ -571,6 +572,7 @@ const LOCAL_THIS_RETURN_TYPES = {
     'rawencode': { type: 'String' },
     'stringToBase64': { type: 'String' },
     'binaryToBase64': { type: 'String' },
+    'binaryToBase58': { type: 'String' },
     'binaryToBase16': { type: 'String' },
     'intToBase16': { type: 'String' },
     'jwt': { type: 'String' },
