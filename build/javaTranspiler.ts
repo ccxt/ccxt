@@ -46,7 +46,6 @@ import { nativeJavaBF02FieldOps, bf02SelfTest } from './hx10w4-BF02.js'; // hx10
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
 import { nativeJavaJ05, j05FamilySelfTest } from './hx10w2-J05.js';
-import { nativeJavaJ09SwitchBlobs, j09SelfTest } from './hx10w6-J09.js'; // hx10 wave-6 J09
 import { hx10w10JO01, jo01SelfTest } from './hx10w10-JO01.js'; // hx10 wave-10 JO01
 
 ansi.nice
@@ -76,7 +75,6 @@ function overwriteFileAndFolder(path: string, content: string) {
         content = nativeJavaStringAdd(content);
         content = applyJavaImports(path.includes('/java/lib/') ? nativeJavaJ44(nativeJavaJ43(nativeJavaJ42(nativeJavaJ41(nativeJavaJ40(content))))) : content); // hx4 J40
         content = nativeJavaBF02FieldOps(content); // hx10 w4 BF02
-        content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
         if (path.includes('/java/lib/')) { content = hx11w8PaginationCursorPuts(content); } // hx11 w8 pagination cursor, after the final element-write passes
     }
     overwriteFile(path, content);
@@ -1852,6 +1850,7 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
         return;
     }
     const emittedStringLocals = new WeakSet<any> ();
+    const emittedLongLocals = new WeakSet<any> ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node: any, identation: number) {
         const printed = upstream (node, identation);
@@ -1868,6 +1867,10 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
                             && lines.some ((line: string) => line.startsWith (`String ${printer.printNode (element.name, 0)} = `))) {
                             emittedStringLocals.add (element);
                         }
+                        if (element.kind === ts.SyntaxKind.BindingElement && element.name?.kind === ts.SyntaxKind.Identifier
+                            && lines.some ((line: string) => line.startsWith (`Long ${printer.printNode (element.name, 0)} = `))) {
+                            emittedLongLocals.add (element);
+                        }
                     }
                 }
                 if (declaration.name?.kind === ts.SyntaxKind.Identifier && declaration.initializer !== undefined) {
@@ -1883,6 +1886,11 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
                             emittedStringLocals.add (declaration);
                         }
                     }
+                    const longMarker = `${printer.getIden (identation)}Long ${printer.printNode (declaration.name, 0)} = `;
+                    const longAt = printed.lastIndexOf (longMarker);
+                    if (longAt !== -1 && (longAt === 0 || printed.charAt (longAt - 1) === '\n')) {
+                        emittedLongLocals.add (declaration);
+                    }
                 }
             }
         } catch (e) {
@@ -1891,6 +1899,11 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
         return printed;
     };
     printer.javaExpressionTypeResolver = (node: any) => javaPrintedExpressionType (printer, emittedStringLocals, node);
+    // a use of a local whose final declaration prints the nullable box `Long <name> = `
+    printer.javaBoxedLongResolver = (node: any) => {
+        const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+        return declaration !== undefined && emittedLongLocals.has (declaration) && String (node.text) === String (declaration.name?.text);
+    };
     printer._javaExpressionTypeResolverInstalled = true;
 }
 
@@ -5887,7 +5900,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j03FamilySelfTest(), j05FamilySelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j03FamilySelfTest(), j05FamilySelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7607,7 +7620,6 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = nativeJavaBF02FieldOps(content); // hx10 w4 BF02
     content = nativeJavaJ05(content); // hx10w2 J05
     content = hx11w8CacheFieldCasts(j01wsNativeOps(content)); // hx10 wave-3 J01
-    content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
     return content;
 }
 
