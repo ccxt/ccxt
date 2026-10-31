@@ -2965,7 +2965,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
             // `((java.util.Map<?, ?>)this.<map>).get(key)` shape when the field is one of
             // javaTranspiler's JAVA_FIELD_TYPES; `this.safeValue*(this.<map>, key)` prints itself
             const prefixes = ts.isElementAccessExpression (initializer)
-                ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.', '((java.util.Map<String, Object>) this.ohlcvs.get(' ] : [ 'this.' ];
+                ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.' ] : [ 'this.' ];
             return { type: readType, cast: '(' + readType + ')', valuePrefixes: prefixes, skipInheritedAsyncGuard: true };
         }
         const checkerType = wsCheckerLocalType (printer, initializer);
