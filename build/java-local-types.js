@@ -12293,7 +12293,9 @@ function nullScalarWriteType (printer, node) {
         return 'null';
     }
     if (ts.isIdentifier (value)) {
-        return handleTypedBindingReadType (printer, value); // an element binding section 4/28 typed
+        // an element binding section 4/28 typed, or a local/param the printer declares String
+        return handleTypedBindingReadType (printer, value)
+            ?? (isDeclaredStringIdentifier (printer, value) ? JAVA_DATAFLOW_STRING : undefined);
     }
     const numeric = numericFamilyCallType (printer, value);
     if (numeric === 'Long' || numeric === 'Double') {
