@@ -17,10 +17,8 @@ import { CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES } from './cs
 import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { c01NativeDictReads, c01SnippetChecks, c01ChainChecks } from './hx10w2-C01.js'
 import { hx10w3C01ArrayParams, hx10w3C01SnippetChecks, hx10w3C01ChainChecks } from './hx10w3-C01.js'
-import { hx10w3C02CandidateReads, w3checks } from './hx10w3-C02.js'
 import { c06w3ParseJson, c06w3Checks } from './hx10w3-C06.js' // hx10w3 C06: parseJson on a string-declared call
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
-import { bf01Apply, bf01SnippetChecks } from './hx10w4-BF01.js' // hx10 wave4 BF01
 import { cp04ReturnIsAlreadyTyped, cp04NumericArgPassThrough, m73NumericLiteralArg, cp04SnippetChecks } from './hx10w9-CP04.js' // hx10 wave9 CP04: ToDict/ToDictList identity
 import { platform } from 'process'
 import os from 'os'
@@ -9272,7 +9270,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10C05SelfTest (), ...w3checks (), ...bf01SnippetChecks (), ...hx10C08SnippetChecks (), ...cp04SnippetChecks (), ...csharpTypedCoreConversionSelfTest (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks () ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10C05SelfTest (), ...hx10C08SnippetChecks (), ...cp04SnippetChecks (), ...csharpTypedCoreConversionSelfTest (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9866,9 +9864,8 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true, c
     const c01Out = c01NativeDictReads (c30Again); // hx10w2 C01
     const c01w3Out = hx10w3C01ArrayParams (c01Out); // hx10w3 C01
     const hx4Out = hx4C34NativeEqualityInOp (objectNull, hx4C36NativeSlice (objectNull, hx4C35NativeHelperCalls (objectNull, hx4C32NativeCompare (objectNull, c01w3Out)))); // hx4 C34..C36
-    const w3c02Out = hx10w3C02CandidateReads (hx4Out); // hx10w3 C02
-    const c06w3Out = c06w3ParseJson (w3c02Out); // hx10w3 C06
-    return hx11w8TupleSlotRead (objectNull, hx11w8ParseNative (objectNull, bf01Apply (hx11w8PromiseAllSlots (hx10C08PromiseAll (c06w3Out))))); // hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx11w8 parse, tuple-slot
+    const c06w3Out = c06w3ParseJson (hx4Out); // hx10w3 C06
+    return hx11w8TupleSlotRead (objectNull, hx11w8ParseNative (objectNull, hx11w8PromiseAllSlots (hx10C08PromiseAll (c06w3Out)))); // hx10w3 C03/C04/C06, hx10w7 C05, hx11w8 parse, tuple-slot
 }
 
 function nativeC07HelperCalls (content: string): string {
