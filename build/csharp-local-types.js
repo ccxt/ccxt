@@ -2444,6 +2444,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'codeFromOptions': 'string?',
     'remove0xPrefix': 'string',
     'networkCodeToId': 'string?',
+    // base `string? selectNetworkKeyFromNetworks` (ts `: Str`), sole declaration tree-wide
+    'selectNetworkKeyFromNetworks': 'string?',
     // Exchange.ETH.cs — `public string ethGetAddressFromPrivateKey(object privateKey)`
     // (hand-written base; the ts/src declaration is annotated `: string`). Listed because it
     // is the write producer that blocks the walletAddress family: lighter/myriad assign
