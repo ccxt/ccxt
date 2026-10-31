@@ -1305,11 +1305,11 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 
 				return nil
 			}
-			var orderbook any = this.WsCacheGet("Orderbooks", symbol)
-			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+			var orderbook ccxt.OrderBookInterface = this.WsCacheGet("Orderbooks", symbol).(ccxt.OrderBookInterface)
+			orderbook.Reset(snapshot)
 			// unroll the accumulated deltas
-			var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
-			orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+			var messages any = orderbook.GetCache()
+			orderbook.SetCache([]any{})
 			for i := 0; i < ccxt.GetArrayLength(messages); i++ {
 				var messageItem any = this.SafeValue(messages, i)
 				var U *int64 = this.SafeInteger(messageItem, "U")
@@ -1366,14 +1366,14 @@ func (this *Binance) HandleDeltas(bookside any, deltas any) {
 		this.HandleDelta(bookside, this.SafeValue(deltas, i))
 	}
 }
-func (this *Binance) HandleOrderBookMessage(client any, message any, orderbook any) any {
+func (this *Binance) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) any {
 	var u *int64 = this.SafeInteger(message, "u")
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(message, "a", []any{}))
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(message, "b", []any{}))
-	ccxt.AddElementToObject(orderbook, "nonce", u)
+	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(message, "a", []any{}))
+	this.HandleDeltas(orderbook.GetBids(), this.SafeList(message, "b", []any{}))
+	orderbook.SetNonce(u)
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	return orderbook
 }
 func (this *Binance) HandleOrderBook(client any, message map[string]any) {

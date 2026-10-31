@@ -3398,7 +3398,8 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 	var rpcUrl *string = this.SafeString(params, "rpcUrl", this.SafeString(rpcUrls, chainKey))
 	var owner *string = this.SafeString(params, "owner", this.WalletAddress)
 	if owner == nil {
-		owner = ccxt.SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey))
+		ethGetAddressFromPrivateKeyText := this.EthGetAddressFromPrivateKey(this.PrivateKey)
+		owner = &ethGetAddressFromPrivateKeyText
 	}
 	var gasLimit *string = this.SafeString(params, "gasLimit", "0x186a0")
 	// which of the four exchanges settles a market is a property of the market, so an

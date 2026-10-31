@@ -3286,7 +3286,8 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 			var bodyStream *string = func() *string {
 				if method != "GET" {
-					return SafeStringPtr(this.Urlencode(params))
+					urlencodeText := this.Urlencode(params)
+					return &urlencodeText
 				}
 				return nil
 			}()

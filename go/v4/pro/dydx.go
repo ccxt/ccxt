@@ -360,7 +360,7 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
-	if ccxt.IsEqual(orderbook, nil) {
+	if orderbook == nil {
 		orderbook = this.OrderBook()
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)

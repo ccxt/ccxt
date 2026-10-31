@@ -13540,7 +13540,8 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) map[string]any {
 					"sign": signature,
 				})
 				if isSpot {
-					requestBody = SafeStringPtr(this.Urlencode(extendedQuery))
+					urlencodeText := this.Urlencode(extendedQuery)
+					requestBody = &urlencodeText
 					requestHeaders = map[string]any{
 						"Content-Type": "application/x-www-form-urlencoded",
 					}

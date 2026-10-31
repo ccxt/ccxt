@@ -2060,7 +2060,7 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 	//   }
 	//
 	var result any = this.SafeList(message, "result", []any{})
-	ccxt.AddElementToObject(this.Balance, "info", result)
+	this.Balance["info"] = result
 	for i := 0; i < ccxt.GetArrayLength(result); i++ {
 		var rawBalance map[string]any = ccxt.SafeMapTyped(result, i)
 		var account map[string]any = this.Account()

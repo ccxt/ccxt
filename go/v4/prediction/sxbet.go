@@ -3421,7 +3421,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 		var isOutcomeOne bool = (outcomeId == marketHash || (outcomeId != nil && marketHash != nil && *outcomeId == *marketHash))
 		var sides map[string]any = this.ParseSxbetV3BookSides(snapshot, isOutcomeOne)
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(sym)
-		if ccxt.IsEqual(orderbook, nil) {
+		if orderbook == nil {
 			orderbook = this.OrderBook(map[string]any{})
 			if sym != nil {
 				this.Orderbooks[*sym] = orderbook

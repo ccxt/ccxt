@@ -1595,7 +1595,7 @@ func (this *Cryptocom) HandleBalance(client any, message map[string]any) {
 	var messageHash *string = this.SafeString(message, "subscription")
 	var data any = this.SafeList(message, "data", []any{})
 	var positionBalances []any = ccxt.SafeListTyped(ccxt.GetValue(data, 0), "position_balances")
-	ccxt.AddElementToObject(this.Balance, "info", data)
+	this.Balance["info"] = data
 	for i := 0; i < len(positionBalances); i++ {
 		var balance map[string]any = ccxt.SafeMapTyped(positionBalances, i)
 		var currencyId *string = this.SafeString(balance, "instrument_name")

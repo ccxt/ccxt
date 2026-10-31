@@ -1799,8 +1799,8 @@ func (this *Backpack) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta a
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "u"))
 	var bids []any = ccxt.SafeListTypedDefault(delta, "b", []any{})
 	var asks []any = ccxt.SafeListTypedDefault(delta, "a", []any{})
-	var storedBids any = orderbook.GetBids()
-	var storedAsks any = orderbook.GetAsks()
+	var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
+	var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
 	this.HandleBidAsks(storedBids, bids)
 	this.HandleBidAsks(storedAsks, asks)
 }

@@ -1807,11 +1807,11 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		var bids []any = ccxt.SafeListTyped(item, "bids")
 		if snapshot || update {
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
-			if snapshot && (ccxt.IsEqual(orderbook, nil)) {
+			if snapshot && (orderbook == nil) {
 				orderbook = this.OrderBook(map[string]any{}, limit)
 				this.Orderbooks[*symbol] = orderbook
 			}
-			if ccxt.IsEqual(orderbook, nil) {
+			if orderbook == nil {
 				continue
 			}
 			if snapshot {
@@ -1826,7 +1826,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 					var bid []any = ccxt.SafeListTyped(bids, j)
 					var price *float64 = this.SafeNumber(bid, 0)
 					var amount *float64 = this.SafeNumber(bid, 1)
-					var bidsSide any = orderbook.GetBids()
+					var bidsSide ccxt.IOrderBookSide = orderbook.GetBids()
 					bidsSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
 			}
@@ -1835,7 +1835,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 					var ask []any = ccxt.SafeListTyped(asks, j)
 					var price *float64 = this.SafeNumber(ask, 0)
 					var amount *float64 = this.SafeNumber(ask, 1)
-					var asksSide any = orderbook.GetAsks()
+					var asksSide ccxt.IOrderBookSide = orderbook.GetAsks()
 					asksSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
 			}

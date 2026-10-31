@@ -2757,7 +2757,8 @@ func (this *Apex) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	} else {
 		var sortedQuery map[string]any = this.Keysort(params)
-		signBody = SafeStringPtr(this.Rawencode(sortedQuery))
+		rawencodeText := this.Rawencode(sortedQuery)
+		signBody = &rawencodeText
 	}
 	if apiName == "private" {
 		this.CheckRequiredCredentials()

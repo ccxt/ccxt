@@ -1284,8 +1284,8 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 		// so only validate the checksum when the exchange actually sends one
 		var responseChecksum *int64 = this.SafeInteger(rawOrderBook, "checksum")
 		if !isSnapshot && (checksum == true) && (responseChecksum != nil) {
-			var storedAsks any = storedOrderBook.GetAsks()
-			var storedBids any = storedOrderBook.GetBids()
+			var storedAsks ccxt.IOrderBookSide = storedOrderBook.GetAsks()
+			var storedBids ccxt.IOrderBookSide = storedOrderBook.GetBids()
 			var asksLength int = ccxt.GetArrayLength(storedAsks)
 			var bidsLength int = ccxt.GetArrayLength(storedBids)
 			var payloadArray []any = []any{}

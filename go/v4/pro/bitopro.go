@@ -157,7 +157,7 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
-	if ccxt.IsEqual(orderbook, nil) {
+	if orderbook == nil {
 		orderbook = this.OrderBook(map[string]any{})
 	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")

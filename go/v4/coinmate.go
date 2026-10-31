@@ -1858,12 +1858,13 @@ func (this *Coinmate) Sign(path string, optionalArgs ...any) map[string]any {
 		var nonce string = strconv.FormatInt(this.IncrementingNonce(), 10)
 		var auth string = nonce + this.Uid + this.ApiKey
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
-		bodySigned = SafeStringPtr(this.Urlencode(this.Extend(map[string]any{
+		urlencodeText := this.Urlencode(this.Extend(map[string]any{
 			"clientId":  this.Uid,
 			"nonce":     nonce,
 			"publicKey": this.ApiKey,
 			"signature": strings.ToUpper(signature),
-		}, params)))
+		}, params))
+		bodySigned = &urlencodeText
 		headersSigned = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 		}

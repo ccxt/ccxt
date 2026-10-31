@@ -1831,7 +1831,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 			return
 		}
 		if obAsks != nil {
-			var asks any = orderbook.GetAsks()
+			var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 			for i := 0; i < len(obAsks); i++ {
 				var ask []any = ccxt.SafeListTyped(obAsks, i)
 				var price *float64 = this.SafeNumber(ask, 0)
@@ -1840,7 +1840,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 			}
 		}
 		if obBids != nil {
-			var bids any = orderbook.GetBids()
+			var bids ccxt.IOrderBookSide = orderbook.GetBids()
 			for i := 0; i < len(obBids); i++ {
 				var bid []any = ccxt.SafeListTyped(obBids, i)
 				var price *float64 = this.SafeNumber(bid, 0)

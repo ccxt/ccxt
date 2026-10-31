@@ -1246,7 +1246,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 			}
 		}
-		var orderbook any
+		var orderbook ccxt.OrderBookInterface
 		if symbol != nil {
 			orderbook = this.Orderbooks[*symbol]
 		}

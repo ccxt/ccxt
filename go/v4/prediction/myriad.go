@@ -4676,8 +4676,8 @@ func (this *Myriad) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome st
 	if !ccxt.StructAbsent(r.Value) {
 		snapshot = ccxt.StructBox(r.Value, ccxt.PredictionOrderBookToMap)
 	}
-	var orderbook any = this.OrderBook(map[string]any{})
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
+	orderbook.Reset(snapshot)
 	this.WsCacheSet("Orderbooks", sym, orderbook)
 	return nil
 }
@@ -4709,8 +4709,8 @@ func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
 			return orderbook.GetAsks()
 		}()
 		bookSide.(ccxt.IOrderBookSide).StoreArray([]any{price, amount})
-		ccxt.AddElementToObject(orderbook, "timestamp", ts)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(ts))
+		orderbook.SetTimestamp(ts)
+		orderbook.SetDatetime(this.Iso8601(ts))
 		ccxt.AddElementToObject(updated, sym, true)
 	}
 	var updatedSymbols []string = nil

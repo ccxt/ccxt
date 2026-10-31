@@ -352,9 +352,7 @@ func (this *Extended) HandleBalance(client any, message map[string]any) {
 			var account map[string]any = this.Account()
 			account["free"] = this.SafeString(balance, "availableForWithdrawal")
 			account["total"] = this.SafeString(balance, "balance")
-			if code != nil {
-				this.Balance[*code] = account
-			}
+			this.Balance[*code] = account
 		}
 	}
 	var spotBalances []any = ccxt.SafeListTyped(data, "spotBalances")
@@ -366,9 +364,7 @@ func (this *Extended) HandleBalance(client any, message map[string]any) {
 			var account map[string]any = this.Account()
 			account["free"] = this.SafeString(spotBalance, "availableToWithdraw")
 			account["total"] = this.SafeString(spotBalance, "balance")
-			if code != nil {
-				this.Balance[*code] = account
-			}
+			this.Balance[*code] = account
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")

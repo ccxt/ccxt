@@ -406,8 +406,8 @@ func (this *Luno) HandleBookDelta(orderbook ccxt.OrderBookInterface, message any
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var asksOrderSide any = orderbook.GetAsks()
-	var bidsOrderSide any = orderbook.GetBids()
+	var asksOrderSide ccxt.IOrderBookSide = orderbook.GetAsks()
+	var bidsOrderSide ccxt.IOrderBookSide = orderbook.GetBids()
 	// trade updates are applied first, matching the ordering of the
 	// reference luno streaming client
 	var tradeUpdates []any = ccxt.SafeListTyped(message, "trade_updates")

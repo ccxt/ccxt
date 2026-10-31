@@ -2489,7 +2489,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		} else {
-			var orderbook any = this.Orderbooks[*symbol]
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 			orderbook.(ccxt.OrderBookInterface).Reset()
 		}
 		ccxt.AddElementToObject(this.Orderbooks[*symbol], "symbol", symbol)
@@ -2497,7 +2497,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
-		var orderbook any = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaEnd *int64 = this.SafeInteger2(data, "sequenceEnd", "timestamp")
 		if nonce == nil {

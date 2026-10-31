@@ -541,7 +541,7 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.Parse8601(dateTime)
 	var channel string = "book:" + *symbol
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
-	if ccxt.IsEqual(orderbook, nil) {
+	if orderbook == nil {
 		orderbook = this.OrderBook(map[string]any{})
 	}
 	if typeVar == "ORDER_BOOK_SNAPSHOT" {
@@ -566,10 +566,10 @@ func (this *Onetrading) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 1, 2)
 	var typeVar *string = this.SafeString(delta, 0)
 	if typeVar != nil && *typeVar == "BUY" {
-		var bids any = orderbook.GetBids()
+		var bids ccxt.IOrderBookSide = orderbook.GetBids()
 		bids.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	} else if typeVar != nil && *typeVar == "SELL" {
-		var asks any = orderbook.GetAsks()
+		var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 		asks.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	} else {
 		panic(ccxt.NotSupported(this.Id + " watchOrderBook () received unknown change type " + this.Json(delta)))
@@ -1568,8 +1568,8 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 	var marketIds any = []any{}
 	var numSymbols int = ccxt.GetArrayLength(symbols)
 	if numSymbols == 0 {
-		var marketsById any = this.Markets_by_id()
-		if ccxt.IsEqual(marketsById, nil) {
+		var marketsById map[string]any = this.Markets_by_id()
+		if marketsById == nil {
 
 			ch <- ccxt.AsyncResult[any]{Value: []any{}}
 			return nil

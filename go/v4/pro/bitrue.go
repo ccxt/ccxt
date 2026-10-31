@@ -517,8 +517,14 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 	if this.Markets() == nil {
 		return nil
 	}
-	var markets any = this.Markets()
-	var symbols []string = ccxt.ObjectKeys(markets)
+	var markets map[string]any = this.Markets()
+	var symbols []string = nil
+	if markets != nil {
+		symbols = make([]string, 0, len(markets))
+		for objectKey := range markets {
+			symbols = append(symbols, objectKey)
+		}
+	}
 	for i := 0; i < len(symbols); i++ {
 		var symbolId string = symbols[i]
 		var candidate any = this.SafeValue(markets, symbolId)

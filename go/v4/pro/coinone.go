@@ -147,7 +147,7 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	var symbol any = this.Symbol(*base + "/" + *quote)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
-	if ccxt.IsEqual(orderbook, nil) {
+	if orderbook == nil {
 		orderbook = this.OrderBook()
 	} else {
 		orderbook.Reset()

@@ -1335,10 +1335,9 @@ func (this *BaseExchange) ParseMarkets(markets any) []any {
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 
-		var market any = this.DerivedExchange.ParseMarket(GetValue(markets, i))
-		PanicOnError(market)
+		var market map[string]any = this.DerivedExchange.ParseMarket(GetValue(markets, i))
 		// parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-		if !IsEqual(market, nil) {
+		if market != nil {
 			result = append(result, market)
 		}
 	}
@@ -4272,7 +4271,7 @@ func (this *BaseExchange) loadTradingLimitsBody(ch chan AsyncResult[map[string]a
 			}
 			var response map[string]any = r.Value
 			var symbolsArray any = this.RequireValue(symbols, "loadTradingLimits() requires a symbols argument")
-			if IsEqual(this.Markets(), nil) {
+			if this.Markets() == nil {
 				panic(ExchangeError(this.Id + " markets not loaded"))
 			}
 			for i := 0; i < GetArrayLength(symbolsArray); i++ {
@@ -6675,11 +6674,11 @@ func (this *BaseExchange) Currency(code any) map[string]any {
 		panic(ExchangeError(this.Id + " currencies not loaded"))
 	}
 	if IsString(code) {
-		var currencies any = this.Currencies()
-		var currenciesById any = this.Currencies_by_id()
+		var currencies map[string]any = this.Currencies()
+		var currenciesById map[string]any = this.Currencies_by_id()
 		if InOp(currencies, code) {
 			return CurrencyTyped(GetValue(currencies, code))
-		} else if (!IsEqual(currenciesById, nil)) && (InOp(currenciesById, code)) {
+		} else if (currenciesById != nil) && (InOp(currenciesById, code)) {
 			return CurrencyTyped(GetValue(currenciesById, code))
 		}
 	}
@@ -6693,10 +6692,10 @@ func (this *BaseExchange) Market(symbol any) map[string]any {
 	if markets == nil {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
-	var marketsById any = this.Markets_by_id()
+	var marketsById map[string]any = this.Markets_by_id()
 	if InOp(markets, symbol) {
 		return MarketTyped(GetValue(markets, symbol))
-	} else if (!IsEqual(marketsById, nil)) && (InOp(marketsById, symbol)) {
+	} else if (marketsById != nil) && (InOp(marketsById, symbol)) {
 		var marketsList any = GetValue(marketsById, symbol)
 		var defaultType *string = this.SafeString2(this.Options, "defaultType", "defaultSubType", "spot")
 		for i := 0; i < GetArrayLength(marketsList); i++ {
@@ -7679,8 +7678,8 @@ func (this *BaseExchange) ConvertTypeToAccount(account any) any {
 		return accountsByType[lowercaseAccount]
 	}
 	var markets map[string]any = this.Markets()
-	var marketsById any = this.Markets_by_id()
-	if ((markets != nil) && (InOp(markets, account))) || ((!IsEqual(marketsById, nil)) && (InOp(marketsById, account))) {
+	var marketsById map[string]any = this.Markets_by_id()
+	if ((markets != nil) && (InOp(markets, account))) || ((marketsById != nil) && (InOp(marketsById, account))) {
 
 		var market map[string]any = this.DerivedExchange.Market(account)
 		return market["id"]

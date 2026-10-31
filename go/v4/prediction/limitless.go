@@ -2984,7 +2984,8 @@ func (this *Limitless) approveBody(ch chan ccxt.AsyncResult[map[string]any], opt
 	var spender *string = this.SafeString(params, "spender", this.SafeString(this.Options, "exchangeAddress"))
 	var owner *string = this.SafeString(params, "owner", this.WalletAddress)
 	if owner == nil {
-		owner = ccxt.SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey))
+		ethGetAddressFromPrivateKeyText := this.EthGetAddressFromPrivateKey(this.PrivateKey)
+		owner = &ethGetAddressFromPrivateKeyText
 	}
 	var gasLimit *string = this.SafeString(params, "gasLimit", "0x186a0")
 	var maxUint string = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"

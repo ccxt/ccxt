@@ -2664,9 +2664,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 					account["free"] = this.SafeString2(first, "withdraw_available", "margin_available")
 					account["used"] = this.SafeString(first, "margin_frozen")
 					account["total"] = this.SafeString(first, "margin_balance")
-					if code != nil {
-						this.Balance[*code] = account
-					}
+					this.Balance[*code] = account
 					this.WsBalanceReplace(this.SafeBalance(this.Balance))
 				}
 			} else {

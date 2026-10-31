@@ -5753,7 +5753,8 @@ func (this *Aster) Sign(path string, optionalArgs ...any) map[string]any {
 		var privateKeyHash any = this.Hash(this.Encode(this.PrivateKey), keccak, "hex")
 		var cachedPrivateKeyHash *string = this.SafeString(this.Options, "privateKeyHashForCachedWalletAddress")
 		if (walletAddress == nil) || (!IsEqual(cachedPrivateKeyHash, privateKeyHash)) {
-			walletAddress = SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey))
+			ethGetAddressFromPrivateKeyText := this.EthGetAddressFromPrivateKey(this.PrivateKey)
+			walletAddress = &ethGetAddressFromPrivateKeyText
 			this.Options["cachedWalletAddress"] = DerefScalar(walletAddress)
 			this.Options["privateKeyHashForCachedWalletAddress"] = privateKeyHash
 		}
@@ -5957,11 +5958,11 @@ func (this *Aster) initializeClientBody(ch chan AsyncResult[bool], optionalArgs 
 		return nil
 	}
 
-	listEp5628 := <-this.FapiPrivateGetV3Builder()
-	if listEp5628.Err != nil {
-		panic(listEp5628.Err)
+	listEp5629 := <-this.FapiPrivateGetV3Builder()
+	if listEp5629.Err != nil {
+		panic(listEp5629.Err)
 	}
-	var result []any = listEp5628.Value
+	var result []any = listEp5629.Value
 	//
 	//    [
 	//        {

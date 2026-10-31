@@ -1765,7 +1765,8 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) map[string]any {
 		// the v2.1 api requires a uuid nonce, the older apis use a numeric one
 		var nonce *string = nil
 		if apiName == "v2_1Private" {
-			nonce = SafeStringPtr(this.Uuid())
+			uuidText := this.Uuid()
+			nonce = &uuidText
 		} else {
 			nonce = this.NumberToString(this.Nonce())
 		}

@@ -1299,8 +1299,14 @@ func (this *Hollaex) ParseBalance(response any) map[string]any {
 	if this.Currencies_by_id() == nil {
 		panic(ExchangeError(this.Id + " currencies not loaded"))
 	}
-	var currenciesById any = this.Currencies_by_id()
-	var currencyIds []string = ObjectKeys(currenciesById)
+	var currenciesById map[string]any = this.Currencies_by_id()
+	var currencyIds []string = nil
+	if currenciesById != nil {
+		currencyIds = make([]string, 0, len(currenciesById))
+		for objectKey := range currenciesById {
+			currencyIds = append(currencyIds, objectKey)
+		}
+	}
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId *string = this.SafeString(currencyIds, i, "")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -1932,11 +1938,11 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	market = this.Market(symbol)
 	request["symbol"] = market["id"]
 
-	listEp1821 := <-this.PrivateDeleteOrderAll(this.Extend(request, params))
-	if listEp1821.Err != nil {
-		panic(listEp1821.Err)
+	listEp1827 := <-this.PrivateDeleteOrderAll(this.Extend(request, params))
+	if listEp1827.Err != nil {
+		panic(listEp1827.Err)
 	}
-	var response []any = listEp1821.Value
+	var response []any = listEp1827.Value
 
 	//
 	//     [

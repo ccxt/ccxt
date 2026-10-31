@@ -2655,8 +2655,8 @@ func (this *Opinion) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome s
 	if !ccxt.StructAbsent(r.Value) {
 		snapshot = ccxt.StructBox(r.Value, ccxt.PredictionOrderBookToMap)
 	}
-	var orderbook any = this.OrderBook(map[string]any{})
-	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+	var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
+	orderbook.Reset(snapshot)
 	this.WsCacheSet("Orderbooks", sym, orderbook)
 	return nil
 }
