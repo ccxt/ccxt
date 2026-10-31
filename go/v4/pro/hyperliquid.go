@@ -1954,7 +1954,7 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 	if _, ok := this.Balance[account]; !ok {
 		this.Balance[account] = map[string]any{}
 	}
-	ccxt.AddElementToObject(this.Balance[account], "info", info)
+	this.WsBalanceEntryForWrite(account)["info"] = info
 	ccxt.AddElementToObject(this.Balance[account], "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance[account], "datetime", this.Iso8601(timestamp))
 	this.Balance[account] = this.SafeBalance(this.Balance[account])

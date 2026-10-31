@@ -906,7 +906,7 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(data, "lockedQuantity")
 		var code *string = this.SafeCurrencyCode(assetId)
 		if (tradingAccountId != nil) && (code != nil) {
-			ccxt.AddElementToObject(this.Balance[*tradingAccountId], code, account)
+			this.WsBalanceEntryForWrite(*tradingAccountId)[*code] = account
 		}
 		this.WsBalanceEntryForWrite(*tradingAccountId)["info"] = message
 		this.Balance[*tradingAccountId] = this.SafeBalance(this.Balance[*tradingAccountId])

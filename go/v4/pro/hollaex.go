@@ -611,7 +611,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 		}()
 		ccxt.AddElementToObject(account, freeOrTotal, this.SafeString(data, key))
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance, code, account)
+			this.Balance[*code] = account
 		}
 	}
 	this.WsBalanceReplace(this.SafeBalance(this.Balance))

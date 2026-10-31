@@ -1859,7 +1859,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			newAccount["total"] = this.SafeString(holding, key)
 			if code != nil {
 				holdingCodes[*code] = true
-				ccxt.AddElementToObject(this.Balance["cash"], code, newAccount)
+				this.WsBalanceEntryForWrite("cash")[*code] = newAccount
 			}
 		}
 		this.Balance["cash"] = this.PruneStaleBalanceKeys(this.Balance["cash"], holdingCodes)
@@ -1889,7 +1889,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			newAccount["free"] = this.SafeString(future, "available")
 			newAccount["used"] = this.SafeString(future, "initial_margin")
 			newAccount["total"] = this.SafeString(future, "balance")
-			ccxt.AddElementToObject(this.Balance["margin"], symbol, map[string]any{})
+			this.WsBalanceEntryForWrite("margin")[*symbol] = map[string]any{}
 			if (symbol != nil) && (code != nil) {
 				futuresSymbols[*symbol] = true
 				ccxt.AddElementToObject(this.WsBalanceEntry("margin")[*symbol], code, newAccount)
@@ -1926,7 +1926,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			newAccount["total"] = this.SafeString(flexFuture, "quantity")
 			if code != nil {
 				flexCodes[*code] = true
-				ccxt.AddElementToObject(this.Balance["flex"], code, newAccount)
+				this.WsBalanceEntryForWrite("flex")[*code] = newAccount
 			}
 		}
 		this.Balance["flex"] = this.PruneStaleBalanceKeys(this.Balance["flex"], flexCodes)

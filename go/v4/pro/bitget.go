@@ -3133,7 +3133,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 				ccxt.AddElementToObject(account, "used", this.SafeString(entry, "locked"))
 				ccxt.AddElementToObject(account, "total", this.SafeString(entry, "balance"))
 				if code != nil {
-					ccxt.AddElementToObject(this.Balance, code, account)
+					this.Balance[*code] = account
 				}
 			}
 		} else {
@@ -3158,7 +3158,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 			ccxt.AddElementToObject(account, "total", this.SafeString(rawBalance, "equity"))
 			ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "frozen"))
 			if code != nil {
-				ccxt.AddElementToObject(this.Balance, code, account)
+				this.Balance[*code] = account
 			}
 		}
 	}

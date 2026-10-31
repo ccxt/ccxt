@@ -5007,7 +5007,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 		var account map[string]any = this.Account()
 		var delta *string = this.SafeString(message, "d")
 		if (code != nil) && (ccxt.InOp(this.Balance[accountType], code)) {
-			var previousValue any = this.SafeValue(ccxt.GetValue(this.Balance[accountType], code), "free")
+			var previousValue any = this.SafeValue(this.WsBalanceEntry(accountType)[*code], "free")
 			if !ccxt.IsString(previousValue) {
 				previousValue = ccxt.DerefScalar(this.NumberToString(previousValue))
 			}
@@ -5016,7 +5016,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 			account["free"] = delta
 		}
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance[accountType], code, account)
+			this.WsBalanceEntryForWrite(accountType)[*code] = account
 		}
 	} else {
 		var B []any = ccxt.SafeListTyped(balanceMessage, "B")
@@ -5032,7 +5032,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 			account["used"] = this.SafeString(entry, "l")
 			account["total"] = this.SafeString(entry, wallet)
 			if code != nil {
-				ccxt.AddElementToObject(this.Balance[accountType], code, account)
+				this.WsBalanceEntryForWrite(accountType)[*code] = account
 			}
 		}
 	}

@@ -999,7 +999,7 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 	if _, ok := this.Balance[typeVar]; !ok {
 		this.Balance[typeVar] = map[string]any{}
 	}
-	ccxt.AddElementToObject(this.Balance[typeVar], "info", this.SafeList(message, "B", []any{}))
+	this.WsBalanceEntryForWrite(typeVar)["info"] = this.SafeList(message, "B", []any{})
 	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
 	for i := 0; i < len(data); i++ {
