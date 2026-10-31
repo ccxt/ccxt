@@ -1,7 +1,7 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
-import { installJavaExpressionTypeResolver } from './javaTranspiler.js';
+import { installJavaExpressionTypeResolver, installJavaOwnerStores } from './javaTranspiler.js';
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
 import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
 import { installH2kJ11StringArgs } from './java-local-types.js';
@@ -97,6 +97,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         cachedTranspiler.setVerboseMode (false);
         // same strict effectively-final rule as the main thread's setupTranspiler()
         (cachedTranspiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
+        installJavaOwnerStores (cachedTranspiler); // hx11 rfm X2
         // same printer hook the main thread installs in setupTranspiler(); the
         // batch below prints through this very javaTranspiler instance
         patchJavaLocalTypes (cachedTranspiler);

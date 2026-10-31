@@ -6011,7 +6011,7 @@ public Map<String, Object> describe()
     {
         // networksById: inverse of options.networks, explicit options.networksById entries win
         Object networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}}));
-        this.options.put("networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})));
+        this.options.put("networksById", BaseExchange.this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})));
         this.featuresGenerator();
         this.hasAutocorrect();
         // init predefined markets if any
