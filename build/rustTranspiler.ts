@@ -9281,11 +9281,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = hx11w9RustNumber2SinkLocalOptionF64R2(rustContent); // hx11 W9
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
                 rustContent = this.nativeFindLiteralCompare(rustContent); // closure-free find("lit") >= 0 tests
-||||||| base
                 rustContent = this.nativeSplitLiteralArray(rustContent); // closure-free literal split
-||||||| base
                 rustContent = this.nativeCaseConvert(rustContent); // closure/match-free to_lowercase/to_uppercase, last
-||||||| base
                 rustContent = this.nativeIntLiteralCastFold(rustContent); // literal Int casts folded, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
@@ -10051,11 +10048,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = hx11w9RustNumber2SinkLocalOptionF64R2(finalFile); // hx11 W9
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
         finalFile = this.nativeFindLiteralCompare(finalFile); // closure-free find("lit") >= 0 tests
-||||||| base
         finalFile = this.nativeSplitLiteralArray(finalFile); // closure-free literal split
-||||||| base
         finalFile = this.nativeCaseConvert(finalFile); // closure/match-free to_lowercase/to_uppercase, last
-||||||| base
         finalFile = this.nativeIntLiteralCastFold(finalFile); // literal Int casts folded, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
@@ -13508,7 +13502,6 @@ impl std::ops::DerefMut for ${coreName} {
         });
     }
 
-||||||| base
     // Case conversion of a Str place without closure/match (both counted as blobs):
     //   X.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)
     //   match &(E) { Value::Str(__s) => Value::Str(__s.to_lowercase().into()), _ => Value::Null }
@@ -13555,7 +13548,6 @@ impl std::ops::DerefMut for ${coreName} {
         return out;
     }
 
-||||||| base
     // Int-cast of a literal: `(match &(Value::Int(N)) { <Int/Float/Str/Bool arms>, _ => None }).unwrap_or(0)` -> `Ni64`
     // (Int arm is identity), `match &(Value::Null)` -> `0i64`; `Value::Int(N).as_f64().unwrap_or(f64::NAN)` -> `(Nf64)`.
     // Only the exact emitted arm text and |N| < 2^53 match; anything else is left alone.
