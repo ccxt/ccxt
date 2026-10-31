@@ -643,8 +643,7 @@ public class Hyperliquid extends HyperliquidApi
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("id", String.valueOf(outcomeId));
         mapLiteral3.put("market", parentSymbol);
-        List<String> j05parts1 = Arrays.asList(((String)parentSymbol).split(java.util.regex.Pattern.quote("/")));
-        mapLiteral3.put("base", (0 >= j05parts1.size() ? null : j05parts1.get(0)));
+        mapLiteral3.put("base", Arrays.stream(((String)parentSymbol).split(java.util.regex.Pattern.quote("/"))).findFirst().orElse(null));
         mapLiteral3.put("quote", quoteCurrency);
         mapLiteral3.put("settle", null);
         mapLiteral3.put("baseId", String.valueOf(outcomeId));

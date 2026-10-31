@@ -1067,7 +1067,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
 
     public String currencyFromPrecision(String currency, Object amount)
     {
-        Long scale = this.safeInteger(Helpers.GetValue(this.currencies, currency), "precision", 0);
+        Long scale = this.safeInteger((this.currencies == null || currency == null ? null : this.currencies.get(currency)), "precision", 0);
         return this.fromPrecision(amount, scale);
     }
 

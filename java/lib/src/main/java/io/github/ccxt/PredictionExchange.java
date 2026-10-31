@@ -410,20 +410,14 @@ public Map<String, Object> describe()
     public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchEvents() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchEvents() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<PredictionEvent> fetchEvent(String id, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchEvent() is not supported yet")) ;
-        }).thenApply(PredictionEvent::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchEvent() is not supported yet"))).thenApply(PredictionEvent::new);
 
     }
 
@@ -1301,10 +1295,7 @@ public Map<String, Object> describe()
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOpenOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOpenOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
 
@@ -1321,10 +1312,7 @@ public Map<String, Object> describe()
     public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchClosedOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchClosedOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
 
@@ -1342,10 +1330,7 @@ public Map<String, Object> describe()
     public CompletableFuture<List<PredictionTrade>> fetchOrderTrades(String id, String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrderTrades() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrderTrades() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
 
@@ -1362,10 +1347,7 @@ public Map<String, Object> describe()
     public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchMyTrades() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchMyTrades() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
 
@@ -1380,10 +1362,7 @@ public Map<String, Object> describe()
     public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPosition() is not supported yet")) ;
-        }).thenApply(PredictionPosition::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPosition() is not supported yet"))).thenApply(PredictionPosition::new);
 
     }
 
@@ -1591,10 +1570,7 @@ public Map<String, Object> describe()
     public CompletableFuture<List<PredictionSettlement>> fetchSettlements(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchSettlements() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionSettlement::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchSettlements() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionSettlement::new).collect(Collectors.toList()));
 
     }
 
@@ -2252,10 +2228,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
     public CompletableFuture<PredictionOrder> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrder() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrder() is not supported yet"))).thenApply(PredictionOrder::new);
 
     }
 
@@ -2330,10 +2303,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
     public CompletableFuture<List<PredictionOrder>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelAllOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelAllOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
 
@@ -2346,10 +2316,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
     public CompletableFuture<List<PredictionOrder>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchCanceledOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchCanceledOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
 }
