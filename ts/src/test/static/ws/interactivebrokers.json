@@ -3,7 +3,8 @@
     "skipKeys": [],
     "options": {},
     "disable": true,
-    "methods": {
+    "methods": {},
+    "methods_disabled": {
         "watchMyTrades": [
             {
                 "description": "crypto spot",
