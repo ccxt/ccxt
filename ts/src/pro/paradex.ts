@@ -83,6 +83,10 @@ export default class paradex extends paradexRest {
 
     getOrderBookChannel (marketId: Str, deltas: boolean = false): string {
         if (deltas) {
+            // the docs list the channel as order_book.{market_symbol}.{feed_type}@15@{refresh_rate}, but the deltas feed
+            // takes none of those parameters: it sends one full-depth snapshot on subscribe, then incremental updates
+            // see the order book channel description in https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+            // do not add @15@{refresh_rate} here, that is the 15-level snapshot form
             return 'order_book.' + marketId + '.deltas';
         }
         return 'order_book.' + marketId + '.snapshot@15@100ms';
