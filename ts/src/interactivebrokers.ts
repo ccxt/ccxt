@@ -326,6 +326,7 @@ export default class interactivebrokers extends Exchange {
                         'gw/api/v1/balances/query': { 'cost': 1 } as Endpoint<Dict>,
                         'gw/api/v1/tax-vouchers': { 'cost': 1 } as Endpoint<Dict>,
                         'gw/api/v1/echo/signed-jwt': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api/logout': { 'cost': 1 } as Endpoint<Dict>, // todo: if logout needed
                     },
                     'put': {
                         'v1/api/iserver/account/allocation/group': { 'cost': 1 } as Endpoint<Dict>,
@@ -2118,10 +2119,10 @@ export default class interactivebrokers extends Exchange {
         //
         //    {
         //        "accounts": [
-        //            "U3448645"
+        //            "U3448646"
         //        ],
         //        "acctProps": {
-        //            "U3448645": {
+        //            "U3448646": {
         //                "hasChildAccounts": false,
         //                "supportsCashQty": true,
         //                "liteUnderPro": false,
@@ -2133,7 +2134,7 @@ export default class interactivebrokers extends Exchange {
         //            }
         //        },
         //        "aliases": {
-        //            "U3448645": "U3448645"
+        //            "U3448646": "U3448646"
         //        },
         //        "allowFeatures": {
         //            "showGFIS": true,
@@ -2178,7 +2179,7 @@ export default class interactivebrokers extends Exchange {
         //        },
         //        "groups": [],
         //        "profiles": [],
-        //        "selectedAccount": "U3448645",
+        //        "selectedAccount": "U3448646",
         //        "serverInfo": {
         //            "serverName": "JifZ26071",
         //            "serverVersion": "Build 10.50.1a, Sep 23, 2026 1:23:38 PM"
@@ -2213,12 +2214,12 @@ export default class interactivebrokers extends Exchange {
             //
             //    [
             //        {
-            //            "id": "U3448645",
+            //            "id": "U3448646",
             //            "PrepaidCrypto-Z": false,
             //            "PrepaidCrypto-P": true,
             //            "brokerageAccess": true,
-            //            "accountId": "U3448645",
-            //            "accountVan": "U3448645",
+            //            "accountId": "U3448646",
+            //            "accountVan": "U3448646",
             //            "accountTitle": "Toma Todua",
             //            "displayName": "Toma Todua",
             //            "accountAlias": null,
@@ -2242,7 +2243,7 @@ export default class interactivebrokers extends Exchange {
             //                "isMChild": false,
             //                "isMultiplex": false
             //            },
-            //            "desc": "U3448645"
+            //            "desc": "U3448646"
             //        }
             //    ]
             //
@@ -2368,8 +2369,13 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'conid': this.parseToInt (market['id']),
             'side': side.toUpperCase (),
-            'quantity': this.parseNumber (this.amountToPrecision (symbol, amount)),
         };
+        // a market order with params['cost'] is sent by cost (cashQty) without a quantity
+        const cost = this.safeString2 (params, 'cost', 'cashQty');
+        const isMarketByCost = isMarket && (cost !== undefined);
+        if (!isMarketByCost) {
+            request['quantity'] = this.parseNumber (this.amountToPrecision (symbol, amount));
+        }
         let orderType: Str = undefined;
         if ((trailingAmount !== undefined) || (trailingPercent !== undefined)) {
             orderType = isMarket ? 'TRAIL' : 'TRAILLMT';
@@ -2397,11 +2403,11 @@ export default class interactivebrokers extends Exchange {
             }
         } else if (isMarket) {
             orderType = 'MKT';
-            const cost = this.safeString2 (params, 'cost', 'cashQty');
-            if (cost === undefined && side === 'buy') {
-                throw new InvalidOrder (this.id + ' createOrder() requires cost for market orders');
+            if (isMarketByCost) {
+                request['cashQty'] = this.parseNumber (this.priceToPrecision (symbol, cost));
+            } else if (side === 'buy') {
+                throw new InvalidOrder (this.id + ' createOrder() requires params["cost"] for market buy orders');
             }
-            request['cashQty'] = this.parseNumber (this.priceToPrecision (symbol, cost));
         } else {
             orderType = 'LMT';
             request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
@@ -2417,7 +2423,7 @@ export default class interactivebrokers extends Exchange {
             clientOrderId = 'ccxt' + this.uuid22 ();
         }
         request['cOID'] = clientOrderId;
-        const query = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif' ]);
+        const query = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif', 'cost', 'cashQty' ]);
         return this.extend (request, query);
     }
 
@@ -3328,29 +3334,33 @@ export default class interactivebrokers extends Exchange {
 
     /**
      * @method
-     * @name interactivebrokers#ibkrPathToTemplate
-     * @description converts the ':name' path parameters of the webapi endpoints into the '{name}' format understood by implodeParams and extractParams
+     * @name interactivebrokers#ibkrImplodePath
+     * @description replaces the ':name' path parameters of the webapi endpoints with the matching values of params
      * @ignore
      * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
-     * @returns {string} the path with '{name}' placeholders, e.g. 'v1/api/iserver/account/{accountId}/orders'
+     * @param {object} params the request params, the path params are read from here
+     * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
      */
-    ibkrPathToTemplate (path: string): string {
+    ibkrImplodePath (path: string, params: Dict): List {
         const segments = path.split ('/');
+        const pathParams = [];
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
             if (segment.startsWith (':')) {
-                segments[i] = '{' + segment.slice (1) + '}';
+                const name = segment.slice (1);
+                pathParams.push (name);
+                segments[i] = this.safeString (params, name, segment);
             }
         }
-        return segments.join ('/');
+        return [ segments.join ('/'), pathParams ];
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const template = this.ibkrPathToTemplate (path);
+        const [ implodedPath, pathParams ] = this.ibkrImplodePath (path, params);
         const apiBase = api[0];
-        const baseUrl = this.urls['api'][apiBase] + this.implodeParams (template, params);
+        const baseUrl = this.urls['api'][apiBase] + implodedPath;
         let url = baseUrl;
-        const query = this.omit (params, this.extractParams (template));
+        const query = this.omit (params, pathParams);
         const hasQuery = Object.keys (query).length > 0;
         const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
         let requestBody: Str = undefined;

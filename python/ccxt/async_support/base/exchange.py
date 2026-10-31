@@ -390,6 +390,10 @@ class BaseExchange(SyncExchange):
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
 
+    async def init_file_system(self):
+        # file io is synchronous in python, nothing to load before the first read_file call
+        return None
+
     def spawn(self, method, *args):
         def callback(asyncio_future):
             # a cancelled task (e.g. a background snapshot fetch cancelled on close or

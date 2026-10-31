@@ -1204,7 +1204,11 @@ export default class interactivebrokers extends interactivebrokersRest {
             const options = this.safeDict (this.options, 'watchBalance', {});
             const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', true);
             if (fetchBalanceSnapshot) {
-                this.balance = await this.fetchBalance (this.extend (query, { 'accountId': accountId }));
+                const snapshotRequest: Dict = {
+                    'accountId': accountId,
+                };
+                const snapshot = await this.fetchBalance (this.extend (query, snapshotRequest));
+                this.balance = snapshot;
             }
         }
         const future = this.watch (url, messageHash);

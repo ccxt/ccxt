@@ -1,7 +1,12 @@
 {
     "exchange": "interactivebrokers",
-    "skipKeys": ["acctIds"],
-    "options": {},
+    "skipKeys": ["acctIds", "cOID"],
+    "options": {
+        "consumer_key": "TEST1",
+        "accountId": "U3448646",
+        "liveSessionToken": "MDEyMzQ1Njc4OWFiY2RlZg==",
+        "liveSessionTokenExpiration": 9999999999999
+    },
     "methods": {
         "fetchPositionsForSymbol": [
             {
@@ -80,18 +85,18 @@
             {
                 "description": "spot crypto buy market",
                 "method": "createOrder",
-                "url": "https://api.ibkr.com/v1/api/iserver/reply/92ec242f-db7b-4c05-8e5e-4fbc3c71d44b",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/orders",
                 "input": [
                     "ETH/USD",
                     "market",
                     "buy",
-                    null,
+                    1,
                     null,
                     {
                         "cost": 50
                     }
                 ],
-                "output": "{\"confirmed\":true}"
+                "output": "{\"orders\":[{\"conid\":495759171,\"side\":\"BUY\",\"cashQty\":50,\"orderType\":\"MKT\",\"tif\":\"IOC\",\"cOID\":\"ccxt260c09d70ed54208aa36f3\",\"acctId\":\"U3448646\"}]}"
             },
             {
                 "disabled": true,
@@ -201,8 +206,13 @@
             {
                 "description": "default",
                 "method": "fetchBalance",
-                "url": "https://api.ibkr.com/v1/api/iserver/account/orders",
-                "input": [],
+                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/ledger",
+                "input": [
+                    {
+                        "positions": false,
+                        "openOrders": false
+                    }
+                ],
                 "output": null
             }
         ],
