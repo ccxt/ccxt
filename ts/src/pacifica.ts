@@ -2535,10 +2535,10 @@ export default class pacifica extends Exchange {
             'TOB': 'TOB',
             'ALO': 'ALO',
         };
-        let tif: Str = undefined;
-        if (tifRaw !== undefined) {
-            tif = tifRaw.toUpperCase ();
+        if (tifRaw === undefined) {
+            return 'GTC';
         }
+        const tif: string = tifRaw.toUpperCase ();
         return this.safeString (tifMap, tif, 'GTC');
     }
 
