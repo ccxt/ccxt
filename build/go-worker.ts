@@ -1,5 +1,4 @@
 import { Transpiler, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping } from 'ast-transpiler';
-import { installHx11w8AsyncBool } from './hx11w8-async-bool.js';
 import { getProgramBatch } from './worker-program-batch.js';
 import log from 'ololog'
 
@@ -54,7 +53,6 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: GoWor
         installCcxtGoGb05ParamTypes(cachedTranspiler.goTranspiler);
         installCcxtGoGb11HandleErrorsCode(cachedTranspiler.goTranspiler);
         installCcxtGoSignTyping(cachedTranspiler.goTranspiler);
-        installHx11w8AsyncBool(cachedTranspiler.goTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
