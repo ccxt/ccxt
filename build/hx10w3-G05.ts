@@ -7,7 +7,7 @@
 // type is identity on those values — a nil map/slice reads as absent for all of them and the
 // box is never handed out, so no consumer can observe the difference.
 //
-// Downstream passes do the rest: g02pass prints len(xs)/xs[i], g06MapReads prints `_, ok := m[k]`
+// Downstream passes do the rest: g02pass prints len(xs)/xs[i], the printer prints `_, ok := m[k]`
 // and the ObjectKeys/ObjectValues ranges, nativeTypedContainerAccess prints m[k]. A site with any
 // other use (hand-out, nil compare, rebind) keeps the box and the plain helper call.
 //
@@ -15,7 +15,42 @@
 // EventsList): G05_PROVEN_LIST_METHODS hands them to the proven-list retype, which makes base and
 // every override return `[]any` and throws at transpile time on an unproven return path.
 
-import { g06Mask } from './hx10w2-G06.js';
+// spaces out string/rune/comment text, newlines kept, offsets preserved
+function g05Mask (source: string): string {
+    const out: string[] = [];
+    let mode: string | null = null;
+    for (let i = 0; i < source.length; i++) {
+        const c = source[i];
+        const next = source[i + 1];
+        if (mode === null) {
+            if ((c === '/') && (next === '/')) { mode = 'line'; out.push ('  '); i++; continue; }
+            if ((c === '/') && (next === '*')) { mode = 'block'; out.push ('  '); i++; continue; }
+            if (c === '"') { mode = 'str'; out.push ('"'); continue; }
+            if (c === '`') { mode = 'raw'; out.push ('`'); continue; }
+            out.push (c);
+            continue;
+        }
+        if (mode === 'line') {
+            mode = (c === '\n') ? null : mode;
+            out.push ((c === '\n') ? '\n' : ' ');
+            continue;
+        }
+        if (mode === 'block') {
+            if ((c === '*') && (next === '/')) { mode = null; out.push ('  '); i++; continue; }
+            out.push ((c === '\n') ? '\n' : ' ');
+            continue;
+        }
+        if (mode === 'str') {
+            if (c === '\\') { out.push ('  '); i++; continue; }
+            if (c === '"') { mode = null; out.push ('"'); continue; }
+            out.push (' ');
+            continue;
+        }
+        if (c === '`') { mode = null; out.push ('`'); continue; }
+        out.push ((c === '\n') ? '\n' : ' ');
+    }
+    return out.join ('');
+}
 
 // The generated method's Go return type at this commit, uniform across the base and the venue
 // overrides (the proven-list/map passes retype those families, so a caller and its callee can
@@ -175,7 +210,7 @@ export function g05Locals (content: string): string {
         return content;
     }
     const lines = content.split ('\n');
-    const masked = g06Mask (content).split ('\n');
+    const masked = g05Mask (content).split ('\n');
     if (lines.length !== masked.length) {
         return content;
     }
