@@ -9244,8 +9244,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
                 rustContent = this.r31Str(rustContent); // hx4 R31
                 rustContent = this.r32Native(rustContent); // hx4 R32
-                rustContent = this.x46Incr(rustContent); // hx5 X46
-                rustContent = this.x47IntIndex(rustContent);
                 // Last of all: native get_value on a receiver whose container shape
                 // the final text pins (needs the clone/write passes to be done).
                 rustContent = nativeGetValue(rustContent); // hx10 R01
@@ -10013,8 +10011,6 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
         finalFile = this.r31Str(finalFile); // hx4 R31
         finalFile = this.r32Native(finalFile); // hx4 R32
-        finalFile = this.x46Incr(finalFile); // hx5 X46
-        finalFile = this.x47IntIndex(finalFile);
         // Last of all: native get_value on a pinned receiver (hx10 R01).
         finalFile = nativeGetValue(finalFile);
         finalFile = r02NativeInserts(finalFile); // hx10 R02
@@ -13123,95 +13119,6 @@ impl std::ops::DerefMut for ${coreName} {
             const pad = indent + '    ';
             return [ `${indent}${decl}(match ${recv} {`, `${pad}${intArm},`, `${pad}${floatArm},`, `${pad}${strArm},`, `${pad}${fallback}`, `${indent}});` ].join('\n');
         }).join('\n');
-    }
-
-    // hx5 X46 — `for (let i = 0; ...; i++)` over a `Value` counter. The ast
-    // printer emits the incrementor as the full `printNativeNumeric` match
-    // (`i = (match (&(i), &(Value::Int(1))) { 5 arms })`), ~300 chars per loop.
-    // Proof: the counter is declared `let mut i: Value = Value::Int(N);` right
-    // before the loop flag, and inside that `for` block the only write to `i`
-    // is this incrementor. Int ± Int stays Int, so `i` is always `Value::Int`
-    // and the match only ever takes its Int/Int arm: emit that arm natively.
-    // Unproven counters are left exactly as printed.
-    x46Incr(content: string): string {
-        const incrRe = /while \{ if !(__for_first_\d+) \{ (\w+) = \(match \(&\(\2\), &\(Value::Int\(1\)\)\) \{ \(Value::Int\(x\), Value::Int\(y\)\) => Value::Int\(x ([+-]) y\), \(Value::Int\(x\), Value::Float\(y\)\) => Value::Float\(\*x as f64 \3 \*y\), \(Value::Float\(x\), Value::Int\(y\)\) => Value::Float\(\*x \3 \*y as f64\), \(Value::Float\(x\), Value::Float\(y\)\) => Value::Float\(x \3 y\), _ => Value::Null \}\); \}/g;
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        let m: RegExpExecArray | null;
-        while ((m = incrRe.exec(content)) !== null) {
-            const [whole, flag, v, sign] = m;
-            const flagDecl = content.lastIndexOf(`let mut ${flag}: bool = true;`, m.index);
-            if (flagDecl < 0) continue;
-            const declRe = new RegExp(`let mut ${v}: Value = Value::Int\\(-?\\d+\\);\\s*$`);
-            if (!declRe.test(content.slice(Math.max(0, flagDecl - 200), flagDecl))) continue;
-            // The `{` printForStatement opened before the declaration.
-            const blockOpen = content.lastIndexOf('{', content.lastIndexOf(`let mut ${v}: Value`, flagDecl));
-            let depth = 0, end = -1;
-            for (let k = blockOpen; k < content.length; k++) {
-                const c = content[k];
-                if (c === '"') { k++; while (k < content.length && content[k] !== '"') { if (content[k] === '\\') k++; k++; } continue; }
-                if (c === '{') depth++;
-                else if (c === '}' && --depth === 0) { end = k; break; }
-            }
-            if (end < 0) continue;
-            const block = content.slice(blockOpen, end).replace(whole, '');
-            const esc = v.replace(/[$]/g, '\\$');
-            const writes = new RegExp(`(?<![\\w.])${esc}\\s*(=(?!=)|[-+*/%]=)|&mut\\s+${esc}\\b|let\\s+(mut\\s+)?${esc}\\b`, 'g');
-            const hits = block.match(writes) || [];
-            // Exactly one hit: the declaration itself.
-            if (hits.length !== 1) continue;
-            const text = `while { if !${flag} { if let Value::Int(n) = &mut ${v} { *n ${sign}= 1; } }`;
-            rewrites.push({ start: m.index, end: m.index + whole.length, text });
-        }
-        if (rewrites.length === 0) return content;
-        let out = '', at = 0;
-        for (const r of rewrites) { out += content.slice(at, r.start) + r.text; at = r.end; }
-        return out + content.slice(at);
-    }
-
-    // A `for (let i = N; i < x.length; i++)` counter that only indexes arrays is always
-    // Value::Int (x46Incr proof), so the Int arm of the index match is the only live one.
-    // Retype it to i64 and print a closure-free bounds-checked slice read.
-    x47IntIndex(content: string): string {
-        const declRe = /let mut (\w+): Value = Value::Int\((\d+)\);(\s*)let mut (__for_first_\d+): bool = true;\s*while \{ if !\4 \{ if let Value::Int\(n\) = &mut \1 \{ \*n \+= 1; \} \} \4 = false; \1\.as_f64\(\)\.unwrap_or\(f64::NAN\) < \(\((self\.\w+|\w+)\.len\(\) as i64\) as f64\) \} \{\n/g;
-        const masked = this.maskStringsAndComments(content);
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        let m: RegExpExecArray | null;
-        while ((m = declRe.exec(content)) !== null) {
-            const [whole, v, init, , flag, recv] = m;
-            const bodyStart = m.index + whole.length;
-            let depth = 1, k = bodyStart;
-            for (; k < masked.length && depth > 0; k++) {
-                if (masked[k] === '{') depth++;
-                else if (masked[k] === '}') depth--;
-            }
-            if (depth !== 0) continue;
-            const body = content.slice(bodyStart, k);
-            const esc = v.replace(/[$]/g, '\\$');
-            const readRe = new RegExp(`\\.as_array\\(\\)\\.and_then\\(\\|__arr\\| match &${esc} \\{ Value::Int\\(__n\\) => __arr\\.get\\(\\*__n as usize\\), Value::Str\\(__s\\) => __s\\.parse::<usize>\\(\\)\\.ok\\(\\)\\.and_then\\(\\|__n\\| __arr\\.get\\(__n\\)\\), _ => None \\}\\)`, 'g');
-            // Other proven-Int uses: Vec `.get(i.as_i64().unwrap_or(-1) as usize)` and the boxed `i.clone()`.
-            const vecRe = new RegExp(`\\.get\\(${esc}\\.as_i64\\(\\)\\.unwrap_or\\(-1\\) as usize\\)`, 'g');
-            const boxRe = new RegExp(`(?<![\\w.])${esc}\\.clone\\(\\)`, 'g');
-            const count = (re: RegExp): number => (body.match(re) || []).length;
-            const reads = count(readRe) + count(vecRe) + count(boxRe);
-            const useRe = new RegExp(`(?<![\\w.])${esc}(?![\\w])`, 'g');
-            const uses = (this.maskStringsAndComments(body).match(useRe) || []).length;
-            if (reads === 0 || uses !== reads) continue;
-            const newBody = body
-                .replace(readRe, `.as_array().map(Vec::as_slice).unwrap_or(&[]).get(${v} as usize)`)
-                .replace(vecRe, `.get(${v} as usize)`)
-                .replace(boxRe, `Value::Int(${v})`);
-            const head = whole
-                .replace(`let mut ${v}: Value = Value::Int(${init});`, `let mut ${v}: i64 = ${init};`)
-                .replace(`if let Value::Int(n) = &mut ${v} { *n += 1; }`, `${v} += 1;`)
-                .replace(`${v}.as_f64().unwrap_or(f64::NAN) < ((${recv}.len() as i64) as f64)`, `${v} < (${recv}.len() as i64)`);
-            rewrites.push({ start: m.index, end: bodyStart + body.length, text: head + newBody });
-            declRe.lastIndex = bodyStart + body.length;
-        }
-        if (rewrites.length === 0) return content;
-        let out = '', at = 0;
-        for (const r of rewrites) { out += content.slice(at, r.start) + r.text; at = r.end; }
-        // Rewriting an outer counter skips its body; rerun so nested counters convert too.
-        return this.x47IntIndex(out + content.slice(at));
     }
 
     // Dict read/membership keyed by a Str place, closure-free (the `|__m|`/`|__k|` closures counted as blobs):
