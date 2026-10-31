@@ -375,7 +375,7 @@ export function hx10G10DeclsAt (body: string[], maskedBody: string[], decls: Map
 }
 
 // every `ok` of the func is the local of an `if x, ok := ...; ...` header, so a new header `ok` shadows nothing
-function hx10G10OkIsIfLocal (maskedBody: string[]): boolean {
+export function hx10G10OkIsIfLocal (maskedBody: string[]): boolean {
     return maskedBody.every (line => !/\bok\b/.test (line) || /^\s*(?:\} else )?if (?:\w+|_), ok := [^;]+; .*\{$/.test (line));
 }
 
@@ -658,7 +658,7 @@ export function hx10G10SelfTest (): string[] {
 // `&&` guard proves k non-nil, so the lookup is a native comma-ok behind one `k != nil` check
 export const NIL_SAFE_MAP = /^this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id)\(\)$/;
 
-function hx11w9Terms (line: string, masked: string): string[] | undefined {
+export function hx11w9Terms (line: string, masked: string): string[] | undefined {
     const terms: string[] = [];
     let depth = 0;
     let from = 0;
