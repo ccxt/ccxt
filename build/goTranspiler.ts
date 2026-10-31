@@ -37,11 +37,9 @@ import { gp28Stores, hx10w10Gp28Check, hx10w10Gp28Wired } from './hx10w10-GP28.j
 import { hx10w9Gp17TupleTwins, hx10w9Gp17ParamsSlotBinds, hx10w9Gp17SelfTest } from './hx10w9-GP17.js';
 import { og02IdBookPass, og02IdBookCheck } from './hx10w6-OG02.js';
 import { installHx11w8AsyncBool } from './hx11w8-async-bool.js';
-import { installHx11w8CreateOrdersSlice } from './hx11w8-createorders-slice.js';
 import { hx11w8NonceInt64, hx11w8NonceInt64Check, hx11w8NonceLocals, hx11w8NonceLocalsCheck } from './hx11w8-nonce-int64.js';  // hx11 w8 m172: Nonce() is int64 end to end  // hx10 wave-6 OG02: id/nonce counters + last-response fields owned by the request book
 import { hx10w4OG01Pass, hx10w4OG01Check } from './hx10w4-OG01.js';
 import { hx10w4OG03Pass, og03selfcheck } from './hx10w4-OG03.js';
-import { installHx11w8CorParams } from './hx11w8-cor-params.js';  // hx11 w8 printer-go-createorderrequest-params-typed
 import { hx11w9SafeStringDefaultLocals, hx11w9SafeStringDefaultLocalsCheck } from './hx11w9-safestring-default-local.js';  // hx11 w9: defaulted SafeString locals are strings
 import { hx11w8JsonString, hx11w8JsonStringCheck } from './hx11w8-json-string.js';  // hx11 w8 m172: Json() is a string, no SafeStringPtr box
 import { hx11w8EthEncodeBytes, hx11w8EthEncodeBytesCheck } from './hx11w8-eth-encode-bytes.js';  // hx11 w8: EthEncodeStructuredData locals are []uint8
@@ -134,7 +132,21 @@ const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
 const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } } = {
     'unWatchTradesForSymbols': { 0: '[]string' },
     'unWatchOrderBookForSymbols': { 0: '[]string' },
+    // hx11 RF-go-7: createOrders (orders: OrderRequest[]) prints `orders []any` on the base, every venue and
+    // ICreateOrders: every caller already hands over a `[]any`
+    'createOrders': { 0: '[]any' },
 };
+
+// hx11 RF-go-7: exchange-local methods no ts/src file calls whose required `string` params are Go strings
+// (`<class>.<method>` -> indexes); the call-site proof is vacuous there, so the printer takes the table
+const GO_UNCALLED_STRING_PARAMS: { [method: string]: number[] } = {
+    'bingx.getOrderBookLimitByMarketType': [ 0 ],
+    'hitbtc.convertCurrencyNetwork': [ 2, 3 ],
+};
+// hx11 RF-go-7: base methods whose tuple slot 0 is the Go `*string` (TS declares `string`)
+const GO_STRING_POINTER_TUPLE_CALLS: string[] = [ 'handleMarketTypeAndParams' ];
+// hx11 RF-go-7: the order-request builders; a sibling-file call that hands over a unified-string parameter of its method proves them
+const GO_SIBLING_STRING_PASSTHROUGH_PATTERN = '^(create|edit)\\w*OrderRequest$';
 
 const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createOrder': [ 0, 1, 2 ], 'createOrderWs': [ 0, 1, 2 ], 'createLimitOrder': [ 0, 1 ], 'createLimitOrderWs': [ 0, 1 ],
@@ -6175,6 +6187,9 @@ class NewTranspiler {
                 "unifiedBoolParams": GO_UNIFIED_BOOL_PARAMS,
                 // hx10w9 GP13: the ws watch family's symbols list prints `[]string`/`[][]string`
                 "unifiedSliceParams": GO_UNIFIED_SLICE_PARAMS,
+                "uncalledStringParams": GO_UNCALLED_STRING_PARAMS,
+                "stringPointerTupleCalls": GO_STRING_POINTER_TUPLE_CALLS,
+                "siblingStringPassthroughPattern": GO_SIBLING_STRING_PASSTHROUGH_PATTERN,
             //     "parser": {
             //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
             //         "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
@@ -6300,9 +6315,7 @@ class NewTranspiler {
         installCcxtGoGb11HandleErrorsCode (this.transpiler.goTranspiler);
         installCcxtGoSignTyping (this.transpiler.goTranspiler);
         installHx11w8AsyncBool (this.transpiler.goTranspiler);
-        installHx11w8CreateOrdersSlice (this.transpiler.goTranspiler);
         installHx10w10GP24BaseImportSeam (this.transpiler.goTranspiler);
-        installHx11w8CorParams (this.transpiler.goTranspiler);
     }
 
     createGeneratedHeader() {
