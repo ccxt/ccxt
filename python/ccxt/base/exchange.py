@@ -6664,7 +6664,7 @@ class BaseExchange(object):
         :param dict result: the code-keyed balance dict being built
         :param str code: unified currency code
         :param dict account: a balance account with string free/used/total/debt
-        :returns dict: result — callers MUST reassign(`result = self.merge_balance_account(result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+        :returns dict: result — callers MUST reassign the return value to their own result: PHP arrays are passed by value, so the mutation is not visible through the argument
         """
         if not (code in result):
             result[code] = account

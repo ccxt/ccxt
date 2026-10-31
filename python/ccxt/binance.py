@@ -7510,7 +7510,7 @@ class binance(Exchange, ImplicitAPI):
         limitResolved = limit
         if limit is not None and stock:
             limitResolved = min(limit, 100)
-        if limitResolved is not None:
+        if limit is not None:
             if stock:
                 request['size'] = limitResolved
             else:
@@ -8702,9 +8702,9 @@ class binance(Exchange, ImplicitAPI):
         if limit is not None and isContractLimit:
             limitContract = min(limit, 1000)
         limitResolved = limitContract
-        if limitContract is not None and stock:
-            limitResolved = min(limitContract, 100)
-        if limitResolved is not None:
+        if limit is not None and stock:
+            limitResolved = min(limit, 100)
+        if limit is not None:
             if stock:
                 request['size'] = limitResolved
             else:

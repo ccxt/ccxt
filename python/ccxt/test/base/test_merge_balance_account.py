@@ -22,26 +22,29 @@ def test_merge_balance_account():
     # markets is summed into a single flat entry, missing fields stay undefined.
     # the helper returns the merged dict and callers reassign it: PHP arrays are
     # passed by value, so mutating the argument alone is invisible there.
-    # the local is seeded from the helper itself so the Go port infers the
-    # helper's own return type instead of a map literal it cannot assign back to
-    btc_account = exchange.account()
-    btc_account['free'] = '1'
-    btc_account['used'] = '0.5'
-    btc_account['debt'] = '0.1'
-    result = exchange.merge_balance_account({}, 'BTC', btc_account)
+    # accounts and the result are map literals; extend keeps the reassigned local a dictionary
+    btc_account = {
+        'free': '1',
+        'used': '0.5',
+        'debt': '0.1',
+    }
+    result = {}
+    result = exchange.extend(exchange.merge_balance_account(result, 'BTC', btc_account))
     assert exchange.safe_string(result['BTC'], 'free') == '1'
-    btc_account_2 = exchange.account()
-    btc_account_2['free'] = '2'
-    btc_account_2['used'] = '0.25'
-    btc_account_2['total'] = '2.25'
-    result = exchange.merge_balance_account(result, 'BTC', btc_account_2)
+    btc_account_2 = {
+        'free': '2',
+        'used': '0.25',
+        'total': '2.25',
+    }
+    result = exchange.extend(exchange.merge_balance_account(result, 'BTC', btc_account_2))
     assert exchange.safe_string(result['BTC'], 'free') == '3'
     assert exchange.safe_string(result['BTC'], 'used') == '0.75'
     assert exchange.safe_string(result['BTC'], 'total') == '2.25'
     assert exchange.safe_string(result['BTC'], 'debt') == '0.1'
-    usdt_account = exchange.account()
-    usdt_account['free'] = '5'
-    result = exchange.merge_balance_account(result, 'USDT', usdt_account)
+    usdt_account = {
+        'free': '5',
+    }
+    result = exchange.extend(exchange.merge_balance_account(result, 'USDT', usdt_account))
     assert exchange.safe_string(result['USDT'], 'free') == '5'
     assert exchange.safe_string(result['USDT'], 'used') is None
     keys = list(result.keys())
