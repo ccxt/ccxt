@@ -6754,6 +6754,11 @@ export function csharpTypeOfValue (csharp, node, context) {
         if (arithmetic !== undefined) {
             return arithmetic;
         }
+        // `(a - b)` printed natively under a dominating null test (nativeGuardedSubtractExpression):
+        // a lifted Int64? minus an int-like operand, the same Int64 box subtract() hands back
+        if (node.operatorToken.kind === ts.SyntaxKind.MinusToken && nativeGuardedSubtractExpression (csharp, node) !== undefined) {
+            return 'Int64?';
+        }
         // a pair installCsharpNativeArithmetic prints as the C# operator (`(x + 10000)` over an
         // `Int64?` left): the operator's own static type is the declaration (the lifted `+` of a
         // nullable left stays nullable) — exactly the kind the emitted expression carries
