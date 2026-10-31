@@ -202,19 +202,19 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 	//     ]
 	//
 	var first []any = ccxt.SafeListTyped(message, 0)
-	var symbol *string = this.SafeString(this.Market(this.SafeString(first, 2)), "symbol", "")
+	var symbol string = *this.SafeString(this.Market(this.SafeString(first, 2)), "symbol", "")
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades[symbol] = stored
 	}
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
 		var data any = this.SafeValue(message, i)
 		var trade map[string]any = this.ParseWsTrade(data)
 		stored.Append(trade)
 	}
-	var messageHash string = "trade:" + *symbol
+	var messageHash string = "trade:" + symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {

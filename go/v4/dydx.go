@@ -1892,7 +1892,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	return []any{orderId, this.Extend(signingPayload, paramsOmitted)}
 }
 func (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId any, orderFlags any, clobPairId any) string {
-	var nameSp *string = this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
+	var nameSp string = *this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
 	var clientOrderIdString *string = this.NumberToString(clientOrderId)
 	var clobPairIdString *string = this.NumberToString(clobPairId)
 	var orderFlagsString *string = this.NumberToString(orderFlags)

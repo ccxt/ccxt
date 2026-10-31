@@ -323,10 +323,10 @@ func (this *Bitvavo) HandleBidAsk(client any, message map[string]any) {
 	for i := 0; i < len(tickers); i++ {
 		var data any = tickers[i]
 		var ticker any = this.ParseWsBidAsk(data)
-		var symbol *string = this.SafeString(ticker, "symbol", "")
+		var symbol string = *this.SafeString(ticker, "symbol", "")
 		this.Bidsasks.Store(symbol, ticker)
 		result = append(result, ticker)
-		var messageHash string = event + ":" + *symbol
+		var messageHash string = event + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, event)

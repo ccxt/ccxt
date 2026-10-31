@@ -1957,7 +1957,7 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
 	if this.Markets() == nil {
 		this.PublishMarkets(map[string]any{})
 	}
-	var marketHandle *string = this.SafeString(market, "market", "")
+	var marketHandle string = *this.SafeString(market, "market", "")
 	this.AddMarketsEntry(marketHandle, market)
 	this.IndexMarketOutcomes(market)
 	ccxt.AddElementToObject(cached, idStr, market)
@@ -2069,13 +2069,11 @@ func (this *Opinion) ParseBalance(response any) map[string]any {
 	var balancesLength int = len(balances)
 	for i := 0; i < balancesLength; i++ {
 		var balance map[string]any = ccxt.SafeMapTyped(balances, i)
-		var code *string = this.SafeString(balance, "symbol", "USDT")
-		if code != nil {
-			result[*code] = map[string]any{
-				"free":  this.SafeNumber(balance, "availableBalance"),
-				"used":  this.SafeNumber(balance, "frozenBalance"),
-				"total": this.SafeNumber(balance, "totalBalance"),
-			}
+		var code string = *this.SafeString(balance, "symbol", "USDT")
+		result[code] = map[string]any{
+			"free":  this.SafeNumber(balance, "availableBalance"),
+			"used":  this.SafeNumber(balance, "frozenBalance"),
+			"total": this.SafeNumber(balance, "totalBalance"),
 		}
 	}
 	return this.SafeBalance(result).(map[string]any)

@@ -7285,8 +7285,8 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv6980, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv6980
+	listRecv6984, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv6984
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -7617,8 +7617,8 @@ func (this *Bitget) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv7275, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv7275
+	listRecv7279, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv7279
 	uta = utaparamsUTAVariable[0]
 	paramsUTA = utaparamsUTAVariable[1]
 	var isStock bool = (stock == true)
@@ -8434,8 +8434,8 @@ func (this *Bitget) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv8059, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv8059
+	listRecv8063, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv8063
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	var isStockOrUta bool = (isStockSpot || (uta == true))
@@ -9073,8 +9073,8 @@ func (this *Bitget) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv8638, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv8638
+	listRecv8642, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv8642
 	uta = utaparamsUTAVariable[0]
 	paramsUTA = utaparamsUTAVariable[1]
 	if uta == true {
@@ -9300,8 +9300,8 @@ func (this *Bitget) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv8837, _ := r1.Value, r1.Value != nil
-	var utaparamsOmittedVariable []any = listRecv8837
+	listRecv8841, _ := r1.Value, r1.Value != nil
+	var utaparamsOmittedVariable []any = listRecv8841
 	uta = utaparamsOmittedVariable[0]
 	paramsOmitted = utaparamsOmittedVariable[1]
 	if uta == true {
@@ -9567,8 +9567,8 @@ func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv9064, _ := r1.Value, r1.Value != nil
-	var utaparamsMarginModeVariable []any = listRecv9064
+	listRecv9068, _ := r1.Value, r1.Value != nil
+	var utaparamsMarginModeVariable []any = listRecv9068
 	uta = utaparamsMarginModeVariable[0]
 	paramsMarginMode = utaparamsMarginModeVariable[1]
 	var isStockOrUta bool = (isStockSpot || (uta == true))
@@ -9860,8 +9860,8 @@ func (this *Bitget) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv9312, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv9312
+	listRecv9316, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv9316
 	uta = utaparamsUTAVariable[0]
 	paramsUTA = utaparamsUTAVariable[1]
 	if uta == true {
@@ -10026,8 +10026,8 @@ func (this *Bitget) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv9446, _ := r1.Value, r1.Value != nil
-	var utaparamsMarginModeVariable []any = listRecv9446
+	listRecv9450, _ := r1.Value, r1.Value != nil
+	var utaparamsMarginModeVariable []any = listRecv9450
 	uta = utaparamsMarginModeVariable[0]
 	paramsMarginMode = utaparamsMarginModeVariable[1]
 	if uta == true {
@@ -10175,8 +10175,8 @@ func (this *Bitget) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv9567, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv9567
+	listRecv9571, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv9571
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -10399,8 +10399,8 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv9774, _ := r1.Value, r1.Value != nil
-	var utaparamsMarginModeVariable []any = listRecv9774
+	listRecv9778, _ := r1.Value, r1.Value != nil
+	var utaparamsMarginModeVariable []any = listRecv9778
 	uta = utaparamsMarginModeVariable[0]
 	paramsMarginMode = utaparamsMarginModeVariable[1]
 	if symbol != nil {
@@ -11012,8 +11012,8 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv10328, _ := r.Value, r.Value != nil
-	var utaparamsUTAVariable []any = listRecv10328
+	listRecv10332, _ := r.Value, r.Value != nil
+	var utaparamsUTAVariable []any = listRecv10332
 	uta = utaparamsUTAVariable[0]
 	paramsUTA = utaparamsUTAVariable[1]
 	if uta == true {
@@ -11609,8 +11609,8 @@ func (this *Bitget) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv10870, _ := r1.Value, r1.Value != nil
-	var utaparamsOmittedVariable []any = listRecv10870
+	listRecv10874, _ := r1.Value, r1.Value != nil
+	var utaparamsOmittedVariable []any = listRecv10874
 	uta = utaparamsOmittedVariable[0]
 	paramsOmitted = utaparamsOmittedVariable[1]
 	var paginate bool = false
@@ -12128,8 +12128,8 @@ func (this *Bitget) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11360, _ := r.Value, r.Value != nil
-	var utaparamsUTAVariable []any = listRecv11360
+	listRecv11364, _ := r.Value, r.Value != nil
+	var utaparamsUTAVariable []any = listRecv11364
 	uta = utaparamsUTAVariable[0]
 	paramsUTA = utaparamsUTAVariable[1]
 	if (uta != true) && (symbol == nil) {
@@ -12429,8 +12429,8 @@ func (this *Bitget) fetchPositionBody(ch chan AsyncResult[Position], symbol any,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv11626, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv11626
+	listRecv11630, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv11630
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -12608,8 +12608,8 @@ func (this *Bitget) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv11785, _ := r2.Value, r2.Value != nil
-	var utaparamsPaginateVariable []any = listRecv11785
+	listRecv11789, _ := r2.Value, r2.Value != nil
+	var utaparamsPaginateVariable []any = listRecv11789
 	uta = utaparamsPaginateVariable[0]
 	paramsPaginate = utaparamsPaginateVariable[1]
 	if uta == true {
@@ -13076,8 +13076,8 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12233, _ := r1.Value, r1.Value != nil
-	var utaparamsProductTypeVariable []any = listRecv12233
+	listRecv12237, _ := r1.Value, r1.Value != nil
+	var utaparamsProductTypeVariable []any = listRecv12237
 	uta = utaparamsProductTypeVariable[0]
 	paramsProductType = utaparamsProductTypeVariable[1]
 	if uta == true {
@@ -13221,8 +13221,8 @@ func (this *Bitget) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12358, _ := r1.Value, r1.Value != nil
-	var utaparamsProductTypeVariable []any = listRecv12358
+	listRecv12362, _ := r1.Value, r1.Value != nil
+	var utaparamsProductTypeVariable []any = listRecv12362
 	uta = utaparamsProductTypeVariable[0]
 	paramsProductType = utaparamsProductTypeVariable[1]
 	if uta == true {
@@ -13309,8 +13309,8 @@ func (this *Bitget) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12426, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv12426
+	listRecv12430, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv12430
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	var method string = "publicMixGetV2MixMarketTickers"
@@ -13583,8 +13583,8 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12674, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv12674
+	listRecv12678, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv12678
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false)
@@ -14043,8 +14043,8 @@ func (this *Bitget) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv13098, _ := r1.Value, r1.Value != nil
-	var utaparamsProductTypeVariable []any = listRecv13098
+	listRecv13102, _ := r1.Value, r1.Value != nil
+	var utaparamsProductTypeVariable []any = listRecv13102
 	uta = utaparamsProductTypeVariable[0]
 	paramsProductType = utaparamsProductTypeVariable[1]
 	if uta == true {
@@ -14201,8 +14201,8 @@ func (this *Bitget) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv13236, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv13236
+	listRecv13240, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv13240
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -14271,8 +14271,8 @@ func (this *Bitget) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv13292, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv13292
+	listRecv13296, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv13296
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -14483,8 +14483,8 @@ func (this *Bitget) transferBody(ch chan AsyncResult[TransferEntry], code string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv13475, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv13475
+	listRecv13479, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv13479
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	var currency map[string]any = this.Currency(code)
@@ -15401,8 +15401,8 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14320, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv14320
+	listRecv14324, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv14324
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -15756,8 +15756,8 @@ func (this *Bitget) closePositionBody(ch chan AsyncResult[Order], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14644, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv14644
+	listRecv14648, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv14648
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -15832,8 +15832,8 @@ func (this *Bitget) closeAllPositionsBody(ch chan AsyncResult[[]Position], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14704, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv14704
+	listRecv14708, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv14708
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -16010,8 +16010,8 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv14864, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv14864
+	listRecv14868, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv14868
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -16460,8 +16460,8 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv15270, _ := r1.Value, r1.Value != nil
-	var utaparamsUTAVariable []any = listRecv15270
+	listRecv15274, _ := r1.Value, r1.Value != nil
+	var utaparamsUTAVariable []any = listRecv15274
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {

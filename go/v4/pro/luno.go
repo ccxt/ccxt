@@ -279,22 +279,22 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var symbol string = *this.SafeString(subscription, "symbol", "")
-	var messageHash string = "orderbook:" + symbol
+	var symbol *string = this.SafeString(subscription, "symbol", "")
+	var messageHash string = "orderbook:" + *symbol
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	if _, ok := this.Orderbooks[symbol]; !ok {
-		this.Orderbooks[symbol] = this.IndexedOrderBook(map[string]any{})
+	if _, ok := this.Orderbooks[*symbol]; !ok {
+		this.Orderbooks[*symbol] = this.IndexedOrderBook(map[string]any{})
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var asks []any = ccxt.SafeListTyped(message, "asks")
 	if asks == nil {
-		var inSequence bool = this.IsOrderBookDeltaInSequence(client, message, symbol)
+		var inSequence bool = this.IsOrderBookDeltaInSequence(client, message, *symbol)
 		if !inSequence {
 			return
 		}
 	}
 	if asks != nil {
-		var snapshot any = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
+		var snapshot any = this.CustomParseOrderBook(message, *symbol, timestamp, "bids", "asks", "price", "volume", "id")
 		orderbook.Reset(snapshot)
 	} else {
 		this.HandleBookDelta(orderbook, message)

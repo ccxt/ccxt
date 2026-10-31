@@ -222,7 +222,7 @@ func (this *Aster) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	}
 	var symbolsList []string = symbolsNormalized
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsList)
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -297,7 +297,7 @@ func (this *Aster) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	}
 	var symbolsList []string = symbolsNormalized
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsList)
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -446,7 +446,7 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	}
 	var symbolsList []string = symbolsNormalized
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsList)
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
@@ -526,7 +526,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 	}
 	var symbolsList []string = symbolsNormalized
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsList)
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
@@ -688,7 +688,7 @@ func (this *Aster) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 	var symbolsList []string = symbolsNormalized
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsList)
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -762,7 +762,7 @@ func (this *Aster) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 	}
 	var symbolsList []string = symbolsNormalized
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsList)
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -946,7 +946,7 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
 	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchTradesForSymbols")
 	if symbolsLength == 0 {
@@ -1018,7 +1018,7 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
 	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchTradesForSymbols")
 	if symbolsLength == 0 {
@@ -1359,7 +1359,7 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
 	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
 	if symbolsLength == 0 {
@@ -1429,7 +1429,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
 	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchOrderBookForSymbols")
 	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
@@ -1657,7 +1657,7 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var firstMarket map[string]any = this.Market(marketSymbols[0])
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1734,7 +1734,7 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var firstMarket map[string]any = this.Market(marketSymbols[0])
-	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
+	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1957,7 +1957,7 @@ func (this *Aster) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeVar *string = this.SafeString(params, "type", "spot")
+	var typeVar string = *this.SafeString(params, "type", "spot")
 	var listenKeyOptions map[string]any = ccxt.SafeMapTyped(this.Options, "listenKey")
 	var listenKey *string = this.SafeString(listenKeyOptions, typeVar)
 	if listenKey == nil {
@@ -1990,7 +1990,7 @@ func (this *Aster) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 				}
 			}()
 			// try block:
-			if typeVar != nil && *typeVar == "spot" {
+			if typeVar == "spot" {
 
 				r := <-this.SapiPrivatePutV3ListenKey() // extend the expiry
 				if r.Err != nil {
@@ -2189,7 +2189,7 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	this.WsBalanceEntryForWrite(accountType)["info"] = message
 	var messageValue any = this.SafeDict(message, "a", message)
 	var B []any = ccxt.SafeListTyped(messageValue, "B")
-	var wallet *string = this.SafeString(this.Options, "wallet", "wb")
+	var wallet string = *this.SafeString(this.Options, "wallet", "wb")
 	for i := 0; i < len(B); i++ {
 		var entry any = B[i]
 		var currencyId *string = this.SafeString(entry, "a")

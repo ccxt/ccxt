@@ -1197,8 +1197,8 @@ func (this *Bitfinex) ParseCurrenciesCustom(ids []any, indexed map[string]any, i
 	var arr []any = this.ToArray(allowedIds)
 	for i := 0; i < len(arr); i++ {
 		var parsed any = this.ParseCurrencyCustom(DerefScalar(arr[i]), indexed, indexedNetworks)
-		var code *string = this.SafeString(parsed, "code", "")
-		AddElementToObject(result, code, parsed)
+		var code string = *this.SafeString(parsed, "code", "")
+		result[code] = parsed
 	}
 	return result
 }

@@ -144,7 +144,7 @@ func (this *Deepcoin) watchPublicBody(ch chan ccxt.AsyncResult[any], market map[
 	_ = params
 	var suffix string = ccxt.GetArgString(optionalArgs, 1, "")
 	_ = suffix
-	var marketType *string = this.SafeString(market, "type", "")
+	var marketType string = *this.SafeString(market, "type", "")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], marketType, "")
 	var requestId int64 = this.RequestId()
 	var request map[string]any = this.CreatePublicRequest(market, requestId, topicID, suffix)
@@ -174,7 +174,7 @@ func (this *Deepcoin) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], market m
 	_ = subscription
 	var suffix string = ccxt.GetArgString(optionalArgs, 2, "")
 	_ = suffix
-	var marketType *string = this.SafeString(market, "type", "")
+	var marketType string = *this.SafeString(market, "type", "")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], marketType, "")
 	var requestId int64 = this.RequestId()
 	var client ccxt.ClientInterface = this.Client(url)

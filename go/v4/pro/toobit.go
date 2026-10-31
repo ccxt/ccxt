@@ -412,7 +412,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	var selectedTimeframe any = nil
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
-		var symbolStr *string = this.SafeString(data, 0, "")
+		var symbolStr string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolStr)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1m")
@@ -423,7 +423,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 			selectedTimeframe = rawTimeframe
 		}
 		marketIds = append(marketIds, marketId)
-		messageHashes = append(messageHashes, "ohlcv::"+*symbolStr+"::"+*unfiedTimeframe)
+		messageHashes = append(messageHashes, "ohlcv::"+symbolStr+"::"+*unfiedTimeframe)
 	}
 	var request map[string]any = map[string]any{
 		"symbol": ccxt.Join(marketIds, ","),
@@ -1713,9 +1713,9 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 	return nil
 }
 func (this *Toobit) GetUserStreamUrl() string {
-	var wsBaseUrl *string = this.SafeString(this.UrlsApi["ws"], "common", "")
+	var wsBaseUrl string = *this.SafeString(this.UrlsApi["ws"], "common", "")
 	var listenKey string = *this.SafeString(this.Options["ws"], "listenKey", "")
-	return *wsBaseUrl + "/api/v1/ws/" + listenKey
+	return wsBaseUrl + "/api/v1/ws/" + listenKey
 }
 func (this *Toobit) HandleErrorMessage(client any, message any) bool {
 	//

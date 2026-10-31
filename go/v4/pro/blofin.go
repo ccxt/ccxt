@@ -257,16 +257,16 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var rawTrade any = this.SafeValue(data, i)
 		var trade map[string]any = this.ParseWsTrade(rawTrade)
-		var symbol *string = this.SafeString(trade, "symbol", "")
+		var symbol string = *this.SafeString(trade, "symbol", "")
 		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			stored = ccxt.NewArrayCache(limit)
-			this.Trades[*symbol] = stored
+			this.Trades[symbol] = stored
 		}
 		stored.Append(trade)
 		if channelName != nil {
-			var messageHash string = *channelName + ":" + *symbol
+			var messageHash string = *channelName + ":" + symbol
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
 	}
@@ -514,10 +514,10 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var ticker map[string]any = this.ParseWsTicker(this.SafeValue(data, i))
-		var symbol *string = this.SafeString(ticker, "symbol", "")
+		var symbol string = *this.SafeString(ticker, "symbol", "")
 		this.Tickers.Store(symbol, ticker)
 		if channelName != nil {
-			var messageHash string = *channelName + ":" + *symbol
+			var messageHash string = *channelName + ":" + symbol
 			client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(symbol), messageHash)
 		}
 	}
@@ -603,8 +603,8 @@ func (this *Blofin) HandleBidAsk(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var ticker any = this.ParseWsBidAsk(this.SafeValue(data, i))
-		var symbol *string = this.SafeString(ticker, "symbol", "")
-		var messageHash string = "bidask:" + *symbol
+		var symbol string = *this.SafeString(ticker, "symbol", "")
+		var messageHash string = "bidask:" + symbol
 		this.Bidsasks.Store(symbol, ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
@@ -721,7 +721,7 @@ func (this *Blofin) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	}
 	result := r1.Value
 	var symbol *string = this.SafeString(result, 0, "")
-	var timeframe *string = this.SafeString(result, 1, "")
+	var timeframe string = *this.SafeString(result, 1, "")
 	var candles any = this.SafeValue(result, 2)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {

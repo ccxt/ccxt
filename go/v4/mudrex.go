@@ -720,8 +720,8 @@ func (this *Mudrex) ParseMarket(asset any) map[string]any {
 	if base != nil {
 		symbol = SafeStringPtr(*base + "/" + quote + ":" + settle)
 	}
-	var priceStep *string = this.SafeString(asset, "price_step", "0.01")
-	var qtyStep *string = this.SafeString(asset, "quantity_step", "0.001")
+	var priceStep string = *this.SafeString(asset, "price_step", "0.01")
+	var qtyStep string = *this.SafeString(asset, "quantity_step", "0.001")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             ms,
 		"lowercaseId":    nil,
@@ -840,7 +840,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 }
 func (this *Mudrex) ParseBalance(response map[string]any) map[string]any {
 	var data map[string]any = SafeMapTyped(response, "data")
-	var currency *string = this.SafeString(response, "currency", "USDT")
+	var currency string = *this.SafeString(response, "currency", "USDT")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -855,9 +855,7 @@ func (this *Mudrex) ParseBalance(response map[string]any) map[string]any {
 		account["total"] = this.SafeString(data, "total")
 		account["free"] = this.SafeString(data, "withdrawable")
 	}
-	if currency != nil {
-		result[*currency] = account
-	}
+	result[currency] = account
 	return this.SafeBalance(result).(map[string]any)
 }
 

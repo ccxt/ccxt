@@ -554,7 +554,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if orderbook == nil {
 		return
@@ -606,7 +606,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	var name string = "SubscribeLevel2"
 	var messageHash string = name + ":" + *marketId
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks[symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {

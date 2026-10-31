@@ -960,14 +960,14 @@ func (this *Phemex) ParseSwapMarket(market any) map[string]any {
 	var makerFeeRateEr *string = this.SafeString(market, "makerFeeRateEr")
 	var takerFeeRateEr *string = this.SafeString(market, "takerFeeRateEr")
 	var status *string = this.SafeString(market, "status")
-	var contractSizeString *string = this.SafeString(market, "contractSize", " ")
+	var contractSizeString string = *this.SafeString(market, "contractSize", " ")
 	var contractSize *float64 = nil
 	if settle != nil && *settle == "USDT" {
 		contractSize = this.ParseNumber("1")
-	} else if strings.Index(*contractSizeString, " ") != -1 {
+	} else if strings.Index(contractSizeString, " ") != -1 {
 		// "1 USD"
 		// "0.005 ETH"
-		var parts []string = strings.Split(*contractSizeString, " ")
+		var parts []string = strings.Split(contractSizeString, " ")
 		contractSize = this.ParseNumber(parts[0])
 	} else {
 		// "1.0"

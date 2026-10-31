@@ -222,12 +222,12 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var marketIdValue string = *this.SafeString(market, "id", "")
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades[symbol] = stored
 	}
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)

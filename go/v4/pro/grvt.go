@@ -341,10 +341,10 @@ func (this *Grvt) HandleTicker(client any, message map[string]any) {
 	var parts []string = strings.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var ticker map[string]any = this.ParseWsTicker(data, market)
 	this.Tickers.Store(symbol, ticker)
-	client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*symbol)
+	client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+symbol)
 }
 func (this *Grvt) ParseWsTicker(message map[string]any, optionalArgs ...any) map[string]any {
 	// same dict as REST api

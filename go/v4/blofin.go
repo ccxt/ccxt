@@ -1921,13 +1921,13 @@ func (this *Blofin) CreateOrderRequest(symbol *string, typeVar *string, side *st
 		if hasStopLoss {
 			var slTriggerPrice *string = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
 			request["slTriggerPrice"] = this.PriceToPrecision(symbol, slTriggerPrice)
-			var slOrderPrice *string = this.SafeString(stopLoss, "price", "-1")
+			var slOrderPrice string = *this.SafeString(stopLoss, "price", "-1")
 			request["slOrderPrice"] = this.PriceToPrecision(symbol, slOrderPrice)
 		}
 		if hasTakeProfit {
 			var tpTriggerPrice *string = this.SafeString2(takeProfit, "triggerPrice", "stopPrice")
 			request["tpTriggerPrice"] = this.PriceToPrecision(symbol, tpTriggerPrice)
-			var tpPrice *string = this.SafeString(takeProfit, "price", "-1")
+			var tpPrice string = *this.SafeString(takeProfit, "price", "-1")
 			request["tpOrderPrice"] = this.PriceToPrecision(symbol, tpPrice)
 		}
 	} else if triggerPriceAny != nil {
@@ -2031,7 +2031,7 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) Order {
 	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCostSigned *string = Precise.StringAbs(feeCostString)
-		var feeCurrencyId *string = this.SafeString(order, "feeCcy", "USDT")
+		var feeCurrencyId string = *this.SafeString(order, "feeCcy", "USDT")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
 			"cost":     this.ParseNumber(feeCostSigned),

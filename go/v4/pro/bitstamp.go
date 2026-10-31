@@ -467,15 +467,15 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	var parts []string = strings.Split(*channel, "_")
 	var marketId *string = this.SafeString(parts, 2)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "trades:" + *symbol
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trades:" + symbol
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var trade map[string]any = this.ParseWsTrade(data, market)
 	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = tradesArray
+		this.Trades[symbol] = tradesArray
 	}
 	tradesArray.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)

@@ -457,8 +457,8 @@ func (this *Weex) HandleTicker(client any, message map[string]any) {
 	var tickers []any = ccxt.SafeListTyped(message, "d")
 	var data map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
 	var ticker map[string]any = this.ParseWsTicker(data, market)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "ticker::" + *symbol
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "ticker::" + symbol
 	this.Tickers.Store(symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(symbol), messageHash)
 }
@@ -897,7 +897,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 			panic(r.Err)
 		}
 	}
-	var callerMethodName *string = this.SafeString(params, "callerMethodName", "watchOHLCVForSymbols")
+	var callerMethodName string = *this.SafeString(params, "callerMethodName", "watchOHLCVForSymbols")
 	var paramsOmitted map[string]any = this.OmitDict(params, "callerMethodName")
 	var channels []any = []any{}
 	var messageHashes []any = []any{}
@@ -917,17 +917,17 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
-		var symbolString *string = this.SafeString(data, 0, "")
+		var symbolString string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolString)
 		if market["type"] != firstMarket["type"] {
-			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
+			panic(ccxt.BadRequest(this.Id + " " + callerMethodName + " market symbols must be of the same type"))
 		}
-		symbolString = this.SafeString(market, "symbol", "")
+		symbolString = *this.SafeString(market, "symbol", "")
 		var unifiedTimeframe *string = this.SafeString(data, 1, "1")
 		var interval *string = this.SafeString(this.Timeframes, unifiedTimeframe, unifiedTimeframe)
 		var marketId string = *this.SafeString(market, "id", "")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add(marketId+"@kline_"+*interval+"_", priceType))
-		var messageHash string = "ohlcv::" + *symbolString + "::" + *unifiedTimeframe
+		var messageHash string = "ohlcv::" + symbolString + "::" + *unifiedTimeframe
 		channels = append(channels, channel)
 		messageHashes = append(messageHashes, messageHash)
 	}
@@ -1009,7 +1009,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 			panic(r.Err)
 		}
 	}
-	var callerMethodName *string = this.SafeString(params, "callerMethodName", "unWatchOHLCVForSymbols")
+	var callerMethodName string = *this.SafeString(params, "callerMethodName", "unWatchOHLCVForSymbols")
 	var paramsOmitted map[string]any = this.OmitDict(params, "callerMethodName")
 	var channels []any = []any{}
 	var subHashes []any = []any{}
@@ -1030,17 +1030,17 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
-		var symbolString *string = this.SafeString(data, 0, "")
+		var symbolString string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolString)
 		if market["type"] != firstMarket["type"] {
-			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
+			panic(ccxt.BadRequest(this.Id + " " + callerMethodName + " market symbols must be of the same type"))
 		}
-		symbolString = this.SafeString(market, "symbol", "")
+		symbolString = *this.SafeString(market, "symbol", "")
 		var unifiedTimeframe *string = this.SafeString(data, 1, "1")
 		var interval *string = this.SafeString(this.Timeframes, unifiedTimeframe, unifiedTimeframe)
 		var marketId string = *this.SafeString(market, "id", "")
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add(marketId+"@kline_"+*interval+"_", priceType))
-		var messageHash string = "ohlcv::" + *symbolString + "::" + *unifiedTimeframe
+		var messageHash string = "ohlcv::" + symbolString + "::" + *unifiedTimeframe
 		var unSubMessageHash string = "unsubscribe::" + messageHash
 		channels = append(channels, channel)
 		subHashes = append(subHashes, messageHash)

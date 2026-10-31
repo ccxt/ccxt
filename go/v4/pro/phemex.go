@@ -306,8 +306,8 @@ func (this *Phemex) HandleTicker(client any, message any) {
 	}
 	for i := 0; i < len(tickers); i++ {
 		var ticker any = tickers[i]
-		var symbol *string = this.SafeString(ticker, "symbol", "")
-		var messageHash string = "ticker:" + *symbol
+		var symbol string = *this.SafeString(ticker, "symbol", "")
+		var messageHash string = "ticker:" + symbol
 		var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
 		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
@@ -1773,7 +1773,7 @@ func (this *Phemex) HandleMessage(client any, message any) {
 	//       }
 	//     ]
 	// }
-	var id *string = this.SafeString(message, "id", "")
+	var id string = *this.SafeString(message, "id", "")
 	if client.(ccxt.ClientInterface).SubscriptionHas(id) {
 		var method any = client.(ccxt.ClientInterface).SubscriptionSafe(id)
 		client.(ccxt.ClientInterface).SubscriptionDel(id)

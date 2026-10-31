@@ -1659,7 +1659,7 @@ func (this *Polymarket) HandleMessage(client any, message map[string]any) {
 		return
 	}
 	var parts []string = strings.Split(*ch, "::")
-	var family *string = this.SafeString(parts, 0, "")
+	var family string = *this.SafeString(parts, 0, "")
 	var methods map[string]any = map[string]any{
 		"book":      this.HandleOrderBook,
 		"bbo":       this.HandleBidAsk,

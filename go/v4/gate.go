@@ -2078,13 +2078,13 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 			return str[2:min(8, len(str))]
 		}()) // convert 20230728 to 230728
 	}
-	var strike *string = this.SafeString(optionParts, 2, "")
+	var strike string = *this.SafeString(optionParts, 2, "")
 	var optionType string = *this.SafeString(optionParts, 3, "")
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	return map[string]any{
-		"id":             *base + "_" + quote + "-" + "20" + *expiry + "-" + *strike + "-" + optionType,
-		"symbol":         *base + "/" + quote + ":" + settle + "-" + *expiry + "-" + *strike + "-" + optionType,
+		"id":             *base + "_" + quote + "-" + "20" + *expiry + "-" + strike + "-" + optionType,
+		"symbol":         *base + "/" + quote + ":" + settle + "-" + *expiry + "-" + strike + "-" + optionType,
 		"base":           base,
 		"quote":          quote,
 		"settle":         settle,
@@ -2720,7 +2720,7 @@ func (this *Gate) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface],
 				continue
 			}
 			var expiry *int64 = this.SafeTimestamp(market, "expiration_time")
-			var strike *string = this.SafeString(market, "strike_price", "")
+			var strike string = *this.SafeString(market, "strike_price", "")
 			var isCall *bool = this.SafeBool(market, "is_call")
 			var optionLetter string = "P"
 			if isCall != nil && *isCall == true {
@@ -2730,7 +2730,7 @@ func (this *Gate) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface],
 			if isCall != nil && *isCall == true {
 				optionType = "call"
 			}
-			var symbol string = *base + "/" + *quote + ":" + *quote + "-" + this.Yymmdd(expiry) + "-" + *strike + "-" + optionLetter
+			var symbol string = *base + "/" + *quote + ":" + *quote + "-" + this.Yymmdd(expiry) + "-" + strike + "-" + optionLetter
 			var priceDeviate *string = this.SafeString(market, "order_price_deviate")
 			var markPrice *string = this.SafeString(market, "mark_price")
 			var minMultiplier *string = Precise.StringSub("1", priceDeviate)
@@ -6579,7 +6579,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 			panic(ExchangeError(this.Id + " createOrder () timeInForce for market order can only be \"FOK\" or \"IOC\""))
 		} else {
 			if IsEqual(timeInForce, nil) {
-				var defaultTif *string = this.SafeString(this.Options, "defaultTimeInForce", "IOC")
+				var defaultTif string = *this.SafeString(this.Options, "defaultTimeInForce", "IOC")
 				var exchangeSpecificTif *string = this.SafeString(this.Options["timeInForce"], defaultTif, "ioc")
 				timeInForce = exchangeSpecificTif
 			}
@@ -9300,7 +9300,7 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 		return mathMax(1, mathMin(requestedLimit, 100))
 	}())
 	var offset any = (*this.SafeInteger(requestParams, "offset", 0))
-	var contract *string = this.SafeString(requestParams, "contract", "")
+	var contract string = *this.SafeString(requestParams, "contract", "")
 	var paramsOmitted map[string]any = this.OmitDict(requestParams, []any{"limit", "offset"})
 	request["limit"] = limit
 	var tiers map[string]any = map[string]any{}
@@ -9324,8 +9324,8 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 		}
 		// Each page contains all tiers for up to limit contracts, not limit rows.
 		var grouped map[string]any = map[string]any{}
-		if contract == nil || *contract != "" {
-			AddElementToObject(grouped, contract, response)
+		if contract != "" {
+			grouped[contract] = response
 		} else {
 			grouped = this.GroupBy(response, "contract")
 		}
@@ -9338,7 +9338,7 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 			}
 		}
 		var numContracts int = len(contracts)
-		if (contract == nil || *contract != "") || (int64(numContracts) < limit) {
+		if (contract != "") || (int64(numContracts) < limit) {
 			break
 		}
 		offset = this.Sum(offset, limit)

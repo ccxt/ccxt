@@ -1059,9 +1059,9 @@ func (this *Kucoin) HandleTicker(client any, message map[string]any) {
 		var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 		var rawTicker any = this.SafeDict(data, "data", data)
 		var ticker map[string]any = this.ParseSpotOrUtaTicker(rawTicker, market)
-		var symbol *string = this.SafeString(ticker, "symbol", "")
+		var symbol string = *this.SafeString(ticker, "symbol", "")
 		this.Tickers.Store(symbol, ticker)
-		client.(ccxt.ClientInterface).Resolve(ticker, "ticker:"+*symbol)
+		client.(ccxt.ClientInterface).Resolve(ticker, "ticker:"+symbol)
 		// watchTickers
 		var allTickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(allTickers, symbol, ticker)
@@ -1317,9 +1317,9 @@ func (this *Kucoin) HandleBidAsk(client any, message map[string]any) {
 	// }
 	//
 	var parsedTicker any = this.ParseWsBidAsk(message)
-	var symbol *string = this.SafeString(parsedTicker, "symbol", "")
+	var symbol string = *this.SafeString(parsedTicker, "symbol", "")
 	this.Bidsasks.Store(symbol, parsedTicker)
-	var messageHash string = "bidask@" + *symbol
+	var messageHash string = "bidask@" + symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
 func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
@@ -3395,7 +3395,7 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 	var myTrades ccxt.WsArrayCache = this.MyTrades
 	myTrades.Append(parsed)
 	var messageHash string = "myTrades"
-	var topic *string = this.SafeString(message, "topic", "")
+	var topic string = *this.SafeString(message, "topic", "")
 	var suffix string = this.GetMyTradesMessageHashSuffix(topic)
 	var typeSpecificMessageHash string = messageHash + suffix
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, typeSpecificMessageHash)

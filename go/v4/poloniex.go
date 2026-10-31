@@ -2702,7 +2702,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	var isContract bool = false
 	for i := 0; i < len(orders); i++ {
 		var rawOrder map[string]any = MapTyped(orders[i])
-		var symbol *string = this.SafeString(rawOrder, "symbol", "")
+		var symbol string = *this.SafeString(rawOrder, "symbol", "")
 		var marketInner map[string]any = this.Market(symbol)
 		var marketInnerType *string = this.SafeString(marketInner, "type")
 		var marketType *string = this.SafeString(market, "type")

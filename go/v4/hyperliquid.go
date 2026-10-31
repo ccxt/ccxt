@@ -2438,12 +2438,12 @@ func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool])
 				}
 			}()
 			// try block:
-			var builder *string = this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
+			var builder string = *this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
 			// when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
 			// but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
-			var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0.01%")
+			var maxFeeRate string = *this.SafeString(this.Options, "feeRate", "0.01%")
 			if !(buildFee != nil && *buildFee) {
-				maxFeeRate = SafeStringPtr("0%")
+				maxFeeRate = "0%"
 			}
 
 			r := <-this.ApproveBuilderFeeAsync(builder, maxFeeRate)

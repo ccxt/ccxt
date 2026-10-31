@@ -3468,7 +3468,7 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	_ = isFeed
 	var isV5 bool = ccxt.GetArgBool(optionalArgs, 3, false)
 	_ = isV5
-	var api *string = this.SafeString(this.Options, "api", "api")
+	var api string = *this.SafeString(this.Options, "api", "api")
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}

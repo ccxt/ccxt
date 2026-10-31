@@ -768,9 +768,9 @@ func (this *Extended) HandleFundingRate(client any, message map[string]any) {
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var fundingRate any = this.ParseWsFundingRate(data, nil, message)
-	var symbol *string = this.SafeString(fundingRate, "symbol", "")
+	var symbol string = *this.SafeString(fundingRate, "symbol", "")
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
-	var messageHash string = "fundingRate:" + *symbol
+	var messageHash string = "fundingRate:" + symbol
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
 func (this *Extended) ParseWsFundingRate(fundingRate map[string]any, optionalArgs ...any) any {
@@ -966,15 +966,15 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString(first, "m")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "trades:" + *symbol
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trades:" + symbol
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades[symbol] = stored
 	}
 	var previousNonce *int64 = this.SafeInteger(subscription, "nonce")
 	var nonce *int64 = this.SafeInteger(message, "seq")

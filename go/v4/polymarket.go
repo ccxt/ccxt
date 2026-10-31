@@ -627,11 +627,11 @@ func (this *Polymarket) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp624 := <-this.PublicGetInfoInstruments(params)
-	if listEp624.Err != nil {
-		panic(listEp624.Err)
+	listEp628 := <-this.PublicGetInfoInstruments(params)
+	if listEp628.Err != nil {
+		panic(listEp628.Err)
 	}
-	var response []any = listEp624.Value
+	var response []any = listEp628.Value
 
 	//
 	//     [
@@ -963,11 +963,11 @@ func (this *Polymarket) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker]
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp954 := <-this.PublicGetInfoBbo(params)
-	if listEp954.Err != nil {
-		panic(listEp954.Err)
+	listEp958 := <-this.PublicGetInfoBbo(params)
+	if listEp958.Err != nil {
+		panic(listEp958.Err)
 	}
-	var response []any = listEp954.Value
+	var response []any = listEp958.Value
 
 	//
 	//     [
@@ -1359,11 +1359,11 @@ func (this *Polymarket) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fun
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp1311 := <-this.PublicGetInfoTickers(params)
-	if listEp1311.Err != nil {
-		panic(listEp1311.Err)
+	listEp1315 := <-this.PublicGetInfoTickers(params)
+	if listEp1315.Err != nil {
+		panic(listEp1315.Err)
 	}
-	var response []any = listEp1311.Value
+	var response []any = listEp1315.Value
 	var result map[string]any = this.ParseFundingRates(response)
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
@@ -1589,11 +1589,11 @@ func (this *Polymarket) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Op
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp1519 := <-this.PublicGetInfoTickers(params)
-	if listEp1519.Err != nil {
-		panic(listEp1519.Err)
+	listEp1523 := <-this.PublicGetInfoTickers(params)
+	if listEp1523.Err != nil {
+		panic(listEp1523.Err)
 	}
-	var response []any = listEp1519.Value
+	var response []any = listEp1523.Value
 	var result map[string]any = this.ParseOpenInterests(response)
 
 	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
@@ -1841,8 +1841,8 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1764, _ := OrdersToList(r1.Value), r1.Value != nil
-	var orders []any = listRecv1764
+	listRecv1768, _ := OrdersToList(r1.Value), r1.Value != nil
+	var orders []any = listRecv1768
 	var first map[string]any = SafeMapTyped(orders, 0)
 	var firstStatus *string = this.SafeString(first, "status")
 	if firstStatus != nil && *firstStatus == "rejected" {
@@ -1915,11 +1915,11 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
 	}
 	signed := r1.Value
 
-	listEp1823 := <-this.TradePostTradeOrders(signed)
-	if listEp1823.Err != nil {
-		panic(listEp1823.Err)
+	listEp1827 := <-this.TradePostTradeOrders(signed)
+	if listEp1827.Err != nil {
+		panic(listEp1827.Err)
 	}
-	var response []any = listEp1823.Value
+	var response []any = listEp1827.Value
 	//
 	//     [
 	//         { "status": "ok", "oid": 1234567890, "coid": "aabbccdd..." }
@@ -1982,8 +1982,8 @@ func (this *Polymarket) cancelOrderBody(ch chan AsyncResult[Order], id any, opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv1892, _ := OrdersToList(r.Value), r.Value != nil
-	var orders []any = listRecv1892
+	listRecv1896, _ := OrdersToList(r.Value), r.Value != nil
+	var orders []any = listRecv1896
 	var canceled map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(canceled)}
@@ -2042,11 +2042,11 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 		}
 		signed := r1.Value
 
-		listEp1935 := <-this.TradeDeleteTradeOrdersCoid(signed)
-		if listEp1935.Err != nil {
-			panic(listEp1935.Err)
+		listEp1939 := <-this.TradeDeleteTradeOrdersCoid(signed)
+		if listEp1939.Err != nil {
+			panic(listEp1939.Err)
 		}
-		response = listEp1935.Value
+		response = listEp1939.Value
 	} else {
 		var numericIds []any = []any{}
 		for i := 0; i < GetArrayLength(ids); i++ {
@@ -2064,11 +2064,11 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 		}
 		signed := r2.Value
 
-		listEp1950 := <-this.TradeDeleteTradeOrders(signed)
-		if listEp1950.Err != nil {
-			panic(listEp1950.Err)
+		listEp1954 := <-this.TradeDeleteTradeOrders(signed)
+		if listEp1954.Err != nil {
+			panic(listEp1954.Err)
 		}
-		response = listEp1950.Value
+		response = listEp1954.Value
 	}
 	//
 	//     [
@@ -2272,11 +2272,11 @@ func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, sym
 	}
 	signed := r1.Value
 
-	listEp2130 := <-this.TradePatchTradeOrders(signed)
-	if listEp2130.Err != nil {
-		panic(listEp2130.Err)
+	listEp2134 := <-this.TradePatchTradeOrders(signed)
+	if listEp2134.Err != nil {
+		panic(listEp2134.Err)
 	}
-	var response []any = listEp2130.Value
+	var response []any = listEp2134.Value
 	//
 	//     [
 	//         {
@@ -2717,11 +2717,11 @@ func (this *Polymarket) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 		request["instrument_id"] = market["id"]
 	}
 
-	listEp2547 := <-this.PrivateGetAccountOpenOrders(this.Extend(request, params))
-	if listEp2547.Err != nil {
-		panic(listEp2547.Err)
+	listEp2551 := <-this.PrivateGetAccountOpenOrders(this.Extend(request, params))
+	if listEp2551.Err != nil {
+		panic(listEp2551.Err)
 	}
-	var response []any = listEp2547.Value
+	var response []any = listEp2551.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2787,11 +2787,11 @@ func (this *Polymarket) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["client_order_id"] = clientOrderId
 	}
 
-	listEp2607 := <-this.PrivateGetAccountOrders(this.Extend(request, paramsOmitted))
-	if listEp2607.Err != nil {
-		panic(listEp2607.Err)
+	listEp2611 := <-this.PrivateGetAccountOrders(this.Extend(request, paramsOmitted))
+	if listEp2611.Err != nil {
+		panic(listEp2611.Err)
 	}
-	var response []any = listEp2607.Value
+	var response []any = listEp2611.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2837,11 +2837,11 @@ func (this *Polymarket) fetchOrderBody(ch chan AsyncResult[Order], id string, op
 		"order_id": id,
 	}
 
-	listEp2647 := <-this.PrivateGetAccountOrders(this.Extend(request, params))
-	if listEp2647.Err != nil {
-		panic(listEp2647.Err)
+	listEp2651 := <-this.PrivateGetAccountOrders(this.Extend(request, params))
+	if listEp2651.Err != nil {
+		panic(listEp2651.Err)
 	}
-	var response []any = listEp2647.Value
+	var response []any = listEp2651.Value
 	// select the requested row explicitly in case the documented
 	// order_id filter is ever ignored the way the tickers one is
 	for i := 0; i < len(response); i++ {
@@ -3412,11 +3412,11 @@ func (this *Polymarket) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol 
 		"instrument_id": market["id"],
 	}
 
-	listEp3171 := <-this.PrivateGetAccountConfig(this.Extend(request, params))
-	if listEp3171.Err != nil {
-		panic(listEp3171.Err)
+	listEp3175 := <-this.PrivateGetAccountConfig(this.Extend(request, params))
+	if listEp3175.Err != nil {
+		panic(listEp3175.Err)
 	}
-	var response []any = listEp3171.Value
+	var response []any = listEp3175.Value
 	//
 	//     [ { "instrument_id": 1, "leverage": 10, "cross": true } ]
 	//

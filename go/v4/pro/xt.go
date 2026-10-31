@@ -1640,7 +1640,7 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	if marketId != nil {
-		var timeframe *string = this.SafeString(data, "i", "")
+		var timeframe string = *this.SafeString(data, "i", "")
 		var tradeType string = "contract"
 		if _, ok := data["q"]; ok {
 			tradeType = "spot"
@@ -1655,15 +1655,13 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 		}
 		var stored any
 		if symbol != nil {
-			if timeframe != nil {
-				stored = this.Ohlcvs[*symbol][*timeframe]
-			}
+			stored = this.Ohlcvs[*symbol][timeframe]
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
-				this.Ohlcvs[*symbol][*timeframe] = stored
+			if symbol != nil && this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][timeframe] = stored
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)

@@ -87,7 +87,7 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	// only supports a limit of 150 at this time
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".detail"
-	var api *string = this.SafeString(this.Options, "api", "api")
+	var api string = *this.SafeString(this.Options, "api", "api")
 	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
@@ -186,7 +186,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	// only supports a limit of 150 at this time
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".trade.detail"
-	var api *string = this.SafeString(this.Options, "api", "api")
+	var api string = *this.SafeString(this.Options, "api", "api")
 	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
@@ -305,7 +305,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".kline." + *interval
-	var api *string = this.SafeString(this.Options, "api", "api")
+	var api string = *this.SafeString(this.Options, "api", "api")
 	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
@@ -427,7 +427,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	var limitValue int = 150
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".mbp.150"
-	var api *string = this.SafeString(this.Options, "api", "api")
+	var api string = *this.SafeString(this.Options, "api", "api")
 	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
@@ -535,7 +535,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 			var symbol *string = this.SafeString(subscription, "symbol")
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
-			var api *string = this.SafeString(this.Options, "api", "api")
+			var api string = *this.SafeString(this.Options, "api", "api")
 			var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
 			var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 			var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)

@@ -2411,7 +2411,7 @@ func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
 		base = this.SafeString(symbolBase, 0, "")
 	}
 	var expiry *string = this.SafeString(optionParts, 2, "")
-	var strike *string = this.SafeString(optionParts, 3, "")
+	var strike string = *this.SafeString(optionParts, 3, "")
 	var optionType string = *this.SafeString(optionParts, 4, "")
 	var datetime any = func() any {
 		if expiry != nil && *expiry == "" {
@@ -2421,8 +2421,8 @@ func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
 	}()
 	var timestamp *int64 = this.Parse8601(datetime)
 	return map[string]any{
-		"id":             *base + "-" + quote + "-" + *expiry + "-" + *strike + "-" + optionType,
-		"symbol":         *base + "/" + quote + ":" + *base + "-" + *expiry + "-" + *strike + "-" + optionType,
+		"id":             *base + "-" + quote + "-" + *expiry + "-" + strike + "-" + optionType,
+		"symbol":         *base + "/" + quote + ":" + *base + "-" + *expiry + "-" + strike + "-" + optionType,
 		"base":           base,
 		"quote":          quote,
 		"settle":         base,
@@ -3531,7 +3531,7 @@ func (this *Okx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
 	if marketType != nil && *marketType == "option" {
-		var defaultUnderlying *string = this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
+		var defaultUnderlying string = *this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
 		var currencyId *string = this.SafeString2(paramsMarketType, "uly", "marketId", defaultUnderlying)
 		if currencyId == nil {
 			panic(ArgumentsRequired(this.Id + " fetchTickers() requires an underlying uly or marketId parameter for options markets"))
@@ -3668,7 +3668,7 @@ func (this *Okx) fetchMarkPricesBody(ch chan AsyncResult[map[string]Ticker], opt
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
 	if marketType != nil && *marketType == "option" {
-		var defaultUnderlying *string = this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
+		var defaultUnderlying string = *this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
 		var currencyId *string = this.SafeString2(paramsMarketType, "uly", "marketId", defaultUnderlying)
 		if currencyId == nil {
 			panic(ArgumentsRequired(this.Id + " fetchMarkPrices() requires an underlying uly or marketId parameter for options markets"))
@@ -5139,13 +5139,13 @@ func (this *Okx) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, op
 		if marketId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
 		}
-		var typeVar string = *this.SafeString(rawOrder, "type", "")
+		var typeVar *string = this.SafeString(rawOrder, "type", "")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
-		var orderRequest map[string]any = this.CreateOrderRequest(*marketId, typeVar, side, amount, price, extendedParams)
+		var orderRequest map[string]any = this.CreateOrderRequest(*marketId, *typeVar, side, amount, price, extendedParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
@@ -7676,7 +7676,7 @@ func (this *Okx) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	}
 	// if the network is not specified, return the first address
 	var keys []string = ObjectKeys(response)
-	var first *string = this.SafeString(keys, 0, "")
+	var first string = *this.SafeString(keys, 0, "")
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(response, first))}
 	return nil

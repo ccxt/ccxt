@@ -280,18 +280,18 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var trades []any = ccxt.SafeListTyped(message, "trades")
 	if trades != nil {
-		var symbol *string = this.SafeString(market, "symbol", "")
+		var symbol string = *this.SafeString(market, "symbol", "")
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
-			this.Trades[*symbol] = stored
+			this.Trades[symbol] = stored
 		}
 		for i := 0; i < len(trades); i++ {
 			var trade map[string]any = this.ParseWsTrade(this.SafeValue(trades, i), market)
 			stored.Append(trade)
 		}
-		var messageHash string = "trades:" + *symbol
+		var messageHash string = "trades:" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
@@ -735,8 +735,8 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult
 	var messageHashes []any = []any{}
 	var marketIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = this.SafeString(symbolsNormalized, i, "")
-		var messageHash string = itemHashName + ":" + *symbol
+		var symbol string = *this.SafeString(symbolsNormalized, i, "")
+		var messageHash string = itemHashName + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
 		var market map[string]any = this.Market(symbol)
 		marketIds = append(marketIds, market["id"])
@@ -1123,13 +1123,8 @@ func (this *Gemini) HandleMessage(client any, message any) {
 		"subscription_ack": this.HandleSubscription,
 		"heartbeat":        this.HandleHeartbeat,
 	}
-	var typeVar *string = this.SafeString(message, "type", "")
-	if func() int {
-		if typeVar == nil {
-			return -1
-		}
-		return strings.Index(*typeVar, "candles")
-	}() >= 0 {
+	var typeVar string = *this.SafeString(message, "type", "")
+	if strings.Index(typeVar, "candles") >= 0 {
 		this.HandleOHLCV(client, message)
 		return
 	}
@@ -1138,7 +1133,7 @@ func (this *Gemini) HandleMessage(client any, message any) {
 		ccxt.CallDynamically(method, client, message)
 	}
 	// handle multimarketdata
-	if typeVar != nil && *typeVar == "update" {
+	if typeVar == "update" {
 		var ts *int64 = this.SafeInteger(message, "timestampms", this.Milliseconds())
 		var eventId *int64 = this.SafeInteger(message, "eventId")
 		var events []any = ccxt.SafeListTyped(message, "events")

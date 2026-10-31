@@ -2526,10 +2526,8 @@ func (this *Predictfun) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	var wantedOutcomes []any = this.ToArray(outcomes)
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj map[string]any = this.Outcome(this.SafeString(wantedOutcomes, i))
-		var wantedId *string = this.SafeString(outcomeObj, "outcomeId", "")
-		if wantedId != nil {
-			wanted[*wantedId] = true
-		}
+		var wantedId string = *this.SafeString(outcomeObj, "outcomeId", "")
+		wanted[wantedId] = true
 	}
 	var result []any = []any{}
 	var parsedLength int = len(parsed)

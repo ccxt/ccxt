@@ -2646,7 +2646,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Ord
 		return nil
 	}
 	var trigger *bool = this.SafeBool(paramsPaginate, "trigger", false)
-	var methodName *string = this.SafeString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders")
+	var methodName string = *this.SafeString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders")
 	var paramsMethodName map[string]any = this.OmitDict(paramsPaginate, "methodName")
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
@@ -2661,8 +2661,8 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Ord
 	}
 	var response map[string]any = nil
 	if trigger != nil && *trigger {
-		if methodName == nil || *methodName != "fetchCanceledAndClosedOrders" {
-			panic(BadRequest(this.Id + " " + *methodName + "() does not support trigger orders"))
+		if methodName != "fetchCanceledAndClosedOrders" {
+			panic(BadRequest(this.Id + " " + methodName + "() does not support trigger orders"))
 		}
 		if market == nil {
 			panic(ArgumentsRequired(this.Id + " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders"))

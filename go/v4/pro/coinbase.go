@@ -504,8 +504,8 @@ func (this *Coinbase) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	ticker := r1.Value
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
-		var symbol *string = this.SafeString(ticker, "symbol", "")
-		ccxt.AddElementToObject(tickers, symbol, ticker)
+		var symbol string = *this.SafeString(ticker, "symbol", "")
+		tickers[symbol] = ticker
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
 		return nil

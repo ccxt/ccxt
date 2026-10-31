@@ -425,8 +425,8 @@ func (this *Bydfi) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(message))
-	var symbol *string = this.SafeString(ticker, "symbol", "")
-	var messageHash string = "ticker::" + *symbol
+	var symbol string = *this.SafeString(ticker, "symbol", "")
+	var messageHash string = "ticker::" + symbol
 	this.Tickers.Store(symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(symbol), messageHash)
 	client.(ccxt.ClientInterface).Resolve(this.Tickers.ToMap(), "ticker::all")
@@ -569,7 +569,7 @@ func (this *Bydfi) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	}
 	ohlcvResolved := r1.Value
 	var symbol *string = this.SafeString(ohlcvResolved, 0, "")
-	var timeframe *string = this.SafeString(ohlcvResolved, 1, "")
+	var timeframe string = *this.SafeString(ohlcvResolved, 1, "")
 	var candles any = this.SafeValue(ohlcvResolved, 2)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {

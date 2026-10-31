@@ -2330,16 +2330,16 @@ func (this *Pacifica) CreateOrdersRequest(orders []any, optionalArgs ...any) any
 		var symbol *string = this.SafeString(order, "symbol")
 		var side *string = this.SafeString(order, "side")
 		var price *string = this.SafeString(order, "price")
-		var typeVar string = *this.SafeString(order, "type", "limit")
+		var typeVar *string = this.SafeString(order, "type", "limit")
 		var orderParams map[string]any = this.SafeDictMap(order, "params", map[string]any{})
 		orderParams["timestamp"] = timestamp
 		var amount *string = this.SafeString(order, "amount")
 		var amountNumber *float64 = this.ParseNumber(amount)
 		var priceNumber *float64 = this.ParseNumber(price)
-		if typeVar != "limit" {
-			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + typeVar))
+		if typeVar == nil || *typeVar != "limit" {
+			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + *typeVar))
 		}
-		var requestList []any = ArrayTyped(this.CreateOrderRequest(symbol, typeVar, side, amountNumber, priceNumber, orderParams))
+		var requestList []any = ArrayTyped(this.CreateOrderRequest(symbol, *typeVar, side, amountNumber, priceNumber, orderParams))
 		var action map[string]any = map[string]any{
 			"type": "Create",
 			"data": func() any {
@@ -5222,7 +5222,7 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) map[string]any {
 func (this *Pacifica) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	var cost *string = this.SafeString(config, "cost", "1")
+	var cost string = *this.SafeString(config, "cost", "1")
 	var costNumber *float64 = this.ParseNumber(cost)
 	// 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
 	if costNumber != nil && *costNumber > 1 {
@@ -5239,8 +5239,8 @@ func (this *Pacifica) SortJsonKeys(value any) any {
 		var keys []string = ObjectKeys(value)
 		var sortedKeys []any = this.Sort(keys)
 		for i := 0; i < len(sortedKeys); i++ {
-			var key *string = this.SafeString(sortedKeys, i, "")
-			AddElementToObject(result, key, this.SortJsonKeys(GetValue(value, key)))
+			var key string = *this.SafeString(sortedKeys, i, "")
+			result[key] = this.SortJsonKeys(GetValue(value, key))
 		}
 		return result
 	} else if IsArray(value) {

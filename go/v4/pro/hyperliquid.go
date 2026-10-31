@@ -1681,7 +1681,7 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 	var base *string = this.SafeString(data, "s")
 	var marketId any = this.CoinToMarketId(base)
 	var symbol *string = this.SafeSymbol(marketId)
-	var timeframe *string = this.SafeString(data, "i", "")
+	var timeframe string = *this.SafeString(data, "i", "")
 	if symbol != nil {
 		if _, ok := this.Ohlcvs[*symbol]; !ok {
 			this.Ohlcvs[*symbol] = map[string]any{}
@@ -1690,17 +1690,17 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
-			this.Ohlcvs[*symbol][*timeframe] = stored
+		if symbol != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][timeframe] = stored
 		}
 	}
 	var ohlcv any
-	if symbol != nil && timeframe != nil {
-		ohlcv = this.Ohlcvs[*symbol][*timeframe]
+	if symbol != nil {
+		ohlcv = this.Ohlcvs[*symbol][timeframe]
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
 	ohlcv.(ccxt.Appender).Append(parsed)
-	var messageHash string = "candles:" + *timeframe + ":" + *symbol
+	var messageHash string = "candles:" + timeframe + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
 func (this *Hyperliquid) HandleWsPost(client any, message map[string]any) {
@@ -2789,7 +2789,7 @@ func (this *Hyperliquid) HandleMessage(client any, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
-	var topic *string = this.SafeString(message, "channel", "")
+	var topic string = *this.SafeString(message, "channel", "")
 	var methods map[string]any = map[string]any{
 		"pong":                 this.HandlePong,
 		"trades":               this.HandleTrades,
@@ -2819,7 +2819,7 @@ func (this *Hyperliquid) HandleMessage(client any, message map[string]any) {
 	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		if strings.Index(*topic, keys[i]) >= 0 {
+		if strings.Index(topic, keys[i]) >= 0 {
 			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return

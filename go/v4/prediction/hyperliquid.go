@@ -2918,10 +2918,10 @@ func (this *Hyperliquid) initializeClientBody(ch chan ccxt.AsyncResult[bool]) an
 				}
 			}()
 			// try block:
-			var builder *string = this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
+			var builder string = *this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
 			// the default feeRate is '0%': the builder is approved and attached for statistics
 			// purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
-			var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0%")
+			var maxFeeRate string = *this.SafeString(this.Options, "feeRate", "0%")
 
 			r1 := <-this.ApproveBuilderFeeAsync(builder, maxFeeRate)
 			if r1.Err != nil {

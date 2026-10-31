@@ -345,7 +345,7 @@ func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
 	var event *string = this.SafeString(message, "event")
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var ticker any = nil
 	if event != nil && *event == "subscribed" {
 		return
@@ -355,7 +355,7 @@ func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
 		var lastTicker any = this.Tickers.Get(symbol)
 		ticker = this.ParseWsUpdatedTicker(message, lastTicker, market)
 	}
-	var messageHash string = "ticker:" + *symbol
+	var messageHash string = "ticker:" + symbol
 	this.Tickers.Store(symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }

@@ -1154,7 +1154,7 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 	//         "ok": "ok"
 	//     }
 	//
-	var symbol *string = this.SafeString(message, "oid", "") // symbol is set as requestId in watchOrders
+	var symbol string = *this.SafeString(message, "oid", "") // symbol is set as requestId in watchOrders
 	var rawOrders []any = ccxt.SafeListTyped(message, "data")
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -1168,7 +1168,7 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 		order["status"] = "open"
 		myOrders.Append(order)
 	}
-	var messageHash string = "orders:" + *symbol
+	var messageHash string = "orders:" + symbol
 	var ordersLength int = ccxt.GetArrayLength(myOrders)
 	if ordersLength > 0 {
 		client.(ccxt.ClientInterface).Resolve(myOrders, messageHash)

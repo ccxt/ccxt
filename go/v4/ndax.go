@@ -3032,7 +3032,7 @@ func (this *Ndax) ParseDepositAddress(depositAddress any, optionalArgs ...any) D
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var depositInfoString *string = this.SafeString(depositAddress, "DepositInfo", "[]")
+	var depositInfoString string = *this.SafeString(depositAddress, "DepositInfo", "[]")
 	var depositInfo any = JsonParse(depositInfoString)
 	var depositInfoLength int = GetArrayLength(depositInfo)
 	var lastString string = *this.SafeString(depositInfo, depositInfoLength-1, "")

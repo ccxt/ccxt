@@ -1667,7 +1667,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		"mark":  "MARK",
 		"index": "INDEX",
 	}
-	var selectedPriceType *string = this.SafeString(paramsPaginate, "priceType", "last")
+	var selectedPriceType string = *this.SafeString(paramsPaginate, "priceType", "last")
 	request["type"] = this.SafeString(priceTypeMap, selectedPriceType)
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)

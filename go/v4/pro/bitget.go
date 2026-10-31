@@ -851,17 +851,12 @@ func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	var symbolOhlcvs map[string]any
-	if symbol != nil {
-		symbolOhlcvs = this.Ohlcvs[*symbol]
-	}
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var symbolOhlcvs map[string]any = this.Ohlcvs[symbol]
 	if symbolOhlcvs == nil {
 		symbolOhlcvs = map[string]any{}
 	}
-	if symbol != nil {
-		this.Ohlcvs[*symbol] = symbolOhlcvs
-	}
+	this.Ohlcvs[symbol] = symbolOhlcvs
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval *string = this.SafeString(arg, "interval")
 	var isUta bool
@@ -894,9 +889,9 @@ func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
 	}
 	var messageHash string
 	if isUta == true {
-		messageHash = "kline:" + *symbol
+		messageHash = "kline:" + symbol
 	} else {
-		messageHash = "candles:" + *timeframe + ":" + *symbol
+		messageHash = "candles:" + *timeframe + ":" + symbol
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1596,12 +1591,12 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades[symbol] = stored
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var length int = len(data)
@@ -1612,7 +1607,7 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 		var parsed map[string]any = this.ParseWsTrade(rawTrade, market)
 		stored.Append(parsed)
 	}
-	var messageHash string = "trade:" + *symbol
+	var messageHash string = "trade:" + symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -1948,7 +1943,7 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 	//     }
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
-	var instType *string = this.SafeString(arg, "instType", "")
+	var instType string = *this.SafeString(arg, "instType", "")
 	if this.Positions == nil {
 		this.Positions = map[string]any{}
 	}
@@ -1967,7 +1962,7 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), *instType+":positions::"))
+	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), instType+":positions::"))
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
@@ -1983,7 +1978,7 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, *instType+":positions")
+	client.(ccxt.ClientInterface).Resolve(newPositions, instType+":positions")
 }
 func (this *Bitget) ParseWsPosition(position any, optionalArgs ...any) any {
 	//
@@ -3734,7 +3729,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message map[string]an
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 	}
 	error := ccxt.UnsubscribeError(this.Id + " trades " + symbol)
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[subMessageHash]; ok {
+	if client.(ccxt.ClientInterface).FutureHas(subMessageHash) {
 		client.(ccxt.ClientInterface).Reject(error, subMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(true, messageHash)

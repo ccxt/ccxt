@@ -3756,23 +3756,15 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 	// filter and returned the whole mixed ledger
 	var allowed map[string]any = map[string]any{}
 	for i := 0; i < len(typesList); i++ {
-		var historyType *string = this.SafeString(typesList, i, "")
-		if historyType != nil {
-			allowed[*historyType] = true
-		}
-		AddElementToObject(allowed, this.Capitalize(strings.ToLower(*historyType)), true)
+		var historyType string = *this.SafeString(typesList, i, "")
+		allowed[historyType] = true
+		AddElementToObject(allowed, this.Capitalize(strings.ToLower(historyType)), true)
 	}
 	var rows []any = []any{}
 	for i := 0; i < GetArrayLength(rawRows); i++ {
 		var entry map[string]any = this.SafeDictMap(rawRows, i, map[string]any{})
-		var typeVar *string = this.SafeString(entry, "type", "")
-		if func() bool {
-			if typeVar == nil {
-				return false
-			}
-			_, ok := allowed[*typeVar]
-			return ok
-		}() {
+		var typeVar string = *this.SafeString(entry, "type", "")
+		if _, ok := allowed[typeVar]; ok {
 			rows = append(rows, entry)
 		}
 	}
@@ -4201,20 +4193,20 @@ func (this *Btse) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	var response []any = nil
 	if market["spot"] == true {
 
-		listEp3937 := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
-		if listEp3937.Err != nil {
-			panic(listEp3937.Err)
+		listEp3929 := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
+		if listEp3929.Err != nil {
+			panic(listEp3929.Err)
 		}
-		response = listEp3937.Value
+		response = listEp3929.Value
 	} else {
 		// the futures fees stay on the legacy endpoint, the unified futures
 		// api has no fees route
 
-		listEp3942 := <-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))
-		if listEp3942.Err != nil {
-			panic(listEp3942.Err)
+		listEp3934 := <-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))
+		if listEp3934.Err != nil {
+			panic(listEp3934.Err)
 		}
-		response = listEp3942.Value
+		response = listEp3934.Value
 	}
 	var rows any = this.SafeList(response, "data", response)
 	var feeInfo map[string]any = this.SafeDictMap(rows, 0, map[string]any{})
@@ -4458,11 +4450,11 @@ func (this *Btse) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], o
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	listEp4170 := <-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))
-	if listEp4170.Err != nil {
-		panic(listEp4170.Err)
+	listEp4162 := <-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))
+	if listEp4162.Err != nil {
+		panic(listEp4162.Err)
 	}
-	var response []any = listEp4170.Value
+	var response []any = listEp4162.Value
 	//
 	//     [
 	//         {
@@ -4564,11 +4556,11 @@ func (this *Btse) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol an
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	listEp4262 := <-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))
-	if listEp4262.Err != nil {
-		panic(listEp4262.Err)
+	listEp4254 := <-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))
+	if listEp4254.Err != nil {
+		panic(listEp4254.Err)
 	}
-	var response []any = listEp4262.Value
+	var response []any = listEp4254.Value
 	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}

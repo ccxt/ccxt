@@ -3425,7 +3425,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 			panic(ExchangeError(this.Id + " method() missing id"))
 		}
 		var splitId []string = strings.Split(*id, "-")
-		var strike *string = this.SafeString(splitId, 2, "")
+		var strike string = *this.SafeString(splitId, 2, "")
 		var optionLetter string = *this.SafeString(splitId, 3, "")
 		var isActive bool = (status != nil && *status == "Trading")
 		var isInverse bool = (base == settle || (base != nil && settle != nil && *base == *settle))
@@ -9907,11 +9907,11 @@ func (this *Bybit) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symb
 	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
-	var timeframe *string = this.SafeString(params, "interval", "1h")
+	var timeframe string = *this.SafeString(params, "interval", "1h")
 	var intervals map[string]any = SafeMapTyped(this.Options, "intervals")
 	var interval *string = this.SafeString(intervals, timeframe) // 5min,15min,30min,1h,4h,1d
 	if interval == nil {
-		panic(BadRequest(this.Id + " fetchOpenInterest() cannot use the " + *timeframe + " timeframe"))
+		panic(BadRequest(this.Id + " fetchOpenInterest() cannot use the " + timeframe + " timeframe"))
 	}
 	var subType string = "inverse"
 	if market["linear"] == true {

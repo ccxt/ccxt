@@ -194,7 +194,7 @@ func (this *P2b) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 		}
 	}
 	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
-	var name *string = this.SafeString(watchTickerOptions, "name", "state") // or price
+	var name string = *this.SafeString(watchTickerOptions, "name", "state") // or price
 	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchTicker", "name", name)
 	var market map[string]any = this.Market(symbol)
 	ccxt.AddElementToObject(this.Options["tickerSubs"], market["id"], true) // we need to re-subscribe to all tickers upon watching a new ticker
@@ -247,7 +247,7 @@ func (this *P2b) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticke
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
-	var name *string = this.SafeString(watchTickerOptions, "name", "state") // or price
+	var name string = *this.SafeString(watchTickerOptions, "name", "state") // or price
 	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchTickers", "name", name)
 	var messageHashes []any = []any{}
 	var args []any = []any{}
@@ -500,19 +500,19 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 	var trades []any = ccxt.SafeListTyped(data, 1)
 	var marketId *string = this.SafeString(data, 0)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesArray == nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(tradesLimit)
-		this.Trades[*symbol] = tradesArray
+		this.Trades[symbol] = tradesArray
 	}
 	for i := 0; i < len(trades); i++ {
 		var item any = trades[i]
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(item, market))
 		tradesArray.Append(trade)
 	}
-	var messageHash string = "deals::" + *symbol
+	var messageHash string = "deals::" + symbol
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	return message
 }
@@ -567,10 +567,10 @@ func (this *P2b) HandleTicker(client any, message map[string]any) any {
 	} else {
 		ticker = ccxt.TickerToMap(this.ParseTicker(tickerData, market))
 	}
-	var symbol *string = this.SafeString(ticker, "symbol", "")
+	var symbol string = *this.SafeString(ticker, "symbol", "")
 	this.Tickers.Store(symbol, ticker)
 	if messageHashStart != nil {
-		var messageHash string = *messageHashStart + "::" + *symbol
+		var messageHash string = *messageHashStart + "::" + symbol
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 	return message

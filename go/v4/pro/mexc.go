@@ -214,7 +214,7 @@ func (this *Mexc) HandleTicker(client any, message any) {
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var timestamp *int64 = this.SafeInteger2(message, "t", "sendTime")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var ticker any = nil
 	if market["spot"] == true {
 		this.HandleBidAsk(client, message) // the bids-asks channel is spot only
@@ -227,7 +227,7 @@ func (this *Mexc) HandleTicker(client any, message any) {
 		return
 	}
 	this.Tickers.Store(symbol, ticker)
-	var messageHash string = "ticker:" + *symbol
+	var messageHash string = "ticker:" + symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 
@@ -1323,13 +1323,13 @@ func (this *Mexc) HandleTrades(client any, message any) {
 	//
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "trades:" + *symbol
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trades:" + symbol
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades[symbol] = stored
 	}
 	var d any = this.SafeDictN(message, []any{"d", "publicAggreDeals"})
 	var trades any = this.SafeList2(d, "deals", "dealsList", []any{d})

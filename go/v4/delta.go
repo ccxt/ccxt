@@ -479,7 +479,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 		return str[0:min(2, len(str))]
 	}()
 	var settle string = quote
-	var strike *string = this.SafeString(optionParts, 2, "")
+	var strike string = *this.SafeString(optionParts, 2, "")
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	var optionTypeUnified string = "put"
@@ -487,8 +487,8 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 		optionTypeUnified = "call"
 	}
 	return this.SafeMarketStructure(map[string]any{
-		"id":             optionType + "-" + *base + "-" + *strike + "-" + expiry,
-		"symbol":         *base + "/" + quote + ":" + settle + "-" + expiry + "-" + *strike + "-" + optionType,
+		"id":             optionType + "-" + *base + "-" + strike + "-" + expiry,
+		"symbol":         *base + "/" + quote + ":" + settle + "-" + expiry + "-" + strike + "-" + optionType,
 		"base":           base,
 		"quote":          quote,
 		"settle":         settle,

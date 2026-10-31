@@ -3018,7 +3018,7 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 		for i := 0; i < len(parsed); i++ {
 			var order any = parsed[i]
 			stored.Append(order)
-			var symbol *string = this.SafeString(order, "symbol", "")
+			var symbol string = *this.SafeString(order, "symbol", "")
 			var market map[string]any = this.Market(symbol)
 			marketIds = append(marketIds, market["id"])
 		}

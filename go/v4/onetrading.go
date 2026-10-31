@@ -1350,7 +1350,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var periods int64 = this.ParseToInt(float64(*timestamp) / float64(duration))
 	var alignedTimestamp int64 = duration * periods
 	var options map[string]any = SafeMapTyped(this.Options, "fetchOHLCV")
-	var volumeField *string = this.SafeString(options, "volume", "total_amount")
+	var volumeField string = *this.SafeString(options, "volume", "total_amount")
 	return OHLCVFromList([]any{alignedTimestamp, this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, volumeField)})
 }
 

@@ -560,13 +560,11 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 			"id": key,
 		})
 		var parsed map[string]any = this.ParseCurrency(currencyData)
-		var code *string = this.SafeString(parsed, "code", "")
-		if code != nil && *code == "" {
+		var code string = *this.SafeString(parsed, "code", "")
+		if code == "" {
 			continue
 		}
-		if code != nil {
-			result[*code] = parsed
-		}
+		result[code] = parsed
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: result}

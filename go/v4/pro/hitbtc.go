@@ -341,7 +341,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
-	var defaultMethod *string = this.SafeString(options, "method", "orderbook/full")
+	var defaultMethod string = *this.SafeString(options, "method", "orderbook/full")
 	var name *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var depthValue string = *this.SafeString(params, "depth", "20")  // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
 	var speedValue string = *this.SafeString(params, "speed", "100") // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
@@ -526,7 +526,7 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	var methodName *string = nil
 	methodName, paramsMethod := this.HandleParamString(params, "callerMethodName", "watchTickers") // watchTicker passes its own name, so options.watchTicker still applies to it
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, methodName)
-	var defaultMethod *string = this.SafeString(options, "method", "ticker/{speed}/batch")
+	var defaultMethod string = *this.SafeString(options, "method", "ticker/{speed}/batch")
 	var method *string = this.SafeString2(paramsMethod, "method", "defaultMethod", defaultMethod)
 	var speedValue *string = this.SafeString(paramsMethod, "speed", "1s") // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
 	var name string = this.ImplodeParams(method, map[string]any{
@@ -722,7 +722,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBidsAsks")
-	var defaultMethod *string = this.SafeString(options, "method", "orderbook/top/{speed}/batch")
+	var defaultMethod string = *this.SafeString(options, "method", "orderbook/top/{speed}/batch")
 	var method *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var speedValue *string = this.SafeString(params, "speed", "100ms") // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
 	var name string = this.ImplodeParams(method, map[string]any{

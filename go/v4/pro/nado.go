@@ -2069,7 +2069,7 @@ func (this *Nado) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], streamT
 	var url *string = this.SafeString(this.UrlsApi["ws"], "subscriptions")
 	var client ccxt.ClientInterface = this.Client(url)
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
-		var messageHash *string = this.SafeString(messageHashes, i, "")
+		var messageHash string = *this.SafeString(messageHashes, i, "")
 		var clientSubscription any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 		if clientSubscription == nil {
 			var market any = ccxt.GetValue(markets, i)
@@ -2317,13 +2317,13 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 func (this *Nado) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "trade:" + *symbol
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trade:" + symbol
 	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if trades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		trades = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = trades
+		this.Trades[symbol] = trades
 	}
 	var trade map[string]any = this.ParseWsTrade(message, market)
 	trades.Append(trade)

@@ -2189,18 +2189,16 @@ func (this *Sxbet) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 		var tokenAddress *string = this.SafeStringLower(row, "tokenAddress", "")
 		// every sxbet market is denominated in the active base token, surfaced under 'USDC'
 		// rows of any other token keep their contract address for the code
-		var code *string = this.SafeString(row, "tokenAddress", "")
+		var code string = *this.SafeString(row, "tokenAddress", "")
 		if tokenAddress == usdcAddress || (tokenAddress != nil && usdcAddress != nil && *tokenAddress == *usdcAddress) {
-			code = ccxt.SafeStringPtr("USDC")
+			code = "USDC"
 		}
 		var free *string = ccxt.Precise.StringDiv(this.SafeString(row, "availableAmount", "0"), usdcDecimals, 6)
 		var used *string = ccxt.Precise.StringDiv(this.SafeString(row, "escrowedAmount", "0"), usdcDecimals, 6)
-		if code != nil {
-			result[*code] = map[string]any{
-				"free":  this.ParseNumber(free),
-				"used":  this.ParseNumber(used),
-				"total": this.ParseNumber(ccxt.Precise.StringAdd(free, used)),
-			}
+		result[code] = map[string]any{
+			"free":  this.ParseNumber(free),
+			"used":  this.ParseNumber(used),
+			"total": this.ParseNumber(ccxt.Precise.StringAdd(free, used)),
 		}
 	}
 
@@ -2247,10 +2245,8 @@ func (this *Sxbet) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 		}
 		for i := 0; i < outcomesLength; i++ {
 			var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
-			var hash *string = this.SafeString(outcomeObj["info"], "marketHash", "")
-			if hash != nil {
-				wantedMarkets[*hash] = true
-			}
+			var hash string = *this.SafeString(outcomeObj["info"], "marketHash", "")
+			wantedMarkets[hash] = true
 		}
 	}
 	// open exposure lives in MATCHED and LOCKED bets - the venue requires an explicit status
@@ -2271,7 +2267,7 @@ func (this *Sxbet) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	var rawPositionsLength int = len(rawPositions)
 	for i := 0; i < rawPositionsLength; i++ {
 		var raw any = rawPositions[i]
-		var marketHash *string = this.SafeString(raw, "marketHash", "")
+		var marketHash string = *this.SafeString(raw, "marketHash", "")
 		if outcomesLength > 0 {
 			if this.SafeBool(wantedMarkets, marketHash) == nil {
 				continue
@@ -2780,7 +2776,7 @@ func (this *Sxbet) ParseSxbetTickersByHash(outcomesList any, rowsByHash map[stri
 	var outcomesLength int = ccxt.GetArrayLength(outcomesList)
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
-		var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash", "")
+		var marketHash string = *this.SafeString(outcomeObj["info"], "marketHash", "")
 		var raw map[string]any = ccxt.SafeMapTyped(rowsByHash, marketHash)
 		if raw == nil {
 			continue
@@ -3321,10 +3317,10 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var sym *string = this.SafeString(outcomeObj, "outcome", "")
+	var sym string = *this.SafeString(outcomeObj, "outcome", "")
 	var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash", "")
 	var channel string = "orderbook_v3:" + *marketHash
-	var messageHash string = "orderbook::" + *sym
+	var messageHash string = "orderbook::" + sym
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	r1 := <-this.ConnectSxbetCentrifugoAsync(url)
@@ -3335,7 +3331,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	var isNewSubscription bool = ccxt.IsEqual(client.(ccxt.ClientInterface).SubscriptionSafe(channel), nil)
 	if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
 		// seed from the REST snapshot so the book is served before the first publication
-		this.SetWsOption("wsWatchedBooks", *sym, marketHash)
+		this.SetWsOption("wsWatchedBooks", sym, marketHash)
 
 		r2 := <-this.FetchSxbetBookSnapshotAsync(marketHash)
 		if r2.Err != nil {
@@ -3348,7 +3344,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 		this.ApplySxbetWsSnapshot(snapshot)
 		if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
 			var emptyBook any = this.OrderBook(map[string]any{})
-			this.WsCacheSet("Orderbooks", *sym, emptyBook)
+			this.WsCacheSet("Orderbooks", sym, emptyBook)
 		}
 	}
 	var requestId int64 = this.RequestId(url)
@@ -3477,10 +3473,10 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var sym *string = this.SafeString(outcomeObj, "outcome", "")
+	var sym string = *this.SafeString(outcomeObj, "outcome", "")
 	var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash")
-	var messageHash string = "ticker::" + *sym
-	this.SetWsOption("wsWatchedTickers", *sym, marketHash)
+	var messageHash string = "ticker::" + sym
+	this.SetWsOption("wsWatchedTickers", sym, marketHash)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	r1 := <-this.ConnectSxbetCentrifugoAsync(url)

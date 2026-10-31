@@ -350,8 +350,8 @@ func (this *Derive) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	ticker := r1.Value
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		var tickerSymbol *string = this.SafeString(ticker, "symbol", "")
-		ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		var tickerSymbol string = *this.SafeString(ticker, "symbol", "")
+		result[tickerSymbol] = ticker
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
@@ -588,15 +588,15 @@ func (this *Derive) HandleTickerUnSubscription(client any, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	if this.Tickers.Has(symbol) {
-		this.Tickers.Delete(*symbol)
+		this.Tickers.Delete(symbol)
 	}
 	if this.Bidsasks.Has(symbol) {
-		this.Bidsasks.Delete(*symbol)
+		this.Bidsasks.Delete(symbol)
 	}
 	// the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
-	var bidAskHash string = "bidask:" + *symbol
+	var bidAskHash string = "bidask:" + symbol
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[bidAskHash]; ok {
 		error := ccxt.UnsubscribeError(this.Id + " " + bidAskHash)
 		client.(ccxt.ClientInterface).Reject(error, bidAskHash)
@@ -720,7 +720,7 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 	var parsedTopic []string = strings.Split(*topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -730,7 +730,7 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.GetValue(data, i)))
 		tradesArray.Append(trade)
 	}
-	this.Trades[*symbol] = tradesArray
+	this.Trades[symbol] = tradesArray
 	client.(ccxt.ClientInterface).Resolve(tradesArray, topic)
 }
 func (this *Derive) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
@@ -1459,8 +1459,8 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 	var positionUpdates []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		var name *string = this.SafeString(entry, "name", "")
-		if strings.Index(*name, "-") >= 0 {
+		var name string = *this.SafeString(entry, "name", "")
+		if strings.Index(name, "-") >= 0 {
 			// position deltas carry instrument names and do not belong into the balance structure
 			if (this.Positions != nil) && (ccxt.InOp(this.Positions, subaccountIdKey)) {
 				var position any = this.HandlePositionDelta(*subaccountIdKey, entry)

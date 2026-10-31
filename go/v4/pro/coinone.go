@@ -392,15 +392,15 @@ func (this *Coinone) HandleTrades(client any, message map[string]any) {
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var trade map[string]any = this.ParseWsTrade(data)
-	var symbol *string = this.SafeString(trade, "symbol", "")
+	var symbol string = *this.SafeString(trade, "symbol", "")
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades[symbol] = stored
 	}
 	stored.Append(trade)
-	var messageHash string = "trade:" + *symbol
+	var messageHash string = "trade:" + symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -479,7 +479,7 @@ func (this *Coinone) HandleMessage(client any, message map[string]any) {
 		return
 	}
 	if typeVar != nil && *typeVar == "DATA" {
-		var topic *string = this.SafeString(message, "channel", "")
+		var topic string = *this.SafeString(message, "channel", "")
 		var methods map[string]any = map[string]any{
 			"ORDERBOOK": this.HandleOrderBook,
 			"TICKER":    this.HandleTicker,
@@ -499,7 +499,7 @@ func (this *Coinone) HandleMessage(client any, message map[string]any) {
 		}
 		for i := 0; i < len(keys); i++ {
 			var key string = keys[i]
-			if strings.Index(*topic, key) >= 0 {
+			if strings.Index(topic, key) >= 0 {
 				var method any = methods[key]
 				ccxt.CallDynamically(method, client, message)
 				return
