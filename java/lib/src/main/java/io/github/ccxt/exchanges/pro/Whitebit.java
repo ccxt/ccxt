@@ -1262,8 +1262,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
         //
-        Object future = client.futures.get("authenticated");
-        ((io.github.ccxt.ws.Future)future).resolve(1);
+        io.github.ccxt.ws.Future future = client.futures.get("authenticated");
+        future.resolve(1);
         return message;
     }
 

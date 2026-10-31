@@ -2788,7 +2788,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
             Client client = this.client(url);
             List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
-            Object topicsLength = (switch ((Object)(topics)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
+            Object topicsLength = (switch ((Object)(topics)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
             Object messageHashesLength = ((List<?>)messageHashes).size();
             if ((((Number) topicsLength).longValue() == ((Number) messageHashesLength).longValue()))
             {

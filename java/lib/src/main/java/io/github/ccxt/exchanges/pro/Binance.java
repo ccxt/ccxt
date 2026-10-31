@@ -4461,7 +4461,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> account = this.account();
             String delta = this.safeString(message, "d");
-            if ((!java.util.Objects.equals(code, null)) && ((switch ((Object)((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)))) { case List<?> j39v3 -> ((Object)(code)) != null && j39v3.contains(code); case Map<?, ?> j39v2 -> ((Object)(code)) instanceof String && j39v2.containsKey(code); case null, default -> false; })))
+            if ((!java.util.Objects.equals(code, null)) && ((switch ((Object)((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)))) { case List<?> j39v2 -> ((Object)(code)) != null && j39v2.contains(code); case Map<?, ?> j39v1 -> ((Object)(code)) instanceof String && j39v1.containsKey(code); case null, default -> false; })))
             {
                 Object previousValue = this.safeValue(Helpers.GetValue((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code), "free");
                 if (!(previousValue instanceof String))
@@ -6135,7 +6135,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if ((switch ((Object)(this.positions)) { case List<?> j39v5 -> ((Object)(type)) != null && j39v5.contains(type); case Map<?, ?> j39v4 -> ((Object)(type)) instanceof String && j39v4.containsKey(type); case null, default -> false; }))
+        if ((switch ((Object)(this.positions)) { case List<?> j39v4 -> ((Object)(type)) != null && j39v4.contains(type); case Map<?, ?> j39v3 -> ((Object)(type)) instanceof String && j39v3.containsKey(type); case null, default -> false; }))
         {
             return;
         }
@@ -6227,7 +6227,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v7 -> ((Object)(accountType)) != null && j39v7.contains(accountType); case Map<?, ?> j39v6 -> ((Object)(accountType)) instanceof String && j39v6.containsKey(accountType); case null, default -> false; })))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v6 -> ((Object)(accountType)) != null && j39v6.contains(accountType); case Map<?, ?> j39v5 -> ((Object)(accountType)) instanceof String && j39v5.containsKey(accountType); case null, default -> false; })))
         {
             ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
@@ -6851,7 +6851,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v9 -> ((Object)(accountType)) != null && j39v9.contains(accountType); case Map<?, ?> j39v8 -> ((Object)(accountType)) instanceof String && j39v8.containsKey(accountType); case null, default -> false; })))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v8 -> ((Object)(accountType)) != null && j39v8.contains(accountType); case Map<?, ?> j39v7 -> ((Object)(accountType)) instanceof String && j39v7.containsKey(accountType); case null, default -> false; })))
         {
             ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
@@ -7051,7 +7051,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             //         "A": "2.52500800"
             //     }
             //
-            if (java.util.Objects.equals(eventVar, null) && ((switch ((Object)(messageValue)) { case List<?> j39v14 -> j39v14.contains("a"); case Map<?, ?> j39v13 -> j39v13.containsKey("a"); case null, default -> false; })) && ((switch ((Object)(messageValue)) { case List<?> j39v12 -> j39v12.contains("b"); case Map<?, ?> j39v11 -> j39v11.containsKey("b"); case null, default -> false; })))
+            if (java.util.Objects.equals(eventVar, null) && ((switch ((Object)(messageValue)) { case List<?> j39v12 -> j39v12.contains("a"); case Map<?, ?> j39v11 -> j39v11.containsKey("a"); case null, default -> false; })) && ((switch ((Object)(messageValue)) { case List<?> j39v10 -> j39v10.contains("b"); case Map<?, ?> j39v9 -> j39v9.containsKey("b"); case null, default -> false; })))
             {
                 this.handleBidsAsks(client, messageValue);
             }
