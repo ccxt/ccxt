@@ -2978,14 +2978,30 @@ function csharpFunnelFileContent (file) {
 // the funnel declaration this local had in the last generated output — `<type> <name> =
 // ccxt.BaseExchange.From<Helper>(await this.<core>(` — so the helper (and with it the box) is the
 // funnel pass's own verdict for this exact site: a site the pass did not wrap matches nothing
+//
+// The reader has to tolerate its own output (otherwise every forced regen flips the file between two
+// fixpoints): build/csharpTranspiler.ts#declareDictListLocals / #declareOHLCVDictLocals rewrite a
+// sound `T x = From<Family>(await this.<core>(...))` line into `<core's own type> x = await
+// this.<core>(...)`, which drops the funnel text. That declared spelling is the same verdict, so it
+// maps back to the helper that produced it; without it the next run finds no funnel, keeps `object`,
+// re-emits the helper, and the run after that rewrites it again (dydx / ws OHLCV / prediction files).
+const CSHARP_FUNNEL_DECLARED_HELPERS = {
+    'List<Dictionary<string, object>>': 'FromDictList',
+    'Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>': 'FromOHLCVDict',
+};
 function csharpFunnelHelper (content, name, core) {
     // the emitted call site is pascalized (pascalizeTypedCores), the AST holds the TS name, so the
     // core matches case-insensitively; the helper and the local name must match exactly
     const line = new RegExp ('^[ \\t]*[A-Za-z][\\w<>,. ]* ' + name + ' = ccxt\\.BaseExchange\\.(From\\w+)\\(await this\\.' + core + '\\(', 'i');
+    const declared = new RegExp ('^[ \\t]*([A-Za-z][\\w<>,. ]*) ' + name + ' = await this\\.' + core + '\\(', 'i');
     for (const text of content.split ('\n')) {
         const match = line.exec (text);
         if (match !== null) {
             return match[1];
+        }
+        const own = declared.exec (text);
+        if (own !== null && Object.prototype.hasOwnProperty.call (CSHARP_FUNNEL_DECLARED_HELPERS, own[1])) {
+            return CSHARP_FUNNEL_DECLARED_HELPERS[own[1]];
         }
     }
     return undefined;
