@@ -1145,9 +1145,7 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 	if tradesArray == nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCacheBySymbolById(tradesLimit)
-		if symbol != nil {
-			this.Trades[*symbol] = tradesArray
-		}
+		this.Trades[*symbol] = tradesArray
 	}
 	for i := 0; i < len(events); i++ {
 		var currentEvent map[string]any = ccxt.SafeMapTyped(events, i)

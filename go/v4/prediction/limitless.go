@@ -342,7 +342,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 		var searchRest map[string]any = this.OmitDict(rest, []any{"limit"})
 		var seen map[string]any = map[string]any{}
 		for i := 0; i < len(queries); i++ {
-			var q *string = ccxt.SafeStringPtr(ccxt.DerefScalar(queries[i]))
+			var q *string = ccxt.SafeStringPtr(queries[i])
 
 			r := <-this.LimitlessPublicGetMarketsSearch(this.Extend(map[string]any{
 				"query": q,
@@ -354,7 +354,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 			response := r.Raw
 			var found []any = ccxt.SafeListTyped(response, "markets")
 			for j := 0; j < len(found); j++ {
-				var raw any = ccxt.DerefScalar(found[j])
+				var raw any = found[j]
 				var slug *string = this.SafeString(raw, "slug")
 				if ((slug != nil) && (slug == nil || *slug != "")) && !(func() bool {
 					if slug == nil {
@@ -1061,7 +1061,7 @@ func (this *Limitless) ParseEvent(event any) map[string]any {
 	// aggregate 24h volume across the markets so sort by volume works
 	var totalVolume any = 0
 	for i := 0; i < len(rawMarkets); i++ {
-		var rawMarket any = ccxt.DerefScalar(rawMarkets[i])
+		var rawMarket any = rawMarkets[i]
 		// an already-parsed ccxt market row carries the unified 'market' handle + outcomes
 		// with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
 		var marketSymbol *string = this.SafeString2(rawMarket, "market", "symbol")
@@ -1486,12 +1486,7 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 		}
 		var grouped []any = ccxt.SafeListTyped(outcomesBySlug, slug)
 		for j := 0; j < len(grouped); j++ {
-			var ticker map[string]any = this.ParsePredictionTicker(tickerInput, func() any {
-				if j >= 0 && j < len(grouped) {
-					return ccxt.DerefScalar(grouped[j])
-				}
-				return nil
-			}())
+			var ticker map[string]any = this.ParsePredictionTicker(tickerInput, grouped[j])
 			var symbolKey *string = this.SafeString(ticker, "outcome")
 			if symbolKey != nil {
 				result[*symbolKey] = ticker
@@ -1920,11 +1915,11 @@ func (this *Limitless) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		request["limit"] = limit
 	}
 
-	listEp1921 := <-this.LimitlessPrivateGetMarketsSlugUserOrders(this.Extend(request, params))
-	if listEp1921.Err != nil {
-		panic(listEp1921.Err)
+	listEp1871 := <-this.LimitlessPrivateGetMarketsSlugUserOrders(this.Extend(request, params))
+	if listEp1871.Err != nil {
+		panic(listEp1871.Err)
 	}
-	var response []any = listEp1921.Value
+	var response []any = listEp1871.Value
 
 	//
 	//     [
@@ -3879,7 +3874,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	var expandedMarkets []any = ccxt.ArrayTyped(this.ExpandGroupRows(rawMarkets))
 	var rawMarketsLength int = len(expandedMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var raw any = ccxt.DerefScalar(expandedMarkets[i])
+		var raw any = expandedMarkets[i]
 		var groupId *string = this.SafeStringN(raw, []any{"groupSlug", "groupId"}, this.SafeString(raw, "slug"))
 		var eventKey any = nil
 		if (groupId != nil) && (groupId == nil || *groupId != "") {

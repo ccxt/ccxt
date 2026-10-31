@@ -730,9 +730,7 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.GetValue(data, i)))
 		tradesArray.Append(trade)
 	}
-	if symbol != nil {
-		this.Trades[*symbol] = tradesArray
-	}
+	this.Trades[*symbol] = tradesArray
 	client.(ccxt.ClientInterface).Resolve(tradesArray, topic)
 }
 func (this *Derive) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {

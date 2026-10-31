@@ -1564,9 +1564,7 @@ func (this *Gate) HandleTrades(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			cachedTrades = ccxt.NewArrayCache(limit)
 			if symbol != nil {
-				if symbol != nil {
-					this.Trades[*symbol] = cachedTrades
-				}
+				this.Trades[*symbol] = cachedTrades
 			}
 		}
 		cachedTrades.Append(trade)

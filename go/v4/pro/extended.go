@@ -974,9 +974,7 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[*symbol] = stored
 	}
 	var previousNonce *int64 = this.SafeInteger(subscription, "nonce")
 	var nonce *int64 = this.SafeInteger(message, "seq")

@@ -2323,9 +2323,7 @@ func (this *Nado) HandleTrade(client any, message map[string]any) {
 	if trades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		trades = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = trades
-		}
+		this.Trades[*symbol] = trades
 	}
 	var trade map[string]any = this.ParseWsTrade(message, market)
 	trades.Append(trade)

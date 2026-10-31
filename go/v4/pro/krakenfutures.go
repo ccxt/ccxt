@@ -1846,7 +1846,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			for objectKey := range holding {
 				holdingKeys = append(holdingKeys, objectKey)
 			}
-		}
+		} // cashAccount
 		this.Balance["cash"] = this.SafeDict(this.Balance, "cash", map[string]any{})
 		this.WsBalanceEntryForWrite("cash")["info"] = message
 		ccxt.AddElementToObject(this.Balance["cash"], "timestamp", timestamp)
@@ -1873,7 +1873,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			for objectKey := range futures {
 				futuresKeys = append(futuresKeys, objectKey)
 			}
-		}
+		} // marginAccount
 		this.Balance["margin"] = this.SafeDict(this.Balance, "margin", map[string]any{})
 		this.WsBalanceEntryForWrite("margin")["info"] = message
 		ccxt.AddElementToObject(this.Balance["margin"], "timestamp", timestamp)
@@ -1910,7 +1910,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			for objectKey := range flexFutureCurrencies {
 				flexFuturesKeys = append(flexFuturesKeys, objectKey)
 			}
-		}
+		} // multi-collateral margin account
 		this.Balance["flex"] = this.SafeDict(this.Balance, "flex", map[string]any{})
 		this.WsBalanceEntryForWrite("flex")["info"] = message
 		ccxt.AddElementToObject(this.Balance["flex"], "timestamp", timestamp)

@@ -808,7 +808,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 		var rawMarkets []any = ccxt.SafeListTyped(data, "markets")
 		var rawMarketsLength int = len(rawMarkets)
 		for mi := 0; mi < rawMarketsLength; mi++ {
-			var rawMarket any = ccxt.DerefScalar(rawMarkets[mi])
+			var rawMarket any = rawMarkets[mi]
 			var marketSlug *string = this.SafeString(rawMarket, "categorySlug")
 			if marketSlug != nil {
 				if _, ok := orphanMarkets[*marketSlug]; ok {
@@ -1288,7 +1288,7 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolvedOutcomeRaw any = nil
 	var rawOutcomesLength int = len(rawOutcomes)
 	for oi := 0; oi < rawOutcomesLength; oi++ {
-		var rawOutcome any = ccxt.DerefScalar(rawOutcomes[oi])
+		var rawOutcome any = rawOutcomes[oi]
 		// a label can carry a formatted price ("$1,800+"), and it goes into the outcome
 		// handle verbatim - strip the same formatting the title gets
 		var rawLabel *string = this.SafeStringUpper(rawOutcome, "name")
@@ -1720,7 +1720,7 @@ func (this *Predictfun) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	var flattenTrades []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = ccxt.DerefScalar(data[i])
+		var entry any = data[i]
 		var taker map[string]any = this.SafeDictMap(entry, "taker", map[string]any{})
 		var takerSigner *string = this.SafeStringLower(taker, "signer")
 		if takerSigner != nil && *takerSigner == wallet {
@@ -1736,7 +1736,7 @@ func (this *Predictfun) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 		var makers []any = ccxt.SafeListTyped(entry, "makers")
 		var makersLength int = len(makers)
 		for j := 0; j < makersLength; j++ {
-			var maker any = ccxt.DerefScalar(makers[j])
+			var maker any = makers[j]
 			var makerSigner *string = this.SafeStringLower(maker, "signer")
 			if makerSigner != nil && *makerSigner == wallet {
 				var makerParty map[string]any = this.Extend(maker, map[string]any{
@@ -3621,7 +3621,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], out
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
-		var handle *string = this.SafeString(ccxt.DerefScalar(outcomes[i]), "outcome")
+		var handle *string = this.SafeString(outcomes[i], "outcome")
 		if handle != nil {
 			handles = append(handles, handle)
 			subMessageHashes = append(subMessageHashes, "orderbook::"+*handle)
@@ -3681,7 +3681,7 @@ func (this *Predictfun) OrderBookMessageHashes(marketId string) []any {
 	var outcomesLength int = len(outcomes)
 	var hashes []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
-		var handle *string = this.SafeString(ccxt.DerefScalar(outcomes[i]), "outcome")
+		var handle *string = this.SafeString(outcomes[i], "outcome")
 		if handle != nil {
 			hashes = append(hashes, "orderbook::"+*handle)
 		}

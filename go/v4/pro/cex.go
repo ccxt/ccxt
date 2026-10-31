@@ -311,9 +311,7 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 		stored.Append(parsed)
 	}
 	var messageHash string = "trades"
-	if symbol != nil {
-		this.Trades[*symbol] = stored
-	}
+	this.Trades[*symbol] = stored
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 

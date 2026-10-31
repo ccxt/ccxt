@@ -475,9 +475,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = tradesArray
-		}
+		this.Trades[*symbol] = tradesArray
 	}
 	tradesArray.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)

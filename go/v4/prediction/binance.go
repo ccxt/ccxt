@@ -212,7 +212,7 @@ func (this *Binance) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInte
 			var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")
 			var eventMarketsLength int = len(eventMarkets)
 			for mi := 0; mi < eventMarketsLength; mi++ {
-				queryMarkets = append(queryMarkets, ccxt.DerefScalar(eventMarkets[mi]))
+				queryMarkets = append(queryMarkets, eventMarkets[mi])
 			}
 		}
 
@@ -236,7 +236,7 @@ func (this *Binance) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInte
 		var eventMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
 		var eventMarketsLength int = len(eventMarkets)
 		for mi := 0; mi < eventMarketsLength; mi++ {
-			flatMarkets = append(flatMarkets, ccxt.DerefScalar(eventMarkets[mi]))
+			flatMarkets = append(flatMarkets, eventMarkets[mi])
 		}
 	}
 	this.SetEvents(parsedEvents)
@@ -622,11 +622,11 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[strin
 		}
 		request["topK"] = limitResolved
 
-		listEp606 := <-this.SapiPrivateGetMarketSearch(this.Extend(request, rest))
-		if listEp606.Err != nil {
-			panic(listEp606.Err)
+		listEp576 := <-this.SapiPrivateGetMarketSearch(this.Extend(request, rest))
+		if listEp576.Err != nil {
+			panic(listEp576.Err)
 		}
-		var response []any = listEp606.Value
+		var response []any = listEp576.Value
 		//
 		//     [
 		//         {
@@ -1729,7 +1729,7 @@ func (this *Binance) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var filtered []any = []any{}
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
-		var position any = ccxt.DerefScalar(positions[i])
+		var position any = positions[i]
 		var positionOutcome *string = this.SafeString(position, "outcome")
 		if positionOutcome != nil {
 			if _, ok := requestedOutcomeSymbols[*positionOutcome]; ok {

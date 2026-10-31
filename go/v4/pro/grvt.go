@@ -478,17 +478,15 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	var parts []string = strings.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	if symbol != nil {
+	var symbol string = *this.SafeString(market, "symbol", "")
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if _, ok := this.Trades[*symbol]; !ok {
-			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
-		}
+		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
 	var parsed map[string]any = this.ParseWsTrade(data)
-	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	stored.Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+*symbol)
+	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+symbol)
 }
 func (this *Grvt) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	// same as REST api

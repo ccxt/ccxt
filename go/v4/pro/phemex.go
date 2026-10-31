@@ -476,9 +476,7 @@ func (this *Phemex) HandleTrades(client any, message any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[*symbol] = stored
 	}
 	var trades []any = ccxt.SafeList2Typed(message, "trades", "trades_p", []any{})
 	var parsed []any = this.ParseTrades(trades, market)

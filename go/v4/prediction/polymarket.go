@@ -632,7 +632,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
 		var rawEvent any = ccxt.GetValue(rawEvents, rei)
 		var ccxtMarkets []any = ccxt.ArrayTyped(this.ParseEventToMarkets(rawEvent))
 		for mi := 0; mi < len(ccxtMarkets); mi++ {
-			flatMarkets = append(flatMarkets, ccxt.DerefScalar(ccxtMarkets[mi]))
+			flatMarkets = append(flatMarkets, ccxtMarkets[mi])
 		}
 		var parsedEvent map[string]any = this.ParseEvent(rawEvent)
 		var eventSlug *string = this.SafeString(rawEvent, "slug")
@@ -1287,7 +1287,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 			}))
 			var ccxtMarketsLength int = len(ccxtMarkets)
 			for i := 0; i < ccxtMarketsLength; i++ {
-				var mkt any = ccxt.DerefScalar(ccxtMarkets[i])
+				var mkt any = ccxtMarkets[i]
 				if ccxt.IsEqual(mkt, nil) {
 					panic(ccxt.ExchangeError(this.Id + " fetchOutcome() could not resolve mkt"))
 				}
@@ -2097,11 +2097,11 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan ccxt.AsyncResult[ccxt.Pred
 		"market": conditionId,
 	}
 
-	listEp2064 := <-this.DataPublicGetOi(this.Extend(request, params))
-	if listEp2064.Err != nil {
-		panic(listEp2064.Err)
+	listEp2004 := <-this.DataPublicGetOi(this.Extend(request, params))
+	if listEp2004.Err != nil {
+		panic(listEp2004.Err)
 	}
-	var response []any = listEp2064.Value
+	var response []any = listEp2004.Value
 	//
 	//     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
 	//

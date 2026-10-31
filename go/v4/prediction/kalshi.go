@@ -442,12 +442,12 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
 		var rawMarketsLength int = len(rawMarkets)
 		for i := 0; i < len(rawMarkets); i++ {
-			var raw any = ccxt.DerefScalar(rawMarkets[i])
+			var raw any = rawMarkets[i]
 			var parsed []any = ccxt.ArrayTyped(this.ParseBinaryMarketToOutcomes(raw))
 			var eventTicker *string = this.SafeString(raw, "event_ticker")
 			var eventTitle *string = this.SafeString(raw, "title", eventTicker)
 			for j := 0; j < len(parsed); j++ {
-				var m any = ccxt.DerefScalar(parsed[j])
+				var m any = parsed[j]
 				flatMarkets = append(flatMarkets, m)
 				if (eventTitle != nil) && (eventTitle == nil || *eventTitle != "") {
 					var eventKey any = this.ShortenSlug(eventTitle)
@@ -708,7 +708,7 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 		var response map[string]any = r.Value
 		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
 		for i := 0; i < len(rawMarkets); i++ {
-			var parsed any = this.ParseMarket(ccxt.DerefScalar(rawMarkets[i]))
+			var parsed any = this.ParseMarket(rawMarkets[i])
 			if ccxt.IsEqual(parsed, nil) {
 				panic(ccxt.ExchangeError(this.Id + " fetchOutcomes() could not resolve parsed"))
 			}
@@ -1429,7 +1429,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 		var response map[string]any = r1.Value
 		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
 		for i := 0; i < len(rawMarkets); i++ {
-			var raw any = ccxt.DerefScalar(rawMarkets[i])
+			var raw any = rawMarkets[i]
 			var marketTicker *string = this.SafeString(raw, "ticker")
 			if (marketTicker == nil) || !(func() bool {
 				if marketTicker == nil {
@@ -1817,7 +1817,7 @@ func (this *Kalshi) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
 	var trades []any = ccxt.SafeListTyped(response, "trades")
 	var filteredTrades []any = []any{}
 	for i := 0; i < len(trades); i++ {
-		var trade any = ccxt.DerefScalar(trades[i])
+		var trade any = trades[i]
 		var tradeTicker *string = this.SafeString2(trade, "ticker", "market_ticker")
 		if (tradeTicker == nil) || (tradeTicker == ticker || (tradeTicker != nil && ticker != nil && *tradeTicker == *ticker)) {
 			filteredTrades = append(filteredTrades, trade)
@@ -2176,7 +2176,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	}
 	var result []any = []any{}
 	for i := 0; i < len(parsed); i++ {
-		var position any = ccxt.DerefScalar(parsed[i])
+		var position any = parsed[i]
 		var positionInfo map[string]any = ccxt.SafeMapTyped(position, "info")
 		var positionTicker *string = this.SafeString(positionInfo, "ticker")
 		if positionTicker != nil {
@@ -3344,7 +3344,7 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
 		var seriesList []any = ccxt.SafeListTyped(seriesResponse, "series")
 		var seriesListLength int = len(seriesList)
 		for si := 0; si < seriesListLength; si++ {
-			var st *string = this.SafeString(ccxt.DerefScalar(seriesList[si]), "ticker")
+			var st *string = this.SafeString(seriesList[si], "ticker")
 			if st != nil {
 				collected = append(collected, st)
 			}
@@ -3363,7 +3363,7 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
 		var seriesList []any = ccxt.SafeListTyped(seriesResponse, "series")
 		var seriesListLength int = len(seriesList)
 		for si := 0; si < seriesListLength; si++ {
-			var st *string = this.SafeString(ccxt.DerefScalar(seriesList[si]), "ticker")
+			var st *string = this.SafeString(seriesList[si], "ticker")
 			if st != nil {
 				collected = append(collected, st)
 			}

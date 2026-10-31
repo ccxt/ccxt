@@ -468,9 +468,7 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[*symbol] = stored
 	}
 	stored.Append(trade)
 	var messageHash string = "trade:" + *symbol

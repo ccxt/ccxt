@@ -231,9 +231,7 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	if stored == nil {
 		stored = ccxt.NewArrayCache(tradesLimit)
 		if symbol != nil {
-			if symbol != nil {
-				this.Trades[*symbol] = stored
-			}
+			this.Trades[*symbol] = stored
 		}
 	}
 	stored.Append(trade)
@@ -287,9 +285,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
-			if symbol != nil {
-				this.Trades[*symbol] = stored
-			}
+			this.Trades[*symbol] = stored
 		}
 		for i := 0; i < len(trades); i++ {
 			var trade map[string]any = this.ParseWsTrade(this.SafeValue(trades, i), market)

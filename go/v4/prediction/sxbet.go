@@ -1976,7 +1976,7 @@ func (this *Sxbet) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTra
 	var trades []any = []any{}
 	var rawTradesLength int = len(rawTrades)
 	for i := 0; i < rawTradesLength; i++ {
-		trades = append(trades, this.ParseSxbetV3PublicTrade(ccxt.DerefScalar(rawTrades[i])))
+		trades = append(trades, this.ParseSxbetV3PublicTrade(rawTrades[i]))
 	}
 	// the venue serves the tape newest-first - the unified contract is ascending by timestamp
 	trades = this.SortBy(trades, "timestamp")
@@ -2712,12 +2712,7 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
 	var hasApiKey bool = !this.IsEmptyString(this.ApiKey)
 	if !hasApiKey {
 		for i := 0; i < hashesLength; i++ {
-			var marketHash *string = ccxt.SafeStringPtr(func() any {
-				if i >= 0 && i < len(hashesOrder) {
-					return ccxt.DerefScalar(hashesOrder[i])
-				}
-				return nil
-			}())
+			var marketHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(hashesOrder[i]))
 
 			r1 := <-this.FetchSxbetBookSnapshotAsync(marketHash)
 			if r1.Err != nil {
@@ -3698,9 +3693,7 @@ func (this *Sxbet) HandleTrades(client any, rows []any) {
 		}
 		if this.Trades.Get(sym) == nil {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-			if sym != nil {
-				this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
-			}
+			this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
 		}
 		var stored ccxt.WsArrayCache = this.Trades[*sym]
 		stored.Append(trade)

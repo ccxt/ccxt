@@ -740,15 +740,13 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 	if market == nil {
 		return
 	}
-	var symbol *string = this.SafeString(market, "symbol", "")
-	var messageHash string = "trade::" + *symbol
-	if symbol != nil {
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trade::" + symbol
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if _, ok := this.Trades[*symbol]; !ok {
-			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
-		}
+		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
-	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
+	var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
 	var data []any = ccxt.SafeListTyped(message, "d")
 	var newTrades []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -761,9 +759,7 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 		var sortedTrade any = ccxt.DerefScalar(sorted[j])
 		tradesArray.Append(sortedTrade)
 	}
-	if symbol != nil {
-		this.Trades[*symbol] = tradesArray
-	}
+	this.Trades[symbol] = tradesArray
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
 func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {

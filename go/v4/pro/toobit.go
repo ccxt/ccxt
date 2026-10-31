@@ -301,20 +301,18 @@ func (this *Toobit) HandleTrades(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	if symbol != nil {
+	var symbol string = *this.SafeString(market, "symbol", "")
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if _, ok := this.Trades[*symbol]; !ok {
-			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
-		}
+		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
-	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades []any = this.ArrayConcat(this.ParseWsTrades(data, market), []any{})
 	for i := 0; i < len(parsedTrades); i++ {
 		stored.Append(ccxt.DerefScalar(parsedTrades[i]))
 	}
-	var messageHash string = "trade::" + *symbol
+	var messageHash string = "trade::" + symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Toobit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {

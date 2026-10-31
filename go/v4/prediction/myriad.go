@@ -868,7 +868,7 @@ func (this *Myriad) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	var data []any = ccxt.SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var position any = this.ParsePredictionPosition(ccxt.DerefScalar(data[i]))
+		var position any = this.ParsePredictionPosition(data[i])
 		if (outcomes == nil) || this.InArray(ccxt.GetValue(position, "outcome"), outcomes) {
 			result = append(result, position)
 		}
@@ -3834,7 +3834,7 @@ func (this *Myriad) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	var outcomes []any = ccxt.SafeListTyped(response, "outcomes")
 	var selectedOutcome any = nil
 	for i := 0; i < len(outcomes); i++ {
-		var oc any = ccxt.DerefScalar(outcomes[i])
+		var oc any = outcomes[i]
 		var currentId *string = this.SafeString(oc, "id", this.SafeString(oc, "outcomeId"))
 		var currentTitle *string = this.SafeString(oc, "title", this.SafeString(oc, "label"))
 		if (outcomeId != nil) && (currentId == outcomeId || (currentId != nil && outcomeId != nil && *currentId == *outcomeId)) {
@@ -4941,7 +4941,7 @@ func (this *Myriad) HandleTrades(client any, data any) {
 			}
 			var myStored ccxt.WsArrayCache = this.MyTrades
 			for k := 0; k < myLegsLength; k++ {
-				myStored.Append(ccxt.DerefScalar(myLegs[k]))
+				myStored.Append(myLegs[k])
 			}
 			client.(ccxt.ClientInterface).Resolve(myStored, "myTrades")
 		}

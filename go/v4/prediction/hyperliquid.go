@@ -1824,7 +1824,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(statuses); i++ {
-		var status any = ccxt.DerefScalar(statuses[i])
+		var status any = statuses[i]
 		var error *string = this.SafeString(status, "error")
 		if error != nil {
 			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" cancelOrders() failed for ", this.SafeString(requestIds, i, this.SafeString(requestIds, 0))), ": "), error)))

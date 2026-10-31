@@ -186,9 +186,7 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[*symbol] = stored
 	}
 	var parsedTrades []any = this.ParseTrades(rawTrades, market)
 	for i := 0; i < len(parsedTrades); i++ {

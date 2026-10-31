@@ -382,7 +382,13 @@ func (this *PredictionExchange) EventsList() []any {
 	}
 	var result []any = []any{}
 	var seen map[string]any = map[string]any{}
-	var keys []string = ObjectKeys(this.Events)
+	var keys []string = nil
+	if this.Events != nil {
+		keys = make([]string, 0, len(this.Events))
+		for objectKey := range this.Events {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var event any = this.Events[keys[i]]
 		var identity *string = this.SafeString2(event, "id", "event", keys[i])
