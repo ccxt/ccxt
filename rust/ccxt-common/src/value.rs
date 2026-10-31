@@ -575,6 +575,7 @@ impl From<String>  for Value { fn from(s: String) -> Self { Value::Str(Cow::Owne
 impl From<i64>     for Value { fn from(n: i64)    -> Self { Value::Int(n) } }
 impl From<f64>     for Value { fn from(f: f64)    -> Self { Value::Float(f) } }
 impl From<bool>    for Value { fn from(b: bool)   -> Self { Value::Bool(b) } }
+impl From<Option<i64>> for Value { fn from(n: Option<i64>) -> Self { n.map_or(Value::Null, Value::Int) } }
 /// `From<ExchangeError>` makes `error.clone()` flow into `&[Value]`
 /// slices without an explicit conversion — surfaces the typed error
 /// as a `[Kind] message`-shaped string Value, matching how

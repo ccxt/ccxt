@@ -733,6 +733,24 @@ impl Exchange {
         self.safe_float_k(obj, key, optional_args)
     }
 
+    /// `safe_bool_k` without the box: `Some` only for an actual boolean, else `None`.
+    #[inline]
+    pub fn safe_bool_k_opt(&self, obj: Value, key: &str, _optional_args: &[Value]) -> Option<bool> {
+        match self.safe_value_k(obj, key, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_bool` without the box (Value key): same lookup rule as `safe_bool_k_opt`.
+    #[inline]
+    pub fn safe_bool_opt(&self, obj: Value, key: Value, _optional_args: &[Value]) -> Option<bool> {
+        match self.safe_value(obj, key, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
     #[inline]
     pub fn safe_bool_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
         // Mirror CCXT `safeBool`: the value is returned ONLY when it is an

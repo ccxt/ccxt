@@ -14,6 +14,7 @@ import {
     r02NativeInserts, hx10w2R03, hx10w3R03, r04Scalars, r04Callee, r06Push, r06w3Push, r08DictReads, r10ClientHandle,
     hx10w9Rp02ParamKind, hx10w9Rp02DispatchArg, hx10w9Rp02SplitArgs, hx10w9Rp02RefMapParamNames,
     narrowStrSinkLocals, narrowStrNullLocals,
+    hx11w9RustIntLocalNullSinkOptionI64, hx11w9RustStrLiteralLocalNativeString, hx11w9StrLocalReassign, hx11w9RustBoolKLocalOptionBool,
 } from 'ast-transpiler';
 
 ansi.nice;
@@ -9266,6 +9267,10 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = narrowStrSinkLocals(rustContent);
                 rustContent = narrowStrNullLocals(rustContent); // hx11 W7
                 rustContent = this.splitLongIntegerRead(rustContent);
+                rustContent = hx11w9RustIntLocalNullSinkOptionI64(rustContent); // hx11 W9
+                rustContent = hx11w9RustStrLiteralLocalNativeString(rustContent); // hx11 W9
+                rustContent = hx11w9StrLocalReassign(rustContent); // hx11 W9
+                rustContent = hx11w9RustBoolKLocalOptionBool(rustContent); // hx11 W9
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
@@ -10018,6 +10023,10 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = r08DictReads(finalFile); // hx10w3 R08
         finalFile = narrowStrSinkLocals(finalFile); // hx11 W4 P1
         finalFile = narrowStrNullLocals(finalFile); // hx11 W7
+        finalFile = hx11w9RustIntLocalNullSinkOptionI64(finalFile); // hx11 W9
+        finalFile = hx11w9RustStrLiteralLocalNativeString(finalFile); // hx11 W9
+        finalFile = hx11w9StrLocalReassign(finalFile); // hx11 W9
+        finalFile = hx11w9RustBoolKLocalOptionBool(finalFile); // hx11 W9
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
