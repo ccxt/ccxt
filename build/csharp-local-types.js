@@ -2454,12 +2454,6 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'getWsUrl': 'string?', // pro/{binance,paradex,coinbaseinternational} all print `string? getWsUrl`
 };
 
-// Families whose declarations in the PREDICTION tree belong to another unit of the same
-// campaign: that shard owns ts/src/prediction sources (and the prediction C# tree), so the
-// entries above must not fire there — the crypto + ws sources keep them (63 root + 12 pro
-// safeTimestamp* declarations on this base; the 10 prediction ones stay object here).
-const CSHARP_PREDICTION_OWNED_RETURNS = new Set ([ 'safeTimestamp', 'safeTimestamp2', 'safeTimestampN' ]);
-
 // bare `name(...)` calls (a plain Identifier callee, no `this.`): C# resolves them to the
 // same BaseExchange instance method, so the return types above apply unchanged. Only
 // helpers imported as free functions in ts/src and called bare in generated bodies are
@@ -3170,11 +3164,6 @@ function isPredictionSource (node) {
     return fileName.includes ('/prediction/') || fileName.includes ('\\prediction\\');
 }
 
-// the prediction shard (U32): every ts/src/prediction source plus the prediction base
-function predictionTreeSource (node) {
-    return isPredictionSource (node) || /PredictionExchange\.ts$/.test (node.getSourceFile?.()?.fileName ?? '');
-}
-
 function awaitedApiReturnTypes (exchange, predictionSource = false) {
     const cacheKey = (predictionSource ? 'prediction:' : 'root:') + exchange;
     if (awaitedApiTables.has (cacheKey)) {
@@ -3716,17 +3705,6 @@ function collectionArmWidening (a, b) {
         }
     }
     return undefined;
-}
-
-// the prediction tier (cs/ccxt/exchanges/prediction/**, PredictionExchange.cs) is a sibling
-// shard's scope: both arm rules below are keyed off this so a prediction declaration is never
-// claimed twice
-function isPredictionTierSource (node) {
-    if (isPredictionSource (node)) {
-        return true;
-    }
-    const fileName = node?.getSourceFile?. ()?.fileName ?? '';
-    return /[\\/]base[\\/]PredictionExchange\.ts$/.test (fileName);
 }
 
 // `cond ? 0 : this.safeInteger (...)` / `cond ? 0 : this.safeFloat (...)` — an `int` arm
