@@ -2447,6 +2447,7 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // is the write producer that blocks the walletAddress family: lighter/myriad assign
     // `walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey)` into the local.
     'ethGetAddressFromPrivateKey': 'string',
+    'getWsUrl': 'string?', // pro/{binance,paradex,coinbaseinternational} all print `string? getWsUrl`
 };
 
 // Families whose declarations in the PREDICTION tree belong to another unit of the same
