@@ -9283,6 +9283,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.nativeFindLiteralCompare(rustContent); // closure-free find("lit") >= 0 tests
 ||||||| base
                 rustContent = this.nativeSplitLiteralArray(rustContent); // closure-free literal split
+||||||| base
+                rustContent = this.nativeCaseConvert(rustContent); // closure/match-free to_lowercase/to_uppercase, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10049,6 +10051,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativeFindLiteralCompare(finalFile); // closure-free find("lit") >= 0 tests
 ||||||| base
         finalFile = this.nativeSplitLiteralArray(finalFile); // closure-free literal split
+||||||| base
+        finalFile = this.nativeCaseConvert(finalFile); // closure/match-free to_lowercase/to_uppercase, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13498,6 +13502,53 @@ impl std::ops::DerefMut for ${coreName} {
             const oldLen = le - ls;
             return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
         });
+    }
+
+||||||| base
+    // Case conversion of a Str place without closure/match (both counted as blobs):
+    //   X.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)
+    //   match &(E) { Value::Str(__s) => Value::Str(__s.to_lowercase().into()), _ => Value::Null }
+    //     -> (if let Some(__s) = X.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })
+    // X/E is evaluated once in both forms; non-Str stays Null. Same for to_uppercase. Skips lines that would cross 400.
+    nativeCaseConvert(content: string): string {
+        if (!content.includes('|__s| Value::Str(__s.to_') && !content.includes('=> Value::Str(__s.to_')) return content;
+        const P = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*';
+        const guard = (m: string, off: number, whole: string, text: string): string => {
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const oldLen = le - ls;
+            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
+        };
+        const meth = new RegExp(`(?<![A-Za-z0-9_.:])(${P})\\.as_str\\(\\)\\.map\\(\\|__s\\| Value::Str\\(__s\\.(to_lowercase|to_uppercase)\\(\\)\\.into\\(\\)\\)\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
+        content = content.replace(meth, (m: string, x: string, f: string, off: number, whole: string) =>
+            guard(m, off, whole, `(if let Some(__s) = ${x}.as_str() { Value::Str(__s.${f}().into()) } else { Value::Null })`));
+        const head = 'match &(';
+        const tailRe = /^ \{ Value::Str\(__s\) => Value::Str\(__s\.(to_lowercase|to_uppercase)\(\)\.into\(\)\), _ => Value::Null \}\)/;
+        let out = '';
+        let i = 0;
+        for (;;) {
+            const at = content.indexOf(head, i);
+            if (at < 0) { out += content.slice(i); break; }
+            let depth = 1; let j = at + head.length;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (c === '(') depth++; else if (c === ')') depth--; else if (c === '"' || c === '\n') { depth = -1; break; }
+                j++;
+            }
+            const t = depth === 0 ? tailRe.exec(content.slice(j, j + 140)) : null;
+            const prev = at > 0 ? content[at - 1] : '';
+            if (t === null || prev !== '(' || /[A-Za-z0-9_>\])]/.test(content[at - 2] ?? '')) { out += content.slice(i, at + head.length); i = at + head.length; continue; }
+            const expr = content.slice(at + head.length, j - 1);
+            const end = j + t[0].length; // includes the closing paren of the wrapping `(match ..)`
+            const repl = `if let Some(__s) = (${expr}).as_str() { Value::Str(__s.${t[1]}().into()) } else { Value::Null })`;
+            const old = content.slice(at - 1, end);
+            const text = '(' + repl;
+            const ls = content.lastIndexOf('\n', at) + 1; let le = content.indexOf('\n', at); if (le < 0) le = content.length;
+            const keep = (le - ls) <= 400 && (le - ls) - old.length + text.length > 400;
+            out += content.slice(i, at - 1) + (keep ? old : text);
+            i = end;
+        }
+        return out;
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
