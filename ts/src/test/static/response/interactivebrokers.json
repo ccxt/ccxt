@@ -5,7 +5,10 @@
         "consumer_key": "TEST1",
         "accountId": "U3448646",
         "liveSessionToken": "MDEyMzQ1Njc4OWFiY2RlZg==",
-        "liveSessionTokenExpiration": 9999999999999
+        "liveSessionTokenExpiration": 9999999999999,
+		"signaturePemPath": "./private_signature.pem",
+		"encryptionPemPath": "./private_encryption.pem",
+		"dhParamPemPath": "./dhparam.pem"
     },
     "methods": {
         "fetchPositionsForSymbol": [

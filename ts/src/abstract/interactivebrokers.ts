@@ -209,7 +209,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/portfolio/:accountId/summary', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiPortfolioAccountIdPositionConid (params = {}): Promise<Dict> {
+    webapiGetV1ApiPortfolioAccountIdPositionConid (params = {}): Promise<List> {
         return this.request ('v1/api/portfolio/:accountId/position/:conid', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
@@ -549,7 +549,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/iserver/marketdata/unsubscribe', [ 'webapi' ], 'POST', params, { 'cost': 1 });
     }
 
-    webapiPostV1ApiIserverReplyReplyId (params = {}): Promise<Dict> {
+    webapiPostV1ApiIserverReplyReplyId (params = {}): Promise<Dict | List> {
         return this.request ('v1/api/iserver/reply/:replyId', [ 'webapi' ], 'POST', params, { 'cost': 1 });
     }
 
@@ -557,7 +557,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/iserver/notification', [ 'webapi' ], 'POST', params, { 'cost': 1 });
     }
 
-    webapiPostV1ApiIserverAccountAccountIdOrderOrderId (params = {}): Promise<Dict> {
+    webapiPostV1ApiIserverAccountAccountIdOrderOrderId (params = {}): Promise<Dict | List> {
         return this.request ('v1/api/iserver/account/:accountId/order/:orderId', [ 'webapi' ], 'POST', params, { 'cost': 1 });
     }
 
@@ -569,7 +569,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/iserver/questions/suppress/reset', [ 'webapi' ], 'POST', params, { 'cost': 1 });
     }
 
-    webapiPostV1ApiIserverAccountAccountIdOrders (params = {}): Promise<Dict> {
+    webapiPostV1ApiIserverAccountAccountIdOrders (params = {}): Promise<Dict | List> {
         return this.request ('v1/api/iserver/account/:accountId/orders', [ 'webapi' ], 'POST', params, { 'cost': 1 });
     }
 
@@ -727,6 +727,10 @@ abstract class Exchange extends _Exchange {
 
     webapiPostGwApiV1EchoSignedJwt (params = {}): Promise<Dict> {
         return this.request ('gw/api/v1/echo/signed-jwt', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiLogout (params = {}): Promise<Dict> {
+        return this.request ('v1/api/logout', [ 'webapi' ], 'POST', params, { 'cost': 1 });
     }
 
     webapiPutV1ApiIserverAccountAllocationGroup (params = {}): Promise<Dict> {

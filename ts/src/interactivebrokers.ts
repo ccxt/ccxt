@@ -193,7 +193,7 @@ export default class interactivebrokers extends Exchange {
                         'v1/api/portfolio/:accountId/meta': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/portfolio/:accountId/ledger': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/portfolio/:accountId/summary': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/api/portfolio/:accountId/position/:conid': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api/portfolio/:accountId/position/:conid': { 'cost': 1 } as Endpoint<List>,
                         'v1/api/portfolio/:accountId/positions/:pageId': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/portfolio2/:accountId/positions': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/portfolio/positions/:conid': { 'cost': 1 } as Endpoint<Dict>,
@@ -281,12 +281,12 @@ export default class interactivebrokers extends Exchange {
                         'v1/api/fyi/settings/:typecode': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/fyi/deliveryoptions/device': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/marketdata/unsubscribe': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/api/iserver/reply/:replyId': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api/iserver/reply/:replyId': { 'cost': 1 } as Endpoint<Dict | List>, // a list of order entries or reply prompts, a dict on reject
                         'v1/api/iserver/notification': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/api/iserver/account/:accountId/order/:orderId': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api/iserver/account/:accountId/order/:orderId': { 'cost': 1 } as Endpoint<Dict | List>, // a list of order entries or reply prompts, a dict on reject
                         'v1/api/iserver/account/:accountId/orders/whatif': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/questions/suppress/reset': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/api/iserver/account/:accountId/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api/iserver/account/:accountId/orders': { 'cost': 1 } as Endpoint<Dict | List>, // a list of order entries or reply prompts, a dict on reject
                         'v1/api/iserver/questions/suppress': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/portfolio/:accountId/positions/invalidate': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/pa/performance': { 'cost': 1 } as Endpoint<Dict>,
