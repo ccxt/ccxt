@@ -173,17 +173,17 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Boolean resolvedPerSymbol = !Boolean.TRUE.equals(isBatch) || (java.util.Objects.equals(messageHashPrefix, "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
             Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", (Object) null);
             String url = this.safeString(wsUrls, "public");
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null) && Boolean.TRUE.equals(resolvedPerSymbol))
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     String symbolId = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    ((List<Object>)messageHashes).add(((messageHashPrefix + "::") + symbolId));
+                    messageHashes.add(((messageHashPrefix + "::") + symbolId));
                 }
             } else
             {
-                ((List<Object>)messageHashes).add(messageHashPrefix);
+                messageHashes.add(messageHashPrefix);
             }
             Long requestId = this.incrementingNonce();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{

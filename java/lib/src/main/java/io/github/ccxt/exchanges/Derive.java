@@ -2337,8 +2337,8 @@ public class Derive extends DeriveApi
         {
             DOMAIN_SEPARATOR = "24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85";
         }
-        Object binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
-        Object prefix = this.base16ToBinary("1901");
+        byte[] binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
+        byte[] prefix = this.base16ToBinary("1901");
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak(), "hex");
     }
 
@@ -2371,9 +2371,9 @@ public class Derive extends DeriveApi
     {
         Object binaryMessage = this.encode(message);
         Object binaryMessageLength = this.binaryLength(binaryMessage);
-        Object x19 = this.base16ToBinary("19");
-        Object newline = this.base16ToBinary("0a");
-        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] x19 = this.base16ToBinary("19");
+        byte[] newline = this.base16ToBinary("0a");
+        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 

@@ -203,7 +203,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
@@ -211,7 +211,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 Map<String, Object> market = this.market(symbol);
                 String marketId = (String) market.get("id");
                 ((List<Object>)productIds).add(marketId);
-                ((List<Object>)messageHashes).add(((name + "::") + symbol));
+                messageHashes.add(((name + "::") + symbol));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>();
@@ -254,7 +254,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
-            List<Object> watchMessageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> watchMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> unWatchMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
@@ -263,7 +263,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 Map<String, Object> market = this.market(symbol);
                 String marketId = (String) market.get("id");
                 ((List<Object>)productIds).add(marketId);
-                ((List<Object>)watchMessageHashes).add(((name + "::") + symbol));
+                watchMessageHashes.add(((name + "::") + symbol));
                 unWatchMessageHashes.add(((("unsubscribe:" + name) + "::") + symbol));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");

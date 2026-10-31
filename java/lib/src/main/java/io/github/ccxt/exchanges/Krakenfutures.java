@@ -2783,8 +2783,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, i, (Object) null);
                 String tradeAmount = this.safeString(trade, "amount");
                 String tradePrice = this.safeString(trade, "price");
-                filled2 = ((String)Precise.stringAdd(filled2, tradeAmount));
-                vwapSum = ((String)Precise.stringAdd(vwapSum, Precise.stringMul(tradeAmount, tradePrice)));
+                filled2 = Precise.stringAdd(filled2, tradeAmount);
+                vwapSum = Precise.stringAdd(vwapSum, Precise.stringMul(tradeAmount, tradePrice));
             }
             average = Precise.stringDiv(vwapSum, filled2);
             if ((!java.util.Objects.equals(amount, null)) && (!Boolean.TRUE.equals(isClosed)) && Boolean.TRUE.equals(isPrior) && Precise.stringGe(filled2, amount))
@@ -2794,10 +2794,10 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             if (Boolean.TRUE.equals(isPrior))
             {
-                filled = ((String)Precise.stringAdd(filled, filled2));
+                filled = Precise.stringAdd(filled, filled2);
             } else
             {
-                filled = ((String)Precise.stringMax(filled, filled2));
+                filled = Precise.stringMax(filled, filled2);
             }
         }
         if (java.util.Objects.equals(remaining, null))
@@ -4459,7 +4459,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             auth = (auth + endpoint); // 1
             Object hash = this.hash(this.encode(auth), sha256(), "binary"); // 2
-            Object secret = this.base64ToBinary(this.secret); // 3
+            byte[] secret = this.base64ToBinary(this.secret); // 3
             String signature = (String) this.hmac(hash, secret, sha512(), "base64"); // 4-5
             privateHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );

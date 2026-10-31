@@ -320,13 +320,13 @@ public Map<String, Object> describe()
         // plain concatenation would create ("us open" vs "household")
         String lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
-        Object chars = this.stringToCharsArray(lower);
+        List<String> chars = this.stringToCharsArray(lower);
         String s = "";
         Boolean pendingSep = false;
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
-            Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
-            if (((String)allowed).indexOf(((String)ch)) >= 0)
+            String ch = (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i));
+            if (((String)allowed).indexOf(ch) >= 0)
             {
                 if (Boolean.TRUE.equals(pendingSep) && (!java.util.Objects.equals(s, "")))
                 {
@@ -639,15 +639,15 @@ public Map<String, Object> describe()
         List<String> stopWords = new ArrayList<String>(Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
         String lower = (((java.util.Objects.equals(slug, null)))) ? "" : ((String)slug).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
-        Object chars = this.stringToCharsArray(lower);
+        List<String> chars = this.stringToCharsArray(lower);
         Object s = "";
         Boolean lastDash = true; // start true to drop leading separators
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
-            Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
-            if (((String)allowed).indexOf(((String)ch)) >= 0)
+            String ch = (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i));
+            if (((String)allowed).indexOf(ch) >= 0)
             {
-                s = ((java.util.function.BinaryOperator<Object>) (hx4J40v8A, hx4J40v8B) -> { Object hx4J40v8P = hx4J40v8A instanceof Integer hx4J40v8i ? (Object) Long.valueOf(hx4J40v8i.longValue()) : hx4J40v8A; Object hx4J40v8Q = hx4J40v8B instanceof Integer hx4J40v8i ? (Object) Long.valueOf(hx4J40v8i.longValue()) : hx4J40v8B; if (hx4J40v8P instanceof Long hx4J40v8l && hx4J40v8Q instanceof Long hx4J40v8r) { return hx4J40v8l + hx4J40v8r; } if (hx4J40v8P instanceof Double || hx4J40v8Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v8D = hx4J40v8o -> { if (hx4J40v8o instanceof Double || hx4J40v8o instanceof Float || hx4J40v8o instanceof Long || hx4J40v8o instanceof Integer || hx4J40v8o instanceof java.math.BigDecimal) { return ((Number) hx4J40v8o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v8o)); } catch (NumberFormatException hx4J40v8e) { return 0.0; } }; return hx4J40v8D.applyAsDouble(hx4J40v8P) + hx4J40v8D.applyAsDouble(hx4J40v8Q); } if (hx4J40v8P instanceof String || hx4J40v8Q instanceof String) { return String.valueOf(hx4J40v8P) + String.valueOf(hx4J40v8Q); } return null; }).apply(s, ch);
+                s = (s + ch);
                 lastDash = false;
             } else if (!Boolean.TRUE.equals(lastDash))
             {
@@ -709,19 +709,19 @@ public Map<String, Object> describe()
         // instead of leaking raw text into the outcome handle
         String upper = (((java.util.Objects.equals(outcome, null)))) ? "" : ((String)outcome).toUpperCase();
         String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        Object chars = this.stringToCharsArray(upper);
+        List<String> chars = this.stringToCharsArray(upper);
         Object label = "";
         Boolean pendingSep = false;
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
-            Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
-            if (((String)allowed).indexOf(((String)ch)) >= 0)
+            String ch = (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i));
+            if (((String)allowed).indexOf(ch) >= 0)
             {
                 if (Boolean.TRUE.equals(pendingSep) && (!java.util.Objects.equals(label, "")))
                 {
                     label = (label + "_");
                 }
-                label = ((java.util.function.BinaryOperator<Object>) (hx4J40v7A, hx4J40v7B) -> { Object hx4J40v7P = hx4J40v7A instanceof Integer hx4J40v7i ? (Object) Long.valueOf(hx4J40v7i.longValue()) : hx4J40v7A; Object hx4J40v7Q = hx4J40v7B instanceof Integer hx4J40v7i ? (Object) Long.valueOf(hx4J40v7i.longValue()) : hx4J40v7B; if (hx4J40v7P instanceof Long hx4J40v7l && hx4J40v7Q instanceof Long hx4J40v7r) { return hx4J40v7l + hx4J40v7r; } if (hx4J40v7P instanceof Double || hx4J40v7Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v7D = hx4J40v7o -> { if (hx4J40v7o instanceof Double || hx4J40v7o instanceof Float || hx4J40v7o instanceof Long || hx4J40v7o instanceof Integer || hx4J40v7o instanceof java.math.BigDecimal) { return ((Number) hx4J40v7o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v7o)); } catch (NumberFormatException hx4J40v7e) { return 0.0; } }; return hx4J40v7D.applyAsDouble(hx4J40v7P) + hx4J40v7D.applyAsDouble(hx4J40v7Q); } if (hx4J40v7P instanceof String || hx4J40v7Q instanceof String) { return String.valueOf(hx4J40v7P) + String.valueOf(hx4J40v7Q); } return null; }).apply(label, ch);
+                label = (label + ch);
                 pendingSep = false;
             } else
             {
@@ -1036,10 +1036,10 @@ public Map<String, Object> describe()
                 continue;
             }
             Boolean wordHasLetters = false;
-            Object chars = this.stringToCharsArray(word);
+            List<String> chars = this.stringToCharsArray(word);
             for (var ci = 0; ci < ((List<?>)chars).size(); ci++)
             {
-                if (Helpers.getIndexOf(letters, (chars == null || ci < 0 || ci >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(ci))) >= 0)
+                if (Helpers.getIndexOf(letters, (chars == null || ci < 0 || ci >= chars.size() ? null : chars.get(ci))) >= 0)
                 {
                     wordHasLetters = true;
                     break;
@@ -2141,7 +2141,7 @@ public Map<String, Object> describe()
             return "";
         }
         String h = this.remove0xPrefix(hexValue);
-        Integer total = ((String)h).length();
+        Integer total = h.length();
         for (var i = 0; (total != null && i < total); i++)
         {
             if (java.util.Objects.equals(Helpers.slice(h, i, (((long) i) + 1L)), "0"))

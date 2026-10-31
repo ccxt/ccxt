@@ -3267,8 +3267,8 @@ public class Phemex extends PhemexApi
                         posSide = "Merged";
                     }
                 }
-                posSide = this.capitalize(posSide);
-                request.put("posSide", posSide);
+                String posSideCapitalized = this.capitalize(posSide);
+                request.put("posSide", posSideCapitalized);
                 if (Boolean.TRUE.equals(isStableSettled))
                 {
                     request.put("orderQtyRq", this.amountToPrecision(symbol, amount));

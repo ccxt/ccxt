@@ -2981,14 +2981,14 @@ public class Extended extends ExtendedApi
         return this.safePosition(mapLiteral12);
     }
 
-    public Object getExtendedStarkAmount(String amount, Object resolution, Boolean roundUp)
+    public String getExtendedStarkAmount(String amount, Object resolution, Boolean roundUp)
     {
         String resolutionString = this.numberToString(resolution);
         String precise = Precise.stringMul(amount, resolutionString);
-        Object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        String result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (java.util.Objects.requireNonNullElse(roundUp, false) && Precise.stringGt(precise, result))
         {
-            result = ((String)Precise.stringAdd(result, "1"));
+            return Precise.stringAdd(result, "1");
         }
         return result;
     }
@@ -3024,16 +3024,16 @@ public class Extended extends ExtendedApi
         String quoteAmount = Precise.stringMul(amountString, priceString);
         Boolean baseRoundUp = isBuy;
         Boolean quoteRoundUp = isBuy;
-        Object baseAmount = this.getExtendedStarkAmount((String) (amountString), syntheticResolution, baseRoundUp);
-        Object collateralAmount = this.getExtendedStarkAmount((String) (quoteAmount), collateralResolution, quoteRoundUp);
+        String baseAmount = this.getExtendedStarkAmount((String) (amountString), syntheticResolution, baseRoundUp);
+        String collateralAmount = this.getExtendedStarkAmount((String) (quoteAmount), collateralResolution, quoteRoundUp);
         if (Boolean.TRUE.equals(isBuy))
         {
-            collateralAmount = ((String)Precise.stringNeg(collateralAmount));
+            collateralAmount = Precise.stringNeg(collateralAmount);
         } else
         {
-            baseAmount = ((String)Precise.stringNeg(baseAmount));
+            baseAmount = Precise.stringNeg(baseAmount);
         }
-        Object feeAmount = this.getExtendedStarkAmount((String) (((String)Precise.stringMul(totalFee, quoteAmount))), collateralResolution, true);
+        String feeAmount = this.getExtendedStarkAmount((String) (Precise.stringMul(totalFee, quoteAmount)), collateralResolution, true);
         Map<String, Object> settlement = new HashMap<String, Object>();
         settlement.put("starkKey", starkKey);
         settlement.put("collateralPosition", collateralPosition);
@@ -3045,7 +3045,7 @@ public class Extended extends ExtendedApi
         settlement.put("feeAmount", feeAmount);
         settlement.put("expiration", this.numberToString(settlementExpiration));
         settlement.put("salt", nonce);
-        Object msgHash = this.getExtendedOrderMsgHash(settlement);
+        String msgHash = this.getExtendedOrderMsgHash(settlement);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         String r = this.getExtendedSignatureHex(this.safeString(sig, 0, "0"));
         String s = this.getExtendedSignatureHex(this.safeString(sig, 1, "0"));
@@ -3069,7 +3069,7 @@ public class Extended extends ExtendedApi
         {
             throw new BadRequest((this.id + " withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
-        Object amount = this.getExtendedStarkAmount((String) (amountString), resolution, false);
+        String amount = this.getExtendedStarkAmount((String) (amountString), resolution, false);
         Map<String, Object> settlement = new HashMap<String, Object>();
         settlement.put("recipient", recipient);
         settlement.put("positionId", positionId);
@@ -3079,7 +3079,7 @@ public class Extended extends ExtendedApi
                 put( "seconds", settlementExpiration );
             }});
         settlement.put("salt", nonce);
-        Object msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
+        String msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement.put("signature", new HashMap<String, Object>() {{
     put( "r", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 0, "0")) );
@@ -3102,7 +3102,7 @@ public class Extended extends ExtendedApi
         {
             throw new BadRequest((this.id + " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
-        Object transferAmount = this.getExtendedStarkAmount((String) (amountString), resolution, false);
+        String transferAmount = this.getExtendedStarkAmount((String) (amountString), resolution, false);
         Map<String, Object> settlement = new HashMap<String, Object>();
         settlement.put("amount", transferAmount);
         settlement.put("assetId", collateralId);
@@ -3112,7 +3112,7 @@ public class Extended extends ExtendedApi
         settlement.put("receiverPublicKey", toL2Key);
         settlement.put("senderPositionId", fromVault);
         settlement.put("senderPublicKey", fromL2Key);
-        Object msgHash = this.getExtendedTransferMsgHash(settlement);
+        String msgHash = this.getExtendedTransferMsgHash(settlement);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement.put("signature", new HashMap<String, Object>() {{
     put( "r", Extended.this.getExtendedSignatureHex(Extended.this.safeString(sig, 0, "0")) );
@@ -3185,7 +3185,7 @@ public class Extended extends ExtendedApi
             String totalFee = fee;
             if (!java.util.Objects.equals(builderFeeRate, null))
             {
-                totalFee = ((String)Precise.stringAdd(fee, builderFeeRate));
+                totalFee = Precise.stringAdd(fee, builderFeeRate);
             }
             Long now = this.milliseconds();
             Long expiryEpochMillis = this.safeInteger(paramsBuilder, "expiryEpochMillis", (now + 3600000L));
@@ -4095,7 +4095,7 @@ public class Extended extends ExtendedApi
             Long remainder = this.parseToInt(Precise.stringMod(decimalString, "16"));
             String hexChar = this.safeString(hexChars, remainder, "");
             result = (hexChar + result);
-            decimalString = ((String)Precise.stringDiv(decimalString, "16", 0));
+            decimalString = Precise.stringDiv(decimalString, "16", 0);
         }
         if (java.util.Objects.equals(result, ""))
         {
@@ -4127,7 +4127,7 @@ public class Extended extends ExtendedApi
         return this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(domainTypeHash, this.getExtendedStringToFelt("Perpetuals"), this.getExtendedStringToFelt("v0"), this.getExtendedStringToFelt(chainId), this.convertToBigInt("1")))));
     }
 
-    public Object getExtendedOrderMsgHash(Map<String, Object> settlement)
+    public String getExtendedOrderMsgHash(Map<String, Object> settlement)
     {
         Object orderTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Order\"(\"position_id\":\"felt\",\"base_asset_id\":\"AssetId\",\"base_amount\":\"i64\",\"quote_asset_id\":\"AssetId\",\"quote_amount\":\"i64\",\"fee_asset_id\":\"AssetId\",\"fee_amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         Object domainHash = this.getExtendedDomainHash();
@@ -4148,7 +4148,7 @@ public class Extended extends ExtendedApi
         return this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(this.getExtendedStringToFelt("StarkNet Message"), domainHash, starkKey, orderHash)));
     }
 
-    public Object getExtendedWithdrawalMsgHash(Map<String, Object> settlement, String starkKey)
+    public String getExtendedWithdrawalMsgHash(Map<String, Object> settlement, String starkKey)
     {
         Object withdrawalTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         Object domainHash = this.getExtendedDomainHash();
@@ -4157,7 +4157,7 @@ public class Extended extends ExtendedApi
         return this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(this.getExtendedStringToFelt("StarkNet Message"), domainHash, this.convertToBigInt(starkKey), withdrawalHash)));
     }
 
-    public Object getExtendedTransferMsgHash(Map<String, Object> settlement)
+    public String getExtendedTransferMsgHash(Map<String, Object> settlement)
     {
         Object transferTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Transfer\"(\"sender_position_id\":\"PositionId\",\"receiver_position_id\":\"PositionId\",\"asset_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         Object domainHash = this.getExtendedDomainHash();

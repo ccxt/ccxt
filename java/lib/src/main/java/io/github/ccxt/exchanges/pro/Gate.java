@@ -1093,11 +1093,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 prefix = "ticker";
             }
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                ((List<Object>)messageHashes).add(((prefix + ":") + symbol));
+                messageHashes.add(((prefix + ":") + symbol));
             }
             Object tickerOrBidAsk = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, channel, paramsMethod)).join();
             if (this.newUpdates)
@@ -1368,7 +1368,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String channel = (messageType + ".candlesticks");
             String messageHash = ((("candles:" + interval) + ":") + market.get("symbol"));
             String url = this.getUrlByMarket(market);
-            List<Object> payload = new ArrayList<Object>(Arrays.asList(interval, marketId));
+            List<String> payload = new ArrayList<String>(Arrays.asList(interval, marketId));
             List<Object> ohlcv = (List<Object>) (this.subscribePublic((String) (url), messageHash, payload, channel, parameters, (Object) null)).join();
             Long limitResolved = limit;
             if (this.newUpdates)

@@ -2852,7 +2852,7 @@ public class Htx extends HtxApi
                 String createdDate = this.safeString(market, "create_date"); // i.e 20230101
                 if (!java.util.Objects.equals(createdDate, null))
                 {
-                    Object createdArray = this.stringToCharsArray(createdDate);
+                    List<String> createdArray = this.stringToCharsArray(createdDate);
                     Integer createdLength = ((List<?>)createdArray).size();
                     if (((createdLength != null && createdLength >= 8)))
                     {

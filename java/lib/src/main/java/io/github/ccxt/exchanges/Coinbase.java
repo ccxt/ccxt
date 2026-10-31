@@ -2878,7 +2878,7 @@ public class Coinbase extends CoinbaseApi
         if ((!java.util.Objects.equals(totalUsdBalance, null)) || (!java.util.Objects.equals(futuresBuyingPower, null)))
         {
             String total = (((!java.util.Objects.equals(totalUsdBalance, null)))) ? totalUsdBalance : futuresBuyingPower;
-            Object free = (((!java.util.Objects.equals(futuresBuyingPower, null)))) ? futuresBuyingPower : total;
+            String free = (((!java.util.Objects.equals(futuresBuyingPower, null)))) ? futuresBuyingPower : total;
             String used = Precise.stringSub(total, free);
             Map<String, Object> balanceResult = new HashMap<String, Object>() {{
                 put( "info", response );
@@ -6149,7 +6149,7 @@ public class Coinbase extends CoinbaseApi
         }
         if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
-            Object byteArray = this.base64ToBinary(this.secret);
+            byte[] byteArray = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(byteArray, 0, 32);
             return jwt(request, seed, sha256(), false, new HashMap<String, Object>() {{
                 put( "kid", Coinbase.this.apiKey );

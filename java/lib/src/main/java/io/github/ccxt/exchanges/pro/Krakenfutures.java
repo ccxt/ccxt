@@ -2061,7 +2061,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         {
             Object challenge = this.safeValue(message, "message");
             Object hashedChallenge = this.hash(this.encode(challenge), sha256(), "binary");
-            Object base64Secret = this.base64ToBinary(this.secret);
+            byte[] base64Secret = this.base64ToBinary(this.secret);
             String signature = (String) this.hmac(hashedChallenge, base64Secret, sha512(), "base64");
             this.options.put("challenge", challenge);
             this.options.put("signedChallenge", signature);

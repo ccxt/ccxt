@@ -2584,7 +2584,7 @@ public class Bybit extends BybitApi
         return new ArrayList<Object>(Arrays.asList(subType, paramsSubType));
     }
 
-    public Object getAmount(String symbol, Object amount)
+    public String getAmount(String symbol, Object amount)
     {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
@@ -2598,7 +2598,7 @@ public class Bybit extends BybitApi
         return amountString;
     }
 
-    public Object getPrice(String symbol, String price)
+    public String getPrice(String symbol, String price)
     {
         if (java.util.Objects.equals(price, null))
         {
@@ -2613,7 +2613,7 @@ public class Bybit extends BybitApi
         return price;
     }
 
-    public Object getCost(String symbol, String cost)
+    public String getCost(String symbol, String cost)
     {
         Map<String, Object> market = this.market(symbol);
         Boolean emptyPrecisionPrice = (java.util.Objects.equals(this.safeNumber(market.get("precision"), "price", (Object) null), null));
@@ -5274,8 +5274,8 @@ public class Bybit extends BybitApi
         String timeInForce = this.parseTimeInForce(rawTimeInForce);
         String triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
         Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", (Object) null);
-        Object takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
-        Object stopLossPrice = this.omitZero(this.safeString(order, "stopLoss"));
+        String takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
+        String stopLossPrice = this.omitZero(this.safeString(order, "stopLoss"));
         String triggerDirection = this.safeString(order, "triggerDirection");
         Boolean isAscending = (java.util.Objects.equals(triggerDirection, "1"));
         Boolean isStopOrderType2 = (!java.util.Objects.equals(triggerPrice, null)) && Boolean.TRUE.equals(reduceOnly);
@@ -5553,8 +5553,8 @@ public class Bybit extends BybitApi
         {
             amountValue = amount;
         }
-        Object amountString = (((!java.util.Objects.equals(amountValue, null)))) ? this.getAmount(symbolValue, amountValue) : null;
-        Object priceString = (((!java.util.Objects.equals(price, null)))) ? this.getPrice(symbolValue, this.numberToString(price)) : null;
+        String amountString = (((!java.util.Objects.equals(amountValue, null)))) ? this.getAmount(symbolValue, amountValue) : null;
+        String priceString = (((!java.util.Objects.equals(price, null)))) ? this.getPrice(symbolValue, this.numberToString(price)) : null;
         if (Boolean.TRUE.equals(endpointIsTradingStop))
         {
             if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || Boolean.TRUE.equals(isTriggerOrder) || (java.util.Objects.equals(market.get("spot"), true)))
@@ -6024,7 +6024,7 @@ public class Bybit extends BybitApi
         }
         if (!java.util.Objects.equals(triggerPrice, null))
         {
-            Object triggerPriceRequest = (((java.util.Objects.equals(triggerPrice, "0")))) ? triggerPrice : this.getPrice((String) (symbol), triggerPrice);
+            String triggerPriceRequest = (((java.util.Objects.equals(triggerPrice, "0")))) ? triggerPrice : this.getPrice((String) (symbol), triggerPrice);
             request.put("triggerPrice", triggerPriceRequest);
             String triggerBy = this.safeString(paramsValue, "triggerBy", "LastPrice");
             request.put("triggerBy", triggerBy);
@@ -6034,7 +6034,7 @@ public class Bybit extends BybitApi
             if (Boolean.TRUE.equals(hasStopLoss))
             {
                 String slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
-                Object stopLossRequest = (((java.util.Objects.equals(slTriggerPrice, "0")))) ? slTriggerPrice : this.getPrice((String) (symbol), slTriggerPrice);
+                String stopLossRequest = (((java.util.Objects.equals(slTriggerPrice, "0")))) ? slTriggerPrice : this.getPrice((String) (symbol), slTriggerPrice);
                 request.put("stopLoss", stopLossRequest);
                 String slTriggerBy = this.safeString(paramsValue, "slTriggerBy", "LastPrice");
                 request.put("slTriggerBy", slTriggerBy);
@@ -6042,7 +6042,7 @@ public class Bybit extends BybitApi
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 String tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
-                Object takeProfitRequest = (((java.util.Objects.equals(tpTriggerPrice, "0")))) ? tpTriggerPrice : this.getPrice((String) (symbol), tpTriggerPrice);
+                String takeProfitRequest = (((java.util.Objects.equals(tpTriggerPrice, "0")))) ? tpTriggerPrice : this.getPrice((String) (symbol), tpTriggerPrice);
                 request.put("takeProfit", takeProfitRequest);
                 String tpTriggerBy = this.safeString(paramsValue, "tpTriggerBy", "LastPrice");
                 request.put("tpTriggerBy", tpTriggerBy);

@@ -3075,11 +3075,11 @@ public class Pacifica extends PacificaApi
             put( "TOB", "TOB" );
             put( "ALO", "ALO" );
         }};
-        Object tif = null;
-        if (!java.util.Objects.equals(tifRaw, null))
+        if (java.util.Objects.equals(tifRaw, null))
         {
-            tif = ((String)tifRaw).toUpperCase();
+            return "GTC";
         }
+        String tif = ((String)tifRaw).toUpperCase();
         return this.safeString(tifMap, tif, "GTC");
     }
 
@@ -4210,7 +4210,7 @@ public class Pacifica extends PacificaApi
             }};
             Map<String, Object> subSigPayload = new HashMap<String, Object>();
             subSigPayload.put("account", originAddress);
-            Object subaccountSignature = this.signMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey);
+            String subaccountSignature = this.signMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey);
             Map<String, Object> mainSignatureHeader = new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "expiry_window", expiryWindow );
@@ -4219,7 +4219,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> mainSigPayload = new HashMap<String, Object>() {{
                 put( "signature", subaccountSignature );
             }};
-            Object main_signature = this.signMessage(mainSignatureHeader, mainSigPayload, (String) (this.privateKey));
+            String main_signature = this.signMessage(mainSignatureHeader, mainSigPayload, (String) (this.privateKey));
             finalHeaders.put("main_account", originAddress);
             finalHeaders.put("subaccount", subAccountAddress);
             finalHeaders.put("sub_signature", subaccountSignature);
@@ -4563,15 +4563,15 @@ public class Pacifica extends PacificaApi
         return this.json(sorted);
     }
 
-    public Object signMessage(Map<String, Object> header, Map<String, Object> payload, String privateKey)
+    public String signMessage(Map<String, Object> header, Map<String, Object> payload, String privateKey)
     {
         String message = this.prepareMessage(header, payload);
         Object messageBytes = this.encode(message);
-        Object secretBytes = this.base58ToBinary(privateKey);
+        byte[] secretBytes = this.base58ToBinary(privateKey);
         Object seed = this.arraySlice(secretBytes, 0, 32);
         Object signatureBase64 = eddsa(messageBytes, seed, ed25519());
-        Object signatureBinary = this.base64ToBinary(signatureBase64);
-        Object signatureBase58 = this.binaryToBase58(signatureBinary);
+        byte[] signatureBinary = this.base64ToBinary(signatureBase64);
+        String signatureBase58 = this.binaryToBase58(signatureBinary);
         return signatureBase58;
     }
 
@@ -4607,7 +4607,7 @@ public class Pacifica extends PacificaApi
         signatureHeader.put("timestamp", timestamp);
         signatureHeader.put("expiry_window", expiryWindow);
         signatureHeader.put("type", operationType);
-        Object signature = this.signMessage(signatureHeader, sigPayload, (String) (this.privateKey));
+        String signature = this.signMessage(signatureHeader, sigPayload, (String) (this.privateKey));
         Map<String, Object> finalHeaders = new HashMap<String, Object>() {{}};
         Pair<String, Map<String, Object>> agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsExpiryWindow), "postActionRequest", "agentAddress", (String) null);
         String agentAddress = agentAddressparamsAgentAddressVariable.first();

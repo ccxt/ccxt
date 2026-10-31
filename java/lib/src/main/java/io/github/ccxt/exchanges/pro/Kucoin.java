@@ -582,7 +582,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 query = paramsUta;
             }
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<Object> topics = new ArrayList<Object>(Arrays.asList());
+            List<String> topics = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
@@ -590,7 +590,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     messageHashes.add(("ticker:" + symbol));
                     Map<String, Object> market = this.market(symbol);
-                    ((List<Object>)topics).add(((method + ":") + this.safeString(market, "id", "")));
+                    topics.add(((method + ":") + this.safeString(market, "id", "")));
                 }
             }
             Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
@@ -1832,13 +1832,13 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             String topic = ((method + ":") + String.join(",", (List<String>)marketIds));
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> subscriptionHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(("orderbook:" + symbol));
                 String marketId = this.safeString(marketIds, i, "");
-                ((List<Object>)subscriptionHashes).add(((method + ":") + marketId));
+                subscriptionHashes.add(((method + ":") + marketId));
             }
             Map<String, Object> subscription = new HashMap<String, Object>() {{}};
             if ((java.util.Objects.equals(method, "/market/level2")) || (java.util.Objects.equals(method, "/contractMarket/level2")))
@@ -1914,19 +1914,19 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
             }
             String topic = ((method + ":") + String.join(",", (List<String>)marketIds));
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> subscriptionHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
-                ((List<Object>)subscriptionHashes).add(("orderbook:" + symbol));
+                messageHashes.add(("unsubscribe:orderbook:" + symbol));
+                subscriptionHashes.add(("orderbook:" + symbol));
             }
             // we have to add the topic to the messageHashes and subMessageHashes
             // because handleSubscriptionStatus needs them to remove the subscription from the client
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-            ((List<Object>)messageHashes).add(topic);
-            ((List<Object>)subscriptionHashes).add(topic);
+            messageHashes.add(topic);
+            subscriptionHashes.add(topic);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHashes", messageHashes );
                 put( "symbols", symbolsNormalized );
@@ -3418,17 +3418,17 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 tradeType = "UNIFIED";
             }
             String messageHash = "positions";
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (java.util.Objects.equals(symbolsNormalized, null))
             {
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
             } else
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    ((List<Object>)messageHashes).add(((messageHash + ":") + symbol));
+                    messageHashes.add(((messageHash + ":") + symbol));
                 }
             }
             String url = (this.getUtaUrl()).join();

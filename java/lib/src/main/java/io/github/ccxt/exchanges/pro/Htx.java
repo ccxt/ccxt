@@ -2042,7 +2042,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
-            Object marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
+            String marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
             if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
             {
                 marginMode = defaultMarginMode;
@@ -2054,7 +2054,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Helpers.addElementToObject((url == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(url)), marginMode, cache);
             }
             ((List<Object>)newPositions).add(position);
-            positionsByMarginMode.put((String)marginMode, this.safeList(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList())));
+            positionsByMarginMode.put(marginMode, this.safeList(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList())));
             ((List<Object>)(positionsByMarginMode == null || marginMode == null ? null : positionsByMarginMode.get(marginMode))).add(position);
             ((io.github.ccxt.ws.ArrayCache) cache).append(position);
         }

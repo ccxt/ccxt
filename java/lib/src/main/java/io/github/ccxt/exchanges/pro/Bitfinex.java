@@ -917,7 +917,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 String amount = this.safeString(deltas, 2);
                 String counter = this.safeString(deltas, 1);
                 String price = this.safeString(deltas, 0);
-                Object size = ((Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
+                String size = ((Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
                 String side = ((Precise.stringLt(amount, "0"))) ? "asks" : "bids";
                 io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) (orderbookItem == null || side == null || !orderbookItem.containsKey(side) ? null : orderbookItem.get(side));
                 bookside.storeArray(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter))));
@@ -968,7 +968,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
         }
         String payload = String.join(":", (List<String>)stringArray);
-        Object localChecksum = this.crc32(payload, true);
+        Long localChecksum = this.crc32(payload, true);
         Long responseChecksum = this.safeInteger(message, 2);
         if (!java.util.Objects.equals(responseChecksum, localChecksum))
         {

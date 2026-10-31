@@ -4347,7 +4347,7 @@ public class Mexc extends MexcApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Boolean isContract = (Boolean) marketResolved.get("contract");
         String sideRaw = this.safeString(order, "side");
-        Object side = (((java.util.Objects.equals(isContract, true)))) ? this.parseContractOrderSide(sideRaw) : this.parseOrderSide(sideRaw);
+        String side = (((java.util.Objects.equals(isContract, true)))) ? this.parseContractOrderSide(sideRaw) : this.parseOrderSide(sideRaw);
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("time", "createTime", "transactTime")));
         Map<String, Object> fee = null;
         String feeCurrency = this.safeString(order, "feeCurrency");

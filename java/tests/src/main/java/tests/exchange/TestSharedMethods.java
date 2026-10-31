@@ -22,7 +22,7 @@ public class TestSharedMethods extends BaseTest {
     {
         // there are cases when exchange is undefined (eg. base tests)
         Object id = (((!java.util.Objects.equals(exchange, null)))) ? exchange.id : "undefined";
-        Object methodString = (((!java.util.Objects.equals(method, null)))) ? method : "undefined";
+        String methodString = (((!java.util.Objects.equals(method, null)))) ? method : "undefined";
         Object entryString = (((!java.util.Objects.equals(exchange, null) && !java.util.Objects.equals(entry, null)))) ? exchange.json(entry) : "";
         return ((((((" <<< " + id) + " ") + methodString) + " ::: ") + entryString) + " >>> ");
     }

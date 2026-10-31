@@ -2121,7 +2121,7 @@ public class Foxbit extends FoxbitApi
 
     public Trade parseTrade(Object trade, Map<String, Object> market)
     {
-        Object timestamp = this.parseDate(this.safeString(trade, "created_at"));
+        Long timestamp = this.parseDate(this.safeString(trade, "created_at"));
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "volume", this.safeString(trade, "quantity"));
         String privateSideField = this.safeStringLower(trade, "side");
@@ -2174,7 +2174,7 @@ public class Foxbit extends FoxbitApi
             marketResolved = this.market(symbol);
             symbol = this.safeString(marketResolved, "symbol");
         }
-        Object timestamp = this.parseDate(this.safeString(order, "created_at"));
+        Long timestamp = this.parseDate(this.safeString(order, "created_at"));
         String price = this.safeString(order, "price");
         String filled = this.safeString(order, "quantity_executed");
         String remaining = this.safeString(order, "quantity");
@@ -2279,7 +2279,7 @@ public class Foxbit extends FoxbitApi
         String currencyCode = this.safeCurrencyCode(currencySymbol, (Map<String, Object>) null);
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         String created_at = this.safeString(transaction, "created_at");
-        Object timestamp = this.parseDate(created_at);
+        Long timestamp = this.parseDate(created_at);
         String datetime = this.iso8601(timestamp);
         if (!java.util.Objects.equals(fee, null) && !java.util.Objects.equals(amount, null))
         {

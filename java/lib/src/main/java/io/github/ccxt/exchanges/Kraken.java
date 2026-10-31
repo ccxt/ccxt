@@ -4346,8 +4346,8 @@ public class Kraken extends KrakenApi
             Object auth = this.encode((nonce + bodySigned));
             Object hash = this.hash(auth, sha256(), "binary");
             Object binary = this.encode(url);
-            Object binhash = this.binaryConcat(binary, hash);
-            Object secret = this.base64ToBinary(this.secret);
+            byte[] binhash = this.binaryConcat(binary, hash);
+            byte[] secret = this.base64ToBinary(this.secret);
             String signature = (String) this.hmac(binhash, secret, sha512(), "base64");
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "API-Key", Kraken.this.apiKey );

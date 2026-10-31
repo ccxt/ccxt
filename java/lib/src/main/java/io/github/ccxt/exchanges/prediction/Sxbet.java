@@ -417,7 +417,7 @@ public class Sxbet extends SxbetApi
             gameTime = this.safeTimestamp(raw, "gameTime");
         }
         List<String> outcomeLabels = new ArrayList<String>(Arrays.asList(outcomeOneName, outcomeTwoName));
-        List<Object> outcomeIds = new ArrayList<Object>(Arrays.asList(marketHash, (marketHash + "-2")));
+        List<String> outcomeIds = new ArrayList<String>(Arrays.asList(marketHash, (marketHash + "-2")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         for (var oi = 0; oi < ((List<?>)outcomeLabels).size(); oi++)
         {
@@ -865,7 +865,7 @@ public class Sxbet extends SxbetApi
         put( "to", tokenAddress );
         put( "data", nameCallData );
     }}, "latest")))).join();
-            Object hex = this.remove0xPrefix(result);
+            String hex = this.remove0xPrefix(result);
             // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
             String lengthHex = (hex == null ? null : ((String)hex).substring(Math.min(64, ((String)hex).length()), Math.min(128, ((String)hex).length())));
             Long length = this.parseToInt(this.hexToInt(lengthHex));

@@ -1081,11 +1081,11 @@ public class Predictfun extends PredictfunApi
             return null;
         }
         String digits = "0123456789";
-        Object chars = this.stringToCharsArray(text);
+        List<String> chars = this.stringToCharsArray(text);
         String stripped = "";
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
-            Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
+            String ch = (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i));
             Boolean keep = true;
             if (java.util.Objects.equals(ch, "$"))
             {
@@ -1095,8 +1095,8 @@ public class Predictfun extends PredictfunApi
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                Boolean prevIsDigit = (i > 0) && (Helpers.getIndexOf(digits, Helpers.GetValue(chars, (((long) i) - 1L))) >= 0);
-                Boolean nextIsDigit = (((((long) i) + 1L) < (((List<?>)chars).size()))) && (Helpers.getIndexOf(digits, Helpers.GetValue(chars, (((long) i) + 1L))) >= 0);
+                Boolean prevIsDigit = (i > 0) && (Helpers.getIndexOf(digits, (chars == null || ((int) (((long) i) - 1L)) < 0 || ((int) (((long) i) - 1L)) >= chars.size() ? null : chars.get(((int) (((long) i) - 1L))))) >= 0);
+                Boolean nextIsDigit = (((((long) i) + 1L) < (((List<?>)chars).size()))) && (Helpers.getIndexOf(digits, (chars == null || ((int) (((long) i) + 1L)) < 0 || ((int) (((long) i) + 1L)) >= chars.size() ? null : chars.get(((int) (((long) i) + 1L))))) >= 0);
                 keep = !(Boolean.TRUE.equals(prevIsDigit) && Boolean.TRUE.equals(nextIsDigit));
             }
             if (Boolean.TRUE.equals(keep))
@@ -1938,9 +1938,9 @@ public class Predictfun extends PredictfunApi
     {
         Object binaryMessage = this.encode(message);
         Object binaryMessageLength = this.binaryLength(binaryMessage);
-        Object x19 = this.base16ToBinary("19");
-        Object newline = this.base16ToBinary("0a");
-        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] x19 = this.base16ToBinary("19");
+        byte[] newline = this.base16ToBinary("0a");
+        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 

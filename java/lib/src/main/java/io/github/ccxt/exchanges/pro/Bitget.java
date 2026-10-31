@@ -1235,7 +1235,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     }
                 }
                 String payload = String.join(":", (List<String>)payloadArray);
-                Object calculatedChecksum = this.crc32(payload, true);
+                Long calculatedChecksum = this.crc32(payload, true);
                 if (!java.util.Objects.equals(calculatedChecksum, responseChecksum))
                 {
                     this.spawn(() -> { try { this.handleCheckSumError(client, (String) (symbol), messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -2487,14 +2487,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String side = this.safeString(order, "side");
         String type = this.safeString(order, "orderType");
         String accBaseVolumeString = this.safeString2(order, "accBaseVolume", "cumExecQty");
-        Object accBaseVolume = this.omitZero(accBaseVolumeString);
+        String accBaseVolume = this.omitZero(accBaseVolumeString);
         String newSizeString = this.safeString2(order, "newSize", "cumExecValue");
-        Object newSizeValue = this.omitZero(newSizeString);
+        String newSizeValue = this.omitZero(newSizeString);
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
         Boolean isBuy = (java.util.Objects.equals(side, "buy"));
-        Object totalAmount = null;
+        String totalAmount = null;
         String filledAmount = null;
-        Object cost = null;
+        String cost = null;
         String remaining = null;
         String totalFilled = this.safeString2(order, "accBaseVolume", "cumExecQty");
         if (Boolean.TRUE.equals(isSpot))

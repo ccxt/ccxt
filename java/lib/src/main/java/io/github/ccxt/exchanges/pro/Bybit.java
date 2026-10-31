@@ -460,7 +460,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 throw new BadRequest((this.id + " watchTicker() only supports name tickers for contract markets")) ;
             }
-            List<Object> topics = new ArrayList<Object>(Arrays.asList(((topic + ".") + this.safeString(market, "id", ""))));
+            List<String> topics = new ArrayList<String>(Arrays.asList(((topic + ".") + this.safeString(market, "id", ""))));
             return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, paramsValue)).join();
         }).thenApply(Ticker::new);
 
@@ -492,11 +492,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTickers", new HashMap<String, Object>() {{}});
             String topic = this.safeString(options, "name", "tickers");
             List<String> marketIds = this.marketIds(symbolsValue);
-            List<Object> topics = new ArrayList<Object>(Arrays.asList());
+            List<String> topics = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 String marketId = this.safeString(marketIds, i, "");
-                ((List<Object>)topics).add(((topic + ".") + marketId));
+                topics.add(((topic + ".") + marketId));
                 messageHashes.add(("ticker:" + this.safeString(symbolsValue, i, "")));
             }
             Object ticker = (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
@@ -540,12 +540,12 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> marketIds = this.marketIds(symbolsValue);
-            List<Object> topics = new ArrayList<Object>(Arrays.asList());
+            List<String> topics = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 String marketId = this.safeString(marketIds, i, "");
                 String symbol = (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i));
-                ((List<Object>)topics).add(((topic + ".") + marketId));
+                topics.add(((topic + ".") + marketId));
                 subMessageHashes.add(("ticker:" + symbol));
                 messageHashes.add(("unsubscribe:ticker:" + symbol));
             }

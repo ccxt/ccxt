@@ -10141,7 +10141,7 @@ public class Okx extends OkxApi
         {
             // end the window after limit periods, so that the earliest entries from since on come back
             // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
-            Object unitPeriod = ((((String)period).endsWith(((String)"utc")))) ? (period == null ? null : ((String)period).substring(0, Math.max(((String)period).length() - 3, 0))) : period;
+            String unitPeriod = ((((String)period).endsWith(((String)"utc")))) ? (period == null ? null : ((String)period).substring(0, Math.max(((String)period).length() - 3, 0))) : period;
             String unit = (unitPeriod == null ? null : ((String)unitPeriod).substring(Math.max(((String)unitPeriod).length() - 1, 0)));
             Object windowDuration = null;
             if (java.util.Objects.equals(unit, "M"))
@@ -10154,7 +10154,7 @@ public class Okx extends OkxApi
                 request.put("limit", maxLimit);
             } else
             {
-                windowDuration = ((effectiveLimit * ((long) this.parseTimeframe(((String)unitPeriod).toLowerCase()))) * 1000L);
+                windowDuration = ((effectiveLimit * ((long) this.parseTimeframe(unitPeriod.toLowerCase()))) * 1000L);
             }
             Object windowEnd = this.sum(since, windowDuration);
             end = (((java.util.Objects.equals(end, null)))) ? windowEnd : (end == null ? null : (((Number) end).doubleValue() < ((Number) windowEnd).doubleValue() ? (Object) (end) : (Object) (windowEnd)));

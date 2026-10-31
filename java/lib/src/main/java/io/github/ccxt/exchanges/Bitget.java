@@ -12014,7 +12014,7 @@ public class Bitget extends BitgetApi
         Object initialMargin = null;
         String unrealizedPnl = this.safeString2(position, "unrealizedPL", "unrealisedPnl");
         String collateralString = this.safeString2(position, "marginSize", "positionBalance");
-        Object rawCollateral = this.omitZero(collateralString);
+        String rawCollateral = this.omitZero(collateralString);
         if (java.util.Objects.equals(marginMode, "isolated"))
         {
             collateral = (((!java.util.Objects.equals(unrealizedPnl, null)))) ? Precise.stringAdd(rawCollateral, unrealizedPnl) : rawCollateral;
@@ -12055,7 +12055,7 @@ public class Bitget extends BitgetApi
         String notional = Precise.stringMul(baseAmount, markPrice);
         String initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
         String liquidationPriceString = this.safeString(position, "liquidationPrice");
-        Object rawLiquidationPrice = this.omitZero(liquidationPriceString);
+        String rawLiquidationPrice = this.omitZero(liquidationPriceString);
         Double liquidationPrice = null;
         if ((!java.util.Objects.equals(rawLiquidationPrice, null)) && Precise.stringGt(rawLiquidationPrice, "0"))
         {

@@ -2595,7 +2595,7 @@ public class Bydfi extends BydfiApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String buyOrSell = this.safeString(position, "side");
         String rawPositionSide = this.safeStringLower(position, "positionSide");
-        Object positionSide = this.parsePositionSide(buyOrSell);
+        String positionSide = this.parsePositionSide(buyOrSell);
         Boolean hedged = false;
         Boolean isFetchPositionsHistory = false;
         if (!java.util.Objects.equals(rawPositionSide, null))

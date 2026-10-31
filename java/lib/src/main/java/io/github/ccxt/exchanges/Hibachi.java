@@ -1002,19 +1002,19 @@ public class Hibachi extends HibachiApi
         // Encoding
         String nonce16 = this.intToBase16(nonce);
         String noncePadded = (((String)nonce16).length() >= 16 ? ((String)nonce16).substring(((String)nonce16).length() - 16) : String.format("%" + (16 - ((String)nonce16).length()) + "s", "").replace(' ', '0') + ((String)nonce16));
-        Object encodedNonce = this.base16ToBinary(noncePadded);
+        byte[] encodedNonce = this.base16ToBinary(noncePadded);
         String numericId = this.intToBase16(this.safeInteger(market, "numericId"));
         String numericIdPadded = (((String)numericId).length() >= 8 ? ((String)numericId).substring(((String)numericId).length() - 8) : String.format("%" + (8 - ((String)numericId).length()) + "s", "").replace(' ', '0') + ((String)numericId));
-        Object encodedMarketId = this.base16ToBinary(numericIdPadded);
+        byte[] encodedMarketId = this.base16ToBinary(numericIdPadded);
         String quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
         String quantityPadded = (((String)quantity16).length() >= 16 ? ((String)quantity16).substring(((String)quantity16).length() - 16) : String.format("%" + (16 - ((String)quantity16).length()) + "s", "").replace(' ', '0') + ((String)quantity16));
-        Object encodedQuantity = this.base16ToBinary(quantityPadded);
+        byte[] encodedQuantity = this.base16ToBinary(quantityPadded);
         String sideInternal16 = this.intToBase16(sideInternal);
         String sidePadded = (((String)sideInternal16).length() >= 8 ? ((String)sideInternal16).substring(((String)sideInternal16).length() - 8) : String.format("%" + (8 - ((String)sideInternal16).length()) + "s", "").replace(' ', '0') + ((String)sideInternal16));
-        Object encodedSide = this.base16ToBinary(sidePadded);
+        byte[] encodedSide = this.base16ToBinary(sidePadded);
         String feeRateInternal16 = this.intToBase16(this.parseToInt(feeRateInternal));
         String feeRatePadded = (((String)feeRateInternal16).length() >= 16 ? ((String)feeRateInternal16).substring(((String)feeRateInternal16).length() - 16) : String.format("%" + (16 - ((String)feeRateInternal16).length()) + "s", "").replace(' ', '0') + ((String)feeRateInternal16));
-        Object encodedFeeRate = this.base16ToBinary(feeRatePadded);
+        byte[] encodedFeeRate = this.base16ToBinary(feeRatePadded);
         Object encodedPrice = this.binaryConcat();
         if (java.util.Objects.equals(type, "limit"))
         {
@@ -1466,14 +1466,14 @@ public class Hibachi extends HibachiApi
         // Encoding
         String usdtAsset16 = this.intToBase16(USDTAssetId);
         String usdtAssetPadded = (((String)usdtAsset16).length() >= 8 ? ((String)usdtAsset16).substring(((String)usdtAsset16).length() - 8) : String.format("%" + (8 - ((String)usdtAsset16).length()) + "s", "").replace(' ', '0') + ((String)usdtAsset16));
-        Object encodedAssetId = this.base16ToBinary(usdtAssetPadded);
+        byte[] encodedAssetId = this.base16ToBinary(usdtAssetPadded);
         String quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
         String quantityPadded = (((String)quantity16).length() >= 16 ? ((String)quantity16).substring(((String)quantity16).length() - 16) : String.format("%" + (16 - ((String)quantity16).length()) + "s", "").replace(' ', '0') + ((String)quantity16));
-        Object encodedQuantity = this.base16ToBinary(quantityPadded);
+        byte[] encodedQuantity = this.base16ToBinary(quantityPadded);
         String maxFees16 = this.intToBase16(this.parseToInt(maxFeesInternal));
         String maxFeesPadded = (((String)maxFees16).length() >= 16 ? ((String)maxFees16).substring(((String)maxFees16).length() - 16) : String.format("%" + (16 - ((String)maxFees16).length()) + "s", "").replace(' ', '0') + ((String)maxFees16));
-        Object encodedMaxFees = this.base16ToBinary(maxFeesPadded);
-        Object encodedAddress = this.base16ToBinary(address);
+        byte[] encodedMaxFees = this.base16ToBinary(maxFeesPadded);
+        byte[] encodedAddress = this.base16ToBinary(address);
         Object message = this.binaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
         return message;
     }

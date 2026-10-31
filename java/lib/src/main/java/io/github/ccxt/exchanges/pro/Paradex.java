@@ -684,7 +684,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // one channel carries every market
             String channel = "positions";
             String url = this.getWsUrl();
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
@@ -692,12 +692,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             if (java.util.Objects.equals(symbolsLength, 0))
             {
-                ((List<Object>)messageHashes).add(channel);
+                messageHashes.add(channel);
             } else
             {
                 for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
                 {
-                    ((List<Object>)messageHashes).add(((channel + ":") + (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i))));
+                    messageHashes.add(((channel + ":") + (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i))));
                 }
             }
             Map<String, Object> request = this.subscribeRequest(channel);

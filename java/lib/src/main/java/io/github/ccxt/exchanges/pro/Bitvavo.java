@@ -132,7 +132,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList(methodName));
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList(methodName));
             List<String> args = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
@@ -389,12 +389,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String name = "trades";
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 marketIds.add(((String)market.get("id")));
-                ((List<Object>)messageHashes).add(((name + "@") + this.safeString(market, "id", "")));
+                messageHashes.add(((name + "@") + this.safeString(market, "id", "")));
             }
             String url = this.safeString(this.urls.get("api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>();
@@ -457,12 +457,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String name = "trades";
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
-            List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 marketIds.add(((String)market.get("id")));
-                ((List<Object>)subMessageHashes).add(((name + "@") + this.safeString(market, "id", "")));
+                subMessageHashes.add(((name + "@") + this.safeString(market, "id", "")));
             }
             HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
             mapLiteral3.put("name", name);
@@ -695,7 +695,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "candles";
-            List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> marketIdsByInterval = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
@@ -710,8 +710,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
                 ((List<Object>)intervalIds).add(market.get("id"));
                 // both the single-symbol and the multi-symbol watch hashes must be released
-                ((List<Object>)subMessageHashes).add(((((name + "@") + this.safeString(market, "id", "")) + "_") + interval));
-                ((List<Object>)subMessageHashes).add(((((("multi:" + name) + "@") + this.safeString(market, "id", "")) + "_") + interval));
+                subMessageHashes.add(((((name + "@") + this.safeString(market, "id", "")) + "_") + interval));
+                subMessageHashes.add(((((("multi:" + name) + "@") + this.safeString(market, "id", "")) + "_") + interval));
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             List<String> intervals = new ArrayList<String>(marketIdsByInterval.keySet());
@@ -798,12 +798,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String name = "book";
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 marketIds.add(((String)market.get("id")));
-                ((List<Object>)messageHashes).add(((name + "@") + this.safeString(market, "id", "")));
+                messageHashes.add(((name + "@") + this.safeString(market, "id", "")));
             }
             String url = this.safeString(this.urls.get("api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>();
@@ -866,12 +866,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String name = "book";
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
-            List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 marketIds.add(((String)market.get("id")));
-                ((List<Object>)subMessageHashes).add(((name + "@") + this.safeString(market, "id", "")));
+                subMessageHashes.add(((name + "@") + this.safeString(market, "id", "")));
             }
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("name", name);

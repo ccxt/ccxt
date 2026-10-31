@@ -1383,12 +1383,12 @@ public class Hyperliquid extends HyperliquidApi
             ((List<Object>)candidates).add(("#" + (outcomeInput == null ? null : ((String)outcomeInput).substring(Math.min(1, ((String)outcomeInput).length())))));
         }
         String digitChars = "0123456789";
-        Object inputChars = this.stringToCharsArray(outcomeInput);
+        List<String> inputChars = this.stringToCharsArray(outcomeInput);
         Integer inputCharsLength = ((List<?>)inputChars).size();
         Boolean isNumericInput = (inputCharsLength != null && inputCharsLength > 0);
         for (var di = 0; di < ((List<?>)inputChars).size(); di++)
         {
-            if (Helpers.getIndexOf(digitChars, (inputChars == null || di < 0 || di >= ((List<?>)inputChars).size() ? null : ((List<?>)inputChars).get(di))) < 0)
+            if (Helpers.getIndexOf(digitChars, (inputChars == null || di < 0 || di >= inputChars.size() ? null : inputChars.get(di))) < 0)
             {
                 isNumericInput = false;
                 break;

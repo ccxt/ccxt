@@ -1320,7 +1320,7 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
                     String unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"), (Map<String, Object>) null);
-                    Object code = ((Boolean.TRUE.equals(isSpot))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
+                    String code = ((Boolean.TRUE.equals(isSpot))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                     Map<String, Object> account = this.account();
                     String total = this.safeString(balance, "total");
                     String used = this.safeString(balance, "hold");
@@ -1328,7 +1328,7 @@ public class Hyperliquid extends HyperliquidApi
                     account.put("used", used);
                     if (!java.util.Objects.equals(code, null))
                     {
-                        spotBalances.put((String)code, account);
+                        spotBalances.put(code, account);
                     }
                 }
                 return this.safeBalance(spotBalances);
@@ -2698,8 +2698,8 @@ public class Hyperliquid extends HyperliquidApi
         {
             defaultTimeInForce = "alo";
         }
-        String timeInForce = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
-        timeInForce = this.capitalize(timeInForce);
+        String timeInForceLower = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
+        String timeInForce = this.capitalize(timeInForceLower);
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2743,9 +2743,9 @@ public class Hyperliquid extends HyperliquidApi
             orderType.put("trigger", mapLiteral5);
         } else
         {
-            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("tif", timeInForce);
-            orderType.put("limit", mapLiteral6);
+            orderType.put("limit", new HashMap<String, Object>() {{
+    put( "tif", timeInForce );
+}});
         }
         Map<String, Object> orderObj = new HashMap<String, Object>();
         orderObj.put("a", this.parseToInt(market.get("baseId")));
@@ -2893,10 +2893,10 @@ public class Hyperliquid extends HyperliquidApi
             {
                 feeInt = 0L;
             }
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("b", wallet);
-            mapLiteral7.put("f", feeInt);
-            orderAction.put("builder", mapLiteral7);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("b", wallet);
+            mapLiteral6.put("f", feeInt);
+            orderAction.put("builder", mapLiteral6);
         }
         Map<String, Object> signature = this.signL1Action(orderAction, nonce, vaultAddress, (Long) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3116,10 +3116,10 @@ public class Hyperliquid extends HyperliquidApi
             cancelAction.put("type", "cancelByCloid");
             for (var i = 0; i < (switch ((Object)(clientOrderId)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
             {
-                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-                mapLiteral8.put("asset", baseId);
-                mapLiteral8.put("cloid", this.safeString(clientOrderId, i));
-                ((List<Object>)cancelReq).add(mapLiteral8);
+                HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+                mapLiteral7.put("asset", baseId);
+                mapLiteral7.put("cloid", this.safeString(clientOrderId, i));
+                ((List<Object>)cancelReq).add(mapLiteral7);
             }
         } else
         {
@@ -3350,8 +3350,8 @@ public class Hyperliquid extends HyperliquidApi
             {
                 defaultTimeInForce = "alo";
             }
-            String timeInForce = this.safeStringLower(orderParams, "timeInForce", defaultTimeInForce);
-            timeInForce = this.capitalize(timeInForce);
+            String timeInForceLower = this.safeStringLower(orderParams, "timeInForce", defaultTimeInForce);
+            String timeInForce = this.capitalize(timeInForceLower);
             String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             String stopLossPrice = this.safeString(orderParams, "stopLossPrice", triggerPrice);
@@ -3386,16 +3386,16 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     tpSlType = "tp";
                 }
-                HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-                mapLiteral9.put("isMarket", isMarket);
-                mapLiteral9.put("triggerPx", triggerPrice);
-                mapLiteral9.put("tpsl", tpSlType);
-                orderType.put("trigger", mapLiteral9);
+                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                mapLiteral8.put("isMarket", isMarket);
+                mapLiteral8.put("triggerPx", triggerPrice);
+                mapLiteral8.put("tpsl", tpSlType);
+                orderType.put("trigger", mapLiteral8);
             } else
             {
-                HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-                mapLiteral10.put("tif", timeInForce);
-                orderType.put("limit", mapLiteral10);
+                orderType.put("limit", new HashMap<String, Object>() {{
+    put( "tif", timeInForce );
+}});
             }
             if (java.util.Objects.equals(triggerPrice, null))
             {
@@ -4177,33 +4177,33 @@ public class Hyperliquid extends HyperliquidApi
                 takeProfitPrice = triggerPx;
             }
         }
-        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-        mapLiteral11.put("info", orderOmitted);
-        mapLiteral11.put("id", this.safeString(entry, "oid"));
-        mapLiteral11.put("clientOrderId", this.safeString(entry, "cloid"));
-        mapLiteral11.put("timestamp", timestamp);
-        mapLiteral11.put("datetime", this.iso8601(timestamp));
-        mapLiteral11.put("lastTradeTimestamp", null);
-        mapLiteral11.put("lastUpdateTimestamp", this.safeInteger(orderOmitted, "statusTimestamp"));
-        mapLiteral11.put("symbol", symbol);
-        mapLiteral11.put("type", this.parseOrderType(this.safeStringLower(entry, "orderType")));
-        mapLiteral11.put("timeInForce", tif);
-        mapLiteral11.put("postOnly", postOnly);
-        mapLiteral11.put("reduceOnly", this.safeBool(entry, "reduceOnly", (Object) null));
-        mapLiteral11.put("side", side);
-        mapLiteral11.put("price", this.safeString(entry, "limitPx"));
-        mapLiteral11.put("triggerPrice", triggerPx);
-        mapLiteral11.put("stopLossPrice", stopLossPrice);
-        mapLiteral11.put("takeProfitPrice", takeProfitPrice);
-        mapLiteral11.put("amount", totalAmount);
-        mapLiteral11.put("cost", null);
-        mapLiteral11.put("average", this.safeString(entry, "avgPx"));
-        mapLiteral11.put("filled", this.safeString(filled, "totalSz", Precise.stringSub(totalAmount, remaining)));
-        mapLiteral11.put("remaining", remaining);
-        mapLiteral11.put("status", this.parseOrderStatus(status));
-        mapLiteral11.put("fee", null);
-        mapLiteral11.put("trades", null);
-        return this.safeOrder(mapLiteral11, marketResolved);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", orderOmitted);
+        mapLiteral9.put("id", this.safeString(entry, "oid"));
+        mapLiteral9.put("clientOrderId", this.safeString(entry, "cloid"));
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("lastTradeTimestamp", null);
+        mapLiteral9.put("lastUpdateTimestamp", this.safeInteger(orderOmitted, "statusTimestamp"));
+        mapLiteral9.put("symbol", symbol);
+        mapLiteral9.put("type", this.parseOrderType(this.safeStringLower(entry, "orderType")));
+        mapLiteral9.put("timeInForce", tif);
+        mapLiteral9.put("postOnly", postOnly);
+        mapLiteral9.put("reduceOnly", this.safeBool(entry, "reduceOnly", (Object) null));
+        mapLiteral9.put("side", side);
+        mapLiteral9.put("price", this.safeString(entry, "limitPx"));
+        mapLiteral9.put("triggerPrice", triggerPx);
+        mapLiteral9.put("stopLossPrice", stopLossPrice);
+        mapLiteral9.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral9.put("amount", totalAmount);
+        mapLiteral9.put("cost", null);
+        mapLiteral9.put("average", this.safeString(entry, "avgPx"));
+        mapLiteral9.put("filled", this.safeString(filled, "totalSz", Precise.stringSub(totalAmount, remaining)));
+        mapLiteral9.put("remaining", remaining);
+        mapLiteral9.put("status", this.parseOrderStatus(status));
+        mapLiteral9.put("fee", null);
+        mapLiteral9.put("trades", null);
+        return this.safeOrder(mapLiteral9, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -4364,25 +4364,25 @@ public class Hyperliquid extends HyperliquidApi
         {
             fee = Precise.stringAdd(fee, builderFee);
         }
-        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-        mapLiteral12.put("info", trade);
-        mapLiteral12.put("timestamp", timestamp);
-        mapLiteral12.put("datetime", this.iso8601(timestamp));
-        mapLiteral12.put("symbol", symbol);
-        mapLiteral12.put("id", id);
-        mapLiteral12.put("order", this.safeString(trade, "oid"));
-        mapLiteral12.put("type", null);
-        mapLiteral12.put("side", side);
-        mapLiteral12.put("takerOrMaker", takerOrMaker);
-        mapLiteral12.put("price", price);
-        mapLiteral12.put("amount", amount);
-        mapLiteral12.put("cost", null);
-        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
-        mapLiteral13.put("cost", fee);
-        mapLiteral13.put("currency", this.safeString(trade, "feeToken"));
-        mapLiteral13.put("rate", null);
-        mapLiteral12.put("fee", mapLiteral13);
-        return this.safeTrade(mapLiteral12, marketResolved);
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("info", trade);
+        mapLiteral10.put("timestamp", timestamp);
+        mapLiteral10.put("datetime", this.iso8601(timestamp));
+        mapLiteral10.put("symbol", symbol);
+        mapLiteral10.put("id", id);
+        mapLiteral10.put("order", this.safeString(trade, "oid"));
+        mapLiteral10.put("type", null);
+        mapLiteral10.put("side", side);
+        mapLiteral10.put("takerOrMaker", takerOrMaker);
+        mapLiteral10.put("price", price);
+        mapLiteral10.put("amount", amount);
+        mapLiteral10.put("cost", null);
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("cost", fee);
+        mapLiteral11.put("currency", this.safeString(trade, "feeToken"));
+        mapLiteral11.put("rate", null);
+        mapLiteral10.put("fee", mapLiteral11);
+        return this.safeTrade(mapLiteral10, marketResolved);
     }
 
     /**
@@ -4500,17 +4500,17 @@ public class Hyperliquid extends HyperliquidApi
         }
         String amount = this.safeString(liquidation, "sz");
         String price = this.safeString(liquidation, "px");
-        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
-        mapLiteral14.put("info", liquidation);
-        mapLiteral14.put("symbol", symbol);
-        mapLiteral14.put("contracts", amount);
-        mapLiteral14.put("price", price);
-        mapLiteral14.put("baseValue", amount);
-        mapLiteral14.put("quoteValue", Precise.stringMul(amount, price));
-        mapLiteral14.put("side", side);
-        mapLiteral14.put("timestamp", timestamp);
-        mapLiteral14.put("datetime", this.iso8601(timestamp));
-        return this.safeLiquidation(mapLiteral14, marketResolved);
+        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+        mapLiteral12.put("info", liquidation);
+        mapLiteral12.put("symbol", symbol);
+        mapLiteral12.put("contracts", amount);
+        mapLiteral12.put("price", price);
+        mapLiteral12.put("baseValue", amount);
+        mapLiteral12.put("quoteValue", Precise.stringMul(amount, price));
+        mapLiteral12.put("side", side);
+        mapLiteral12.put("timestamp", timestamp);
+        mapLiteral12.put("datetime", this.iso8601(timestamp));
+        return this.safeLiquidation(mapLiteral12, marketResolved);
     }
 
     /**
@@ -4714,33 +4714,33 @@ public class Hyperliquid extends HyperliquidApi
         {
             marginString = initialMargin;
         }
-        HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
-        mapLiteral15.put("info", position);
-        mapLiteral15.put("id", null);
-        mapLiteral15.put("symbol", symbol);
-        mapLiteral15.put("timestamp", null);
-        mapLiteral15.put("datetime", null);
-        mapLiteral15.put("isolated", isIsolated);
-        mapLiteral15.put("hedged", null);
-        mapLiteral15.put("side", side);
-        mapLiteral15.put("contracts", this.parseNumber(size));
-        mapLiteral15.put("contractSize", null);
-        mapLiteral15.put("entryPrice", this.safeNumber(entry, "entryPx", (Object) null));
-        mapLiteral15.put("markPrice", this.parseNumber(markPriceString));
-        mapLiteral15.put("notional", this.parseNumber(positionValueString));
-        mapLiteral15.put("leverage", this.safeNumber(leverage, "value", (Object) null));
-        mapLiteral15.put("positionMargin", this.parseNumber(marginString));
-        mapLiteral15.put("collateral", this.parseNumber(marginUsed));
-        mapLiteral15.put("initialMargin", this.parseNumber(initialMargin));
-        mapLiteral15.put("maintenanceMargin", null);
-        mapLiteral15.put("initialMarginPercentage", null);
-        mapLiteral15.put("maintenanceMarginPercentage", null);
-        mapLiteral15.put("unrealizedPnl", this.parseNumber(rawUnrealizedPnl));
-        mapLiteral15.put("liquidationPrice", this.safeNumber(entry, "liquidationPx", (Object) null));
-        mapLiteral15.put("marginMode", marginMode);
-        mapLiteral15.put("marginRatio", null);
-        mapLiteral15.put("percentage", this.parseNumber(percentage));
-        return this.safePosition(mapLiteral15);
+        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+        mapLiteral13.put("info", position);
+        mapLiteral13.put("id", null);
+        mapLiteral13.put("symbol", symbol);
+        mapLiteral13.put("timestamp", null);
+        mapLiteral13.put("datetime", null);
+        mapLiteral13.put("isolated", isIsolated);
+        mapLiteral13.put("hedged", null);
+        mapLiteral13.put("side", side);
+        mapLiteral13.put("contracts", this.parseNumber(size));
+        mapLiteral13.put("contractSize", null);
+        mapLiteral13.put("entryPrice", this.safeNumber(entry, "entryPx", (Object) null));
+        mapLiteral13.put("markPrice", this.parseNumber(markPriceString));
+        mapLiteral13.put("notional", this.parseNumber(positionValueString));
+        mapLiteral13.put("leverage", this.safeNumber(leverage, "value", (Object) null));
+        mapLiteral13.put("positionMargin", this.parseNumber(marginString));
+        mapLiteral13.put("collateral", this.parseNumber(marginUsed));
+        mapLiteral13.put("initialMargin", this.parseNumber(initialMargin));
+        mapLiteral13.put("maintenanceMargin", null);
+        mapLiteral13.put("initialMarginPercentage", null);
+        mapLiteral13.put("maintenanceMarginPercentage", null);
+        mapLiteral13.put("unrealizedPnl", this.parseNumber(rawUnrealizedPnl));
+        mapLiteral13.put("liquidationPrice", this.safeNumber(entry, "liquidationPx", (Object) null));
+        mapLiteral13.put("marginMode", marginMode);
+        mapLiteral13.put("marginRatio", null);
+        mapLiteral13.put("percentage", this.parseNumber(percentage));
+        return this.safePosition(mapLiteral13);
     }
 
     /**
@@ -5559,23 +5559,23 @@ public class Hyperliquid extends HyperliquidApi
         }
         String type = this.safeString(delta, "type");
         String amount = this.safeString(delta, "usdc");
-        HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
-        mapLiteral16.put("info", item);
-        mapLiteral16.put("id", this.safeString(item, "hash"));
-        mapLiteral16.put("direction", null);
-        mapLiteral16.put("account", null);
-        mapLiteral16.put("referenceAccount", this.safeString(delta, "user"));
-        mapLiteral16.put("referenceId", this.safeString(item, "hash"));
-        mapLiteral16.put("type", this.parseLedgerEntryType(type));
-        mapLiteral16.put("currency", null);
-        mapLiteral16.put("amount", this.parseNumber(amount));
-        mapLiteral16.put("timestamp", timestamp);
-        mapLiteral16.put("datetime", this.iso8601(timestamp));
-        mapLiteral16.put("before", null);
-        mapLiteral16.put("after", null);
-        mapLiteral16.put("status", null);
-        mapLiteral16.put("fee", fee);
-        return this.safeLedgerEntry(mapLiteral16, currency);
+        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+        mapLiteral14.put("info", item);
+        mapLiteral14.put("id", this.safeString(item, "hash"));
+        mapLiteral14.put("direction", null);
+        mapLiteral14.put("account", null);
+        mapLiteral14.put("referenceAccount", this.safeString(delta, "user"));
+        mapLiteral14.put("referenceId", this.safeString(item, "hash"));
+        mapLiteral14.put("type", this.parseLedgerEntryType(type));
+        mapLiteral14.put("currency", null);
+        mapLiteral14.put("amount", this.parseNumber(amount));
+        mapLiteral14.put("timestamp", timestamp);
+        mapLiteral14.put("datetime", this.iso8601(timestamp));
+        mapLiteral14.put("before", null);
+        mapLiteral14.put("after", null);
+        mapLiteral14.put("status", null);
+        mapLiteral14.put("fee", fee);
+        return this.safeLedgerEntry(mapLiteral14, currency);
     }
 
     public String parseLedgerEntryType(String type)
@@ -5848,14 +5848,14 @@ public class Hyperliquid extends HyperliquidApi
         {
             marketId = this.coinToMarketId(coin);
         }
-        HashMap<String, Object> mapLiteral17 = new HashMap<String, Object>();
-        mapLiteral17.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null));
-        mapLiteral17.put("openInterestAmount", this.safeNumber(interestValue, "openInterest", (Object) null));
-        mapLiteral17.put("openInterestValue", null);
-        mapLiteral17.put("timestamp", null);
-        mapLiteral17.put("datetime", null);
-        mapLiteral17.put("info", interestValue);
-        return this.safeOpenInterest(mapLiteral17, market);
+        HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
+        mapLiteral15.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null));
+        mapLiteral15.put("openInterestAmount", this.safeNumber(interestValue, "openInterest", (Object) null));
+        mapLiteral15.put("openInterestValue", null);
+        mapLiteral15.put("timestamp", null);
+        mapLiteral15.put("datetime", null);
+        mapLiteral15.put("info", interestValue);
+        return this.safeOpenInterest(mapLiteral15, market);
     }
 
     /**

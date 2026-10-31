@@ -1088,7 +1088,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             List<Object> rawSubscriptions = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Boolean isOHLCV = (java.util.Objects.equals(channelName, "chart.trades"));
             Object symbols = ((Boolean.TRUE.equals(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
             this.marketSymbols(symbols, (Object) null, false, false, false);
@@ -1117,7 +1117,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 }
                 String message = ((((channelName + ".") + this.safeString(market, "id", "")) + ".") + currentDescriptor);
                 ((List<Object>)rawSubscriptions).add(message);
-                ((List<Object>)messageHashes).add(((((channelName + "|") + this.safeString(market, "symbol", "")) + "|") + currentDescriptor));
+                messageHashes.add(((((channelName + "|") + this.safeString(market, "symbol", "")) + "|") + currentDescriptor));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );

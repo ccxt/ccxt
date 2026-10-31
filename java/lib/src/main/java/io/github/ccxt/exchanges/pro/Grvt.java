@@ -823,16 +823,16 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> rawHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                ((List<Object>)rawHashes).add(((subAccountId + "-") + market.get("id")));
+                rawHashes.add(((subAccountId + "-") + market.get("id")));
                 messageHashes.add(("myTrades::" + market.get("symbol")));
             } else
             {
                 messageHashes.add("myTrades");
-                ((List<Object>)rawHashes).add(subAccountId);
+                rawHashes.add(subAccountId);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.fill" );
@@ -926,7 +926,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             }
             String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> rawHashes = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
@@ -934,13 +934,13 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
-                    ((List<Object>)rawHashes).add(((subAccountId + "-") + market.get("id")));
+                    rawHashes.add(((subAccountId + "-") + market.get("id")));
                     messageHashes.add(("positions::" + market.get("symbol")));
                 }
             } else
             {
                 messageHashes.add("positions");
-                ((List<Object>)rawHashes).add(subAccountId);
+                rawHashes.add(subAccountId);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.position" );
@@ -1028,16 +1028,16 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> rawHashes = new ArrayList<String>(Arrays.asList());
             if (java.util.Objects.equals(symbol, null))
             {
                 messageHashes.add("orders");
-                ((List<Object>)rawHashes).add(subAccountId);
+                rawHashes.add(subAccountId);
             } else
             {
                 Map<String, Object> market = this.market(symbol);
                 messageHashes.add(("order::" + market.get("symbol")));
-                ((List<Object>)rawHashes).add(((subAccountId + "-") + market.get("id")));
+                rawHashes.add(((subAccountId + "-") + market.get("id")));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", "v1.order" );

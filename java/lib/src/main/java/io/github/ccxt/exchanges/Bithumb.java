@@ -1703,7 +1703,7 @@ public class Bithumb extends BithumbApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String priceString = this.safeString2(trade, "price", "trade_price");
         String tradeVolume = this.safeString(trade, "trade_volume");
-        Object amountString = (((java.util.Objects.equals(tradeVolume, null)))) ? this.fixCommaNumber(this.safeString2(trade, "units_traded", "units")) : tradeVolume;
+        String amountString = (((java.util.Objects.equals(tradeVolume, null)))) ? this.fixCommaNumber(this.safeString2(trade, "units_traded", "units")) : tradeVolume;
         String costString = this.safeString(trade, "total");
         Map<String, Object> fee = null;
         String feeCostString = this.safeString(trade, "fee");
@@ -2524,7 +2524,7 @@ public class Bithumb extends BithumbApi
             }
         }
         String amount = this.fixCommaNumber(this.safeStringN(order, new ArrayList<Object>(Arrays.asList("order_qty", "units", "volume"))));
-        Object remaining = this.fixCommaNumber(this.safeString2(order, "units_remaining", "remaining_volume"));
+        String remaining = this.fixCommaNumber(this.safeString2(order, "units_remaining", "remaining_volume"));
         if (java.util.Objects.equals(remaining, null))
         {
             if (java.util.Objects.equals(status, "closed"))

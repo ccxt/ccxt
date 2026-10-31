@@ -2175,8 +2175,8 @@ public class Bitfinex extends BitfinexApi
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         Map<String, Object> market = this.market(symbol);
-        Object amountString = this.amountToPrecision(symbol, amount);
-        amountString = (((java.util.Objects.equals(side, "buy")))) ? amountString : ((String)Precise.stringNeg(amountString));
+        String amountString = this.amountToPrecision(symbol, amount);
+        amountString = (((java.util.Objects.equals(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
         request.put("amount", amountString);
@@ -4770,8 +4770,8 @@ public class Bitfinex extends BitfinexApi
             }};
             if (!java.util.Objects.equals(amount, null))
             {
-                Object amountString = this.amountToPrecision(symbol, amount);
-                amountString = (((java.util.Objects.equals(side, "buy")))) ? amountString : ((String)Precise.stringNeg(amountString));
+                String amountString = this.amountToPrecision(symbol, amount);
+                amountString = (((java.util.Objects.equals(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
                 request.put("amount", amountString);
             }
             String triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");

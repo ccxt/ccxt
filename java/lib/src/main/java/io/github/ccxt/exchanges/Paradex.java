@@ -1975,8 +1975,8 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }})) );
             }};
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
-            Object signature = this.starknetSign(msg, account.get("privateKey"));
+            String msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
+            String signature = this.starknetSign(msg, account.get("privateKey"));
             parameters.put("signature", signature);
             Helpers.addElementToObject(parameters, "account", this.safeString(account, "address"));
             Helpers.addElementToObject(parameters, "public_key", this.safeString(account, "publicKey"));
@@ -2033,8 +2033,8 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }})) );
             }};
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
-            Object signature = this.starknetSign(msg, account.get("privateKey"));
+            String msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
+            String signature = this.starknetSign(msg, account.get("privateKey"));
             parameters.put("signature", signature);
             Helpers.addElementToObject(parameters, "account", this.safeString(account, "address"));
             parameters.put("timestamp", req.get("timestamp"));
@@ -2356,8 +2356,8 @@ public class Paradex extends ParadexApi
                 }};
             }
             Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, this.safeString(account, "address"));
-            Object signature = this.starknetSign(msg, account.get("privateKey"));
+            String msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, this.safeString(account, "address"));
+            String signature = this.starknetSign(msg, account.get("privateKey"));
             Map<String, Object> signedRequest = this.extend(request, new HashMap<String, Object>() {{
                 put( "signature", signature );
                 put( "signature_timestamp", orderReq.get("timestamp") );

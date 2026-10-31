@@ -349,7 +349,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             }
             String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             String payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
-            Object secretBytes = this.base64ToBinary(this.secret);
+            byte[] secretBytes = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(secretBytes, 0, 32);
             Object signature = eddsa(this.encode(payload), seed, ed25519());
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1572,10 +1572,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 }
                 messageHash = ("orders:" + this.safeString(market, "symbol", ""));
             }
-            List<Object> topics = new ArrayList<Object>(Arrays.asList(topic));
+            List<String> topics = new ArrayList<String>(Arrays.asList(topic));
             if (java.util.Objects.equals(market, null))
             {
-                ((List<Object>)topics).add("account.rfqUpdate");
+                topics.add("account.rfqUpdate");
             }
             List<Object> orders = (List<Object>) (this.watchPrivate(topics, new ArrayList<Object>(Arrays.asList(messageHash)), this.omit(query, "stock"), false)).join();
             Long limitResolved = limit;
@@ -1630,10 +1630,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 }
                 messageHash = ("unsubscribe:orders:" + this.safeString(market, "symbol", ""));
             }
-            List<Object> topics = new ArrayList<Object>(Arrays.asList(topic));
+            List<String> topics = new ArrayList<String>(Arrays.asList(topic));
             if (java.util.Objects.equals(market, null))
             {
-                ((List<Object>)topics).add("account.rfqUpdate");
+                topics.add("account.rfqUpdate");
             }
             return (this.watchPrivate(topics, new ArrayList<Object>(Arrays.asList(messageHash)), this.omit(query, "stock"), true)).join();
         });

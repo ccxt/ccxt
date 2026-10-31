@@ -2433,18 +2433,18 @@ public class Myriad extends MyriadApi
     public String hexToDecimalString(String hexValue)
     {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
-        Object stripped = this.remove0xPrefix(hexValue);
+        String stripped = this.remove0xPrefix(hexValue);
         if (java.util.Objects.equals(stripped, ""))
         {
             return null;
         }
-        Object chars = this.stringToCharsArray(((String)stripped).toLowerCase());
+        List<String> chars = this.stringToCharsArray(stripped.toLowerCase());
         Integer n = ((List<?>)chars).size();
         String digits = "0123456789abcdef";
         String result = "0";
         for (var i = 0; (n != null && i < n); i++)
         {
-            Integer v = Helpers.getIndexOf(digits, (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i)));
+            Integer v = Helpers.getIndexOf(digits, (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i)));
             if ((v != null && v > -1))
             {
                 String mul = Precise.stringMul(result, "16");

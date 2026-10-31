@@ -1307,7 +1307,7 @@ public class Btcturk extends BtcturkApi
         {
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.nonce());
-            Object secret = this.base64ToBinary(this.secret);
+            byte[] secret = this.base64ToBinary(this.secret);
             String auth = (this.apiKey + nonce);
             privateHeaders = new HashMap<String, Object>() {{
                 put( "X-PCK", Btcturk.this.apiKey );

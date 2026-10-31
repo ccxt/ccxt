@@ -383,10 +383,10 @@ public class TestMain extends BaseTest
     {
         Object finalSkips = new HashMap<String, Object>() {{}};
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
-        List<Object> methodNames = new ArrayList<Object>(Arrays.asList(methodName, ((methodName + ".") + this.ext)));
+        List<String> methodNames = new ArrayList<String>(Arrays.asList(methodName, ((methodName + ".") + this.ext)));
         for (var i = 0; i < ((List<?>)methodNames).size(); i++)
         {
-            Object mName = (methodNames == null || i < 0 || i >= methodNames.size() ? null : methodNames.get(i));
+            String mName = (methodNames == null || i < 0 || i >= methodNames.size() ? null : methodNames.get(i));
             if (Helpers.inOp(this.skippedMethods, mName))
             {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"

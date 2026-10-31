@@ -1349,7 +1349,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 }
             }
             String payload = String.join("", (List<String>)payloadArray);
-            Object localChecksum = this.crc32(payload, false);
+            Long localChecksum = this.crc32(payload, false);
             if (!java.util.Objects.equals(localChecksum, c))
             {
                 var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));

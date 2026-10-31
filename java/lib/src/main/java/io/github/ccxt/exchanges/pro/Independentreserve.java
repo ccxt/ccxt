@@ -296,7 +296,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
                     payload = ((payload + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 0, (Object) null))) + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 1, (Object) null)));
                 }
             }
-            Object calculatedChecksum = this.crc32(payload, false);
+            Long calculatedChecksum = this.crc32(payload, false);
             Long responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (!java.util.Objects.equals(calculatedChecksum, responseChecksum))
             {

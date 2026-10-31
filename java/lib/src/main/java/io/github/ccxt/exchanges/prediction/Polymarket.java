@@ -789,13 +789,13 @@ public class Polymarket extends PolymarketApi
     {
         String lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
-        Object chars = this.stringToCharsArray(lower);
+        List<String> chars = this.stringToCharsArray(lower);
         String slug = "";
         Boolean pendingSep = false;
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
-            Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
-            if (((String)allowed).indexOf(((String)ch)) >= 0)
+            String ch = (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i));
+            if (((String)allowed).indexOf(ch) >= 0)
             {
                 if (Boolean.TRUE.equals(pendingSep) && (!java.util.Objects.equals(slug, "")))
                 {
@@ -2719,8 +2719,8 @@ public class Polymarket extends PolymarketApi
         String builderBytes32 = bytes32Zero;
         if (!java.util.Objects.equals(builderRaw, null))
         {
-            Object builderHex = this.remove0xPrefix(builderRaw);
-            if (((String)builderHex).length() <= 40)
+            String builderHex = this.remove0xPrefix(builderRaw);
+            if (builderHex.length() <= 40)
             {
                 Boolean builderFeeEnabled = (Boolean) this.safeBool(this.options, "builderFee", true);
                 Object feeRate = 0;
@@ -3594,7 +3594,7 @@ public class Polymarket extends PolymarketApi
                 // in a chain, leaving the inner call as an (invalid) method call
                 String plusSecret = Helpers.replaceAll(secret, (String)"-", (String)"+");
                 String normalizedSecret = Helpers.replaceAll(plusSecret, (String)"_", (String)"/");
-                Object secretBytes = this.base64ToBinary(normalizedSecret);
+                byte[] secretBytes = this.base64ToBinary(normalizedSecret);
                 Object signature = this.hmac(this.encode(auth), secretBytes, sha256(), "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = (signature == null ? null : ((String)signature).replace("+", "-"));
@@ -3629,17 +3629,17 @@ public class Polymarket extends PolymarketApi
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
         String cleaned = ((String)this.remove0xPrefix(address)).toLowerCase();
         Object hashHex = this.hash(this.encode(cleaned), keccak(), "hex");
-        Object addrChars = this.stringToCharsArray(cleaned);
-        Object hashChars = this.stringToCharsArray(hashHex);
+        List<String> addrChars = this.stringToCharsArray(cleaned);
+        List<String> hashChars = this.stringToCharsArray(hashHex);
         String upperNibbles = "89abcdef";
         String result = "";
         for (var i = 0; i < ((List<?>)addrChars).size(); i++)
         {
-            Object ch = (addrChars == null || i < 0 || i >= ((List<?>)addrChars).size() ? null : ((List<?>)addrChars).get(i));
-            Object hashCh = (hashChars == null || i < 0 || i >= ((List<?>)hashChars).size() ? null : ((List<?>)hashChars).get(i));
-            if (((String)upperNibbles).indexOf(((String)hashCh)) >= 0)
+            String ch = (addrChars == null || i < 0 || i >= addrChars.size() ? null : addrChars.get(i));
+            String hashCh = (hashChars == null || i < 0 || i >= hashChars.size() ? null : hashChars.get(i));
+            if (((String)upperNibbles).indexOf(hashCh) >= 0)
             {
-                result = (result + ((String)ch).toUpperCase());
+                result = (result + ch.toUpperCase());
             } else
             {
                 result = (result + ch);

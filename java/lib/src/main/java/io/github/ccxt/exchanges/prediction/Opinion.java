@@ -1300,7 +1300,7 @@ public class Opinion extends OpinionApi
                 put( "signatureType", signatureType );
             }};
             String signature = this.signOpinionOrder(order, this.safeString(quoteToken, "ctfExchangeAddress", ""));
-            Object signatureNo0x = this.remove0xPrefix(signature);
+            String signatureNo0x = this.remove0xPrefix(signature);
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("salt", salt);
             mapLiteral6.put("maker", maker);

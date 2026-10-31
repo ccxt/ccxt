@@ -3489,12 +3489,12 @@ public class Nado extends NadoApi
         {
             throw new BadRequest((this.id + " createOrder() requires a 20-byte walletAddress")) ;
         }
-        String encoded = (String) this.remove0xPrefix(this.stringToBase16(subaccountName));
-        if (((String)encoded).length() > 24)
+        String encoded = this.remove0xPrefix(this.stringToBase16(subaccountName));
+        if (encoded.length() > 24)
         {
             throw new BadRequest((this.id + " createOrder() subaccount must fit in 12 bytes")) ;
         }
-        return (("0x" + address) + this.padHex((String) (encoded), 24, false));
+        return (("0x" + address) + this.padHex(encoded, 24, false));
     }
 
     public CompletableFuture<Map<String, Object>> queryContracts(Map<String, Object> parameters)
@@ -3652,7 +3652,7 @@ public class Nado extends NadoApi
         return ((("0x" + this.padHex(r, 64, true)) + this.padHex(s, 64, true)) + v);
     }
 
-    public Object removeMarketSuffix(String marketId)
+    public String removeMarketSuffix(String marketId)
     {
         if (java.util.Objects.equals(marketId, null))
         {

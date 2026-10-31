@@ -657,12 +657,12 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             subscribe.put("channel", new ArrayList<Object>(Arrays.asList(name)));
             subscribe.put("symbols", marketIds);
             Map<String, Object> request = this.extend(subscribe, parameters);
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    ((List<Object>)messageHashes).add(((name + "::") + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
+                    messageHashes.add(((name + "::") + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
                 }
             }
             List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
@@ -780,8 +780,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String name = "orders";
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? null : this.symbol(symbol);
-            List<Object> symbols = (((java.util.Objects.equals(symbolResolved, null)))) ? null : new ArrayList<Object>(Arrays.asList(symbolResolved));
-            List<Object> orders = (List<Object>) (this.subscribe(name, name, true, ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
+            List<String> symbols = (((java.util.Objects.equals(symbolResolved, null)))) ? null : new ArrayList<String>(Arrays.asList(symbolResolved));
+            List<Object> orders = (List<Object>) (this.subscribe(name, name, true, symbols, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -816,8 +816,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String messageHash = "myTrades";
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? null : this.symbol(symbol);
-            List<Object> symbols = (((java.util.Objects.equals(symbolResolved, null)))) ? null : new ArrayList<Object>(Arrays.asList(symbolResolved));
-            List<Object> trades = (List<Object>) (this.subscribe(name, messageHash, true, ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
+            List<String> symbols = (((java.util.Objects.equals(symbolResolved, null)))) ? null : new ArrayList<String>(Arrays.asList(symbolResolved));
+            List<Object> trades = (List<Object>) (this.subscribe(name, messageHash, true, symbols, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
