@@ -96,10 +96,8 @@ public class BaseExchange {
 
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
-    public int calculateWsBackoffDelay(Object url) {
-        String urlKey = url.toString();
-        Object wsOptions = this.safeValue(this.options, "ws");
-        Object backoff = this.safeValue(wsOptions, "backoff");
+    public int calculateWsBackoffDelay(String urlKey) {
+        Object backoff = this.safeValue(this.safeValue(this.options, "ws"), "backoff");
         long base = this.safeInteger(backoff, "base", 1000L);
         long factor = this.safeInteger(backoff, "factor", 2L);
         long maxDelay = this.safeInteger(backoff, "max", 60000L);
@@ -2179,18 +2177,19 @@ public class BaseExchange {
 
     @SuppressWarnings("unchecked")
     public Client client(Object url2) {
-        String url = url2.toString();
+        return this.client(url2.toString());
+    }
+
+    @SuppressWarnings("unchecked")
+    public Client client(String url) {
         // one owner task: the registry lives on the state-owner thread, so two threads asking for
         // the same url get the one client without a concurrent map
         return this.clientsMap().computeIfAbsent(url, u -> {
-                    Object ws = this.safeValue(this.options, "ws", new java.util.HashMap<String, Object>());
-                    Object wsOptions = this.safeValue(ws, "options", new java.util.HashMap<String, Object>());
+                    Object wsOptions = this.safeValue(this.safeValue(this.options, "ws", new java.util.HashMap<String, Object>()), "options", new java.util.HashMap<String, Object>());
                     long keepAlive = 30000;
-                    Object keepAliveObj = this.safeValue(wsOptions, "keepAlive");
-                    if (keepAliveObj instanceof Number n) keepAlive = n.longValue();
+                    if (this.safeValue(wsOptions, "keepAlive") instanceof Number n) keepAlive = n.longValue();
                     boolean decompressBin = true;
-                    Object decompressObj = this.safeValue(this.options, "decompressBinary");
-                    if (decompressObj instanceof Boolean b) decompressBin = b;
+                    if (this.safeValue(this.options, "decompressBinary") instanceof Boolean b) decompressBin = b;
 
                     var result = this.checkWsProxySettings();
                     String proxy = null;
@@ -2212,8 +2211,7 @@ public class BaseExchange {
 
                     // Forward options.ws.options.headers to the upgrade request — required
                     // by exchanges that gate on User-Agent (weex) or send custom headers.
-                    Object headers = this.safeValue(wsOptions, "headers");
-                    if (headers instanceof java.util.Map<?, ?> m) {
+                    if (this.safeValue(wsOptions, "headers") instanceof java.util.Map<?, ?> m) {
                         java.util.Map<String, String> hh = new java.util.HashMap<>();
                         for (java.util.Map.Entry<?, ?> e : m.entrySet()) {
                             if (e.getKey() == null || e.getValue() == null) continue;
@@ -2233,7 +2231,8 @@ public class BaseExchange {
     public <T> CompletableFuture<T> watch(Object url, Object messageHash2, Object message, Object subscribeHash2, Object subscription) {
         String messageHash = messageHash2.toString();
         String subscribeHash = subscribeHash2 != null ? subscribeHash2.toString() : messageHash;
-        var client = this.client(url);
+        String urlKey = url.toString();
+        var client = this.client(urlKey);
 
         io.github.ccxt.ws.Future future = client.future(messageHash);
 
@@ -2241,7 +2240,7 @@ public class BaseExchange {
             int backoffDelay = 0;
             if (!client.startedConnecting) {
                 // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
-                backoffDelay = this.calculateWsBackoffDelay(url);
+                backoffDelay = this.calculateWsBackoffDelay(url.toString());
             }
             client.connect(backoffDelay).thenAccept(connected -> {
                 if (message != null) {
@@ -2289,7 +2288,7 @@ public class BaseExchange {
             int backoffDelay = 0;
             if (!client.startedConnecting) {
                 // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
-                backoffDelay = this.calculateWsBackoffDelay(url);
+                backoffDelay = this.calculateWsBackoffDelay(url.toString());
             }
             client.connect(backoffDelay).thenAccept(connected -> {
                 if (message != null) {
