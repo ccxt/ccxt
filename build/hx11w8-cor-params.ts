@@ -106,10 +106,10 @@ export function installHx11w8CorParams (goTranspiler: any) {
 
     // hx11 w8 printer-go-aster-pro-getaccounttypefromurl: pro/aster only, keyed by class + method (never the global
     // string table). Every caller passes `client.url` of a `client: Client` parameter, which prints GetUrl() string.
-    const upstreamNative = goTranspiler.goNativeParameterTypeOf;
-    if (typeof upstreamNative === 'function') {
+    const upstreamAsterNative = goTranspiler.goNativeParameterTypeOf;
+    if (typeof upstreamAsterNative === 'function') {
         goTranspiler.goNativeParameterTypeOf = function (this: any, param: any) {
-            const result = upstreamNative.call (this, param);
+            const result = upstreamAsterNative.call (this, param);
             const fn: any = param?.parent;
             if ((result !== undefined) || (fn?.kind !== ts.SyntaxKind.MethodDeclaration) || (fn.name?.text !== 'getAccountTypeFromUrl')
                 || (this.goEnclosingClassName (fn) !== 'aster') || (fn.parameters.indexOf (param) !== 0) || (param.initializer !== undefined)
