@@ -3256,6 +3256,18 @@ function printedStringDeclaredIdentifier (printer, node) {
 // statically-String left operand (add(String, ..) -> String), a plain helper call and the
 // base-declared safeString accessors. Cast-family helpers are NOT statically String (they
 // print an Object-typed call; only the reassignment hook's explicit cast names the box).
+// a bare identifier already declared `String` in the printed Java: writing it needs no cast
+function isDeclaredStringIdentifier (printer, node) {
+    if (node === undefined || !ts.isIdentifier (node) || node.text === 'undefined') {
+        return false;
+    }
+    try {
+        return printer.printNode (node, 0) === node.text && printer.javaDeclaredTypeOf (node) === 'String';
+    } catch (e) {
+        return false;
+    }
+}
+
 function isStaticallyStringExpression (printer, node, selfName) {
     if (node === undefined) {
         return false;
@@ -3915,6 +3927,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
                     // statically String (isStaticallyStringExpression) or a same-family
                     // helper call the reassignment hook casts
                     ok = isStaticallyStringExpression (printer, unwrapParens (parent.right), sourceName)
+                        || isDeclaredStringIdentifier (printer, unwrapParens (parent.right))
                         || isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
                 } else {
                     ok = isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
