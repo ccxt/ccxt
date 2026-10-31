@@ -19,7 +19,6 @@ import { goChan3Pass, goChan3SelfTest } from './go-chan3.js';
 import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
 import { hx11w9BookDeltaParams, hx11w9BookDeltaCheck } from './hx11w9-bookdelta-param.js';  // hx11 w9: book param of handleBookDelta(s)
 import { hx11w9OrderBookCachePass, hx11w9OrderBookAssertPass, hx11w9OrderBookCacheCheck } from './hx11w9-orderbook-cache.js';  // hx11 w9: typed ws order book cache
-import { g09w3Pass, g09w3Check } from './hx10w3-G09.js';
 import { hx10G10Pass, hx10G10SelfTest } from './hx10w2-G10.js';
 import { hx11w9A9fFieldIndexInOpPass, hx11w9A9fSelfTest } from './hx11w9-a9f-fieldindex.js';
 import { hx11w9A9fOrHoistPass, hx11w9A9fOrHoistSelfTest } from './hx11w9-a9f-orhoist.js';
@@ -178,6 +177,20 @@ const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
 const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = {
     'setSandboxMode': [ 0 ], 'enableDemoTrading': [ 0 ], 'setPositionMode': [ 0 ],
 };
+// RFM-G4 G09: the PredictionExchange struct field declarations (go/v4/exchange_prediction.go). The prediction caches
+// are declared map[string]any here, and the printer reads exactly the fields declared that way
+// (`predictionMapFields` in the go config) to write, read and nil-test them natively. One table, two consumers.
+const GO_PREDICTION_STRUCT_FIELDS: [string, string][] = [
+    [ 'BaseExchange', '' ],
+    [ 'Outcomes', 'map[string]any' ],
+    [ 'Outcomes_by_id', 'map[string]any' ],
+    [ 'Events', 'map[string]any' ],
+    [ 'Events_by_slug', 'map[string]any' ],
+    [ 'ReloadingEvents', 'bool' ],
+    [ 'EventsLoading', 'any' ],
+];
+const GO_PREDICTION_MAP_FIELDS: string[] = GO_PREDICTION_STRUCT_FIELDS.filter ((f) => f[1] === 'map[string]any').map ((f) => f[0]);
+
 const GO_UNIFIED_INT64_PARAMS: { [method: string]: number[] } = {
     'setLeverage': [ 0 ], 'cancelAllOrdersAfter': [ 0 ],
 };
@@ -3663,7 +3676,6 @@ export function formatGoSource (filePath: string, content: string): string {
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = w8ClientTableCalls (w8ClientFuturesReads (w8FuturesPairInOp (g10kInopClientMaps (content))));
     content = hx4G07FieldInOp (content);
-    content = g09w3Pass (content);  // hx10w3 G09: prediction caches are typed maps
     content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = h2kG13NativeKeysAndRemove (content);
     content = g10kTypepredIsArray (content);
@@ -6151,6 +6163,7 @@ class NewTranspiler {
                 // port's own interface / unboxer / side accessors (go/v4/exchange_orderbook.go)
                 "orderBook": GO_ORDERBOOK_PRINTER,
                 // ===== RF-go-6-D (end) =====
+                "predictionMapFields": GO_PREDICTION_MAP_FIELDS,  // RFM-G4 G09
                 "unifiedBoolParams": GO_UNIFIED_BOOL_PARAMS,
                 // the two base files declare their own stdlib imports (declareBaseFileStdlibImports); the test
                 // writers cut every @SKIP_START_GO..@SKIP_END_GO span out of the printed Go
@@ -7573,8 +7586,8 @@ ${constStatements.join('\n')}
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ParseSearchQueries', undefined, true, '[]any');
         // applyEventFetchParams (: any[]) has no venue override: every return is the events list (ListTyped), so fetchEvents cores send []any
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ApplyEventFetchParams', undefined, true, '[]any');
-        // setEvents (: Dictionary<any>) has no venue override: its only return is this.events (MapTyped), so loadEvents cores send map[string]any // W19
-        baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'SetEvents', undefined, true); // W19
+        // setEvents (: Dictionary<any>) has no venue override: its only return is this.events, a field the struct declares map[string]any, so loadEvents cores send map[string]any // W19
+        baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'SetEvents', (expr: string) => GO_PREDICTION_MAP_FIELDS.some ((f) => expr === 'this.' + f), false); // W19, RFM-G4 G09
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
         if (parts.length > 1) {
@@ -7583,16 +7596,8 @@ ${constStatements.join('\n')}
             // field at (longest field name + 1); the embedded (typeless) field prints alone and
             // stays out of that alignment. This write never goes through formatGoSource(), so the
             // literal below is emitted pre-aligned.
-            // prediction caches carry their map type here (hx10w3 G09): hx10w3-G09 reads it per site
-            const structFields: [string, string][] = [
-                [ 'BaseExchange', '' ],
-                [ 'Outcomes', 'map[string]any' ],
-                [ 'Outcomes_by_id', 'map[string]any' ],
-                [ 'Events', 'map[string]any' ],
-                [ 'Events_by_slug', 'map[string]any' ],
-                [ 'ReloadingEvents', 'bool' ],
-                [ 'EventsLoading', 'any' ],
-            ];
+            // RFM-G4 G09: the field table is GO_PREDICTION_STRUCT_FIELDS (module level); the printer's cache rules derive from it
+            const structFields = GO_PREDICTION_STRUCT_FIELDS;
             const fieldTypeColumn = Math.max (...structFields.filter ((f) => f[1]).map ((f) => f[0].length)) + 1;
             const structDef = [
                 'type PredictionExchange struct {',
@@ -10132,7 +10137,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx11w9BookDeltaCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (hx10G03Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (hx10G08Check ()).concat (hx10G10SelfTest ()).concat (hx11w9A9fSelfTest ()).concat (hx11w9A9fOrHoistSelfTest ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (hx11w8Int64TupleLocalsCheck ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g05check ()).concat (hx10G15Check ()).concat (g21Check (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w6G11Check ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx11M43Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8WT01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ()).concat (hx11w9TradesCacheCheck ()).concat (hx11w9MyTradesCacheCheck ()).concat (hx11w9TriggerOrdersCacheCheck ()).concat (hx11w9TradesNilLocalsCheck ()).concat (hx11w9LiquidationsCacheCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx11w9BookDeltaCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (hx10G03Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (hx10G08Check ()).concat (hx10G10SelfTest ()).concat (hx11w9A9fSelfTest ()).concat (hx11w9A9fOrHoistSelfTest ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (hx11w8Int64TupleLocalsCheck ()).concat (g08w3Check ()).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g05check ()).concat (hx10G15Check ()).concat (g21Check (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w6G11Check ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx11M43Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8WT01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ()).concat (hx11w9TradesCacheCheck ()).concat (hx11w9MyTradesCacheCheck ()).concat (hx11w9TriggerOrdersCacheCheck ()).concat (hx11w9TradesNilLocalsCheck ()).concat (hx11w9LiquidationsCacheCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -15486,7 +15491,6 @@ function hx4G20BaseNativePasses (content: string): string {
     content = hx4G29Pass (content);  // hx4 G29
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = h2kG13NativeKeysAndRemove (hx4G07FieldInOp (w8ClientTableCalls (w8ClientFuturesReads (w8FuturesPairInOp (g10kInopClientMaps (content))))));
-    content = g09w3Pass (content);  // hx10w3 G09: prediction caches are typed maps
     content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = hx4G38Pass (hx4G33IsEqual (hx4G28IsEqualSafe (content)));  // hx4 G28, G33, G38
     content = g10kLenNative (goNativeStringAdds (hx4G32Comparisons (hx4G31Divide (hx4G27Comparisons (hx4G23Comparisons (hx4G18NativeCompare (hx4G30Arith (content))))))));  // hx4 G27..G32

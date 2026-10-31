@@ -926,10 +926,9 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                         edits.push ({ 'start': bodyStart + nameAt, 'end': bodyStart + nameAt + safeDict[0].length - 'this.('.length, 'text': 'SafeDict' + (safeDict[1] || '') + 'Map' });
                         proof = { 'type': want };
                     }
-                    // `this.Events` / `this.Outcomes` (prediction cache fields, declared any; every write is a map literal, a typed map local or nil)
-                    // under a map carrier: MapTyped is the identity on a map and maps nil to a nil map
+                    // `this.Events` / `this.Outcomes` (prediction cache fields, declared map[string]any in the PredictionExchange struct
+                    // table, GO_PREDICTION_STRUCT_FIELDS): already the map the carrier sends, no MapTyped around it
                     if ((proof.reason !== undefined) && (want === 'map[string]any') && /^this\.(?:Events|Outcomes)$/.test (expr)) { // W19
-                        edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + q + 'MapTyped(' + expr + ')' }); // W19
                         proof = { 'type': want }; // W19
                     } // W19
                     if ((proof.reason !== undefined) && /^local-/.test (proof.reason)) {
