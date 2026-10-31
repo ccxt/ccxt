@@ -1796,6 +1796,92 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
     return undefined;
 }
 
+// hx11 FJ4-A2: whole-repo facts about a method name for printer.javaBaseListParameterTypeOf (the base-tier program
+// holds ts/src/base/Exchange.ts and its imports, never the venues). Plain data only, every judgement stays in the
+// printer: how many ts/src declarations carry the name, whether a non-call `.name` reference or a string literal
+// mentions it, whether the hand-written Java above the transpile delimiters calls it, and the argument nodes of
+// every `this.name (..)` call outside the declaring file. Installed in the main thread and in every worker.
+let javaRepoMethodIndex: any;
+function javaRepoMethodUsesIndex (): any {
+    if (javaRepoMethodIndex !== undefined) {
+        return javaRepoMethodIndex;
+    }
+    const declared = new Map<string, number> ();
+    const mentioned = new Set<string> ();
+    const calls = new Map<string, { file: string, args: any[] }[]> ();
+    const key = (file: string) => path.resolve (file).replace (/\.nooverloads\.\d+(\.ts)$/, '$1');
+    const visitDir = (dir: string) => {
+        if (!fs.existsSync (dir)) {
+            return;
+        }
+        for (const entry of fs.readdirSync (dir, { withFileTypes: true })) {
+            const full = path.join (dir, entry.name);
+            if (entry.isDirectory ()) {
+                if (entry.name !== 'static_dependencies' && entry.name !== 'node_modules') {
+                    visitDir (full);
+                }
+                continue;
+            }
+            if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts') || /\.nooverloads\.\d+\.ts$/.test (entry.name)) {
+                continue;
+            }
+            const source: any = ts.createSourceFile (full, fs.readFileSync (full, 'utf8'));
+            const visit = (n: any) => {
+                if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
+                    declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);
+                }
+                if (ts.isPropertyAccessExpression (n)) {
+                    const thisCall = n.expression.kind === ts.SyntaxKind.ThisKeyword && ts.isCallExpression (n.parent) && n.parent.expression === n;
+                    if (!thisCall) {
+                        mentioned.add (n.name.text);
+                    } else {
+                        const list = calls.get (n.name.text) ?? [];
+                        list.push ({ file: key (full), args: [ ...n.parent.arguments ] });
+                        calls.set (n.name.text, list);
+                    }
+                }
+                if (ts.isStringLiteralLike (n)) {
+                    mentioned.add (n.text);
+                }
+                n.forEachChild (visit);
+            };
+            visit (source);
+        }
+    };
+    visitDir (path.resolve (__dirname, '..', 'ts', 'src'));
+    let handWritten: string | undefined;
+    try {
+        const dir = path.resolve (__dirname, '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
+        handWritten = fs.readdirSync (dir).filter ((f: string) => f.endsWith ('.java'))
+            .map ((f: string) => fs.readFileSync (path.join (dir, f), 'utf8').split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0]).join ('\n');
+    } catch (e) {
+        handWritten = undefined; // no Java tree to consult: the proof stays withheld
+    }
+    javaRepoMethodIndex = { declared, mentioned, calls, handWritten, key };
+    return javaRepoMethodIndex;
+}
+
+export function installJavaRepoMethodUses (transpiler: any): void {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || printer._javaRepoMethodUsesInstalled) {
+        return;
+    }
+    printer._javaRepoMethodUsesInstalled = true;
+    printer.javaRepoMethodUses = (name: string, ownFile: string) => {
+        const index = javaRepoMethodUsesIndex ();
+        if (index.handWritten === undefined) {
+            return undefined;
+        }
+        const own = index.key (ownFile);
+        return {
+            declared: index.declared.get (name) ?? 0,
+            mentions: index.mentioned.has (name) ? 1 : 0,
+            handWritten: new RegExp (`\\b${name}\\s*\\(`).test (index.handWritten),
+            calls: (index.calls.get (name) ?? []).filter ((call: any) => call.file !== own).map ((call: any) => call.args),
+        };
+    };
+}
+
 // hx11 rfm X2: the single-owner stores of the hand-written BaseExchange.java header, handed to the
 // printer (printer.javaOwnerStoreFields / javaOwnerStoreHandoffs). A field is a store when its
 // declaration is `public Map<String, Object> <name> = new SynchronizedOptions (` (put(k, null)
@@ -2499,6 +2585,7 @@ class NewTranspiler {
         installJ11MapLocals(this.transpiler); // hx4 J11
         installJ12ParamTypes(this.transpiler); // hx4 J12
         installJavaMapArgAlreadyTyped(this.transpiler); // hx11 r43
+        installJavaRepoMethodUses(this.transpiler); // hx11 FJ4-A2
         installJ13ListLocals(this.transpiler); // hx4 J13
         installJ14ScalarLocals(this.transpiler); // hx4 J14
         installJ15J12PreScan(this.transpiler); // hx4 J15

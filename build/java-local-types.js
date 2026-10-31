@@ -17823,17 +17823,8 @@ const J12_PARAM_TYPES = {
     'any[]': 'java.util.List<Object>',
     'List': 'java.util.List<Object>',
     'Dict[]': 'java.util.List<Object>',
-    'number[]': 'java.util.List<Object>',
 };
 const J12_VENUE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/])?[a-z0-9_]+\.ts$/;
-// the printed base tier (below the transpile delimiter of ts/src/base/Exchange.ts, or its overload-stripped copy)
-// takes the list family too, once every caller in the program is proven to hand a List
-const J12_BASE_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/;
-const J12_STRIPPED_COPY = /\.nooverloads\.\d+(\.ts)$/;
-const J12_LIST_TYPE = 'java.util.List<Object>';
-// `this.<name> (..)` producers whose printed value is a java.util.List (resolved to base/functions by the
-// collection table); a venue-file caller handing one of these, or an array literal, needs no checkcast
-const J12_LIST_PRODUCERS = new Set ([ 'sortBy', 'sortBy2', 'filterBy', 'toArray', 'aggregate' ]);
 const J12_JAVA_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
 let j12Index;
 
@@ -17845,7 +17836,6 @@ function j12NameIndex () {
     const declared = new Map ();
     const referenced = new Set ();
     const literals = new Set ();
-    const calls = new Map ();
     const files = new Set ();
     const visitDir = (dir) => {
         if (!fs.existsSync (dir)) {
@@ -17859,11 +17849,11 @@ function j12NameIndex () {
                 }
                 continue;
             }
-            if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts') || J12_STRIPPED_COPY.test (entry.name)) {
+            if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts')) {
                 continue;
             }
             files.add (path.resolve (full));
-            j12IndexSource (ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, true), declared, referenced, literals, calls);
+            j12IndexSource (ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, true), declared, referenced, literals);
         }
     };
     visitDir (JAVA_FRESH_MAP_TS_ROOT);
@@ -17874,36 +17864,22 @@ function j12NameIndex () {
     } catch (e) {
         java = undefined;
     }
-    j12Index = { declared, referenced, literals, calls, java, files };
+    j12Index = { declared, referenced, literals, java, files };
     return j12Index;
 }
 
 // a file written after the index was built (a probe) is folded in on first sight
 function j12IndexFile (file) {
     const index = j12NameIndex ();
-    // the overload-stripped copy of a base file is the same class as the original: indexed once
-    const key = path.resolve (file.fileName).replace (J12_STRIPPED_COPY, '$1');
+    const key = path.resolve (file.fileName);
     if (!index.files.has (key)) {
         index.files.add (key);
-        j12IndexSource (file, index.declared, index.referenced, index.literals, index.calls);
+        j12IndexSource (file, index.declared, index.referenced, index.literals);
     }
     return index;
 }
 
-// an argument whose printed value is a List with no checkcast, read off the syntax alone (callers in files
-// the program being printed does not hold): an array literal without spread, or a list-producing base call
-function j12SyntacticListArgument (node) {
-    const bare = unwrapParens (node);
-    if (bare === undefined) {
-        return undefined;
-    }
-    if (ts.isArrayLiteralExpression (bare)) {
-        return bare.elements.some ((e) => ts.isSpreadElement (e) || e.kind === ts.SyntaxKind.OmittedExpression) ? undefined : '';
-    }
-    return isThisCall (bare) && J12_LIST_PRODUCERS.has (String (bare.expression.name.text)) ? String (bare.expression.name.text) : undefined;
-}
-
-function j12IndexSource (sf, declared, referenced, literals, calls) {
+function j12IndexSource (sf, declared, referenced, literals) {
     const visit = (n) => {
         if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
             declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);
@@ -17912,11 +17888,6 @@ function j12IndexSource (sf, declared, referenced, literals, calls) {
             const isThisCall = n.expression.kind === ts.SyntaxKind.ThisKeyword && ts.isCallExpression (n.parent) && n.parent.expression === n;
             if (!isThisCall) {
                 referenced.add (n.name.text);
-            } else if (calls !== undefined) {
-                // per argument position: undefined (unproven), '' (array literal) or the list producer's name
-                const list = calls.get (n.name.text) ?? [];
-                list.push ({ file: path.resolve (sf.fileName).replace (J12_STRIPPED_COPY, '$1'), args: n.parent.arguments.map ((a) => j12SyntacticListArgument (a)) });
-                calls.set (n.name.text, list);
             }
         }
         if (ts.isStringLiteralLike (n)) {
@@ -17990,8 +17961,7 @@ function j12ParamType (printer, node) {
     }
     const target = J12_PARAM_TYPES[node.type.getText ().replace (/\s/g, '')];
     const file = node.getSourceFile ();
-    const baseTier = J12_BASE_FILE.test (file.fileName);
-    if (target === undefined || !(J12_VENUE_FILE.test (file.fileName) || (baseTier && target === J12_LIST_TYPE))) {
+    if (target === undefined || !J12_VENUE_FILE.test (file.fileName)) {
         return undefined;
     }
     const cache = printer._j12ParamTypes ?? (printer._j12ParamTypes = new WeakMap ());
@@ -18003,7 +17973,7 @@ function j12ParamType (printer, node) {
     try {
         const name = method.name.text;
         const index = method.parameters.indexOf (node);
-        const { declared, referenced, literals, calls, java } = j12IndexFile (file);
+        const { declared, referenced, literals, java } = j12IndexFile (file);
         const unique = declared.get (name) === 1 && !referenced.has (name) && !literals.has (name)
             && java !== undefined && !new RegExp (`\\b${name}\\s*\\(`).test (java);
         const venueOnly = unique && printer.getMethodOverride (method) === undefined && !printer.exchangeTierMethods ().has (name)
@@ -18024,12 +17994,6 @@ function j12ParamType (printer, node) {
                 n.forEachChild (visit);
             };
             visit (file);
-            // a base method is called from venue files too: each of those callers must hand a List syntactically
-            if (ok && baseTier) {
-                const own = path.resolve (file.fileName).replace (J12_STRIPPED_COPY, '$1');
-                ok = (calls.get (name) ?? []).every ((call) => call.file === own
-                    || (call.args[index] !== undefined && (call.args[index] === '' || declared.get (call.args[index]) === 1)));
-            }
             result = ok ? target : undefined;
         }
     } catch (e) {
@@ -18058,17 +18022,6 @@ export function installJ12ParamTypes (transpiler) {
 
 function j12SlotArgumentDeclared (printer, arg, type) {
     const call = arg?.parent;
-    // a base-tier List slot: the argument the caller index proved syntactically a List (array literal, sortBy/toArray/..)
-    // prints as is, so the slot needs no checkcast at that call
-    if (type === J12_LIST_TYPE && call !== undefined && ts.isCallExpression (call) && j12SyntacticListArgument (arg) !== undefined) {
-        try {
-            const method = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve?.();
-            const param = method?.parameters?.[call.arguments.indexOf (arg)];
-            return param !== undefined && J12_BASE_FILE.test (param.getSourceFile ().fileName) && j12ParamType (printer, param) === type;
-        } catch (e) {
-            return false;
-        }
-    }
     if (!ts.isIdentifier (arg ?? {}) || call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)
         || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword || printer.printNode (arg, 0) !== arg.text) {
         return false;
