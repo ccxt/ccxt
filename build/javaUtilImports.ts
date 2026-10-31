@@ -37,6 +37,8 @@ export const JAVA_UTIL_IMPORTS: Record<string, string> = {
     'Map': 'java.util.Map',
     'CompletableFuture': 'java.util.concurrent.CompletableFuture',
     'Collectors': 'java.util.stream.Collectors',
+    // RF-java-3: the String-typed parse twin the printer calls by qualified name
+    'JsParse': 'io.github.ccxt.base.JsParse',
 };
 
 // Unified types (java/lib/src/main/java/io/github/ccxt/types) the typed cores and surfaces
