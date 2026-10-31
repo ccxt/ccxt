@@ -177,7 +177,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/iserver/marketdata/history', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiIserverMarketdataSnapshot (params = {}): Promise<Dict> {
+    webapiGetV1ApiIserverMarketdataSnapshot (params = {}): Promise<List> {
         return this.request ('v1/api/iserver/marketdata/snapshot', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
@@ -217,7 +217,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/portfolio/:accountId/positions/:pageId', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiPortfolio2AccountIdPositions (params = {}): Promise<Dict> {
+    webapiGetV1ApiPortfolio2AccountIdPositions (params = {}): Promise<List> {
         return this.request ('v1/api/portfolio2/:accountId/positions', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
