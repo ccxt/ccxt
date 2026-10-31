@@ -9285,6 +9285,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.nativeSplitLiteralArray(rustContent); // closure-free literal split
 ||||||| base
                 rustContent = this.nativeCaseConvert(rustContent); // closure/match-free to_lowercase/to_uppercase, last
+||||||| base
+                rustContent = this.nativeIntLiteralCastFold(rustContent); // literal Int casts folded, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10053,6 +10055,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativeSplitLiteralArray(finalFile); // closure-free literal split
 ||||||| base
         finalFile = this.nativeCaseConvert(finalFile); // closure/match-free to_lowercase/to_uppercase, last
+||||||| base
+        finalFile = this.nativeIntLiteralCastFold(finalFile); // literal Int casts folded, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13549,6 +13553,23 @@ impl std::ops::DerefMut for ${coreName} {
             i = end;
         }
         return out;
+    }
+
+||||||| base
+    // Int-cast of a literal: `(match &(Value::Int(N)) { <Int/Float/Str/Bool arms>, _ => None }).unwrap_or(0)` -> `Ni64`
+    // (Int arm is identity), `match &(Value::Null)` -> `0i64`; `Value::Int(N).as_f64().unwrap_or(f64::NAN)` -> `(Nf64)`.
+    // Only the exact emitted arm text and |N| < 2^53 match; anything else is left alone.
+    nativeIntLiteralCastFold(content: string): string {
+        if (!content.includes('Some(*__n)') && !content.includes('.as_f64().unwrap_or(f64::NAN)')) return content;
+        const arms = ' \\{ Value::Int\\(__n\\) => Some\\(\\*__n\\), Value::Float\\(__f\\) => Some\\(\\*__f as i64\\), Value::Str\\(__s\\) => __s\\.parse::<i64>\\(\\)\\.ok\\(\\), Value::Bool\\(__b\\) => Some\\(if \\*__b \\{ 1 \\} else \\{ 0 \\}\\), _ => None \\}\\)\\.unwrap_or\\(0\\)';
+        const lead = '(?<![A-Za-z0-9_.:])';
+        const small = (n: string): boolean => Math.abs(Number(n)) < 2 ** 53;
+        content = content.replace(new RegExp(`\\(match &\\(Value::Int\\((-?[0-9]+)\\)\\)${arms}`, 'g'),
+            (m: string, n: string) => small(n) ? (n.startsWith('-') ? `(${n}i64)` : `${n}i64`) : m);
+        content = content.replace(new RegExp(`\\(match &\\(Value::Null\\)${arms}`, 'g'), '0i64');
+        content = content.replace(new RegExp(`${lead}Value::Int\\((-?[0-9]+)\\)\\.as_f64\\(\\)\\.unwrap_or\\(f64::NAN\\)`, 'g'),
+            (m: string, n: string) => small(n) ? `(${n}f64)` : m);
+        return content;
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
