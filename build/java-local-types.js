@@ -18821,6 +18821,19 @@ function j17PrintOrder (printer, node) {
     return order;
 }
 
+// BaseExchange.java declares amountToPrecision / priceToPrecision / costToPrecision `public String`;
+// a call that resolves to the Exchange.ts declaration prints that String
+const J17_BASE_STRING_PRECISION = new Set ([ 'amountToPrecision', 'priceToPrecision', 'costToPrecision' ]);
+
+function j17BaseStringPrecisionCall (printer, node) {
+    try {
+        return isThisCall (node) && J17_BASE_STRING_PRECISION.has (node.expression.name.text)
+            && !node.arguments.some ((a) => ts.isSpreadElement (a)) && j14ResolvesToBase (printer, node);
+    } catch (e) {
+        return false;
+    }
+}
+
 export function installJ17StringReturns (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printClassBody !== 'function' || typeof printer.javaNativeReturnType !== 'function'
@@ -18863,6 +18876,9 @@ export function installJ17StringReturns (transpiler) {
     };
     const upstreamPrints = printer.javaExpressionPrintsType.bind (printer);
     printer.javaExpressionPrintsType = function (expression, target) {
+        if (target === 'String') {
+            return upstreamPrints (expression, target) || j17BaseStringPrecisionCall (printer, printer.javaUnwrapReturnExpression (expression));
+        }
         if (target !== 'Long' && target !== 'Double') {
             return upstreamPrints (expression, target);
         }
