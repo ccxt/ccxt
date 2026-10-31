@@ -5315,6 +5315,8 @@ class NewTranspiler {
             [/assert/gm, 'Assert'],
             [/TestMainClass\.this/gm, 'TestMain.this'],
             [/throw new Exception/g, 'throw new RuntimeException'],
+            // the retyped Map<String, Object> field takes the Object fixture read through an assignment cast
+            [/exchange\.currencies = currencies;/g, 'exchange.currencies = (Map<String, Object>) currencies;'],
             [/throw e/gm, 'throw new RuntimeException(e)'],
             // noImplicitAny bags: Object so safeValue assignments typecheck (Map is too narrow)
             [/public (?:Dict|java\.util\.Map<String, Object>) skippedMethods\b/g, 'public Object skippedMethods'],
