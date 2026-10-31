@@ -2820,8 +2820,8 @@ export default class phemex extends Exchange {
                     posSide = 'Merged';
                 }
             }
-            posSide = this.capitalize (posSide);
-            request['posSide'] = posSide;
+            const posSideCapitalized: string = this.capitalize (posSide);
+            request['posSide'] = posSideCapitalized;
             if (isStableSettled) {
                 request['orderQtyRq'] = this.amountToPrecision (symbol, amount);
             } else {
