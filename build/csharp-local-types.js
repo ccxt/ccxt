@@ -16318,7 +16318,9 @@ export const SIGNATURE_ARG_TYPES = {
     'fetch2': { 0: 'string', 1: 'IList<object>' },
     'request': { 0: 'string', 1: 'IList<object>' },
     'sign': { 0: 'string', 1: 'IList<object>', 2: 'string' },
-    'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
+    // position 0 is `int` on every generated declaration (code / httpCode / statusCode), never written by a
+    // body, and the only hand-written caller (Exchange.cs) passes an `int`: `Int64?` is its own type
+    'handleErrors': { 0: 'Int64?', 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
@@ -17710,6 +17712,7 @@ export const CSHARP_BOOLEAN_PARAMS = {
     'prepareParadexDomain': { 0: 'bool?' },
     'prioritizedNetworkAliases': { 2: 'bool?' },
     'removeRepeatedElementsFromArray': { 1: 'bool?' },
+    'requestWs': { 2: 'bool?' },
     'safeBool2': { 3: 'bool?' },
     'safeBoolN': { 2: 'bool?' },
     'selectNetworkKeyFromNetworks': { 3: 'bool?' },
@@ -17717,6 +17720,7 @@ export const CSHARP_BOOLEAN_PARAMS = {
     'setSandboxMode': { 0: 'bool?' },
     'signPredictfunOrder': { 1: 'bool?', 2: 'bool?' },
     'spotOrderPrepareRequest': { 1: 'bool?' },
+    'unsubscribeAllWs': { 0: 'bool?' },
     'watchMultiTickerHelper': { 4: 'bool?' },
     'watchMultipleSubscription': { 3: 'bool?' },
 };
