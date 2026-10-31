@@ -11983,7 +11983,7 @@ export function patchJavaUrlsDescribeStringLocals (transpiler) {
         const iden = printer.getIden (identation);
         const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
         const at = printed.lastIndexOf (marker);
-        if (at === -1 || !printed.startsWith ('Helpers.GetValue(', at + marker.length)) {
+        if (at === -1 || !/^(?:Helpers\.GetValue\(|\(\((?:java\.util\.)?Map<String, Object>\))/.test (printed.slice (at + marker.length))) {
             return printed;
         }
         let ok = false;
