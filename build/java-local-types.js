@@ -3308,6 +3308,11 @@ function isStaticallyStringExpression (printer, node, selfName) {
                 && isPlainSafeStringBaseCall (printer, node)) {
                 return true; // declared String in BaseExchange
             }
+            // `Precise.stringXxx (..)` is `public static String`; `this.omitZero (<String>)` binds `String omitZero (String)`
+            if (isPreciseStringStaticCall (node)
+                || (isThisCall (node) && omitZeroStringLocalType (printer, node, String (node.expression.name.text)) !== undefined)) {
+                return true;
+            }
             const helper = classifyStringHelperCall (printer, node);
             return helper !== undefined && helper.cast === undefined;
         }
