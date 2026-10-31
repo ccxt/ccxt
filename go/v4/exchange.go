@@ -169,8 +169,8 @@ type BaseExchange struct {
 	Liquidations   any // *ArrayCacheBySymbolBySide
 	FundingRates   map[string]any
 	Bidsasks       TickerCache
-	TriggerOrders  any // *ArrayCache
-	MyLiquidations any // *ArrayCacheBySymbolBySide
+	TriggerOrders  WsArrayCache // *ArrayCache
+	MyLiquidations any          // *ArrayCacheBySymbolBySide
 
 	PaddingMode int
 
