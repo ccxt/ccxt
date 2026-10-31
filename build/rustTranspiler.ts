@@ -10,8 +10,8 @@ import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import {
-    nativeGetValue, r01TypedLocals, r07StringNatives, hx11RustSignApiStr, hx10w2R08, r05FieldChainInserts, bf03PlainDictChains,
-    r02NativeInserts, hx10w2R03, hx10w3R03, r04Scalars, r04Callee, r06Push, r06w3Push, r08DictReads, r10ClientHandle,
+    nativeGetValue, r01TypedLocals, r07StringNatives, hx11RustSignApiStr, r05FieldChainInserts, bf03PlainDictChains,
+    r02NativeInserts, hx10w2R03, hx10w3R03, r04Scalars, r04Callee, r06Push, r06w3Push, r10ClientHandle,
     hx10w9Rp02ParamKind, hx10w9Rp02DispatchArg, hx10w9Rp02SplitArgs, hx10w9Rp02RefMapParamNames,
     narrowStrSinkLocals, narrowStrNullLocals,
     hx11w9RustIntLocalNullSinkOptionI64, hx11w9RustStrLiteralLocalNativeString, hx11w9StrLocalReassign, hx11w9RustBoolKLocalOptionBool,
@@ -505,7 +505,8 @@ export class RustTranspilerBuilder {
     writeBackIndexedMutations(content: string): string {
         const lines = content.split('\n');
         const out: string[] = [];
-        const bindRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = get_value\(&([a-zA-Z_]\w*), &([a-zA-Z_]\w*)\);\s*$/;
+        // the bind is the helper call or the printer's native dict read of the same container/key
+        const bindRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = (?:get_value\(&([a-zA-Z_]\w*), &([a-zA-Z_]\w*)\)|\(if let \(Some\(__m\), Some\(__k\)\) = \(([a-zA-Z_]\w*)\.as_map\(\), ([a-zA-Z_]\w*)\.as_str\(\)\) \{ __m\.get\(__k\)\.cloned\(\)\.unwrap_or\(Value::Null\) \} else \{ Value::Null \}\)|([a-zA-Z_]\w*)\.as_map\(\)\.and_then\(\|__m\| ([a-zA-Z_]\w*)\.as_str\(\)\.and_then\(\|__k\| __m\.get\(__k\)\)\)\.cloned\(\)\.unwrap_or\(Value::Null\));\s*$/;
         let i = 0;
         while (i < lines.length) {
             const m = lines[i].match(bindRe);
@@ -517,8 +518,10 @@ export class RustTranspilerBuilder {
             // safety gate: a plain field *read* isn't followed by a mutation of
             // the local, so it gets no (wrong) write-back — the earlier
             // single-letter-index restriction was therefore unnecessary.
-            if (m && m[3] !== 'self') {
-                const [, indent, local, arr, idx] = m;
+            if (m && (m[3] ?? m[5] ?? m[7]) !== 'self') {
+                const [, indent, local] = m;
+                const arr = m[3] ?? m[5] ?? m[7];
+                const idx = m[4] ?? m[6] ?? m[8];
                 out.push(lines[i]);
                 let j = i + 1;
                 const mutRe = new RegExp(`^\\s*(add_element_to_object|crate::set_value|set_value|append_to_array)\\(&mut ${local}[,)]`);
@@ -9249,7 +9252,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = nativeGetValue(rustContent); // hx10 R01
                 rustContent = r02NativeInserts(rustContent); // hx10 R02
                 rustContent = hx10w2R03(rustContent); // hx10w2 R03
-                rustContent = hx10w2R08(rustContent); // hx10 wave-2 R08
                 // hx10 W3 R01: typed locals run last, on the final text.
                 rustContent = r01TypedLocals(rustContent);
                 rustContent = r07StringNatives(rustContent); // hx10 W3 R07
@@ -9257,7 +9259,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = hx10w3R03(rustContent); // hx10 wave-3 R03
                 rustContent = r05FieldChainInserts(rustContent); // hx10 R05
                 rustContent = bf03PlainDictChains(rustContent); // hx10w4 BF03
-                rustContent = r08DictReads(rustContent); // hx10w3 R08
                 // hx10w7 R10: venue reads of the ws client go through the typed
                 // handle the drive loop owns (field reads, no `get_value` lookup).
                 rustContent = r10ClientHandle(rustContent);
@@ -9276,7 +9277,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = hx11w9RustInt2IntNLocalOptionI64(rustContent); // hx11 W9
                 rustContent = hx11w9RustStrNLocalOptionString(rustContent); // hx11 W9
                 rustContent = hx11w9RustNumber2SinkLocalOptionF64R2(rustContent); // hx11 W9
-                rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10015,14 +10015,12 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = nativeGetValue(finalFile);
         finalFile = r02NativeInserts(finalFile); // hx10 R02
         finalFile = hx10w2R03(finalFile); // hx10w2 R03
-        finalFile = hx10w2R08(finalFile); // hx10 wave-2 R08
         finalFile = r01TypedLocals(finalFile); // hx10 W3 R01
         finalFile = r07StringNatives(finalFile); // hx10 W3 R07
         finalFile = hx11RustSignApiStr(finalFile);
                 finalFile = hx10w3R03(finalFile); // hx10 wave-3 R03
         finalFile = r05FieldChainInserts(finalFile); // hx10 R05
         finalFile = bf03PlainDictChains(finalFile); // hx10w4 BF03
-        finalFile = r08DictReads(finalFile); // hx10w3 R08
         finalFile = narrowStrSinkLocals(finalFile); // hx11 W4 P1
         finalFile = narrowStrNullLocals(finalFile); // hx11 W7
         finalFile = hx11w9RustIntLocalNullSinkOptionI64(finalFile); // hx11 W9
@@ -10036,7 +10034,6 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = hx11w9RustInt2IntNLocalOptionI64(finalFile); // hx11 W9
         finalFile = hx11w9RustStrNLocalOptionString(finalFile); // hx11 W9
         finalFile = hx11w9RustNumber2SinkLocalOptionF64R2(finalFile); // hx11 W9
-        finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -11329,11 +11326,9 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.wrapAssertInIsTrue(content);
         content = this.dropRedundantIsTrue(content);
         content = this.rewriteNativeErrorClassChecks(content);
-        content = hx10w2R08(content); // hx10 wave-2 R08
                 content = hx10w3R03(content); // hx10 wave-3 R03
         content = r05FieldChainInserts(content); // hx10 R05
         content = bf03PlainDictChains(content); // hx10w4 BF03
-        content = r08DictReads(content); // hx10w3 R08
         return content;
     }
 
@@ -13119,38 +13114,6 @@ impl std::ops::DerefMut for ${coreName} {
             const pad = indent + '    ';
             return [ `${indent}${decl}(match ${recv} {`, `${pad}${intArm},`, `${pad}${floatArm},`, `${pad}${strArm},`, `${pad}${fallback}`, `${indent}});` ].join('\n');
         }).join('\n');
-    }
-
-    // Dict read/membership keyed by a Str place, closure-free (the `|__m|`/`|__k|` closures counted as blobs):
-    //   M.as_map().and_then(|__m| K.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)
-    //     -> (if let (Some(__m), Some(__k)) = (M.as_map(), K.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })
-    //   K.as_str().and_then(|__k| D.get(__k)).cloned().unwrap_or(Value::Null)   (D a shadowed &map)
-    //     -> (if let Some(__k) = K.as_str() { D.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })
-    //   K.as_str().map(|__k| D.contains_key(__k)).unwrap_or(false)
-    //     -> matches!(K.as_str(), Some(__k) if D.contains_key(__k))
-    // A non-Str key stays absent / Null / false exactly like the `None` arm. M and K are side-effect-free place
-    // paths, so evaluating K eagerly (the closure ran it only for a map) is unobservable. Skips a line that would
-    // cross 400 chars.
-    nativeDictKeyRead(content: string): string {
-        if (!content.includes('|__k|')) return content;
-        const P = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*';
-        const lead = '(?<![A-Za-z0-9_.:])';
-        const guard = (m: string, off: number, whole: string, text: string): string => {
-            const ls = whole.lastIndexOf('\n', off) + 1;
-            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
-            const oldLen = le - ls;
-            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
-        };
-        const dyn = new RegExp(`${lead}(${P})\\.as_map\\(\\)\\.and_then\\(\\|__m\\| (${P})\\.as_str\\(\\)\\.and_then\\(\\|__k\\| __m\\.get\\(__k\\)\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
-        content = content.replace(dyn, (m: string, x: string, k: string, off: number, whole: string) =>
-            guard(m, off, whole, `(if let (Some(__m), Some(__k)) = (${x}.as_map(), ${k}.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })`));
-        const get = new RegExp(`${lead}(${P})\\.as_str\\(\\)\\.and_then\\(\\|__k\\| (${P})\\.get\\(__k\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
-        content = content.replace(get, (m: string, k: string, d: string, off: number, whole: string) =>
-            guard(m, off, whole, `(if let Some(__k) = ${k}.as_str() { ${d}.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })`));
-        const has = new RegExp(`${lead}(${P})\\.as_str\\(\\)\\.map\\(\\|__k\\| (${P})\\.contains_key\\(__k\\)\\)\\.unwrap_or\\(false\\)`, 'g');
-        content = content.replace(has, (m: string, k: string, d: string, off: number, whole: string) =>
-            guard(m, off, whole, `matches!(${k}.as_str(), Some(__k) if ${d}.contains_key(__k))`));
-        return content;
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box

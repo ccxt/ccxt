@@ -856,22 +856,22 @@ impl NdaxCore {
         //         ],
         //     ]
         //
-        let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
-        if (symbol == Value::Null) {
+        let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
+        if (symbol.is_none()) {
             return;
         }
-        let mut snapshot: Value = self.parse_order_book(payload, symbol.clone(), &[]);
+        let mut snapshot: Value = self.parse_order_book(payload, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates
         // after a re-subscription snapshot
-        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(matches!((&self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         }
-        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         orderbook.reset(snapshot);
         let mut messageHash: Option<String> = self.safe_string_k_opt(subscription, "messageHash", &[]);
         client.resolve(&[orderbook, messageHash.map(Value::from).unwrap_or(Value::Null)]);

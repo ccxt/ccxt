@@ -408,7 +408,7 @@ impl DeepcoinCore {
         if (self.safe_string_k(market.clone(), "type", &[]).as_str() == Some("swap")) {
             marketId = Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market, "quoteId", &[Value::Str("".into())])).into()); // swap markets use symbol without slash
         }
-        let mut action: String = "1".to_string();
+        let mut action: String = "1".to_string(); // subscribe
         if unWatch {
             action = "0".to_string(); // unsubscribe
         }

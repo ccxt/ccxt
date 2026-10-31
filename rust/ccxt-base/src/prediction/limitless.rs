@@ -4269,7 +4269,7 @@ if _try_result.is_err() {
             }
             self.check_required_credentials(&[]);
             let mut timestamp: Value = self.iso8601(self.milliseconds());
-            let mut newline: String = "\n".to_string();
+            let mut newline: String = "\n".to_string(); // eslint-disable-line quotes
             let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, newline).into()), method).into()), newline).into()), url).into()), newline).into()), bodyString).into());
             let mut signature: Value = self.hmac(self.encode(payload), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headersValue = self.extend(headersValue.clone(), &[Value::Map({

@@ -114,9 +114,10 @@ fn helperTestNetworkAliases() {
         while { if !__for_first_1526 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             } __for_first_1526 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_string(exchange.prop(&&Value::Str("networkAliases".into())), keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]),
-            &get_value(&aliases, &keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)))))));
+            &aliases.as_map().and_then(|__m| keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null))))));
         // unified codes are never aliases themselves
-        assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&exchange.prop(&&Value::Str("networkAliases".into())), &get_value(&aliases, &keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)))))))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&exchange.prop(&&Value::Str("networkAliases".into())), &aliases.as_map().and_then(|__m| keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)),
+            _ => None }).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null))))))));
     }
     }
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&exchange.prop(&&Value::Str("networkAliases".into())), Value::Dict(__d) if __d.contains_key("BTC"))))))));

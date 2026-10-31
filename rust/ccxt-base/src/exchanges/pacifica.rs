@@ -5107,12 +5107,12 @@ if _try_result.is_err() {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestBody: Value = Value::Null;
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = Value::Str("api".into());
+        let mut urlKey: String = "api".to_string();
         if isTestnet.as_bool() == Some(true) {
-            urlKey = Value::Str("test".into());
+            urlKey = "test".to_string();
         }
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut baseApiUrl: Option<String> = self.safe_string_opt((if let (Some(__m), Some(__k)) = (self.urls.as_map(), urlKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), apiName, &[]);
+        let mut baseApiUrl: Option<String> = self.safe_string_opt((if let (Some(__m), Some(__k)) = (self.urls.as_map(), Some(urlKey.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), apiName, &[]);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }

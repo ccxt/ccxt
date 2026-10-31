@@ -1045,18 +1045,18 @@ impl PredictfunCore {
                 let mut __for_first_1454: bool = true;
                 while { if !__for_first_1454 { if let Value::Int(n) = &mut mi { *n += 1; } } __for_first_1454 = false; mi.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
                 let mut rawMarket: Value = rawMarkets.get(mi.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut marketSlug: Value = self.safe_string_k(rawMarket.clone(), "categorySlug", &[]);
-                if (marketSlug != Value::Null) {
-                    if (matches!((&orphanMarkets, &marketSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                let mut marketSlug: Option<String> = self.safe_string_k_opt(rawMarket.clone(), "categorySlug", &[]);
+                if (marketSlug.is_some()) {
+                    if (matches!((&orphanMarkets, &marketSlug.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
-                        let mut bucket: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), marketSlug.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                        let mut bucket: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), marketSlug.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                         if let Value::Arr(__a) = &mut bucket { std::sync::Arc::make_mut(__a).push(rawMarket.clone()); };
-                        crate::set_value(&mut orphanMarkets, &marketSlug, bucket.clone());
-                        if let Value::Dict(__d) = &mut orphanMarkets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketSlug), bucket); }
+                        crate::set_value(&mut orphanMarkets, &marketSlug.clone().map(Value::from).unwrap_or(Value::Null), bucket.clone());
+                        if let Value::Dict(__d) = &mut orphanMarkets { std::sync::Arc::make_mut(__d).insert(marketSlug.as_deref().unwrap_or("null").to_string(), bucket); }
                     }  else {
-                        if let Value::Dict(__d) = &mut orphanMarkets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketSlug), Value::from(vec![rawMarket])); }
-                        orphanSlugs.push(marketSlug);
+                        if let Value::Dict(__d) = &mut orphanMarkets { std::sync::Arc::make_mut(__d).insert(marketSlug.as_deref().unwrap_or("null").to_string(), Value::from(vec![rawMarket])); }
+                        orphanSlugs.push(marketSlug.map(Value::from).unwrap_or(Value::Null));
                     }
                 }
             }
@@ -4467,15 +4467,15 @@ impl PredictfunCore {
     m
 })]);
             let mut isYesOutcome: bool = self.safe_integer_k(outcomeInfo, "indexSet", &[]).as_f64() == Some(1.0);
-            let mut outcomeHandle: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-            if (outcomeHandle != Value::Null) {
-                if !(matches!((&self.orderbooks, &outcomeHandle), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut outcomeHandle: Option<String> = self.safe_string_k_opt(outcomeObj.clone(), "outcome", &[]);
+            if (outcomeHandle.is_some()) {
+                if !(matches!((&self.orderbooks, &outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); if let Value::Dict(__d) = &mut self.orderbooks.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcomeHandle), __be_tmp); } }
+})]); if let Value::Dict(__d) = &mut self.orderbooks.clone() { std::sync::Arc::make_mut(__d).insert(outcomeHandle.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
                 }
-                let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), outcomeHandle.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), outcomeHandle.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 let mut bids: Value = yesBids.clone();
                 let mut asks: Value = yesAsks.clone();
                 if !isYesOutcome {
@@ -4488,13 +4488,13 @@ impl PredictfunCore {
                         m.insert("asks".to_string(), asks);
                         m.insert("timestamp".to_string(), Value::from(timestamp));
                         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-                        m.insert("outcome".to_string(), outcomeHandle.clone());
+                        m.insert("outcome".to_string(), outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]));
                         m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
                         m.insert("nonce".to_string(), self.safe_integer_k(data.clone(), "version", &[]));
                     m
                 }));
-                client.resolve(&[orderbook, Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcomeHandle).into())]);
+                client.resolve(&[orderbook, Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null)).into())]);
             }
         }
         }
