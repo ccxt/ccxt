@@ -15237,6 +15237,9 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'estimateTxFee': 'Dictionary<string, object>',
     // paradex: both paths hand back a safeDict() result (the cached config or a fresh {})
     'getSystemConfig': 'IDictionary<string, object>',
+    // paradex: retrieveAccount hands back safeDict(); signOrderRequest returns its Dict local
+    'retrieveAccount': 'IDictionary<string, object>',
+    'signOrderRequest': 'Dictionary<string, object>',
     // modetrade / woofipro: safeNumber() on the only path (double or null)
     'getWithdrawNonce': 'double?',
     // kucoin (pro): the token string getUtaUrl() concatenates, null while unauthenticated
