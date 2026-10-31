@@ -2706,6 +2706,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'fetchNonce': 'Int64',
     // coinbase fetchCurrenciesFromCache (`: Promise<Dict>`, prints Task<Dictionary<string, object>>); only coinbase.ts declares/awaits it
     'fetchCurrenciesFromCache': 'Dictionary<string, object>',
+    // dydx fetchLatestBlockHeight (only declaration; prints Task<Int64>, typed-core Int64 awaits unwrapped)
+    'fetchLatestBlockHeight': 'Int64',
 };
 
 // Per-venue awaited types for same-named typed cores whose shape differs by class (alpaca/bydfi/
