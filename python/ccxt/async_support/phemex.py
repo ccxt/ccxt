@@ -2706,8 +2706,8 @@ class phemex(Exchange, ImplicitAPI):
                     posSide = 'Long' if (sideResolved == 'buy') else 'Short'
                 else:
                     posSide = 'Merged'
-            posSide = self.capitalize(posSide)
-            request['posSide'] = posSide
+            posSideCapitalized = self.capitalize(posSide)
+            request['posSide'] = posSideCapitalized
             if isStableSettled:
                 request['orderQtyRq'] = self.amount_to_precision(symbol, amount)
             else:

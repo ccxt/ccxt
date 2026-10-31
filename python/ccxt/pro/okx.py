@@ -1458,28 +1458,28 @@ class okx(ccxt.async_support.okx):
                 # after a re-subscription snapshot
                 if not (symbol in self.orderbooks):
                     self.orderbooks[symbol] = self.order_book({}, limit)
-                orderbook = self.orderbooks[symbol]
+                snapshotBook = self.orderbooks[symbol]
                 timestamp = self.safe_integer(update, 'ts')
                 # rows are [ price, amount, liquidatedOrders, numOrders ] - store
                 # price and amount only, matching handleDelta, so countOrIdKey
                 # points past the row on purpose
                 snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1, 4)
                 snapshot['nonce'] = self.safe_integer(update, 'seqId')
-                orderbook.reset(snapshot)
+                snapshotBook.reset(snapshot)
                 if not (messageHash in client.subscriptions):
                     break
-                client.resolve(orderbook, messageHash)
+                client.resolve(snapshotBook, messageHash)
         elif action == 'update':
             if symbol in self.orderbooks:
-                orderbook = self.orderbooks[symbol]
+                updatedBook = self.orderbooks[symbol]
                 for i in range(0, len(data)):
                     update = data[i]
-                    self.handle_order_book_message(client, update, orderbook, messageHash, market)
+                    self.handle_order_book_message(client, update, updatedBook, messageHash, market)
                     if not (messageHash in client.subscriptions):
                         # a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
                         client.subscriptions[messageHash] = 'resync'
                         break
-                    client.resolve(orderbook, messageHash)
+                    client.resolve(updatedBook, messageHash)
         elif (channel == 'books5') or (channel == 'bbo-tbt'):
             # watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             # shared order-book cache when watchOrderBook subscribed to this
@@ -1487,13 +1487,13 @@ class okx(ccxt.async_support.okx):
             if messageHash in client.subscriptions:
                 if not (symbol in self.orderbooks):
                     self.orderbooks[symbol] = self.order_book({}, limit)
-                orderbook = self.orderbooks[symbol]
+                bboBook = self.orderbooks[symbol]
                 for i in range(0, len(data)):
                     update = data[i]
                     timestamp = self.safe_integer(update, 'ts')
                     snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1)
-                    orderbook.reset(snapshot)
-                    client.resolve(orderbook, messageHash)
+                    bboBook.reset(snapshot)
+                    client.resolve(bboBook, messageHash)
         if channel == 'bbo-tbt':
             self.handle_bid_ask(client, message)
         return message

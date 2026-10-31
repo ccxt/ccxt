@@ -2394,9 +2394,9 @@ class pacifica(Exchange, ImplicitAPI):
             'TOB': 'TOB',
             'ALO': 'ALO',
         }
-        tif = None
-        if tifRaw is not None:
-            tif = tifRaw.upper()
+        if tifRaw is None:
+            return 'GTC'
+        tif = tifRaw.upper()
         return self.safe_string(tifMap, tif, 'GTC')
 
     def map_side(self, sideRaw: Str) -> Str:

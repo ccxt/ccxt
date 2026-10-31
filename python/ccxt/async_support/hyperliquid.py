@@ -2182,8 +2182,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         postOnly = self.safe_bool(params, 'postOnly', False)
         if postOnly:
             defaultTimeInForce = 'alo'
-        timeInForce = self.safe_string_lower(params, 'timeInForce', defaultTimeInForce)
-        timeInForce = self.capitalize(timeInForce)
+        timeInForceLower = self.safe_string_lower(params, 'timeInForce', defaultTimeInForce)
+        timeInForce = self.capitalize(timeInForceLower)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice', triggerPrice)
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
@@ -2676,8 +2676,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             postOnly = self.safe_bool(orderParams, 'postOnly', False)
             if postOnly:
                 defaultTimeInForce = 'alo'
-            timeInForce = self.safe_string_lower(orderParams, 'timeInForce', defaultTimeInForce)
-            timeInForce = self.capitalize(timeInForce)
+            timeInForceLower = self.safe_string_lower(orderParams, 'timeInForce', defaultTimeInForce)
+            timeInForce = self.capitalize(timeInForceLower)
             clientOrderId = self.safe_string_2(orderParams, 'clientOrderId', 'client_id')
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLossPrice = self.safe_string(orderParams, 'stopLossPrice', triggerPrice)

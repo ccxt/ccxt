@@ -2375,7 +2375,7 @@ class extended(Exchange, ImplicitAPI):
         precise = Precise.string_mul(amount, resolutionString)
         result = self.decimal_to_precision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING)
         if roundUp and Precise.string_gt(precise, result):
-            result = Precise.string_add(result, '1')
+            return Precise.string_add(result, '1')
         return result
 
     async def fetch_extended_account(self, params: dict = {}) -> dict:
