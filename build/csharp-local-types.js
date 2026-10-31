@@ -2651,6 +2651,7 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     // `string?` local), so the pro tree's `object token = await this.authenticateRest ()` takes
     // the string? box; the name is declared in the REST file only, hence this table
     'authenticateRest': 'string?',
+    'loadProxyCredentials': 'IDictionary<string, object>',
     // nado's queryContracts (CSHARP_AWAITED_CORE_RETURNS), awaited from the pro subclass too
     'queryContracts': 'IDictionary<string, object>',
     // cs/ccxt/base/PredictionExchange.cs, retyped from Task<object> by
@@ -15327,6 +15328,9 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'fetchSxbetBookSnapshot': 'IDictionary<string, object>',
     'fetchSxbetProxy': 'IDictionary<string, object>',
     'loadQuoteToken': 'IDictionary<string, object>',
+    // polymarket: the cached safeDict() local or the freshly built credentials literal local
+    'createProxyCredentials': 'Dictionary<string, object>',
+    'loadProxyCredentials': 'IDictionary<string, object>',
     // a List<object> local or safeList() on every path (grvt, prediction sxbet/kalshi)
     'internalFetchTransfers': 'List<object>',
     'fetchRawMarketsPaged': 'List<object>',
@@ -15346,6 +15350,8 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'getAccountId': 'string?',
 };
 
+// cores whose Dictionary and IDictionary return arms join to the interface (collectionArmWidening)
+
 const awaitedCoreProofs = new WeakMap ();
 const awaitedCoreInProgress = new WeakSet ();
 
@@ -15358,7 +15364,7 @@ function awaitedCoreReturnIsAlreadyTyped (value, mapped, name) {
         return value.startsWith ('new List<object>');
     }
     if (mapped === 'Dictionary<string, object>' || mapped === 'IDictionary<string, object>') {
-        return value.startsWith ('new Dictionary<string, object>') || /^this\.safeDict2?N?\s*\(/.test (value) || (AWAITED_CORE_ARM_WIDENING.has (name) && /^this\.extend\s*\(/.test (value));
+        return value.startsWith ('new Dictionary<string, object>') || /^this\.safeDict2?N?\s*\(/.test (value) || (AWAITED_CORE_ARM_WIDENING.has (name) && /^this\.extend\s*\(/.test (value)) || (mapped === 'IDictionary<string, object>' && /^await this\.createProxyCredentials\s*\(/.test (value));
     }
     if (mapped === 'double?') {
         return /^this\.safeNumber(N|2)?\s*\(/.test (value);
@@ -15371,7 +15377,7 @@ function awaitedCoreReturnIsAlreadyTyped (value, mapped, name) {
 
 // every `return` of the method proves one type: a return with no expression boxes null,
 // an unprovable or conflicting path fails the whole proof (the conservative direction)
-const AWAITED_CORE_ARM_WIDENING = new Set ([ 'prepareWsStockParams' ]); // Dictionary + IDictionary returns -> IDictionary
+const AWAITED_CORE_ARM_WIDENING = new Set ([ 'prepareWsStockParams', 'loadProxyCredentials' ]); // Dictionary + IDictionary returns -> IDictionary
 function awaitedCoreBoxType (csharp, declaration) {
     if (!declaration.body) {
         return undefined;
