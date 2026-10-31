@@ -9280,6 +9280,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = hx11w9RustStrNLocalOptionString(rustContent); // hx11 W9
                 rustContent = hx11w9RustNumber2SinkLocalOptionF64R2(rustContent); // hx11 W9
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
+                rustContent = this.nativeFindLiteralCompare(rustContent); // closure-free find("lit") >= 0 tests
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10043,6 +10044,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = hx11w9RustStrNLocalOptionString(finalFile); // hx11 W9
         finalFile = hx11w9RustNumber2SinkLocalOptionF64R2(finalFile); // hx11 W9
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
+        finalFile = this.nativeFindLiteralCompare(finalFile); // closure-free find("lit") >= 0 tests
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13425,6 +13427,25 @@ impl std::ops::DerefMut for ${coreName} {
         if (!content.includes('is_some_and(|__s| __s.')) return content;
         const re = /(?<![A-Za-z0-9_.:])([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.as_str\(\)\.is_some_and\(\|__s\| __s\.(starts_with|ends_with)\(("(?:[^"\\]|\\.)+")\)\)/g;
         return content.replace(re, '$1.as_str().unwrap_or("").$2($3)');
+    }
+
+    // `Value::Int(X.as_str().and_then(|__s| __s.find("lit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)`
+    // -> `X.as_str().unwrap_or("").contains("lit")` (`> -1` alike; `< 0` -> `!..contains`). Exact for a NON-EMPTY
+    // literal: a non-`Str` receiver gives `""`, which contains no non-empty literal, like the `None` -> -1 arm.
+    // Also `X.as_deref()` Option<String> receivers. `> 0` / `== 0` need the position and keep the closure.
+    nativeFindLiteralCompare(content: string): string {
+        if (!content.includes('__s.find("')) return content;
+        const recv = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*(?:\\(\\))?)*';
+        const re = new RegExp(`(?<![A-Za-z0-9_.:])Value::Int\\((${recv})\\.(as_str|as_deref)\\(\\)\\.and_then\\(\\|__s\\| __s\\.find\\(("(?:[^"\\\\]|\\\\.)+")\\)\\)\\.map\\(\\|__i\\| __i as i64\\)\\.unwrap_or\\(-1\\)\\)\\.as_f64\\(\\)\\.unwrap_or\\(f64::NAN\\) (>=|>|<) \\(\\((0|-1)i64\\) as f64\\)`, 'g');
+        return content.replace(re, (m: string, x: string, how: string, lit: string, op: string, n: string, off: number, whole: string) => {
+            const yes = (op === '>=' && n === '0') || (op === '>' && n === '-1');
+            const no = op === '<' && n === '0';
+            if (!yes && !no) return m;
+            const text = `${no ? '!' : ''}${x}.${how}().unwrap_or("").contains(${lit})`;
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            return le - ls <= 400 && le - ls - m.length + text.length > 400 ? m : text;
+        });
     }
 
     // Dict read/membership keyed by a Str place, closure-free (the `|__m|`/`|__k|` closures counted as blobs):
