@@ -3284,6 +3284,13 @@ function isStaticallyStringExpression (printer, node, selfName) {
         case ts.SyntaxKind.ConditionalExpression:
             return isStaticallyStringExpression (printer, node.whenTrue, selfName)
                 && isStaticallyStringExpression (printer, node.whenFalse, selfName);
+        case ts.SyntaxKind.AsExpression:
+            // `Precise.stringNeg (x) as string` prints a String-typed call under a (String) cast
+            return node.type?.kind === ts.SyntaxKind.StringKeyword && ts.isCallExpression (node.expression)
+                && ts.isPropertyAccessExpression (node.expression.expression)
+                && ts.isIdentifier (node.expression.expression.expression)
+                && node.expression.expression.expression.text === 'Precise'
+                && HANDLE_PRECISE_STRING_STATICS.has (String (node.expression.expression.name.text));
         case ts.SyntaxKind.BinaryExpression:
             // `'lit' + r` prints Helpers.add(String, ..) -> String on every path
             return node.operatorToken.kind === ts.SyntaxKind.PlusToken
@@ -3462,6 +3469,13 @@ function receiverSafeStringLocalInfo (printer, node) {
 // local this module already narrowed to String (`(apiKey as string).toString ()`).
 // Both are redundant; print the operand alone (the printer's own AsExpression fallback
 // shape) so the safeString family has no `(String)` checkcast left in the test tier.
+// `Precise.stringXxx (..)` is declared `public static String` in Precise.java: `as string` is redundant
+function isPreciseStringStaticCall (node) {
+    return ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
+        && ts.isIdentifier (node.expression.expression) && node.expression.expression.text === 'Precise'
+        && HANDLE_PRECISE_STRING_STATICS.has (String (node.expression.name.text));
+}
+
 function patchJavaReceiverAccessorTypes (printer, narrowed) {
     if (printer._javaReceiverAccessorTypesPatched) {
         return;
@@ -3469,7 +3483,7 @@ function patchJavaReceiverAccessorTypes (printer, narrowed) {
     const upstreamAs = printer.printAsExpression.bind (printer);
     printer.printAsExpression = function (node, identation) {
         if (node?.type?.kind === ts.SyntaxKind.StringKeyword && node.expression !== undefined) {
-            if (isBaseReceiverSafeStringCall (printer, node.expression)) {
+            if (isBaseReceiverSafeStringCall (printer, node.expression) || isPreciseStringStaticCall (node.expression)) {
                 return printer.printNode (node.expression, identation);
             }
             if (narrowed !== undefined && ts.isIdentifier (node.expression)) {
