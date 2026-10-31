@@ -5477,7 +5477,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) []an
 	if (derivesubAccountId != nil) && (derivesubAccountId != "") {
 		// the venue rejects a string subaccount_id ("expected i64"), so coerce early
 		var subaccountIdInt int64 = this.ParseToInt(derivesubAccountId)
-		if _, hx15ok := this.Options["subaccount_id"]; !hx15ok {
+		if _, ok := this.Options["subaccount_id"]; !ok {
 			// remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
 			this.Options["subaccount_id"] = subaccountIdInt
 		}

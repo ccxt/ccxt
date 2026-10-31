@@ -2944,7 +2944,7 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 	// so we have to create a mapping
 	// - market-id from fetchMarkts:    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
 	// - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
-	if _, hx15ok := this.Options["futureMarketIdsForSymbols"]; !hx15ok {
+	if _, ok := this.Options["futureMarketIdsForSymbols"]; !ok {
 		this.Options["futureMarketIdsForSymbols"] = map[string]any{}
 	}
 	var futureMarketIdsForSymbols map[string]any = SafeMapTyped(this.Options, "futureMarketIdsForSymbols")
@@ -4709,10 +4709,10 @@ func (this *Htx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], option
 	return nil
 }
 func (this *Htx) ParseCurrency(rawCurrency any) map[string]any {
-	if _, hx15ok := this.Options["networkNamesByChainIds"]; !hx15ok {
+	if _, ok := this.Options["networkNamesByChainIds"]; !ok {
 		this.Options["networkNamesByChainIds"] = map[string]any{}
 	}
-	if _, hx15ok := this.Options["networkChainIdsByNames"]; !hx15ok {
+	if _, ok := this.Options["networkChainIdsByNames"]; !ok {
 		this.Options["networkChainIdsByNames"] = map[string]any{}
 	}
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
