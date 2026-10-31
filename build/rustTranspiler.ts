@@ -9280,10 +9280,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = hx11w9RustStrNLocalOptionString(rustContent); // hx11 W9
                 rustContent = hx11w9RustNumber2SinkLocalOptionF64R2(rustContent); // hx11 W9
                 rustContent = this.nativeDictKeyRead(rustContent); // closure-free Str-keyed dict reads, last
-                rustContent = this.nativeFindLiteralCompare(rustContent); // closure-free find("lit") >= 0 tests
-                rustContent = this.nativeSplitLiteralArray(rustContent); // closure-free literal split
-                rustContent = this.nativeCaseConvert(rustContent); // closure/match-free to_lowercase/to_uppercase, last
-                rustContent = this.nativeIntLiteralCastFold(rustContent); // literal Int casts folded, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10047,10 +10043,6 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = hx11w9RustStrNLocalOptionString(finalFile); // hx11 W9
         finalFile = hx11w9RustNumber2SinkLocalOptionF64R2(finalFile); // hx11 W9
         finalFile = this.nativeDictKeyRead(finalFile); // closure-free Str-keyed dict reads, last
-        finalFile = this.nativeFindLiteralCompare(finalFile); // closure-free find("lit") >= 0 tests
-        finalFile = this.nativeSplitLiteralArray(finalFile); // closure-free literal split
-        finalFile = this.nativeCaseConvert(finalFile); // closure/match-free to_lowercase/to_uppercase, last
-        finalFile = this.nativeIntLiteralCastFold(finalFile); // literal Int casts folded, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -12971,7 +12963,6 @@ impl std::ops::DerefMut for ${coreName} {
     // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
     r31Str(content: string): string {
         content = this.x39Affix(content); // hx5 X39
-        content = this.nativeLiteralAffixTest(content);
         // hx5 X41: pad_start/pad_end/to_fixed (and slice) are not r31 targets: no site has a proven `&str`/number
         // operand with in-range bounds, so the master `runtime::` helper call stays. Never print their bodies inline.
         const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // hx5 X39: starts_with/ends_with via x39Affix
@@ -13426,34 +13417,6 @@ impl std::ops::DerefMut for ${coreName} {
         return out + content.slice(at);
     }
 
-    // `X.as_str().is_some_and(|__s| __s.starts_with("lit"))` -> `X.as_str().unwrap_or("").starts_with("lit")`.
-    // Closure-free and exact for a NON-EMPTY literal: a non-`Str` receiver gives `""`, which starts/ends
-    // with no non-empty literal, so the result is `false` exactly like the `None` arm. Empty literals keep the closure.
-    nativeLiteralAffixTest(content: string): string {
-        if (!content.includes('is_some_and(|__s| __s.')) return content;
-        const re = /(?<![A-Za-z0-9_.:])([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.as_str\(\)\.is_some_and\(\|__s\| __s\.(starts_with|ends_with)\(("(?:[^"\\]|\\.)+")\)\)/g;
-        return content.replace(re, '$1.as_str().unwrap_or("").$2($3)');
-    }
-
-    // `Value::Int(X.as_str().and_then(|__s| __s.find("lit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)`
-    // -> `X.as_str().unwrap_or("").contains("lit")` (`> -1` alike; `< 0` -> `!..contains`). Exact for a NON-EMPTY
-    // literal: a non-`Str` receiver gives `""`, which contains no non-empty literal, like the `None` -> -1 arm.
-    // Also `X.as_deref()` Option<String> receivers. `> 0` / `== 0` need the position and keep the closure.
-    nativeFindLiteralCompare(content: string): string {
-        if (!content.includes('__s.find("')) return content;
-        const recv = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*(?:\\(\\))?)*';
-        const re = new RegExp(`(?<![A-Za-z0-9_.:])Value::Int\\((${recv})\\.(as_str|as_deref)\\(\\)\\.and_then\\(\\|__s\\| __s\\.find\\(("(?:[^"\\\\]|\\\\.)+")\\)\\)\\.map\\(\\|__i\\| __i as i64\\)\\.unwrap_or\\(-1\\)\\)\\.as_f64\\(\\)\\.unwrap_or\\(f64::NAN\\) (>=|>|<) \\(\\((0|-1)i64\\) as f64\\)`, 'g');
-        return content.replace(re, (m: string, x: string, how: string, lit: string, op: string, n: string, off: number, whole: string) => {
-            const yes = (op === '>=' && n === '0') || (op === '>' && n === '-1');
-            const no = op === '<' && n === '0';
-            if (!yes && !no) return m;
-            const text = `${no ? '!' : ''}${x}.${how}().unwrap_or("").contains(${lit})`;
-            const ls = whole.lastIndexOf('\n', off) + 1;
-            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
-            return le - ls <= 400 && le - ls - m.length + text.length > 400 ? m : text;
-        });
-    }
-
     // Dict read/membership keyed by a Str place, closure-free (the `|__m|`/`|__k|` closures counted as blobs):
     //   M.as_map().and_then(|__m| K.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)
     //     -> (if let (Some(__m), Some(__k)) = (M.as_map(), K.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })
@@ -13483,84 +13446,6 @@ impl std::ops::DerefMut for ${coreName} {
         const has = new RegExp(`${lead}(${P})\\.as_str\\(\\)\\.map\\(\\|__k\\| (${P})\\.contains_key\\(__k\\)\\)\\.unwrap_or\\(false\\)`, 'g');
         content = content.replace(has, (m: string, k: string, d: string, off: number, whole: string) =>
             guard(m, off, whole, `matches!(${k}.as_str(), Some(__k) if ${d}.contains_key(__k))`));
-        return content;
-    }
-
-    // Literal split into an array, closure-free (the `|__s|` closure counted as a blob):
-    //   Value::Array(X.as_str().map(|__s| __s.split("L").map(Value::from).collect()).unwrap_or_default())
-    //     -> Value::Array(if let Some(__s) = X.as_str() { __s.split("L").map(Value::from).collect() } else { Vec::new() })
-    // Same for `.as_deref()`. A non-Str X stays an empty array; X is a side-effect-free place path.
-    nativeSplitLiteralArray(content: string): string {
-        if (!content.includes('|__s| __s.split(')) return content;
-        const re = /(?<![A-Za-z0-9_.:])Value::Array\(([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.(as_str|as_deref)\(\)\.map\(\|__s\| __s\.split\(("(?:[^"\\]|\\.)*")\)\.map\(Value::from\)\.collect\(\)\)\.unwrap_or_default\(\)\)/g;
-        return content.replace(re, (m: string, x: string, f: string, lit: string, off: number, whole: string) => {
-            const text = `Value::Array(if let Some(__s) = ${x}.${f}() { __s.split(${lit}).map(Value::from).collect() } else { Vec::new() })`;
-            const ls = whole.lastIndexOf('\n', off) + 1;
-            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
-            const oldLen = le - ls;
-            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
-        });
-    }
-
-    // Case conversion of a Str place without closure/match (both counted as blobs):
-    //   X.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)
-    //   match &(E) { Value::Str(__s) => Value::Str(__s.to_lowercase().into()), _ => Value::Null }
-    //     -> (if let Some(__s) = X.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })
-    // X/E is evaluated once in both forms; non-Str stays Null. Same for to_uppercase. Skips lines that would cross 400.
-    nativeCaseConvert(content: string): string {
-        if (!content.includes('|__s| Value::Str(__s.to_') && !content.includes('=> Value::Str(__s.to_')) return content;
-        const P = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*';
-        const guard = (m: string, off: number, whole: string, text: string): string => {
-            const ls = whole.lastIndexOf('\n', off) + 1;
-            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
-            const oldLen = le - ls;
-            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
-        };
-        const meth = new RegExp(`(?<![A-Za-z0-9_.:])(${P})\\.as_str\\(\\)\\.map\\(\\|__s\\| Value::Str\\(__s\\.(to_lowercase|to_uppercase)\\(\\)\\.into\\(\\)\\)\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
-        content = content.replace(meth, (m: string, x: string, f: string, off: number, whole: string) =>
-            guard(m, off, whole, `(if let Some(__s) = ${x}.as_str() { Value::Str(__s.${f}().into()) } else { Value::Null })`));
-        const head = 'match &(';
-        const tailRe = /^ \{ Value::Str\(__s\) => Value::Str\(__s\.(to_lowercase|to_uppercase)\(\)\.into\(\)\), _ => Value::Null \}\)/;
-        let out = '';
-        let i = 0;
-        for (;;) {
-            const at = content.indexOf(head, i);
-            if (at < 0) { out += content.slice(i); break; }
-            let depth = 1; let j = at + head.length;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (c === '(') depth++; else if (c === ')') depth--; else if (c === '"' || c === '\n') { depth = -1; break; }
-                j++;
-            }
-            const t = depth === 0 ? tailRe.exec(content.slice(j, j + 140)) : null;
-            const prev = at > 0 ? content[at - 1] : '';
-            if (t === null || prev !== '(' || /[A-Za-z0-9_>\])]/.test(content[at - 2] ?? '')) { out += content.slice(i, at + head.length); i = at + head.length; continue; }
-            const expr = content.slice(at + head.length, j - 1);
-            const end = j + t[0].length; // includes the closing paren of the wrapping `(match ..)`
-            const repl = `if let Some(__s) = (${expr}).as_str() { Value::Str(__s.${t[1]}().into()) } else { Value::Null })`;
-            const old = content.slice(at - 1, end);
-            const text = '(' + repl;
-            const ls = content.lastIndexOf('\n', at) + 1; let le = content.indexOf('\n', at); if (le < 0) le = content.length;
-            const keep = (le - ls) <= 400 && (le - ls) - old.length + text.length > 400;
-            out += content.slice(i, at - 1) + (keep ? old : text);
-            i = end;
-        }
-        return out;
-    }
-
-    // Int-cast of a literal: `(match &(Value::Int(N)) { <Int/Float/Str/Bool arms>, _ => None }).unwrap_or(0)` -> `Ni64`
-    // (Int arm is identity), `match &(Value::Null)` -> `0i64`; `Value::Int(N).as_f64().unwrap_or(f64::NAN)` -> `(Nf64)`.
-    // Only the exact emitted arm text and |N| < 2^53 match; anything else is left alone.
-    nativeIntLiteralCastFold(content: string): string {
-        if (!content.includes('Some(*__n)') && !content.includes('.as_f64().unwrap_or(f64::NAN)')) return content;
-        const arms = ' \\{ Value::Int\\(__n\\) => Some\\(\\*__n\\), Value::Float\\(__f\\) => Some\\(\\*__f as i64\\), Value::Str\\(__s\\) => __s\\.parse::<i64>\\(\\)\\.ok\\(\\), Value::Bool\\(__b\\) => Some\\(if \\*__b \\{ 1 \\} else \\{ 0 \\}\\), _ => None \\}\\)\\.unwrap_or\\(0\\)';
-        const lead = '(?<![A-Za-z0-9_.:])';
-        const small = (n: string): boolean => Math.abs(Number(n)) < 2 ** 53;
-        content = content.replace(new RegExp(`\\(match &\\(Value::Int\\((-?[0-9]+)\\)\\)${arms}`, 'g'),
-            (m: string, n: string) => small(n) ? (n.startsWith('-') ? `(${n}i64)` : `${n}i64`) : m);
-        content = content.replace(new RegExp(`\\(match &\\(Value::Null\\)${arms}`, 'g'), '0i64');
-        content = content.replace(new RegExp(`${lead}Value::Int\\((-?[0-9]+)\\)\\.as_f64\\(\\)\\.unwrap_or\\(f64::NAN\\)`, 'g'),
-            (m: string, n: string) => small(n) ? `(${n}f64)` : m);
         return content;
     }
 
