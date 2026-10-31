@@ -3405,11 +3405,11 @@ public partial class limitless : PredictionExchange
             // tags scope: resolve the tags to limitless categories and page only those
             // categories' listings server-side — never the whole active listing
             List<object> requestedTags = this.safeList(parameters, "tags", new List<object>() {});
-            object listRaw = ccxt.BaseExchange.FromDictList(await this.FetchRawMarketsByTags(requestedTags, parameters));
-            int listRawLength = getArrayLength(listRaw);
+            List<Dictionary<string, object>> listRaw = await this.FetchRawMarketsByTags(requestedTags, parameters);
+            int listRawLength = (listRaw?.Count ?? 0);
             for (int i = 0; i < listRawLength; i++)
             {
-                rawMarkets.Add(getValue(listRaw, i));
+                rawMarkets.Add((listRaw != null && i < listRaw.Count ? listRaw[i] : null));
             }
         }
         if ((this.events == null))
@@ -3599,11 +3599,11 @@ public partial class limitless : PredictionExchange
         List<object> allRaw = new List<object>() {};
         for (int ci = 0; ci < categoryIdsLength; ci++)
         {
-            object categoryMarkets = ccxt.BaseExchange.FromDictList(await this.FetchRawActiveMarkets(parameters, (categoryIds != null && ci < categoryIds.Count ? categoryIds[ci] : null)));
-            int categoryMarketsLength = getArrayLength(categoryMarkets);
+            List<Dictionary<string, object>> categoryMarkets = await this.FetchRawActiveMarkets(parameters, (categoryIds != null && ci < categoryIds.Count ? categoryIds[ci] : null));
+            int categoryMarketsLength = (categoryMarkets?.Count ?? 0);
             for (int mi = 0; mi < categoryMarketsLength; mi++)
             {
-                object raw = getValue(categoryMarkets, mi);
+                object raw = (categoryMarkets != null && mi < categoryMarkets.Count ? categoryMarkets[mi] : null);
                 string? slug = this.safeString(raw, "slug");
                 if (((slug != null)) && !(((slug != null) && seen.ContainsKey(slug))))
                 {
