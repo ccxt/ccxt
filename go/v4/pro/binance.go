@@ -4881,11 +4881,7 @@ func (this *Binance) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 		// route to WebSocket API connection where the user data stream is subscribed
 		var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 		var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
-		if derefPtr := this.SafeString(wsApiDict, "spot", ""); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = (*this.SafeString(wsApiDict, "spot", ""))
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"
@@ -6030,11 +6026,7 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		// route orders to ws-api user data stream
 		var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 		var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
-		if derefPtr := this.SafeString(wsApiDict, "spot", ""); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = (*this.SafeString(wsApiDict, "spot", ""))
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"
@@ -6690,7 +6682,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	var paramsAuth any = nil
 	typeVarsubTypeparamsAuthVariable := this.ResolveAuthType("watchPositions", market, params)
 	typeVar = ccxt.GetValue(typeVarsubTypeparamsAuthVariable, 0)
-	subType = typeVarsubTypeparamsAuthVariable[1]
+	subType = ccxt.GetValue(typeVarsubTypeparamsAuthVariable, 1)
 	paramsAuth = typeVarsubTypeparamsAuthVariable[2]
 	// spot and margin have no positions - whatever still RESOLVES to spot
 	// or margin after the helper falls through to the derivatives stream
@@ -7301,11 +7293,7 @@ func (this *Binance) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	if (typeVar == "spot") || (typeVar == "margin") {
 		var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 		var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
-		if derefPtr := this.SafeString(wsApiDict, "spot", ""); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = (*this.SafeString(wsApiDict, "spot", ""))
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"

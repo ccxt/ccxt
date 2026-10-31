@@ -3133,11 +3133,7 @@ func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) Or
 		}
 		nativeLastUpdateTimestamp = lastUpdateTimestamp
 		orderType = this.SafeStringLower2(order, "original_order_type", "order_type")
-		if derefPtr := this.SafeBool(order, "reduce_only", false); derefPtr != nil {
-			reduceOnly = *derefPtr
-		} else {
-			reduceOnly = nil
-		}
+		reduceOnly = (*this.SafeBool(order, "reduce_only", false))
 		fee = map[string]any{
 			"cost":     this.SafeNumber(order, "commission"),
 			"currency": this.SafeString(marketResolved, "settle", this.SafeString(marketResolved, "quote")),

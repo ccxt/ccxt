@@ -2725,7 +2725,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 		}
 		requestextendedParamsVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, extendedParams)
 		request = requestextendedParamsVariable[0]
-		extendedParams = requestextendedParamsVariable[1]
+		extendedParams = GetValue(requestextendedParamsVariable, 1)
 		var merged map[string]any = this.Extend(request, extendedParams)
 		if isContract {
 			// unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
@@ -4199,7 +4199,6 @@ func (this *Poloniex) withdrawBody(ch chan AsyncResult[Transaction], code string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTag *string = nil
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
@@ -4823,7 +4822,6 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	if marginMode == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\""))
 	}
-	var hedged *bool = nil
 	hedged, paramsHedged := this.HandleParamBool(paramsMarginMode, "hedged", false)
 	if hedged != nil && *hedged == true {
 		if this.SafeString(paramsHedged, "posSide") == nil {

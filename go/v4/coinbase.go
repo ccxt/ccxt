@@ -4166,7 +4166,7 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if timeInForce != nil && *timeInForce == "PO" {
 		postOnly = true
 	} else {
-		postOnly = DerefScalar(this.SafeBool2(params, "postOnly", "post_only", false))
+		postOnly = (*this.SafeBool2(params, "postOnly", "post_only", false))
 	}
 	var endTime *string = this.SafeString(params, "end_time")
 	var stopDirection *string = this.SafeString(params, "stop_direction")
@@ -5780,7 +5780,6 @@ func (this *Coinbase) withdrawBody(ch chan AsyncResult[Transaction], code string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTag *string = nil
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets() == nil {

@@ -1273,11 +1273,7 @@ func (this *Weex) ParseMarket(market any) map[string]any {
 			isInverse = true
 		}
 	} else {
-		if derefPtr := this.SafeBool(market, "enableTrade", false); derefPtr != nil {
-			active = *derefPtr
-		} else {
-			active = nil
-		}
+		active = (*this.SafeBool(market, "enableTrade", false))
 	}
 	var amountPrecision *float64 = this.SafeNumber(market, "stepSize")
 	var pricePrecision *float64 = this.SafeNumber(market, "tickSize")

@@ -523,7 +523,6 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var methodName *string = nil
 	methodName, paramsMethod := this.HandleParamString(params, "callerMethodName", "watchTickers") // watchTicker passes its own name, so options.watchTicker still applies to it
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, methodName)
 	var defaultMethod string = *this.SafeString(options, "method", "ticker/{speed}/batch")
@@ -1507,8 +1506,8 @@ func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	orderRequestparamsValueVariable := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, paramsMarginMode)
-	var orderRequest map[string]any = ccxt.MapTyped(orderRequestparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(orderRequestparamsValueVariable[1])
+	var orderRequest map[string]any = orderRequestparamsValueVariable[0].(map[string]any)
+	var paramsValue map[string]any = orderRequestparamsValueVariable[1].(map[string]any)
 	var request map[string]any = this.Extend(orderRequest, paramsValue)
 	if marketType != nil && *marketType == "swap" {
 

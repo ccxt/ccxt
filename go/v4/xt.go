@@ -1843,11 +1843,7 @@ func (this *Xt) ParseMarket(market any) map[string]any {
 	}
 	var isActive any = false
 	if contract {
-		if derefPtr := this.SafeBool(market, "isOpenApi", false); derefPtr != nil {
-			isActive = *derefPtr
-		} else {
-			isActive = nil
-		}
+		isActive = (*this.SafeBool(market, "isOpenApi", false))
 	} else {
 		if (state != nil && *state == "ONLINE") && (*this.SafeBool(market, "tradingEnabled", false)) && (*this.SafeBool(market, "openapiEnabled", false)) {
 			isActive = true
@@ -5802,7 +5798,6 @@ func (this *Xt) withdrawBody(ch chan AsyncResult[Transaction], code string, amou
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var tagWithdrawTag *string = nil
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)

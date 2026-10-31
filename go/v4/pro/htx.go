@@ -1169,13 +1169,9 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 			subType = "inverse"
 		}
 	} else {
-		if derefPtr := this.SafeString(this.Options, "defaultType", "spot"); derefPtr != nil {
-			typeVar = *derefPtr
-		} else {
-			typeVar = nil
-		}
+		typeVar = (*this.SafeString(this.Options, "defaultType", "spot"))
 		typeVar = ccxt.DerefScalar(this.SafeString(params, "type", typeVar))
-		subType = ccxt.DerefScalar(this.SafeString2(this.Options, "subType", "defaultSubType", "linear"))
+		subType = (*this.SafeString2(this.Options, "subType", "defaultSubType", "linear"))
 		subType = ccxt.DerefScalar(this.SafeString(params, "subType", subType))
 	}
 	var symbolResolved *string = func() *string {
@@ -1309,11 +1305,7 @@ func (this *Htx) GetV5LinearChannelAndMessageHash(topic string, optionalArgs ...
 	if market != nil {
 		contractCode = market["id"]
 	} else {
-		if derefPtr := this.SafeString(params, "contract_code", "*"); derefPtr != nil {
-			contractCode = *derefPtr
-		} else {
-			contractCode = nil
-		}
+		contractCode = (*this.SafeString(params, "contract_code", "*"))
 	}
 	var channel string = topic
 	var messageHash string = topic
@@ -1378,13 +1370,9 @@ func (this *Htx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 			subType = "inverse"
 		}
 	} else {
-		if derefPtr := this.SafeString(this.Options, "defaultType", "spot"); derefPtr != nil {
-			typeVar = *derefPtr
-		} else {
-			typeVar = nil
-		}
+		typeVar = (*this.SafeString(this.Options, "defaultType", "spot"))
 		typeVar = ccxt.DerefScalar(this.SafeString(params, "type", typeVar))
-		subType = ccxt.DerefScalar(this.SafeString2(this.Options, "subType", "defaultSubType", "linear"))
+		subType = (*this.SafeString2(this.Options, "subType", "defaultSubType", "linear"))
 		subType = ccxt.DerefScalar(this.SafeString(params, "subType", subType))
 	}
 	var symbolResolved any = func() any {
