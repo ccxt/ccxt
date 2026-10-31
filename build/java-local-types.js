@@ -459,6 +459,85 @@ export function isGuardedStringHelper (name) {
     return JAVA_STRING_HELPER_PLAIN.has (name) || JAVA_STRING_HELPER_CAST.has (name);
 }
 
+// hx11 M510: base helpers declared `byte[]` in the hand-written Java base (BaseExchange.base64ToBinary
+// returns Encode.base64ToBinary's byte[] on every path). Declaration-only retype of the local.
+export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'base64ToBinary' ]);
+
+// the only consumers a byte[] local may feed: this.<m>(..) whose Java parameters are all Object,
+// so the static type change binds the same overload
+const JAVA_BYTES_CONSUMERS = new Set ([
+    'hmac', 'hash', 'eddsa', 'arraySlice', 'binaryToBase16', 'binaryToBase64', 'binaryToBase58', 'binaryConcat',
+]);
+
+function javaBytesLocalIsSafe (declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+        const parent = n.parent;
+        if (n === declaration.name || parent === undefined || (ts.isVariableDeclaration (parent) && parent.name === n)
+            || (ts.isPropertyAccessExpression (parent) && parent.name === n)) {
+            continue; // declaration, sibling-scope declaration or `obj.<name>` member read
+        }
+        if (!(ts.isCallExpression (parent) && parent.arguments.includes (n) && isThisCall (parent)
+            && JAVA_BYTES_CONSUMERS.has (String (parent.expression.name.text)))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function javaBytesHelperCall (printer, node) {
+    if (node === undefined || !isThisCall (node) || node.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const name = String (node.expression.name.text);
+    if (!JAVA_BYTES_HELPER_PLAIN.has (name) || LOCAL_THIS_RETURN_TYPES[name]?.type !== 'byte[]') {
+        return false;
+    }
+    // the helper is a field alias (`base64ToBinary = base64ToBinary`), so its call signature resolves into
+    // @scure/base: gate on the callee property's own declaration in ts/src/base/ instead
+    const declaration = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration?.resolve ();
+    const file = declaration?.getSourceFile?.().fileName;
+    helperDebug ('bytes ' + name + ' <- ' + file, node);
+    return file !== undefined && HELPER_SOURCE_FILE.test (file);
+}
+
+export function patchJavaBytesHelperLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaBytesHelperLocalsPatched) {
+        return;
+    }
+    printer._javaBytesHelperLocalsPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = javaBytesHelperCall (printer, declaration.initializer) && javaBytesLocalIsSafe (declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${name} = this.${String (declaration.initializer.expression.name.text)}(`;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        return printed.slice (0, at) + marker.replace (printer.VAR_TOKEN, 'byte[]') + printed.slice (at + marker.length);
+    };
+}
+
 // this.<name>(...) -> Java type the call sites print for the LOCALS. Declared return
 // types of the hand-written Java base (`cast` entries are declared Object but hand back
 // the named box on every path).
@@ -467,6 +546,7 @@ const LOCAL_THIS_RETURN_TYPES = {
     // BaseExchange.parseNumber is declared Double and returns a Double or null on every path
     'parseNumber': { type: 'Double' },
     'iso8601': { type: 'String' },
+    'base64ToBinary': { type: 'byte[]' },
     'safeInteger2': { type: 'Long', cast: '(Long)' },
     'safeSymbol': { type: 'String', cast: '(String)' },
     'safeCurrencyCode': { type: 'String', cast: '(String)' },
@@ -2955,7 +3035,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         return omitZero;
     }
     const accessor = LOCAL_THIS_RETURN_TYPES[name];
-    if (!asserted && accessor !== undefined && accessorResolvesToBase (printer, initializer, name, accessor)) {
+    if (!asserted && accessor !== undefined && accessor.type !== 'byte[]' && accessorResolvesToBase (printer, initializer, name, accessor)) {
         // hx2 java-03: entries with `defaultArg` are only the named box when the call's own
         // default argument is absent or a boolean literal — the accessor hands the caller's
         // default back untouched on the not-found / wrong-type path (section-7 header)
@@ -6285,6 +6365,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaStringListReturnLocals (transpiler);
     // (20) awaited ws list-stream locals read only as a cache (section 40)
     patchJavaWsListStreamLocals (transpiler);
+    // (21) hx11 M510: byte[] helper locals
+    patchJavaBytesHelperLocals (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
