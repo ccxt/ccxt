@@ -7912,7 +7912,7 @@ export default class binance extends Exchange {
         if (limit !== undefined && stock) {
             limitResolved = Math.min (limit, 100);
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             if (stock) {
                 request['size'] = limitResolved;
             } else {
@@ -9217,10 +9217,10 @@ export default class binance extends Exchange {
             limitContract = Math.min (limit, 1000);
         }
         let limitResolved: Int = limitContract;
-        if (limitContract !== undefined && stock) {
-            limitResolved = Math.min (limitContract, 100);
+        if (limit !== undefined && stock) {
+            limitResolved = Math.min (limit, 100);
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             if (stock) {
                 request['size'] = limitResolved;
             } else {
@@ -9236,7 +9236,10 @@ export default class binance extends Exchange {
             [ isPortfolioMargin, paramsPaginate ] = this.handleOptionBoolAndParams2 (paramsPaginate, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if (stock) {
                 // request['endTime'] holds endTime whenever endTime is defined
-                const endTimeResolved = this.safeInteger (request, 'endTime', this.milliseconds ());
+                let endTimeResolved = this.milliseconds ();
+                if (endTime !== undefined) {
+                    endTimeResolved = endTime;
+                }
                 if (endTime === undefined) {
                     request['endTime'] = endTimeResolved;
                 }
