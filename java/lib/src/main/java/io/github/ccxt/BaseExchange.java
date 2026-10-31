@@ -1806,7 +1806,7 @@ public class BaseExchange {
         return arraySlice(array, first, null);
     }
 
-    public Object stringToCharsArray(Object str) {
+    public List<String> stringToCharsArray(Object str) {
         if (str == null) {
             return null;
         }

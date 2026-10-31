@@ -368,7 +368,7 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
 
 // base methods whose every return is the own `symbols` parameter (checkcast) or a String
 // accumulator list (section 26) print `java.util.List<String>`; locals take it in section 31
-export const JAVA_STRING_LIST_RETURN_METHODS = new Set ([ 'marketIds', 'marketSymbols' ]);
+export const JAVA_STRING_LIST_RETURN_METHODS = new Set ([ 'marketIds', 'marketSymbols', 'stringToCharsArray' ]);
 const JAVA_STRING_LIST_TYPE = 'java.util.List<String>';
 
 // one name in both tables is a hard bug: the fixed per-name return type would differ
