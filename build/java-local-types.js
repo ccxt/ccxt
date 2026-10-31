@@ -193,7 +193,6 @@ import path from 'node:path';
 import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import { ts, urlsDescribeStringProducer } from './csharp-local-types.js';
-import { javaVenueCalleeType, installHx10w9JD01, invalidateHx10w9JD01 } from './hx10w9-JD01.js';
 
 // ===== SS-15 rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
 //
@@ -1710,11 +1709,11 @@ function syncCoreCallType (printer, node) {
     if (methodName === undefined || JAVA_CORE_SYNC_DECLINED.has (methodName)) {
         return undefined;
     }
-    // hx10w9-JD01: a generated venue callee's own printed signature decides here, not the
+    // a generated venue callee's own printed signature decides here (printer rule), not the
     // previous on-disk generation of the file this build rewrites
-    const emitted = javaVenueCalleeType (printer, node);
+    const emitted = printer.javaVenueCalleeReturnType?.(node);
     if (emitted !== undefined) {
-        return emitted.type;
+        return emitted;
     }
     const entry = javaCoreDeclarationTable (node)?.get (methodName);
     if (entry === undefined || entry.future || entry.types.size !== 1) {
@@ -5013,7 +5012,7 @@ function handleUntilOptionEchoType (printer, assignment, index, element) {
         return undefined;
     }
     const printed = (declaration === undefined || typeof printer.javaDeclaredLocalTypeResolver !== 'function')
-        ? undefined : printer.javaDeclaredLocalTypeResolver (declaration);
+        ? undefined : printer.javaDeclaredLocalType (declaration);
     return (printed === JAVA_STRUCTURE_TYPE || printed === 'Map<String, Object>') ? JAVA_STRUCTURE_TYPE : undefined;
 }
 
@@ -10759,14 +10758,6 @@ export function installJavaDeclaredLocalTypes (transpiler) {
     const earlier = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     printer.javaDeclaredLocalTypeResolver = (declaration) => javaPublishedLocalType (printer, declaration, earlier)
         ?? declaredTypes.get (declaration);
-    // hx11 w6: the fallback must wrap THIS resolver. Installed from installJavaLocalTypes (before any
-    // resolver exists) it was a silent no-op, so a pro file's answer about a REST callee's local
-    // depended on whether that REST file had been printed earlier in the same worker thread.
-    installHx10w9JD01 (printer, (declaration) => {
-        // only the family this unit decides: a sync whole-call to a generated venue method
-        const initializer = declaration?.initializer === undefined ? undefined : unwrapParens (declaration.initializer);
-        return initializer === undefined ? undefined : javaVenueCalleeType (printer, initializer)?.type;
-    });
     // a typed destructuring element passed to a core parameter of its own type needs no conversion
     const upstreamDeclaredAs = printer.javaLocalDeclaredAs?.bind (printer);
     if (upstreamDeclaredAs !== undefined) {
@@ -11518,7 +11509,7 @@ function concreteDeclaredType (printer, node) {
         || typeof printer.javaDeclaredLocalTypeResolver !== 'function') {
         return undefined;
     }
-    const printed = String (printer.javaDeclaredLocalTypeResolver (declaration) ?? '').replace (/^java\.util\./, '');
+    const printed = String (printer.javaDeclaredLocalType (declaration) ?? '').replace (/^java\.util\./, '');
     if (printed === 'Map<String, Object>') {
         return JAVA_STRUCTURE_TYPE;
     }
@@ -12522,7 +12513,7 @@ function javaOmitSourceIsMap (printer, source, depth) {
             ? printer.javaOptionalParameterType?.(declaration) : printer.javaNativeParameterType?.(declaration);
     } else {
         // a tuple binding / write target typed by the handle* section publishes in HANDLE_TYPED_BINDINGS
-        type = printer.javaDeclaredLocalTypeResolver?.(declaration) ?? HANDLE_TYPED_BINDINGS.get (declaration)
+        type = printer.javaDeclaredLocalType?.(declaration) ?? HANDLE_TYPED_BINDINGS.get (declaration)
             ?? h2kJ04PairBoundType (declaration);
     }
     if (String (type ?? '').replace (/^java\.util\./, '') !== 'Map<String, Object>') {
@@ -18094,7 +18085,7 @@ function j13DeclaredListLocal (printer, identifier) {
     if (declaration === undefined || !ts.isVariableDeclaration (declaration)) {
         return false;
     }
-    const type = String (printer.javaDeclaredLocalTypeResolver?.(declaration) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    const type = String (printer.javaDeclaredLocalType?.(declaration) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
     return type === 'List<Object>';
 }
 
@@ -18936,7 +18927,6 @@ export function installJ17StringReturns (transpiler) {
         for (const member of node.members) {
             printer.javaReturnTypeCache?.delete?.(member);
         }
-        invalidateHx10w9JD01 ();
         const printed = new Map ();
         for (const member of order) {
             printed.set (member, printer.printNode (member, identation + 1));
