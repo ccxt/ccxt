@@ -181,6 +181,7 @@ class OrderRouter:
         :param str [config['baseUrl']]: router base url, defaults to https://docs.ccxt.com/router/api
         :param int [config['timeoutMs']]: request timeout in milliseconds, defaults to 30000
         :param float [config['maxNotionalUsd']]: per-trade USD notional cap, an opt-in guardrail honoured exactly at whatever value you choose; omit it, or pass 0, for no cap
+        :param str [config['userAgent']]: optional User-Agent header sent with every router request, so the service can attribute traffic, e.g. 'ccxt-mcp/1.2.3 (ccxt 4.5.6)'. Omitted or '' keeps the default User-Agent of the HTTP client
         :returns OrderRouter: a router client
         """
         # The service dropped API keys in favour of per-IP rate limiting, so an empty key is
@@ -188,6 +189,9 @@ class OrderRouter:
         # ignored, so the same client works against a keyless server and one still expecting
         # a credential.
         self.api_key = self.string_at(config, 'apiKey', '')
+        # sent as the User-Agent header when non-empty, so the router service can attribute
+        # traffic to the integration that made it
+        self.user_agent = self.string_at(config, 'userAgent', '')
         base_url = self.string_at(config, 'baseUrl', OrderRouter.DEFAULT_BASE_URL)
         while len(base_url) > 0 and base_url[-1] == '/':
             base_url = base_url[:-1]
@@ -780,6 +784,11 @@ class OrderRouter:
             # longer one is dropped rather than sent and rejected
             if len(request_id) <= 200:
                 headers['x-request-id'] = request_id
+        # only when configured: an empty value keeps the HTTP client's own default User-Agent
+        # rather than sending a blank one. (Browsers forbid setting User-Agent, so the TS port
+        # silently drops it there; no such restriction applies here.)
+        if self.user_agent != '':
+            headers['User-Agent'] = self.user_agent
         retry_after = ''
         rate_limit_reset = ''
         try:

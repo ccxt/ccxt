@@ -133,6 +133,10 @@ class OrderRouter {
 
     apiKey: string;
 
+    //  sent as the User-Agent header when non-empty, so the router service can attribute
+    //  traffic to the integration that made it (e.g. 'ccxt-mcp/1.2.3 (ccxt 4.5.6)')
+    userAgent: string;
+
     baseUrl: string;
 
     //  exchangeId -> ccxt exchange instance, optional. See the constructor.
@@ -186,6 +190,7 @@ class OrderRouter {
      * @param {bool} [config.trackBalances] read those venues' wallets and route on what you can actually fund, default false. Off, fetchRoute never touches a venue and stays a single HTTP request
      * @param {int} [config.timeoutMs] request timeout in milliseconds, defaults to 30000
      * @param {float} [config.maxNotionalUsd] optional per-trade USD notional guardrail. Omitted or 0 means NO cap and no notional check at all; any positive value is honoured exactly, never clamped
+     * @param {string} [config.userAgent] optional User-Agent header sent with every router request, so the service can attribute traffic, e.g. 'ccxt-mcp/1.2.3 (ccxt 4.5.6)'. Omitted or '' keeps the runtime's default User-Agent. Browsers forbid setting it, so there it is silently dropped
      * @returns {OrderRouter} a router client
      */
     constructor (config: Dict = {}) {
@@ -194,6 +199,7 @@ class OrderRouter {
         //  ignored: the keyless server drops the header, a server still expecting one is
         //  satisfied by it, and the same client works against both across the deploy.
         this.apiKey = this.stringAt (config, 'apiKey', '');
+        this.userAgent = this.stringAt (config, 'userAgent', '');
         let baseUrl = this.stringAt (config, 'baseUrl', OrderRouter.DEFAULT_BASE_URL);
         while (baseUrl.length > 0 && baseUrl[baseUrl.length - 1] === '/') {
             baseUrl = baseUrl.slice (0, baseUrl.length - 1);
@@ -975,6 +981,12 @@ class OrderRouter {
             if (requestId.length <= 200) {
                 headers['x-request-id'] = requestId;
             }
+        }
+        //  only when configured: an empty value keeps the runtime's own default User-Agent
+        //  rather than sending a blank one. Browsers treat User-Agent as a forbidden header
+        //  name, so there fetch silently drops it and the browser's own value goes out.
+        if (this.userAgent !== '') {
+            headers['User-Agent'] = this.userAgent;
         }
         const options: Dict = { 'method': method, 'headers': headers };
         if (method === 'POST') {

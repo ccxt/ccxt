@@ -1845,6 +1845,30 @@ test ('a keyless client sends no x-api-key header at all, rather than an empty o
     }
 });
 
+test ('userAgent is sent as User-Agent only when configured', async () => {
+    //  the default must leave the runtime's own User-Agent alone, never send a blank one
+    const stub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'baseUrl': 'https://example.test/api' });
+        assert.strictEqual (router.userAgent, '');
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        const headers = stub.calls[0]['options']['headers'];
+        assert.strictEqual ('User-Agent' in headers, false, 'no User-Agent override by default');
+    } finally {
+        stub.restore ();
+    }
+    const uaStub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'baseUrl': 'https://example.test/api', 'userAgent': 'ccxt-mcp/1.0.0 (ccxt 4.0.0)' });
+        assert.strictEqual (router.userAgent, 'ccxt-mcp/1.0.0 (ccxt 4.0.0)');
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        const headers = uaStub.calls[0]['options']['headers'];
+        assert.strictEqual (headers['User-Agent'], 'ccxt-mcp/1.0.0 (ccxt 4.0.0)');
+    } finally {
+        uaStub.restore ();
+    }
+});
+
 test ('a POST carries a JSON body and the key, a GET carries no body at all', async () => {
     const stub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
     try {

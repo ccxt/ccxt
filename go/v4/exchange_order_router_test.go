@@ -28,6 +28,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"sort"
@@ -2913,5 +2915,45 @@ func TestOrderRouterJoinBalancesSeparator(t *testing.T) {
 	}
 	if qualified != "mexc.USDT:100" {
 		t.Fatalf("a qualified one does, got %s", qualified)
+	}
+}
+
+// userAgent is sent as User-Agent only when configured. Transport bypasses Request's
+// http.Client, so this drives Request directly against a loopback httptest server —
+// local to the process, nothing leaves the machine.
+func TestOrderRouterUserAgentHeader(t *testing.T) {
+	seen := ""
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen = r.Header.Get("User-Agent")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("{\"status\":\"ok\"}"))
+	}))
+	defer server.Close()
+	// the default leaves net/http's own User-Agent alone, never a blank or custom one
+	router, err := NewOrderRouter(map[string]any{"baseUrl": server.URL})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if router.UserAgent != "" {
+		t.Fatalf("no User-Agent override by default, got %q", router.UserAgent)
+	}
+	if _, err := router.Request(server.URL+"/health", "GET", nil); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(seen, "Go-http-client/") {
+		t.Fatalf("the default request keeps net/http's User-Agent, got %q", seen)
+	}
+	configured, err := NewOrderRouter(map[string]any{"baseUrl": server.URL, "userAgent": "ccxt-mcp/1.0.0 (ccxt 4.0.0)"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if configured.UserAgent != "ccxt-mcp/1.0.0 (ccxt 4.0.0)" {
+		t.Fatalf("the configured userAgent is stored, got %q", configured.UserAgent)
+	}
+	if _, err := configured.Request(server.URL+"/health", "GET", nil); err != nil {
+		t.Fatal(err)
+	}
+	if seen != "ccxt-mcp/1.0.0 (ccxt 4.0.0)" {
+		t.Fatalf("the configured userAgent is sent, got %q", seen)
 	}
 }

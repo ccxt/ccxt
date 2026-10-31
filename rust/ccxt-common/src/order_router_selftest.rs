@@ -353,6 +353,71 @@ fn config_with(entries: &[(&str, Value)]) -> Value {
     Value::Map(config)
 }
 
+/// Serves exactly one HTTP request on a loopback port and hands back the raw request
+/// head, so a test can read the headers `request` really sent. Local to the process:
+/// nothing leaves the machine.
+fn capture_one_request(r: &OrderRouter) -> Result<String, String> {
+    use std::io::{Read, Write};
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").map_err(|e| e.to_string())?;
+    let address = listener.local_addr().map_err(|e| e.to_string())?;
+    let server = std::thread::spawn(move || -> String {
+        let mut head = Vec::new();
+        if let Ok((mut stream, _)) = listener.accept() {
+            let mut buffer = [0u8; 1024];
+            while !head.windows(4).any(|w| w == b"\r\n\r\n") {
+                match stream.read(&mut buffer) {
+                    Ok(0) | Err(_) => break,
+                    Ok(n) => head.extend_from_slice(&buffer[..n]),
+                }
+            }
+            let body = "{\"status\":\"ok\"}";
+            let reply = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                body.len(),
+                body
+            );
+            let _ = stream.write_all(reply.as_bytes());
+        }
+        String::from_utf8_lossy(&head).to_string()
+    });
+    let url = format!("http://{address}/health");
+    block_on(r.request(&url, "GET", &Value::Null, "")).map_err(|e| e.to_string())?;
+    server.join().map_err(|_| "the loopback server panicked".to_string())
+}
+
+fn header_line(head: &str, name: &str) -> String {
+    let prefix = format!("{}:", name.to_lowercase());
+    for line in head.split("\r\n") {
+        if line.to_lowercase().starts_with(&prefix) {
+            return line[prefix.len()..].trim().to_string();
+        }
+    }
+    String::new()
+}
+
+fn user_agent_is_sent_only_when_configured() -> Result<(), String> {
+    // the default leaves reqwest's own behaviour alone (it sends no User-Agent at all),
+    // never a blank or custom one
+    let plain = OrderRouter::new(&config_with(&[])).map_err(|e| e.to_string())?;
+    if !plain.user_agent().is_empty() {
+        return Err("no User-Agent override by default".to_string());
+    }
+    let head = capture_one_request(&plain)?;
+    if header_line(&head, "User-Agent") != "" {
+        return Err(format!("the default request sends no custom User-Agent, got {head:?}"));
+    }
+    let configured = OrderRouter::new(&config_with(&[("userAgent", Value::Str("ccxt-mcp/1.0.0 (ccxt 4.0.0)".into()))]))
+        .map_err(|e| e.to_string())?;
+    if configured.user_agent() != "ccxt-mcp/1.0.0 (ccxt 4.0.0)" {
+        return Err("the configured userAgent is stored".to_string());
+    }
+    let head = capture_one_request(&configured)?;
+    if header_line(&head, "User-Agent") != "ccxt-mcp/1.0.0 (ccxt 4.0.0)" {
+        return Err(format!("the configured userAgent is sent, got {head:?}"));
+    }
+    Ok(())
+}
+
 fn capped_client(cap: f64) -> Result<OrderRouter, String> {
     let config = config_with(&[
         ("apiKey", Value::Str("k".into())),
@@ -1647,6 +1712,7 @@ pub fn run() -> Result<usize, String> {
         ("fixture: formatNumber spells one number one way in all six languages", Box::new(|| fixture_format_number(&router()?, &fixture()?))),
         ("fixture: a fee in the acquired asset resizes what the next hop is sized on", Box::new(|| fixture_fee_netting(&router()?, &fixture()?))),
         ("constructor: the service is public, and maxNotionalUsd is an opt-in guardrail at any size", Box::new(constructor_guards)),
+        ("userAgent is sent as User-Agent only when configured", Box::new(user_agent_is_sent_only_when_configured)),
         ("a hand-built plan carrying only the required fields is executable", Box::new(|| a_hand_built_plan_with_only_the_required_fields_is_executable(&router()?))),
         ("the derived limit price and notional follow amount and expectedPrice", Box::new(|| derived_limit_price_and_notional_follow_amount_and_expected_price(&router()?))),
         ("the limit price sits on the side that costs you, and only there", Box::new(|| limit_price_side(&router()?))),

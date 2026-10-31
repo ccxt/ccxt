@@ -164,6 +164,10 @@ public class OrderRouter
     //  properties are named
     public string apiKey { get; private set; }
 
+    //  sent as the User-Agent header when non-empty, so the router service can attribute
+    //  traffic to the integration that made it
+    public string userAgent { get; private set; }
+
     public string baseUrl { get; private set; }
 
     //  exchangeId -> ccxt exchange instance, optional. See the constructor.
@@ -219,7 +223,9 @@ public class OrderRouter
     /// apiKey (optional; the service is public and rate-limits by IP, but a key supplied here is still sent as the x-api-key header), baseUrl (defaults to
     /// https://docs.ccxt.com/router/api), timeoutMs (defaults to 30000) and
     /// maxNotionalUsd (an opt-in guardrail honoured exactly at whatever value
-    /// you choose; omit it, or pass 0, for no cap).
+    /// you choose; omit it, or pass 0, for no cap), userAgent (optional User-Agent header
+    /// sent with every router request so the service can attribute traffic, e.g.
+    /// 'ccxt-mcp/1.2.3 (ccxt 4.5.6)'; omitted or "" keeps HttpClient's default).
     /// </param>
     public OrderRouter(dict config = null)
     {
@@ -227,6 +233,7 @@ public class OrderRouter
         //  the normal case and must not throw. A key supplied anyway is CARRIED rather than
         //  ignored, so the same client works against both servers.
         this.apiKey = this.StringAt(config, "apiKey", "");
+        this.userAgent = this.StringAt(config, "userAgent", "");
         var url = this.StringAt(config, "baseUrl", DefaultBaseUrl);
         while (url.Length > 0 && url[url.Length - 1] == '/')
         {
@@ -1279,6 +1286,13 @@ public class OrderRouter
                         //  the service caps this at 200 characters and mints its own when
                         //  absent, so a longer one is dropped rather than sent and rejected
                         message.Headers.TryAddWithoutValidation("x-request-id", requestId);
+                    }
+                    if (this.userAgent != "")
+                    {
+                        //  only when configured: an empty value keeps HttpClient's own default
+                        //  rather than sending a blank one. (Browsers forbid setting User-Agent,
+                        //  so the TS port silently drops it there; no such restriction here.)
+                        message.Headers.TryAddWithoutValidation("User-Agent", this.userAgent);
                     }
                     if (method == "POST")
                     {
