@@ -17,7 +17,7 @@ const RECEIVER_CALL = /(?<![\w.])(?:ccxt\.)?(?:AddElementToObject|GetValue|InOp|
 // slices. `any` locals are absent on purpose — they may hold a *int64 / *string box.
 const PLAIN_VALUE_TYPES = /^(?:map\[|\[\]|(?:\*)?ccxt\.[A-Z]|(?:\*)?(?:ArrayCache|OrderBook))/;
 
-type Decl = { 'type': string, 'line': number, 'init'?: string };
+export type Decl = { 'type': string, 'line': number, 'init'?: string };
 
 type Span = { s: number, e: number, text: string };
 
@@ -183,7 +183,7 @@ function hx10G10LiteralDefaultPtr (maskedBody: string[], name: string, decl: Dec
 
 // the key as Go prints it: a string literal, a `string` local, or a `*string` local some earlier
 // deref or enclosing nil guard proves non-nil (a nil key would have panicked or been skipped there)
-function hx10G10Key (maskedBody: string[], decls: Map<string, Decl>, key: string, siteLine: number): string | undefined {
+export function hx10G10Key (maskedBody: string[], decls: Map<string, Decl>, key: string, siteLine: number): string | undefined {
     if (key.startsWith ('"')) {
         return key;
     }
