@@ -12291,6 +12291,28 @@ export function patchJavaTypedListElementLocals (transpiler) {
 // `Object x = null;` whose every non-null write already prints one scalar box (String / Long /
 // Double / Boolean) with no cast. Uses resolve by symbol, so a same-named sibling block local
 // is its own candidate; the one-box families' use scans gate the retype.
+function omitZeroConstStringLocal (printer, identifier) {
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+        const init = declaration !== undefined && ts.isVariableDeclaration (declaration) && ts.isIdentifier (declaration.name)
+            && (declaration.parent.flags & ts.NodeFlags.Const) !== 0 ? unwrapParens (declaration.initializer) : undefined;
+        const arg = init !== undefined && isThisCall (init) && init.expression.name.text === 'omitZero' && init.arguments.length === 1
+            ? unwrapParens (init.arguments[0]) : undefined;
+        const argDeclaration = arg !== undefined && ts.isIdentifier (arg)
+            ? printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration?.resolve () : undefined;
+        // the argument is a const String local (base safeString*), so the String overload binds
+        if (argDeclaration === undefined || !ts.isVariableDeclaration (argDeclaration)
+            || !isStaticallyStringExpression (printer, unwrapParens (argDeclaration.initializer), undefined)
+            || !HELPER_SOURCE_FILE.test (resolvedSignatureFile (printer, init) ?? '')) {
+            return false;
+        }
+        const isProFile = /[\\\\/]pro[\\\\/]/.test (declaration.getSourceFile ().fileName);
+        return isSafeToNarrow (printer, declaration, String (declaration.name.text), 'String', isProFile, { type: 'String', nonNull: false, strictPlus: true });
+    } catch (e) {
+        return false;
+    }
+}
+
 function nullScalarWriteType (printer, node) {
     const value = unwrapParens (node);
     if (value === undefined) {
@@ -12300,9 +12322,16 @@ function nullScalarWriteType (printer, node) {
         return 'null';
     }
     if (ts.isIdentifier (value)) {
-        // an element binding section 4/28 typed, or a local/param the printer declares String
-        return handleTypedBindingReadType (printer, value)
-            ?? (isDeclaredStringIdentifier (printer, value) ? JAVA_DATAFLOW_STRING : undefined);
+        // an element binding section 4/28 typed, a String-printed local/param, or a later-printed
+        // `const x = this.omitZero (<String>)` local that the declaration scan proves String
+        return handleTypedBindingReadType (printer, value) ?? (isDeclaredStringIdentifier (printer, value) || omitZeroConstStringLocal (printer, value)
+            ? JAVA_DATAFLOW_STRING : undefined);
+    }
+    if (ts.isConditionalExpression (value)) {
+        // arms that are each String (or null) keep the Java conditional String
+        const arms = [ value.whenTrue, value.whenFalse ].map ((arm) => nullScalarWriteType (printer, arm));
+        return arms.every ((t) => t === JAVA_DATAFLOW_STRING || t === 'null') && arms.includes (JAVA_DATAFLOW_STRING)
+            ? JAVA_DATAFLOW_STRING : undefined;
     }
     const numeric = numericFamilyCallType (printer, value);
     if (numeric === 'Long' || numeric === 'Double') {
