@@ -478,7 +478,7 @@ function g04ParamReads (lines: string[], masked: string[], joined: string, start
     return true;
 }
 
-export function g04BookSides (content: string): string {
+export function g04BookSides (content: string, only?: RegExp): string {
     if (!/GetValue\(\w+, "(?:asks|bids)"\)/.test (content)) {
         return content;
     }
@@ -518,7 +518,9 @@ export function g04BookSides (content: string): string {
         for (const name of Object.keys (recvs)) {
             const reads = recvs[name];
             if (new RegExp ('\\b' + name + ' any\\b').test (sig)) {
-                g04ParamReads (lines, masked, joined, start, end, head[1], name, sig, reads, pkg);
+                if ((only === undefined) || only.test (head[1])) {
+                    g04ParamReads (lines, masked, joined, start, end, head[1], name, sig, reads, pkg);
+                }
             } else {
                 g04LocalReads (lines, masked, start, end, name, reads, pkg);
             }
