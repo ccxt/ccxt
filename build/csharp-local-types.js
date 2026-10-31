@@ -2698,6 +2698,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'handleToken': 'string?',
     'authenticateRest': 'string?',
     'loadMultiSignAddress': 'string?',
+    // lighter fetchNonce (typed core Int64, every return parseToInt): FromInt64 is skipped as identity, bare Int64 await
+    'fetchNonce': 'Int64',
 };
 
 // `await promiseAll (...)` — the printer's rewrite of `await Promise.all (<one arg>)`
