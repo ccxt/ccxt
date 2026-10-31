@@ -11517,7 +11517,11 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // (U45, same declaration: this.orderBook() / indexedOrderBook() / countedOrderBook() writes)
         const orderbookEdges = (csharpType === 'ccxt.pro.IOrderBook') ? ORDERBOOK_WIDENING_EDGES : undefined;
         // join the initializer with every later write, widening only along box-identical edges
-        const dictionaryLiteral = declaration.initializer?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+        // hx11 w8: `let account: Dict = this.account ()` (base Dictionary) later stores a safeDict IDictionary
+        const dictionaryLiteral = declaration.initializer?.kind === ts.SyntaxKind.ObjectLiteralExpression
+            || (csharpType === 'Dictionary<string, object>' && declaration.initializer?.kind === ts.SyntaxKind.CallExpression
+                && declaration.initializer.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && declaration.initializer.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && declaration.initializer.expression.name?.text === 'account');
         csharpType = typeFromValueOrWrites (csharp, scope, declaration, sourceName, csharpType, ctx, copyEdges ?? cacheMemberEdges ?? orderbookEdges ?? (dictionaryLiteral ? DICTIONARY_LITERAL_WIDENING_EDGES : undefined));
     }
     if (hx11w9StringCopy && csharpType !== 'string') {
