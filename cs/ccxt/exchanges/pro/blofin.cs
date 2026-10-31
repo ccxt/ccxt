@@ -1029,7 +1029,7 @@ public partial class blofin : ccxt.blofin
             { "op", "unsubscribe" },
             { "args", topics },
         };
-        object url = getValue(getValue(getValue(((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null)), "ws"), marketType), "public");
+        object url = getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType), "public");
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
     }
 

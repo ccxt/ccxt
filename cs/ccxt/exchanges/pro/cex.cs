@@ -1306,12 +1306,12 @@ public partial class cex : ccxt.cex
         // fill the existing cache when there is one: replacing it would orphan
         // consumers holding a reference to the old cache (they would never see
         // candles appended after a re-subscription)
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown"));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown"));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["unknown"] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["unknown"] = stored;
         }
         List<object> sorted = this.sortBy(data, 0);
         for (int i = 0; i < (sorted?.Count ?? 0); i++)

@@ -6022,9 +6022,9 @@ public partial class BaseExchange
             if (inOp(currencies, code))
             {
                 return ccxt.BaseExchange.ToDict(getValue(currencies, code));
-            } else if (((currenciesById != null)) && ((currenciesById != null && code != null && currenciesById.ContainsKey(code))))
+            } else if (((currenciesById != null)) && ((currenciesById != null && currenciesById.ContainsKey(code))))
             {
-                return ccxt.BaseExchange.ToDict((currenciesById != null && code != null && currenciesById.ContainsKey(code) ? currenciesById[code] : null));
+                return ccxt.BaseExchange.ToDict((currenciesById != null && currenciesById.ContainsKey(code) ? currenciesById[code] : null));
             }
         }
         throw new ExchangeError (((this.id + " does not have currency code ") + code)) ;
