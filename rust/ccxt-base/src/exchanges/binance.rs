@@ -11980,7 +11980,7 @@ impl BinanceCore {
         if (limit != Value::Null) && stock.as_bool() == Some(true) {
             limitResolved = crate::runtime::Math::min(&limit, &Value::Int(100));
         }
-        if (limitResolved != Value::Null) {
+        if (limit != Value::Null) {
             if stock.as_bool() == Some(true) {
                 request.insert("size".into(), limitResolved.clone());
             }  else {
@@ -13320,11 +13320,11 @@ impl BinanceCore {
         if (limit != Value::Null) && isContractLimit {
             limitContract = crate::runtime::Math::min(&limit, &Value::Int(1000));
         }
-        let mut limitResolved: Value = limitContract.clone();
-        if (limitContract != Value::Null) && stock.as_bool() == Some(true) {
-            limitResolved = crate::runtime::Math::min(&limitContract, &Value::Int(100));
+        let mut limitResolved: Value = limitContract;
+        if (limit != Value::Null) && stock.as_bool() == Some(true) {
+            limitResolved = crate::runtime::Math::min(&limit, &Value::Int(100));
         }
-        if (limitResolved != Value::Null) {
+        if (limit != Value::Null) {
             if stock.as_bool() == Some(true) {
                 request.insert("size".into(), limitResolved.clone());
             }  else {

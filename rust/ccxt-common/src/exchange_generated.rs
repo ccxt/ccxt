@@ -7104,7 +7104,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {object} result the code-keyed balance dict being built
  * @param {string} code unified currency code
  * @param {object} account a balance account with string free/used/total/debt
- * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+ * @returns {object} result — callers MUST reassign the return value to their own result: PHP arrays are passed by value, so the mutation is not visible through the argument
  */
     fn merge_balance_account(&self, mut result: Value, mut code: Value, mut account: Value) -> Value {
         if !(matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
