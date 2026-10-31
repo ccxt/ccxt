@@ -1208,7 +1208,9 @@ export default class interactivebrokers extends interactivebrokersRest {
                     'accountId': accountId,
                 };
                 const snapshot = await this.fetchBalance (this.extend (query, snapshotRequest));
-                this.balance = snapshot;
+                // typed copy: the statically typed ports keep this.balance as a dictionary
+                const snapshotBalance: Dict = this.extend ({}, snapshot);
+                this.balance = snapshotBalance;
             }
         }
         const future = this.watch (url, messageHash);
