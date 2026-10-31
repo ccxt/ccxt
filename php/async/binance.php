@@ -8012,7 +8012,7 @@ class binance extends Exchange {
         if ($limit !== null && $stock) {
             $limitResolved = min($limit, 100);
         }
-        if ($limitResolved !== null) {
+        if ($limit !== null) {
             if ($stock) {
                 $request['size'] = $limitResolved;
             } else {
@@ -9357,10 +9357,10 @@ class binance extends Exchange {
             $limitContract = min($limit, 1000);
         }
         $limitResolved = $limitContract;
-        if ($limitContract !== null && $stock) {
-            $limitResolved = min($limitContract, 100);
+        if ($limit !== null && $stock) {
+            $limitResolved = min($limit, 100);
         }
-        if ($limitResolved !== null) {
+        if ($limit !== null) {
             if ($stock) {
                 $request['size'] = $limitResolved;
             } else {

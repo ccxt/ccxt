@@ -5257,7 +5257,7 @@ class BaseExchange extends \ccxt\BaseExchange {
          * @param {array} $result the $code-keyed balance dict being built
          * @param {string} $code unified currency $code
          * @param {array} $account a balance $account with string free/used/total/debt
-         * @return {array} $result — callers MUST reassign (`$result = $this->merge_balance_account($result, ...)`) => PHP arrays are passed by value, so the mutation is not visible through the argument
+         * @return {array} $result — callers MUST reassign the return value to their own $result => PHP arrays are passed by value, so the mutation is not visible through the argument
          */
         if (!(is_array($result) && array_key_exists($code ?? '', $result))) {
             $result[$code] = $account;
