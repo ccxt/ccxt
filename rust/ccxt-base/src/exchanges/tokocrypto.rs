@@ -3317,7 +3317,7 @@ impl TokocryptoCore {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[crate::value::get_value_k(&__ws_arg_20, "rest")]);
-        if !(restUrls.as_map().is_some_and(|__m| apiName.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+        if !(matches!((&restUrls, &apiName), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".into())).into()), apiName).into()), Value::Str(" endpoints".into()))));
         }
         let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
