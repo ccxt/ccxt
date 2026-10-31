@@ -163,8 +163,8 @@ type BaseExchange struct {
 	Ohlcvs         map[string]map[string]any
 	Trades         map[string]any
 	Tickers        TickerCache
-	Orders         any // *ArrayCache  // cache object, not a map
-	MyTrades       any // *ArrayCache  // cache object, not a map
+	Orders         WsArrayCache // cache object, not a map
+	MyTrades       any          // *ArrayCache  // cache object, not a map
 	Orderbooks     OrderBookCache
 	Liquidations   any // *ArrayCacheBySymbolBySide
 	FundingRates   map[string]any

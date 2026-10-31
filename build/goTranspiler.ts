@@ -48,6 +48,7 @@ import { hx11w8EthEncodeBytes, hx11w8EthEncodeBytesCheck } from './hx11w8-eth-en
 import { hx11w8AnySliceToList, hx11w8AnySliceToListCheck } from './hx11w8-anyslice-tolist.js';  // hx11 w8: ToList-fed locals are []any
 import { hx11w8JsonOrigin, hx11w8JsonOriginCheck } from './hx11w8-json-origin.js';  // hx11 w8: DerefScalar on JSON-origin list elements
 import { hx11w8TickerReadPass, hx11w8TickerReadCheck } from './hx11w8-tickercache-typed-read.js';  // hx11 w8: typed ws ticker cache read
+import { hx11w9OrdersCachePass, hx11w9OrdersCacheCheck } from './hx11w9-orders-cache.js';  // hx11 w9: typed ws orders cache
 import { goStructReturnsPass, goStructReturnsSelfTest } from './go-struct-returns.js';
 import { hx10w2G01MapReads, hx10w2G01Check } from './hx10w2-G01.js';
 import { hx11w8BaseMapLocals, hx11w8BaseMapLocalsCheck } from './hx11w8-base-map-locals.js';  // hx11 w8: locals fed by base map-returning methods
@@ -3733,6 +3734,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx11w9A9fOrHoistPass (content);  // hx11 w9 a9f: negated lookup under || hoists a comma-ok flag
     content = hx11w9StrKeyPass (content);  // hx11 w9 a9f: plain string key behind a nil-receiver guard
     content = hx11w9a9fStarKeyPass (content);  // hx11 w9 a9f: the same behind several nil guards
+    content = hx11w9OrdersCachePass (content);  // hx11 w9: Orders locals typed WsArrayCache, Append assertion dropped
     return goGofmtSplicedText (content);
 }
 
