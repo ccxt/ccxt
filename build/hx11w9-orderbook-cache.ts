@@ -184,7 +184,7 @@ export function hx11w9OrderBookAssertPass (content: string): string {
                 typed.add (m[1]);
             }
         }
-        const names = [ 'this\\.Orderbooks(?:\\[[^\\]]+\\])?' ].concat (Array.from (typed).map (esc));
+        const names = [ 'this\\.Orderbooks(?:\\[[^\\]]+\\]|\\.Get\\([^()]*\\))?' ].concat (Array.from (typed).map (esc));
         const call = new RegExp ('(?<![\\w.])(' + names.join ('|') + ')\\.\\((?:ccxt\\.)?OrderBookInterface\\)', 'g');
         for (let k = start; k < end; k++) {
             const found = Array.from (masked[k].matchAll (call)).reverse ();
