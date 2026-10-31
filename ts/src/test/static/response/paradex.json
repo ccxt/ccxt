@@ -4190,6 +4190,101 @@
                     "percentage": null,
                     "positionMargin": null
                 }
+            },
+            {
+                "description": "fetchPosition - a closed position is still returned",
+                "method": "fetchPosition",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                            "market": "SOL-USD-PERP",
+                            "status": "OPEN",
+                            "side": "LONG",
+                            "size": "3",
+                            "average_entry_price": "183.06499451",
+                            "average_entry_price_usd": "183.065",
+                            "realized_pnl": "1.25",
+                            "unrealized_pnl": "-2.84428356",
+                            "unrealized_funding_pnl": "-0.00059564",
+                            "cost": "549.19498352",
+                            "cost_usd": "549.195",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1722426261489",
+                            "last_fill_id": "1722426248360201703986560001",
+                            "seq_no": "1722426261489298037",
+                            "liquidation_price": ""
+                        },
+                        {
+                            "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-BTC-USD-PERP",
+                            "market": "BTC-USD-PERP",
+                            "status": "CLOSED",
+                            "side": "LONG",
+                            "size": "0",
+                            "average_entry_price": "183.06499451",
+                            "average_entry_price_usd": "183.065",
+                            "realized_pnl": "-3.5",
+                            "unrealized_pnl": "0",
+                            "unrealized_funding_pnl": "-0.00059564",
+                            "cost": "0",
+                            "cost_usd": "0",
+                            "cached_funding_index": "84.33843058",
+                            "last_updated_at": "1722426261489",
+                            "last_fill_id": "1722426248360201703986560001",
+                            "seq_no": "1722426261489298037",
+                            "liquidation_price": ""
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-BTC-USD-PERP",
+                        "market": "BTC-USD-PERP",
+                        "status": "CLOSED",
+                        "side": "LONG",
+                        "size": "0",
+                        "average_entry_price": "183.06499451",
+                        "average_entry_price_usd": "183.065",
+                        "realized_pnl": "-3.5",
+                        "unrealized_pnl": "0",
+                        "unrealized_funding_pnl": "-0.00059564",
+                        "cost": "0",
+                        "cost_usd": "0",
+                        "cached_funding_index": "84.33843058",
+                        "last_updated_at": "1722426261489",
+                        "last_fill_id": "1722426248360201703986560001",
+                        "seq_no": "1722426261489298037",
+                        "liquidation_price": ""
+                    },
+                    "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-BTC-USD-PERP",
+                    "symbol": "BTC/USD:USDC",
+                    "entryPrice": 183.06499451,
+                    "markPrice": null,
+                    "notional": 0,
+                    "collateral": null,
+                    "unrealizedPnl": 0,
+                    "realizedPnl": -3.5,
+                    "side": "long",
+                    "contracts": 0,
+                    "contractSize": 1,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": 1722426261489,
+                    "hedged": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "initialMargin": null,
+                    "initialMarginPercentage": null,
+                    "leverage": null,
+                    "liquidationPrice": null,
+                    "marginRatio": null,
+                    "marginMode": "cross",
+                    "percentage": null,
+                    "positionMargin": null
+                }
             }
         ],
         "fetchGreeks": [

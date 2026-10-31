@@ -2578,7 +2578,7 @@ export default class paradex extends Exchange {
     /**
      * @method
      * @name paradex#fetchPosition
-     * @description fetch data on an open position
+     * @description fetch data on a single position, a closed one included
      * @see https://docs.paradex.trade/api/prod/account/get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2590,7 +2590,16 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const positions = await this.fetchPositions ([ market['symbol'] ], params);
+        const response = await this.privateGetPositions (params);
+        const data = this.safeList (response, 'results', []) as List;
+        // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
+        const matching: List = [];
+        for (let i = 0; i < data.length; i++) {
+            if (this.safeString (data[i], 'market') === market['id']) {
+                matching.push (data[i]);
+            }
+        }
+        const positions = this.parsePositions (matching, [ market['symbol'] ]);
         return this.safeDict (positions, 0, {}) as Position;
     }
 
