@@ -525,11 +525,6 @@ function hx10G10GuardedWrite (line: string, maskedLine: string, decls: Map<strin
 
 function hx10G10Line (body: string[], maskedBody: string[], decls: Map<string, Decl>, index: number): string[] {
     let line = body[index];
-    // `this.F = this.createSafeDictionary(true)`: a plain map field needs a map literal
-    const init = new RegExp ('^(\\s*)this\\.(' + FIELD + ') = this\\.CreateSafeDictionary\\((?:true)?\\)\\s*$').exec (goChanMask (line));
-    if (init !== null) {
-        return [ init[1] + 'this.' + init[2] + ' = map[string]any{}' ];
-    }
     let maskedLine = goChanMask (line);
     const guarded = hx10G10GuardedRead (line, maskedLine, decls, maskedBody, index) ?? hx10G10GuardedWrite (line, maskedLine, decls, maskedBody, index);
     if (guarded !== undefined) {
@@ -636,7 +631,6 @@ export function hx10G10SelfTest (): string[] {
     // the printer's *sync.Map arms
     ok (f ('sym string', '\tthis.Orderbooks.Store(sym, this.OrderBook())\n').indexOf ('\tthis.Orderbooks[sym] = this.OrderBook()') >= 0, 'Store goes native');
     ok (f ('sym string', '\tthis.Orderbooks.Delete(sym)\n').indexOf ('\tdelete(this.Orderbooks, sym)') >= 0, 'Delete goes native');
-    ok (f ('', '\tthis.Trades = this.CreateSafeDictionary(true)\n').indexOf ('\tthis.Trades = map[string]any{}') >= 0, 'cache init prints a map literal');
     // a field outside the family is untouched
     ok (f ('', '\tthis.Balance = this.CreateSafeDictionary(true)\n').indexOf ('this.CreateSafeDictionary(true)') >= 0, 'Balance keeps the sync.Map init');
     return problems;
