@@ -223,7 +223,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var marketIdValue string = *this.SafeString(market, "id", "")
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -234,7 +234,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for i := 0; i < len(parsedTrades); i++ {
-		stored.(ccxt.Appender).Append(this.SafeValue(parsedTrades, i))
+		stored.Append(this.SafeValue(parsedTrades, i))
 	}
 	if channel != nil {
 		var messageHash string = *channel + ":" + marketIdValue
@@ -340,12 +340,12 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
-	var stored any = this.MyTrades
+	var stored ccxt.WsArrayCache = this.MyTrades
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(rawTrades); i++ {
 		var trade any = rawTrades[i]
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(trade))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		var symbol *string = this.SafeString(trade, "symbol")
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = this.SafeString(market, "id")
@@ -505,12 +505,12 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored any = this.Orders
+	var stored ccxt.WsArrayCache = this.Orders
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
 		var order any = this.SafeValue(rawOrders, i)
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(order))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		var symbol *string = this.SafeString(order, "symbol")
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = this.SafeString(market, "id")

@@ -693,20 +693,20 @@ func (this *Modetrade) HandleTrade(client any, message map[string]any) {
 	var trade map[string]any = this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
 	}), market)
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		if symbol != nil {
 			this.Trades[*symbol] = stored
 		}
 	}
-	var trades any
+	var trades ccxt.WsArrayCache
 	if symbol != nil {
 		trades = this.Trades[*symbol]
 	}
-	trades.(ccxt.Appender).Append(trade)
+	trades.Append(trade)
 	if symbol != nil {
-		this.Trades[*symbol] = trades
+		this.Trades.Store(symbol, trades)
 	}
 	client.(ccxt.ClientInterface).Resolve(trades, topic)
 }
@@ -1291,7 +1291,7 @@ func (this *Modetrade) HandleOrder(client any, message any, topic any) {
 			var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var cachedOrders any = this.Orders
+		var cachedOrders ccxt.WsArrayCache = this.Orders
 		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var order any = func() any {
 			if orderId == nil {
@@ -1312,7 +1312,7 @@ func (this *Modetrade) HandleOrder(client any, message any, topic any) {
 			parsed["timestamp"] = this.SafeInteger(order, "timestamp")
 			parsed["datetime"] = this.SafeString(order, "datetime")
 		}
-		cachedOrders.(ccxt.Appender).Append(parsed)
+		cachedOrders.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, topic)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add(ccxt.Add(topic, ":"), symbol))
 	}
@@ -1351,13 +1351,13 @@ func (this *Modetrade) HandleMyTrade(client any, message any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var trade map[string]any = this.ParseWsTrade(message, market)
-	var trades any = this.MyTrades
+	var trades ccxt.WsArrayCache = this.MyTrades
 	if trades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		trades = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = trades
 	}
-	trades.(ccxt.Appender).Append(trade)
+	trades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)

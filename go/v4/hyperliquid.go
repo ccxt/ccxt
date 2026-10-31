@@ -3005,8 +3005,8 @@ func (this *Hyperliquid) CreateOrderRequest(symbol *string, typeVar *string, sid
 	if postOnly != nil && *postOnly {
 		defaultTimeInForce = "alo"
 	}
-	var timeInForce *string = this.SafeStringLower(params, "timeInForce", defaultTimeInForce)
-	timeInForce = SafeStringPtr(this.Capitalize(timeInForce))
+	var timeInForceLower *string = this.SafeStringLower(params, "timeInForce", defaultTimeInForce)
+	var timeInForce string = this.Capitalize(timeInForceLower)
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice", triggerPrice)
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
@@ -3730,8 +3730,8 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) map[
 		if postOnly != nil && *postOnly {
 			defaultTimeInForce = "alo"
 		}
-		var timeInForce *string = this.SafeStringLower(orderParams, "timeInForce", defaultTimeInForce)
-		timeInForce = SafeStringPtr(this.Capitalize(timeInForce))
+		var timeInForceLower *string = this.SafeStringLower(orderParams, "timeInForce", defaultTimeInForce)
+		var timeInForce string = this.Capitalize(timeInForceLower)
 		var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLossPrice *string = this.SafeString(orderParams, "stopLossPrice", triggerPrice)

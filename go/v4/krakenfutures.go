@@ -4478,7 +4478,7 @@ func (this *Krakenfutures) ParseKrakenAccountName(account string) any {
 	}
 	if _, ok := accountByType[account]; ok {
 		return accountByType[account]
-	} else if (this.Markets() != nil) && (InOp(this.Markets(), account)) {
+	} else if _, ok := this.Markets()[account]; ok {
 		var market map[string]any = this.Market(account)
 		var marketId string = *this.SafeString(market, "id", "")
 		var splitId []string = strings.Split(marketId, "_")

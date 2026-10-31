@@ -1041,11 +1041,11 @@ func (this *Bydfi) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	var order map[string]any = this.ParseWsOrder(rawOrder, market)
 	var lastUpdateTimestamp *int64 = this.SafeInteger(message, "T")
 	order["lastUpdateTimestamp"] = lastUpdateTimestamp
-	orders.(ccxt.Appender).Append(order)
+	orders.Append(order)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
 }

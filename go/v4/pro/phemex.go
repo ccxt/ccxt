@@ -472,7 +472,7 @@ func (this *Phemex) HandleTrades(client any, message any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = name + ":" + *symbol
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -483,7 +483,7 @@ func (this *Phemex) HandleTrades(client any, message any) {
 	var trades []any = ccxt.SafeList2Typed(message, "trades", "trades_p", []any{})
 	var parsed []any = this.ParseTrades(trades, market)
 	for i := 0; i < len(parsed); i++ {
-		stored.(ccxt.Appender).Append(ccxt.GetValue(parsed, i))
+		stored.Append(ccxt.GetValue(parsed, i))
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1155,7 +1155,7 @@ func (this *Phemex) HandleMyTrades(client any, message []any) {
 	if tradesLength == 0 {
 		return
 	}
-	var cachedTrades any = this.MyTrades
+	var cachedTrades ccxt.WsArrayCache = this.MyTrades
 	if cachedTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1167,7 +1167,7 @@ func (this *Phemex) HandleMyTrades(client any, message []any) {
 		var marketId *string = this.SafeString(rawTrade, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade))
-		cachedTrades.(ccxt.Appender).Append(parsed)
+		cachedTrades.Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if typeVar == nil {
 			var marketSettle *string = this.SafeString(market, "settle")
@@ -1472,10 +1472,10 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var typeVar any = nil
-	var stored any = this.Orders
+	var stored ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(parsedOrders); i++ {
 		var parsed any = ccxt.DerefScalar(parsedOrders[i])
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		var market map[string]any = this.Market(symbol)
 		if typeVar == nil {

@@ -3369,8 +3369,8 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				posSide = SafeStringPtr("Merged")
 			}
 		}
-		posSide = SafeStringPtr(this.Capitalize(posSide))
-		request["posSide"] = posSide
+		var posSideCapitalized string = this.Capitalize(posSide)
+		request["posSide"] = posSideCapitalized
 		if isStableSettled {
 			request["orderQtyRq"] = this.AmountToPrecision(symbol, amount)
 		} else {

@@ -182,7 +182,7 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
 	var rawTrades []any = ccxt.SafeListTypedDefault(content, "trades", []any{})
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -192,7 +192,7 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	}
 	var parsedTrades []any = this.ParseTrades(rawTrades, market)
 	for i := 0; i < len(parsedTrades); i++ {
-		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, i))
+		stored.Append(ccxt.GetValue(parsedTrades, i))
 	}
 	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

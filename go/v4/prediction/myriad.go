@@ -4881,15 +4881,15 @@ func (this *Myriad) HandleTrades(client any, data any) {
 			"currency": this.SafeString(market, "quote"),
 		},
 	}, market)
-	if ccxt.IsEqual(this.Trades, nil) {
-		this.Trades = map[string]any{}
+	if this.Trades == nil {
+		this.Trades = ccxt.TradesCache{}
 	}
-	if ccxt.IsEqual(this.SafeValue(this.Trades, sym), nil) {
+	if this.Trades.Get(sym) == nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		ccxt.AddElementToObject(this.Trades, sym, ccxt.NewArrayCache(tradesLimit))
+		this.Trades.Store(sym, ccxt.NewArrayCache(tradesLimit))
 	}
-	var stored any = ccxt.GetValue(this.Trades, sym)
-	stored.(ccxt.Appender).Append(trade)
+	var stored ccxt.WsArrayCache = this.Trades.Get(sym)
+	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trades::", sym))
 	// also surface the wallet's own fills (taker or maker leg) with their real execution prices
 	var myWallet any = this.WalletAddressOrUndefined()
@@ -4939,9 +4939,9 @@ func (this *Myriad) HandleTrades(client any, data any) {
 				var myTradesLimit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
 				this.MyTrades = ccxt.NewArrayCacheByOutcomeById(myTradesLimit)
 			}
-			var myStored any = this.MyTrades
+			var myStored ccxt.WsArrayCache = this.MyTrades
 			for k := 0; k < myLegsLength; k++ {
-				myStored.(ccxt.Appender).Append(ccxt.DerefScalar(myLegs[k]))
+				myStored.Append(ccxt.DerefScalar(myLegs[k]))
 			}
 			client.(ccxt.ClientInterface).Resolve(myStored, "myTrades")
 		}
@@ -5290,8 +5290,8 @@ func (this *Myriad) HandleOrder(client any, data any) {
 		"fee":         nil,
 		"trades":      nil,
 	})
-	var stored any = this.Orders
-	stored.(ccxt.Appender).Append(parsed)
+	var stored ccxt.WsArrayCache = this.Orders
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "orders")
 	if sym != nil {
 		client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("orders::", sym))

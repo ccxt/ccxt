@@ -1335,13 +1335,13 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 				if symbol == nil {
 					return nil
 				}
-				return this.SafeValue(this.Trades, symbol)
+				return this.Trades.Get(symbol)
 			}()
 			if tradesArray == nil {
 				var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 				tradesArray = ccxt.NewArrayCache(tradesLimit)
 				if symbol != nil {
-					ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
+					this.Trades.Store(symbol, tradesArray)
 				}
 			}
 			tradesArray.(ccxt.Appender).Append(trade)
@@ -1524,7 +1524,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	var marketIds []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var order map[string]any = ccxt.SafeMapTyped(data, i)
@@ -1536,7 +1536,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 			var clientOrderId *string = this.SafeString(order, "clientOrderId", "")
 			if (eventType != nil && *eventType == "place") || (eventType != nil && *eventType == "canceled") {
 				var parsed map[string]any = this.ParseWsOrder(order)
-				orders.(ccxt.Appender).Append(parsed)
+				orders.Append(parsed)
 			} else {
 				var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
 				var previousOrder any = this.SafeDict2(previousOrders, orderId, clientOrderId)
@@ -1545,7 +1545,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				if previousOrder == nil {
 					// fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
 					var parsedOrder map[string]any = this.ParseWsOrder(order)
-					orders.(ccxt.Appender).Append(parsedOrder)
+					orders.Append(parsedOrder)
 					marketIds = append(marketIds, marketId)
 					continue
 				}
@@ -1596,7 +1596,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				var state *string = this.ParseStatus(rawState)
 				ccxt.AddElementToObject(previousOrder, "status", state)
 				// update the newUpdates count
-				orders.(ccxt.Appender).Append(previousOrder)
+				orders.Append(previousOrder)
 			}
 			marketIds = append(marketIds, marketId)
 		}
@@ -1905,8 +1905,8 @@ func (this *Poloniex) HandleMyTrades(client any, parsedTrade map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trades any = this.MyTrades
-	trades.(ccxt.Appender).Append(parsedTrade)
+	var trades ccxt.WsArrayCache = this.MyTrades
+	trades.Append(parsedTrade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	var symbolMessageHash string = messageHash + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolMessageHash)

@@ -486,8 +486,8 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 		}
 	}
 	var parsed map[string]any = this.ParseWsTrade(data)
-	var stored any = this.Trades[*symbol]
-	stored.(ccxt.Appender).Append(parsed)
+	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+*symbol)
 }
 func (this *Grvt) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -1003,7 +1003,7 @@ func (this *Grvt) HandleMyTrade(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var trade any = this.ParseWsMyTrade(data)
-	this.MyTrades.(ccxt.Appender).Append(trade)
+	this.MyTrades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades::"+*this.SafeString(trade, "symbol", ""))
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades")
 }
@@ -1282,7 +1282,7 @@ func (this *Grvt) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var order map[string]any = this.ParseWsOrder(data)
-	this.Orders.(ccxt.Appender).Append(order)
+	this.Orders.Append(order)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "order::"+*this.SafeString(order, "symbol", ""))
 }

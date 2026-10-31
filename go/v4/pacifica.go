@@ -3512,10 +3512,10 @@ func (this *Pacifica) MapTimeInForce(tifRaw *string) any {
 		"TOB":       "TOB",
 		"ALO":       "ALO",
 	}
-	var tif *string = nil
-	if tifRaw != nil {
-		tif = SafeStringPtr(strings.ToUpper(*tifRaw))
+	if tifRaw == nil {
+		return "GTC"
 	}
+	var tif string = strings.ToUpper(*tifRaw)
 	return this.SafeString(tifMap, tif, "GTC")
 }
 func (this *Pacifica) MapSide(sideRaw string) *string {

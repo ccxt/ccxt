@@ -670,13 +670,13 @@ func (this *Deepcoin) HandleTrades(client any, message map[string]any) {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}
-	var strored any
+	var strored ccxt.WsArrayCache
 	if symbol != nil {
 		strored = this.Trades[*symbol]
 	}
 	if data != nil {
 		var trade map[string]any = this.ParseWsTrade(data, market)
-		strored.(ccxt.Appender).Append(trade)
+		strored.Append(trade)
 	}
 	var messageHash string = "trades" + "::" + *symbol
 	client.(ccxt.ClientInterface).Resolve(strored, messageHash)
@@ -1287,9 +1287,9 @@ func (this *Deepcoin) HandleMyTrade(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var stored any = this.MyTrades
+		var stored ccxt.WsArrayCache = this.MyTrades
 		var parsed map[string]any = this.ParseWsTrade(data, market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		client.(ccxt.ClientInterface).Resolve(stored, symbolMessageHash)
 	}
@@ -1400,7 +1400,7 @@ func (this *Deepcoin) HandleOrder(client any, message map[string]any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var parsed map[string]any = this.ParseWsOrder(data, market)
-		this.Orders.(ccxt.Appender).Append(parsed)
+		this.Orders.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 	}

@@ -190,7 +190,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 2)
 	var market map[string]any = this.SafeMarket(marketId, nil, nil)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -202,7 +202,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	for j := 0; j < length; j++ {
 		var index int64 = (int64(length) - int64(j)) - 1
 		var parsed map[string]any = this.ParseWsTrade(this.SafeDict(trades, index, map[string]any{}), market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1052,7 +1052,7 @@ func (this *Apex) HandleMyTrades(client any, lists []any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trades any = this.MyTrades
+	var trades ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(lists); i++ {
 		var rawTrade map[string]any = this.SafeDictMap(lists, i, map[string]any{})
@@ -1061,7 +1061,7 @@ func (this *Apex) HandleMyTrades(client any, lists []any) {
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
-		trades.(ccxt.Appender).Append(parsed)
+		trades.Append(parsed)
 	}
 	var keys []string = nil
 	if symbols != nil {
@@ -1113,7 +1113,7 @@ func (this *Apex) HandleOrder(client any, lists []any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(lists); i++ {
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(lists, i, map[string]any{})))
@@ -1121,7 +1121,7 @@ func (this *Apex) HandleOrder(client any, lists []any) {
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
-		orders.(ccxt.Appender).Append(parsed)
+		orders.Append(parsed)
 	}
 	var symbolsArray []string = nil
 	if symbols != nil {

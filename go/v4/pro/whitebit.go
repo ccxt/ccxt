@@ -530,7 +530,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(params, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -541,7 +541,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTypedDefault(params, 1, []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for j := 0; j < len(parsedTrades); j++ {
-		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
+		stored.Append(ccxt.GetValue(parsedTrades, j))
 	}
 	var messageHash string = "trades:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -634,9 +634,9 @@ func (this *Whitebit) HandleMyTrades(client any, message map[string]any, optiona
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
-	var stored any = this.MyTrades
+	var stored ccxt.WsArrayCache = this.MyTrades
 	var parsed map[string]any = this.ParseWsTrade(trade)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var symbol string = *this.SafeString(parsed, "symbol", "")
 	var messageHash string = "myTrades:" + symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -811,12 +811,12 @@ func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalAr
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored any = this.Orders
+	var stored ccxt.WsArrayCache = this.Orders
 	var status *int64 = this.SafeInteger(params, 0)
 	var parsed map[string]any = this.ParseWsOrder(this.Extend(data, map[string]any{
 		"status": status,
 	}))
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var symbol string = *this.SafeString(parsed, "symbol", "")
 	var messageHash string = "orders:" + symbol
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)

@@ -3467,9 +3467,9 @@ func (this *Extended) GetExtendedStarkAmount(amount any, resolution *int64, opti
 	_ = roundUp
 	var resolutionString *string = this.NumberToString(resolution)
 	var precise *string = Precise.StringMul(amount, resolutionString)
-	var result any = this.DecimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING)
+	var result string = this.DecimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING)
 	if (roundUp == true) && Precise.StringGt(precise, result) {
-		result = Precise.StringAdd(result, "1")
+		return Precise.StringAdd(result, "1")
 	}
 	return result
 }

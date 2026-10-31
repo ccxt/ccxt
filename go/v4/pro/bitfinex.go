@@ -637,8 +637,8 @@ func (this *Bitfinex) HandleMyTrade(client any, message []any, optionalArgs ...a
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var tradesArray any = this.MyTrades
-	tradesArray.(ccxt.Appender).Append(trade)
+	var tradesArray ccxt.WsArrayCache = this.MyTrades
+	tradesArray.Append(trade)
 	this.MyTrades = tradesArray
 	// generic subscription
 	client.(ccxt.ClientInterface).Resolve(tradesArray, name)
@@ -681,7 +681,7 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 	var market map[string]any = this.SafeMarket(marketId)
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		stored = ccxt.NewArrayCache(tradesLimit)
 		if symbol != nil {
@@ -699,7 +699,7 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 			var parsed any = this.ParseWsTrade(map[string]any{
 				"result": this.SafeList(trades, index),
 			}, market)
-			stored.(ccxt.Appender).Append(parsed)
+			stored.Append(parsed)
 		}
 	} else {
 		// update
@@ -713,7 +713,7 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 		var parsed any = this.ParseWsTrade(map[string]any{
 			"result": trade,
 		}, market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	if channel != nil {
 		var messageHash string = *channel + ":" + *marketId
@@ -1607,7 +1607,7 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	var symbolIds map[string]any = map[string]any{}
 	if messageType != nil && *messageType == "os" {
 		var snapshotLength int = len(data)
@@ -1621,11 +1621,11 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 			if symbol != nil {
 				symbolIds[*symbol] = true
 			}
-			orders.(ccxt.Appender).Append(parsed)
+			orders.Append(parsed)
 		}
 	} else {
 		var parsed any = this.ParseWsOrder(data)
-		orders.(ccxt.Appender).Append(parsed)
+		orders.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol", "")
 		if symbol != nil {
 			symbolIds[*symbol] = true

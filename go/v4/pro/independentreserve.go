@@ -123,7 +123,7 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 	var marketId *string = this.SafeString(data, "Pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var messageHash string = "trades:" + *symbol
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -132,7 +132,7 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 		}
 	}
 	var trade map[string]any = this.ParseWsTrade(data)
-	stored.(ccxt.Appender).Append(trade)
+	stored.Append(trade)
 	if symbol != nil {
 		this.Trades[*symbol] = stored
 	}

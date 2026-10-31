@@ -461,7 +461,7 @@ func (this *Alpaca) HandleTrades(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "S")
 	var symbol *string = this.SafeSymbol(marketId)
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -470,7 +470,7 @@ func (this *Alpaca) HandleTrades(client any, message map[string]any) {
 		}
 	}
 	var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(message))
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -668,9 +668,9 @@ func (this *Alpaca) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
-	orders.(ccxt.Appender).Append(order)
+	orders.Append(order)
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	var orderSymbol string = *this.SafeString(order, "symbol", "")
@@ -729,7 +729,7 @@ func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
 		return
 	}
 	var rawOrder map[string]any = this.SafeDictMap(data, "order", map[string]any{})
-	var myTrades any = this.MyTrades
+	var myTrades ccxt.WsArrayCache = this.MyTrades
 	if myTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		myTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -738,7 +738,7 @@ func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
 	if ccxt.IsEqual(trade, nil) {
 		return
 	}
-	myTrades.(ccxt.Appender).Append(trade)
+	myTrades.Append(trade)
 	var tradeSymbol string = *this.SafeString(trade, "symbol", "")
 	var messageHash string = "myTrades:" + tradeSymbol
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)

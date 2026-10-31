@@ -11030,7 +11030,9 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 	// handle unified currency code or symbol
 	var currencyId *string = nil
 	var market map[string]any = nil
-	if ((this.Markets() != nil) && (InOp(this.Markets(), symbol))) || ((this.Markets_by_id() != nil) && (InOp(this.Markets_by_id(), symbol))) {
+	_, inMarkets := this.Markets()[symbol]
+	_, inMarketsById := this.Markets_by_id()[symbol]
+	if inMarkets || inMarketsById {
 		market = this.Market(symbol)
 		currencyId = this.SafeString(market, "baseId")
 	} else {

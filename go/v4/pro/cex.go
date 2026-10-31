@@ -301,14 +301,14 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 	}
-	var stored any = this.Trades[*symbol]
+	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	var market map[string]any = this.Market(symbol)
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var index any = (int64(dataLength) - 1) - int64(i)
 		var rawTrade any = ccxt.GetValue(data, index)
 		var parsed any = this.ParseWsOldTrade(rawTrade, market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash string = "trades"
 	if symbol != nil {
@@ -815,9 +815,9 @@ func (this *Cex) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored any = this.MyTrades
+	var stored ccxt.WsArrayCache = this.MyTrades
 	var trade map[string]any = this.ParseWsTrade(data)
-	stored.(ccxt.Appender).Append(trade)
+	stored.Append(trade)
 	var tradeSymbol string = *this.SafeString(trade, "symbol", "")
 	var messageHash string = "myTrades:" + tradeSymbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -983,7 +983,7 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var storedOrders any = this.Orders
+	var storedOrders ccxt.WsArrayCache = this.Orders
 	var ordersBySymbol map[string]any = ccxt.SafeMapTyped(storedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 	var order any = this.SafeValue(ordersBySymbol, orderId)
 	if ccxt.IsEqual(order, nil) {
@@ -1009,7 +1009,7 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	ccxt.AddElementToObject(order, "timestamp", timestamp)
 	ccxt.AddElementToObject(order, "datetime", this.Iso8601(timestamp))
 	order = ccxt.OrderToMap(this.SafeOrder(order))
-	storedOrders.(ccxt.Appender).Append(order)
+	storedOrders.Append(order)
 	var messageHash string = "orders:" + symbol
 	client.(ccxt.ClientInterface).Resolve(storedOrders, messageHash)
 }
@@ -1162,13 +1162,13 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var myOrders any = this.Orders
+	var myOrders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(rawOrders); i++ {
 		var rawOrder any = rawOrders[i]
 		var market map[string]any = this.SafeMarket(symbol)
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder, market))
 		order["status"] = "open"
-		myOrders.(ccxt.Appender).Append(order)
+		myOrders.Append(order)
 	}
 	var messageHash string = "orders:" + *symbol
 	var ordersLength int = ccxt.GetArrayLength(myOrders)

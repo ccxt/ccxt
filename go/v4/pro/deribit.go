@@ -602,17 +602,17 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil {
 		stored = this.Trades[*symbol]
 	}
 	for i := 0; i < len(trades); i++ {
 		var trade any = ccxt.DerefScalar(trades[i])
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(trade, market))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	if symbol != nil {
-		this.Trades[*symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var interval string = *this.SafeString(parts, 2, "")
 	var messageHash string = "trades|" + *symbol + "|" + interval
@@ -724,7 +724,7 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel", "")
 	var trades []any = ccxt.SafeListTypedDefault(params, "data", []any{})
-	var cachedTrades any = this.MyTrades
+	var cachedTrades ccxt.WsArrayCache = this.MyTrades
 	if cachedTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -733,7 +733,7 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(parsed); i++ {
 		var trade any = ccxt.GetValue(parsed, i)
-		cachedTrades.(ccxt.Appender).Append(trade)
+		cachedTrades.Append(trade)
 		var symbol *string = this.SafeString(trade, "symbol")
 		if symbol != nil {
 			marketIds[*symbol] = true
@@ -1088,9 +1088,9 @@ func (this *Deribit) HandleOrders(client any, message map[string]any) {
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 		orders = []any{order}
 	}
-	var cachedOrders any = this.Orders
+	var cachedOrders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(orders); i++ {
-		cachedOrders.(ccxt.Appender).Append(ccxt.GetValue(orders, i))
+		cachedOrders.Append(ccxt.GetValue(orders, i))
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
 }

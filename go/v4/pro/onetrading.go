@@ -731,8 +731,8 @@ func (this *Onetrading) HandleTrading(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var order any = this.ParseTradingOrder(message)
-	var orders any = this.Orders
-	orders.(ccxt.Appender).Append(order)
+	var orders ccxt.WsArrayCache = this.Orders
+	orders.Append(order)
 	var orderSymbol string = *this.SafeString(order, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+orderSymbol)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
@@ -932,17 +932,17 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 	if rawOrdersLength == 0 {
 		return
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(rawOrders); i++ {
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrders[i]))
 		var symbol string = *this.SafeString(order, "symbol", "")
-		orders.(ccxt.Appender).Append(order)
+		orders.Append(order)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+symbol)
 		var rawTrades []any = ccxt.SafeListTyped(rawOrders[i], "trades")
 		for ii := 0; ii < len(rawTrades); ii++ {
 			var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrades[ii]))
 			symbol = *this.SafeString(trade, "symbol", symbol)
-			this.MyTrades.(ccxt.Appender).Append(trade)
+			this.MyTrades.Append(trade)
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades:"+symbol)
 		}
 	}
@@ -1180,7 +1180,7 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var symbol *string = nil
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	var update map[string]any = this.SafeDictMap(message, "update", map[string]any{})
 	var updateType *string = this.SafeString(update, "type")
 	if (updateType != nil && *updateType == "ORDER_REJECTED") || (updateType != nil && *updateType == "ORDER_CLOSED") || (updateType != nil && *updateType == "STOP_ORDER_TRIGGERED") {
@@ -1201,11 +1201,11 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 			"timestamp": this.Parse8601(datetime),
 			"datetime":  datetime,
 		}
-		orders.(ccxt.Appender).Append(orderObject)
+		orders.Append(orderObject)
 	} else {
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(update))
 		symbol = this.SafeString(parsed, "symbol", "")
-		orders.(ccxt.Appender).Append(parsed)
+		orders.Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add("orders:", symbol))
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
@@ -1222,8 +1222,8 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 	if updateType != nil && *updateType == "TRADE_SETTLED" {
 		var parsed any = ccxt.TradeToMap(this.ParseTrade(update))
 		symbol = this.SafeString(parsed, "symbol", "")
-		var myTrades any = this.MyTrades
-		myTrades.(ccxt.Appender).Append(parsed)
+		var myTrades ccxt.WsArrayCache = this.MyTrades
+		myTrades.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades:"+*symbol)
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades")
 	}

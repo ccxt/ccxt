@@ -1325,7 +1325,7 @@ func (this *Mexc) HandleTrades(client any, message any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "trades:" + *symbol
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -1345,7 +1345,7 @@ func (this *Mexc) HandleTrades(client any, message any) {
 		} else {
 			parsedTrade = ccxt.TradeToMap(this.ParseTrade(ccxt.GetValue(trades, j), market))
 		}
-		stored.(ccxt.Appender).Append(parsedTrade)
+		stored.Append(parsedTrade)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1477,13 +1477,13 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	} else {
 		return
 	}
-	var trades any = this.MyTrades
+	var trades ccxt.WsArrayCache = this.MyTrades
 	if trades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		trades = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = trades
 	}
-	trades.(ccxt.Appender).Append(trade)
+	trades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	var symbolSpecificMessageHash string = messageHash + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
@@ -1749,13 +1749,13 @@ func (this *Mexc) HandleOrder(client any, message any) {
 	} else {
 		return
 	}
-	var orders any = this.Orders
-	if ccxt.IsEqual(orders, nil) {
+	var orders ccxt.WsArrayCache = this.Orders
+	if orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		orders = ccxt.NewArrayCacheBySymbolById(limit)
 		this.Orders = orders
 	}
-	orders.(ccxt.Appender).Append(parsed)
+	orders.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	var symbolSpecificMessageHash string = messageHash + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)

@@ -501,7 +501,7 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 	var marketId *string = this.SafeString(data, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var tradesArray any = this.SafeValue(this.Trades, symbol)
+	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesArray == nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(tradesLimit)
@@ -512,7 +512,7 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 	for i := 0; i < len(trades); i++ {
 		var item any = trades[i]
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(item, market))
-		tradesArray.(ccxt.Appender).Append(trade)
+		tradesArray.Append(trade)
 	}
 	var messageHash string = "deals::" + *symbol
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)

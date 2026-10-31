@@ -442,7 +442,7 @@ func (this *Coinbaseinternational) HandleMyTrades(client any, message map[string
 	var trades []any = this.ParseTrades(data)
 	var tradesLength int = len(trades)
 	for i := 0; i < tradesLength; i++ {
-		this.MyTrades.(ccxt.Appender).Append(ccxt.GetValue(trades, i))
+		this.MyTrades.Append(ccxt.GetValue(trades, i))
 	}
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, channel)
 }
@@ -626,7 +626,7 @@ func (this *Coinbaseinternational) HandleOrders(client any, message map[string]a
 	}
 	var ordersLength int = len(orders)
 	for i := 0; i < ordersLength; i++ {
-		this.Orders.(ccxt.Appender).Append(ccxt.GetValue(orders, i))
+		this.Orders.Append(ccxt.GetValue(orders, i))
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
 }
@@ -1813,11 +1813,11 @@ func (this *Coinbaseinternational) HandleTrades(client any, message map[string]a
 			this.Trades[*symbol] = tradesArrayCache
 		}
 	}
-	var tradesArray any = this.Trades[*symbol]
+	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
-		tradesArray.(ccxt.Appender).Append(trade)
+		tradesArray.Append(trade)
 	}
 	if symbol != nil {
 		this.Trades[*symbol] = tradesArray

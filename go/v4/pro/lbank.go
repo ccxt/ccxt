@@ -630,7 +630,7 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId)
 	var market map[string]any = this.SafeMarket(marketId)
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -643,7 +643,7 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < len(rawTrades); i++ {
 		var trade map[string]any = this.ParseWsTrade(rawTrades[i], market)
 		trade["symbol"] = symbol
-		stored.(ccxt.Appender).Append(trade)
+		stored.Append(trade)
 	}
 	if symbol != nil {
 		this.Trades[*symbol] = stored
@@ -808,8 +808,8 @@ func (this *Lbank) HandleOrders(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var myOrders any = this.Orders
-	myOrders.(ccxt.Appender).Append(order)
+	var myOrders ccxt.WsArrayCache = this.Orders
+	myOrders.Append(order)
 	client.(ccxt.ClientInterface).Resolve(myOrders, "orders")
 	var messageHash string = "orders:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(myOrders, messageHash)

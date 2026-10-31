@@ -907,7 +907,7 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 		var messageHash string = this.GetMessageHash("trade", nil, symbol)
 		// safeValue, not safeList: the values are ccxt.ArrayCache instances, and
 		// the typed accessor casts them to a plain list in c#, which throws
-		var tradesArray any = this.SafeValue(this.Trades, symbol)
+		var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if tradesArray == nil {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArray = ccxt.NewArrayCache(tradesLimit)
@@ -927,11 +927,11 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 					return nil
 				}()
 				var trade any = this.ParseWsTrade(item)
-				tradesArray.(ccxt.Appender).Append(trade)
+				tradesArray.Append(trade)
 			}
 		} else {
 			var trade any = this.ParseWsTrade(message)
-			tradesArray.(ccxt.Appender).Append(trade)
+			tradesArray.Append(trade)
 		}
 		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	}
@@ -1112,8 +1112,8 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 	//         "reason": 'edited_by_user'
 	//     }
 	//
-	var orders any = this.Orders
-	if ccxt.IsEqual(orders, nil) {
+	var orders ccxt.WsArrayCache = this.Orders
+	if orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
 		orders = ccxt.NewArrayCacheBySymbolById(limit)
 		this.Orders = orders
@@ -1133,7 +1133,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 		var reason *string = this.SafeString(message, "reason")
 		if (previousOrder == nil) || (reason != nil && *reason == "edited_by_user") {
 			var parsed map[string]any = this.ParseWsOrder(order)
-			orders.(ccxt.Appender).Append(parsed)
+			orders.Append(parsed)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash+":"+*symbol)
 		} else {
@@ -1178,7 +1178,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 				ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
 			}
 			// update the newUpdates count
-			orders.(ccxt.Appender).Append(ccxt.OrderToMap(this.SafeOrder(previousOrder)))
+			orders.Append(ccxt.OrderToMap(this.SafeOrder(previousOrder)))
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash+":"+*symbol)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		}
@@ -1282,7 +1282,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 		messageHash = "orders:verbose"
 	}
 	var symbols map[string]any = map[string]any{}
-	var cachedOrders any = this.Orders
+	var cachedOrders ccxt.WsArrayCache = this.Orders
 	var snapshotIds map[string]any = map[string]any{}
 	for i := 0; i < len(orders); i++ {
 		var order any = orders[i]
@@ -1295,7 +1295,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 		if parsedId != nil {
 			snapshotIds[*parsedId] = true
 		}
-		cachedOrders.(ccxt.Appender).Append(parsed)
+		cachedOrders.Append(parsed)
 	}
 	// reconcile the reused cache with the snapshot: the snapshot lists every
 	// currently open order, so an order cached as open but missing from it is
@@ -1325,7 +1325,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 					// write the updated order back through append: the cache
 					// rows are copies in the value-type runtimes (php), and
 					// append also feeds the newUpdates accounting
-					cachedOrders.(ccxt.Appender).Append(cachedOrder)
+					cachedOrders.Append(cachedOrder)
 					symbols[cachedSymbol] = true
 				}
 			}
@@ -1991,7 +1991,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	//    }
 	//
 	var trades []any = ccxt.SafeListTyped(message, "fills")
-	var stored any = this.MyTrades
+	var stored ccxt.WsArrayCache = this.MyTrades
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCacheBySymbolById(limit)
@@ -2005,7 +2005,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 		if tradeSymbol != nil {
 			tradeSymbols[*tradeSymbol] = true
 		}
-		stored.(ccxt.Appender).Append(parsedTrade)
+		stored.Append(parsedTrade)
 	}
 	var tradeSymbolKeys []string = nil
 	if tradeSymbols != nil {

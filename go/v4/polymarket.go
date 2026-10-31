@@ -538,7 +538,11 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 			continue
 		}
 		var code *string = this.SafeCurrencyCode(baseId)
-		if !(InOp(result, code)) {
+		var codeKnown bool
+		if code != nil {
+			_, codeKnown = result[*code]
+		}
+		if !codeKnown {
 			// the venue tags each underlying with a category - only the
 			// crypto ones are unified as crypto, equities, commodities and
 			// indices map onto the other currency type

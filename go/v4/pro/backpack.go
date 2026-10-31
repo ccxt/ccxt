@@ -420,7 +420,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			var splitHashes []string = strings.Split(*messageHash, ":")
 			var symbol *string = this.SafeString(splitHashes, 2)
 			var timeframe *string = this.SafeString(splitHashes, 3)
-			if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
+			if symbol != nil && timeframe != nil {
 				if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
 					delete(this.Ohlcvs[*symbol], *timeframe)
 				}
@@ -437,7 +437,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			}
 		} else if strings.Index(*messageHash, "orders") >= 0 {
 			if messageHash != nil && *messageHash == "unsubscribe:orders" {
-				var cache any = this.Orders
+				var cache ccxt.WsArrayCache = this.Orders
 				if this.Orders != nil {
 					var keys []string = ccxt.ObjectKeys(cache)
 					for j := 0; j < len(keys); j++ {
@@ -447,7 +447,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 				}
 			} else {
 				var symbol string = strings.Replace(*messageHash, "unsubscribe:orders:", "", 1)
-				var cache any = this.Orders
+				var cache ccxt.WsArrayCache = this.Orders
 				if (this.Orders != nil) && (ccxt.InOp(cache, symbol)) {
 					ccxt.Remove(cache, symbol)
 				}
@@ -1455,19 +1455,19 @@ func (this *Backpack) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.Market(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		if symbol != nil {
 			this.Trades[*symbol] = stored
 		}
 	}
-	var cache any
+	var cache ccxt.WsArrayCache
 	if symbol != nil {
 		cache = this.Trades[*symbol]
 	}
 	var trade map[string]any = this.ParseWsTrade(data, market)
-	cache.(ccxt.Appender).Append(trade)
+	cache.Append(trade)
 	var messageHash string = "trades:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 	client.(ccxt.ClientInterface).Resolve(cache, "trades")
@@ -2036,13 +2036,13 @@ func (this *Backpack) HandleOrder(client any, message map[string]any) {
 	} else {
 		parsed = this.ParseWsOrder(data, market)
 	}
-	var orders any = this.Orders
-	if ccxt.IsEqual(orders, nil) {
+	var orders ccxt.WsArrayCache = this.Orders
+	if orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		orders = ccxt.NewArrayCacheBySymbolById(limit)
 		this.Orders = orders
 	}
-	orders.(ccxt.Appender).Append(parsed)
+	orders.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)

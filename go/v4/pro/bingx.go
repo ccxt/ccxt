@@ -700,7 +700,7 @@ func (this *Bingx) HandleTrades(client any, message map[string]any) {
 	} else {
 		trades = []any{ccxt.TradeToMap(this.ParseTrade(data, market))}
 	}
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -709,7 +709,7 @@ func (this *Bingx) HandleTrades(client any, message map[string]any) {
 		}
 	}
 	for j := 0; j < len(trades); j++ {
-		stored.(ccxt.Appender).Append(ccxt.GetValue(trades, j))
+		stored.Append(ccxt.GetValue(trades, j))
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -2239,7 +2239,7 @@ func (this *Bingx) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored any = this.Orders
+	var stored ccxt.WsArrayCache = this.Orders
 	var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 	if !isSpot {
 		// The envelope T is the order update time; o.T is the trade time.
@@ -2263,7 +2263,7 @@ func (this *Bingx) HandleOrder(client any, message map[string]any) {
 			parsedOrder["lastUpdateTimestamp"] = updateTimestamp
 		}
 	}
-	stored.(ccxt.Appender).Append(parsedOrder)
+	stored.Append(parsedOrder)
 	var symbol string = *this.SafeString(parsedOrder, "symbol", "")
 	var spotHash string = "spot:order"
 	var swapHash string = "swap:order"
@@ -2333,7 +2333,7 @@ func (this *Bingx) HandleMyTrades(client any, message map[string]any) {
 	//
 	var isSpot bool = (func() bool { _, ok := message["dataType"]; return ok }())
 	var result map[string]any = ccxt.SafeDict2Typed(message, "data", "o", map[string]any{})
-	var cachedTrades any = this.MyTrades
+	var cachedTrades ccxt.WsArrayCache = this.MyTrades
 	if cachedTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -2353,7 +2353,7 @@ func (this *Bingx) HandleMyTrades(client any, message map[string]any) {
 	if isSpot {
 		messageHash = spotHash
 	}
-	cachedTrades.(ccxt.Appender).Append(parsed)
+	cachedTrades.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash)
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash+":"+symbol)
 }

@@ -749,7 +749,7 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 		}
 	}
-	var tradesArray any = this.Trades[*symbol]
+	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
 	var data []any = ccxt.SafeListTyped(message, "d")
 	var newTrades []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -760,7 +760,7 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 	var sorted []any = this.SortBy(newTrades, "timestamp")
 	for j := 0; j < len(sorted); j++ {
 		var sortedTrade any = ccxt.DerefScalar(sorted[j])
-		tradesArray.(ccxt.Appender).Append(sortedTrade)
+		tradesArray.Append(sortedTrade)
 	}
 	if symbol != nil {
 		this.Trades[*symbol] = tradesArray
@@ -1783,7 +1783,7 @@ func (this *Weex) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trades any = this.MyTrades
+	var trades ccxt.WsArrayCache = this.MyTrades
 	var data []any = ccxt.SafeListTyped(message, "d")
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
@@ -1793,7 +1793,7 @@ func (this *Weex) HandleMyTrades(client any, message map[string]any) {
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
-		trades.(ccxt.Appender).Append(parsed)
+		trades.Append(parsed)
 	}
 	var messageHash string = "myTrades"
 	var symbolKeys []string = nil
@@ -2058,11 +2058,11 @@ func (this *Weex) HandleOrders(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(data); i++ {
 		var rawOrder map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var parsed map[string]any = this.ParseWsOrder(rawOrder)
-		orders.(ccxt.Appender).Append(parsed)
+		orders.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true

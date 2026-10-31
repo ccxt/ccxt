@@ -1559,7 +1559,7 @@ func (this *Gate) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < len(parsedTrades); i++ {
 		var trade any = ccxt.GetValue(parsedTrades, i)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
-		var cachedTrades any = this.SafeValue(this.Trades, symbol)
+		var cachedTrades ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if cachedTrades == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			cachedTrades = ccxt.NewArrayCache(limit)
@@ -1569,7 +1569,7 @@ func (this *Gate) HandleTrades(client any, message map[string]any) {
 				}
 			}
 		}
-		cachedTrades.(ccxt.Appender).Append(trade)
+		cachedTrades.Append(trade)
 		var hash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
@@ -1912,7 +1912,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	if tradesLength == 0 {
 		return
 	}
-	var cachedTrades any = this.MyTrades
+	var cachedTrades ccxt.WsArrayCache = this.MyTrades
 	if cachedTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1922,7 +1922,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(parsed); i++ {
 		var trade any = ccxt.GetValue(parsed, i)
-		cachedTrades.(ccxt.Appender).Append(trade)
+		cachedTrades.Append(trade)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		if symbol != nil {
 			marketIds[*symbol] = true
@@ -2521,7 +2521,7 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored any = func() any {
+	var stored ccxt.WsArrayCache = func() ccxt.WsArrayCache {
 		if isTrigger {
 			return this.TriggerOrders
 		}
@@ -2548,7 +2548,7 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 				}())
 			}
 		}
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
 		var market map[string]any = this.Market(symbol)
 		if !ccxt.IsEqual(market["id"], nil) {
@@ -2754,11 +2754,11 @@ func (this *Gate) HandleLiquidation(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 		this.Liquidations = ccxt.NewArrayCache(limit)
 	}
-	var cache any = this.Liquidations
+	var cache ccxt.WsArrayCache = this.Liquidations
 	for i := 0; i < len(rawLiquidations); i++ {
 		var rawLiquidation any = rawLiquidations[i]
 		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
-		cache.(ccxt.Appender).Append(liquidation)
+		cache.Append(liquidation)
 		var symbol *string = this.SafeString(liquidation, "symbol")
 		var symbolLiquidations any = this.SafeList(cache, symbol, []any{})
 		client.(ccxt.ClientInterface).Resolve(symbolLiquidations, ccxt.Add("myLiquidations::", symbol))
@@ -3204,7 +3204,7 @@ func (this *Gate) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 		return url
 	}
 }
-func (this *Gate) GetMarketTypeByUrl(url any) any {
+func (this *Gate) GetMarketTypeByUrl(url string) any {
 	var findBy map[string]any = map[string]any{
 		"op-":          "option",
 		"/ws/options/": "option",
@@ -3222,7 +3222,7 @@ func (this *Gate) GetMarketTypeByUrl(url any) any {
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var value any = findBy[key]
-		if ccxt.GetIndexOf(url, key) >= 0 {
+		if strings.Index(url, key) >= 0 {
 			return value
 		}
 	}

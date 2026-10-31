@@ -4516,16 +4516,16 @@ func (this *Polymarket) HandleTrade(client any, event any) {
 		"cost":         nil,
 		"fee":          nil,
 	}, market)
-	if ccxt.IsEqual(this.Trades, nil) {
-		this.Trades = map[string]any{}
+	if this.Trades == nil {
+		this.Trades = ccxt.TradesCache{}
 	}
-	var stored any = this.SafeValue(this.Trades, outcome)
+	var stored ccxt.WsArrayCache = this.Trades.Get(outcome)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		ccxt.AddElementToObject(this.Trades, outcome, stored)
+		this.Trades.Store(outcome, stored)
 	}
-	stored.(ccxt.Appender).Append(trade)
+	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trades::", outcome))
 }
 
@@ -4913,9 +4913,9 @@ func (this *Polymarket) HandleOrder(client any, event any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
-	var stored any = this.Orders
+	var stored ccxt.WsArrayCache = this.Orders
 	var parsed map[string]any = this.ParsePredictionOrder(event)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "orders")
 	var outcome *string = this.SafeString(parsed, "outcome")
 	if outcome != nil {
@@ -4927,9 +4927,9 @@ func (this *Polymarket) HandleMyTrade(client any, event any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
-	var stored any = this.MyTrades
+	var stored ccxt.WsArrayCache = this.MyTrades
 	var parsed any = this.ParsePredictionTrade(event)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 	var outcome *string = this.SafeString(parsed, "outcome")
 	if outcome != nil {

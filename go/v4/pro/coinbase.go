@@ -1141,7 +1141,7 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(trade, "product_id")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = "market_trades::" + *symbol
-	var tradesArray any = this.SafeValue(this.Trades, symbol)
+	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesArray == nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCacheBySymbolById(tradesLimit)
@@ -1164,7 +1164,7 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 				}
 				return nil
 			}()
-			tradesArray.(ccxt.Appender).Append(ccxt.TradeToMap(this.ParseTrade(item)))
+			tradesArray.Append(ccxt.TradeToMap(this.ParseTrade(item)))
 		}
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
@@ -1217,14 +1217,14 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 		for j := 0; j < len(responseOrders); j++ {
 			var responseOrder any = responseOrders[j]
 			var parsed map[string]any = this.ParseWsOrder(responseOrder)
-			var cachedOrders any = this.Orders
+			var cachedOrders ccxt.WsArrayCache = this.Orders
 			var marketId *string = this.SafeString(responseOrder, "product_id")
 			if marketId != nil {
 				if !(ccxt.InOp(marketIds, marketId)) {
 					marketIds = append(marketIds, marketId)
 				}
 			}
-			cachedOrders.(ccxt.Appender).Append(parsed)
+			cachedOrders.Append(parsed)
 		}
 	}
 	for i := 0; i < len(marketIds); i++ {

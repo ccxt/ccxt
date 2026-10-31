@@ -837,18 +837,18 @@ func (this *Bithumb) HandleTrades(client any, message map[string]any) {
 		}
 		var parsed map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol *string = this.SafeString(parsed, "symbol", fallbackSymbol)
-		if !(ccxt.InOp(this.Trades, symbol)) {
+		if !(this.Trades.Has(symbol)) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 			if symbol != nil {
 				this.Trades[*symbol] = stored
 			}
 		}
-		var trades any
+		var trades ccxt.WsArrayCache
 		if symbol != nil {
 			trades = this.Trades[*symbol]
 		}
-		trades.(ccxt.Appender).Append(parsed)
+		trades.Append(parsed)
 		var messageHash string = "trade" + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	}
@@ -1254,8 +1254,8 @@ func (this *Bithumb) HandleOrders(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var cachedOrders any = this.Orders
-	cachedOrders.(ccxt.Appender).Append(parsed)
+	var cachedOrders ccxt.WsArrayCache = this.Orders
+	cachedOrders.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, messageHash)
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, messageHash+":"+*this.SafeString(parsed, "symbol", ""))
 }

@@ -1806,7 +1806,7 @@ func (this *Bybit) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -1816,7 +1816,7 @@ func (this *Bybit) HandleTrades(client any, message map[string]any) {
 	}
 	for j := 0; j < ccxt.GetArrayLength(trades); j++ {
 		var parsed map[string]any = this.ParseWsTrade(ccxt.GetValue(trades, j), market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -2161,7 +2161,7 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trades any = this.MyTrades
+	var trades ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	// the option was renamed from filterExecTypes to execType to mirror
 	// the exchange's own field name, the old key is still read as a
@@ -2202,7 +2202,7 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
-		trades.(ccxt.Appender).Append(parsed)
+		trades.Append(parsed)
 	}
 	var keys []string = nil
 	if symbols != nil {
@@ -2626,8 +2626,8 @@ func (this *Bybit) HandleLiquidation(client any, message map[string]any) {
 				var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 				this.Liquidations = ccxt.NewArrayCache(limit)
 			}
-			var cache any = this.Liquidations
-			cache.(ccxt.Appender).Append(liquidation)
+			var cache ccxt.WsArrayCache = this.Liquidations
+			cache.Append(liquidation)
 			client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations")
 			client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations::"+*symbol)
 		}
@@ -2641,8 +2641,8 @@ func (this *Bybit) HandleLiquidation(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 			this.Liquidations = ccxt.NewArrayCache(limit)
 		}
-		var cache any = this.Liquidations
-		cache.(ccxt.Appender).Append(liquidation)
+		var cache ccxt.WsArrayCache = this.Liquidations
+		cache.Append(liquidation)
 		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations")
 		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations::"+*symbol)
 	}
@@ -2935,7 +2935,7 @@ func (this *Bybit) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	var rawOrders any = this.SafeList(message, "data", []any{})
 	var first map[string]any = ccxt.SafeMapTyped(rawOrders, 0)
 	var category *string = this.SafeString(first, "category")
@@ -2958,7 +2958,7 @@ func (this *Bybit) HandleOrder(client any, message map[string]any) {
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
-		orders.(ccxt.Appender).Append(parsed)
+		orders.Append(parsed)
 	}
 	var symbolsArray []string = nil
 	if symbols != nil {

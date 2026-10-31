@@ -1165,7 +1165,7 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trades any = this.MyTrades
+	var trades ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var dataLength int = len(data)
@@ -1179,7 +1179,7 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
-		trades.(ccxt.Appender).Append(parsed)
+		trades.Append(parsed)
 	}
 	var keys []string = nil
 	if symbols != nil {
@@ -1364,11 +1364,11 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[*symbol] = stored
 	}
-	var trades any = this.Trades[*symbol]
+	var trades ccxt.WsArrayCache = this.Trades[*symbol]
 	for i := 0; i < len(entry); i++ {
 		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(data)
-		trades.(ccxt.Appender).Append(trade)
+		trades.Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
@@ -1850,13 +1850,13 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 	if dataLength == 0 {
 		return
 	}
-	var stored any = this.Orders
+	var stored ccxt.WsArrayCache = this.Orders
 	var messageHash string = "order"
 	var marketSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var rawOrder any = data[i]
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
-		stored.(ccxt.Appender).Append(order)
+		stored.Append(order)
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {
 			marketSymbols[*symbol] = true

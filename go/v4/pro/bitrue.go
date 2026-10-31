@@ -321,8 +321,8 @@ func (this *Bitrue) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
-	orders.(ccxt.Appender).Append(parsed)
+	var orders ccxt.WsArrayCache = this.Orders
+	orders.Append(parsed)
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
@@ -660,7 +660,7 @@ func (this *Bitrue) HandleTrades(client any, message map[string]any) {
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	var data []any = ccxt.SafeListTyped(tick, "data")
 	var appended bool = false
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	for i := 0; i < len(data); i++ {
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -670,7 +670,7 @@ func (this *Bitrue) HandleTrades(client any, message map[string]any) {
 			}
 		}
 		var trade map[string]any = this.ParseWsTrade(data[i], market)
-		stored.(ccxt.Appender).Append(trade)
+		stored.Append(trade)
 		appended = true
 	}
 	if appended {

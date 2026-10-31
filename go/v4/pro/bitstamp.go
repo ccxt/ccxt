@@ -471,7 +471,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	var messageHash string = "trades:" + *symbol
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var trade map[string]any = this.ParseWsTrade(data, market)
-	var tradesArray any = this.SafeValue(this.Trades, symbol)
+	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
@@ -479,7 +479,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 			this.Trades[*symbol] = tradesArray
 		}
 	}
-	tradesArray.(ccxt.Appender).Append(trade)
+	tradesArray.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
 
@@ -820,9 +820,9 @@ func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored any = this.MyTrades
+	var stored ccxt.WsArrayCache = this.MyTrades
 	var trade any = this.ParseWsMyTrade(data, market)
-	stored.(ccxt.Appender).Append(trade)
+	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
 func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
@@ -918,11 +918,11 @@ func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
 	if this.Orders == nil {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored any = this.Orders
+	var stored ccxt.WsArrayCache = this.Orders
 	var market map[string]any = this.Market(symbol)
 	order["event"] = this.SafeString(message, "event")
 	var parsed map[string]any = this.ParseWsOrder(order, market)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
 }
 func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
@@ -1109,13 +1109,13 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message map[string]
  * @param {string[]} symbols the symbols to remove from the cache
  * @returns {object} the new cache holding the remaining entries
  */
-func (this *Bitstamp) PruneCachedBySymbols(newCache any, cache any, symbols any) any {
+func (this *Bitstamp) PruneCachedBySymbols(newCache ccxt.WsArrayCache, cache any, symbols any) ccxt.WsArrayCache {
 	var entries []any = this.ToArray(cache)
 	for i := 0; i < len(entries); i++ {
 		var entry any = ccxt.DerefScalar(entries[i])
 		var entrySymbol *string = this.SafeString(entry, "symbol")
 		if !this.InArray(entrySymbol, symbols) {
-			newCache.(ccxt.Appender).Append(entry)
+			newCache.Append(entry)
 		}
 	}
 	return newCache

@@ -1181,7 +1181,7 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trades any = this.MyTrades
+	var trades ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	var data []any = ccxt.SafeListTyped(entry, "fills")
 	var dataLength int = len(data)
@@ -1195,7 +1195,7 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
-		trades.(ccxt.Appender).Append(parsed)
+		trades.Append(parsed)
 	}
 	var keys []string = nil
 	if symbols != nil {
@@ -1224,7 +1224,7 @@ func (this *Hyperliquid) HandleMyLiquidations(client any, message map[string]any
 	var entry map[string]any = ccxt.SafeMapTyped(message, "data")
 	// every subscription starts with a snapshot, a resubscribe replays it
 	var isSnapshot *bool = this.SafeBool(entry, "isSnapshot", false)
-	if (isSnapshot != nil && *isSnapshot) || (ccxt.IsEqual(this.MyLiquidations, nil)) {
+	if (isSnapshot != nil && *isSnapshot) || (this.MyLiquidations == nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "myLiquidationsLimit", 1000)
 		this.MyLiquidations = ccxt.NewArrayCache(limit)
 	}
@@ -1243,11 +1243,11 @@ func (this *Hyperliquid) HandleMyLiquidations(client any, message map[string]any
 	if newLiquidationsLength == 0 {
 		return
 	}
-	var cache any = this.MyLiquidations
+	var cache ccxt.WsArrayCache = this.MyLiquidations
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < newLiquidationsLength; i++ {
 		var liquidation any = newLiquidations[i]
-		cache.(ccxt.Appender).Append(liquidation)
+		cache.Append(liquidation)
 		ccxt.AddElementToObject(symbols, ccxt.GetValue(liquidation, "symbol"), true)
 	}
 	var keys []string = nil
@@ -1425,21 +1425,21 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	var marketId any = this.CoinToMarketId(coin)
 	var market map[string]any = this.Market(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		if symbol != nil {
 			this.Trades[*symbol] = stored
 		}
 	}
-	var trades any
+	var trades ccxt.WsArrayCache
 	if symbol != nil {
 		trades = this.Trades[*symbol]
 	}
 	for i := 0; i < len(entry); i++ {
 		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(data)
-		trades.(ccxt.Appender).Append(trade)
+		trades.Append(trade)
 	}
 	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
@@ -2408,13 +2408,13 @@ func (this *Hyperliquid) HandleOrder(client any, message map[string]any) {
 	if dataLength == 0 {
 		return
 	}
-	var stored any = this.Orders
+	var stored ccxt.WsArrayCache = this.Orders
 	var messageHash string = "order"
 	var marketSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var rawOrder any = data[i]
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
-		stored.(ccxt.Appender).Append(order)
+		stored.Append(order)
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {
 			marketSymbols[*symbol] = true

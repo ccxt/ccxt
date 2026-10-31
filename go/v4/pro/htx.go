@@ -421,7 +421,7 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var tradesCache any = this.SafeValue(this.Trades, symbol)
+	var tradesCache ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesCache == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesCache = ccxt.NewArrayCache(limit)
@@ -431,7 +431,7 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
 	}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i]), market))
-		tradesCache.(ccxt.Appender).Append(trade)
+		tradesCache.Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)
 	return message
@@ -1685,8 +1685,8 @@ func (this *Htx) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var cachedOrders any = this.Orders
-	cachedOrders.(ccxt.Appender).Append(parsedOrder)
+	var cachedOrders ccxt.WsArrayCache = this.Orders
+	cachedOrders.Append(parsedOrder)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	if (messageHash != nil) && (marketId != nil) {
 		if messageHash != nil && *messageHash == "orders" {
@@ -3300,7 +3300,7 @@ func (this *Htx) HandleMyTrade(client any, message map[string]any, optionalArgs 
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var cachedTrades any = this.MyTrades
+	var cachedTrades ccxt.WsArrayCache = this.MyTrades
 	var messageHash *string = this.SafeString2(message, "ch", "topic")
 	if messageHash != nil {
 		var data any = this.SafeValue(message, "data")
@@ -3318,14 +3318,14 @@ func (this *Htx) HandleMyTrade(client any, message map[string]any, optionalArgs 
 					var parsed any = this.ParseWsTrade(dataList[i], market)
 					var symbol *string = this.SafeString(parsed, "symbol")
 					if symbol != nil {
-						cachedTrades.(ccxt.Appender).Append(parsed)
+						cachedTrades.Append(parsed)
 					}
 				}
 			} else {
 				var parsed any = this.ParseWsTrade(data, market)
 				var symbol *string = this.SafeString(parsed, "symbol")
 				if symbol != nil {
-					cachedTrades.(ccxt.Appender).Append(parsed)
+					cachedTrades.Append(parsed)
 				}
 			}
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
@@ -3344,7 +3344,7 @@ func (this *Htx) HandleMyTrade(client any, message map[string]any, optionalArgs 
 				var parsedTrade any = ccxt.TradeToMap(this.ParseTrade(trade, market))
 				// add extra params (side, type, ...) coming from the order
 				parsedTrade = this.Extend(parsedTrade, extendParams)
-				cachedTrades.(ccxt.Appender).Append(parsedTrade)
+				cachedTrades.Append(parsedTrade)
 			}
 			// messageHash here is the orders one, so
 			// we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'

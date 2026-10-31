@@ -471,7 +471,7 @@ func (this *Extended) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored any = this.MyTrades
+	var stored ccxt.WsArrayCache = this.MyTrades
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var rawTrades []any = ccxt.SafeListTyped(data, "trades")
 	var symbols map[string]any = map[string]any{}
@@ -485,7 +485,7 @@ func (this *Extended) HandleMyTrades(client any, message map[string]any) {
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
-		stored.(ccxt.Appender).Append(trade)
+		stored.Append(trade)
 	}
 	var keys []string = nil
 	if symbols != nil {
@@ -674,7 +674,7 @@ func (this *Extended) HandleOrders(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var rawOrders any = this.SafeList(data, "orders")
 	var symbols map[string]any = map[string]any{}
@@ -688,7 +688,7 @@ func (this *Extended) HandleOrders(client any, message map[string]any) {
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
-		orders.(ccxt.Appender).Append(order)
+		orders.Append(order)
 	}
 	var keys []string = nil
 	if symbols != nil {
@@ -973,7 +973,7 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "trades:" + *symbol
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
@@ -990,7 +990,7 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 	ccxt.AddElementToObject(subscription, "nonce", nonce)
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i]), market))
-		stored.(ccxt.Appender).Append(trade)
+		stored.Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }

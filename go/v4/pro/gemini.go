@@ -227,7 +227,7 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	var trade map[string]any = this.ParseWsTrade(message)
 	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		stored = ccxt.NewArrayCache(tradesLimit)
 		if symbol != nil {
@@ -236,7 +236,7 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 			}
 		}
 	}
-	stored.(ccxt.Appender).Append(trade)
+	stored.Append(trade)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -284,7 +284,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 	if trades != nil {
 		var symbol *string = this.SafeString(market, "symbol", "")
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		var stored any = this.SafeValue(this.Trades, symbol)
+		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
 			if symbol != nil {
@@ -293,7 +293,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 		}
 		for i := 0; i < len(trades); i++ {
 			var trade map[string]any = this.ParseWsTrade(this.SafeValue(trades, i), market)
-			stored.(ccxt.Appender).Append(trade)
+			stored.Append(trade)
 		}
 		var messageHash string = "trades:" + *symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -310,10 +310,10 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp
 		var trade map[string]any = this.ParseWsTrade(rawTrade, market)
 		trade["timestamp"] = timestamp
 		trade["datetime"] = this.Iso8601(timestamp)
-		var stored any = this.SafeValue(this.Trades, symbol)
+		var stored any = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
-			this.Trades[*symbol] = stored
+			this.Trades.Store(symbol, stored)
 		}
 		stored.(ccxt.Appender).Append(trade)
 		ccxt.AddElementToObject(storesForSymbols, symbol, stored)
@@ -986,10 +986,10 @@ func (this *Gemini) HandleOrder(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
 		var order map[string]any = this.ParseWsOrder(this.SafeValue(message, i))
-		orders.(ccxt.Appender).Append(order)
+		orders.Append(order)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
@@ -1197,7 +1197,7 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 
 		return nil
 	}
-	if (this.WsClientsSnapshot() != nil) && (ccxt.InOp(this.WsClientsSnapshot(), url)) {
+	if _, ok := this.WsClientsSnapshot()[*url]; ok {
 
 		return nil
 	}

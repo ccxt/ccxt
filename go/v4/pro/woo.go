@@ -1203,12 +1203,12 @@ func (this *Woo) HandleTrade(client any, message map[string]any) {
 	var trade map[string]any = this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
 	}), market)
-	var tradesArray any = this.SafeValue(this.Trades, symbol)
+	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
-	tradesArray.(ccxt.Appender).Append(trade)
+	tradesArray.Append(trade)
 	if symbol != nil {
 		this.Trades[*symbol] = tradesArray
 	}
@@ -1737,7 +1737,7 @@ func (this *Woo) HandleOrder(client any, message any, topic any) {
 			var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var cachedOrders any = this.Orders
+		var cachedOrders ccxt.WsArrayCache = this.Orders
 		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
 		if order != nil {
@@ -1753,7 +1753,7 @@ func (this *Woo) HandleOrder(client any, message any, topic any) {
 			parsed["timestamp"] = this.SafeInteger(order, "timestamp")
 			parsed["datetime"] = this.SafeString(order, "datetime")
 		}
-		cachedOrders.(ccxt.Appender).Append(parsed)
+		cachedOrders.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, topic)
 		var messageHashSymbol any = ccxt.Add(ccxt.Add(topic, ":"), symbol)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHashSymbol)
@@ -1790,13 +1790,13 @@ func (this *Woo) HandleMyTrade(client any, message any) {
 	//     "maker": false
 	//   }
 	//
-	var myTrades any = this.MyTrades
+	var myTrades ccxt.WsArrayCache = this.MyTrades
 	if myTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		myTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var trade map[string]any = this.ParseWsTrade(message)
-	myTrades.(ccxt.Appender).Append(trade)
+	myTrades.Append(trade)
 	var tradeSymbol string = *this.SafeString(trade, "symbol", "")
 	var messageHash string = "myTrades:" + tradeSymbol
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)

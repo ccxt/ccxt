@@ -695,11 +695,11 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var trades any = this.Trades[symbol]
+	var trades ccxt.WsArrayCache = this.Trades[symbol]
 	for i := 0; i < rowsLength; i++ {
 		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(row, market)
-		trades.(ccxt.Appender).Append(trade)
+		trades.Append(trade)
 	}
 	var messageHash string = "trade:" + symbol
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
@@ -1083,12 +1083,12 @@ func (this *Polymarket) HandleOrder(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored any = this.Orders
+	var stored ccxt.WsArrayCache = this.Orders
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < rowsLength; i++ {
 		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(row))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true
@@ -1212,12 +1212,12 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored any = this.MyTrades
+	var stored ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < rowsLength; i++ {
 		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(row))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true

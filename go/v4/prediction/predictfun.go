@@ -4404,8 +4404,8 @@ func (this *Predictfun) HandleWalletEventOrder(client any, order any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
-	var stored any = this.Orders
-	stored.(ccxt.Appender).Append(order)
+	var stored ccxt.WsArrayCache = this.Orders
+	stored.Append(order)
 	client.(ccxt.ClientInterface).Resolve(stored, "orders")
 	var outcomeHandle *string = this.SafeString(order, "outcome")
 	if outcomeHandle != nil {
@@ -4428,8 +4428,8 @@ func (this *Predictfun) HandleWalletEventTrade(client any, event any, order any)
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
-	var stored any = this.MyTrades
-	stored.(ccxt.Appender).Append(trade)
+	var stored ccxt.WsArrayCache = this.MyTrades
+	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 	var outcomeHandle *string = this.SafeString(trade, "outcome")
 	if outcomeHandle != nil {

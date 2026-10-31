@@ -7050,7 +7050,11 @@ func (this *Bitget) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 		for i := 0; i < len(rows); i++ {
 			var entry any = rows[i]
 			var entryMarketId *string = this.SafeString(entry, "symbol")
-			if (entryMarketId == nil) || (this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), entryMarketId)) {
+			var entryMarketIdKnown bool
+			if entryMarketId != nil {
+				_, entryMarketIdKnown = this.Markets_by_id()[*entryMarketId]
+			}
+			if (entryMarketId == nil) || (this.Markets_by_id() == nil) || !entryMarketIdKnown {
 				continue
 			}
 			var entryMarket map[string]any = this.SafeMarket(entryMarketId, nil, nil, marketType)

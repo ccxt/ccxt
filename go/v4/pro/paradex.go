@@ -270,14 +270,14 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	var parsedTrade map[string]any = ccxt.TradeToMap(this.ParseTrade(data))
 	var symbol *string = ccxt.SafeStringPtr(parsedTrade["symbol"])
 	var messageHash *string = this.SafeString(params, "channel")
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		stored = ccxt.NewArrayCache(this.SafeInteger(this.Options, "tradesLimit", 1000))
 		if symbol != nil {
 			this.Trades[*symbol] = stored
 		}
 	}
-	stored.(ccxt.Appender).Append(parsedTrade)
+	stored.Append(parsedTrade)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	// an SBE frame names its market but not the subscription it was sent for,
 	// so the trades.ALL subscription is resolved from the per-market channel too
@@ -620,7 +620,7 @@ func (this *Paradex) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	this.Orders.(ccxt.Appender).Append(parsed)
+	this.Orders.Append(parsed)
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	if symbol != nil {
@@ -734,8 +734,8 @@ func (this *Paradex) HandleMyTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trades any = this.MyTrades
-	trades.(ccxt.Appender).Append(trade)
+	var trades ccxt.WsArrayCache = this.MyTrades
+	trades.Append(trade)
 	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	if symbol != nil {

@@ -393,7 +393,7 @@ func (this *Coinone) HandleTrades(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var trade map[string]any = this.ParseWsTrade(data)
 	var symbol *string = this.SafeString(trade, "symbol", "")
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -401,7 +401,7 @@ func (this *Coinone) HandleTrades(client any, message map[string]any) {
 			this.Trades[*symbol] = stored
 		}
 	}
-	stored.(ccxt.Appender).Append(trade)
+	stored.Append(trade)
 	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }

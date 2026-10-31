@@ -92,8 +92,8 @@ func (this *Aster) Describe() map[string]any {
 		"exceptions": map[string]any{},
 	})
 }
-func (this *Aster) GetAccountTypeFromUrl(url any) string {
-	if ccxt.GetIndexOf(url, "fstream") > -1 {
+func (this *Aster) GetAccountTypeFromUrl(url string) string {
+	if strings.Index(url, "fstream") > -1 {
 		return "swap"
 	}
 	return "spot"
@@ -1087,8 +1087,8 @@ func (this *Aster) HandleTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 	}
-	var stored any = this.Trades[*symbol]
-	stored.(ccxt.Appender).Append(parsed)
+	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+*symbol)
 }
 func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -2650,8 +2650,8 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 		var tradeFee map[string]any = this.Extend(map[string]any{}, this.SafeDict(trade, "fee", map[string]any{}))
 		var symbol *string = this.SafeString(trade, "symbol")
 		if (orderId != nil) && (tradeFee != nil) && (symbol != nil) {
-			var cachedOrders any = this.Orders
-			if !ccxt.IsEqual(cachedOrders, nil) {
+			var cachedOrders ccxt.WsArrayCache = this.Orders
+			if cachedOrders != nil {
 				var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 				var order map[string]any = this.SafeDictMap(orders, orderId)
 				if order != nil {
@@ -2718,8 +2718,8 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var myTrades any = this.MyTrades
-		myTrades.(ccxt.Appender).Append(trade)
+		var myTrades ccxt.WsArrayCache = this.MyTrades
+		myTrades.Append(trade)
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 		var messageHashSymbol string = messageHash + "::" + *this.SafeString(trade, "symbol", "")
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHashSymbol)
@@ -2806,10 +2806,10 @@ func (this *Aster) HandleOrder(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var cache any = this.Orders
+	var cache ccxt.WsArrayCache = this.Orders
 	var parsed map[string]any = this.ParseWsOrder(message, market)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	cache.(ccxt.Appender).Append(parsed)
+	cache.Append(parsed)
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !this.IsEmpty(messageHashes) {
 		var symbolMessageHash string = messageHash + "::" + symbol

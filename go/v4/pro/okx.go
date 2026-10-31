@@ -485,14 +485,14 @@ func (this *Okx) HandleTrades(client any, message map[string]any) {
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i])))
-		var stored any = this.SafeValue(this.Trades, symbol)
+		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
 			if symbol != nil {
 				this.Trades[*symbol] = stored
 			}
 		}
-		stored.(ccxt.Appender).Append(trade)
+		stored.Append(trade)
 		if channel != nil {
 			var messageHash string = *channel + ":" + *symbol
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1249,8 +1249,8 @@ func (this *Okx) HandleLiquidation(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 			this.Liquidations = ccxt.NewArrayCache(limit)
 		}
-		var cache any = this.Liquidations
-		cache.(ccxt.Appender).Append(liquidation)
+		var cache ccxt.WsArrayCache = this.Liquidations
+		cache.Append(liquidation)
 		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations")
 		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations::"+symbol)
 	}
@@ -1393,8 +1393,8 @@ func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 			this.Liquidations = ccxt.NewArrayCache(limit)
 		}
-		var cache any = this.Liquidations
-		cache.(ccxt.Appender).Append(liquidation)
+		var cache ccxt.WsArrayCache = this.Liquidations
+		cache.Append(liquidation)
 		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations")
 		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations::"+symbol)
 	}
@@ -2080,7 +2080,7 @@ func (this *Okx) HandleDeltas(bookside any, deltas any) {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
-func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, messageHash any, optionalArgs ...any) any {
+func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface, messageHash any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "asks": [
@@ -2104,8 +2104,8 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	_ = market
 	var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
+	this.HandleDeltas(orderbook.GetAsks(), asks)
+	this.HandleDeltas(orderbook.GetBids(), bids)
 	var marketId *string = this.SafeString(message, "instId")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var seqId *int64 = this.SafeInteger(message, "seqId")
@@ -2121,9 +2121,9 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 		return orderbook
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	ccxt.AddElementToObject(orderbook, "nonce", seqId)
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetNonce(seqId)
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	return orderbook
 }
 func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
@@ -2240,9 +2240,9 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 				}
 			}
-			var orderbook any
+			var snapshotBook ccxt.OrderBookInterface
 			if symbol != nil {
-				orderbook = this.Orderbooks[*symbol]
+				snapshotBook = this.Orderbooks[*symbol]
 			}
 			var timestamp *int64 = this.SafeInteger(update, "ts")
 			// rows are [ price, amount, liquidatedOrders, numOrders ] - store
@@ -2250,27 +2250,27 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 			// points past the row on purpose
 			var snapshot map[string]any = this.ParseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 4)
 			snapshot["nonce"] = this.SafeInteger(update, "seqId")
-			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+			snapshotBook.Reset(snapshot)
 			if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 				break
 			}
-			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+			client.(ccxt.ClientInterface).Resolve(snapshotBook, messageHash)
 		}
 	} else if action != nil && *action == "update" {
 		if this.Orderbooks.Has(symbol) {
-			var orderbook any
+			var updatedBook ccxt.OrderBookInterface
 			if symbol != nil {
-				orderbook = this.Orderbooks[*symbol]
+				updatedBook = this.Orderbooks[*symbol]
 			}
 			for i := 0; i < len(data); i++ {
 				var update any = ccxt.DerefScalar(data[i])
-				this.HandleOrderBookMessage(client, update, orderbook, messageHash, market)
+				this.HandleOrderBookMessage(client, update, updatedBook, messageHash, market)
 				if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 					// a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
 					client.(ccxt.ClientInterface).SubscriptionSet(messageHash, "resync")
 					break
 				}
-				client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+				client.(ccxt.ClientInterface).Resolve(updatedBook, messageHash)
 			}
 		}
 	} else if (channel != nil && *channel == "books5") || (channel != nil && *channel == "bbo-tbt") {
@@ -2283,16 +2283,16 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 				}
 			}
-			var orderbook any
+			var bboBook ccxt.OrderBookInterface
 			if symbol != nil {
-				orderbook = this.Orderbooks[*symbol]
+				bboBook = this.Orderbooks[*symbol]
 			}
 			for i := 0; i < len(data); i++ {
 				var update any = ccxt.DerefScalar(data[i])
 				var timestamp *int64 = this.SafeInteger(update, "ts")
 				var snapshot map[string]any = this.ParseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1)
-				orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-				client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+				bboBook.Reset(snapshot)
+				client.(ccxt.ClientInterface).Resolve(bboBook, messageHash)
 			}
 		}
 	}
@@ -3006,7 +3006,7 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 			this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var stored any = func() any {
+		var stored ccxt.WsArrayCache = func() ccxt.WsArrayCache {
 			if channel != nil && *channel == "orders-algo" {
 				return this.TriggerOrders
 			}
@@ -3016,7 +3016,7 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 		var parsed []any = ccxt.ArrayTyped(this.ParseOrders(orders))
 		for i := 0; i < len(parsed); i++ {
 			var order any = parsed[i]
-			stored.(ccxt.Appender).Append(order)
+			stored.Append(order)
 			var symbol *string = this.SafeString(order, "symbol", "")
 			var market map[string]any = this.Market(symbol)
 			marketIds = append(marketIds, market["id"])
@@ -3106,12 +3106,12 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var myTrades any = this.MyTrades
+	var myTrades ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(filteredOrders); i++ {
 		var rawTrade any = ccxt.DerefScalar(filteredOrders[i])
 		var trade any = this.OrderToTrade(rawTrade)
-		myTrades.(ccxt.Appender).Append(trade)
+		myTrades.Append(trade)
 		var symbol *string = this.SafeString(trade, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true
@@ -3773,7 +3773,7 @@ func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol string, channel st
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	// watchOHLCV subscribes through subscribe () under channel:marketId
 	this.CleanUnsubscription(ccxt.AsClient(client), ccxt.Add(channel+":", this.MarketId(symbol)), nil)
-	if ccxt.InOp(this.Ohlcvs[symbol], timeframe) {
+	if _, ok := this.Ohlcvs[symbol][*timeframe]; ok {
 		delete(this.Ohlcvs[symbol], *timeframe)
 	}
 }

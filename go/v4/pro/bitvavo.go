@@ -414,12 +414,12 @@ func (this *Bitvavo) HandleTrade(client any, message map[string]any) {
 	var name string = "trades"
 	var messageHash string = name + "@" + *this.SafeString(message, "market", "")
 	var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(message, market))
-	var tradesArray any = this.SafeValue(this.Trades, symbol)
+	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
-	tradesArray.(ccxt.Appender).Append(trade)
+	tradesArray.Append(trade)
 	if symbol != nil {
 		this.Trades[*symbol] = tradesArray
 	}
@@ -1134,7 +1134,7 @@ func (this *Bitvavo) HandleDeltas(bookside any, deltas any) {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
-func (this *Bitvavo) HandleOrderBookMessage(client any, message any, orderbook any) any {
+func (this *Bitvavo) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) any {
 	//
 	//     {
 	//         "event": "book",
@@ -1151,9 +1151,9 @@ func (this *Bitvavo) HandleOrderBookMessage(client any, message any, orderbook a
 	var nonce *int64 = this.SafeInteger(message, "nonce")
 	var currentNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (nonce != nil) && (currentNonce != nil) && (*nonce > *currentNonce) {
-		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(message, "asks", []any{}))
-		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(message, "bids", []any{}))
-		ccxt.AddElementToObject(orderbook, "nonce", nonce)
+		this.HandleDeltas(orderbook.GetAsks(), this.SafeList(message, "asks", []any{}))
+		this.HandleDeltas(orderbook.GetBids(), this.SafeList(message, "bids", []any{}))
+		orderbook.SetNonce(nonce)
 	}
 	return orderbook
 }
@@ -2656,8 +2656,8 @@ func (this *Bitvavo) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
-	orders.(ccxt.Appender).Append(order)
+	var orders ccxt.WsArrayCache = this.Orders
+	orders.Append(order)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
 func (this *Bitvavo) HandleMyTrade(client any, message map[string]any) {
@@ -2685,8 +2685,8 @@ func (this *Bitvavo) HandleMyTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
-	var tradesArray any = this.MyTrades
-	tradesArray.(ccxt.Appender).Append(trade)
+	var tradesArray ccxt.WsArrayCache = this.MyTrades
+	tradesArray.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
 func (this *Bitvavo) HandleSubscriptionStatus(client any, message map[string]any) any {

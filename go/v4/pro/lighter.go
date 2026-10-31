@@ -210,14 +210,14 @@ func (this *Lighter) HandleDeltas(bookside any, deltas any) {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
-func (this *Lighter) HandleOrderBookMessage(client any, message map[string]any, orderbook any) any {
+func (this *Lighter) HandleOrderBookMessage(client any, message map[string]any, orderbook ccxt.OrderBookInterface) any {
 	var data map[string]any = ccxt.SafeMapTyped(message, "order_book")
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(data, "asks", []any{}))
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(data, "bids", []any{}))
-	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "offset"))
+	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "asks", []any{}))
+	this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "bids", []any{}))
+	orderbook.SetNonce(this.SafeInteger(data, "offset"))
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	return orderbook
 }
 func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
@@ -870,7 +870,7 @@ func (this *Lighter) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -882,7 +882,7 @@ func (this *Lighter) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < dataLength; i++ {
 		var iReversed int64 = this.ParseToInt((dataLength - 1) - i)
 		var trade map[string]any = this.ParseWsTrade(ccxt.GetValue(data, iReversed), market)
-		stored.(ccxt.Appender).Append(trade)
+		stored.Append(trade)
 	}
 	var messageHash string = this.GetMessageHash("trade", symbol)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1141,7 +1141,7 @@ func (this *Lighter) HandleMyTrades(client any, message map[string]any) bool {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
-	var stored any = this.MyTrades
+	var stored ccxt.WsArrayCache = this.MyTrades
 	var messageHash string = this.GetMessageHash("myTrades")
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
@@ -1153,7 +1153,7 @@ func (this *Lighter) HandleMyTrades(client any, message map[string]any) bool {
 			var tradeRaw map[string]any = this.SafeDictMap(trades, jReversed, map[string]any{})
 			tradeRaw["accountIndex"] = accountIndex
 			var trade any = this.ParseWsOrderTrade(tradeRaw, market)
-			stored.(ccxt.Appender).Append(trade)
+			stored.Append(trade)
 			var symbol *string = this.SafeString(trade, "symbol")
 			if symbol != nil {
 				var symbolSpecificMessageHash string = this.GetMessageHash("myTrades", symbol)
@@ -1972,7 +1972,7 @@ func (this *Lighter) HandleOrders(client any, message map[string]any) bool {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCache(limit)
 	}
-	var stored any = this.Orders
+	var stored ccxt.WsArrayCache = this.Orders
 	var messageHash string = this.GetMessageHash("orders")
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
@@ -1980,7 +1980,7 @@ func (this *Lighter) HandleOrders(client any, message map[string]any) bool {
 		var orders []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(orders); j++ {
 			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(orders[j], market))
-			stored.(ccxt.Appender).Append(order)
+			stored.Append(order)
 			var symbol *string = ccxt.SafeStringPtr(order["symbol"])
 			if symbol != nil {
 				var symbolSpecificMessageHash string = this.GetMessageHash("orders", symbol)
@@ -2239,7 +2239,7 @@ func (this *Lighter) HandleTradesUnSubscription(client any, marketId any) {
 	var subMessageHash string = this.GetMessageHash("trade", symbol)
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.InOp(this.Trades, symbol) {
+	if this.Trades.Has(symbol) {
 		if symbol != nil {
 			delete(this.Trades, *symbol)
 		}

@@ -566,8 +566,8 @@ func (this *Binance) HandleLiquidation(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 		this.Liquidations = ccxt.NewArrayCache(limit)
 	}
-	var cache any = this.Liquidations
-	cache.(ccxt.Appender).Append(liquidation)
+	var cache ccxt.WsArrayCache = this.Liquidations
+	cache.Append(liquidation)
 	client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations")
 	client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations::"+*symbol)
 }
@@ -844,12 +844,12 @@ func (this *Binance) HandleMyLiquidation(client any, message any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, "swap")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var liquidation any = this.ParseWsLiquidation(message, market)
-	var cache any = this.MyLiquidations
-	if ccxt.IsEqual(cache, nil) {
+	var cache ccxt.WsArrayCache = this.MyLiquidations
+	if cache == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "myLiquidationsLimit", 1000)
 		cache = ccxt.NewArrayCache(limit)
 	}
-	cache.(ccxt.Appender).Append(liquidation)
+	cache.Append(liquidation)
 	this.MyLiquidations = cache
 	client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations")
 	client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations::"+*symbol)
@@ -2086,12 +2086,12 @@ func (this *Binance) HandleTrade(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trade::" + *symbol
 	var trade map[string]any = this.ParseWsTrade(message, market)
-	var tradesArray any = this.SafeValue(this.Trades, symbol)
+	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
-	tradesArray.(ccxt.Appender).Append(trade)
+	tradesArray.Append(trade)
 	if symbol != nil {
 		this.Trades[*symbol] = tradesArray
 	}
@@ -7346,8 +7346,8 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 		var tradeFee map[string]any = this.Extend(map[string]any{}, this.SafeDict(trade, "fee", map[string]any{}))
 		var symbol *string = this.SafeString(trade, "symbol")
 		if (orderId != nil) && (tradeFee != nil) && (symbol != nil) {
-			var cachedOrders any = this.Orders
-			if !ccxt.IsEqual(cachedOrders, nil) {
+			var cachedOrders ccxt.WsArrayCache = this.Orders
+			if cachedOrders != nil {
 				var orders map[string]any = this.SafeDictMap(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
 				var order map[string]any = this.SafeDictMap(orders, orderId)
 				if order != nil {
@@ -7417,8 +7417,8 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var myTrades any = this.MyTrades
-		myTrades.(ccxt.Appender).Append(trade)
+		var myTrades ccxt.WsArrayCache = this.MyTrades
+		myTrades.Append(trade)
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, ccxt.Add("myTrades:", symbol))
 	}
@@ -7432,7 +7432,7 @@ func (this *Binance) HandleOrder(client any, message any) {
 			var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var cachedOrders any = this.Orders
+		var cachedOrders ccxt.WsArrayCache = this.Orders
 		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
 		if order != nil {
@@ -7451,7 +7451,7 @@ func (this *Binance) HandleOrder(client any, message any) {
 				parsed["datetime"] = this.SafeString(order, "datetime")
 			}
 		}
-		cachedOrders.(ccxt.Appender).Append(parsed)
+		cachedOrders.Append(parsed)
 		var messageHash string = "orders"
 		var symbolSpecificMessageHash string = "orders:" + *symbol
 		client.(ccxt.ClientInterface).Resolve(cachedOrders, messageHash)

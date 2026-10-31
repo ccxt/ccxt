@@ -682,8 +682,8 @@ func (this *Woofipro) HandleTrade(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[*symbol] = stored
 	}
-	var trades any = this.Trades[*symbol]
-	trades.(ccxt.Appender).Append(trade)
+	var trades ccxt.WsArrayCache = this.Trades[*symbol]
+	trades.Append(trade)
 	if symbol != nil {
 		this.Trades[*symbol] = trades
 	}
@@ -1243,7 +1243,7 @@ func (this *Woofipro) HandleOrder(client any, message any, topic any) {
 			var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var cachedOrders any = this.Orders
+		var cachedOrders ccxt.WsArrayCache = this.Orders
 		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
 		if order != nil {
@@ -1259,7 +1259,7 @@ func (this *Woofipro) HandleOrder(client any, message any, topic any) {
 			parsed["timestamp"] = this.SafeInteger(order, "timestamp")
 			parsed["datetime"] = this.SafeString(order, "datetime")
 		}
-		cachedOrders.(ccxt.Appender).Append(parsed)
+		cachedOrders.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, topic)
 		var messageHashSymbol any = ccxt.Add(ccxt.Add(topic, ":"), symbol)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHashSymbol)
@@ -1303,8 +1303,8 @@ func (this *Woofipro) HandleMyTrade(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trades any = this.MyTrades
-	trades.(ccxt.Appender).Append(trade)
+	var trades ccxt.WsArrayCache = this.MyTrades
+	trades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)

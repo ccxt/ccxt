@@ -464,7 +464,7 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 	if symbol == nil {
 		return
 	}
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -472,7 +472,7 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 			this.Trades[*symbol] = stored
 		}
 	}
-	stored.(ccxt.Appender).Append(trade)
+	stored.Append(trade)
 	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -857,9 +857,9 @@ func (this *Upbit) HandleMyTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var myTrades any = this.MyTrades
+	var myTrades ccxt.WsArrayCache = this.MyTrades
 	var trade map[string]any = this.ParseWsTrade(message)
-	myTrades.(ccxt.Appender).Append(trade)
+	myTrades.Append(trade)
 	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
 	client.(ccxt.ClientInterface).Resolve(myTrades, "myTrades:"+*this.SafeString(trade, "symbol", ""))
@@ -872,7 +872,7 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var cachedOrders any = this.Orders
+	var cachedOrders ccxt.WsArrayCache = this.Orders
 	var orders any = func() any {
 		if symbol == nil {
 			return map[string]any{}
@@ -921,7 +921,7 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 			}
 		}
 	}
-	cachedOrders.(ccxt.Appender).Append(parsed)
+	cachedOrders.Append(parsed)
 	var messageHash string = "myOrder"
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash+":"+*this.SafeString(parsed, "symbol", ""))

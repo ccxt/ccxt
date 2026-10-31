@@ -1597,7 +1597,7 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -1612,7 +1612,7 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 		var index int64 = (int64(length) - int64(i)) - 1
 		var rawTrade any = ccxt.GetValue(data, index)
 		var parsed map[string]any = this.ParseWsTrade(rawTrade, market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -2361,7 +2361,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 		this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var isTrigger bool = (channel != nil && *channel == "orders-algo") || (channel != nil && *channel == "ordersAlgo")
-	var stored any = func() any {
+	var stored ccxt.WsArrayCache = func() ccxt.WsArrayCache {
 		if isTrigger {
 			return this.TriggerOrders
 		}
@@ -2377,7 +2377,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 		var marketId *string = this.SafeString2(order, "instId", "symbol", argInstId)
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 		var parsed map[string]any = this.ParseWsOrder(order, market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
 			marketSymbols[*symbol] = true
@@ -2915,7 +2915,7 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
-	var stored any = this.MyTrades
+	var stored ccxt.WsArrayCache = this.MyTrades
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var length int = len(data)
 	var messageHash string = "myTrades"
@@ -2937,7 +2937,7 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 			market = this.SafeMarket(marketId, nil, nil, marketType)
 		}
 		var parsed map[string]any = this.ParseWsTrade(trade, market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		var symbol string = *this.SafeString(parsed, "symbol", "")
 		var symbolSpecificMessageHash string = "myTrades:" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
@@ -3809,8 +3809,10 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message map[string]any
 		subMessageHash = "candles:" + *timeframe + ":" + symbol
 	}
 	if _, ok := this.Ohlcvs[symbol]; ok {
-		if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[symbol], timeframe)) {
-			delete(this.Ohlcvs[symbol], *timeframe)
+		if timeframe != nil {
+			if _, ok := this.Ohlcvs[symbol][*timeframe]; ok {
+				delete(this.Ohlcvs[symbol], *timeframe)
+			}
 		}
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)

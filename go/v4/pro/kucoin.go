@@ -1995,8 +1995,8 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var cache any = this.Trades[symbol]
-	cache.(ccxt.Appender).Append(trade)
+	var cache ccxt.WsArrayCache = this.Trades[symbol]
+	cache.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
 func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
@@ -2026,8 +2026,8 @@ func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var cache any = this.Trades[symbol]
-	cache.(ccxt.Appender).Append(trade)
+	var cache ccxt.WsArrayCache = this.Trades[symbol]
+	cache.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
 func (this *Kucoin) ParseWsUtaTrade(trade map[string]any, optionalArgs ...any) any {
@@ -3123,7 +3123,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var cachedOrders any = func() any {
+	var cachedOrders ccxt.WsArrayCache = func() ccxt.WsArrayCache {
 		if isTriggerOrder {
 			return this.TriggerOrders
 		}
@@ -3169,7 +3169,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 			parsed["average"] = this.ParseNumber(ccxt.Precise.StringDiv(costString, filledString))
 		}
 	}
-	cachedOrders.(ccxt.Appender).Append(parsed)
+	cachedOrders.Append(parsed)
 	var messageHash string = "orders"
 	var topic *string = this.SafeString(message, "topic")
 	var suffix string = this.GetOrdersMessageHashSuffix(topic)
@@ -3231,8 +3231,8 @@ func (this *Kucoin) HandleUtaOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var cachedOrders any = this.Orders
-	cachedOrders.(ccxt.Appender).Append(parsed)
+	var cachedOrders ccxt.WsArrayCache = this.Orders
+	cachedOrders.Append(parsed)
 	var messageHash string = "uta:orders"
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, messageHash+":"+*this.SafeString(parsed, "symbol", ""))
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, messageHash)
@@ -3392,8 +3392,8 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var parsed map[string]any = this.ParseWsTrade(data)
-	var myTrades any = this.MyTrades
-	myTrades.(ccxt.Appender).Append(parsed)
+	var myTrades ccxt.WsArrayCache = this.MyTrades
+	myTrades.Append(parsed)
 	var messageHash string = "myTrades"
 	var topic *string = this.SafeString(message, "topic", "")
 	var suffix string = this.GetMyTradesMessageHashSuffix(topic)
@@ -3428,8 +3428,8 @@ func (this *Kucoin) HandleUtaMyTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var cache any = this.MyTrades
-	cache.(ccxt.Appender).Append(trade)
+	var cache ccxt.WsArrayCache = this.MyTrades
+	cache.Append(trade)
 	var messageHash string = "uta:myTrades"
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash+":"+*this.SafeString(trade, "symbol", ""))

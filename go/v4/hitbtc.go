@@ -3728,12 +3728,12 @@ func (this *Hitbtc) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		"info":        transfer,
 	})
 }
-func (this *Hitbtc) ConvertCurrencyNetworkAsync(code string, amount any, fromNetwork any, toNetwork any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Hitbtc) ConvertCurrencyNetworkAsync(code string, amount any, fromNetwork string, toNetwork string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.convertCurrencyNetworkBody(ch, code, amount, fromNetwork, toNetwork, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) convertCurrencyNetworkBody(ch chan AsyncResult[map[string]any], code string, amount any, fromNetwork any, toNetwork any, optionalArgs ...any) any {
+func (this *Hitbtc) convertCurrencyNetworkBody(ch chan AsyncResult[map[string]any], code string, amount any, fromNetwork string, toNetwork string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3749,8 +3749,8 @@ func (this *Hitbtc) convertCurrencyNetworkBody(ch chan AsyncResult[map[string]an
 		panic(ExchangeError(this.Id + " convertCurrencyNetwork() only supports USDT currently"))
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	var fromNetworkUpper string = ToUpper(fromNetwork)
-	var toNetworkUpper string = ToUpper(toNetwork)
+	var fromNetworkUpper string = strings.ToUpper(fromNetwork)
+	var toNetworkUpper string = strings.ToUpper(toNetwork)
 	var fromNetworkValue *string = this.SafeString(this.NetworkAliases, fromNetworkUpper, fromNetworkUpper)
 	var toNetworkValue *string = this.SafeString(this.NetworkAliases, toNetworkUpper, toNetworkUpper)
 	var fromNetworkValue2 *string = this.SafeString(networks, fromNetworkValue) // unified code to exchange id

@@ -3695,17 +3695,17 @@ func (this *Sxbet) HandleTrades(client any, rows []any) {
 		if sym == nil {
 			continue
 		}
-		if ccxt.IsEqual(this.Trades, nil) {
-			this.Trades = map[string]any{}
+		if this.Trades == nil {
+			this.Trades = ccxt.TradesCache{}
 		}
-		if ccxt.IsEqual(this.SafeValue(this.Trades, sym), nil) {
+		if this.Trades.Get(sym) == nil {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			if sym != nil {
 				this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
 			}
 		}
-		var stored any = this.Trades[*sym]
-		stored.(ccxt.Appender).Append(trade)
+		var stored ccxt.WsArrayCache = this.Trades[*sym]
+		stored.Append(trade)
 		client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
 	}
 }
@@ -3779,8 +3779,8 @@ func (this *Sxbet) HandleMyTrade(client any, rows []any) {
 			var myTradesLimit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
 			this.MyTrades = ccxt.NewArrayCacheByOutcomeById(myTradesLimit)
 		}
-		var stored any = this.MyTrades
-		stored.(ccxt.Appender).Append(trade)
+		var stored ccxt.WsArrayCache = this.MyTrades
+		stored.Append(trade)
 		client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 		client.(ccxt.ClientInterface).Resolve(stored, "myTrades::"+*sym)
 	}
@@ -3851,8 +3851,8 @@ func (this *Sxbet) HandleOrder(client any, rows []any) {
 			var cacheLimit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheByOutcomeById(cacheLimit)
 		}
-		var stored any = this.Orders
-		stored.(ccxt.Appender).Append(order)
+		var stored ccxt.WsArrayCache = this.Orders
+		stored.Append(order)
 		client.(ccxt.ClientInterface).Resolve(stored, "orders")
 		var sym *string = this.SafeString(order, "outcome")
 		if sym != nil {

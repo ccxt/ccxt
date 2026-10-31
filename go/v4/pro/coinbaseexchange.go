@@ -733,7 +733,7 @@ func (this *Coinbaseexchange) HandleTrade(client any, message map[string]any) an
 		// therefore we resolve 'matches' here instead of 'match'
 		var typeVar string = "matches"
 		var messageHash string = typeVar + ":" + *marketId
-		var tradesArray any = this.SafeValue(this.Trades, symbol)
+		var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if tradesArray == nil {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArray = ccxt.NewArrayCache(tradesLimit)
@@ -743,7 +743,7 @@ func (this *Coinbaseexchange) HandleTrade(client any, message map[string]any) an
 				}
 			}
 		}
-		tradesArray.(ccxt.Appender).Append(trade)
+		tradesArray.Append(trade)
 		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	}
 	return message
@@ -758,8 +758,8 @@ func (this *Coinbaseexchange) HandleMyTrade(client any, message map[string]any) 
 			var limit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
 			this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var tradesArray any = this.MyTrades
-		tradesArray.(ccxt.Appender).Append(trade)
+		var tradesArray ccxt.WsArrayCache = this.MyTrades
+		tradesArray.Append(trade)
 		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	}
 	return message
@@ -965,7 +965,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 		if this.Orders == nil {
 			return
 		}
-		var orders any = this.Orders
+		var orders ccxt.WsArrayCache = this.Orders
 		var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var previousOrder any = this.SafeDict(previousOrders, orderId)
 		if previousOrder == nil {
@@ -973,7 +973,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 		}
 		if previousOrder == nil {
 			var parsed map[string]any = this.ParseWsOrder(message)
-			orders.(ccxt.Appender).Append(parsed)
+			orders.Append(parsed)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		} else {
 			var sequence *int64 = this.SafeInteger(message, "sequence")
@@ -1026,7 +1026,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 						ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.ParseNumber(ccxt.Precise.StringAdd(this.SafeString(previousOrderFee, "cost"), this.SafeString(trade["fee"], "cost"))))
 					}
 					// update the newUpdates count
-					orders.(ccxt.Appender).Append(previousOrder)
+					orders.Append(previousOrder)
 					client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 				} else if (typeVar != nil && *typeVar == "received") || (typeVar != nil && *typeVar == "done") {
 					var info map[string]any = this.Extend(previousInfo, message)
@@ -1049,7 +1049,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 					if this.Orders == nil {
 						return
 					}
-					orders.(ccxt.Appender).Append(previousOrder)
+					orders.Append(previousOrder)
 					client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 				}
 			}

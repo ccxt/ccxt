@@ -603,7 +603,7 @@ func (this *Cryptocom) HandleTrades(client any, message any) {
 	var symbolSpecificMessageHash *string = this.SafeString(message, "subscription")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -618,7 +618,7 @@ func (this *Cryptocom) HandleTrades(client any, message any) {
 	}
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for j := 0; j < len(parsedTrades); j++ {
-		stored.(ccxt.Appender).Append(this.SafeValue(parsedTrades, j))
+		stored.Append(this.SafeValue(parsedTrades, j))
 	}
 	var channelReplaced string = ccxt.Replace(channel, ccxt.Add(".", marketId), "")
 	client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
@@ -1303,10 +1303,10 @@ func (this *Cryptocom) HandleOrders(client any, message any, optionalArgs ...any
 			var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var stored any = this.Orders
+		var stored ccxt.WsArrayCache = this.Orders
 		var parsed []any = ccxt.ArrayTyped(this.ParseOrders(orders))
 		for i := 0; i < len(parsed); i++ {
-			stored.(ccxt.Appender).Append(parsed[i])
+			stored.Append(parsed[i])
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
 		// non-symbol specific

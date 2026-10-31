@@ -482,7 +482,7 @@ func (this *Blockchaincom) HandleTrades(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var market map[string]any = this.SafeMarket(marketId)
 	var messageHash string = "trades:" + *symbol
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -491,7 +491,7 @@ func (this *Blockchaincom) HandleTrades(client any, message map[string]any) {
 		}
 	}
 	var parsed map[string]any = this.ParseWsTrade(message, market)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	if symbol != nil {
 		this.Trades[*symbol] = stored
 	}
@@ -681,7 +681,7 @@ func (this *Blockchaincom) HandleOrders(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var cachedOrders any = this.Orders
+	var cachedOrders ccxt.WsArrayCache = this.Orders
 	if event != nil && *event == "subscribed" {
 		return
 	} else if event != nil && *event == "rejected" {
@@ -691,11 +691,11 @@ func (this *Blockchaincom) HandleOrders(client any, message map[string]any) {
 		for i := 0; i < len(orders); i++ {
 			var order any = orders[i]
 			var parsedOrder any = this.ParseWsOrder(order)
-			cachedOrders.(ccxt.Appender).Append(parsedOrder)
+			cachedOrders.Append(parsedOrder)
 		}
 	} else if event != nil && *event == "updated" {
 		var parsedOrder any = this.ParseWsOrder(message)
-		cachedOrders.(ccxt.Appender).Append(parsedOrder)
+		cachedOrders.Append(parsedOrder)
 	}
 	this.Orders = cachedOrders
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)

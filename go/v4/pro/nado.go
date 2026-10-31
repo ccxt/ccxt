@@ -2319,7 +2319,7 @@ func (this *Nado) HandleTrade(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "trade:" + *symbol
-	var trades any = this.SafeValue(this.Trades, symbol)
+	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if trades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		trades = ccxt.NewArrayCache(limit)
@@ -2328,7 +2328,7 @@ func (this *Nado) HandleTrade(client any, message map[string]any) {
 		}
 	}
 	var trade map[string]any = this.ParseWsTrade(message, market)
-	trades.(ccxt.Appender).Append(trade)
+	trades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
 func (this *Nado) HandleMyTrade(client any, message map[string]any) {
@@ -2337,8 +2337,8 @@ func (this *Nado) HandleMyTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trades any = this.MyTrades
-	trades.(ccxt.Appender).Append(trade)
+	var trades ccxt.WsArrayCache = this.MyTrades
+	trades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, "myTrades")
 	client.(ccxt.ClientInterface).Resolve(trades, "myTrades:"+*this.SafeString(trade, "symbol", ""))
 }
@@ -2459,8 +2459,8 @@ func (this *Nado) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
-	orders.(ccxt.Appender).Append(order)
+	var orders ccxt.WsArrayCache = this.Orders
+	orders.Append(order)
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
 	client.(ccxt.ClientInterface).Resolve(orders, "orders:"+*this.SafeString(order, "symbol", ""))
 }
@@ -2811,8 +2811,10 @@ func (this *Nado) HandleUnsubscriptionCache(messageHash string) {
 		var parts []string = strings.Split(messageHash, ":")
 		var timeframe *string = this.SafeString(parts, 1)
 		var symbol *string = this.SafeString(parts, 2)
-		if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) && (ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
-			delete(this.Ohlcvs[*symbol], *timeframe)
+		if symbol != nil && timeframe != nil {
+			if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
+				delete(this.Ohlcvs[*symbol], *timeframe)
+			}
 		}
 	} else if strings.Index(messageHash, "ticker:") == 0 {
 		var symbol string = strings.Replace(messageHash, "ticker:", "", 1)

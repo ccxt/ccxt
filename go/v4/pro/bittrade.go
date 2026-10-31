@@ -250,7 +250,7 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var tradesCache any = this.SafeValue(this.Trades, symbol)
+	var tradesCache ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesCache == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesCache = ccxt.NewArrayCache(limit)
@@ -260,7 +260,7 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
 	}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
-		tradesCache.(ccxt.Appender).Append(trade)
+		tradesCache.Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)
 	return message
@@ -583,7 +583,7 @@ func (this *Bittrade) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat(delta, 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook any) any {
+func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.mbp.150",
@@ -614,12 +614,12 @@ func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook 
 	if (nonce != nil) && (prevSeqNum == nil || *prevSeqNum <= *nonce) && (seqNum != nil && *seqNum > *nonce) {
 		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})
-		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
-		ccxt.AddElementToObject(orderbook, "nonce", seqNum)
+		this.HandleDeltas(orderbook.GetAsks(), asks)
+		this.HandleDeltas(orderbook.GetBids(), bids)
+		orderbook.SetNonce(seqNum)
 		var timestamp *int64 = this.SafeInteger(message, "ts")
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
 	return orderbook
 }

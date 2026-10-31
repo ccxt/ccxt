@@ -743,7 +743,7 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	var trade map[string]any = ccxt.SafeMapTyped(data, 0)
 	var symbol *string = this.SafeString(trade, "symbol")
 	var messageHash string = this.GetMessageHash("trade", nil, symbol)
-	var stored any = this.SafeValue(this.Trades, symbol)
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -754,7 +754,7 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	var market map[string]any = this.Market(symbol)
 	var parsed []any = this.ParseTrades(data, market)
 	for i := 0; i < len(parsed); i++ {
-		stored.(ccxt.Appender).Append(ccxt.GetValue(parsed, i))
+		stored.Append(ccxt.GetValue(parsed, i))
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1866,12 +1866,12 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			this.MyTrades = ccxt.NewArrayCache(limit)
 		}
-		var stored any = this.MyTrades
+		var stored ccxt.WsArrayCache = this.MyTrades
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(allTrades); i++ {
 			var trade map[string]any = this.SafeDictMap(allTrades, i, map[string]any{})
 			var parsed map[string]any = this.ParseWsTrade(trade)
-			stored.(ccxt.Appender).Append(parsed)
+			stored.Append(parsed)
 			var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 			if symbol != nil {
 				symbols[*symbol] = true
@@ -2030,7 +2030,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 		if this.Orders == nil {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var stored any = this.Orders
+		var stored ccxt.WsArrayCache = this.Orders
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(allOrders); i++ {
 			var order map[string]any = this.SafeDictMap(allOrders, i, map[string]any{})
@@ -2055,7 +2055,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 					}
 				}
 			}
-			stored.(ccxt.Appender).Append(newOrder)
+			stored.Append(newOrder)
 			if symbol != nil {
 				symbols[*symbol] = true
 			}

@@ -923,7 +923,7 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 		var market map[string]any = this.SafeMarket(marketId)
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var symbol *string = this.SafeSymbol(marketId, market)
-		var stored any = this.SafeValue(this.Trades, symbol)
+		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
 			if symbol != nil {
@@ -932,7 +932,7 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 		}
 		var trades any = this.ParseWsTrades(data[marketId], market)
 		for j := 0; j < ccxt.GetArrayLength(trades); j++ {
-			stored.(ccxt.Appender).Append(ccxt.GetValue(trades, j))
+			stored.Append(ccxt.GetValue(trades, j))
 		}
 		var messageHash string = "trades::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1279,14 +1279,14 @@ func (this *Hitbtc) HandleOrderHelper(client any, message map[string]any, order 
 	if this.Orders == nil {
 		return
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	var marketId *string = this.SafeStringLower2(order, "instrument", "symbol")
 	var method string = *this.SafeString(message, "method", "")
 	var splitMethod []string = strings.Split(method, "_order")
 	var messageHash *string = this.SafeString(splitMethod, 0)
 	var symbol *string = this.SafeSymbol(marketId)
 	var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(order))
-	orders.(ccxt.Appender).Append(parsed)
+	orders.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	if messageHash != nil {
 		client.(ccxt.ClientInterface).Resolve(orders, *messageHash+"::"+*symbol)

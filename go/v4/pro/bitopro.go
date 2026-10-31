@@ -244,14 +244,14 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	var event *string = this.SafeString(message, "event")
 	var rawData []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var trades []any = this.ParseTrades(rawData, market)
-	var tradesCache any = this.SafeValue(this.Trades, symbol)
+	var tradesCache ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if tradesCache == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesCache = ccxt.NewArrayCache(limit)
 	}
 	for i := 0; i < len(trades); i++ {
 		var trade any = ccxt.GetValue(trades, i)
-		tradesCache.(ccxt.Appender).Append(trade)
+		tradesCache.Append(trade)
 	}
 	if symbol != nil {
 		this.Trades[*symbol] = tradesCache
@@ -361,9 +361,9 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trades any = this.MyTrades
+	var trades ccxt.WsArrayCache = this.MyTrades
 	var parsed map[string]any = this.ParseWsTrade(data)
-	trades.(ccxt.Appender).Append(parsed)
+	trades.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	if messageHash != nil {
 		client.(ccxt.ClientInterface).Resolve(trades, ccxt.Add(*messageHash+":", symbol))
