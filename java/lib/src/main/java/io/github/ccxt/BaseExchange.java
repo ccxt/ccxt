@@ -471,10 +471,10 @@ public class BaseExchange {
     public boolean isSandboxModeEnabled = false;
 
     public volatile Map<String, Object> markets = null;
-    public volatile Object currencies = new HashMap<String, Object>();
+    public volatile Map<String, Object> currencies = new HashMap<String, Object>();
     public Object fees = new HashMap<String, Object>();
     public Object requiredCredentials = new HashMap<String, Object>();
-    public Object timeframes = new HashMap<String, Object>();
+    public Map<String, Object> timeframes = new HashMap<String, Object>();
     public double rateLimit;
     public double rollingWindowSize = 60000;
     public String rateLimiterAlgorithm = "leakyBucket";                        // 0.0 by default
