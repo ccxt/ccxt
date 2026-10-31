@@ -166,11 +166,11 @@ type BaseExchange struct {
 	Orders         WsArrayCache // cache object, not a map
 	MyTrades       WsArrayCache // cache object, not a map
 	Orderbooks     OrderBookCache
-	Liquidations   any // *ArrayCacheBySymbolBySide
+	Liquidations   WsArrayCache // *ArrayCache, nil until first use
 	FundingRates   map[string]any
 	Bidsasks       TickerCache
 	TriggerOrders  WsArrayCache // *ArrayCache
-	MyLiquidations any          // *ArrayCacheBySymbolBySide
+	MyLiquidations WsArrayCache // *ArrayCache, nil until first use
 
 	PaddingMode int
 
