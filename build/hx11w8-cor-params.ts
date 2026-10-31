@@ -86,6 +86,23 @@ export function installHx11w8CorParams (goTranspiler: any) {
                 && this.goParameterKeepsNilCompareNative (fn.body, param, 'string')) ? 'string' : result;
         };
     }
+    // hx11 w8 printer-go-hitbtc-convertcurrencynetwork: hitbtc.ts only, keyed by class + method + slot (no global table).
+    // The method has no caller in ts/src, so the required `fromNetwork`/`toNetwork: string` params are Go strings.
+    const upstreamHitbtcNative = goTranspiler.goNativeParameterTypeOf;
+    if (typeof upstreamHitbtcNative === 'function') {
+        goTranspiler.goNativeParameterTypeOf = function (this: any, param: any) {
+            const result = upstreamHitbtcNative.call (this, param);
+            const fn: any = param?.parent;
+            if ((result !== undefined) || (fn?.kind !== ts.SyntaxKind.MethodDeclaration) || (fn.name?.text !== 'convertCurrencyNetwork')
+                || (this.goEnclosingClassName (fn) !== 'hitbtc') || ![ 2, 3 ].includes (fn.parameters.indexOf (param)) || (param.initializer !== undefined)
+                || !/[\\/]hitbtc\.ts$/.test (fn.getSourceFile ().fileName) || (this.goRequiredStringParameterType (param) !== 'string')
+                || this.goHasTreeCallSite (fn) || (this.goTsSrcTree (fn.getSourceFile ())?.callIndex.get ('convertCurrencyNetwork') ?? []).length > 0) {
+                return result;
+            }
+            return (this.goLocalIsSafeToType (fn.body, param, param.name.text, 'string')
+                && this.goParameterKeepsNilCompareNative (fn.body, param, 'string')) ? 'string' : result;
+        };
+    }
     const upstream = goTranspiler.goParameterCallSitesPassType;
     goTranspiler.goParameterCallSitesPassType = function (this: any, fn: any, index: number, goType: string) {
         if (upstream.call (this, fn, index, goType)) { return true; }
