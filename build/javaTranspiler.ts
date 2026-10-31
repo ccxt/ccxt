@@ -39,7 +39,6 @@ import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
 import { installJ15J12PreScan } from './java-local-types.js';
 import { installJ17StringReturns } from './java-local-types.js';
-import { installJ03BooleanConditions, nativeJavaJ03Family } from './hx10w2-J03.js'; // hx10 wave-2 J03
 import { installJ06TupleAsyncLocals, j06TupleAsyncSelfTest } from './hx10w3-J06.js'; // hx10 wave-3 J06
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
@@ -1935,6 +1934,8 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
     }
     const emittedStringLocals = new WeakSet<any> ();
     const emittedLongLocals = new WeakSet<any> ();
+    // destructured element -> the numeric box its final printed line declares (`Long page = (Long) ...`)
+    const emittedBindingBoxes = new WeakMap<any, string> ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node: any, identation: number) {
         const printed = upstream (node, identation);
@@ -1954,6 +1955,13 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
                         if (element.kind === ts.SyntaxKind.BindingElement && element.name?.kind === ts.SyntaxKind.Identifier
                             && lines.some ((line: string) => line.startsWith (`Long ${printer.printNode (element.name, 0)} = `))) {
                             emittedLongLocals.add (element);
+                        }
+                        // the printer's declared-box arithmetic reads a `Long` / `Integer` / `Double` element from this table
+                        const boxLine = element.kind === ts.SyntaxKind.BindingElement && element.name?.kind === ts.SyntaxKind.Identifier
+                            ? lines.map ((line: string) => /^(Long|Integer|Double) ([\w$]+) = /.exec (line))
+                                .find ((m: any) => m !== null && m[2] === printer.printNode (element.name, 0)) : undefined;
+                        if (boxLine !== undefined && boxLine !== null) {
+                            emittedBindingBoxes.set (element, boxLine[1]);
                         }
                     }
                 }
@@ -1988,6 +1996,7 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
         const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
         return declaration !== undefined && emittedLongLocals.has (declaration) && String (node.text) === String (declaration.name?.text);
     };
+    printer.javaBindingElementTypeResolver = (element: any) => emittedBindingBoxes.get (element);
     printer._javaExpressionTypeResolverInstalled = true;
 }
 
@@ -2590,8 +2599,6 @@ class NewTranspiler {
         installJ14ScalarLocals(this.transpiler); // hx4 J14
         installJ15J12PreScan(this.transpiler); // hx4 J15
         installJ17StringReturns(this.transpiler); // hx4 J17
-        // hx10 J03: a `boolean`-typed parameter condition is a Boolean-or-null box (also in java-worker.ts)
-        installJ03BooleanConditions(this.transpiler);
         // hx10 wave-3 J06: awaited / destructured locals take the box their TS type proves (also in java-worker.ts)
         installJ06TupleAsyncLocals(this.transpiler);
     }
@@ -3364,7 +3371,7 @@ class NewTranspiler {
             replaceInFile(filename, pattern, replacement);
         }
         const contents = fs.readFileSync(filename, 'utf8');
-        const withImports = nativeJavaJ03Family(nativeJavaJ42(nativeJavaJ38(nativeJavaJ36MultiplySubtract(ensureJavaImports(contents, shortened.imports))))); // hx4 J42, hx10 J03
+        const withImports = nativeJavaJ42(nativeJavaJ38(nativeJavaJ36MultiplySubtract(ensureJavaImports(contents, shortened.imports)))); // hx4 J42
         if (withImports !== contents) {
             fs.writeFileSync(filename, withImports);
         }
@@ -5074,7 +5081,6 @@ class NewTranspiler {
         javaSource = nativeJavaJ38(javaSource) // hx4 J38
         javaSource = nativeJavaJ39Containers(javaSource) // hx4 J39
         javaSource = hx11w8CacheFieldCasts(j01wsNativeOps(javaSource)) // hx10 wave-3 J01
-        javaSource = nativeJavaJ03Family(javaSource) // hx10 wave-2 J03
         javaSource = hx10w10JO01(javaSource) // hx10 wave-10 JO01: counter RMW is one owner task
 
         if (javaFolder) {
@@ -5984,7 +5990,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j03FamilySelfTest(), j05FamilySelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j05FamilySelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -10801,75 +10807,3 @@ function x22SelfTest (): string[] {
     return problems;
 }
 
-// hx10 wave-2 J03: native isTrue/isEqual/add/subtract/multiply/divide from statically known types
-// (`--audit-string-types --self-test`). Text cases exercise the printed-type proofs one rule at a
-// time; the probe exercises the printer rule for a `boolean`/`Bool` parameter condition.
-function j03FamilySelfTest (): string[] {
-    const problems: string[] = [];
-    {
-        const cls = (body: string) => `    public Object m (Object q)\n    {\n${body}\n    }\n`;
-        const withDecls = (decls: string, body: string) => `    public Object m (Object q)\n    {\n${decls}\n${body}\n    }\n`;
-        const run = (decls: string, body: string) => nativeJavaJ03Family (withDecls (decls, body));
-        const cases: [string, string, string, string | undefined][] = [
-            // arithmetic: the declared box is the proof, the helper's null arm becomes an explicit ternary
-            [ 'multiply Long x Long', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = Helpers.multiply(a, b);', 'Object r = ((a == null || b == null) ? null : (a * b));' ],
-            [ 'multiply Long x int literal', '        Long p = this.safeInteger(q, "p");', '        Object r = Helpers.multiply(p, 20);', '((p == null) ? null : (p * 20L))' ],
-            [ 'multiply Integer widened', '        Integer n = this.safeInteger(q, "n");', '        Object r = Helpers.multiply(n, 16L);', '(((long) n) * 16L)' ],
-            [ 'subtract Double pair', '        Double a = this.safeFloat(q, "a");\n        Double b = this.safeFloat(q, "b");', '        Object r = Helpers.subtract(a, b);', '((a == null || b == null) ? null : (a - b))' ],
-            [ 'divide Long pair', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = Helpers.divide(a, b);', '(((double) a) / ((double) b))' ],
-            [ 'add Long pair', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = Helpers.add(a, b);', '((a == null || b == null) ? null : (a + b))' ],
-            [ 'add String plus literal', '        String id = "x";', '        Object r = Helpers.add(this.id, " redeem");', '(this.id + " redeem")' ],
-            // isEqual: same declared family -> Objects.equals (never reference `==` on boxes)
-            [ 'isEqual Long pair', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = Helpers.isEqual(a, b);', 'java.util.Objects.equals(a, b)' ],
-            [ 'isEqual String pair', '        String a = this.safeString(q, "a");\n        String b = this.safeString(q, "b");', '        Object r = Helpers.isEqual(a, b);', 'java.util.Objects.equals(a, b)' ],
-            [ 'isEqual null', '        Long a = this.safeInteger(q, "a");', '        Object r = Helpers.isEqual(a, null);', '(a == null)' ],
-            // isTrue: a declared boolean is the condition, a Boolean box is the null-safe TRUE test
-            [ 'isTrue boolean', '        boolean f = java.util.Objects.equals(q, "f");', '        if (Helpers.isTrue(f)) { }', 'if (f)' ],
-            [ 'isTrue Boolean', '        Boolean f = (Boolean) this.safeBool(q, "f", false);', '        if (Helpers.isTrue(f)) { }', 'Boolean.TRUE.equals(f)' ],
-            // negatives: an unproven box keeps the plain helper call
-            [ 'multiply Double', '        Double a = this.safeFloat(q, "a");\n        Double b = this.safeFloat(q, "b");', '        Object r = Helpers.multiply(a, b);', undefined ],
-            [ 'subtract mixed integral', '        Long a = this.safeInteger(q, "a");\n        Integer b = this.safeInteger2(q, "b");', '        Object r = Helpers.subtract(a, b);', undefined ],
-            [ 'add String x Double', '        Double d = this.safeFloat(q, "d");', '        Object r = Helpers.add(d, "1");', undefined ],
-            [ 'isEqual String x number', '        String s = this.safeString(q, "s");', '        Object r = Helpers.isEqual(s, 1);', undefined ],
-            [ 'isEqual Long x Integer', '        Long a = this.safeInteger(q, "a");\n        Integer b = this.safeInteger2(q, "b");', '        Object r = Helpers.isEqual(a, b);', undefined ],
-            [ 'isTrue Object', '        Object c = this.safeValue(q, "c");', '        if (Helpers.isTrue(c)) { }', undefined ],
-            [ 'multiply ternary arm', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = (a == null) ? Helpers.multiply(a, b) : q;', undefined ],
-            [ 'multiply other-method local', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = Helpers.multiply(a, b);', undefined ],
-        ];
-        for (const [ name, decls, body, expect ] of cases) {
-            const source = name === 'multiply other-method local'
-                ? `    public Object other (Object q)\n    {\n${decls}\n    }\n\n    public Object m (Object q)\n    {\n        Object r = Helpers.multiply(a, b);\n    }\n`
-                : withDecls (decls, body);
-            const out = nativeJavaJ03Family (source);
-            const ok = expect === undefined ? out === source : out.includes (expect);
-            if (!ok) problems.push (`hx10 J03: ${name}\n${out}`);
-            if (nativeJavaJ03Family (out) !== out) problems.push (`hx10 J03: ${name} not idempotent`);
-        }
-        // a comment or a string holding a helper call is not a call site
-        const commented = cls ('        // Helpers.multiply(a, b)\n        Object r = "Helpers.add(x, y)";');
-        if (nativeJavaJ03Family (commented) !== commented) problems.push ('hx10 J03: a comment/string was rewritten');
-    }
-    const probe = path.join (process.cwd (), 'ts', 'src', `zzj03selftest${process.pid}.ts`);
-    const body = [
-        "import Exchange from './abstract/binance.js';",
-        'export default class zzj03selftest extends Exchange {',
-        '    j03Condition (flag = false, raw: any) { let r = 0; if (flag) { r = 1; } if (raw) { r = 2; } return r; }',
-        '    j03Written (flag = false) { flag = this.safeBool ({}, "k", false); if (flag) { return 1; } return 0; }',
-        '}',
-    ].join ('\n');
-    try {
-        fs.writeFileSync (probe, body);
-        const out = new NewTranspiler ().transpiler.transpileJavaByPath (probe).content as string;
-        if (process.env['J03_DUMP'] !== undefined) fs.writeFileSync (process.env['J03_DUMP'], out);
-        if (!/public Object j03Condition\(Object flag, Object raw\)/.test (out)) problems.push ('hx10 J03: the probe signature changed');
-        if (!/TRUE\.equals\(java\.util\.Objects\.requireNonNullElse\(flag, false\)\)/.test (out)) problems.push ('hx10 J03: a boolean parameter condition must print the null-safe TRUE test');
-        if (!/Helpers\.isTrue\(raw\)/.test (out)) problems.push ('hx10 J03: an `any` parameter must keep the helper');
-        const written = out.slice (out.indexOf ('j03Written'));
-        if (written.includes ('TRUE.equals(')) problems.push ('hx10 J03: a parameter the body writes must keep the helper');
-    } catch (e: any) {
-        problems.push (`hx10 J03 self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync (probe, { force: true });
-    }
-    return problems;
-}
