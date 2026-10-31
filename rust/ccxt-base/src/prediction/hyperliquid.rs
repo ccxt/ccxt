@@ -2224,15 +2224,15 @@ impl HyperliquidCore {
             if (entry == Value::Null) {
                 entry = raw.clone();
             }
-            let mut oid: Value = self.safe_string_k(entry, "oid", &[]);
-            if (oid != Value::Null) {
-                if !(matches!((&deduped, &oid), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), raw.clone()); }
+            let mut oid: Option<String> = self.safe_string_k_opt(entry, "oid", &[]);
+            if (oid.is_some()) {
+                if !(matches!((&deduped, &oid.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), raw.clone()); }
                 }  else {
-                    let mut existingTs: Value = self.safe_integer((if let (Some(__m), Some(__k)) = (deduped.as_map(), oid.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]);
+                    let mut existingTs: Value = self.safe_integer((if let (Some(__m), Some(__k)) = (deduped.as_map(), oid.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]);
                     let mut currentTs: Value = self.safe_integer_k(raw.clone(), "statusTimestamp", &[]);
                     if (currentTs != Value::Null) && ((existingTs == Value::Null) || currentTs.as_f64().unwrap_or(f64::NAN) > existingTs.as_f64().unwrap_or(f64::NAN)) {
-                        if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), raw); }
+                        if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), raw); }
                     }
                 }
             }
