@@ -15290,6 +15290,8 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'fetchSxbetRealtimeToken': 'string?',
     'fetchErc20Name': 'string?',
     'walletEventsTopic': [ 'string', 'string?' ],
+    // bullish: `return this.safeString (this.options, 'tradingAccountId')` — one string? box
+    'loadAccount': 'string?',
 };
 
 const awaitedCoreProofs = new WeakMap ();
