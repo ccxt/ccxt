@@ -2438,6 +2438,7 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // carry a per-declaration return-path census in the METHOD_RETURN_TYPES comment below.
     'getSupportedMapping': 'string',
     'getUrlByMarket': 'string?',
+    'getUrlByMarketType': 'string?',
     'convertTypeToAccount': 'string?',
     'codeFromOptions': 'string?',
     'remove0xPrefix': 'string',
