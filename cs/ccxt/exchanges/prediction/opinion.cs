@@ -1640,7 +1640,7 @@ public partial class opinion : PredictionExchange
                 { "total", this.safeNumber(balance, "totalBalance") },
             };
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

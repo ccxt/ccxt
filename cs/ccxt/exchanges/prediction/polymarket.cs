@@ -829,10 +829,10 @@ public partial class polymarket : PredictionExchange
             {
                 Dictionary<string, object> singleTagParams = this.extend(new Dictionary<string, object>() {}, parameters);
                 singleTagParams["tags"] = new List<object>() {(requestedTags != null && ti < requestedTags.Count ? requestedTags[ti] : null)};
-                List<Dictionary<string, object>> tagEvents = await this.FetchRawEventsList(singleTagParams);
-                for (int ei = 0; ei < (tagEvents?.Count ?? 0); ei++)
+                object tagEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(singleTagParams));
+                for (int ei = 0; ei < getArrayLength(tagEvents); ei++)
                 {
-                    object rawEvent = tagEvents[ei];
+                    object rawEvent = getValue(tagEvents, ei);
                     string? eventId = this.safeString(rawEvent, "id");
                     if (((eventId != null)) && !(((eventId != null) && seen.ContainsKey(eventId))))
                     {

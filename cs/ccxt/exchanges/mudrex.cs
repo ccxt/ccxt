@@ -1456,7 +1456,7 @@ public partial class mudrex : Exchange
         };
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"position_id"}));
         Dictionary<string, object> response = await this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, paramsOmitted));
-        return ((Dictionary<string, object>)((object)(this.extend(response, new Dictionary<string, object>() {}))));
+        return this.extend(response, new Dictionary<string, object>() {});
     }
 
     /**

@@ -977,7 +977,7 @@ public partial class zaif : Exchange
             {
                 url = url + "tapi";
             }
-            object nonce = this.customNonce();
+            string? nonce = this.customNonce();
             string bodyEncoded = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "method", path },
                 { "nonce", nonce },

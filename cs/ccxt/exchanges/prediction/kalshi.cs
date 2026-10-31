@@ -1836,7 +1836,7 @@ public partial class kalshi : PredictionExchange
             { "used", 0 },
             { "total", total },
         };
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

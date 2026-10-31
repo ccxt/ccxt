@@ -1454,7 +1454,7 @@ public partial class sxbet : PredictionExchange
             }
         }
         Int64? timestamp = this.parse8601(this.safeString(order, "createdAt"));
-        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", this.safeString(order, "clientOrderId") },
             { "timestamp", timestamp },
@@ -1479,7 +1479,7 @@ public partial class sxbet : PredictionExchange
             { "label", this.safeString(outcomeObj, "label") },
             { "market", this.safeString(outcomeObj, "market") },
             { "info", order },
-        }, outcomeObj))));
+        }, outcomeObj);
     }
 
     /**

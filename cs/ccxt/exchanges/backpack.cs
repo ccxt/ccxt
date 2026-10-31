@@ -1290,7 +1290,7 @@ public partial class backpack : Exchange
         {
             throw new BadSymbol ((string)((this.id + " conversion requires a listed stock RFQ market: ") + (symbol))) ;
         }
-        return ((IDictionary<string, object>)((object)(market)));
+        return market;
     }
 
     /**

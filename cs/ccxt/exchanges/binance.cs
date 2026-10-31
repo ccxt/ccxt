@@ -10036,7 +10036,7 @@ public partial class binance : Exchange
         {
             limitResolved = Math.Min(limit.Value, 100);
         }
-        if (!(limitResolved == null))
+        if ((limit != null))
         {
             if ((stock == true))
             {
@@ -11481,11 +11481,11 @@ public partial class binance : Exchange
             limitContract = Math.Min(limit.Value, 1000);
         }
         object limitResolved = limitContract;
-        if (!(limitContract == null) && (stock == true))
+        if ((limit != null) && (stock == true))
         {
-            limitResolved = mathMin(limitContract, 100);
+            limitResolved = Math.Min(limit.Value, 100);
         }
-        if (!(limitResolved == null))
+        if ((limit != null))
         {
             if ((stock == true))
             {

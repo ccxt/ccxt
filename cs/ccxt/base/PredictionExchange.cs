@@ -1632,7 +1632,7 @@ public partial class PredictionExchange : BaseExchange
             { "event", this.safeString(outcomeOrder, "event") },
             { "info", this.safeValue(outcomeOrder, "info", outcomeOrder) },
         };
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> safePredictionTrade(object trade, object outcomeObj = null)
@@ -1670,7 +1670,7 @@ public partial class PredictionExchange : BaseExchange
             { "market", this.safeString(trade, "market") },
             { "info", this.safeValue(trade, "info", trade) },
         };
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> safePredictionTicker(object ticker, object outcomeObj = null)
@@ -1727,7 +1727,7 @@ public partial class PredictionExchange : BaseExchange
             { "event", this.safeString(ticker, "event") },
             { "info", this.safeValue(ticker, "info", ticker) },
         };
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> safePredictionPosition(object position)
@@ -1766,7 +1766,7 @@ public partial class PredictionExchange : BaseExchange
             { "event", this.safeString(position, "event") },
             { "info", this.safeValue(position, "info", position) },
         };
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public virtual object safePredictionOrderBook(object orderbook, object outcomeObj = null)

@@ -4756,7 +4756,7 @@ public partial class whitebit : Exchange
         Int64? timestamp = this.safeTimestamp(position, "openDate");
         IDictionary<string, object> tpsl = this.safeDict(position, "tpsl", new Dictionary<string, object>() {});
         IDictionary<string, object> orderDetail = this.safeDict(position, "orderDetail", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.safePosition(new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "positionId") },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -4785,7 +4785,7 @@ public partial class whitebit : Exchange
             { "marginRatio", null },
             { "stopLossPrice", this.safeNumber(tpsl, "stopLoss") },
             { "takeProfitPrice", this.safeNumber(tpsl, "takeProfit") },
-        }))));
+        });
     }
 
     public virtual bool isFiat(string? currency)

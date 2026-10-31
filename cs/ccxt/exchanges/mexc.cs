@@ -4887,7 +4887,7 @@ public partial class mexc : Exchange
         //         "success": true,
         //         "code": 0
         //     }
-        return ((Dictionary<string, object>)((object)(response)));
+        return response;
     }
 
     /**

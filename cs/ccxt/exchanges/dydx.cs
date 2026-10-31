@@ -2111,7 +2111,7 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchLedger", code, since, limit, this.omit(parameters, "methodName"));
+        object response = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper("fetchLedger", code, since, limit, this.omit(parameters, "methodName")));
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
@@ -2349,7 +2349,7 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchTransfers", code, since, limit, this.omit(parameters, "methodName"));
+        object response = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper("fetchTransfers", code, since, limit, this.omit(parameters, "methodName")));
         List<object> transferIn = this.filterBy(response, "type", "TRANSFER_IN");
         List<object> transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
         List<object> rows = this.arrayConcat(transferIn, transferOut);
@@ -2509,7 +2509,7 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchWithdrawals", code, since, limit, this.omit(parameters, "methodName"));
+        object response = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper("fetchWithdrawals", code, since, limit, this.omit(parameters, "methodName")));
         List<object> rows = this.filterBy(response, "type", "WITHDRAWAL");
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit));
     }
@@ -2539,7 +2539,7 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchDeposits", code, since, limit, this.omit(parameters, "methodName"));
+        object response = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper("fetchDeposits", code, since, limit, this.omit(parameters, "methodName")));
         List<object> rows = this.filterBy(response, "type", "DEPOSIT");
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit));
     }
@@ -2569,7 +2569,7 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchDepositsWithdrawals", code, since, limit, this.omit(parameters, "methodName"));
+        object response = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper("fetchDepositsWithdrawals", code, since, limit, this.omit(parameters, "methodName")));
         List<object> withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
         List<object> deposits = this.filterBy(response, "type", "DEPOSIT");
         List<object> rows = this.arrayConcat(withdrawals, deposits);
