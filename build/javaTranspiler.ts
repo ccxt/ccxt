@@ -28,7 +28,6 @@ import { nativeJavaJ04Arithmetic, nativeJavaJ23Arithmetic, nativeJavaJ24Arithmet
 import { nativeJavaJ31Arithmetic, nativeJavaJ32DivModNeg, nativeJavaJ37DivModNeg } from './java-local-types.js';
 import { installH2kJ11StringArgs } from './java-local-types.js';
 import { nativeJavaInOp } from './java-local-types.js';
-import { nativeJavaJ06FieldOps, j06SelfTest } from './hx10w2-J06.js';
 import { j01wsNativeOps, j01wsSelfTest } from './hx10w3-J01.js'; // hx10 wave-3 J01
 import { nativeJavaToLongOrNullH2kJ13 } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
@@ -79,7 +78,6 @@ function overwriteFileAndFolder(path: string, content: string) {
     if (path.endsWith('.java')) {
         content = nativeJavaStringAdd(content);
         content = applyJavaImports(path.includes('/java/lib/') ? nativeJavaJ44(nativeJavaJ43(nativeJavaJ42(nativeJavaJ41(nativeJavaJ40(content))))) : content); // hx4 J40
-        content = nativeJavaJ06FieldOps(content); // hx10w2 J06
         content = nativeJavaBF02FieldOps(content); // hx10 w4 BF02
         content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
         content = j12AsyncThrows(content); // hx10 wave-7 J12
@@ -1836,6 +1834,17 @@ export function installJavaOwnerStores (transpiler: any): void {
     }
     printer.javaOwnerStoreFields = stores;
     printer.javaOwnerStoreHandoffs = handoffs;
+    // plain caches: `public Map<String, Object> <name> = new HashMap<>();` that the base only ever
+    // reassigns to a fresh HashMap (a put of a null value stores it, exactly like the helper)
+    const source = fs.readFileSync (path.join (__dirname, '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'BaseExchange.java'), 'utf8');
+    const caches = new Set<string> ();
+    for (const m of header.matchAll (/^ {4}public\s+Map<\s*String\s*,\s*Object\s*>\s+(\w+)\s*=\s*new\s+HashMap<>\s*\(\s*\)\s*;/gm)) {
+        const assigns = [ ...source.matchAll (new RegExp (`\\bthis\\.${m[1]}\\s*=(?!=)\\s*([^;]*)`, 'g')) ];
+        if (assigns.every ((x) => /^(?:new\s+HashMap\b|this\.createSafeDictionary\s*\()/.test (x[1].trim ()))) {
+            caches.add (m[1]);
+        }
+    }
+    printer.javaPlainCacheFields = caches;
 }
 
 // install the resolver the generator reads (printer.javaExpressionTypeResolver). Installed
@@ -5884,7 +5893,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j03FamilySelfTest(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), j12SelfTest(), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j03FamilySelfTest(), j05FamilySelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), j12SelfTest(), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7605,7 +7614,6 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = j01w7FieldPuts(content); // hx10w7 J01
     content = nativeJavaBF02FieldOps(content); // hx10 w4 BF02
     content = nativeJavaJ05(content); // hx10w2 J05
-    content = nativeJavaJ06FieldOps(content); // hx10w2 J06
     content = hx11w8CacheFieldCasts(j01wsNativeOps(content)); // hx10 wave-3 J01
     content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
     return content;
