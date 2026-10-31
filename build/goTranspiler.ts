@@ -11140,7 +11140,7 @@ function h2kG08TypedBoolCompareText (fn: string): string {
 // Credential fields stay: prediction writes a *string into ApiKey.
 function h2kG08FieldNilCompares (content: string): string {
     // Balance is a Go map[string]any (exchange.go): the field compares natively
-    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
+    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|WsClientsSnapshot\(\)|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
 }
 
 // BaseExchange.Id (string) and .RateLimit (float64) can never be nil, so the helper is constant.
@@ -14313,7 +14313,7 @@ function hx4G05SelfTest (): string[] {
 // `if _, ok := this.<F>[k]; ...`: a nil map reads ok=false like the helper; lone call in an if header,
 // literal or declared-string key, `ok` unused in the func. Any other shape keeps the helper.
 function hx4G07FieldInOp (content: string): string {
-    const fieldRx = /(?<![\w.])(?:ccxt\.)?InOp\(this\.(?:Urls|HttpExceptions|Timeframes|Has|Features|Clients), /;
+    const fieldRx = /(?<![\w.])(?:ccxt\.)?InOp\(this\.(?:Urls|HttpExceptions|Timeframes|Has|Features|Clients|WsClientsSnapshot\(\)), /;
     if (!fieldRx.test (content)) {
         return content;
     }
@@ -14354,7 +14354,7 @@ function hx4G07FieldInOp (content: string): string {
             continue;
         }
         const at = calls[0].index;
-        const call = /^(?:ccxt\.)?InOp\((this\.(?:Urls|HttpExceptions|Timeframes|Has|Features|Clients)), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+        const call = /^(?:ccxt\.)?InOp\((this\.(?:Urls|HttpExceptions|Timeframes|Has|Features|Clients|WsClientsSnapshot\(\))), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
         if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
             continue;
         }
