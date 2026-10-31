@@ -18,7 +18,6 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ts } from './csharp-local-types.js';
-import { nativeJavaJ05DictChains, j05DictChainsSelfTest } from './hx10w3-J05.js'; // hx10 wave-3 J05
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
 import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
@@ -1920,6 +1919,12 @@ export function installJavaOwnerStores (transpiler: any): void {
         }
     }
     printer.javaPlainCacheFields = caches;
+    // every Map<String, Object> field of the header: the printer proves which of them hold nested maps
+    const mapFields = new Set<string> ();
+    for (const m of header.matchAll (/^ {4}public\s+(?:volatile\s+)?Map<\s*String\s*,\s*Object\s*>\s+(\w+)\s*[=;]/gm)) {
+        mapFields.add (m[1]);
+    }
+    printer.javaHeaderMapFields = mapFields;
 }
 
 // install the resolver the generator reads (printer.javaExpressionTypeResolver). Installed
@@ -3805,7 +3810,6 @@ class NewTranspiler {
         content = this.retypeFinalVarDeclarations(content);
         content = nativeJavaDeclaredElementReads(content);
         content = nativeJavaJ03ElementReads(content);
-        content = nativeJavaJ05DictChains(content); // hx10 w3 J05
         content = nativeJavaArrayLength(content);
         content = h2kJ07NativeDeclaredLength(content);
         // literal limit locals fed to Long slots (java-local-types section 32)
@@ -5985,7 +5989,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01wsSelfTest(), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7676,7 +7680,6 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = transpiler.retypeFinalVarDeclarations(content);
     content = nativeJavaDeclaredElementReads(content);
     content = nativeJavaJ03ElementReads(content);
-    content = nativeJavaJ05DictChains(content); // hx10 w3 J05
     content = nativeJavaArrayLength(content);
     content = h2kJ07NativeDeclaredLength(content);
     content = nativeJavaLongLimitLocals(content);
