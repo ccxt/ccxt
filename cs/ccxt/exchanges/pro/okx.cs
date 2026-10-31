@@ -3134,9 +3134,9 @@ public partial class okx : ccxt.okx
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         // watchOHLCV subscribes through subscribe () under channel:marketId
         this.cleanUnsubscription(client, ((channel + ":") + this.marketId(symbol)), null);
-        if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
+        if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[(string)symbol] : null), timeframe))
         {
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[(string)symbol] : null)).Remove(timeframe);
         }
     }
 
