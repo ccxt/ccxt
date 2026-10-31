@@ -4,7 +4,7 @@ import Exchange from './abstract/interactivebrokers.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Dict, Endpoint, Greeks, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int, Dictionary } from './base/types.js';
+import type { Account, Balances, Dict, Endpoint, Greeks, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
@@ -391,7 +391,7 @@ export default class interactivebrokers extends Exchange {
                     'exchanges': {
                         // STK  = Stocks (ETFs, ADRs, and Mutual Funds)
                         // BOND = Bonds (T-Bills, Municipal/Corporate Bonds)
-                        // OPT  = Options FUT= Futures (includes Single Stock Futures, Futures Options) 
+                        // OPT  = Options FUT= Futures (includes Single Stock Futures, Futures Options)
                         // CASH = Forex (includes currency conversion and leveraged forex)
                         // MRGN = Margin (Only applicable for IB-UK/IB-EU/IB-IE/IB-CE accounts requesting Margin).
                         'STK': [ 'NYSE' ], // "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0, SMART;AMEX;BATS;BOX;CBOE;CBOE2;EDGX;EMERALD;…2;NASDAQBX;NASDAQOM; OTC,IDEAL,IBFX,UBSFX,JPMCFX,DBKFX,CITIFX,BARCFX,RBSFX,RBCFX,BOAFX,HSBCFX,GSFX,IDEALFX,NOMFX,MSFX,BARC2FX,ETFFX,NATIXISFX,NOM2FX,CSFX,DBK2FX,RBS2FX,UBS2FX,BOA2FX,GS2FX,JPMC2FX,RBC2FX,SCBFX,CITADELFX,KNIGHTFX,HSBC2FX,CBKFX,SCB2FX,CBK2FX,NOM3FX,BNPFX,BNP2FX,VIRTUFX,ANZFX,ANZ2FX,XTXFX,FXSETTLE,TDFX,WFFX,CITI2FX,IBCMSCFX,WF2FX,BNYFX,BNY2FX,PEARL;PHLX;PSE;SAPPHIRE
@@ -481,7 +481,7 @@ export default class interactivebrokers extends Exchange {
                 'fetchTickers': {
                     // 31 last, 55 symbol, 70 high, 71 low, 82 change, 83 change %, 84 bid, 85 ask size, 86 ask, 88 bid size,
                     // 7295 open, 7296 close, 7635 mark, 7741 prior close, 7762 volume (full precision), 6509 market data availability
-                    'fields': [ '31','55','70','71','82','83','84','85','86','88','6457','6509','7058','7295','7296','7635','7741','7762' ],
+                    'fields': [ '31', '55', '70', '71', '82', '83', '84', '85', '86', '88', '6457', '6509', '7058', '7295', '7296', '7635', '7741', '7762' ],
                     'retries': 5, // the first snapshot request only subscribes, data arrives on subsequent requests
                     'retryDelay': 500,
                 },
@@ -593,7 +593,7 @@ export default class interactivebrokers extends Exchange {
                 },
                 'broad': {
                     'insufficient funds in your': InsufficientFunds, // {"error":"Order rejected due to insufficient funds in your Crypto Account. As a Crypto Plus customer, you must first have funds in your Crypto account before purchasing cryptocurrency products.  Please transfer funds to your Crypto account to trade this product."}'
-                    ' doesn\'t exist"}': OrderNotFound, // {"error":"OrderID 468370477 doesn't exist"}
+                    ' doesn\'t exist': OrderNotFound, // {"error":"OrderID 468370477 doesn't exist"}
                     'Please query /accounts first': AuthenticationError, // {"error":"Please query /accounts first"}
                     'Cash Quantity cannot be used for this order': InvalidOrder, // {"error":"Cash Quantity cannot be used for this order"}
                 },
@@ -659,42 +659,54 @@ export default class interactivebrokers extends Exchange {
      * @returns {string} the live session token
      */
     async authenticate (params: Dict = {}): Promise<Str> {
-        const liveSessionToken = this.safeString (this.options, 'liveSessionToken');
-        const expiration = this.safeInteger (this.options, 'liveSessionTokenExpiration');
-        const refreshMargin = this.safeInteger (this.options, 'liveSessionTokenRefreshMargin', 60000);
-        let expired = false;
-        if (expiration !== undefined) {
-            expired = (this.milliseconds () + refreshMargin) >= expiration;
-        }
-        if ((liveSessionToken !== undefined) && !expired) {
-            return liveSessionToken;
-        }
-        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
-        // concurrent private calls on a cold (or expiring) instance would each pass the staleness
-        // gate above and each run their own signIn (), so the first caller leads the flight and
-        // the rest wait for it. the flight is registered on a never-dialed client: client.futures
-        // is the registry, client.resolve () / client.reject () settle and remove the entry
-        const messageHash = 'authenticate';
-        const client = this.client ('authenticationFlights');
-        if (messageHash in client.futures) {
-            // a flight is already in progress - wake when the leader settles it
-            await client.future (messageHash);
+        if (this.ibkrHasFreshSessionToken ()) {
             return this.safeString (this.options, 'liveSessionToken');
         }
-        // reusableFuture (), not future (), so the trailing await below is safe in every port
-        const future = client.reusableFuture (messageHash);
+        // single-flight, see https://github.com/ccxt/ccxt/issues/29393
+        // concurrent private calls on a cold (or expiring) instance would each pass the staleness
+        // gate above and each run their own signIn (), so the first caller signs in and the rest
+        // wait for it to finish, then reuse its token (or sign in themselves if the leader failed)
+        if (this.safeBool (this.options, 'signInInProgress', false)) {
+            const pollInterval = this.safeInteger (this.options, 'signInPollInterval', 100);
+            const maxWait = this.safeInteger (this.options, 'signInMaxWait', 60000);
+            let waited = 0;
+            while (this.safeBool (this.options, 'signInInProgress', false) && (waited < maxWait)) {
+                await this.sleep (pollInterval);
+                waited = this.sum (waited, pollInterval);
+            }
+            if (this.ibkrHasFreshSessionToken ()) {
+                return this.safeString (this.options, 'liveSessionToken');
+            }
+        }
+        this.options['signInInProgress'] = true;
         try {
             await this.signIn (params);
-            const token = this.safeString (this.options, 'liveSessionToken');
-            // settle the flight and wake every waiter, resolve () also clears the registry entry
-            client.resolve (token, messageHash);
         } catch (e) {
-            // reject the flight - waiters throw and the next caller re-leads instead of deadlocking
-            client.reject (e, messageHash);
+            this.options['signInInProgress'] = false;
+            throw e;
         }
-        // rethrows the leader's own failure and attaches the handler a lone leader needs
-        await future;
+        this.options['signInInProgress'] = false;
         return this.safeString (this.options, 'liveSessionToken');
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrHasFreshSessionToken
+     * @description true when a live session token is set and is not about to expire
+     * @ignore
+     * @returns {boolean} whether the current live session token can be used
+     */
+    ibkrHasFreshSessionToken (): boolean {
+        const liveSessionToken = this.safeString (this.options, 'liveSessionToken');
+        if (liveSessionToken === undefined) {
+            return false;
+        }
+        const expiration = this.safeInteger (this.options, 'liveSessionTokenExpiration');
+        if (expiration === undefined) {
+            return true;
+        }
+        const refreshMargin = this.safeInteger (this.options, 'liveSessionTokenRefreshMargin', 60000);
+        return this.sum (this.milliseconds (), refreshMargin) < expiration;
     }
 
     /**
@@ -946,7 +958,7 @@ export default class interactivebrokers extends Exchange {
         return parts.join ('.'); // 'BRK B' -> 'BRK.B', as in parseMarket
     }
 
-    override async loadMarkets (reload: boolean = false, params: object = {}): Promise<Dictionary<Market>> {
+    override async loadMarkets (reload = false, params: Dict = {}) {
         await this.authenticate ();
         return await super.loadMarkets (reload, params);
     }
@@ -988,7 +1000,8 @@ export default class interactivebrokers extends Exchange {
         }
         const results = await Promise.all (promises);
         const markets = this.arraysConcat (results);
-        return this.ibkrDisambiguateContractSymbols (markets);
+        // toArray is the identity on a list, it types the result as a list for the statically typed ports
+        return this.toArray (this.ibkrDisambiguateContractSymbols (markets));
     }
 
     /**
@@ -1048,7 +1061,7 @@ export default class interactivebrokers extends Exchange {
         const promises = [];
         let offset = 0;
         while (offset < numDetails) {
-            const end = Math.min (offset + chunkSize, numDetails);
+            const end = Math.min (this.sum (offset, chunkSize), numDetails);
             const chunk = this.arraySlice (detailIds, offset, end);
             const secdefRequest: Dict = {
                 'conids': chunk.join (','),
@@ -1771,7 +1784,7 @@ export default class interactivebrokers extends Exchange {
         return this.parseOpenInterests (response, symbolsNormalized);
     }
 
-    override parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         const marketId = this.safeString (interest, 'conid');
         const resolved = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (interest, '_updated');
@@ -2508,7 +2521,10 @@ export default class interactivebrokers extends Exchange {
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
-        const market = this.marketOrNull (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const [ accountId, query ] = await this.loadAccountId (params);
         const request: Dict = {
             'accountId': accountId,
@@ -2533,7 +2549,10 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
-        const market = this.marketOrNull (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request: Dict = {
             'orderId': id,
         };
@@ -2560,7 +2579,7 @@ export default class interactivebrokers extends Exchange {
             // handle the exception if needed
             const message = this.exceptionMessage (ex);
             // eg:  {"error":"Order 54348392 is not found","statusCode":503}
-            if (message.includes ('is not found')) {
+            if (message.indexOf ('is not found') >= 0) {
                 const newMessage = 'Order with id ' + id + ' is not found, however it might be just because the time threshold has been passed for that order retrieval. Original message: ' + message;
                 throw new OrderNotFound (newMessage);
             } else {
@@ -2587,7 +2606,10 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.marketOrNull (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const orders = await this.fetchLiveOrdersRaw (params);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -2654,7 +2676,10 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.marketOrNull (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const filters = this.safeString (params, 'filters', 'filled,cancelled');
         const request: Dict = {
             'filters': filters,
@@ -2687,7 +2712,10 @@ export default class interactivebrokers extends Exchange {
      */
     async fetchOrdersByStatusFilter (status: string, defaultFilters: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.marketOrNull (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const filters = this.safeString (params, 'filters', defaultFilters);
         const request: Dict = {
             'filters': filters,
@@ -2896,7 +2924,10 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        const market = this.marketOrNull (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const options = this.safeDict (this.options, 'fetchMyTrades', {});
         let defaultMethod = 'privateGetIserverAccountTrades';
         if (market !== undefined) {
@@ -3314,7 +3345,7 @@ export default class interactivebrokers extends Exchange {
         return segments.join ('/');
     }
 
-    override sign (path: string, api = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const template = this.ibkrPathToTemplate (path);
         const apiBase = api[0];
         const baseUrl = this.urls['api'][apiBase] + this.implodeParams (template, params);
@@ -3322,8 +3353,8 @@ export default class interactivebrokers extends Exchange {
         const query = this.omit (params, this.extractParams (template));
         const hasQuery = Object.keys (query).length > 0;
         const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
-        let requestBody: Str = body;
-        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         this.checkRequiredCredentials ();
         const oauthParams = this.ibkrOauthBase (this.options['consumer_key'], this.apiKey);
         if (path.endsWith ('v1/api/oauth/live_session_token')) {

@@ -1511,6 +1511,16 @@ class BaseExchange {
         return \base64_encode($signature);
     }
 
+    public static function decrypt_private_key($encryptionPrivKey, $encryptionSecret) {
+        // RSA PKCS#1 v1.5 decryption of a base64-encoded ciphertext with a PEM RSA private key,
+        // same as node's crypto.privateDecrypt({ key, padding: RSA_PKCS1_PADDING }, base64.decode(secret))
+        $decrypted = null;
+        if (!\openssl_private_decrypt(\base64_decode($encryptionSecret), $decrypted, $encryptionPrivKey, \OPENSSL_PKCS1_PADDING)) {
+            throw new ExchangeError('decrypt_private_key() failed: ' . \openssl_error_string());
+        }
+        return $decrypted;
+    }
+
     public static function mgf1($seed, $maskLen, $alg = 'sha256') {
         $hLen = strlen(\hash($alg, '', true));
         $output = '';

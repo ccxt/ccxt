@@ -705,6 +705,39 @@ public class BaseExchange {
         return Crypto.Rsa(payload, publicKey, algo, padding);
     }
 
+    public byte[] decryptPrivateKey(Object encryptionPrivKey, Object encryptionSecret) {
+        return Crypto.decryptPrivateKey(encryptionPrivKey, encryptionSecret);
+    }
+
+    // ------------------------------------------------------------------------
+    // file io (whitelisted extensions only, same as the other ports)
+
+    private static final String[] ALLOWED_FILE_EXTENSIONS = new String[] { ".ccxtfile", ".pem" };
+
+    public String ensureWhitelistedFile(Object filePath) {
+        String resolved = java.nio.file.Paths.get((String) filePath).toAbsolutePath().normalize().toString();
+        for (String ext : ALLOWED_FILE_EXTENSIONS) {
+            if (resolved.endsWith(ext)) {
+                return resolved;
+            }
+        }
+        throw new IllegalArgumentException("invalid file path: " + filePath + ", allowed extensions are: " + String.join(", ", ALLOWED_FILE_EXTENSIONS));
+    }
+
+    // file io is synchronous in java, nothing to load before the first readFile call
+    public CompletableFuture<Object> initFileSystem() {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    public String readFile(Object filePath) {
+        String resolved = this.ensureWhitelistedFile(filePath);
+        try {
+            return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(resolved)), StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            throw new IllegalArgumentException("File not found: " + filePath, e);
+        }
+    }
+
     public Object eddsa(Object payload, Object secret, Object algo) {
         return Crypto.Eddsa(payload, secret, algo);
     }

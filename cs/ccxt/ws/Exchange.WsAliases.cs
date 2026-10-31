@@ -51,6 +51,7 @@ public class  Hollaex: hollaex { public Hollaex(object args = null) : base(args)
 public class  Htx: htx { public Htx(object args = null) : base(args) { } }
 public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) : base(args) { } }
 public class  Independentreserve: independentreserve { public Independentreserve(object args = null) : base(args) { } }
+public class  Interactivebrokers: interactivebrokers { public Interactivebrokers(object args = null) : base(args) { } }
 public class  Kraken: kraken { public Kraken(object args = null) : base(args) { } }
 public class  Krakenfutures: krakenfutures { public Krakenfutures(object args = null) : base(args) { } }
 public class  Kucoin: kucoin { public Kucoin(object args = null) : base(args) { } }

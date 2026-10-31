@@ -132,11 +132,15 @@ export default class interactivebrokers extends interactivebrokersRest {
         const client = this.client (url);
         const awaitAuthenticated = this.safeBool (this.options, 'awaitAuthenticated', true);
         const isAuthenticated = this.safeBool (client.subscriptions, 'ibkrAuthenticated', false);
+        // watch () dials the connection, the raw sends (ibkrSubscribe, ibkrUnsubscribe) need it open
         if (awaitAuthenticated && !isAuthenticated) {
+            // resolved by the sts message
             const messageHash = 'authenticated';
             await this.watch (url, messageHash, undefined, messageHash);
-        } else {
-            await client.connect (0);
+        } else if (!this.safeBool (client.subscriptions, 'ibkrConnected', false)) {
+            // resolved by the first system message, sent by IBKR right after the connection opens
+            const messageHash = 'connected';
+            await this.watch (url, messageHash, undefined, messageHash);
         }
         return url;
     }
@@ -159,7 +163,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         } catch (e) {
             // a failing tickle is retried on the next interval
             if (this.verbose) {
-                this.log ('ibkrKeepAliveSession tickle failed', e);
+                this.log ('ibkrKeepAliveSession tickle failed ' + this.exceptionMessage (e));
             }
         }
         // resubscribe the market data streams before they expire
@@ -176,7 +180,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                     } catch (e) {
                         // the connection is gone, the client reconnects on the next watch call
                         if (this.verbose) {
-                            this.log ('ibkrKeepAliveSession resubscribe failed', e);
+                            this.log ('ibkrKeepAliveSession resubscribe failed ' + this.exceptionMessage (e));
                         }
                     }
                 }
@@ -230,7 +234,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         }
         this.cleanCache (subscription);
         if (request !== undefined) {
-            await client.connected;
+            // the connection is open, the callers get the client from ibkrConnect ()
             await client.send (request);
         }
         return true;
@@ -257,7 +261,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 }
             }
         }
-        await client.connected;
+        // the connection is open, the callers get the client from ibkrConnect ()
         await client.send ('umd+' + marketId + '+{}');
         return undefined;
     }
@@ -348,7 +352,8 @@ export default class interactivebrokers extends interactivebrokersRest {
             const subscription: Dict = this.extend ({ 'conid': market['id'], 'symbol': market['symbol'] }, query);
             await this.ibkrSubscribe (client, messageHashes[i], request, subscription);
         }
-        return await future;
+        const ticker = await future;
+        return ticker;
     }
 
     /**
@@ -618,11 +623,11 @@ export default class interactivebrokers extends interactivebrokersRest {
         }
         const sorted = this.sortBy (bars, 0);
         const ohlcvLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-        const cache = new ArrayCacheByTimestamp (ohlcvLimit);
+        this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (ohlcvLimit);
+        const cache = this.ohlcvs[symbol][timeframe];
         for (let i = 0; i < sorted.length; i++) {
             cache.append (sorted[i]);
         }
-        this.ohlcvs[symbol][timeframe] = cache;
         client.resolve (cache, 'ohlcv::' + symbol + '::' + timeframe);
     }
 
@@ -839,18 +844,18 @@ export default class interactivebrokers extends interactivebrokersRest {
         const rowIds = Object.keys (ladder);
         for (let i = 0; i < rowIds.length; i++) {
             const row = ladder[rowIds[i]];
-            let price = this.safeString (row, 'price');
-            if (price === undefined) {
+            let rawPrice = this.safeString (row, 'price');
+            if (rawPrice === undefined) {
                 continue;
             }
-            if (price.indexOf ('@') >= 0) {
+            if (rawPrice.indexOf ('@') >= 0) {
                 // "size @ price" marks the last trade
-                const priceParts = price.split ('@');
+                const priceParts = rawPrice.split ('@');
                 const pricePart = priceParts[1];
                 const priceWords = pricePart.split (' ');
-                price = priceWords.join ('');
+                rawPrice = priceWords.join ('');
             }
-            price = this.ibkrParseValue (price);
+            const price = this.ibkrParseValue (rawPrice);
             if (price === undefined) {
                 continue;
             }
@@ -1204,7 +1209,8 @@ export default class interactivebrokers extends interactivebrokersRest {
         }
         const future = this.watch (url, messageHash);
         await this.ibkrSubscribe (client, subscribeHash, 'sld+' + accountId + '+{}', { 'accountId': accountId });
-        return await future;
+        const balance = await future;
+        return balance;
     }
 
     /**
@@ -1324,6 +1330,10 @@ export default class interactivebrokers extends interactivebrokersRest {
             return;
         }
         const topic = this.safeString (message, 'topic', '');
+        if ((topic === 'system') && !this.safeBool (client.subscriptions, 'ibkrConnected', false)) {
+            client.subscriptions['ibkrConnected'] = true;
+            client.resolve (true, 'connected');
+        }
         if (topic.startsWith ('smd+')) {
             this.handleTicker (client, message);
         } else if (topic.startsWith ('smh+')) {
@@ -1339,6 +1349,6 @@ export default class interactivebrokers extends interactivebrokersRest {
         } else if (topic === 'sts') {
             this.handleSessionStatus (client, message);
         }
-        // system, act, blt, ntf, spl and ssd are not used
+        // system only marks the connection as open, act, blt, ntf, spl and ssd are not used
     }
 }

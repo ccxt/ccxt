@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+// InitFileSystemAsync is a no-op: file io is synchronous in go, nothing to load before the first ReadFile call
+func (this *BaseExchange) InitFileSystemAsync(args ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	ch <- AsyncResult[any]{Value: nil}
+	close(ch)
+	return ch
+}
+
 // ReadFile reads a file and returns its contents
 func (this *BaseExchange) ReadFile(path any, args ...any) string {
 	this.EnsureWhitelistedFile(path)

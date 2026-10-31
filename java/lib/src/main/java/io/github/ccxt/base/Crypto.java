@@ -295,6 +295,22 @@ public final class Crypto {
     }
 
 
+    // RSA PKCS#1 v1.5 decryption of a base64-encoded ciphertext with a PEM RSA private key (PKCS#1 or PKCS#8),
+    // same as node's crypto.privateDecrypt ({ key, padding: RSA_PKCS1_PADDING }, base64.decode (secret))
+    public static byte[] decryptPrivateKey(Object encryptionPrivKey, Object encryptionSecret) {
+        try {
+            PrivateKey key = readRSAPrivateKeyFromPem((String) encryptionPrivKey);
+            javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            cipher.init(javax.crypto.Cipher.DECRYPT_MODE, key);
+            byte[] cipherText = Base64.getMimeDecoder().decode((String) encryptionSecret);
+            return cipher.doFinal(cipherText);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("decryptPrivateKey() failed: " + e.getMessage(), e);
+        }
+    }
+
     private static PrivateKey readRSAPrivateKeyFromPem(String pem) throws Exception {
         if (pem == null) throw new IllegalArgumentException("pem is null");
 

@@ -18,6 +18,12 @@ public partial class BaseExchange
         throw new InvalidOperationException($"invalid file path: {filePath as string}, allowed extensions are: {string.Join(", ", allowedExtensions)}");
     }
 
+    // file IO is synchronous in .NET, nothing to load before the first readFile call
+    public Task<object> initFileSystem()
+    {
+        return Task.FromResult<object>(null);
+    }
+
     public string readFile(object filePath)
     {
         ensureWhitelistedFile(filePath);

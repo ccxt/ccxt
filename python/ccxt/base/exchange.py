@@ -1552,6 +1552,13 @@ class BaseExchange(object):
         return Exchange.binary_to_base64(priv_key.sign(Exchange.encode(request), pad, algorithm))
 
     @staticmethod
+    def decrypt_private_key(encryption_priv_key, encryption_secret):
+        # RSA PKCS#1 v1.5 decryption of a base64-encoded ciphertext with a PEM RSA private key,
+        # same as node's crypto.privateDecrypt({ key, padding: RSA_PKCS1_PADDING }, base64.decode(secret))
+        priv_key = load_pem_private_key(Exchange.encode(encryption_priv_key), None, backends.default_backend())
+        return priv_key.decrypt(base64.b64decode(encryption_secret), padding.PKCS1v15())
+
+    @staticmethod
     def eth_abi_encode(types, args):
         from ccxt.static_dependencies import ethabi
         return ethabi.encode(types, args)

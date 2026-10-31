@@ -73,7 +73,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/iserver/secdef/info', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiTrsrvSecdef (params = {}): Promise<Dict> {
+    webapiGetV1ApiTrsrvSecdef (params = {}): Promise<List> {
         return this.request ('v1/api/trsrv/secdef', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
@@ -81,7 +81,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/iserver/contract/:conid/info-and-rules', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiTrsrvAllConids (params = {}): Promise<Dict> {
+    webapiGetV1ApiTrsrvAllConids (params = {}): Promise<List> {
         return this.request ('v1/api/trsrv/all-conids', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
@@ -189,7 +189,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/iserver/account/order/status/:orderId', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiIserverAccountTrades (params = {}): Promise<Dict> {
+    webapiGetV1ApiIserverAccountTrades (params = {}): Promise<List> {
         return this.request ('v1/api/iserver/account/trades', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
@@ -229,15 +229,15 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/portfolio/:accountId/combo/positions', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiPortfolioAccounts (params = {}): Promise<Dict> {
+    webapiGetV1ApiPortfolioAccounts (params = {}): Promise<List> {
         return this.request ('v1/api/portfolio/accounts', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiPortfolioSubaccounts (params = {}): Promise<Dict> {
+    webapiGetV1ApiPortfolioSubaccounts (params = {}): Promise<List> {
         return this.request ('v1/api/portfolio/subaccounts', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiPortfolioSubaccounts2 (params = {}): Promise<Dict> {
+    webapiGetV1ApiPortfolioSubaccounts2 (params = {}): Promise<List> {
         return this.request ('v1/api/portfolio/subaccounts2', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
@@ -395,6 +395,14 @@ abstract class Exchange extends _Exchange {
 
     webapiGetGwApiV1EchoHttps (params = {}): Promise<Dict> {
         return this.request ('gw/api/v1/echo/https', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiMdRegsnapshot (params = {}): Promise<Dict> {
+        return this.request ('v1/api/md/regsnapshot', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiContractTradingSchedule (params = {}): Promise<Dict> {
+        return this.request ('v1/api/contract/trading-schedule', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
     webapiPostV1ApiOauthRequestToken (params = {}): Promise<Dict> {
@@ -767,338 +775,6 @@ abstract class Exchange extends _Exchange {
 
     webapiPatchGwApiV1RequestsRequestIdStatus (params = {}): Promise<Dict> {
         return this.request ('gw/api/v1/requests/:requestId/status', [ 'webapi' ], 'PATCH', params, { 'cost': 1 });
-    }
-
-    privateGetOauthRequestToken (params = {}): Promise<Dict> {
-        return this.request ('oauth/request_token', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetTrsrvSecdefSchedule (params = {}): Promise<List> {
-        return this.request ('trsrv/secdef/schedule', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetTrsrvFutures (params = {}): Promise<Dict> {
-        return this.request ('trsrv/futures', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetTrsrvStocks (params = {}): Promise<Dict> {
-        return this.request ('trsrv/stocks', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetTrsrvAllConids (params = {}): Promise<List> {
-        return this.request ('trsrv/all-conids', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetTrsrvSecdef (params = {}): Promise<Dict> {
-        return this.request ('trsrv/secdef', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverCurrencyPairs (params = {}): Promise<Dict> {
-        return this.request ('iserver/currency/pairs', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverExchangerate (params = {}): Promise<Dict> {
-        return this.request ('iserver/exchangerate', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverAccountTrades (params = {}): Promise<List> {
-        return this.request ('iserver/account/trades', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverAccountAccountIdAlerts (params = {}): Promise<List> {
-        return this.request ('iserver/account/{accountId}/alerts', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverAccountAlertId (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/alert/{id}', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverAccountMta (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/mta', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverAccountOrders (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/orders', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverAccountOrderStatusOrderId (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/order/status/{orderId}', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverAccountPnlPartitioned (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/pnl/partitioned', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverAccounts (params = {}): Promise<Dict> {
-        return this.request ('iserver/accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverMarketdataSnapshot (params = {}): Promise<List> {
-        return this.request ('iserver/marketdata/snapshot', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverMarketdataConidUnsubscribe (params = {}): Promise<Dict> {
-        return this.request ('iserver/marketdata/{conid}/unsubscribe', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverMarketdataUnsubscribeall (params = {}): Promise<Dict> {
-        return this.request ('iserver/marketdata/unsubscribeall', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverMarketdataHistory (params = {}): Promise<Dict> {
-        return this.request ('iserver/marketdata/history', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverContractConidInfo (params = {}): Promise<Dict> {
-        return this.request ('iserver/contract/{conid}/info', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverSecdefStrikes (params = {}): Promise<Dict> {
-        return this.request ('iserver/secdef/strikes', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverSecdefInfo (params = {}): Promise<List> {
-        return this.request ('iserver/secdef/info', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverContractConidAlgos (params = {}): Promise<Dict> {
-        return this.request ('iserver/contract/{conid}/algos', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverContractConidInfoAndRules (params = {}): Promise<Dict> {
-        return this.request ('iserver/contract/{conid}/info-and-rules', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverScannerParams (params = {}): Promise<Dict> {
-        return this.request ('iserver/scanner/params', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortfolioAccounts (params = {}): Promise<List> {
-        return this.request ('portfolio/accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortfolioSubaccounts (params = {}): Promise<List> {
-        return this.request ('portfolio/subaccounts', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortfolioAccountIdMeta (params = {}): Promise<Dict> {
-        return this.request ('portfolio/{accountId}/meta', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortfolioAccountIdAllocation (params = {}): Promise<Dict> {
-        return this.request ('portfolio/{accountId}/allocation', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortfolioAccountIdPositionsPageId (params = {}): Promise<List> {
-        return this.request ('portfolio/{accountId}/positions/{pageId}', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortfolioAccountIdPositionConid (params = {}): Promise<List> {
-        return this.request ('portfolio/{accountId}/position/{conid}', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortfolioAccountIdSummary (params = {}): Promise<Dict> {
-        return this.request ('portfolio/{accountId}/summary', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortfolioAccountIdLedger (params = {}): Promise<Dict> {
-        return this.request ('portfolio/{accountId}/ledger', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortfolioPositionsConid (params = {}): Promise<Dict> {
-        return this.request ('portfolio/positions/{conid}', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortfolio2AccountIdPositions (params = {}): Promise<List> {
-        return this.request ('portfolio2/{accountId}/positions', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIserverAccountAccountIdSummaryAvailableFunds (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/{accountId}/summary/available_funds', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetFyiUnreadnumber (params = {}): Promise<Dict> {
-        return this.request ('fyi/unreadnumber', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetFyiSettings (params = {}): Promise<List> {
-        return this.request ('fyi/settings', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetFyiDisclaimerTypecode (params = {}): Promise<Dict> {
-        return this.request ('fyi/disclaimer/{typecode}', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetFyiDeliveryoptions (params = {}): Promise<Dict> {
-        return this.request ('fyi/deliveryoptions', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetFyiNotifications (params = {}): Promise<List> {
-        return this.request ('fyi/notifications', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetFyiNotificationsMore (params = {}): Promise<List> {
-        return this.request ('fyi/notifications/more', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetIbcustEntityInfo (params = {}): Promise<Dict> {
-        return this.request ('ibcust/entity/info', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetPortalSsoValidate (params = {}): Promise<Dict> {
-        return this.request ('portal/sso/validate', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privateGetSsoDispatcher (params = {}): Promise<Dict> {
-        return this.request ('sso/Dispatcher', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    privatePostOauthAccessToken (params = {}): Promise<Dict> {
-        return this.request ('oauth/access_token', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostOauthLiveSessionToken (params = {}): Promise<Dict> {
-        return this.request ('oauth/live_session_token', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverAuthSsodhInit (params = {}): Promise<Dict> {
-        return this.request ('iserver/auth/ssodh/init', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverAuthStatus (params = {}): Promise<Dict> {
-        return this.request ('iserver/auth/status', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverReauthenticate (params = {}): Promise<Dict> {
-        return this.request ('iserver/reauthenticate', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverAccount (params = {}): Promise<Dict> {
-        return this.request ('iserver/account', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverAccountAccountIdAlert (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/{accountId}/alert', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverAccountAccountIdAlertActivate (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/{accountId}/alert/activate', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverAccountAccountIdOrders (params = {}): Promise<List> {
-        return this.request ('iserver/account/{accountId}/orders', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverAccountOrdersFaGroup (params = {}): Promise<List> {
-        return this.request ('iserver/account/orders/{faGroup}', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverReplyReplyid (params = {}): Promise<List> {
-        return this.request ('iserver/reply/{replyid}', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverAccountAccountIdOrdersWhatif (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/{accountId}/orders/whatif', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverAccountAccountIdOrderOrderId (params = {}): Promise<List> {
-        return this.request ('iserver/account/{accountId}/order/{orderId}', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverSecdefSearch (params = {}): Promise<List> {
-        return this.request ('iserver/secdef/search', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverContractRules (params = {}): Promise<Dict> {
-        return this.request ('iserver/contract/rules', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverQuestionsSuppress (params = {}): Promise<Dict> {
-        return this.request ('iserver/questions/suppress', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostIserverScannerRun (params = {}): Promise<Dict> {
-        return this.request ('iserver/scanner/run', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostPortfolioAllocation (params = {}): Promise<Dict> {
-        return this.request ('portfolio/allocation', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostPortfolioAccountIdPositionsInvalidate (params = {}): Promise<Dict> {
-        return this.request ('portfolio/{accountId}/positions/invalidate', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostFyiSettingsTypecode (params = {}): Promise<Dict> {
-        return this.request ('fyi/settings/{typecode}', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostFyiDeliveryoptionsDevice (params = {}): Promise<Dict> {
-        return this.request ('fyi/deliveryoptions/device', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostPaPerformance (params = {}): Promise<Dict> {
-        return this.request ('pa/performance', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostPaSummary (params = {}): Promise<Dict> {
-        return this.request ('pa/summary', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostPaTransactions (params = {}): Promise<Dict> {
-        return this.request ('pa/transactions', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostWs (params = {}): Promise<Dict> {
-        return this.request ('ws', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostTickle (params = {}): Promise<Dict> {
-        return this.request ('tickle', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostLogout (params = {}): Promise<Dict> {
-        return this.request ('logout', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostTrsrvSecdef (params = {}): Promise<Dict> {
-        return this.request ('trsrv/secdef', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePutFyiDisclaimerTypecode (params = {}): Promise<Dict> {
-        return this.request ('fyi/disclaimer/{typecode}', [ 'private' ], 'PUT', params, { 'cost': 1 });
-    }
-
-    privatePutFyiDeliveryoptionsEmail (params = {}): Promise<Dict> {
-        return this.request ('fyi/deliveryoptions/email', [ 'private' ], 'PUT', params, { 'cost': 1 });
-    }
-
-    privatePutFyiNotificationsNotificationId (params = {}): Promise<Dict> {
-        return this.request ('fyi/notifications/{notificationId}', [ 'private' ], 'PUT', params, { 'cost': 1 });
-    }
-
-    privateDeleteFyiDeliveryoptionsDeviceId (params = {}): Promise<Dict> {
-        return this.request ('fyi/deliveryoptions/{deviceId}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
-    }
-
-    privateDeleteIserverAccountAccountIdAlertAlertId (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/{accountId}/alert/{alertId}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
-    }
-
-    privateDeleteIserverAccountAccountIdOrderOrderId (params = {}): Promise<Dict> {
-        return this.request ('iserver/account/{accountId}/order/{orderId}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
-    }
-
-    gwPrivateGetAccountsAccountIdDetails (params = {}): Promise<Dict> {
-        return this.request ('accounts/{accountId}/details', [ 'gwPrivate' ], 'GET', params, { 'cost': 1 });
-    }
-
-    gwPrivatePostAccountsAccountIdTasks (params = {}): Promise<Dict> {
-        return this.request ('accounts/{accountId}/tasks', [ 'gwPrivate' ], 'POST', params, { 'cost': 1 });
-    }
-
-    gwPrivatePostAccounts (params = {}): Promise<Dict> {
-        return this.request ('accounts', [ 'gwPrivate' ], 'POST', params, { 'cost': 1 });
     }
 }
 

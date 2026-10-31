@@ -2131,6 +2131,37 @@ impl Exchange {
         dict
     }
 
+    /// `initFileSystem()` — file io is synchronous here, nothing to load before the first `read_file`.
+    pub async fn init_file_system(&self) -> Value {
+        Value::Null
+    }
+
+    /// `decryptPrivateKey(encryptionPrivKey, encryptionSecret)` — RSA PKCS#1 v1.5 decryption of a
+    /// base64-encoded ciphertext with a PEM RSA private key (PKCS#1 or PKCS#8), same as node's
+    /// crypto.privateDecrypt({ key, padding: RSA_PKCS1_PADDING }, base64.decode(secret)).
+    pub fn decrypt_private_key(&self, encryption_priv_key: Value, encryption_secret: Value) -> Value {
+        use base64::{engine::general_purpose::STANDARD, Engine as _};
+        use rsa::pkcs1::DecodeRsaPrivateKey;
+        use rsa::pkcs8::DecodePrivateKey;
+        use rsa::{Pkcs1v15Encrypt, RsaPrivateKey};
+        let pem = String::from_utf8_lossy(&crate::exchange::value_to_bytes(&encryption_priv_key)).into_owned();
+        let pem = pem.trim();
+        let key = match RsaPrivateKey::from_pkcs1_pem(pem).or_else(|_| RsaPrivateKey::from_pkcs8_pem(pem)) {
+            Ok(k) => k,
+            Err(e) => panic!("{}", crate::exchange_errors::exchange_error(format!("{} decryptPrivateKey() could not read the RSA private key: {}", self.id, e))),
+        };
+        let secret = String::from_utf8_lossy(&crate::exchange::value_to_bytes(&encryption_secret)).into_owned();
+        let cipher_text = match STANDARD.decode(secret.trim().as_bytes()) {
+            Ok(b) => b,
+            Err(e) => panic!("{}", crate::exchange_errors::exchange_error(format!("{} decryptPrivateKey() invalid base64 secret: {}", self.id, e))),
+        };
+        match key.decrypt(Pkcs1v15Encrypt, &cipher_text) {
+            // binary is an Array of byte Ints, same as base16_to_binary / base64_to_binary
+            Ok(plain) => Value::Array(plain.into_iter().map(|n| Value::Int(n as i64)).collect()),
+            Err(e) => panic!("{}", crate::exchange_errors::exchange_error(format!("{} decryptPrivateKey() failed: {}", self.id, e))),
+        }
+    }
+
     /// `readDhParam(path)` — reads a PEM-encoded DH parameters file
     /// (DER SEQUENCE { INTEGER prime, INTEGER generator }) and returns the prime as a hex string.
     pub fn read_dh_param(&self, path: Value) -> Value {
