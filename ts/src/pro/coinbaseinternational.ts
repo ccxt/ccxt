@@ -105,7 +105,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     getWsUrl (isPrivate: boolean = false): string {
-        if (this.isNativeDeribitCredentials ()) {
+        if (this.isNativeDeribitCredentials () === true) {
             return 'wss://www.deribit.com/ws/api/v2';
         }
         if (isPrivate) {
@@ -128,7 +128,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'client_id': this.apiKey,
                 'client_secret': this.secret,
             };
-            if (!this.isNativeDeribitCredentials ()) {
+            if (this.isNativeDeribitCredentials () === false) {
                 params = {
                     'grant_type': 'coinbase_cdp',
                     'token': this.createAuthToken (this.seconds (), undefined, undefined, this.isEddsaSecret ()),
@@ -1487,7 +1487,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'client_id': this.apiKey,
                 'client_secret': this.secret,
             };
-            if (!this.isNativeDeribitCredentials ()) {
+            if (this.isNativeDeribitCredentials () === false) {
                 paramsAuth = {
                     'grant_type': 'coinbase_cdp',
                     'token': this.createAuthToken (this.seconds (), undefined, undefined, this.isEddsaSecret ()),
@@ -1574,7 +1574,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
         }
         const postOnly = this.safeBool2 (paramsResolved, 'postOnly', 'post_only');
-        if (this.isNativeDeribitCredentials ()) {
+        if (this.isNativeDeribitCredentials () === true) {
             const reduceOnly = this.safeBool2 (paramsResolved, 'reduceOnly', 'reduce_only');
             if (reduceOnly !== undefined) {
                 request['reduce_only'] = reduceOnly;
@@ -1604,7 +1604,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             }
         }
         let paramsRequest = this.omit (paramsResolved, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'tif', 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        if (this.isNativeDeribitCredentials ()) {
+        if (this.isNativeDeribitCredentials () === true) {
             paramsRequest = this.omit (paramsRequest, [ 'reduceOnly', 'reduce_only' ]);
         }
         const result = await this.requestWs ('private/' + side, this.extend (request, paramsRequest), true);

@@ -1345,7 +1345,7 @@ export default class woofipro extends woofiproRest {
     }
 
     override handleMessage (client: Client, message: Dict) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const methods: Dict = {
