@@ -52,7 +52,9 @@ type BaseExchange struct {
 	Has                  map[string]any
 	Api                  map[string]any
 	TransformedApi       map[string]any
-	requestBookOps       chan requestBookOp
+	requestIds           map[string]int64
+	lastNonce            int64
+	lastNonceSet         bool
 	RequiredCredentials  map[string]any
 	HttpExceptions       map[string]any
 	Timeframes           map[string]any
@@ -167,14 +169,14 @@ type BaseExchange struct {
 	// WS - plain string-keyed caches, one per exchange instance (cache objects stay boxed).
 	// Ohlcvs holds one book per symbol, and a book is the plain map of its timeframes.
 	Ohlcvs         map[string]map[string]any
-	Trades         TradesCache
-	Tickers        TickerCache
+	Trades         map[string]WsArrayCache
+	Tickers        map[string]any
 	Orders         WsArrayCache // cache object, not a map
 	MyTrades       WsArrayCache // cache object, not a map
-	Orderbooks     OrderBookCache
+	Orderbooks     map[string]OrderBookInterface
 	Liquidations   WsArrayCache // *ArrayCache, nil until first use
 	FundingRates   map[string]any
-	Bidsasks       TickerCache
+	Bidsasks       map[string]any
 	TriggerOrders  WsArrayCache // *ArrayCache
 	MyLiquidations WsArrayCache // *ArrayCache, nil until first use
 
@@ -198,9 +200,8 @@ type BaseExchange struct {
 
 	// ws
 	WsClients map[string]any // one websocket client per URL
-	// the ws dispatch loop: owner of the ws cache maps, of the client registry and of Balance
-	// (see exchange_ws_cache.go); startOwners starts it at construction, no lock at a use site
-	wsStore *wsCacheStore
+	// the venue frame handler, resolved on the first frame
+	wsHandler func(client any, message any)
 	// ownersStarted is written only by startOwners, which runs at construction before the
 	// exchange is handed to any other goroutine
 	ownersStarted bool
@@ -267,9 +268,9 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 
 	limit := 10000
 	// Initialize WebSocket data structures: plain maps, mutated by the exchange's own ws loop
-	this.Trades = TradesCache{}
-	this.Tickers = TickerCache{}
-	this.Orderbooks = OrderBookCache{}
+	this.Trades = map[string]WsArrayCache{}
+	this.Tickers = map[string]any{}
+	this.Orderbooks = map[string]OrderBookInterface{}
 	this.Ohlcvs = map[string]map[string]any{}
 	this.Orders = NewArrayCache(limit)
 	this.TriggerOrders = NewArrayCache(limit)
@@ -289,7 +290,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 
 	this.Currencies = map[string]any{}
 	this.FundingRates = map[string]any{}
-	this.Bidsasks = TickerCache{}
+	this.Bidsasks = map[string]any{}
 	this.ProxyDictionaries = make(map[string]any)
 	this.AccountsById = make(map[string]any)
 	this.Accounts = make([]any, 0)
@@ -323,17 +324,6 @@ func (this *BaseExchange) startOwners() {
 
 	this.auxTablesRequests = make(chan auxTablesRequest)
 	go this.ownAuxTables(this.auxTablesRequests)
-
-	this.requestBookOps = make(chan requestBookOp)
-	book := &requestBook{exchange: this, counters: map[string]int64{}}
-	go book.run(this.requestBookOps)
-
-	this.wsStore = &wsCacheStore{
-		frames: make(chan wsFrame, 4096),
-		ops:    make(chan *wsCacheOp),
-		done:   make(chan struct{}),
-	}
-	go this.wsCacheLoop(this.wsStore)
 }
 
 func (this *BaseExchange) Init(userConfig map[string]any) {
@@ -2272,16 +2262,15 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
-	// this runs on a spawned goroutine, so the cache read and the snapshot apply are handed to
-	// the ws dispatch loop that owns the caches
-	if stored, exists := this.WsCacheGetOk("Orderbooks", symbol); exists {
+	symbolKey, _ := symbol.(string)
+	if stored, exists := this.Orderbooks[symbolKey]; exists {
 		for tries < maxRetries.(int) {
 			fetched := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
 			if fetched.Err != nil {
 				panic(fetched.Err)
 			}
 			orderBook := StructBox(fetched.Value, OrderBookToMap)
-			if this.WsCacheApplyOrderBookSnapshot(stored, orderBook) {
+			if this.ApplyOrderBookSnapshot(stored, orderBook) {
 				client.(ClientInterface).Resolve(stored, messageHash)
 				return nil
 			}
@@ -2299,7 +2288,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 		}
 		this.wsClientDeleteIfSame(client.(ClientInterface).GetUrl(), client)
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
-		this.WsCacheSet("Orderbooks", symbol, this.OrderBook())
+		this.Orderbooks[symbolKey] = this.OrderBook()
 	} else {
 		client.(ClientInterface).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
@@ -2337,8 +2326,6 @@ func (this *BaseExchange) Close(cleanInstanceData ...any) []error {
 	if shouldClean {
 		this.CleanRestData()
 	}
-	// the dispatch loop outlives no exchange: stop it after the last ws use
-	this.wsCacheStop()
 	return errs
 }
 

@@ -1,10 +1,7 @@
 package ccxt
 
-// Request book: one goroutine per exchange instance owns the "last request/response"
-// bookkeeping fields (timestamp, request headers/body/url, response headers, last http
-// response) and the request id / nonce counters. A request goroutine hands a value over the
-// channel and waits for the owner to apply it; readers receive an immutable snapshot through
-// the same channel, so no field below is ever written from a request goroutine.
+// Request book: the "last request/response" bookkeeping fields and the request id / nonce
+// counters, updated in place on the calling goroutine.
 
 type requestBookKind int
 
@@ -13,27 +10,16 @@ const (
 	requestBookRequest
 	requestBookResponse
 	requestBookReset
-	requestBookIdNext
-	requestBookNonce
-	requestBookRead
 )
 
 type requestBookOp struct {
-	kind       requestBookKind
-	request    map[string]any
-	headers    map[string]any
-	stamp      int64
-	key        string
-	seed       int64
-	current    int64
-	reply      chan requestBookSnapshot
-	idReply    chan int64
-	nonceReply chan int64
-	done       chan any
+	kind    requestBookKind
+	request map[string]any
+	headers map[string]any
+	stamp   int64
 }
 
-// requestBookSnapshot is what a reader receives; the owner never touches a snapshot after
-// the send, so the reader owns the value and the maps it holds.
+// requestBookSnapshot is the bookkeeping fields as one value.
 type requestBookSnapshot struct {
 	stamp           int64
 	requestHeaders  any
@@ -43,78 +29,8 @@ type requestBookSnapshot struct {
 	httpResponse    any
 }
 
-// requestBook is the owner goroutine's own state: the counters are never stored in Options,
-// so no other goroutine reads or writes them.
-type requestBook struct {
-	exchange  *BaseExchange
-	counters  map[string]int64
-	lastNonce int64
-	nonceSet  bool
-}
-
-func (this *BaseExchange) requestBookChannel() chan requestBookOp {
-	if this.requestBookOps == nil {
-		this.startOwners()
-	}
-	return this.requestBookOps
-}
-
-// handOffRequestBook hands one write to the owner and returns once it is applied.
+// handOffRequestBook applies one bookkeeping write.
 func (this *BaseExchange) handOffRequestBook(op requestBookOp) {
-	done := make(chan any)
-	op.done = done
-	this.requestBookChannel() <- op
-	if recovered := <-done; recovered != nil {
-		panic(recovered)
-	}
-}
-
-// readRequestBook returns the owner's current bookkeeping snapshot.
-func (this *BaseExchange) readRequestBook() requestBookSnapshot {
-	reply := make(chan requestBookSnapshot, 1)
-	this.requestBookChannel() <- requestBookOp{kind: requestBookRead, reply: reply}
-	return <-reply
-}
-
-// NextRequestId asks the owner for the next value of one request id counter: the call that
-// first uses a key seeds it from the option of the same name, later calls continue the
-// owner's count.
-func (this *BaseExchange) NextRequestId(key string) int64 {
-	seed := *this.SafeInteger(this.Options, key, 0)
-	reply := make(chan int64, 1)
-	this.requestBookChannel() <- requestBookOp{kind: requestBookIdNext, key: key, seed: seed, idReply: reply}
-	return <-reply
-}
-
-// nextNonce asks the owner for the next strictly-increasing nonce.
-func (this *BaseExchange) nextNonce(current int64) int64 {
-	seed := *this.SafeInteger(this.Options, "lastNonce", 0)
-	reply := make(chan int64, 1)
-	this.requestBookChannel() <- requestBookOp{kind: requestBookNonce, current: current, seed: seed, nonceReply: reply}
-	return <-reply
-}
-
-// GetLast_http_response returns the owner's snapshot of the last raw http response.
-func (this *BaseExchange) GetLast_http_response() any {
-	return this.readRequestBook().httpResponse
-}
-
-func (book *requestBook) run(ops <-chan requestBookOp) {
-	for op := range ops {
-		book.apply(op)
-	}
-}
-
-// apply is the book's only writer: a panic is relayed to the caller instead of killing the
-// owner goroutine and wedging every later hand-off.
-func (book *requestBook) apply(op requestBookOp) (recovered any) {
-	defer func() {
-		recovered = recover()
-		if op.done != nil {
-			op.done <- recovered
-		}
-	}()
-	this := book.exchange
 	switch op.kind {
 	case requestBookStamp:
 		this.LastRestRequestTimestamp = op.stamp
@@ -126,40 +42,15 @@ func (book *requestBook) apply(op requestBookOp) (recovered any) {
 		this.Last_response_headers = op.headers
 		this.LastResponseHeaders = op.headers
 	case requestBookReset:
-		// the owner's own reset, written through a local so the printer pass cannot
-		// rewrite it into a hand-off (build/hx10w6-OG02.ts)
-		target := book.exchange
-		target.Last_http_response = nil
-		target.Last_request_headers = nil
-		target.Last_response_headers = nil
-		target.LastResponseHeaders = nil
-	case requestBookIdNext:
-		next, seen := book.counters[op.key]
-		if !seen {
-			next = op.seed
-		}
-		next++
-		book.counters[op.key] = next
-		op.idReply <- next
-	case requestBookNonce:
-		if !book.nonceSet {
-			book.lastNonce = op.seed
-			book.nonceSet = true
-		}
-		result := book.lastNonce + 1
-		if op.current > book.lastNonce {
-			result = op.current
-		}
-		book.lastNonce = result
-		op.nonceReply <- result
-	case requestBookRead:
-		op.reply <- book.snapshot()
+		this.Last_http_response = nil
+		this.Last_request_headers = nil
+		this.Last_response_headers = nil
+		this.LastResponseHeaders = nil
 	}
-	return
 }
 
-func (book *requestBook) snapshot() requestBookSnapshot {
-	this := book.exchange
+// readRequestBook returns the current bookkeeping fields.
+func (this *BaseExchange) readRequestBook() requestBookSnapshot {
 	return requestBookSnapshot{
 		stamp:           this.LastRestRequestTimestamp,
 		requestHeaders:  this.Last_request_headers,
@@ -168,4 +59,38 @@ func (book *requestBook) snapshot() requestBookSnapshot {
 		responseHeaders: this.Last_response_headers,
 		httpResponse:    this.Last_http_response,
 	}
+}
+
+// NextRequestId returns the next value of one request id counter, seeded on first use from
+// the option of the same name.
+func (this *BaseExchange) NextRequestId(key string) int64 {
+	if this.requestIds == nil {
+		this.requestIds = map[string]int64{}
+	}
+	next, seen := this.requestIds[key]
+	if !seen {
+		next = *this.SafeInteger(this.Options, key, 0)
+	}
+	next++
+	this.requestIds[key] = next
+	return next
+}
+
+// nextNonce returns the next strictly-increasing nonce, seeded from Options["lastNonce"].
+func (this *BaseExchange) nextNonce(current int64) int64 {
+	if !this.lastNonceSet {
+		this.lastNonce = *this.SafeInteger(this.Options, "lastNonce", 0)
+		this.lastNonceSet = true
+	}
+	result := this.lastNonce + 1
+	if current > this.lastNonce {
+		result = current
+	}
+	this.lastNonce = result
+	return result
+}
+
+// GetLast_http_response returns the last raw http response.
+func (this *BaseExchange) GetLast_http_response() any {
+	return this.Last_http_response
 }

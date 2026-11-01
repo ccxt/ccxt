@@ -16,16 +16,14 @@ func (this *BaseExchange) Seconds() int64 {
 	return this.Milliseconds() / 1000
 }
 
-// SetLastRestRequestTimestamp hands the timestamp to the request book's owner
-// (exchange_request_book.go), so concurrent request goroutines never write it.
+// SetLastRestRequestTimestamp records the time of the last rest request.
 // This is a hand-written Go override (blacklisted in goTranspiler.ts) of the
 // transpiled setLastRestRequestTimestamp method in ts/src/base/Exchange.ts.
 func (this *BaseExchange) SetLastRestRequestTimestamp() {
 	this.handOffRequestBook(requestBookOp{kind: requestBookStamp, stamp: this.Milliseconds()})
 }
 
-// SetLastRequest hands the request's headers/body/url to the book's owner, so
-// concurrent request goroutines never write them.
+// SetLastRequest records the request's headers/body/url.
 // This is a hand-written Go override (blacklisted in goTranspiler.ts) of the
 // transpiled setLastRequest method in ts/src/base/Exchange.ts.
 func (this *BaseExchange) SetLastRequest(request map[string]any) {
