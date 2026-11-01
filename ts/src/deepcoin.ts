@@ -677,7 +677,7 @@ export default class deepcoin extends Exchange {
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         const price = this.safeString (paramsPaginate, 'price');
         let maxLimit = 300;
-        if (market['swap'] === true && price === undefined) {
+        if (market['swap'] && price === undefined) {
             maxLimit = 1000;
         }
         if (paginate) {
@@ -804,7 +804,7 @@ export default class deepcoin extends Exchange {
         const open = this.safeString (ticker, 'open24h');
         let quoteVolume = this.safeString (ticker, 'volCcy24h');
         let baseVolume = this.safeString (ticker, 'vol24h');
-        if ((marketResolved['swap'] === true) && (marketResolved['inverse'] === true)) {
+        if ((marketResolved['swap']) && (marketResolved['inverse'])) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
@@ -1574,7 +1574,7 @@ export default class deepcoin extends Exchange {
         const isTriggerOrder = (triggerPrice !== undefined);
         const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
-            if ((market['spot'] !== true) || (triggerPrice !== undefined)) {
+            if ((!market['spot']) || (triggerPrice !== undefined)) {
                 throw new BadRequest (this.id + ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
             }
         }
@@ -1660,7 +1660,7 @@ export default class deepcoin extends Exchange {
             throw new BadRequest (this.id + ' createOrder() requires a price argument for limit orders');
         }
         let paramsRequest: NullableDict = undefined;
-        if (market['spot'] === true) {
+        if (market['spot']) {
             const cost = this.safeString (paramsOrderType, 'cost');
             if (cost !== undefined) {
                 if (!isMarketOrder) {
@@ -1767,7 +1767,7 @@ export default class deepcoin extends Exchange {
         const paramsOmitted: Dict = this.omit (paramsMarginMode, 'reduceOnly');
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginModeOption;
-        if (market['swap'] === true) {
+        if (market['swap']) {
             if (reduceOnly) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';
@@ -2295,7 +2295,7 @@ export default class deepcoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const market = this.market (symbol);
-        if (market['spot'] === true) {
+        if (market['spot']) {
             throw new NotSupported (this.id + ' cancelAllOrders() is not supported for spot markets');
         }
         const productGroup = this.getProductGroupFromMarket (market);
@@ -2343,7 +2343,7 @@ export default class deepcoin extends Exchange {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (market['spot'] === true) {
+            if (market['spot']) {
                 throw new NotSupported (this.id + ' editOrder() is not supported for spot markets');
             }
             symbolResolved = market['symbol'];
@@ -2401,7 +2401,7 @@ export default class deepcoin extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (market['spot'] === true) {
+            if (market['spot']) {
                 throw new NotSupported (this.id + ' cancelOrders() is not supported for spot markets');
             }
         }
@@ -2831,7 +2831,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!market['swap']) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request: Dict = {

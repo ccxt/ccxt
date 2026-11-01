@@ -1526,7 +1526,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (market['spot'] === true) {
+        if (market['spot']) {
             const response = await this.spotPublicGetDepth (this.extend (request, params));
             //
             //     {
@@ -1545,7 +1545,7 @@ export default class mexc extends Exchange {
             const spotOrderbook = this.parseOrderBook (response, symbol, spotTimestamp);
             spotOrderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
             return spotOrderbook;
-        } else if (market['swap'] === true) {
+        } else if (market['swap']) {
             const response = await this.contractPublicGetDepthSymbol (this.extend (request, params));
             //
             //     {
@@ -1611,7 +1611,7 @@ export default class mexc extends Exchange {
             request['limit'] = limit;
         }
         let trades: List = [];
-        if (market['spot'] === true) {
+        if (market['spot']) {
             const until = this.safeInteger2 (params, 'endTime', 'until');
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -1667,7 +1667,7 @@ export default class mexc extends Exchange {
             //         },
             //     ]
             //
-        } else if (market['swap'] === true) {
+        } else if (market['swap']) {
             const response = await this.contractPublicGetDealsSymbol (this.extend (request, params));
             //
             //     {
@@ -1860,7 +1860,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const maxLimit = (market['spot'] === true) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
+        const maxLimit = (market['spot']) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
@@ -1880,7 +1880,7 @@ export default class mexc extends Exchange {
         if (omitUntil) {
             paramsUntil = this.omit (paramsPaginate, [ 'until' ]);
         }
-        if (market['spot'] === true) {
+        if (market['spot']) {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
@@ -1921,7 +1921,7 @@ export default class mexc extends Exchange {
             //     ]
             //
             candles = this.toArray (response);
-        } else if (market['swap'] === true) {
+        } else if (market['swap']) {
             if (since !== undefined) {
                 request['start'] = this.parseToInt (since / 1000);
             }
@@ -2201,7 +2201,7 @@ export default class mexc extends Exchange {
             if (isSwap && (contractSize !== undefined)) {
                 // volume24 counts contracts, amount24 is in the settle currency
                 const contractVolume = Precise.stringMul (baseVolume, contractSize);
-                if (marketResolved['inverse'] === true) {
+                if (marketResolved['inverse']) {
                     baseVolume = quoteVolume;
                     quoteVolume = contractVolume;
                 } else {
@@ -2340,7 +2340,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot'] !== true) {
+        if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req: Dict = {
@@ -2364,7 +2364,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot'] !== true) {
+        if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         const req: Dict = {
@@ -2407,7 +2407,7 @@ export default class mexc extends Exchange {
         }
         const market = this.market (symbol);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (market['spot'] === true) {
+        if (market['spot']) {
             return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
         } else {
             return await this.createSwapOrder (market, type, side, amount, price, marginMode, query);
@@ -2709,7 +2709,7 @@ export default class mexc extends Exchange {
             const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
-            if (market['spot'] !== true) {
+            if (!market['spot']) {
                 throw new NotSupported (this.id + ' createOrders() is only supported for spot markets');
             }
             if (symbol === undefined) {
@@ -2780,7 +2780,7 @@ export default class mexc extends Exchange {
             'symbol': market['id'],
         };
         let data: Dict = {};
-        if (market['spot'] === true) {
+        if (market['spot']) {
             const clientOrderId = this.safeString (params, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['origClientOrderId'] = clientOrderId;
@@ -2841,7 +2841,7 @@ export default class mexc extends Exchange {
             //         "updateTime": 1662153107000
             //     }
             //
-        } else if (market['swap'] === true) {
+        } else if (market['swap']) {
             request['order_id'] = id;
             const response = await this.contractPrivateGetOrderGetOrderId (this.extend (request, params));
             //
@@ -3949,7 +3949,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot'] !== true) {
+        if (!market['spot']) {
             throw new NotSupported (this.id + ' fetchTradingFee() supports spot markets only');
         }
         const request: Dict = {
@@ -6355,7 +6355,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot'] === true) {
+        if (market['spot']) {
             throw new NotSupported (this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase ();

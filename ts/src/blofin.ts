@@ -1226,7 +1226,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!market['swap']) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request: Dict = {
@@ -3036,7 +3036,7 @@ export default class blofin extends Exchange {
         const contractSizeString = this.numberToString (contractSize);
         const markPriceString = this.safeString (position, 'markPrice');
         let notionalString = this.safeString (position, 'notionalUsd');
-        if (marketResolved['inverse'] === true) {
+        if (marketResolved['inverse']) {
             notionalString = Precise.stringDiv (Precise.stringMul (contractsAbs, contractSizeString), markPriceString);
         } else if (notionalString === undefined) {
             notionalString = Precise.stringMul (Precise.stringMul (contractsAbs, contractSizeString), markPriceString);

@@ -698,11 +698,11 @@ export default class poloniex extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         let keyStart: Str = 'sTime';
-        if (market['spot'] === true) {
+        if (market['spot']) {
             keyStart = 'startTime';
         }
         let keyEnd: Str = 'eTime';
-        if (market['spot'] === true) {
+        if (market['spot']) {
             keyEnd = 'endTime';
         }
         if (since !== undefined) {
@@ -721,7 +721,7 @@ export default class poloniex extends Exchange {
             const endTimeByLimit = this.sum (firstCandle, duration * (limit - 1));
             requestUntil[keyEnd] = Math.min (endTimeByLimit, this.milliseconds ());
         }
-        if (market['contract'] === true) {
+        if (market['contract']) {
             const responseRaw = await this.swapPublicGetV3MarketCandles (this.extend (requestUntil, paramsUntil));
             //
             //     {
@@ -1119,7 +1119,7 @@ export default class poloniex extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId);
         let baseVolume = this.safeString2 (ticker, 'quantity', 'qty');
         const contractSize = this.safeNumber (marketResolved, 'contractSize');
-        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
+        if ((marketResolved['contract']) && (contractSize !== undefined)) {
             // 'quantity' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul (baseVolume, this.numberToString (contractSize));
         }
@@ -1344,7 +1344,7 @@ export default class poloniex extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (market['contract'] === true) {
+        if (market['contract']) {
             const tickers = await this.fetchTickers ([ market['symbol'] ], params);
             const contractTicker = this.safeDict (tickers, symbol);
             return contractTicker as Ticker;
@@ -1530,7 +1530,7 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, for spot & swap
         }
-        if (market['contract'] === true) {
+        if (market['contract']) {
             const response = await this.swapPublicGetV3MarketTrades (this.extend (request, params));
             //
             //     {
@@ -2104,7 +2104,7 @@ export default class poloniex extends Exchange {
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         const [ requestValue, paramsValue ] = this.orderRequest (symbol, type, side, amount, request, price, params);
         let response: Dict = {};
-        if ((market['swap'] === true) || (market['future'] === true)) {
+        if ((market['swap']) || (market['future'])) {
             const responseInitial = await this.swapPrivatePostV3TradeOrder (this.extend (requestValue, paramsValue));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
@@ -2246,7 +2246,7 @@ export default class poloniex extends Exchange {
         const isPostOnly = this.isPostOnly (isMarket, upperCaseType === 'LIMIT_MAKER', query);
         let queryOmitted: Dict = this.omit (query, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
         if (triggerPrice !== undefined) {
-            if (market['spot'] !== true) {
+            if (!market['spot']) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support trigger orders for ' + this.safeString (market, 'type', '') + ' markets');
             }
             upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
@@ -2264,7 +2264,7 @@ export default class poloniex extends Exchange {
                 queryOmitted = this.omit (queryOmitted, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
-                } else if (createMarketBuyOrderRequiresPrice && (market['spot'] === true)) {
+                } else if (createMarketBuyOrderRequiresPrice && (market['spot'])) {
                     if (price === undefined) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     } else {
@@ -2277,25 +2277,25 @@ export default class poloniex extends Exchange {
                     quoteAmount = this.costToPrecision (symbol, amount);
                 }
                 let amountKey: Str = 'sz';
-                if (market['spot'] === true) {
+                if (market['spot']) {
                     amountKey = 'amount';
                 }
                 result[amountKey] = quoteAmount;
             } else {
                 let amountKey: Str = 'sz';
-                if (market['spot'] === true) {
+                if (market['spot']) {
                     amountKey = 'quantity';
                 }
                 result[amountKey] = this.amountToPrecision (symbol, amount);
             }
         } else {
             let amountKey: Str = 'sz';
-            if (market['spot'] === true) {
+            if (market['spot']) {
                 amountKey = 'quantity';
             }
             result[amountKey] = this.amountToPrecision (symbol, amount);
             let priceKey: Str = 'px';
-            if (market['spot'] === true) {
+            if (market['spot']) {
                 priceKey = 'price';
             }
             result[priceKey] = this.priceToPrecision (symbol, price);
@@ -2304,7 +2304,7 @@ export default class poloniex extends Exchange {
         if (clientOrderId !== undefined) {
             // the futures v3 api silently ignores the spot key and generates its own id
             let clientOrderIdKey: Str = 'clOrdId';
-            if (market['spot'] === true) {
+            if (market['spot']) {
                 clientOrderIdKey = 'clientOrderId';
             }
             result[clientOrderIdKey] = clientOrderId;
@@ -2334,7 +2334,7 @@ export default class poloniex extends Exchange {
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot'] !== true) {
+        if (!market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support ' + this.safeString (market, 'type', '') + ' orders, only spot orders are accepted');
         }
         const request: Dict = {
@@ -2381,7 +2381,7 @@ export default class poloniex extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        if (market['spot'] !== true) {
+        if (!market['spot']) {
             request['symbol'] = market['id'];
             request['ordId'] = id;
             const raw = await this.swapPrivateDeleteV3TradeOrder (this.extend (request, params));
@@ -2844,11 +2844,11 @@ export default class poloniex extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (market['contract'] === true) {
+            if (market['contract']) {
                 request['limit'] = this.findNearestCeiling ([ 5, 10, 20, 100, 150 ], limit);
             }
         }
-        if (market['contract'] === true) {
+        if (market['contract']) {
             const responseRaw = await this.swapPublicGetV3MarketOrderBook (this.extend (request, params));
             //
             //    {

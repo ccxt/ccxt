@@ -396,7 +396,7 @@ export default class bybit extends bybitRest {
         const paramsValue: Dict = this.cleanParams (params);
         const options = this.safeDict (this.options, 'watchTicker', {});
         const topic = this.safeString (options, 'name', 'tickers');
-        if ((market['spot'] !== true) && topic !== 'tickers') {
+        if ((!market['spot']) && topic !== 'tickers') {
             throw new BadRequest (this.id + ' watchTicker() only supports name tickers for contract markets');
         }
         const topics = [ topic + '.' + this.safeString (market, 'id', '') ];
@@ -928,7 +928,7 @@ export default class bybit extends bybitRest {
         const url = await this.getUrlByMarketType (symbolsNormalized[0], false, 'watchOrderBook', params);
         const paramsValue: Dict = this.cleanParams (params);
         const market = this.market (symbolsNormalized[0]);
-        const defaultLimit = (market['option'] === true) ? 100 : 50;
+        const defaultLimit = (market['option']) ? 100 : 50;
         const limitResolved: Int = (limit === undefined) ? defaultLimit : limit;
         if (limit !== undefined) {
             const limits = {
@@ -976,7 +976,7 @@ export default class bybit extends bybitRest {
         let defaultLimit = 500;
         if (limitParam === undefined) {
             const firstMarket = this.market (symbolsNormalized[0]);
-            defaultLimit = (firstMarket['spot'] === true) ? 50 : 500;
+            defaultLimit = (firstMarket['spot']) ? 50 : 500;
         }
         const limit = (limitParam === undefined) ? defaultLimit : limitParam;
         channel += limit.toString ();

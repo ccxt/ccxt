@@ -2607,7 +2607,7 @@ export default class okx extends Exchange {
             'instId': market['id'],
         };
         let response = undefined;
-        if (market['option'] === true) {
+        if (market['option']) {
             response = await this.publicGetPublicOptionTrades (this.extend (request, paramsPaginate));
         } else {
             if (limit !== undefined) {
@@ -2979,9 +2979,9 @@ export default class okx extends Exchange {
             // "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
             // "category": "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         };
-        if (market['spot'] === true) {
+        if (market['spot']) {
             request['instId'] = market['id'];
-        } else if ((market['swap'] === true) || (market['future'] === true) || (market['option'] === true)) {
+        } else if ((market['swap']) || (market['future']) || (market['option'])) {
             request['uly'] = this.safeString (market, 'baseId', '') + '-' + this.safeString (market, 'quoteId', '');
         } else {
             throw new NotSupported (this.id + ' fetchTradingFee() supports spot, swap, future or option markets only');
@@ -3154,7 +3154,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot'] !== true) {
+        if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
         }
         const req = {
@@ -3179,7 +3179,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot'] !== true) {
+        if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot markets only');
         }
         const req = {
@@ -3288,7 +3288,7 @@ export default class okx extends Exchange {
             const tradeMode = (margin) ? marginMode : 'cash';
             request['tdMode'] = tradeMode;
         } else if (contract === true) {
-            if ((market['swap'] === true) || (market['future'] === true)) {
+            if ((market['swap']) || (market['future'])) {
                 if (positionSide !== undefined) {
                     request['posSide'] = positionSide;
                 } else {
@@ -6478,7 +6478,7 @@ export default class okx extends Exchange {
         let side = this.safeString2 (position, 'posSide', 'direction');
         const hedged = side !== 'net';
         const contracts = this.parseNumber (contractsAbs);
-        if (marketResolved['margin'] === true) {
+        if (marketResolved['margin']) {
             // margin position
             if (side === 'net') {
                 const posCcy = this.safeString (position, 'posCcy');
@@ -6507,7 +6507,7 @@ export default class okx extends Exchange {
         const contractSizeString = this.numberToString (contractSize);
         const markPriceString = this.safeString (position, 'markPx');
         let notionalString = this.safeString (position, 'notionalUsd');
-        if (marketResolved['inverse'] === true) {
+        if (marketResolved['inverse']) {
             notionalString = Precise.stringDiv (Precise.stringMul (contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber (notionalString);
@@ -6537,7 +6537,7 @@ export default class okx extends Exchange {
         if (initialMarginPercentage === undefined) {
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
         } else if (initialMarginString === undefined) {
-            if (marketResolved['linear'] === true) {
+            if (marketResolved['linear']) {
                 const initialMarginPercentageString = this.numberToString (initialMarginPercentage);
                 initialMarginString = Precise.stringMul (initialMarginPercentageString, notionalString);
             } else {
@@ -7026,7 +7026,7 @@ export default class okx extends Exchange {
         const marketInfo = this.safeDict (market, 'info', {});
         const ruleType = this.safeString (marketInfo, 'ruleType');
         const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-        if ((market['swap'] !== true) && !isExtendedPerpetual) {
+        if ((!market['swap']) && !isExtendedPerpetual) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets or XPERP futures');
         }
         const request: Dict = {
@@ -7074,7 +7074,7 @@ export default class okx extends Exchange {
                 const marketInfo = this.safeDict (market, 'info', {});
                 const ruleType = this.safeString (marketInfo, 'ruleType');
                 const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-                if ((market['swap'] !== true) && !isExtendedPerpetual) {
+                if ((!market['swap']) && !isExtendedPerpetual) {
                     throw new BadRequest (this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + this.safeString (symbolsNormalized, i, '') + ' is not');
                 }
             }
@@ -7200,8 +7200,8 @@ export default class okx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
-            if (market['contract'] === true) {
-                if (market['linear'] === true) {
+            if (market['contract']) {
+                if (market['linear']) {
                     request['ctType'] = 'linear';
                     request['ccy'] = market['quoteId'];
                 } else {
@@ -7779,7 +7779,7 @@ export default class okx extends Exchange {
         const amount = Precise.stringAbs (amountRaw);
         const marketId = this.safeString (data, 'instId');
         const responseMarket = this.safeMarket (marketId, market);
-        const code = (responseMarket['inverse'] === true) ? responseMarket['base'] : responseMarket['quote'];
+        const code = (responseMarket['inverse']) ? responseMarket['base'] : responseMarket['quote'];
         const timestamp = this.safeInteger (data, 'ts');
         return {
             'info': data,
@@ -7839,7 +7839,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const type = (market['spot'] === true) ? 'MARGIN' : this.convertToInstrumentType (market['type']);
+        const type = (market['spot']) ? 'MARGIN' : this.convertToInstrumentType (market['type']);
         const instFamily = this.safeString (market['info'], 'instFamily');
         if ((instFamily === undefined) || (instFamily === '')) {
             if (type !== 'MARGIN') {
@@ -8134,7 +8134,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['contract'] !== true) {
+        if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const type = this.convertToInstrumentType (market['type']);
@@ -8267,7 +8267,7 @@ export default class okx extends Exchange {
         };
         let response: Dict;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenInterestHistory', market, params);
-        if ((market !== undefined) && ((market['swap'] === true) || (market['future'] === true))) {
+        if ((market !== undefined) && ((market['swap']) || (market['future']))) {
             const instrumentRequest: Dict = {
                 'instId': market['id'],
                 'period': timeframeValue,

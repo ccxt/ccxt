@@ -960,7 +960,7 @@ export default class btse extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['contract'] !== true) {
+        if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports contract markets only');
         }
         let period: Str = undefined;
@@ -1238,7 +1238,7 @@ export default class btse extends Exchange {
     override async fetchMarketLeverageTiers (symbol: string, params: Dict = {}): Promise<LeverageTier[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['contract'] !== true) {
+        if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
         const result = await this.fetchLeverageTiers ([ symbol ], params);
@@ -1328,7 +1328,7 @@ export default class btse extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market);
         const last = this.safeString (ticker, 'lastPrice');
         let baseVolume = this.safeString (ticker, 'amount');
-        if ((baseVolume !== undefined) && (marketResolved !== undefined) && (marketResolved['contract'] === true)) {
+        if ((baseVolume !== undefined) && (marketResolved !== undefined) && (marketResolved['contract'])) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
             const contractSizeString = this.numberToString (marketResolved['contractSize']);
@@ -1377,7 +1377,7 @@ export default class btse extends Exchange {
     override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot'] === true) {
+        if (market['spot']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
         }
         const request: Dict = {
@@ -1443,7 +1443,7 @@ export default class btse extends Exchange {
     override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot'] === true) {
+        if (market['spot']) {
             throw new BadRequest (this.id + ' fetchFundingRate() symbol does not support spot markets');
         }
         const request: Dict = {
@@ -1885,7 +1885,7 @@ export default class btse extends Exchange {
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot'] === true) {
+        if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
         } else {
             return await this.createContractOrder (symbol, type, side, amount, price, params);
@@ -2412,7 +2412,7 @@ export default class btse extends Exchange {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.privatePutSpotApiV4TradeOrders (this.extend (request, query));
         } else {
@@ -2466,7 +2466,7 @@ export default class btse extends Exchange {
         }
         const paramsOmitted = (clientOrderId !== undefined) ? this.omit (params, 'clientOrderId') : params;
         let response = undefined;
-        if (market['spot'] === true) {
+        if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.privateDeleteSpotApiV4TradeOrders (this.extend (request, paramsOmitted));
         } else {
@@ -3198,7 +3198,7 @@ export default class btse extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (market['spot']) {
             response = await this.privateGetSpotApiV4TradeFees (this.extend (request, params));
         } else {
             // the futures fees stay on the legacy endpoint, the unified futures

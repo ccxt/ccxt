@@ -7930,7 +7930,7 @@ export class BaseExchange {
     async fetchMarketLeverageTiers (symbol: string, params: Dict = {}): Promise<LeverageTier[]> {
         if (this.has['fetchLeverageTiers'] !== undefined && this.has['fetchLeverageTiers'] !== false) {
             const market = this.market (symbol);
-            if (market['contract'] !== true) {
+            if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
@@ -8314,7 +8314,7 @@ export class BaseExchange {
             await this.loadMarkets ();
             const market = this.market (symbol);
             const symbolResolved: string = market['symbol'];
-            if (market['contract'] !== true) {
+            if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }
             const rates = await this.fetchFundingRates ([ symbolResolved ], params);
@@ -8334,7 +8334,7 @@ export class BaseExchange {
             await this.loadMarkets ();
             const market = this.market (symbol);
             const symbolResolved: string = market['symbol'];
-            if (market['contract'] !== true) {
+            if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchFundingInterval() supports contract markets only');
             }
             const rates = await this.fetchFundingIntervals ([ symbolResolved ], params);

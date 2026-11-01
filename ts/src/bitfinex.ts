@@ -1820,7 +1820,7 @@ export default class bitfinex extends Exchange {
             orderType = 'FOK';
         }
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', params);
-        if ((market['spot'] === true) && (marginMode === undefined)) {
+        if ((market['spot']) && (marginMode === undefined)) {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = 'EXCHANGE ' + orderType;
         }
@@ -2768,7 +2768,7 @@ export default class bitfinex extends Exchange {
             if (market['quote'] in fiat) {
                 fee['maker'] = makerFeeFiat;
                 fee['taker'] = takerFeeFiat;
-            } else if (market['contract'] === true) {
+            } else if (market['contract']) {
                 fee['maker'] = makerFeeDeriv;
                 fee['taker'] = takerFeeDeriv;
             } else { // TODO check if stable coin
@@ -3855,7 +3855,7 @@ export default class bitfinex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!market['swap']) {
             throw new NotSupported (this.id + ' setMargin() only support swap markets');
         }
         const request: Dict = {

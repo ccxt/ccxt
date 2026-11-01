@@ -247,7 +247,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap']) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -281,7 +281,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap']) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -364,7 +364,7 @@ export default class hyperliquid extends hyperliquidRest {
                 // always 'activeAssetCtx', the server routes spot coins to the spot channel,
                 // see https://github.com/ccxt/ccxt/issues/27475
                 'type': 'activeAssetCtx',
-                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap']) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         await this.waitForPendingUnsubscribe (url, messageHash);
@@ -393,7 +393,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'activeAssetCtx',
-                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap']) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
@@ -825,7 +825,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap']) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -860,7 +860,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap']) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -996,7 +996,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap']) ? (market as Dict)['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -1032,7 +1032,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap']) ? (market as Dict)['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };

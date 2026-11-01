@@ -772,9 +772,9 @@ export default class krakenfutures extends Exchange {
         let baseVolume: Str = undefined;
         const isIndex = this.safeBool (marketResolved, 'index', false);
         if (!isIndex) {
-            if (marketResolved['linear'] === true) {
+            if (marketResolved['linear']) {
                 baseVolume = volume;
-            } else if (marketResolved['inverse'] === true) {
+            } else if (marketResolved['inverse']) {
                 baseVolume = Precise.stringDiv (quoteVolume, vwap);
             }
         }
@@ -2446,7 +2446,7 @@ export default class krakenfutures extends Exchange {
                 whichPrice = average;
             }
             if (whichPrice !== undefined) {
-                if (marketResolved['linear'] === true) {
+                if (marketResolved['linear']) {
                     cost = Precise.stringMul (filled, whichPrice); // in quote
                 } else {
                     cost = Precise.stringDiv (filled, whichPrice); // in base
@@ -3182,7 +3182,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request: Dict = {
@@ -3638,7 +3638,7 @@ export default class krakenfutures extends Exchange {
             const marketId = this.safeString (market, 'id', '');
             const splitId = marketId.split ('_');
             const splitMarketId: string = this.safeString (splitId, 1, '');
-            if (market['inverse'] === true) {
+            if (market['inverse']) {
                 return 'fi_' + splitMarketId;
             } else {
                 return 'fv_' + splitMarketId;

@@ -1943,9 +1943,9 @@ export default class gate extends Exchange {
         // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
         const request: Dict = {};
         if (market !== undefined) {
-            if (market['contract'] === true) {
+            if (market['contract']) {
                 request['contract'] = market['id'];
-                if (market['option'] !== true) {
+                if (!market['option']) {
                     request['settle'] = market['settleId'];
                 }
             } else {
@@ -2181,7 +2181,7 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const [ request, query ] = this.prepareRequest (market, undefined, params);
@@ -2890,18 +2890,18 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             // gateeu returns an empty book for a spot limit above 100
             const maxSpotLimit = this.parseToInt (this.handleOption ('fetchOrderBook', 'maxSpotLimit', 1000));
-            const maxLimit = (market['spot'] === true) ? maxSpotLimit : 300;
+            const maxLimit = (market['spot']) ? maxSpotLimit : 300;
             request['limit'] = Math.min (limit, maxLimit);
         }
         request['with_id'] = true;
         let response: Dict;
-        if ((market['spot'] === true) || (market['margin'] === true)) {
+        if ((market['spot']) || (market['margin'])) {
             response = await this.publicSpotGetOrderBook (this.extend (request, query));
-        } else if (market['swap'] === true) {
+        } else if (market['swap']) {
             response = await this.publicFuturesGetSettleOrderBook (this.extend (request, query));
-        } else if (market['future'] === true) {
+        } else if (market['future']) {
             response = await this.publicDeliveryGetSettleOrderBook (this.extend (request, query));
-        } else if (market['option'] === true) {
+        } else if (market['option']) {
             response = await this.publicOptionsGetOrderBook (this.extend (request, query));
         } else {
             throw new NotSupported (this.id + ' fetchOrderBook() not support this market type');
@@ -2975,11 +2975,11 @@ export default class gate extends Exchange {
             throw new ExchangeError (this.id + ' method() missing timestamp');
         }
         let timestamp: Int = current;
-        if (market['spot'] !== true) {
+        if (!market['spot']) {
             timestamp = current * 1000;
         }
-        const priceKey = (market['spot'] === true) ? 0 : 'p';
-        const amountKey = (market['spot'] === true) ? 1 : 's';
+        const priceKey = (market['spot']) ? 0 : 'p';
+        const amountKey = (market['spot']) ? 1 : 's';
         const nonce = this.safeInteger (response, 'id');
         const result = this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
         result['nonce'] = nonce;
@@ -3005,13 +3005,13 @@ export default class gate extends Exchange {
         const market = this.market (symbol);
         const [ request, query ] = this.prepareRequest (market, undefined, params);
         let response: Dict;
-        if ((market['spot'] === true) || (market['margin'] === true)) {
+        if ((market['spot']) || (market['margin'])) {
             response = await this.publicSpotGetTickers (this.extend (request, query));
-        } else if (market['swap'] === true) {
+        } else if (market['swap']) {
             response = await this.publicFuturesGetSettleTickers (this.extend (request, query));
-        } else if (market['future'] === true) {
+        } else if (market['future']) {
             response = await this.publicDeliveryGetSettleTickers (this.extend (request, query));
-        } else if (market['option'] === true) {
+        } else if (market['option']) {
             const marketId = market['id'];
             const optionParts = (marketId as string).split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
@@ -3020,7 +3020,7 @@ export default class gate extends Exchange {
             throw new NotSupported (this.id + ' fetchTicker() not support this market type');
         }
         let ticker: NullableDict = undefined;
-        if (market['option'] === true) {
+        if (market['option']) {
             const optionMarketId = this.safeString (market, 'id');
             for (let i = 0; i < (response as List).length; i++) {
                 const entry = response[i];
@@ -3528,13 +3528,13 @@ export default class gate extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000) as OHLCV[];
         }
-        if (market['option'] === true) {
+        if (market['option']) {
             return await this.fetchOptionOHLCV (symbol, timeframe, since, limit, paramsPaginate);
         }
         const price: Str = this.safeString (paramsPaginate, 'price');
         const [ request, paramsRequest ] = this.prepareRequest (market, undefined, paramsPaginate);
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        const maxLimit = (market['contract'] === true) ? 1999 : 1000;
+        const maxLimit = (market['contract']) ? 1999 : 1000;
         const limitValue: Int = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         const untilMs = this.safeInteger (paramsRequest, 'until');
         let until: Int = undefined;
@@ -3562,7 +3562,7 @@ export default class gate extends Exchange {
             request['limit'] = limitValue;
         }
         let response: Dict | List = [];
-        if (market['contract'] === true) {
+        if (market['contract']) {
             const isMark = (price === 'mark');
             const isIndex = (price === 'index');
             if (isMark || isIndex) {
@@ -3572,9 +3572,9 @@ export default class gate extends Exchange {
             if (isMark || isIndex) {
                 paramsContract = this.omit (paramsOmitted, 'price');
             }
-            if (market['future'] === true) {
+            if (market['future']) {
                 response = await this.publicDeliveryGetSettleCandlesticks (this.extend (request, paramsContract));
-            } else if (market['swap'] === true) {
+            } else if (market['swap']) {
                 response = await this.publicFuturesGetSettleCandlesticks (this.extend (request, paramsContract));
             }
         } else {
@@ -3620,7 +3620,7 @@ export default class gate extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const [ request, paramsRequest ] = this.prepareRequest (market, undefined, paramsPaginate);
@@ -3758,15 +3758,15 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000); // default 100, max 1000
         }
-        if (since !== undefined && (market['contract'] === true)) {
+        if (since !== undefined && (market['contract'])) {
             request['from'] = this.parseToInt (since / 1000);
         }
         let response: List;
         if (market['type'] === 'spot' || market['type'] === 'margin') {
             response = await this.publicSpotGetTrades (this.extend (request, query));
-        } else if (market['swap'] === true) {
+        } else if (market['swap']) {
             response = await this.publicFuturesGetSettleTrades (this.extend (request, query));
-        } else if (market['future'] === true) {
+        } else if (market['future']) {
             response = await this.publicDeliveryGetSettleTrades (this.extend (request, query));
         } else if (market['type'] === 'option') {
             response = await this.publicOptionsGetTrades (this.extend (request, query));
@@ -4493,19 +4493,19 @@ export default class gate extends Exchange {
         const nonTriggerOrder = !isTpsl && (trigger === undefined);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response: Dict;
-        if ((market['spot'] === true) || (market['margin'] === true)) {
+        if ((market['spot']) || (market['margin'])) {
             if (nonTriggerOrder) {
                 response = await this.privateSpotPostOrders (orderRequest);
             } else {
                 response = await this.privateSpotPostPriceOrders (orderRequest);
             }
-        } else if (market['swap'] === true) {
+        } else if (market['swap']) {
             if (nonTriggerOrder) {
                 response = await this.privateFuturesPostSettleOrders (orderRequest);
             } else {
                 response = await this.privateFuturesPostSettlePriceOrders (orderRequest);
             }
-        } else if (market['future'] === true) {
+        } else if (market['future']) {
             if (nonTriggerOrder) {
                 response = await this.privateDeliveryPostSettleOrders (orderRequest);
             } else {
@@ -4611,7 +4611,7 @@ export default class gate extends Exchange {
         }
         const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
         const market = this.market (symbols[0]);
-        if ((market['future'] === true) || (market['option'] === true)) {
+        if ((market['future']) || (market['option'])) {
             throw new NotSupported (this.id + ' createOrders() does not support futures or options markets');
         }
         return ordersRequests;
@@ -4636,9 +4636,9 @@ export default class gate extends Exchange {
         const firstOrder = orders[0];
         const market = this.market (firstOrder['symbol']);
         let response = undefined;
-        if (market['spot'] === true) {
+        if (market['spot']) {
             response = await this.privateSpotPostBatchOrders (ordersRequests);
-        } else if (market['swap'] === true) {
+        } else if (market['swap']) {
             response = await this.privateFuturesPostSettleBatchOrders (ordersRequests);
         }
         return this.parseOrders (response);
@@ -4743,7 +4743,7 @@ export default class gate extends Exchange {
                     // 'text': clientOrderId, // 't-abcdef1234567890',
                     // 'auto_size': '', // close_long, close_short, note size also needs to be set to 0
                 };
-                if (market['option'] !== true) {
+                if (!market['option']) {
                     request['settle'] = market['settleId']; // filled in prepareRequest above
                 }
                 if (isMarketOrder) {
@@ -4824,7 +4824,7 @@ export default class gate extends Exchange {
                 }
             }
         } else {
-            if (market['option'] === true) {
+            if (market['option']) {
                 throw new NotSupported (this.id + ' createOrder() conditional option orders are not supported');
             }
             if (contract === true) {
@@ -4951,7 +4951,7 @@ export default class gate extends Exchange {
         }
         await this.loadUnifiedStatus ();
         const market = this.market (symbol);
-        if (market['spot'] !== true) {
+        if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const paramsExtended: Dict = this.extend (params, { 'createMarketBuyOrderRequiresPrice': false });
@@ -4977,7 +4977,7 @@ export default class gate extends Exchange {
             'account': account,
         };
         if (amount !== undefined) {
-            if (market['spot'] === true) {
+            if (market['spot']) {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else {
                 const signedAmount = this.getGateFuturesSignedAmount (symbol, side, amount);
@@ -4991,7 +4991,7 @@ export default class gate extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (market['spot'] !== true) {
+        if (!market['spot']) {
             request['settle'] = market['settleId'];
         }
         return this.extend (request, paramsUnifiedAccount);
@@ -5021,7 +5021,7 @@ export default class gate extends Exchange {
         const market = this.market (symbol);
         const extendedRequest = this.editOrderRequest (id, symbol, type, side, amount, price, params);
         let response: Dict;
-        if (market['spot'] === true) {
+        if (market['spot']) {
             response = await this.privateSpotPatchOrdersOrderId (extendedRequest);
         } else {
             response = await this.privateFuturesPutSettleOrdersOrderId (extendedRequest);
@@ -6053,7 +6053,7 @@ export default class gate extends Exchange {
             const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
-            if (market['spot'] !== true) {
+            if (!market['spot']) {
                 throw new NotSupported (this.id + ' cancelOrdersForSymbols() supports only spot markets');
             }
             const id = this.safeString (order, 'id');
@@ -6291,9 +6291,9 @@ export default class gate extends Exchange {
             request['leverage'] = stringifiedMargin;
         }
         let response: Dict;
-        if (market['swap'] === true) {
+        if (market['swap']) {
             response = await this.privateFuturesPostSettlePositionsContractLeverage (this.extend (request, query));
-        } else if (market['future'] === true) {
+        } else if (market['future']) {
             response = await this.privateDeliveryPostSettlePositionsContractLeverage (this.extend (request, query));
         } else {
             throw new NotSupported (this.id + ' setLeverage() not support this market type');
@@ -6502,15 +6502,15 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['contract'] !== true) {
+        if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchPosition() supports contract markets only');
         }
         const [ request, paramsValue ] = this.prepareRequest (market, this.safeString (market, 'type'), params);
         const extendedRequest = this.extend (request, paramsValue);
         let response = undefined;
-        if (market['swap'] === true) {
+        if (market['swap']) {
             response = await this.privateFuturesGetSettlePositionsContract (extendedRequest);
-        } else if (market['future'] === true) {
+        } else if (market['future']) {
             response = await this.privateDeliveryGetSettlePositionsContract (extendedRequest);
         } else if (market['type'] === 'option') {
             response = await this.privateOptionsGetPositionsContract (extendedRequest);
@@ -7288,9 +7288,9 @@ export default class gate extends Exchange {
         const [ request, query ] = this.prepareRequest (market, undefined, params);
         request['change'] = this.numberToString (amount);
         let response: Dict;
-        if (market['swap'] === true) {
+        if (market['swap']) {
             response = await this.privateFuturesPostSettlePositionsContractMargin (this.extend (request, query));
-        } else if (market['future'] === true) {
+        } else if (market['future']) {
             response = await this.privateDeliveryPostSettlePositionsContractMargin (this.extend (request, query));
         } else {
             throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
@@ -7395,7 +7395,7 @@ export default class gate extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, paramsPaginate, 100) as OpenInterest[];
         }
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory() supports swap markets only');
         }
         const request: Dict = {
@@ -8022,7 +8022,7 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchLiquidations() supports swap markets only');
         }
         const request: Dict = {
@@ -8077,21 +8077,21 @@ export default class gate extends Exchange {
             'contract': market['id'],
         };
         let response: Dict | List;
-        if ((market['swap'] === true) || (market['future'] === true)) {
+        if ((market['swap']) || (market['future'])) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
             request['settle'] = market['settleId'];
-        } else if (market['option'] === true) {
+        } else if (market['option']) {
             const marketId = market['id'];
             const optionParts = (marketId as string).split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
         }
-        if (market['swap'] === true) {
+        if (market['swap']) {
             response = await this.privateFuturesGetSettleLiquidates (this.extend (request, params));
-        } else if (market['future'] === true) {
+        } else if (market['future']) {
             response = await this.privateDeliveryGetSettleLiquidates (this.extend (request, params));
-        } else if (market['option'] === true) {
+        } else if (market['option']) {
             response = await this.privateOptionsGetPositionClose (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders');

@@ -1432,7 +1432,7 @@ export default class toobit extends Exchange {
         const last = this.safeString (ticker, 'c');
         let baseVolume = this.safeString (ticker, 'v');
         const contractSize = this.safeNumber (marketResolved, 'contractSize');
-        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
+        if ((marketResolved['contract']) && (contractSize !== undefined)) {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul (baseVolume, this.numberToString (contractSize));
         }
@@ -1785,7 +1785,7 @@ export default class toobit extends Exchange {
         }
         const market = this.market (symbol);
         let response: Dict = {};
-        if (market['spot'] === true) {
+        if (market['spot']) {
             const [ request, paramsRequest ] = this.createOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostApiV1SpotOrder (this.extend (request, paramsRequest));
         } else {
@@ -2227,7 +2227,7 @@ export default class toobit extends Exchange {
         };
         const market = this.market (symbol);
         let response: Dict = {};
-        if (market['spot'] === true) {
+        if (market['spot']) {
             response = await this.privateGetApiV1SpotOrder (this.extend (request, params));
         } else {
             response = await this.privateGetApiV1FuturesOrder (this.extend (request, params));
