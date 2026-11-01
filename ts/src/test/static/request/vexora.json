@@ -1,0 +1,81 @@
+{
+    "exchange": "vexora",
+    "skipKeys": [],
+    "disabledGO": true,
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "default",
+                "method": "fetchMarkets",
+                "url": "https://trade.smartcore.su/api/products",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "default",
+                "method": "fetchOrderBook",
+                "url": "https://trade.smartcore.su/api/products/SMC-USDT/book",
+                "input": [
+                    "SMC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "limit is client side, api has no limit param",
+                "method": "fetchOrderBook",
+                "url": "https://trade.smartcore.su/api/products/SMC-USDT/book",
+                "input": [
+                    "SMC/USDT",
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "default",
+                "method": "fetchTrades",
+                "url": "https://trade.smartcore.su/api/products/SMC-USDT/trades",
+                "input": [
+                    "SMC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "since and limit are filtered locally, api only returns the latest ~50 trades",
+                "method": "fetchTrades",
+                "url": "https://trade.smartcore.su/api/products/SMC-USDT/trades",
+                "input": [
+                    "SMC/USDT",
+                    1793189259045,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "1h maps to granularity seconds",
+                "method": "fetchOHLCV",
+                "url": "https://trade.smartcore.su/api/products/SMC-USDT/candles?granularity=3600",
+                "input": [
+                    "SMC/USDT",
+                    "1h"
+                ],
+                "output": null
+            },
+            {
+                "description": "5m maps to granularity seconds",
+                "method": "fetchOHLCV",
+                "url": "https://trade.smartcore.su/api/products/SMC-USDT/candles?granularity=300",
+                "input": [
+                    "SMC/USDT",
+                    "5m"
+                ],
+                "output": null
+            }
+        ]
+    }
+}

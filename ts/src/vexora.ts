@@ -238,7 +238,7 @@ export default class vexora extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side as any,
-            'takerOrMaker': undefined,
+            'takerOrMaker': 'taker',
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -295,14 +295,17 @@ export default class vexora extends Exchange {
         const bookRequest = await this.publicGetProductsIdBook (market['id'] as string, params);
         const tradesResponse = await this.publicGetProductsIdTrades (market['id'] as string, params);
         const timestamp = this.safeInteger (bookRequest, 'time');
+        // the public API only exposes the most recent ~50 trades, with no
+        // 24h stats endpoint, so OHLCV-style aggregates (open/high/low/
+        // baseVolume/quoteVolume) are intentionally left undefined instead
+        // of being misrepresented as 24h figures. the raw window aggregates
+        // are kept under info['window'] for transparency
         let last: number | undefined = undefined;
-        let open: number | undefined = undefined;
-        let high: number | undefined = undefined;
-        let low: number | undefined = undefined;
-        let baseVolume = 0;
-        let quoteVolume = 0;
-        // the exchange returns trades newest-first, so they are aggregated
-        // directly: index 0 is the latest trade, the last visited is the oldest
+        let lastTimestamp: number | undefined = undefined;
+        let windowHigh: number | undefined = undefined;
+        let windowLow: number | undefined = undefined;
+        let windowBaseVolume = 0;
+        let windowQuoteVolume = 0;
         for (let i = 0; i < tradesResponse['length']; i++) {
             const trade = tradesResponse[i];
             const price = this.safeNumber (trade, 'price');
@@ -310,14 +313,15 @@ export default class vexora extends Exchange {
             if (price === undefined || amount === undefined) {
                 continue;
             }
-            if (i === 0) {
+            const tradeTimestamp = this.parse8601 (this.safeString (trade, 'time'));
+            if (tradeTimestamp !== undefined && (lastTimestamp === undefined || tradeTimestamp >= lastTimestamp)) {
+                lastTimestamp = tradeTimestamp;
                 last = price;
             }
-            open = price;
-            high = (high === undefined) ? price : Math.max (high, price);
-            low = (low === undefined) ? price : Math.min (low, price);
-            baseVolume = this.sum (baseVolume, amount);
-            quoteVolume = this.sum (quoteVolume, price * amount);
+            windowHigh = (windowHigh === undefined) ? price : Math.max (windowHigh, price);
+            windowLow = (windowLow === undefined) ? price : Math.min (windowLow, price);
+            windowBaseVolume = this.sum (windowBaseVolume, amount);
+            windowQuoteVolume = this.sum (windowQuoteVolume, price * amount);
         }
         const bidsArray = this.safeValue (bookRequest, 'bids', []) as number[][];
         const asksArray = this.safeValue (bookRequest, 'asks', []) as number[][];
@@ -328,22 +332,23 @@ export default class vexora extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'last': last,
-            'high': high,
-            'low': low,
+            'high': undefined,
+            'low': undefined,
             'bid': (bestBid !== undefined) ? this.safeNumber (bestBid, 0) : undefined,
             'bidVolume': (bestBid !== undefined) ? this.safeNumber (bestBid, 1) : undefined,
             'ask': (bestAsk !== undefined) ? this.safeNumber (bestAsk, 0) : undefined,
             'askVolume': (bestAsk !== undefined) ? this.safeNumber (bestAsk, 1) : undefined,
             'vwap': undefined,
-            'open': open,
-            'close': last,
+            'open': undefined,
+            'close': undefined,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': { 'book': bookRequest, 'tradesCount': tradesResponse['length'] },
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'lastTradeTimestamp': lastTimestamp,
+            'info': { 'book': bookRequest, 'window': { 'high': windowHigh, 'low': windowLow, 'baseVolume': windowBaseVolume, 'quoteVolume': windowQuoteVolume, 'tradesCount': tradesResponse['length'] } },
         };
         return this.safeTicker (ticker, market);
     }

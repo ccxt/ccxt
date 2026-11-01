@@ -1,0 +1,847 @@
+{
+    "exchange": "vexora",
+    "skipKeys": [],
+    "disabledGO": true,
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "default",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "ETH-USDT",
+                        "baseCurrency": "ETH",
+                        "quoteCurrency": "USDT",
+                        "baseMinSize": "0",
+                        "baseMaxSize": "100000000",
+                        "quoteIncrement": "0.01",
+                        "baseScale": 4,
+                        "quoteScale": 2
+                    },
+                    {
+                        "id": "OCTA-USDT",
+                        "baseCurrency": "OCTA",
+                        "quoteCurrency": "USDT",
+                        "baseMinSize": "0",
+                        "baseMaxSize": "100000000",
+                        "quoteIncrement": "1.0E-4",
+                        "baseScale": 4,
+                        "quoteScale": 6
+                    },
+                    {
+                        "id": "ETC-USDT",
+                        "baseCurrency": "ETC",
+                        "quoteCurrency": "USDT",
+                        "baseMinSize": "0",
+                        "baseMaxSize": "100000000",
+                        "quoteIncrement": "0.01",
+                        "baseScale": 4,
+                        "quoteScale": 2
+                    },
+                    {
+                        "id": "BNB-USDT",
+                        "baseCurrency": "BNB",
+                        "quoteCurrency": "USDT",
+                        "baseMinSize": "0",
+                        "baseMaxSize": "100000000",
+                        "quoteIncrement": "0.01",
+                        "baseScale": 4,
+                        "quoteScale": 2
+                    },
+                    {
+                        "id": "TRX-USDT",
+                        "baseCurrency": "TRX",
+                        "quoteCurrency": "USDT",
+                        "baseMinSize": "0",
+                        "baseMaxSize": "100000000",
+                        "quoteIncrement": "0.01",
+                        "baseScale": 4,
+                        "quoteScale": 2
+                    },
+                    {
+                        "id": "AVAX-USDT",
+                        "baseCurrency": "AVAX",
+                        "quoteCurrency": "USDT",
+                        "baseMinSize": "0",
+                        "baseMaxSize": "100000000",
+                        "quoteIncrement": "0.01",
+                        "baseScale": 4,
+                        "quoteScale": 2
+                    },
+                    {
+                        "id": "POL-USDT",
+                        "baseCurrency": "POL",
+                        "quoteCurrency": "USDT",
+                        "baseMinSize": "0",
+                        "baseMaxSize": "100000000",
+                        "quoteIncrement": "0.01",
+                        "baseScale": 4,
+                        "quoteScale": 2
+                    },
+                    {
+                        "id": "SMC-USDT",
+                        "baseCurrency": "SMC",
+                        "quoteCurrency": "USDT",
+                        "baseMinSize": "1",
+                        "baseMaxSize": "1000000",
+                        "quoteIncrement": "1.0E-4",
+                        "baseScale": 2,
+                        "quoteScale": 4
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "ETH-USDT",
+                        "symbol": "ETH/USDT",
+                        "base": "ETH",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "ETH",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0,
+                                "max": 100000000
+                            },
+                            "price": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "ETH-USDT",
+                            "baseCurrency": "ETH",
+                            "quoteCurrency": "USDT",
+                            "baseMinSize": "0",
+                            "baseMaxSize": "100000000",
+                            "quoteIncrement": "0.01",
+                            "baseScale": 4,
+                            "quoteScale": 2
+                        }
+                    },
+                    {
+                        "id": "OCTA-USDT",
+                        "symbol": "OCTA/USDT",
+                        "base": "OCTA",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "OCTA",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.000001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0,
+                                "max": 100000000
+                            },
+                            "price": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "OCTA-USDT",
+                            "baseCurrency": "OCTA",
+                            "quoteCurrency": "USDT",
+                            "baseMinSize": "0",
+                            "baseMaxSize": "100000000",
+                            "quoteIncrement": "1.0E-4",
+                            "baseScale": 4,
+                            "quoteScale": 6
+                        }
+                    },
+                    {
+                        "id": "ETC-USDT",
+                        "symbol": "ETC/USDT",
+                        "base": "ETC",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "ETC",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0,
+                                "max": 100000000
+                            },
+                            "price": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "ETC-USDT",
+                            "baseCurrency": "ETC",
+                            "quoteCurrency": "USDT",
+                            "baseMinSize": "0",
+                            "baseMaxSize": "100000000",
+                            "quoteIncrement": "0.01",
+                            "baseScale": 4,
+                            "quoteScale": 2
+                        }
+                    },
+                    {
+                        "id": "BNB-USDT",
+                        "symbol": "BNB/USDT",
+                        "base": "BNB",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "BNB",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0,
+                                "max": 100000000
+                            },
+                            "price": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "BNB-USDT",
+                            "baseCurrency": "BNB",
+                            "quoteCurrency": "USDT",
+                            "baseMinSize": "0",
+                            "baseMaxSize": "100000000",
+                            "quoteIncrement": "0.01",
+                            "baseScale": 4,
+                            "quoteScale": 2
+                        }
+                    },
+                    {
+                        "id": "TRX-USDT",
+                        "symbol": "TRX/USDT",
+                        "base": "TRX",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "TRX",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0,
+                                "max": 100000000
+                            },
+                            "price": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "TRX-USDT",
+                            "baseCurrency": "TRX",
+                            "quoteCurrency": "USDT",
+                            "baseMinSize": "0",
+                            "baseMaxSize": "100000000",
+                            "quoteIncrement": "0.01",
+                            "baseScale": 4,
+                            "quoteScale": 2
+                        }
+                    },
+                    {
+                        "id": "AVAX-USDT",
+                        "symbol": "AVAX/USDT",
+                        "base": "AVAX",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "AVAX",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0,
+                                "max": 100000000
+                            },
+                            "price": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "AVAX-USDT",
+                            "baseCurrency": "AVAX",
+                            "quoteCurrency": "USDT",
+                            "baseMinSize": "0",
+                            "baseMaxSize": "100000000",
+                            "quoteIncrement": "0.01",
+                            "baseScale": 4,
+                            "quoteScale": 2
+                        }
+                    },
+                    {
+                        "id": "POL-USDT",
+                        "symbol": "POL/USDT",
+                        "base": "POL",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "POL",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0,
+                                "max": 100000000
+                            },
+                            "price": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "POL-USDT",
+                            "baseCurrency": "POL",
+                            "quoteCurrency": "USDT",
+                            "baseMinSize": "0",
+                            "baseMaxSize": "100000000",
+                            "quoteIncrement": "0.01",
+                            "baseScale": 4,
+                            "quoteScale": 2
+                        }
+                    },
+                    {
+                        "id": "SMC-USDT",
+                        "symbol": "SMC/USDT",
+                        "base": "SMC",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "SMC",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.0001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1,
+                                "max": 1000000
+                            },
+                            "price": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "SMC-USDT",
+                            "baseCurrency": "SMC",
+                            "quoteCurrency": "USDT",
+                            "baseMinSize": "1",
+                            "baseMaxSize": "1000000",
+                            "quoteIncrement": "1.0E-4",
+                            "baseScale": 2,
+                            "quoteScale": 4
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "default",
+                "method": "fetchOrderBook",
+                "input": [
+                    "SMC/USDT"
+                ],
+                "httpResponse": {
+                    "productId": "SMC-USDT",
+                    "sequence": 42,
+                    "time": 1793549735096,
+                    "asks": [
+                        [
+                            0.04,
+                            1.97,
+                            1
+                        ],
+                        [
+                            0.0499,
+                            1226.83,
+                            1
+                        ],
+                        [
+                            0.05,
+                            250000,
+                            1
+                        ],
+                        [
+                            0.085,
+                            166,
+                            1
+                        ]
+                    ],
+                    "bids": [
+                        [
+                            0.042,
+                            500,
+                            1
+                        ],
+                        [
+                            0.04,
+                            10,
+                            2
+                        ],
+                        [
+                            0.039,
+                            20.5,
+                            1
+                        ]
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "SMC/USDT",
+                    "bids": [
+                        [
+                            0.042,
+                            500,
+                            1
+                        ],
+                        [
+                            0.04,
+                            10,
+                            2
+                        ],
+                        [
+                            0.039,
+                            20.5,
+                            1
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.04,
+                            1.97,
+                            1
+                        ],
+                        [
+                            0.0499,
+                            1226.83,
+                            1
+                        ],
+                        [
+                            0.05,
+                            250000,
+                            1
+                        ],
+                        [
+                            0.085,
+                            166,
+                            1
+                        ]
+                    ],
+                    "timestamp": 1793549735096,
+                    "datetime": "2026-11-01T16:15:35.096Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "default",
+                "method": "fetchTrades",
+                "input": [
+                    "SMC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "sequence": 9,
+                        "time": "2026-10-28T12:10:12.727Z",
+                        "price": "0.0989",
+                        "size": "12.00",
+                        "side": "buy"
+                    },
+                    {
+                        "sequence": 8,
+                        "time": "2026-10-28T12:07:58.172Z",
+                        "price": "0.0990",
+                        "size": "2050.10",
+                        "side": "buy"
+                    },
+                    {
+                        "sequence": 7,
+                        "time": "2026-10-28T12:07:39.045Z",
+                        "price": "0.0990",
+                        "size": "4.00",
+                        "side": "sell"
+                    },
+                    {
+                        "sequence": 6,
+                        "time": "2026-10-27T18:00:00.000Z",
+                        "price": "0.1000",
+                        "size": "100.00",
+                        "side": "sell"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequence": 6,
+                            "time": "2026-10-27T18:00:00.000Z",
+                            "price": "0.1000",
+                            "size": "100.00",
+                            "side": "sell"
+                        },
+                        "id": "6",
+                        "timestamp": 1793124000000,
+                        "datetime": "2026-10-27T18:00:00.000Z",
+                        "symbol": "SMC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": "0.1000",
+                        "amount": "100.00",
+                        "cost": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "sequence": 7,
+                            "time": "2026-10-28T12:07:39.045Z",
+                            "price": "0.0990",
+                            "size": "4.00",
+                            "side": "sell"
+                        },
+                        "id": "7",
+                        "timestamp": 1793189259045,
+                        "datetime": "2026-10-28T12:07:39.045Z",
+                        "symbol": "SMC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": "0.0990",
+                        "amount": "4.00",
+                        "cost": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "sequence": 8,
+                            "time": "2026-10-28T12:07:58.172Z",
+                            "price": "0.0990",
+                            "size": "2050.10",
+                            "side": "buy"
+                        },
+                        "id": "8",
+                        "timestamp": 1793189278172,
+                        "datetime": "2026-10-28T12:07:58.172Z",
+                        "symbol": "SMC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": "0.0990",
+                        "amount": "2050.10",
+                        "cost": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "sequence": 9,
+                            "time": "2026-10-28T12:10:12.727Z",
+                            "price": "0.0989",
+                            "size": "12.00",
+                            "side": "buy"
+                        },
+                        "id": "9",
+                        "timestamp": 1793189412727,
+                        "datetime": "2026-10-28T12:10:12.727Z",
+                        "symbol": "SMC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": "0.0989",
+                        "amount": "12.00",
+                        "cost": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "1h",
+                "method": "fetchOHLCV",
+                "input": [
+                    "SMC/USDT",
+                    "1h"
+                ],
+                "httpResponse": [
+                    [
+                        1793188800,
+                        0.0989,
+                        0.099,
+                        0.099,
+                        0.0989,
+                        2066.1
+                    ],
+                    [
+                        1793174400,
+                        0.0992,
+                        0.0992,
+                        0.0992,
+                        0.0992,
+                        0.99
+                    ],
+                    [
+                        1792969200,
+                        0.1,
+                        0.1,
+                        0.1,
+                        0.1,
+                        9.99
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1792969200000,
+                        0.1,
+                        0.1,
+                        0.1,
+                        0.1,
+                        9.99
+                    ],
+                    [
+                        1793174400000,
+                        0.0992,
+                        0.0992,
+                        0.0992,
+                        0.0992,
+                        0.99
+                    ],
+                    [
+                        1793188800000,
+                        0.0989,
+                        0.099,
+                        0.099,
+                        0.0989,
+                        2066.1
+                    ]
+                ]
+            }
+        ]
+    }
+}
