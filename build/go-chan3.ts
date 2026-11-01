@@ -192,7 +192,7 @@ export function goChan3LowerAbsent (content: string, table: Map<string, string>)
 }
 
 // ===== GO-CHAN3 WS: ws cache objects travel as a Go interface element (never MapTyped: that nils them) =====
-// OrderBookInterface: every watchOrderBook* core sends the live book (`ob.(OrderBookInterface).Limit()`, now typed)
+// OrderBookInterface: every watchOrderBook* core sends the live book (`ob.Limit()` on a typed local, `ob.(OrderBookInterface).Limit()` on a box)
 // or forwards an untabled Watch/WatchMultiple receive, unboxed at the send with OrderBookTyped.
 export function goChan3WsInterface (type: string): boolean {
     return /^(?:ccxt\.)?(?:OrderBookInterface|ArrayCacheInterface|ClientInterface)$/.test (type);
@@ -210,7 +210,7 @@ function goChan3WsSend (expr: string, fnMasked: string, want: string | undefined
         return undefined;
     }
     const t = goChan3QualType (want, q);
-    if (new RegExp ('^\\w+\\.\\(' + t.replace ('.', '\\.') + '\\)\\.Limit\\(\\)$').test (expr)) {
+    if (new RegExp ('^\\w+(?:\\.\\(' + t.replace ('.', '\\.') + '\\))?\\.Limit\\(\\)$').test (expr)) {
         return expr; // Limit() returns OrderBookInterface
     }
     let name = expr;
