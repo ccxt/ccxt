@@ -1,4 +1,4 @@
-import Transpiler, { alignGoTrailingComments, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installFmGo5GP08, installFmGo5OG02, installRdGo2WsCache, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES, hx10G06Check, g08w3Check, hx10w8GB01Check, hx10w8GB05Check, hx10w9GB11Check } from "ast-transpiler"; // go printer hooks live in ast-transpiler src/go (hx11 ast-move)
+import Transpiler, { alignGoTrailingComments, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installFmGo5GP08, installFmGo5OG02, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES, hx10G06Check, g08w3Check, hx10w8GB01Check, hx10w8GB05Check, hx10w9GB11Check } from "ast-transpiler"; // go printer hooks live in ast-transpiler src/go (hx11 ast-move)
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
@@ -13,7 +13,6 @@ import ansi from 'ansicolor';
 import { goChanCarrierPass, goChanSelfTest } from './go-chan.js';
 import { goErrValuePass, goErrSelfTest } from './go-err.js';
 import { goChan3Pass, goChan3SelfTest, goChan3Table } from './go-chan3.js';
-import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
 import { goStructReturnsPass, goStructReturnsSelfTest } from './go-struct-returns.js';
 import {Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
@@ -3767,7 +3766,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx11w8PromiseAllSlotReads (content);  // hx11 w8 M40: promiseAll destructure slots, once the receive prints ListTyped(r.Value)
     content = hx11w8PromiseAllLoopReads (content);  // hx11 w8 r16: loop-built task lists read back under the same len() bound
     content = hx11w8PromiseAllSelfBoundReads (content);  // hx11 w8: GetValue(h, i) inside `for i < len(h)`
-    content = goTickerCachePass (content);  // typed ws ticker caches, after goChan3's resolved switches
     content = goBalanceEntryNilCompares (content);  // this.Balance[k] is printed by the owner passes above
     content = hx4G39TupleSlotDerefs (content);  // hx4 G39
     content = hx11m36MarketsByIdInOp (content);  // hx11 m36
@@ -6209,44 +6207,6 @@ class NewTranspiler {
                 "goTupleSlotTypes": { "HandleOptionIntegerAndParams": [ "*int64" ], "HandleOptionIntegerAndParams2": [ "*int64" ] },
                 "goTupleValueDefaultArg": { "HandleOptionIntegerAndParams": 3, "HandleOptionIntegerAndParams2": 4 },
                 // ===== end RF-go-6-F =====
-                // hx11 rfm-X4 OG03: BaseExchange.clients (the ws client registry) is owned by the dispatch
-                // goroutine. Reads on the user path ask the owner for a copy and `delete this.clients[k]`
-                // is the owner's delete op; the handlers (`handle*`) and the handler-called
-                // `isOrderBookDeltaInSequence` run on that goroutine and keep the field.
-                "ownedField": {
-                    "field": "clients",
-                    "declaredIn": "BaseExchange",
-                    "snapshot": "WsClientsSnapshot",
-                    "remove": "WsClientRemove",
-                    "ownerSideMethods": [ "^handle", "^isOrderBookDeltaInSequence$" ],
-                },
-                // hx10w4 OG03: the ws ticker / bidask maps and the positions cache of BaseExchange are owned by the
-                // dispatch loop; async watch/load/subscribe bodies and the listed sync methods go through the owner ops.
-                "ownedCaches": {
-                    "declaredIn": "BaseExchange",
-                    "maps": { "tickers": "Tickers", "bidsasks": "Bidsasks" },
-                    "objects": { "positions": "Positions" },
-                    "mapLiteral": "TickerCache{}",
-                    "asyncUserPath": "^(?:watch|load|subscribe)",
-                    "syncUserPath": "^(?:setPositionsCache|getCurrentPosition|cleanWsData)$",
-                    "typedMapRead": "WsCacheTickerMap",
-                    "ops": { "set": "WsCacheSet", "get": "WsCacheGet", "has": "WsCacheHas", "delete": "WsCacheDelete", "keys": "WsCacheKeys",
-                        "reset": "WsCacheReset", "snapshot": "WsCacheSnapshot", "objGet": "WsCacheObjGet", "objSet": "WsCacheObjSet" },
-                },
-                // BaseExchange.balance is the map[string]any field Balance, owned by the same loop: its methods
-                // read and write it as a plain map through the owner's entry views; the user-path methods
-                // (async watch/fetch/seed bodies, the balance snapshot loader, the cache seeder, the
-                // cleanup) keep the helper calls. An entry key in boxedKeys holds a scalar the helper unboxes.
-                "ownedBalance": {
-                    "field": "balance",
-                    "declaredIn": "BaseExchange",
-                    "entryRead": "WsBalanceEntry",
-                    "entryWrite": "WsBalanceEntryForWrite",
-                    "replace": "WsBalanceReplace",
-                    "userPath": "^(?:setBalanceCache|cleanWsData)$",
-                    "asyncUserPath": "^(?:(?:watch|fetch|seed)\\w*|loadBalanceSnapshot)$",
-                    "boxedKeys": [ "info", "timestamp", "datetime", "free", "used", "total" ],
-                },
             //     "parser": {
             //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
             //         "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
@@ -6377,7 +6337,6 @@ class NewTranspiler {
         installCcxtGoTupleSlotReads (this.transpiler.goTranspiler);
         installFmGo5GP08 (this.transpiler.goTranspiler);  // FM-GO5
         installFmGo5OG02 (this.transpiler.goTranspiler);  // FM-GO5
-        installRdGo2WsCache (this.transpiler.goTranspiler);  // RD-GO-2
     }
 
     // The base files are assembled from the part of the printed body after its delimiter, which cuts
@@ -8269,8 +8228,7 @@ ${caseStatements.join('\n')}
             'NewArrayCache',
             'NewArrayCacheByTimestamp',
             'NewArrayCacheBySymbolById',
-            'NewArrayCacheBySymbolBySide',
-            'TradesCache'  // go/v4/exchange_trades_cache.go: a map type, which the declaration scan below does not list
+            'NewArrayCacheBySymbolBySide'
         ]);
 
         const files = fs.readdirSync(dirPath);
@@ -10205,7 +10163,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (g04Wired ()).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (g04Wired ()).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -13663,10 +13621,7 @@ function g10kInopSelfTest (): string[] {
 // Remove(R, k) where R is a *sync.Map base field -> R.Delete(k), or a
 // map[string]any (this.Clients, GetRejections()) -> delete(R, k); k must be a proven non-nil string.
 function g10kArrReceiverKind (recv: string): string | undefined {
-    if (/^this\.(?:Tickers|Bidsasks)$/.test (recv)) {
-        return 'sync';
-    }
-    if (/^this\.(?:Orderbooks|FundingRates|Ohlcvs|Trades)$/.test (recv)) {
+    if (/^this\.(?:Tickers|Bidsasks|Orderbooks|FundingRates|Ohlcvs|Trades)$/.test (recv)) {
         return 'map';
     }
     if ((recv === 'this.Clients') || (recv === 'this.Options') || /^\w+\.\((?:ccxt\.)?ClientInterface\)\.GetRejections\(\)$/.test (recv)) {
@@ -13809,7 +13764,7 @@ function g10kArrNativeRemove (content: string): string {
         if (key === undefined) {
             continue;
         }
-        lines[k] = rm[1] + ((kind === 'sync') ? rm[2] + '.Delete(' + key + ')' : 'delete(' + rm[2] + ', ' + key + ')') + rm[4];
+        lines[k] = rm[1] + 'delete(' + rm[2] + ', ' + key + ')' + rm[4];
     }
     return lines.join ('\n');
 }
@@ -13842,7 +13797,7 @@ function g10kArrSelfTest (): string[] {
         '}',
     ].join ('\n');
     const out = g10kArrNativeRemove (src);
-    const want = [ 'ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), symbol)', 'this.Tickers.Delete(*h)', 'delete(this.Clients, "u")',
+    const want = [ 'ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), symbol)', 'delete(this.Tickers, *h)', 'delete(this.Clients, "u")',
         'ccxt.Remove(this.Tickers, n)', 'ccxt.Remove(this.Tickers, g)', 'delete(this.Trades, symbol)', 'ccxt.Remove(this.Tickers, p)',
         'delete(this.Orderbooks, *sk)', 'delete(m, *fid)\n\t}\n\tccxt.Remove(m, fid)' ];
     for (const w of want) {
