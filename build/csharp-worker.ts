@@ -23,6 +23,9 @@ interface CsharpWorkerTask {
 export function setupCsharpPrinter (transpiler: Transpiler) {
     transpiler.setVerboseMode (false);
     const csharp = transpiler.csharpTranspiler;
+    // pascalizeTypedCores renames every `Promise<int|Int>` core to its `Task<Int64> <Name>` public
+    // declaration: the printer binds the awaited calls to that name, so the Int64 local types follow
+    (csharp as any).csharpPascalInt64TaskCalls = true;
     csharp.printElementAccessExpressionExceptionIfAny = (node: any) => {
         const parent = node.parent;
         const isLeftSideOfAssignment = parent?.kind === ts.SyntaxKind.BinaryExpression
