@@ -683,9 +683,7 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		stored = ccxt.NewArrayCache(tradesLimit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades.Store(symbol, stored)
 	}
 	var messageLength int = len(message)
 	if messageLength == 2 {

@@ -746,7 +746,7 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
-	var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
+	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var data []any = ccxt.SafeListTyped(message, "d")
 	var newTrades []any = []any{}
 	for i := 0; i < len(data); i++ {

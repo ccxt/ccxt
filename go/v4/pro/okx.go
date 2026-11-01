@@ -488,9 +488,7 @@ func (this *Okx) HandleTrades(client any, message map[string]any) {
 		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
-			if symbol != nil {
-				this.Trades[*symbol] = stored
-			}
+			this.Trades.Store(symbol, stored)
 		}
 		stored.Append(trade)
 		if channel != nil {

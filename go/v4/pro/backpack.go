@@ -1458,14 +1458,9 @@ func (this *Backpack) HandleTrades(client any, message map[string]any) {
 	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades.Store(symbol, stored)
 	}
-	var cache ccxt.WsArrayCache
-	if symbol != nil {
-		cache = this.Trades[*symbol]
-	}
+	var cache ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var trade map[string]any = this.ParseWsTrade(data, market)
 	cache.Append(trade)
 	var messageHash string = "trades:" + *symbol

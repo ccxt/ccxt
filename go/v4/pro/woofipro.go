@@ -681,7 +681,7 @@ func (this *Woofipro) HandleTrade(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var trades ccxt.WsArrayCache = this.Trades[symbol]
+	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
 	trades.Append(trade)
 	this.Trades[symbol] = trades
 	client.(ccxt.ClientInterface).Resolve(trades, topic)

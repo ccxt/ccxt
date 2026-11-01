@@ -306,13 +306,15 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp
 		var trade map[string]any = this.ParseWsTrade(rawTrade, market)
 		trade["timestamp"] = timestamp
 		trade["datetime"] = this.Iso8601(timestamp)
-		var stored any = this.Trades.Get(symbol)
+		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
-			this.Trades.Store(symbol, stored)
+			this.Trades[*symbol] = stored
 		}
-		stored.(ccxt.Appender).Append(trade)
-		ccxt.AddElementToObject(storesForSymbols, symbol, stored)
+		stored.Append(trade)
+		if symbol != nil {
+			storesForSymbols[*symbol] = stored
+		}
 	}
 	var symbols []string = nil
 	if storesForSymbols != nil {

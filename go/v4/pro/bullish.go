@@ -256,9 +256,9 @@ func (this *Bullish) HandleTrades(client any, message map[string]any) {
 	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArrayCache := ccxt.NewArrayCache(limit)
-		this.Trades.Store(symbol, tradesArrayCache)
+		this.Trades[*symbol] = tradesArrayCache
 	}
-	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
+	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var tradesList []any = this.ToArray(trades)
 	for i := 0; i < len(tradesList); i++ {
 		tradesArray.Append(ccxt.DerefScalar(tradesList[i]))

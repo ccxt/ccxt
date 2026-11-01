@@ -227,7 +227,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < len(payload); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(payload[i]))
 		var symbol *string = this.SafeString(trade, "symbol")
-		var tradesArray any = func() any {
+		var tradesArray ccxt.WsArrayCache = func() ccxt.WsArrayCache {
 			if symbol == nil {
 				return nil
 			}
@@ -237,7 +237,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArray = ccxt.NewArrayCache(limit)
 		}
-		tradesArray.(ccxt.Appender).Append(trade)
+		tradesArray.Append(trade)
 		if symbol != nil {
 			this.Trades.Store(symbol, tradesArray)
 		}
@@ -257,7 +257,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 		var market map[string]any = this.Market(symbol)
 		var marketId string = *this.SafeString(market, "id", "")
 		var messageHash string = name + ":" + marketId
-		var tradesArray any = this.Trades.Get(symbol)
+		var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	}
 }

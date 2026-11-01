@@ -1990,12 +1990,12 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 	var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data, market))
 	var symbol string = *this.SafeString(trade, "symbol", "")
 	var messageHash string = "trades:" + symbol
-	if _, ok := this.Trades[symbol]; !ok {
+	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var cache ccxt.WsArrayCache = this.Trades[symbol]
+	var cache ccxt.WsArrayCache = this.Trades.Get(symbol)
 	cache.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
@@ -2021,12 +2021,12 @@ func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 	var trade any = this.ParseWsUtaTrade(data, market)
 	var symbol string = *this.SafeString(trade, "symbol", "")
 	var messageHash string = "uta:trades:" + symbol
-	if _, ok := this.Trades[symbol]; !ok {
+	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var cache ccxt.WsArrayCache = this.Trades[symbol]
+	var cache ccxt.WsArrayCache = this.Trades.Get(symbol)
 	cache.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
@@ -2618,8 +2618,8 @@ func (this *Kucoin) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	var change *string = this.SafeString(delta, "change")
 	var changes any = this.SafeDict(delta, "changes", delta)
-	var storedBids any = orderbook.GetBids()
-	var storedAsks any = orderbook.GetAsks()
+	var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
+	var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
 	if change != nil {
 		// handling futures orderbook update
 		var splitChange []string = strings.Split(*change, ",")

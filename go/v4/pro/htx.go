@@ -425,9 +425,7 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
 	if tradesCache == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = tradesCache
-		}
+		this.Trades.Store(symbol, tradesCache)
 	}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))

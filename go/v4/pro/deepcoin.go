@@ -664,16 +664,11 @@ func (this *Deepcoin) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	if symbol != nil {
+	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if _, ok := this.Trades[*symbol]; !ok {
-			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
-		}
+		this.Trades.Store(symbol, ccxt.NewArrayCache(limit))
 	}
-	var strored ccxt.WsArrayCache
-	if symbol != nil {
-		strored = this.Trades[*symbol]
-	}
+	var strored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if data != nil {
 		var trade map[string]any = this.ParseWsTrade(data, market)
 		strored.Append(trade)
@@ -1169,8 +1164,8 @@ func (this *Deepcoin) HandleOrderBookMessage(client any, message any, orderbook 
 }
 func (this *Deepcoin) HandleBookDelta(orderbook ccxt.OrderBookInterface, entry any) {
 	var data map[string]any = ccxt.SafeMapTyped(entry, "d")
-	var bids any = orderbook.GetBids()
-	var asks any = orderbook.GetAsks()
+	var bids ccxt.IOrderBookSide = orderbook.GetBids()
+	var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 	var side *string = this.SafeString(data, "D")
 	var price *float64 = this.SafeNumber(data, "P")
 	var volume *float64 = this.SafeNumber(data, "V")

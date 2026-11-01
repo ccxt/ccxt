@@ -2860,7 +2860,7 @@ func (this *Opinion) HandleTrades(client any, message map[string]any) {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
 	}
-	var stored ccxt.WsArrayCache = this.Trades[*sym]
+	var stored ccxt.WsArrayCache = this.Trades.Get(sym)
 	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
 }

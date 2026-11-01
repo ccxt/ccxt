@@ -484,7 +484,7 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
 	var parsed map[string]any = this.ParseWsTrade(data)
-	var stored ccxt.WsArrayCache = this.Trades[symbol]
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+symbol)
 }

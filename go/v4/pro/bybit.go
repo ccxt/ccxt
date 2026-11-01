@@ -1810,9 +1810,7 @@ func (this *Bybit) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades.Store(symbol, stored)
 	}
 	for j := 0; j < ccxt.GetArrayLength(trades); j++ {
 		var parsed map[string]any = this.ParseWsTrade(ccxt.GetValue(trades, j), market)

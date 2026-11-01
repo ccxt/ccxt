@@ -534,9 +534,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades.Store(symbol, stored)
 	}
 	var data []any = ccxt.SafeListTypedDefault(params, 1, []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)

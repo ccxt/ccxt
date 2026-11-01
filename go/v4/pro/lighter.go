@@ -874,9 +874,7 @@ func (this *Lighter) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades.Store(symbol, stored)
 	}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {

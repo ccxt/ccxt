@@ -2605,8 +2605,8 @@ func (this *Lighter) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv2433, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv2433
+	listRecv2423, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv2423
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var defaultType *string = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
@@ -2766,8 +2766,8 @@ func (this *Lighter) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv2579, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv2579
+	listRecv2569, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv2569
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var request map[string]any = map[string]any{
@@ -2961,8 +2961,8 @@ func (this *Lighter) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv2767, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv2767
+	listRecv2757, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv2757
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var request map[string]any = map[string]any{
@@ -3093,8 +3093,8 @@ func (this *Lighter) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv2887, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv2887
+	listRecv2877, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv2877
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchOpenOrders", "apiKeyIndex", "api_key_index")
@@ -3208,8 +3208,8 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv2987, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv2987
+	listRecv2977, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv2977
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchClosedOrders", "apiKeyIndex", "api_key_index")
@@ -3523,8 +3523,8 @@ func (this *Lighter) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv3287, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv3287
+	listRecv3277, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv3277
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var toAccountIndexparamsToAccountIndexVariable []any = this.HandleOptionAndParams2(paramsAccountIndex, "transfer", "toAccountIndex", "to_account_index", accountIndex)
@@ -3655,8 +3655,8 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv3396, _ := r2.Value, r2.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv3396
+	listRecv3386, _ := r2.Value, r2.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv3386
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var request map[string]any = map[string]any{
@@ -3813,8 +3813,8 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv3535, _ := r2.Value, r2.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv3535
+	listRecv3525, _ := r2.Value, r2.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv3525
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var request map[string]any = map[string]any{
@@ -3917,8 +3917,8 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv3623, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv3623
+	listRecv3613, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv3613
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	if this.Markets() == nil {
@@ -4082,8 +4082,8 @@ func (this *Lighter) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv3770, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv3770
+	listRecv3760, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv3760
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -4269,8 +4269,8 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv3927, _ := r2.Value, r2.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv3927
+	listRecv3917, _ := r2.Value, r2.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv3917
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchMyTrades", "apiKeyIndex", "api_key_index")
@@ -4566,8 +4566,8 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[str
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv4201, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv4201
+	listRecv4191, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv4191
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -4642,8 +4642,8 @@ func (this *Lighter) signAndCancelOrderBody(ch chan AsyncResult[[]map[string]any
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv4258, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv4258
+	listRecv4248, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv4248
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var market map[string]any = this.Market(symbol)
@@ -4711,8 +4711,8 @@ func (this *Lighter) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv4315, _ := MapSliceToList(r.Value), r.Value != nil
-	var txTypetxInfoVariable []any = listRecv4315
+	listRecv4305, _ := MapSliceToList(r.Value), r.Value != nil
+	var txTypetxInfoVariable []any = listRecv4305
 	txType := GetValue(txTypetxInfoVariable, 0)
 	txInfo := GetValue(txTypetxInfoVariable, 1)
 	var market map[string]any = this.Market(symbol)
@@ -4756,8 +4756,8 @@ func (this *Lighter) signAndCancelAllOrdersBody(ch chan AsyncResult[[]map[string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv4348, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv4348
+	listRecv4338, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv4338
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -4819,8 +4819,8 @@ func (this *Lighter) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv4399, _ := MapSliceToList(r.Value), r.Value != nil
-	var txTypetxInfoVariable []any = listRecv4399
+	listRecv4389, _ := MapSliceToList(r.Value), r.Value != nil
+	var txTypetxInfoVariable []any = listRecv4389
 	txType := GetValue(txTypetxInfoVariable, 0)
 	txInfo := GetValue(txTypetxInfoVariable, 1)
 	var request map[string]any = map[string]any{
@@ -4877,8 +4877,8 @@ func (this *Lighter) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv4446, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv4446
+	listRecv4436, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv4436
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -5033,8 +5033,8 @@ func (this *Lighter) setMarginBody(ch chan AsyncResult[MarginModification], symb
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv4586, _ := r1.Value, r1.Value != nil
-	var accountIndexparamsAccountIndexVariable []any = listRecv4586
+	listRecv4576, _ := r1.Value, r1.Value != nil
+	var accountIndexparamsAccountIndexVariable []any = listRecv4576
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var strAccountIndex *string = this.NumberToString(accountIndex)

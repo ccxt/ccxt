@@ -3054,11 +3054,11 @@ func (this *Nado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		request["limit"] = mathMin(limit, 500)
 	}
 
-	listEp2829 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
-	if listEp2829.Err != nil {
-		panic(listEp2829.Err)
+	listEp2824 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
+	if listEp2824.Err != nil {
+		panic(listEp2824.Err)
 	}
-	var response []any = listEp2829.Value
+	var response []any = listEp2824.Value
 
 	//
 	//     [

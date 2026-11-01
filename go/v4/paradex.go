@@ -1234,7 +1234,9 @@ func (this *Paradex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	for i := 0; i < len(fees); i++ {
 		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
 		var symbol *string = SafeStringPtr(fee["symbol"])
-		AddElementToObject(result, symbol, fee)
+		if symbol != nil {
+			result[*symbol] = fee
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}

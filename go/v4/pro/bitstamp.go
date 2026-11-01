@@ -1107,7 +1107,7 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message map[string]
  * @param {string[]} symbols the symbols to remove from the cache
  * @returns {object} the new cache holding the remaining entries
  */
-func (this *Bitstamp) PruneCachedBySymbols(newCache ccxt.WsArrayCache, cache any, symbols any) ccxt.WsArrayCache {
+func (this *Bitstamp) PruneCachedBySymbols(newCache ccxt.WsArrayCache, cache ccxt.WsArrayCache, symbols any) ccxt.WsArrayCache {
 	var entries []any = this.ToArray(cache)
 	for i := 0; i < len(entries); i++ {
 		var entry any = ccxt.DerefScalar(entries[i])

@@ -911,9 +911,7 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 		if tradesArray == nil {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArray = ccxt.NewArrayCache(tradesLimit)
-			if symbol != nil {
-				this.Trades[*symbol] = tradesArray
-			}
+			this.Trades.Store(symbol, tradesArray)
 		}
 		if channel != nil && *channel == "trade_snapshot" {
 			var trades []any = ccxt.SafeListTyped(message, "trades")

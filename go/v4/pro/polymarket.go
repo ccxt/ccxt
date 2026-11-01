@@ -695,7 +695,7 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var trades ccxt.WsArrayCache = this.Trades[symbol]
+	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
 	for i := 0; i < rowsLength; i++ {
 		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(row, market)

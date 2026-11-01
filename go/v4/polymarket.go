@@ -1498,7 +1498,7 @@ func (this *Polymarket) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundin
 	var data []any = SafeListTyped(response, "data")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -1589,11 +1589,11 @@ func (this *Polymarket) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Op
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp1523 := <-this.PublicGetInfoTickers(params)
-	if listEp1523.Err != nil {
-		panic(listEp1523.Err)
+	listEp1518 := <-this.PublicGetInfoTickers(params)
+	if listEp1518.Err != nil {
+		panic(listEp1518.Err)
 	}
-	var response []any = listEp1523.Value
+	var response []any = listEp1518.Value
 	var result map[string]any = this.ParseOpenInterests(response)
 
 	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
@@ -1841,8 +1841,8 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1768, _ := OrdersToList(r1.Value), r1.Value != nil
-	var orders []any = listRecv1768
+	listRecv1763, _ := OrdersToList(r1.Value), r1.Value != nil
+	var orders []any = listRecv1763
 	var first map[string]any = SafeMapTyped(orders, 0)
 	var firstStatus *string = this.SafeString(first, "status")
 	if firstStatus != nil && *firstStatus == "rejected" {
@@ -1915,11 +1915,11 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
 	}
 	signed := r1.Value
 
-	listEp1827 := <-this.TradePostTradeOrders(signed)
-	if listEp1827.Err != nil {
-		panic(listEp1827.Err)
+	listEp1822 := <-this.TradePostTradeOrders(signed)
+	if listEp1822.Err != nil {
+		panic(listEp1822.Err)
 	}
-	var response []any = listEp1827.Value
+	var response []any = listEp1822.Value
 	//
 	//     [
 	//         { "status": "ok", "oid": 1234567890, "coid": "aabbccdd..." }
@@ -1982,8 +1982,8 @@ func (this *Polymarket) cancelOrderBody(ch chan AsyncResult[Order], id any, opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv1896, _ := OrdersToList(r.Value), r.Value != nil
-	var orders []any = listRecv1896
+	listRecv1891, _ := OrdersToList(r.Value), r.Value != nil
+	var orders []any = listRecv1891
 	var canceled map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(canceled)}
@@ -2042,11 +2042,11 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 		}
 		signed := r1.Value
 
-		listEp1939 := <-this.TradeDeleteTradeOrdersCoid(signed)
-		if listEp1939.Err != nil {
-			panic(listEp1939.Err)
+		listEp1934 := <-this.TradeDeleteTradeOrdersCoid(signed)
+		if listEp1934.Err != nil {
+			panic(listEp1934.Err)
 		}
-		response = listEp1939.Value
+		response = listEp1934.Value
 	} else {
 		var numericIds []any = []any{}
 		for i := 0; i < GetArrayLength(ids); i++ {
@@ -2064,11 +2064,11 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 		}
 		signed := r2.Value
 
-		listEp1954 := <-this.TradeDeleteTradeOrders(signed)
-		if listEp1954.Err != nil {
-			panic(listEp1954.Err)
+		listEp1949 := <-this.TradeDeleteTradeOrders(signed)
+		if listEp1949.Err != nil {
+			panic(listEp1949.Err)
 		}
-		response = listEp1954.Value
+		response = listEp1949.Value
 	}
 	//
 	//     [
@@ -2272,11 +2272,11 @@ func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, sym
 	}
 	signed := r1.Value
 
-	listEp2134 := <-this.TradePatchTradeOrders(signed)
-	if listEp2134.Err != nil {
-		panic(listEp2134.Err)
+	listEp2129 := <-this.TradePatchTradeOrders(signed)
+	if listEp2129.Err != nil {
+		panic(listEp2129.Err)
 	}
-	var response []any = listEp2134.Value
+	var response []any = listEp2129.Value
 	//
 	//     [
 	//         {
@@ -2717,11 +2717,11 @@ func (this *Polymarket) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 		request["instrument_id"] = market["id"]
 	}
 
-	listEp2551 := <-this.PrivateGetAccountOpenOrders(this.Extend(request, params))
-	if listEp2551.Err != nil {
-		panic(listEp2551.Err)
+	listEp2546 := <-this.PrivateGetAccountOpenOrders(this.Extend(request, params))
+	if listEp2546.Err != nil {
+		panic(listEp2546.Err)
 	}
-	var response []any = listEp2551.Value
+	var response []any = listEp2546.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2787,11 +2787,11 @@ func (this *Polymarket) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["client_order_id"] = clientOrderId
 	}
 
-	listEp2611 := <-this.PrivateGetAccountOrders(this.Extend(request, paramsOmitted))
-	if listEp2611.Err != nil {
-		panic(listEp2611.Err)
+	listEp2606 := <-this.PrivateGetAccountOrders(this.Extend(request, paramsOmitted))
+	if listEp2606.Err != nil {
+		panic(listEp2606.Err)
 	}
-	var response []any = listEp2611.Value
+	var response []any = listEp2606.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2837,11 +2837,11 @@ func (this *Polymarket) fetchOrderBody(ch chan AsyncResult[Order], id string, op
 		"order_id": id,
 	}
 
-	listEp2651 := <-this.PrivateGetAccountOrders(this.Extend(request, params))
-	if listEp2651.Err != nil {
-		panic(listEp2651.Err)
+	listEp2646 := <-this.PrivateGetAccountOrders(this.Extend(request, params))
+	if listEp2646.Err != nil {
+		panic(listEp2646.Err)
 	}
-	var response []any = listEp2651.Value
+	var response []any = listEp2646.Value
 	// select the requested row explicitly in case the documented
 	// order_id filter is ever ignored the way the tickers one is
 	for i := 0; i < len(response); i++ {
@@ -3412,11 +3412,11 @@ func (this *Polymarket) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol 
 		"instrument_id": market["id"],
 	}
 
-	listEp3175 := <-this.PrivateGetAccountConfig(this.Extend(request, params))
-	if listEp3175.Err != nil {
-		panic(listEp3175.Err)
+	listEp3165 := <-this.PrivateGetAccountConfig(this.Extend(request, params))
+	if listEp3165.Err != nil {
+		panic(listEp3165.Err)
 	}
-	var response []any = listEp3175.Value
+	var response []any = listEp3165.Value
 	//
 	//     [ { "instrument_id": 1, "leverage": 10, "cross": true } ]
 	//

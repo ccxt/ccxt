@@ -404,7 +404,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
-	var stored ccxt.WsArrayCache = this.Trades[symbol]
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var data any = this.SafeList(message, "data")
 	if data != nil {
 		data = this.SortBy(data, "t")

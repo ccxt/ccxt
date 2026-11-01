@@ -1359,12 +1359,12 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trade:" + *symbol
-	if _, ok := this.Trades[*symbol]; !ok {
+	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[*symbol] = stored
 	}
-	var trades ccxt.WsArrayCache = this.Trades[*symbol]
+	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
 	for i := 0; i < len(entry); i++ {
 		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(data)
@@ -1933,7 +1933,7 @@ func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
 	var subMessageHash string = "trade:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if _, ok := this.Trades[*symbol]; ok {
+	if this.Trades.Has(symbol) {
 		delete(this.Trades, *symbol)
 	}
 }

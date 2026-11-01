@@ -273,9 +273,7 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		stored = ccxt.NewArrayCache(this.SafeInteger(this.Options, "tradesLimit", 1000))
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades.Store(symbol, stored)
 	}
 	stored.Append(parsedTrade)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

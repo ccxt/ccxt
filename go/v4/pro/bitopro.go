@@ -253,9 +253,7 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 		var trade any = trades[i]
 		tradesCache.Append(trade)
 	}
-	if symbol != nil {
-		this.Trades[*symbol] = tradesCache
-	}
+	this.Trades.Store(symbol, tradesCache)
 	if event != nil {
 		var messageHash string = *event + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve(tradesCache, messageHash)

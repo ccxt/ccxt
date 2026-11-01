@@ -1808,10 +1808,10 @@ func (this *Coinbaseinternational) HandleTrades(client any, message map[string]a
 		if _, ok := this.Trades[*symbol]; !ok {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArrayCache := ccxt.NewArrayCache(limit)
-			this.Trades.Store(symbol, tradesArrayCache)
+			this.Trades[*symbol] = tradesArrayCache
 		}
 	}
-	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
+	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))

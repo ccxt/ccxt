@@ -1087,7 +1087,7 @@ func (this *Aster) HandleTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 	}
-	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+*symbol)
 }

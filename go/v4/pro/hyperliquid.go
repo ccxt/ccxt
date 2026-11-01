@@ -1428,14 +1428,9 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades.Store(symbol, stored)
 	}
-	var trades ccxt.WsArrayCache
-	if symbol != nil {
-		trades = this.Trades[*symbol]
-	}
+	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
 	for i := 0; i < len(entry); i++ {
 		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(data)
@@ -2619,7 +2614,7 @@ func (this *Hyperliquid) HandleTradesUnsubscription(client any, subscription any
 	var subMessageHash string = "trade:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if _, ok := this.Trades[*symbol]; ok {
+	if this.Trades.Has(symbol) {
 		delete(this.Trades, *symbol)
 	}
 }

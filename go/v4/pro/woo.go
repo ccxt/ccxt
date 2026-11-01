@@ -1209,9 +1209,7 @@ func (this *Woo) HandleTrade(client any, message map[string]any) {
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
 	tradesArray.Append(trade)
-	if symbol != nil {
-		this.Trades[*symbol] = tradesArray
-	}
+	this.Trades.Store(symbol, tradesArray)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, topic)
 }
 func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {

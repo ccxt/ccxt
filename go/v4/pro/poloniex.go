@@ -1331,7 +1331,7 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 			var symbol *string = this.SafeString(trade, "symbol")
 			var typeVar string = "trades"
 			var messageHash string = typeVar + "::" + *this.SafeString(trade, "symbol", "")
-			var tradesArray any = func() any {
+			var tradesArray ccxt.WsArrayCache = func() ccxt.WsArrayCache {
 				if symbol == nil {
 					return nil
 				}
@@ -1341,10 +1341,10 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 				var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 				tradesArray = ccxt.NewArrayCache(tradesLimit)
 				if symbol != nil {
-					this.Trades.Store(symbol, tradesArray)
+					this.Trades[*symbol] = tradesArray
 				}
 			}
-			tradesArray.(ccxt.Appender).Append(trade)
+			tradesArray.Append(trade)
 			client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 		}
 	}

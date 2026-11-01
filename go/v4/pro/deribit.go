@@ -598,25 +598,18 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	var trades []any = ccxt.SafeListTyped(params, "data")
 	if ccxt.IsEqual(this.SafeDict(this.Trades, symbol), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if symbol != nil {
-			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
-		}
+		this.Trades.Store(symbol, ccxt.NewArrayCache(limit))
 	}
-	var stored ccxt.WsArrayCache
-	if symbol != nil {
-		stored = this.Trades[*symbol]
-	}
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	for i := 0; i < len(trades); i++ {
 		var trade any = trades[i]
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(trade, market))
 		stored.Append(parsed)
 	}
-	if symbol != nil {
-		this.Trades.Store(symbol, stored)
-	}
+	this.Trades.Store(symbol, stored)
 	var interval string = *this.SafeString(parts, 2, "")
 	var messageHash string = "trades|" + *symbol + "|" + interval
-	client.(ccxt.ClientInterface).Resolve(this.Trades[*symbol], messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Trades.Get(symbol), messageHash)
 }
 
 /**

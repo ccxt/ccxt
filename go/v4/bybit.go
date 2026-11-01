@@ -12616,8 +12616,8 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv11934, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv11934
+	listRecv11929, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv11929
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -12750,8 +12750,8 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fromCo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12056, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv12056
+	listRecv12051, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv12051
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -12896,8 +12896,8 @@ func (this *Bybit) fetchConvertTradeBody(ch chan AsyncResult[Conversion], id str
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12183, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv12183
+	listRecv12178, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv12178
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)

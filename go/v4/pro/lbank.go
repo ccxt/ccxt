@@ -634,9 +634,7 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades.Store(symbol, stored)
 	}
 	var rawTrade map[string]any = ccxt.SafeMapTyped(message, "trade")
 	var rawTrades []any = ccxt.SafeListTypedDefault(message, "trades", []any{rawTrade})
@@ -645,13 +643,11 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 		trade["symbol"] = symbol
 		stored.Append(trade)
 	}
-	if symbol != nil {
-		this.Trades[*symbol] = stored
-	}
+	this.Trades.Store(symbol, stored)
 	var messageHash string = "trades:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(this.Trades[*symbol], messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Trades.Get(symbol), messageHash)
 	messageHash = "fetchTrades:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(this.Trades[*symbol], messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Trades.Get(symbol), messageHash)
 }
 func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//

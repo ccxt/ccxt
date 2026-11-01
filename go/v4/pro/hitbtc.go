@@ -925,9 +925,7 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
-			if symbol != nil {
-				this.Trades[*symbol] = stored
-			}
+			this.Trades.Store(symbol, stored)
 		}
 		var trades any = this.ParseWsTrades(data[marketId], market)
 		for j := 0; j < ccxt.GetArrayLength(trades); j++ {

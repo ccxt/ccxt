@@ -306,7 +306,7 @@ func (this *Toobit) HandleTrades(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
-	var stored ccxt.WsArrayCache = this.Trades[symbol]
+	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades []any = this.ArrayConcat(this.ParseWsTrades(data, market), []any{})
 	for i := 0; i < len(parsedTrades); i++ {
