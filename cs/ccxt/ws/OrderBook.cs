@@ -69,47 +69,30 @@ public class OrderBook : Dictionary<string, object>, IDictionary<string, object>
         }
     }
 
-    // Single owner: this exchange's ws owner thread is the only writer. Every mutator
-    // runs its body there (inline when the caller already is that thread, one hop when
-    // not) and freezes the asks+bids pair into `published`, which a reader loads with a
-    // single atomic read, so nothing off the owner touches live state and nothing locks.
-    private ccxt.WsOwner wsOwner;
+    // Every mutator runs its body under the book lock and freezes the asks+bids pair into
+    // `published`, which a reader loads with a single atomic read.
+    private readonly object bookLock = new object();
 
     // Owner-written, reader-loaded: the frozen pair plus the scalar slots as of the same
     // mutation step. Immutable, so a copy can be built from it on any thread.
     private BookRows published = BookRows.Empty;
 
-    // Attach the book to the exchange's ws owner: called where the book is created.
-    public void bindOwner(ccxt.WsOwner value)
-    {
-        if (value != null)
-        {
-            this.wsOwner = value;
-        }
-    }
-
-    // Whole-body hand-off; unbound books (and copies) run inline on the caller.
     internal object RunOwned(Func<object> work)
     {
-        if (this.wsOwner == null || this.wsOwner.IsOwner)
+        lock (this.bookLock)
         {
             return work();
         }
-        return this.wsOwner.Ask(work);
     }
 
     internal void RunOwnedVoid(Action work)
     {
-        if (this.wsOwner == null || this.wsOwner.IsOwner)
+        lock (this.bookLock)
         {
             work();
-            return;
         }
-        this.wsOwner.Ask(() => { work(); return null; });
     }
 
-    // Side mutations enter through their book, so a snapshot task replaying rows off the
-    // receive loop lands on the owner too instead of writing the sides from its own thread.
     internal void RunOwnedSide(Action work)
     {
         this.RunOwnedVoid(work);

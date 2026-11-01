@@ -9,40 +9,24 @@ public partial class BaseExchange
 
     private Dictionary<string, long[]> wsBackoffState = new Dictionary<string, long[]>();
 
-    // this exchange's ws owner: one thread runs every ws state mutation, the client
-    // tables and the cache maps (see WsOwner). The thread starts on first use.
-    private readonly WsOwner wsOwnerState = new WsOwner();
-
-    public WsOwner wsOwner()
-    {
-        return this.wsOwnerState;
-    }
-
-    // hand the cache maps to the owner; called before the first client is built
-    private void bindWsCaches()
-    {
-        (this.tickers as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
-        (this.fundingRates as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
-        (this.bidsasks as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
-        (this.balance as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
-        (this.trades as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
-        (this.orderbooks as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
-        (this.ohlcvs as ccxt.pro.OwnedMap)?.bind(this.wsOwnerState);
-    }
-
-    // every store into a cache map is a dictionary the owner may adopt as-is
+    // a store of a fresh dictionary into a ws cache keeps the cache concurrent
     private IDictionary<string, object> wrapWsCache(IDictionary<string, object> value)
     {
-        var owned = new ccxt.pro.OwnedMap(value);
-        owned.bind(this.wsOwnerState);
-        return owned;
+        if (value == null || value is ConcurrentDictionary<string, object>)
+        {
+            return value;
+        }
+        return new ConcurrentDictionary<string, object>(value);
     }
 
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
     public int calculateWsBackoffDelay(string url)
     {
-        return (int)this.wsOwnerState.Ask(() => this.calculateWsBackoffDelayOwned(url));
+        lock (this.wsBackoffState)
+        {
+            return this.calculateWsBackoffDelayOwned(url);
+        }
     }
 
     private int calculateWsBackoffDelayOwned(string url)
@@ -54,7 +38,7 @@ public partial class BaseExchange
         var maxDelay = this.safeInteger(backoff, "max", 60000) ?? 60000;
         var stableAfter = this.safeInteger(backoff, "stableAfter", 30000) ?? 30000;
         var now = this.milliseconds();
-        // the owner thread is the only caller: the history needs no guard
+        // the caller holds the wsBackoffState lock
         long attempts = 0;
         long lastAttempt = 0;
         if (this.wsBackoffState.TryGetValue(url, out var history))
@@ -82,31 +66,24 @@ public partial class BaseExchange
         return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
     }
 
-    // live clients by url; every member hands its work to this exchange's ws owner, so the
-    // registry has one writer (see ccxt.pro.OwnedTable), assigned in the BaseExchange ctor
-    public ccxt.pro.OwnedTable<WebSocketClient> clients;
+    public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;
 
-    // A book created here is bound to this exchange's ws owner: every mutation of it
-    // runs on that one thread (see ccxt.pro.OrderBook), so the book needs no lock.
     public ccxt.pro.OrderBook orderBook(object snapshot = null, object depth = null)
     {
         var book = new ccxt.pro.OrderBook(snapshot, depth);
-        book.bindOwner(this.wsOwnerState);
         return book;
     }
 
     public ccxt.pro.IndexedOrderBook indexedOrderBook(object snapshot = null, object depth = null)
     {
         var book = new ccxt.pro.IndexedOrderBook(snapshot, depth);
-        book.bindOwner(this.wsOwnerState);
         return book;
     }
 
     public ccxt.pro.CountedOrderBook countedOrderBook(object snapshot = null, object depth = null)
     {
         var book = new ccxt.pro.CountedOrderBook(snapshot, depth);
-        book.bindOwner(this.wsOwnerState);
         return book;
     }
 
@@ -231,14 +208,11 @@ public partial class BaseExchange
             var keepAliveValue = this.safeInteger(wsOptions, "keepAlive", 30000) ?? 30000;
             var keepAlive = keepAliveValue;
             var decompressBinary = this.safeBool(this.options, "decompressBinary", true) as bool? ?? true;
-            // the caches belong to the owner before any client can deliver a frame, and
-            // every callback of this client enters through that same owner
-            this.bindWsCaches();
             var client = new WebSocketClient(url, proxy,
-                (c, message) => this.wsOwnerState.Ask(() => { routeMessage(c, message); return null; }),
-                (c) => this.wsOwnerState.Ask(() => ping(c)),
-                (c, error) => this.wsOwnerState.Ask(() => { onClose(c, error); return null; }),
-                (c, error) => this.wsOwnerState.Ask(() => { onError(c, error); return null; }),
+                (c, message) => { routeMessage(c, message); return null; },
+                (c) => ping(c),
+                (c, error) => { onClose(c, error); return null; },
+                (c, error) => { onError(c, error); return null; },
                 this.verbose, keepAlive, decompressBinary);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });

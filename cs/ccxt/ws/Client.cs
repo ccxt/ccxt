@@ -112,63 +112,28 @@ public partial class BaseExchange
             }
         }
 
-        // ---- owner loop ----
-        // one dedicated thread owns the settle state of every client in the process,
-        // so an op never waits on another op and no work runs nested.
-        private static readonly Handoff<OwnerOp> ownerQueue = new Handoff<OwnerOp>();
+        // ---- settle state ----
+        // one process-wide lock guards the settle state of every client.
+        private static readonly object settleLock = new object();
 
         static WebSocketClient()
         {
-            Task.Factory.StartNew(ownerLoop, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             Task.Factory.StartNew(sendLoop, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        private static void ownerLoop()
+        private static object ask(Func<object> work)
         {
-            foreach (var op in ownerQueue.consume())
+            lock (settleLock)
             {
-                try
-                {
-                    op.reply.TrySetResult(op.work());
-                }
-                catch (Exception e)
-                {
-                    op.reply.TrySetException(e);
-                }
+                return work();
             }
         }
 
-        // hands the closure to the owner and blocks for its reply: the caller never
-        // reads or writes the state itself, and the owner never waits on a caller
-        private static object ask(Func<object> work)
-        {
-            var reply = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
-            ownerQueue.post(new OwnerOp(work, reply));
-            return reply.Task.GetAwaiter().GetResult();
-        }
-
-        //  additive: the same owner answers for hand-written state that lives outside a
-        //  single client (the exchange's dial backoff), so its table stays single-owner
         public static object onOwner(Func<object> work)
         {
             return ask(work);
         }
 
-#nullable disable
-        private readonly struct OwnerOp
-        {
-            public readonly Func<object> work;
-            public readonly TaskCompletionSource<object> reply;
-
-            public OwnerOp(Func<object> work, TaskCompletionSource<object> reply)
-            {
-                this.work = work;
-                this.reply = reply;
-            }
-        }
-
-        // producer/consumer hand-off: posts never block, the owner drains in arrival
-        // order. BlockingCollection is the in-box channel for netstandard2.0.
         private sealed class Handoff<T>
         {
             private readonly BlockingCollection<T> queue = new BlockingCollection<T>();
@@ -184,8 +149,7 @@ public partial class BaseExchange
             }
         }
 
-        // public face of the owner's dictionaries: every member ships its work to the
-        // owner, so nothing outside the loop ever touches the dictionary. the js object
+        // public face of the settle dictionaries: every member runs under the settle lock. the js object
         // shape is kept whole (generic and non-generic) so the generated tiers read it.
         public sealed class OwnedTable<TValue> : IDictionary<string, TValue>, System.Collections.IDictionary where TValue : class
         {

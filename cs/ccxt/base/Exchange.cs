@@ -23,8 +23,6 @@ public partial class BaseExchange
 
     public BaseExchange(object userConfig2 = null)
     {
-        // the registry and every ws cache go through the same per-exchange owner thread
-        this.clients = new ccxt.pro.OwnedTable<WebSocketClient>(this.wsOwnerState);
         var userConfig = (dict)userConfig2;
         this.initializeProperties(userConfig);
         var empty = new List<string>();
@@ -1359,12 +1357,12 @@ public partial class BaseExchange
     {
         var options = (dict)options2;
         var extended = this.extend(this.options, options);
-        this.options = new ccxt.pro.OwnedTable<object>(extended);
+        this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extended);
     }
 
-    public ccxt.pro.OwnedTable<object> convertToSafeDictionary(object obj)
+    public System.Collections.Concurrent.ConcurrentDictionary<string, object> convertToSafeDictionary(object obj)
     {
-        return new ccxt.pro.OwnedTable<object>((IDictionary<string, object>)obj);
+        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
     }
 
     // a present option value of another type is a user error: throw instead of coercing
@@ -1420,8 +1418,8 @@ public partial class BaseExchange
 
     public IDictionary<string, object> createSafeDictionary(bool isWs = false)
     {
-        // ws caches are owner-routed; REST-side maps stay plain dictionaries like markets/has/fees
-        return isWs ? (IDictionary<string, object>)new ccxt.pro.OwnedMap() : new dict();
+        // ws caches are concurrent; REST-side maps stay plain dictionaries like markets/has/fees
+        return isWs ? (IDictionary<string, object>)new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new dict();
     }
 
     public IDictionary<string, object> mapToSafeMap(object obj)

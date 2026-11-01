@@ -73,8 +73,7 @@ public partial class BaseExchange
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
     public Dictionary<string, object> features { get; set; }
-    // options: read the published snapshot, mutate through the config owner (OwnedTable)
-    public ccxt.pro.OwnedTable<object> options { get; set; } = new ccxt.pro.OwnedTable<object>();
+    public System.Collections.Concurrent.ConcurrentDictionary<string, object> options { get; set; } = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     public bool isSandboxModeEnabled { get; set; } = false;
 
     public IDictionary<string, object> markets { get; set; } = null;
@@ -181,7 +180,7 @@ public partial class BaseExchange
     }
     public object last_request_url { get; set; }
 
-    public readonly ccxt.pro.OwnedHistory<Dictionary<string, object>> fetchHistoryCache = new ();
+    public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> fetchHistoryCache = new ();
 
     public int fetchHistoryCacheSize = 0;
 
@@ -223,12 +222,10 @@ public partial class BaseExchange
 
     // WS options
 
-    // WS caches. Each is a plain dictionary owned by this exchange's ws owner thread
-    // (see ccxt.WsOwner): the owner-routed view hands every member call over to it, and
-    // a store of a fresh dictionary re-wraps rather than dropping the facade.
-    private IDictionary<string, object> tickersState = new ccxt.pro.OwnedMap();
-    private IDictionary<string, object> fundingRatesState = new ccxt.pro.OwnedMap();
-    private IDictionary<string, object> bidsasksState = new ccxt.pro.OwnedMap();
+    // WS caches: concurrent maps, written by ws handlers while user threads read them.
+    private IDictionary<string, object> tickersState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    private IDictionary<string, object> fundingRatesState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    private IDictionary<string, object> bidsasksState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
 
     public IDictionary<string, object> tickers
     {
@@ -264,8 +261,8 @@ public partial class BaseExchange
     public object positions;
     public ccxt.pro.ArrayCache liquidations;
     public object myLiquidations;
-    private IDictionary<string, object> tradesState = new ccxt.pro.OwnedMap();
-    private IDictionary<string, object> orderbooksState = new ccxt.pro.OwnedMap();
+    private IDictionary<string, object> tradesState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    private IDictionary<string, object> orderbooksState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
 
     public IDictionary<string, object> trades
     {
@@ -279,7 +276,7 @@ public partial class BaseExchange
         set { this.orderbooksState = this.wrapWsCache(value); }
     }
 
-    private IDictionary<string, object> ohlcvsState = new ccxt.pro.OwnedMap();
+    private IDictionary<string, object> ohlcvsState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
 
     public IDictionary<string, object> ohlcvs
     {
@@ -365,12 +362,12 @@ public partial class BaseExchange
         {
             extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
             var extendedDict = extendedOptions as dict;
-            this.options = new ccxt.pro.OwnedTable<object>(extendedDict);
+            this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extendedDict);
         }
         else
         {
             var dict2 = this.getDefaultOptions() as dict;
-            this.options = new ccxt.pro.OwnedTable<object>(dict2);
+            this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", null) as dict;
