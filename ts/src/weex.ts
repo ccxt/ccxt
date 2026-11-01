@@ -1411,7 +1411,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (!this.safeBool (market, 'contract', false)) {
             throw new NotSupported (this.id + ' fetchMarkPrice() supports contract markets only');
         }
         const [ priceType, paramsPriceType ] = this.handleOptionStringAndParams (params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
@@ -1493,7 +1493,7 @@ export default class weex extends Exchange {
             request['limit'] = 200; // default is 15, max is 200
         }
         let response = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             response = await this.publicGetApiV3MarketDepth (this.extend (request, params));
         } else {
             response = await this.contractGetCapiV3MarketDepth (this.extend (request, params));
@@ -1542,7 +1542,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             return await this.fetchSpotOHLCV (symbol, timeframe, since, limit, params);
         } else {
             return await this.fetchContractOHLCV (symbol, timeframe, since, limit, params);
@@ -1712,7 +1712,7 @@ export default class weex extends Exchange {
             request['limit'] = Math.min (limit, 1000);
         }
         let response = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             response = await this.publicGetApiV3MarketTrades (this.extend (request, params));
         } else {
             response = await this.contractGetCapiV3MarketTrades (this.extend (request, params));
@@ -2212,7 +2212,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['contract']) {
+        if (this.safeBool (market, 'contract', false)) {
             return await this.createContractOrder (symbol, type, side, amount, price, params);
         } else {
             const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
@@ -2967,7 +2967,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (!this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' fetchOrders() supports spot markets only');
         }
         const maxLimit = 1000;
@@ -3609,7 +3609,7 @@ export default class weex extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (!market['swap']) {
+            if (!this.safeBool (market, 'swap', false)) {
                 throw new NotSupported (this.id + ' fetchFundingHistory() supports swap contracts only');
             }
             request['symbol'] = market['id'];
@@ -3942,7 +3942,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             // spot markets return 0 for fees
             throw new NotSupported (this.id + ' fetchTradingFee() is not supported for spot markets');
         }

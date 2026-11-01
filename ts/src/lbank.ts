@@ -771,7 +771,7 @@ export default class lbank extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const tickerData = this.safeDict (ticker, 'ticker', {});
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const data = (marketResolved['contract']) ? ticker : tickerData;
+        const data = (this.safeBool (marketResolved, 'contract', false)) ? ticker : tickerData;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -810,7 +810,7 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['swap']) {
+        if (this.safeBool (market, 'swap', false)) {
             const responseForSwap = await this.fetchTickers ([ market['symbol'] ], params);
             const swapTicker = this.safeDict (responseForSwap, market['symbol']);
             return swapTicker as Ticker;
@@ -1005,7 +1005,7 @@ export default class lbank extends Exchange {
         //
         const orderbook = this.safeDict (response, 'data', {});
         const timestamp = this.milliseconds ();
-        if (market['swap']) {
+        if (this.safeBool (market, 'swap', false)) {
             return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks');
@@ -1646,7 +1646,7 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (!this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;

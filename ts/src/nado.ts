@@ -1934,7 +1934,7 @@ export default class nado extends Exchange {
     override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (!this.safeBool (market, 'swap', false)) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const tickerId = this.safeString (market['info'], 'ticker_id');
@@ -1987,7 +1987,7 @@ export default class nado extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (!this.safeBool (market, 'swap', false)) {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'fetchFundingHistory', 'subaccount', 'default');
@@ -2090,7 +2090,7 @@ export default class nado extends Exchange {
     override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (!this.safeBool (market, 'swap', false)) {
             throw new BadSymbol (this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const tickerId = this.safeString (market['info'], 'ticker_id');

@@ -476,7 +476,7 @@ export default class htx extends htxRest {
         }
         let messageHash = '';
         const marketId: Str = this.safeString (market, 'id', '');
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             messageHash = 'market.' + marketId + '.mbp.' + limitResolved.toString ();
         } else {
             messageHash = 'market.' + marketId + '.depth.size_' + limitResolved.toString () + '.high_freq';
@@ -484,10 +484,10 @@ export default class htx extends htxRest {
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         let method: any = this.handleOrderBookSubscription;
         let paramsExtended: Dict = params;
-        if (!market['spot']) {
+        if (!this.safeBool (market, 'spot', false)) {
             paramsExtended = this.extend (params, { 'data_type': 'incremental' });
         }
-        if (!market['spot']) {
+        if (!this.safeBool (market, 'spot', false)) {
             method = undefined;
         }
         const orderbook: WsOrderBook = await this.subscribePublic (url, symbolValue, messageHash, method, paramsExtended);
@@ -516,12 +516,12 @@ export default class htx extends htxRest {
         const depth = this.parseToInt (this.safeInteger (options, 'depth', 150));
         const marketId: Str = this.safeString (market, 'id', '');
         let subMessageHash = '';
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             subMessageHash = 'market.' + marketId + '.mbp.' + depth.toString ();
         } else {
             subMessageHash = 'market.' + marketId + '.depth.size_' + depth.toString () + '.high_freq';
         }
-        if (!market['spot']) {
+        if (!this.safeBool (market, 'spot', false)) {
             params['data_type'] = 'incremental';
         }
         return await this.unsubscribePublic (market, subMessageHash, topic, params);
@@ -857,7 +857,7 @@ export default class htx extends htxRest {
             orderbook['nonce'] = undefined;
             orderbook.cache = [];
         }
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
         }
     }
@@ -888,7 +888,7 @@ export default class htx extends htxRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             type = this.safeString (market, 'type');
-            if (market['linear']) {
+            if (this.safeBool (market, 'linear', false)) {
                 subType = 'linear';
             } else {
                 subType = 'inverse';
@@ -1031,7 +1031,7 @@ export default class htx extends htxRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             type = this.safeString (market, 'type');
-            if (market['linear']) {
+            if (this.safeBool (market, 'linear', false)) {
                 subType = 'linear';
             } else {
                 subType = 'inverse';
@@ -1641,7 +1641,7 @@ export default class htx extends htxRest {
         let paramsSubType: Dict = {};
         if (market !== undefined) {
             type = this.safeString (market, 'type');
-            if (market['linear']) {
+            if (this.safeBool (market, 'linear', false)) {
                 subType = 'linear';
             } else {
                 subType = 'inverse';

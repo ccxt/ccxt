@@ -590,7 +590,7 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         let subscriptionArgs: Dict = {};
-        if (market['inverse']) {
+        if (this.safeBool (market, 'inverse', false)) {
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': false,
@@ -735,7 +735,7 @@ export default class bingx extends bingxRest {
         let snapshot: OrderBook;
         let timestamp = this.safeInteger2 (message, 'timestamp', 'ts');
         timestamp = this.safeInteger2 (data, 'timestamp', 'ts', timestamp);
-        if (market['inverse']) {
+        if (this.safeBool (market, 'inverse', false)) {
             snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         } else {
             snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
@@ -863,7 +863,7 @@ export default class bingx extends bingxRest {
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         let candles: NullableList = undefined;
         if (isSwap) {
-            if (market['inverse']) {
+            if (this.safeBool (market, 'inverse', false)) {
                 candles = [ this.safeDict (message, 'data', {}) ];
             } else {
                 candles = this.safeList (message, 'data', []);

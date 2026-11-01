@@ -3106,7 +3106,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (!this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -3263,7 +3263,7 @@ export default class coinbase extends Exchange {
             if (isStop || isStopLoss || isTakeProfit) {
                 throw new NotSupported (this.id + ' createOrder() only stop limit orders are supported');
             }
-            if ((market['spot']) && (side === 'buy')) {
+            if ((this.safeBool (market, 'spot', false)) && (side === 'buy')) {
                 let total: Str = undefined;
                 const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber (paramsRequiresPrice, 'cost');
@@ -5148,7 +5148,7 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.safeString (this.symbols, i, '');
             const market = this.market (symbol);
-            if ((isSpot && (market['spot'])) || (!isSpot && (!market['spot']))) {
+            if ((isSpot && (this.safeBool (market, 'spot', false))) || (!isSpot && (!this.safeBool (market, 'spot', false)))) {
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,

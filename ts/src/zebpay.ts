@@ -503,7 +503,7 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             response = await this.privateSpotGetV2ExTradefee (this.extend (request, params));
             //
             // {
@@ -606,7 +606,7 @@ export default class zebpay extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             //
             //       {
             //         "asks": [
@@ -648,7 +648,7 @@ export default class zebpay extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             response = await this.publicSpotGetV2MarketTicker (this.extend (request, params));
             //
             //     [
@@ -744,7 +744,7 @@ export default class zebpay extends Exchange {
         const paramsOmitted = this.omit (params, [ 'until', 'endtime', 'endTime', 'interval', 'startTime' ]);
         let response = undefined;
         let limitResolved: Int = limit;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             if (limit === undefined) {
                 limitResolved = 100;
             }
@@ -831,11 +831,11 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if ((market['spot']) && limit !== undefined) {
+        if ((this.safeBool (market, 'spot', false)) && limit !== undefined) {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             response = await this.publicSpotGetV2MarketTrades (this.extend (request, params));
         } else {
             response = await this.publicSwapGetV1MarketAggTrade (this.extend (request, params));
@@ -1068,7 +1068,7 @@ export default class zebpay extends Exchange {
             'side': side.toUpperCase (),
         };
         let response = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             response = await this.privateSpotPostV2ExOrders (this.spotOrderBody (symbol, type, amount, request, price, query));
         } else {
             const marginAsset = this.safeString (query, 'marginAsset', 'INR');
@@ -1152,7 +1152,7 @@ export default class zebpay extends Exchange {
         const market = this.market (symbol);
         let response = undefined;
         const request: Dict = {};
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             request['orderId'] = id;
             response = await this.privateSpotDeleteV2ExOrder (this.extend (request, params));
         } else {
@@ -1229,7 +1229,7 @@ export default class zebpay extends Exchange {
         };
         let response = undefined;
         let orders: Dict[] = [];
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             request['currentPage'] = 1;
             if (limit !== undefined) {
                 request['pageSize'] = limit;
@@ -1296,7 +1296,7 @@ export default class zebpay extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {};
         let response = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             request['orderId'] = id;
             response = await this.privateSpotGetV2ExOrder (this.extend (request, params));
         } else {

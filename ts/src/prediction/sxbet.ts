@@ -591,7 +591,7 @@ export default class sxbet extends Exchange {
                 throw new ExchangeError (this.id + ' parseEvent() could not resolve parsed market');
             }
             marketsList.push (parsed);
-            if (parsed['active']) {
+            if (this.safeBool (parsed, 'active', false)) {
                 anyActive = true;
             }
             if (teamOneName === undefined) {

@@ -1060,7 +1060,7 @@ export default class bigone extends Exchange {
         }
         const market = this.market (symbol);
         let response: Dict;
-        if (market['contract']) {
+        if (this.safeBool (market, 'contract', false)) {
             const request: Dict = {
                 'symbol': market['id'],
             };
@@ -1300,7 +1300,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['contract']) {
+        if (this.safeBool (market, 'contract', false)) {
             throw new NotSupported (this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request: Dict = {
@@ -1371,7 +1371,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['contract']) {
+        if (this.safeBool (market, 'contract', false)) {
             throw new NotSupported (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger (params, 'until');
@@ -1584,7 +1584,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (!this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;

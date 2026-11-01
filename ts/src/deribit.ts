@@ -1607,7 +1607,7 @@ export default class deribit extends Exchange {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString (trade, 'amount');
         let cost = Precise.stringMul (amount, priceString);
-        if (marketResolved['inverse']) {
+        if (this.safeBool (marketResolved, 'inverse', false)) {
             cost = Precise.stringDiv (amount, priceString);
         }
         const liquidity = this.safeString (trade, 'liquidity');
@@ -1821,11 +1821,11 @@ export default class deribit extends Exchange {
                 'maker': market['maker'],
                 'taker': market['taker'],
             };
-            if (market['swap']) {
+            if (this.safeBool (market, 'swap', false)) {
                 fee = this.extend (fee, perpetualFee);
-            } else if (market['future']) {
+            } else if (this.safeBool (market, 'future', false)) {
                 fee = this.extend (fee, futureFee);
-            } else if (market['option']) {
+            } else if (this.safeBool (market, 'option', false)) {
                 fee = this.extend (fee, optionFee);
             }
             parsedFees[symbol] = fee;
@@ -3447,7 +3447,7 @@ export default class deribit extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', undefined) as Liquidation[];
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + this.safeString (market, 'type', '') + ' markets');
         }
         const request: Dict = {
@@ -3526,7 +3526,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + this.safeString (market, 'type', '') + ' markets');
         }
         const request: Dict = {
@@ -3905,7 +3905,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (!this.safeBool (market, 'contract', false)) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request: Dict = {
@@ -3979,7 +3979,7 @@ export default class deribit extends Exchange {
         const openInterest = this.safeNumber (interest, 'open_interest');
         let openInterestAmount: Num = undefined;
         let openInterestValue: Num = undefined;
-        if ((marketResolved['option']) || ((marketResolved['future']) && (marketResolved['linear']))) {
+        if ((this.safeBool (marketResolved, 'option', false)) || ((this.safeBool (marketResolved, 'future', false)) && (this.safeBool (marketResolved, 'linear', false)))) {
             openInterestAmount = openInterest;
         } else {
             openInterestValue = openInterest;
