@@ -6050,7 +6050,7 @@ class NewTranspiler {
             // OrderBook
             [/([a-zA-Z0-9]+).StoreArray/g, '$1.(IOrderBookSide).StoreArray'],
             [/(bookside|asks|bids|Side).Store/g, '$1.(IOrderBookSide).Store'],
-            [/this.ParseWsBidAsk\(this\.Orderbooks\.Get\(symbol\)/g, 'this.ParseWsBidAsk(UnWrapType(this.Orderbooks.Get(symbol))'],
+            [/this.ParseWsBidAsk\(this\.Orderbooks\[(\*?symbol)\]/g, 'this.ParseWsBidAsk(UnWrapType(this.Orderbooks[$1])'],
             // Clients
             // AsClient instead of a hard .(*Client) assertion: the transport hands
             // generated code either *Client (offline mocks) or *WSClient (live), and
