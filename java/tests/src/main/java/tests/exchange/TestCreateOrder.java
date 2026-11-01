@@ -323,7 +323,7 @@ public class TestCreateOrder extends BaseTest {
         }
         finalAmount = Helpers.add(finalAmount, amountPrecision);
         finalAmount = Helpers.multiply(finalAmount, 1.1); // add around 10% to ensure "cost" is enough
-        finalAmount = Helpers.parseFloat(exchange.decimalToPrecision(finalAmount, 2, Helpers.GetValue(market.get("precision"), "amount"), exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
+        finalAmount = Double.parseDouble(((String)exchange.decimalToPrecision(finalAmount, 2, Helpers.GetValue(market.get("precision"), "amount"), exchange.precisionMode))); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
         return finalAmount;
     }
     public CompletableFuture<Object> tcoTryCancelOrder(BaseExchange exchange, String symbol, Object order, Object skippedProperties)

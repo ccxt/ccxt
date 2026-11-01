@@ -432,22 +432,6 @@ public class Helpers {
         }
     }
 
-    public static Long parseInt(Object a) {
-        try {
-            return toLong(a);
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    public static Double parseFloat(Object a) {
-        try {
-            return toDouble(a);
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
     // generic getValue to replace elementAccesses
     public Object getValue(Object a, Object b) { return GetValue(a, b); }
 

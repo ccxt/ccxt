@@ -5892,8 +5892,8 @@ public Map<String, Object> describe()
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         String stringifiedNumber = this.numberToString(number);
-        Object convertedNumber = ((Object)Double.parseDouble(stringifiedNumber));
-        return Helpers.parseInt(convertedNumber);
+        Object convertedNumber = Double.parseDouble(stringifiedNumber);
+        return ((Number)convertedNumber).longValue();
     }
 
     public Object parseToNumeric(Object number)

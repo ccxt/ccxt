@@ -2712,7 +2712,7 @@ public class Grvt extends GrvtApi
 
     public Object convertToBigIntCustom(Object x)
     {
-        return Helpers.parseInt(x);
+        return Long.parseLong(this.numberToString(x));
     }
 
     public Map<String, Object> eipMessageForOrder(Map<String, Object> order, String structureType)
@@ -2773,7 +2773,7 @@ public class Grvt extends GrvtApi
         if (java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE") && Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
         {
             returnValue.put("builder", order.get("builder"));
-            returnValue.put("builderFee", this.parseToInt(Helpers.multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), Helpers.parseFloat(order.get("builder_fee"))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue.put("builderFee", this.parseToInt(Helpers.multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), Double.parseDouble(this.safeString(order, "builder_fee"))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
     }
@@ -3874,8 +3874,8 @@ public class Grvt extends GrvtApi
             messageData = new HashMap<String, Object>() {{
                 put( "mainAccountID", request.get("main_account_id") );
                 put( "builderAccountID", request.get("builder_account_id") );
-                put( "maxFutureFeeRate", Grvt.this.parseToInt(Helpers.multiply(Helpers.parseFloat(request.get("max_futures_fee_rate")), amountMultiplier)) );
-                put( "maxSpotFeeRate", Grvt.this.parseToInt(Helpers.multiply(Helpers.parseFloat(request.get("max_spot_fee_rate")), amountMultiplier)) );
+                put( "maxFutureFeeRate", Grvt.this.parseToInt(Helpers.multiply(Double.parseDouble(Grvt.this.safeString(request, "max_futures_fee_rate")), amountMultiplier)) );
+                put( "maxSpotFeeRate", Grvt.this.parseToInt(Helpers.multiply(Double.parseDouble(Grvt.this.safeString(request, "max_spot_fee_rate")), amountMultiplier)) );
                 put( "nonce", requestSignature.get("nonce") );
                 put( "expiration", requestSignature.get("expiration") );
             }};
