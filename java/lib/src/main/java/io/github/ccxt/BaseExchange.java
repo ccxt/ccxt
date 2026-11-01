@@ -143,58 +143,17 @@ public class BaseExchange {
     }
 
     // ------------------------------------------------------------------------------------------
-    // State owner. One thread executes every mutation and every read of the mutable header state
-    // below (the options store, the loadMarkets single-flight and its currency hand-off, the
-    // request stamp, the fetch cache); callers hand a task over and take its reply. Nothing else
-    // touches that state, so it needs no lock, no atomic and no volatile publication. An owner
-    // task never waits on a future, so this thread cannot block on a caller, and a hand-off made
-    // from the owner itself runs inline instead of deadlocking on itself.
-    // ------------------------------------------------------------------------------------------
-    // The owner is a platform thread on purpose: callers hand off while they may already hold a
-    // monitor (Helpers.addElementToObject/objectKeys synchronize on the map they were given), and a
-    // virtual owner could be starved of a carrier by those pinned callers and never answer.
-    private static final java.util.concurrent.ExecutorService STATE_OWNER =
-            java.util.concurrent.Executors.newSingleThreadExecutor (BaseExchange::stateOwnerThread);
-
-    private static Thread stateOwnerThread (Runnable task) {
-        Thread thread = new Thread (task, "ccxt-state-owner");
-        thread.setDaemon (true);
-        return thread;
-    }
-
-    // One unit of owner work. An explicit class rather than a lambda keeps the hand-off call
-    // sites plain Java and stops the printer seeing pasted inline bodies where there are none.
+    // One unit of work run under STATE_LOCK.
     private abstract static class OwnedTask<T> {
         abstract T run ();
     }
 
-    private static final ThreadLocal<Boolean> ON_STATE_OWNER = new ThreadLocal<Boolean> () {
-        @Override protected Boolean initialValue () { return Boolean.FALSE; }
-    };
+    private static final Object STATE_LOCK = new Object ();
 
+    // Mutable header state (options, markets load, counters) is guarded by one monitor.
     private static <T> T owned (OwnedTask<T> task) {
-        if (Boolean.TRUE.equals (ON_STATE_OWNER.get ())) {
+        synchronized (STATE_LOCK) {
             return task.run ();
-        }
-        try {
-            return STATE_OWNER.submit (new java.util.concurrent.Callable<T> () {
-                @Override public T call () {
-                    ON_STATE_OWNER.set (Boolean.TRUE);
-                    try {
-                        return task.run ();
-                    } finally {
-                        ON_STATE_OWNER.set (Boolean.FALSE);
-                    }
-                }
-            }).get ();
-        } catch (InterruptedException e) {
-            Thread.currentThread ().interrupt ();
-            throw new RuntimeException (e);
-        } catch (java.util.concurrent.ExecutionException e) {
-            Throwable cause = e.getCause ();
-            if (cause instanceof RuntimeException runtime) throw runtime;
-            if (cause instanceof Error error) throw error;
-            throw new RuntimeException (cause);
         }
     }
 
@@ -551,20 +510,17 @@ public class BaseExchange {
     public Object proxy_url = null;
     public Object proxyUrlCallBack = null;
 
-    // per-symbol ws caches: plain maps, one writer (the client's reader thread), readers after the future settles
-    public Map<String, Object> tickers = new HashMap<>();
-    public Map<String, Object> fundingRates = new HashMap<>();
-    public Map<String, Object> bidsasks = new HashMap<>();
-    public Map<String, Object> balance = new HashMap<>();
+    // per-symbol ws caches: written by ws reader threads while user threads read them
+    public Map<String, Object> tickers = new ConcurrentHashMap<>();
+    public Map<String, Object> fundingRates = new ConcurrentHashMap<>();
+    public Map<String, Object> bidsasks = new ConcurrentHashMap<>();
+    public Map<String, Object> balance = new ConcurrentHashMap<>();
     public Object liquidations = new ConcurrentHashMap<String, Object>();
     public Object myLiquidations = new ConcurrentHashMap<String, Object>();
-    public Map<String, Object> trades = new HashMap<>();
-    public Map<String, Object> orderbooks = new HashMap<>();
-    public Map<String, Object> ohlcvs = new HashMap<>();
-    // exchange ws clients by url: contents live on the state-owner thread (see OwnedMap), so a
-    // create/get/remove is one owner task and no concurrent map is needed; venue code still reads
-    // it as a plain Map through the hand-off view
-    public Object clients = new OwnedMap<String, Client>();
+    public Map<String, Object> trades = new ConcurrentHashMap<>();
+    public Map<String, Object> orderbooks = new ConcurrentHashMap<>();
+    public Map<String, Object> ohlcvs = new ConcurrentHashMap<>();
+    public Object clients = new java.util.concurrent.ConcurrentHashMap<String, Client>();
 
     // regular maps / misc
     public Object transactions = new LinkedHashMap<String, Object>();
@@ -2150,26 +2106,7 @@ public class BaseExchange {
 
     // ─── WebSocket Bridge (matches C# Exchange.WsBridge.cs) ───
 
-    // One owner thread per exchange: every ws frame of every connection of this
-    // exchange is handled here, so the ws caches (balance/orderbooks/tickers/trades)
-    // get a single writer for all frame-driven work. The virtual thread exits after 60s idle.
-    private final java.util.concurrent.ExecutorService wsOwnerExecutor = newWsOwner();
-
-    private static java.util.concurrent.ExecutorService newWsOwner() {
-        java.util.concurrent.ThreadPoolExecutor owner = new java.util.concurrent.ThreadPoolExecutor(
-                1, 1, 60L, java.util.concurrent.TimeUnit.SECONDS,
-                new java.util.concurrent.LinkedBlockingQueue<>(),
-                Thread.ofVirtual().name("ws-owner-", 0).factory());
-        owner.allowCoreThreadTimeOut(true);
-        return owner;
-    }
-
-    /** The single ws owner thread of this exchange; every WsClient hands its work here. */
-    public java.util.concurrent.ExecutorService wsOwner() {
-        return this.wsOwnerExecutor;
-    }
-
-    /** The ws client registry as its hand-off view; every Map call is one owner task. */
+    /** The ws client registry. */
     @SuppressWarnings("unchecked")
     private Map<String, Client> clientsMap() {
         return (Map<String, Client>) this.clients;
@@ -2182,8 +2119,6 @@ public class BaseExchange {
 
     @SuppressWarnings("unchecked")
     public Client client(String url) {
-        // one owner task: the registry lives on the state-owner thread, so two threads asking for
-        // the same url get the one client without a concurrent map
         return this.clientsMap().computeIfAbsent(url, u -> {
                     Object wsOptions = this.safeValue(this.safeValue(this.options, "ws", new java.util.HashMap<String, Object>()), "options", new java.util.HashMap<String, Object>());
                     long keepAlive = 30000;
@@ -2206,8 +2141,6 @@ public class BaseExchange {
                             (client, err) -> this.onError((Client) client, err),
                             this.verbose, keepAlive, decompressBin,
                             this.validateServerSsl);
-                    // every client of this exchange runs its ws work on the one owner thread
-                    created.setOwnerExecutor(this.wsOwner());
 
                     // Forward options.ws.options.headers to the upgrade request — required
                     // by exchanges that gate on User-Agent (weex) or send custom headers.
@@ -2349,7 +2282,7 @@ public class BaseExchange {
     }
 
     public void onClose(Client client, Object error) {
-        if (client.errorState() == null) {
+        if (client.error == null) {
             // server disconnected a working connection
             Object reason = (error != null)
                     ? wrapAsNetworkError(error)

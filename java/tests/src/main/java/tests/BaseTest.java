@@ -456,7 +456,7 @@ public class BaseTest {
         BaseExchange.syncSleep = true;
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
-        client.startedConnecting = true;
+        client.startedConnecting.set(true);
         client.isMock = true;
         client.isConnected = true;
         client.connected.complete(true);
@@ -475,9 +475,7 @@ public class BaseTest {
         // the frames the exchange sent over the mocked transport, already parsed
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
-        var sent = new java.util.ArrayList<Object>();
-        client.runOnOwner(() -> sent.addAll(client.mockSentMessages));
-        return sent;
+        return client.mockSentMessages;
     }
 
     public static boolean wsClientHasPendingFutures(Object exchange2, Object url) {

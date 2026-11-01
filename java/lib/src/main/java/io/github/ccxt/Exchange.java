@@ -88,8 +88,9 @@ public class Exchange extends BaseExchange implements TypedSurface {
             // instead, reject the watcher, close and drop the connection and the cached
             // orderbook, so the next watchOrderBook() call resubscribes cleanly
             client.reject(error, messageHash);
-            // onClose must not treat this as a server disconnect; setError keeps the first error
-            client.setError(error);
+            if (client.error == null) {
+                client.error = error; // onClose must not treat this as a server disconnect
+            }
             client.close();
             ((Map<String, Object>) this.clients).remove(client.url, client);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());

@@ -33,11 +33,11 @@ public class IndexedOrderBookSide extends OrderBookSide {
         // no deltas and seeding happens below, against a live hashmap
         super(null, depth, side);
         if (deltas != null) {
-            this.beginBatch();
-            for (Object delta : deltas) {
-                this.storeArrayUnsafe(delta);
+            synchronized (this) {
+                for (Object delta : deltas) {
+                    this.storeArrayUnsafe(delta);
+                }
             }
-            this.endBatch();
         }
     }
 
@@ -76,15 +76,8 @@ public class IndexedOrderBookSide extends OrderBookSide {
     }
 
     @Override
-    void storeArrayUnsafe(Object delta2) {
-        this.owner = Thread.currentThread();
-        this.drainTrim();
-        this.applyUnsafe(delta2);
-        this.publishRows();
-    }
-
     @SuppressWarnings("unchecked")
-    private void applyUnsafe(Object delta2) {
+    void storeArrayUnsafe(Object delta2) {
         List<Object> delta = (List<Object>) delta2;
         BigDecimal price = toBigDecimalOrNull(delta.size() > 0 ? delta.get(0) : null);
         BigDecimal amount = toBigDecimalOrNull(delta.size() > 1 ? delta.get(1) : null);
@@ -154,7 +147,7 @@ public class IndexedOrderBookSide extends OrderBookSide {
 
     /** Truncate to max depth, unmapping the ids of trimmed rows first. */
     @Override
-    protected void trimNow() {
+    public synchronized void limit() {
         int excess = this.size() - this.depth;
         for (int i = 0; i < excess; i++) {
             int last = this.size() - 1;
@@ -172,14 +165,13 @@ public class IndexedOrderBookSide extends OrderBookSide {
      *  side clears self-contained even outside reset(), see the review note
      *  on https://github.com/ccxt/ccxt/pull/29753 */
     @Override
-    public void clear() {
+    public synchronized void clear() {
         super.clear();
         this.hashmap.clear();
-        this.publishRows();
     }
 
     @Override
-    public OrderBookSide copy() {
+    public synchronized OrderBookSide copy() {
         IndexedOrderBookSide out;
         if (this instanceof IndexedAsks) {
             out = new IndexedAsks(null, this.depth);
@@ -188,11 +180,13 @@ public class IndexedOrderBookSide extends OrderBookSide {
         } else {
             out = new IndexedOrderBookSide(null, this.depth, this.side);
         }
-        out.beginBatch();
-        for (Object row : this.snapshot()) {
-            out.storeArray(new ArrayList<>((List<Object>) row));
+        synchronized (out) {
+            for (Object row : this) {
+                out.add(new ArrayList<>((List<Object>) row));
+            }
+            out.index.addAll(this.index);
+            out.hashmap.putAll(this.hashmap);
         }
-        out.endBatch();
         return out;
     }
 
