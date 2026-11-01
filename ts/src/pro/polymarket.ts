@@ -934,8 +934,7 @@ export default class polymarket extends polymarketRest {
         this.setBalanceCache (client);
         const fetchBalanceSnapshot = this.handleOption ('watchBalance', 'fetchBalanceSnapshot', true);
         const awaitBalanceSnapshot = this.handleOption ('watchBalance', 'awaitBalanceSnapshot', true);
-        const balanceLoaded = ('info' in this.balance);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true) && (!balanceLoaded)) {
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true) && !('info' in this.balance)) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             const snapshot = await client.future ('fetchBalanceSnapshot');
@@ -947,8 +946,7 @@ export default class polymarket extends polymarketRest {
     }
 
     setBalanceCache (client: Client) {
-        const balanceLoaded = ('info' in this.balance);
-        if (balanceLoaded) {
+        if ('info' in this.balance) {
             return;
         }
         const fetchBalanceSnapshot = this.handleOption ('watchBalance', 'fetchBalanceSnapshot', true);

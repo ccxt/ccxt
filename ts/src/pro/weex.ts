@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import weexRest from '../weex.js';
-import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -1647,6 +1647,9 @@ export default class weex extends weexRest {
             await this.loadMarkets ();
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchBalance() requires a market type');
+        }
         const isContract = (type !== 'spot');
         let urlType: Str = 'spot';
         if (isContract) {

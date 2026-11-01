@@ -906,7 +906,7 @@ export default class hashkey extends hashkeyRest {
             const client = this.client (url);
             this.options['listenKey'] = undefined;
             client.reject (error);
-            delete this.clients[url];
+            delete this.clients[client.url];
         }
     }
 

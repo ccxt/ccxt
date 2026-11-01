@@ -1513,11 +1513,12 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['free'] = this.safeString (future, 'available');
                 newAccount['used'] = this.safeString (future, 'initial_margin');
                 newAccount['total'] = this.safeString (future, 'balance');
-                this.balance['margin'][symbol] = {};
+                const symbolAccounts: Dict = {};
                 if ((symbol !== undefined) && (code !== undefined)) {
                     futuresSymbols[symbol] = true;
-                    this.balance['margin'][symbol][code] = newAccount;
+                    symbolAccounts[code] = newAccount;
                 }
+                this.balance['margin'][symbol] = symbolAccounts;
             }
             this.balance['margin'] = this.pruneStaleBalanceKeys (this.balance['margin'], futuresSymbols);
             this.balance['margin'] = this.safeBalance (this.balance['margin']);

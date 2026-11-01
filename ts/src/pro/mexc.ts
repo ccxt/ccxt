@@ -2124,7 +2124,7 @@ export default class mexc extends mexcRest {
             const client = this.client (url);
             this.options['listenKey'] = undefined;
             client.reject (error);
-            delete this.clients[url];
+            delete this.clients[client.url];
         }
     }
 

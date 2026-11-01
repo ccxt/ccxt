@@ -1195,7 +1195,7 @@ export default class bingx extends bingxRest {
             };
         }
         const userStreamKey = this.safeString (this.options, 'listenKey');
-        if (baseUrl === undefined || userStreamKey === undefined) {
+        if (type === undefined || baseUrl === undefined || userStreamKey === undefined) {
             throw new AuthenticationError (this.id + ' watchBalance() requires a websocket URL and a listen key');
         }
         const url = baseUrl + '?listenKey=' + userStreamKey;
