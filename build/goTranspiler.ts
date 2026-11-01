@@ -3751,7 +3751,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = nativeDerefArgMapReads (content);
     content = nativeDerefOnlyListReads (content);
     content = nativeOrderBookSideReads (content);
-    content = nativeEndpointListReceives (content);
     content = nativeAsyncListReceives (content);
     content = hx11TernaryInt64Closure (content);  // hx11 printer-go-ternary-closure-int64
     content = hx4G18NativeCompare (hx4G30Arith (hx4G21UnboxDefaultedSafeInteger (content)));  // hx4 G18, G30
@@ -10207,7 +10206,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (g04Wired ()).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (g04Wired ()).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -11326,64 +11325,6 @@ export function h2kG11SelfTest (): string[] {
         '\nfunc (this *X) f() {\n\tch <- BoxAbsent(retRes1)\n}',
     ];
     keep.forEach ((t, i) => ok (h2kG11NativeBoxAbsentSends (t) === t, 'unproven forward keeps BoxAbsent #' + i));
-    return problems;
-}
-
-// ===== H2K-g12: ListTyped over a typed []any endpoint receive =====
-// `ListTyped(PanicOnError((<-this.E(..)).Raw))` where E yields EndpointResult[[]any]: its Value is
-// already endpointValue = ListTyped(Raw) (zero only on a panic string, which PanicOnError raises first).
-function go_g12_endpoint_list (): RegExp {
-    return /^(\t*)(var (\w+) \[\]any|(\w+)) = (ccxt\.)?ListTyped\(\5?PanicOnError\((\(<-this\.\w+\(.*\)\))\.Raw\)\)((?: \/\/.*)?)$/;
-}
-
-function nativeEndpointListReceives (content: string): string {
-    if ((content.indexOf ('ListTyped(') < 0) || (content.indexOf ('.Raw))') < 0)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    const out: string[] = [];
-    for (let k = 0; k < lines.length; k++) {
-        const m = go_g12_endpoint_list ().exec (lines[k]);
-        const recvAt = (m === null) ? -1 : lines[k].indexOf (m[6], m[1].length);
-        // the receive must be one balanced expression in the unmasked-literal view
-        if ((m === null) || (recvAt < 0) || (goMatchingCloseText (masked[k], recvAt) !== recvAt + m[6].length - 1)) {
-            out.push (lines[k]);
-            continue;
-        }
-        let tmp = 'listEp' + k;
-        while (new RegExp ('\\b' + tmp + '\\b').test (content)) {
-            tmp += '_';
-        }
-        const pkg = (m[5] === undefined) ? '' : 'ccxt.';
-        out.push (m[1] + tmp + ' := ' + m[6]);
-        out.push (m[1] + pkg + 'PanicOnError(' + tmp + '.Raw)');
-        out.push (m[1] + m[2] + ' = ' + tmp + '.Value' + m[7]);
-    }
-    return out.join ('\n');
-}
-
-function goEndpointListSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
-    const decl = '\tvar r []any = ListTyped(PanicOnError((<-this.PublicGetX(this.Extend(req, params))).Raw))\n';
-    const got = nativeEndpointListReceives ('func f() {\n' + decl + '}\n');
-    ok (got === 'func f() {\n\tlistEp1 := (<-this.PublicGetX(this.Extend(req, params)))\n\tPanicOnError(listEp1.Raw)\n\tvar r []any = listEp1.Value\n}\n', 'decl form: ' + got);
-    const asg = nativeEndpointListReceives ('\t\tr = ccxt.ListTyped(ccxt.PanicOnError((<-this.PublicGetX(p)).Raw)) // c\n');
-    ok (asg === '\t\tlistEp0 := (<-this.PublicGetX(p))\n\t\tccxt.PanicOnError(listEp0.Raw)\n\t\tr = listEp0.Value // c\n', 'assign form: ' + asg);
-    ok (nativeEndpointListReceives ('\tvar r []any = ListTyped(PanicOnError((<-this.A(")")).Raw))\n').indexOf ('.Value') > 0, 'string-literal paren');
-    for (const keep of [
-        '\tvar r []any = ListTyped(PanicOnError((<-this.FetchXAsync(p))))\n',
-        '\tvar r []any = ListTyped(PanicOnError((<-this.A(p)).Raw)[0])\n',
-        '\tvar r []any = ListTyped(PanicOnError((<-this.A(p)).Raw)) + ListTyped(PanicOnError((<-this.B(p)).Raw))\n',
-        '\tvar r map[string]any = MapTyped(PanicOnError((<-this.A(p)).Raw))\n',
-        '\tf(ListTyped(PanicOnError((<-this.A(p)).Raw)))\n',
-    ]) {
-        ok (nativeEndpointListReceives (keep) === keep, 'kept: ' + keep.trim ());
-    }
     return problems;
 }
 
