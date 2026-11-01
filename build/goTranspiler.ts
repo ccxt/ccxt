@@ -14,8 +14,6 @@ import { goChanCarrierPass, goChanSelfTest } from './go-chan.js';
 import { goErrValuePass, goErrSelfTest } from './go-err.js';
 import { goChan3Pass, goChan3SelfTest, goChan3Table } from './go-chan3.js';
 import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
-import { b02TupleSliceSlotReads, b02TupleSliceSlotSelfTest } from './hx10w7-B02.js';
-import { hx10w9Gp17TupleTwins, hx10w9Gp17ParamsSlotBinds, hx10w9Gp17SelfTest } from './hx10w9-GP17.js';
 import { goStructReturnsPass, goStructReturnsSelfTest } from './go-struct-returns.js';
 import {Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
@@ -874,6 +872,10 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
     if (/^\w+$/.test (text)) {
         return scalarLocals.has (text) || safeLocal (text);
     }
+    // the deref of a pair-bind pointer temp (`x = *xPtr`, printed by the tuple-result join) is a plain scalar
+    if (/^\*\w+Ptr$/.test (text)) {
+        return true;
+    }
     // an endpoint receive's Raw is decoded JSON or untyped nil: no scalar pointer, no typed nil
     if (/^(?:r\d+|\(<-this\.\w+\(.*\)\))\.Raw$/.test (text) && (text.indexOf ('(<-') !== 0 || goCallArgsSpanningText (text.slice (3, -5), text.slice (3, -5).indexOf ('(')) !== undefined)) {
         return true;
@@ -1174,6 +1176,10 @@ function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, bo
     }
     // a tuple-holder slot the printer reads natively holds what GetValue(h, i) answered
     if (/^\w+Variable\[\d+\]$/.test (text)) {
+        return true;
+    }
+    // the deref of a pair-bind pointer temp (`x = *xPtr`) is a plain scalar, never a pointer box
+    if (/^\*\w+Ptr$/.test (text)) {
         return true;
     }
     if (/^\w+$/.test (text)) {
@@ -2142,6 +2148,11 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
 // every write of a map local is a map producer owned by this call or its caller (never a this.* map)
 const GO_INOP_READ_INIT = /^(?:(?:ccxt\.)?map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, (?:map\[string\]any\{\}|nil)\)$|this\.(?:Extend|DeepExtend|IndexBy)\(|(?:ccxt\.)?MapTyped\(this\.Omit\(\w+, |nil$)/;
 
+// the map result of a pair bind is read-only here when nothing else can write it: no go/Spawn/unawaited Async in the function
+function goInOpPairParams (maskedFunc: string, name: string): boolean {
+    return g10kMaplistTupleMap (maskedFunc, name) && !(/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc) || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc));
+}
+
 // InOp only reads, and a Go read of a nil map answers ok=false like the helper, so the receiver
 // needs a static map[string]any that no other goroutine can write: no go/Spawn/unawaited Async here
 function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf: (name: string) => any): boolean {
@@ -2188,7 +2199,9 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
         const [ , name, key ] = call;
         // this.Markets() answers the published immutable snapshot (map[string]any, nil before load): a
         // read of it is safe in any function, and a nil map reads ok=false like the helper
-        if (name !== 'this.Markets()' && ((typeAt (name, k) !== 'map[string]any') || !goInOpReadReceiver (maskedFunc, declOf (name), name, declOf))) {
+        // the params result of `a, p := this.Handle*AndParams(..)` is a map[string]any local (the pair twin's second result)
+        const pairParams = (name !== 'this.Markets()') && goInOpPairParams (maskedFunc, name);
+        if (name !== 'this.Markets()' && !pairParams && ((typeAt (name, k) !== 'map[string]any') || !goInOpReadReceiver (maskedFunc, declOf (name), name, declOf))) {
             continue;
         }
         if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
@@ -3729,7 +3742,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = nativeLoopBoundedSliceReads (content);
     content = hx4X01TupleProducerReads (content);
     content = nativeTupleHolderReads (content);
-    content = b02TupleSliceSlotReads (content);  // hx10 w7 B02: the params slot of a tuple holder
     content = nativeAsyncTupleHolderReads (content);
     content = hx4G12TupleSlotReads (content, filePath);
     hx4G34TupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');  // hx4 G34
@@ -3771,7 +3783,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx11m36MarketsByIdInOp (content);  // hx11 m36: after OG02 prints the Markets_by_id() accessor
     content = gp19Pass (content, filePath);  // hx10 w9 GP19: venue + pro element reads inside a len(list) loop
     content = gb09CredentialStrings (content);  // hx10 w9 GB09: the credential fields are plain strings
-    content = hx10w9Gp17ParamsSlotBinds (hx10w9Gp17TupleTwins (content));  // hx10 w9 GP17: last, on the settled call sites
     content = goOrderBookSetterPass (content);  // last: the book local is typed, and a GetAsks call or the assertion proves it non-nil
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: last, on the settled guard literals
     return goGofmtSplicedText (content);
@@ -8707,7 +8718,7 @@ ${caseStatements.join('\n')}
     // AppendToArray, SafeValue/GetValue receiver), and no call site compares the result to a literal.
     coerceTupleHelperSignatures (content: string): string {
         // F04: the `[]any` retag spells the single space before `{` too
-        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleParamString|HandleParamString2|HandleNetworkCodeAndParams|HandleWithdrawTagAndParams|HandlePostOnly|HandleParamBool|HandleParamBool2|HandleParamInteger|HandleParamInteger2|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleWithdrawTagAndParams|HandlePostOnly|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
             // hand-written base (exchange_market_type.go) returns the pair as two results; the
             // Okx/Deepcoin overrides only `return super...` so they carry the same results
             .replace (/func\s+\(this \*(\w+)\)\s+(HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams|HandleMarginModeAndParams)\(([^)]*)\)\s+(?:any|\[\]any)(\s+\{)/g, 'func (this *$1) $2($3) (*string, map[string]any) {')
@@ -10205,7 +10216,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (g04Wired ()).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10OG02Check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gp19Check ()).concat (gb09Check ()).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (g04Wired ()).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10OG02Check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gp19Check ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12599,7 +12610,7 @@ function goOmitTupleMapReturns (content: string): string {
 // `a, x := this.HandleXAndParams(..)` declares x as map[string]any (hand-written pair results); when that
 // is x's only declaration in the function, Omit(x, ..) always yields a map, so MapTyped(Omit) == OmitDict.
 function g10kMaplistTupleMethods (): string {
-    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?|HandleOptionIntegerAndParams2?';
+    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?|HandleOptionIntegerAndParams2?';
 }
 
 function g10kMaplistTupleMap (func: string, name: string): boolean {
@@ -16534,7 +16545,9 @@ function hx4G38Pass (content: string): string {
             if (plainLocal.has (x)) { return plainLocal.get (x); }
             const n = '(?<![\\w.])' + x;
             const binds = masked.match (new RegExp (n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + x + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bvar ' + x + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + x + ' |\\brange\\b[^\\n]*\\b' + x + '\\b', 'g')) || [];
-            const decl = new RegExp ('^\\t+(?:' + x + ' :=|var ' + x + ' any =) (?:ccxt\\.)?GetValue\\((?!this,)[^\\n]*\\)$', 'm').test (fn);
+            const decl = new RegExp ('^\\t+(?:' + x + ' :=|var ' + x + ' any =) (?:ccxt\\.)?GetValue\\((?!this,)[^\\n]*\\)$', 'm').test (fn)
+                // the pair bind's `x := func() any { if xPtr != nil { return *xPtr }; return nil }()` answers what the GetValue deref did
+                || new RegExp ('^\\t+' + x + ' := func\\(\\) any \\{\\n\\t+if (\\w+Ptr) != nil \\{\\n\\t+return \\*\\1\\n\\t+\\}\\n\\t+return nil\\n\\t+\\}\\(\\)$', 'm').test (fn);
             const ok = decl && (binds.length === 1) && !new RegExp ('[(,]\\s*' + x + ' ').test (header) && !new RegExp ('&' + x + '\\b|' + n + '\\s*(?:=(?!=)|[-+*/%|&^]=|\\+\\+|--)').test (masked);
             plainLocal.set (x, ok);
             return ok;
