@@ -123,7 +123,7 @@ const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
         'type': 'map[string]any',
         'freshMapCalls': [ 'extend', 'deepExtend', 'createSafeDictionary', 'indexBy' ],
         'selfCalls': [ 'safeBalance' ],
-        'plainCalls': [ 'iso8601', 'milliseconds', 'seconds', 'microseconds', 'extend', 'deepExtend', 'indexBy', 'createSafeDictionary' ],
+        'plainCalls': [ 'iso8601', 'milliseconds', 'seconds', 'microseconds', 'extend', 'deepExtend', 'indexBy', 'createSafeDictionary', 'safeBalance' ],
         'emptyDefaultCalls': [ 'safeDict', 'safeDictMap', 'safeList' ],
         'userPathMethods': '^(?:setBalanceCache|cleanWsData)$',
     },
