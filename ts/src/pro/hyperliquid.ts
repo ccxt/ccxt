@@ -1117,7 +1117,7 @@ export default class hyperliquid extends hyperliquidRest {
         const isUnifiedEnabled = this.safeBool (unifiedResult, 0, false);
         const paramsValue2: Dict = this.safeDict (unifiedResult, 1, paramsMarketType);
         const dex = this.safeString (paramsValue2, 'dex');
-        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
+        const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
         let topic: Str = 'clearinghouseState';
         if (isSpot) {
             topic = 'spotState';
@@ -1169,7 +1169,7 @@ export default class hyperliquid extends hyperliquidRest {
         const isUnifiedEnabled = this.safeBool (unifiedResult, 0, false);
         const paramsValue2 = this.safeDict (unifiedResult, 1, paramsMarketType);
         const dex = this.safeString (paramsValue2, 'dex');
-        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
+        const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
         let topic: Str = 'clearinghouseState';
         if (isSpot) {
             topic = 'spotState';

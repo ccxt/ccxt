@@ -3915,7 +3915,7 @@ export default class aster extends Exchange {
             const isolatedMarginRaw = this.safeString (position, 'isolatedMargin');
             isolated = !Precise.stringEq (isolatedMarginRaw, '0');
         } else {
-            isolated = isolatedRaw;
+            isolated = (isolatedRaw === true);
         }
         let marginMode: Str = undefined;
         let collateralString: Str = undefined;

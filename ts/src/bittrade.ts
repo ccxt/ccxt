@@ -1198,7 +1198,7 @@ export default class bittrade extends Exchange {
         const countryDisabled = this.safeBool (currency, 'country-disabled', false);
         const visible = this.safeBool (currency, 'visible', false);
         const state = this.safeString (currency, 'state');
-        const active = (visible) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && !countryDisabled;
+        const active = (visible) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && (countryDisabled !== true);
         const name = this.safeString (currency, 'display-name');
         const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdraw-precision')));
         return this.safeCurrencyStructure ({

@@ -4925,7 +4925,7 @@ export default class bitget extends Exchange {
         const recentDuration: int = recentLimit * duration;
         const recentEndpointDaysMap = this.safeDict (this.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {});
         const recentEndpointAvailableDays = this.safeInteger (recentEndpointDaysMap, timeframe);
-        let historicalEndpointNeeded = useHistoryEndpoint;
+        let historicalEndpointNeeded = (useHistoryEndpoint === true);
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         let calculatedStartTime: Int = undefined;
@@ -5077,7 +5077,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         let paramsUTA = undefined;
         [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsStock, 'fetchBalance', false);
-        const isStock = stock;
+        const isStock = (stock === true);
         const isStockOrUta = (isStock || (uta === true));
         [ marketType, paramsUTA ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsUTA);
         [ marginMode, paramsUTA ] = this.handleMarginModeAndParams ('fetchBalance', paramsUTA);
@@ -6719,7 +6719,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         [ uta, paramsMarginMode ] = await this.handleUTAAndParams (paramsMarginMode, 'cancelOrder', false);
         const isStockOrUta = (isStockSpot || (uta === true));
-        const isPlanOrder = (trigger === true) || trailing;
+        const isPlanOrder = (trigger === true) || (trailing === true);
         const isContract = (market['swap'] === true) || (market['future'] === true);
         const isContractTriggerEndpoint = isContract && isPlanOrder && !isStockOrUta;
         const clientOrderId = this.safeString2 (paramsMarginMode, 'clientOrderId', 'clientOid');

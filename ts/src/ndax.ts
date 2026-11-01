@@ -650,7 +650,7 @@ export default class ndax extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': (sessionRunning && !isDisable),
+            'active': (sessionRunning && (isDisable !== true)),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,

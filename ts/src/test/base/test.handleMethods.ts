@@ -80,9 +80,9 @@ function helperTestHandleTypedOptions () {
     assert (!('absentKey' in params4));
     // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
     const [ boolString, params5 ] = exchange.handleOptionBoolAndParams ({}, 'fetchX', 'boolString', true);
-    assert (!boolString);
+    assert (boolString === false);
     const [ boolNumber, params6 ] = exchange.handleOptionBoolAndParams ({ 'boolNumber': 1 }, 'fetchX', 'boolNumber', false);
-    assert (boolNumber);
+    assert (boolNumber === true);
     assert (!('boolNumber' in params6));
     let caught = false;
     try {

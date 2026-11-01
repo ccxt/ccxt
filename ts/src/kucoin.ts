@@ -2248,7 +2248,7 @@ export default class kucoin extends Exchange {
         }
         const hfParam = this.safeBool (params, 'hf');
         if (hfParam !== undefined) {
-            hf = hfParam;
+            hf = (hfParam === true);
         }
         const paramsOmitted: Dict = this.omit (params, 'hf');
         return [ hf, paramsOmitted ];

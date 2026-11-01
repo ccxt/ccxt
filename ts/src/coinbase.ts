@@ -1696,7 +1696,7 @@ export default class coinbase extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': !tradingDisabled,
+            'active': tradingDisabled !== true,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -1875,7 +1875,7 @@ export default class coinbase extends Exchange {
             return undefined;
         }
         const isDisabled = this.safeBool (market, 'is_disabled', false);
-        const tradingDisabled = isDisabled || this.safeBool (market, 'trading_disabled', false);
+        const tradingDisabled = (isDisabled === true) || (this.safeBool (market, 'trading_disabled') === true);
         let symbol = base + '/' + quote;
         let type: Str = undefined;
         if (isSwap) {

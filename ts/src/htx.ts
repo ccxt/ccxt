@@ -3755,7 +3755,7 @@ export default class htx extends Exchange {
             const stopLoss = this.safeBool (paramsMarketType, 'stopLoss', false);
             const takeProfit = this.safeBool (paramsMarketType, 'takeProfit', false);
             const trailing = this.safeBool (paramsMarketType, 'trailing', false);
-            const isAlgo = ((trigger === true) || stopLoss || takeProfit || stopLossTakeProfit || trailing);
+            const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing === true));
             const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
             const clientOrderId = this.safeStringN (paramsOmitted, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
             const paramsClientOrderId: Dict = (clientOrderId !== undefined) ? this.omit (paramsOmitted, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]) : paramsOmitted;
@@ -4030,7 +4030,7 @@ export default class htx extends Exchange {
         const stopLoss = this.safeBool (params, 'stopLoss', false);
         const takeProfit = this.safeBool (params, 'takeProfit', false);
         const trailing = this.safeBool (params, 'trailing', false);
-        const isAlgo = ((trigger === true) || stopLoss || takeProfit || stopLossTakeProfit || (trailing));
+        const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing));
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
         if (since !== undefined) {
             request['start_time'] = since;
@@ -4181,7 +4181,7 @@ export default class htx extends Exchange {
             const stopLoss = this.safeBool (params, 'stopLoss', false);
             const takeProfit = this.safeBool (params, 'takeProfit', false);
             const trailing = this.safeBool (params, 'trailing', false);
-            const isAlgo = ((trigger === true) || stopLoss || takeProfit || stopLossTakeProfit || (trailing));
+            const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing));
             if (isAlgo) {
                 request['states'] = 'effective';
             } else {
@@ -4279,7 +4279,7 @@ export default class htx extends Exchange {
                 const stopLoss = this.safeBool (paramsMarketType, 'stopLoss', false);
                 const takeProfit = this.safeBool (paramsMarketType, 'takeProfit', false);
                 const trailing = this.safeBool (paramsMarketType, 'trailing', false);
-                const isAlgo = ((trigger === true) || stopLoss || takeProfit || stopLossTakeProfit || (trailing));
+                const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing));
                 if (isAlgo) {
                     request['states'] = 'canceled';
                 } else {

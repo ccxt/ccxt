@@ -833,7 +833,7 @@ export default class cryptocom extends Exchange {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': (marginBuyEnabled || marginSellEnabled),
+                'margin': ((marginBuyEnabled === true) || (marginSellEnabled === true)),
                 'swap': swap,
                 'future': future,
                 'option': option,

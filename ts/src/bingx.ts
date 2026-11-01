@@ -3374,7 +3374,7 @@ export default class bingx extends Exchange {
             }
             const reduceOnlyParam = this.safeBool (paramsTakeProfit, 'reduceOnly', false);
             // stop loss / take profit price orders are always reduce only
-            const reduceOnly = reduceOnlyParam || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
+            const reduceOnly = (reduceOnlyParam === true) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
             if (isTriggerOrder) {
                 request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, triggerPrice));
                 if (isMarketOrder || (typeValue === 'TRIGGER_MARKET')) {

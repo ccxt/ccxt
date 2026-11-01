@@ -549,7 +549,7 @@ export default class bitget extends bitgetRest {
         const isStock = market['stock'];
         const paramsStock = this.omit (paramsUta, 'stock');
         const isStockSpot = isStock && (market['spot'] === true);
-        const isStockOrUta = (isStockSpot || uta);
+        const isStockOrUta = (isStockSpot || (uta === true));
         const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
         if (isStockOrUta) {
@@ -603,7 +603,7 @@ export default class bitget extends bitgetRest {
         const isStock = market['stock'];
         const paramsStock = this.omit (params, 'stock');
         const isStockSpot = isStock && market['spot'];
-        const isStockOrUta = (isStockSpot || uta);
+        const isStockOrUta = (isStockSpot || (uta === true));
         const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
         if (isStockOrUta) {
@@ -815,7 +815,7 @@ export default class bitget extends bitgetRest {
         const paramsStock = this.omit (params, 'stock');
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsStock, 'unWatchOrderBook', 'uta', false);
         const isStockSpot = isStock && market['spot'];
-        const isStockOrUta = (isStockSpot || uta);
+        const isStockOrUta = (isStockSpot || (uta === true));
         let paramsRequest = paramsUta;
         if (isStockOrUta) {
             paramsRequest = this.extend (paramsUta, { 'uta': true });
@@ -892,7 +892,7 @@ export default class bitget extends bitgetRest {
         }
         const paramsStock = this.omit (params, 'stock');
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsStock, 'watchOrderBookForSymbols', 'uta', false);
-        const isStockOrUta = (isStockSpot || uta);
+        const isStockOrUta = (isStockSpot || (uta === true));
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
@@ -2449,7 +2449,7 @@ export default class bitget extends bitgetRest {
     override async watchBalance (params: Dict = {}): Promise<Balances> {
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'uta', false);
         const [ stock, paramsStock ] = this.handleOptionBoolAndParams (paramsUta, 'watchBalance', 'stock', false);
-        const isStockOrUta = (stock || uta);
+        const isStockOrUta = ((stock === true) || (uta === true));
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, paramsStock);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('watchBalance', paramsMarketType);
         let instTypeDefault: Str = undefined;
