@@ -43,14 +43,15 @@ export class RouteCache {
     private entries = new Map<string, { route: any, storedAt: number }> ();
 
     put (route: any): string {
-        const requestId = (typeof route?.requestId === 'string' && route.requestId !== '') ? route.requestId : crypto.randomUUID ();
-        this.entries.delete (requestId);
-        this.entries.set (requestId, { route, 'storedAt': Date.now () });
+        // the id is minted here, never taken from the router's requestId: an entry is
+        // immutable once stored, so a confirm token bound to a routeId always means this route
+        const routeId = crypto.randomUUID ();
+        this.entries.set (routeId, { route, 'storedAt': Date.now () });
         while (this.entries.size > ROUTE_CACHE_MAX) {
             const oldest = this.entries.keys ().next ().value as string;
             this.entries.delete (oldest);
         }
-        return requestId;
+        return routeId;
     }
 
     get (routeId: string): any {
@@ -218,6 +219,9 @@ function resolveAccounts (ctx: ServerContext, venues: string[], requested: strin
             if (account === undefined) {
                 return routeError ('UNKNOWN_ACCOUNT', 'no configured account named ' + JSON.stringify (name), 'list configured accounts with list_accounts');
             }
+            if (account.prediction === true) {
+                return routeError ('BAD_REQUEST', 'account ' + JSON.stringify (name) + ' is a prediction-market account', 'routes trade spot markets — pass a non-prediction account on ' + account.exchange);
+            }
             if (byVenue[account.exchange] !== undefined) {
                 return routeError ('BAD_REQUEST', 'accounts ' + JSON.stringify (byVenue[account.exchange].name) + ' and ' + JSON.stringify (name) + ' are both on ' + account.exchange, 'pass at most one account per exchange');
             }
@@ -230,7 +234,7 @@ function resolveAccounts (ctx: ServerContext, venues: string[], requested: strin
         if (byVenue[venue] !== undefined) {
             continue;
         }
-        const candidates = all.filter ((account) => account.exchange === venue && (account.trading ?? false) !== false);
+        const candidates = all.filter ((account) => account.exchange === venue && account.prediction !== true && (account.trading ?? false) !== false);
         if (requested === undefined && candidates.length === 1) {
             byVenue[venue] = candidates[0];
         } else if (requested === undefined && candidates.length > 1) {
@@ -243,7 +247,7 @@ function resolveAccounts (ctx: ServerContext, venues: string[], requested: strin
         return routeError ('AMBIGUOUS_ACCOUNT', 'several trading accounts match ' + ambiguous.join ('; '), 'pass "accounts" naming one account per exchange the route uses');
     }
     if (missing.length > 0) {
-        const tradable = [ ...new Set (all.filter ((account) => (account.trading ?? false) !== false).map ((account) => account.exchange)) ].sort ();
+        const tradable = [ ...new Set (all.filter ((account) => account.prediction !== true && (account.trading ?? false) !== false).map ((account) => account.exchange)) ].sort ();
         return routeError ('NO_ACCOUNT_FOR_VENUE', 'the route trades on ' + missing.join (', ') + ' but no trading account is configured' + (requested !== undefined ? ' in "accounts"' : '') + ' for ' + (missing.length > 1 ? 'them' : 'it'),
             tradable.length > 0
                 ? 're-quote with fetch_route "exchanges": ' + JSON.stringify (tradable) + ' to route only through venues you can trade on'
@@ -360,6 +364,9 @@ export function registerRouteExecuteTool (server: McpServer, ctx: ServerContext)
         // rails up front so a cap/symbol refusal surfaces before anyone is asked to confirm
         const plan = ctx.router.buildExecutionPlan (route, { 'slippageBps': args.slippageBps, 'reconcileToleranceRatio': extra['reconcileToleranceRatio'] });
         const previewSteps: Record<string, any>[] = [];
+        // guardOrder checks each order against maxDailyValue on its own; the steps of one route
+        // are added up here so a route the cap would stop halfway is refused before it starts
+        const plannedValue: Record<string, number> = {};
         for (const step of plan.steps) {
             const account = accounts[step.exchangeId];
             let guarded;
@@ -371,6 +378,16 @@ export function registerRouteExecuteTool (server: McpServer, ctx: ServerContext)
                     error.message = 'step ' + step.stepIndex + ' (' + step.side + ' ' + step.symbol + ' on ' + step.exchangeId + '): ' + error.message;
                 }
                 throw error;
+            }
+            const dailyCap = account.maxDailyValue;
+            if (typeof dailyCap === 'number' && guarded.orderValue !== undefined) {
+                plannedValue[account.name] = (plannedValue[account.name] ?? 0) + guarded.orderValue;
+                const spent = ctx.journal.dispatchedValueLast24h (account.name);
+                if (spent + plannedValue[account.name] > dailyCap) {
+                    const error = new SafetyError ('DAILY_VALUE_CAP', 'step ' + step.stepIndex + ' (' + step.side + ' ' + step.symbol + ' on ' + step.exchangeId + '): this route\'s orders on account ' + JSON.stringify (account.name) + ' add up to ≈ ' + plannedValue[account.name].toFixed (2) + ' USD by this step, which with ≈ ' + spent.toFixed (2) + ' USD already dispatched exceeds the rolling 24h maxDailyValue cap of ' + dailyCap, 'quote a smaller amount, wait for the window to roll, or the user can raise the cap');
+                    journalRejection (ctx, account, 'execute_route', 'createOrder', error, { 'routeId': args.routeId, 'stepIndex': step.stepIndex, 'symbol': step.symbol, 'side': step.side, 'amount': step.amount, 'price': step.limitPrice });
+                    throw error;
+                }
             }
             previewSteps.push ({
                 'stepIndex': step.stepIndex,

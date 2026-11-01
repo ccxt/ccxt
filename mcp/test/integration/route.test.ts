@@ -143,7 +143,10 @@ test ('fetch_route: projects the route and keeps totals + per-leg fills', async 
     const result = await call (client, 'fetch_route', { 'from': 'DOGE', 'to': 'SOL', 'amountIn': 500, 'exchanges': [ 'mexc', 'binance' ] });
     assert.equal (result.ok, true);
     const data = result.data;
-    assert.equal (data.routeId, fixture.routes.multiHop.requestId);
+    // the routeId is minted by the server, not taken from the router's requestId
+    assert.match (data.routeId, /^[0-9a-f-]{36}$/);
+    assert.notEqual (data.routeId, fixture.routes.multiHop.requestId);
+    assert.equal (data.requestId, fixture.routes.multiHop.requestId);
     for (const key of [ 'amountIn', 'amountOut', 'effectiveRate', 'referenceRate', 'fillRatio', 'impactBps' ]) {
         assert.ok (data[key] !== undefined, key + ' is kept');
     }
@@ -219,7 +222,7 @@ test ('createRouter sets a ccxt-mcp User-Agent, and degrades when ccxt has no Or
 
 async function quote (client: Client, route: any): Promise<string> {
     stubRouter (200, route);
-    const result = await call (client, 'fetch_route', { 'from': 'USDT', 'to': 'BTC', 'amountIn': route.amountIn });
+    const result = await call (client, 'fetch_route', { 'from': route.from, 'to': route.to, 'amountIn': route.amountIn });
     assert.equal (result.ok, true);
     return result.data.routeId;
 }
@@ -309,4 +312,34 @@ test ('execute_route: unknown passthrough options are rejected', async () => {
     const routeId = await quote (client, fakexRoute ());
     const result = await call (client, 'execute_route', { routeId, 'options': { 'maxNotionalUsd': 1e9 } });
     assert.equal (result.error.code, 'BAD_REQUEST');
+});
+
+test ('execute_route: the steps of one route are added up against maxDailyValue before anything runs', async () => {
+    // two 50 USD steps: each fits a remaining budget of 80, together they do not
+    const { client, journalDir } = await connect ({ 'acc': { ...TRADING, 'maxDailyValue': 80 } });
+    const route = fakexRoute ();
+    route.to = 'USDT';
+    route.hops.push ({
+        'pair': 'BTC/USDT', 'side': 'sell', 'base': 'BTC', 'quote': 'USDT', 'amountIn': 0.001, 'amountOut': 50,
+        'legs': [ { 'exchangeId': 'fakex', 'amount': 0.001, 'averagePrice': 50000, 'takerFeeRate': 0.001, 'feeCost': 0, 'effectivePrice': 50000 } ],
+        'feeCost': 0, 'feeCurrency': 'USDT', 'fullyFillable': true, 'referencePrice': 50000, 'impactBps': 0,
+    });
+    const routeId = await quote (client, route);
+    const result = await call (client, 'execute_route', { routeId });
+    assert.equal (result.ok, false, JSON.stringify (result));
+    assert.equal (result.error.code, 'DAILY_VALUE_CAP', JSON.stringify (result.error));
+    assert.match (result.error.message, /step 1/);
+    assert.equal (venues.reduce ((n, venue) => n + venue.createdOrders.length, 0), 0, 'refused before the first order');
+    const journal = fs.readdirSync (journalDir).map ((file) => fs.readFileSync (path.join (journalDir, file)).toString ()).join ('');
+    assert.match (journal, /"event":"rejected"/);
+});
+
+test ('execute_route: prediction-market accounts are never matched to a route venue', async () => {
+    const { client } = await connect ({ 'pred': { ...TRADING, 'prediction': true } });
+    const routeId = await quote (client, fakexRoute ());
+    const auto = await call (client, 'execute_route', { routeId });
+    assert.equal (auto.error.code, 'NO_ACCOUNT_FOR_VENUE', JSON.stringify (auto));
+    const named = await call (client, 'execute_route', { routeId, 'accounts': [ 'pred' ] });
+    assert.equal (named.error.code, 'BAD_REQUEST');
+    assert.match (named.error.message, /prediction/);
 });
