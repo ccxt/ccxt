@@ -13,14 +13,13 @@ import ansi from 'ansicolor';
 import { goChanCarrierPass, goChanSelfTest } from './go-chan.js';
 import { hx10G03Pass, hx10G03Check } from './hx10w2-G03.js';
 import { goErrValuePass, goErrSelfTest } from './go-err.js';
-import { goChan3Pass, goChan3SelfTest } from './go-chan3.js';
+import { goChan3Pass, goChan3SelfTest, goChan3Table } from './go-chan3.js';
 import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
 import { hx11w9OrderBookCachePass, hx11w9OrderBookAssertPass, hx11w9OrderBookCacheCheck } from './hx11w9-orderbook-cache.js';  // hx11 w9: typed ws order book cache
 import { hx10G10Pass, hx10G10SelfTest } from './hx10w2-G10.js';
 import { hx10w5G05Pass, g05check } from './hx10w5-G05.js';
 import { b02TupleSliceSlotReads, b02TupleSliceSlotSelfTest } from './hx10w7-B02.js';
 import { hx10w9Gp17TupleTwins, hx10w9Gp17ParamsSlotBinds, hx10w9Gp17SelfTest } from './hx10w9-GP17.js';
-import { hx11w8AnySliceToList, hx11w8AnySliceToListCheck } from './hx11w8-anyslice-tolist.js';  // hx11 w8: ToList-fed locals are []any
 import { goStructReturnsPass, goStructReturnsSelfTest } from './go-struct-returns.js';
 import { hx10w10Gp26TypedReads, hx10w10Gp26Check } from './hx10w10-GP26.js';  // hx10 wave-10 GP26: GetValue on a declared map local
 import {Transpiler as OldTranspiler } from "./transpile.js";
@@ -32,11 +31,8 @@ import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest, hx4G30Arith, hx4G30SelfTest, hx4G31Divide, hx4G31Check, hx4G32Comparisons, hx4G32SelfTest, hx4G35InlineMulSub, hx4G35Check, hx4G36Inline, hx4G36Check, hx4G36AddImport, hx4G37InlineComparisons, hx4G37Check, hx4G40InlineIsEqual, hx4G40Check, hx11IsEqualBoolMethod, hx11IsEqualBoolMethodCheck, hx4G42InlineTypeChecks, hx4G42Check, hx5X26CaseAffix, hx5X26Check, hx4G45InlineStr, hx4G45Check, hx5X29ParseNative, hx5X29Check } from './go-native-arith.js';
 import { hx10OG02Pass, hx10OG02Check } from './hx10w4-OG02.js';  // hx10 wave-4 OG02: market tables published immutably
-import { G05_PROVEN_LIST_METHODS, g05Check, g05Locals } from './hx10w3-G05.js';  // hx10w3 G05: generated base return types
 import { gp19Pass, gp19Check } from './hx10w9-GP19.js';  // hx10 w9 GP19: the same dead bounds guards in every go/v4 venue and pro file
-import { hx10w8GO04Pass, hx10w8GO04Check } from './hx10w8-GO04.js';
 import { hx11w8WT01Pass, hx11w8WT01Check } from './hx11w8-WT01.js';  // hx11 w8 WT01: watchTickerBody reads the typed ticker map
-  // hx10 w8 GO04: the typed FromMap builders take the boxed value
 
 type dict = { [key: string]: string };
 
@@ -3644,6 +3640,79 @@ function goBalanceEntryNilCompares (content: string): string {
     return content.replace (/(!?)(?<![\w])(?:ccxt\.)?IsEqual\(this\.Balance\[(\w+)\], nil\)/g, ((_m: string, not: string, key: string) => '(this.Balance[' + key + ']' + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
 }
 
+// A resolved watch value as statements at indent `ind` (first line unindented): `var <v> T` + a type switch over
+// `expr` + the typed send. `direct` (a typed twin, or a struct carrier whose `<T>FromMap` builder coerces the box
+// itself via RowDict in exchange_struct_returns.go) sends the box as is.
+export function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: string, v: string, direct = false): string {
+    if (direct) {
+        return 'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr) + '}';
+    }
+    if (want === 'OrderBookInterface') {
+        return 'var ' + v + ' ' + q + 'OrderBookInterface = ' + q + 'OrderBookTyped(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + 'OrderBookInterface]{Value: ' + v + '}';
+    }
+    if (want === 'ArrayCacheInterface') {
+        return 'var ' + v + ' ' + q + 'ArrayCacheInterface = ' + q + 'AsArrayCache(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + 'ArrayCacheInterface]{Value: ' + v + '}';
+    }
+    if (want === 'ClientInterface') {
+        return 'var ' + v + ' ' + q + 'ClientInterface = ' + q + 'AsClient(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + 'ClientInterface]{Value: ' + v + '}';
+    }
+    const box = v + 'Box';
+    const swExpr = (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr);
+    if (want === 'bool') {
+        const lines = [
+            'var ' + v + ' bool',
+            'switch ' + box + ' := ' + swExpr + '.(type) {',
+            'case bool:', '\t' + v + ' = ' + box,
+            'case []any:', '\t' + v + ' = len(' + box + ') > 0',
+            'case map[string]any:', '\t' + v + ' = true',
+            'case nil:',
+            'default:', '\tpanic(' + q + 'ExchangeError("resolved value is not bool"))',
+            '}',
+            'ch <- ' + q + 'AsyncResult[bool]{Value: ' + v + '}',
+        ];
+        return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
+    }
+    if (want === '*string') {
+        const lines = [
+            'var ' + v + ' *string',
+            'switch ' + box + ' := ' + swExpr + '.(type) {',
+            'case *string:', '\t' + v + ' = ' + box,
+            'case string:', '\t' + v + ' = &' + box,
+            'default:', '\t_ = ' + box,
+            '}',
+            'ch <- ' + q + 'AsyncResult[*string]{Value: ' + v + '}',
+        ];
+        return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
+    }
+    if ((want === 'int') || (want === 'int64')) {
+        const lines = [
+            'var ' + v + ' ' + want,
+            'switch ' + box + ' := ' + swExpr + '.(type) {',
+            'case ' + want + ':', '\t' + v + ' = ' + box,
+            'default:', '\t_ = ' + box,
+            '}',
+            'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + v + '}',
+        ];
+        return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
+    }
+    // RF-go-4 (was hx10w9-GO05): a map[string]any coercion has no `case *sync.Map:` arm. No *sync.Map producer is
+    // left in the Go runtime (go/v4 has no `sync.Map{` / `&sync.Map`), so the arm is unreachable by type
+    const conv = (want === '[]any')
+        ? [ 'case ' + q + 'IArrayCache:', '\t' + v + ' = ' + box + '.ToArray()' ]
+        : [];
+    const lines = [
+        'var ' + v + ' ' + want,
+        'switch ' + box + ' := ' + swExpr + '.(type) {',  // struct fields are concrete
+        'case ' + want + ':', '\t' + v + ' = ' + box,
+        ...conv,
+        'case nil:',
+        'default:', '\tpanic(' + q + 'ExchangeError("resolved value is not ' + want + '"))',
+        '}',
+        'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + v + '}',
+    ];
+    return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
+}
+
 export function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
@@ -3651,7 +3720,6 @@ export function formatGoSource (filePath: string, content: string): string {
     // first, so goChanCarrierPass and the local classifiers see the typed parser signatures
     content = retypeGoProvenParseMethods (content);
     content = goOmitTupleMapReturns (content);  // hx11 w8 m464
-    content = g05Locals (content);  // hx10w3 G05: typed locals from generated return types
     content = guardMultiSendCores (content);
     content = h2kG11NativeBoxAbsentSends (content);
     content = assertTypedElementAccess (content);
@@ -3705,7 +3773,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10w5G05Pass (content);  // hx10w5 G05: one ohlcv book per symbol, typed per timeframe
     content = hx11m36MarketsByIdInOp (content);  // hx11 m36: after OG02 prints the Markets_by_id() accessor
     content = gp19Pass (content, filePath);  // hx10 w9 GP19: venue + pro element reads inside a len(list) loop
-    content = hx10w8GO04Pass (content);  // hx10 w8 GO04: a coercion feeding one typed FromMap builder goes, the builder takes the box
     content = gb09CredentialStrings (content);  // hx10 w9 GB09: the credential fields are plain strings
     content = hx10w9Gp17ParamsSlotBinds (hx10w9Gp17TupleTwins (content));  // hx10 w9 GP17: last, on the settled call sites
     content = goOrderBookSetterPass (content);  // last: the book local is typed, and a GetAsks call or the assertion proves it non-nil
@@ -4893,7 +4960,7 @@ export function retypeGoDescribe (content: string): string {
 
 export function retypeGoProvenParseMethods (content: string): string {
     content = retypeGoDescribe (content);
-    const lists = goProvenListMethods ().concat (G05_PROVEN_LIST_METHODS);
+    const lists = goProvenListMethods ();
     content = retypeGoProvenFamily (content, lists, '[]any', 'this.ToArray', lists.concat ([ 'ArraySlice', 'ToArray', 'SortBy', 'SortBy2', 'ArrayConcat' ]));
     const maps = goProvenParseMapMethods ().concat (goProvenMapCollectionMethods ());
     // proven dict producers the struct-returns pass retypes itself: a family def may return one,
@@ -4922,7 +4989,8 @@ function goProvenListMethods (): string[] {
         'ParsePredictionTrades', // U04
         'ParsePredictionPositions', // U10
         'ParseDepositAddresses', // W15
-        'ParseDepositMethodIds', 'ParsePortfolioDetails' ]; // W23
+        'ParseDepositMethodIds', 'ParsePortfolioDetails', // W23
+        'ParseOrderBookBidAsk', 'ReduceFeesByCurrency', 'EventsList' ];
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
@@ -5351,7 +5419,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = g10kStrNativeStringHelpers (path, content);  // G10K-str
     content = path.endsWith ('.go') ? goNativeStringAdds (content) : content;  // hx4 G24: row reads exist only from here
     content = path.endsWith ('.go') ? hx11w8AsyncInt64Value (content) : content;  // hx11 w8: typed async int64 value
-    content = path.endsWith ('.go') ? hx11w8AnySliceToList (content) : content;  // hx11 w8: ToList-fed []any locals
     content = path.endsWith ('.go') ? hx4G33IsEqual (content) : content;  // hx4 G33
     content = path.endsWith ('.go') ? hx4G38Pass (content) : content;  // hx4 G38
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
@@ -6141,7 +6208,8 @@ class NewTranspiler {
                 // ===== RF-go-6-C =====
                 // generated base/venue methods whose Go result is uniformly `[]any` (retypeGoProvenParseMethods
                 // proves every override); the printer types a local initialised by one of them as `[]any`
-                "generatedListCallees": goProvenListMethods ().concat (G05_PROVEN_LIST_METHODS),
+                "generatedListCallees": goProvenListMethods (),
+                "asyncMapRowListCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === '[]map[string]any').map (([ name ]) => name),
                 // ===== end RF-go-6-C =====
                 "uncalledStringParams": GO_UNCALLED_STRING_PARAMS,
                 "stringPointerTupleCalls": GO_STRING_POINTER_TUPLE_CALLS,
@@ -7624,7 +7692,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, goGofmtLayout (this.declareBaseFileStdlibImports (gp19Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx10w8GO04Pass (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), goPredictionBase), baseFile.stdlibImports)));  // hx10 w9 GP19: this base file bypasses formatGoSource
+            fs.writeFileSync (goPredictionBase, goGofmtLayout (this.declareBaseFileStdlibImports (gp19Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), goPredictionBase), baseFile.stdlibImports)));  // hx10 w9 GP19: this base file bypasses formatGoSource
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -10147,7 +10215,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10G03Check ()).concat (g04Wired ()).concat (hx10G10SelfTest ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10OG02Check ()).concat (g05check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gp19Check ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx10w10Gp26Check ()).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8WT01Check ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10G03Check ()).concat (g04Wired ()).concat (hx10G10SelfTest ()).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10OG02Check ()).concat (g05check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gp19Check ()).concat (gb09Check ()).concat (hx10w10Gp26Check ()).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8WT01Check ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);

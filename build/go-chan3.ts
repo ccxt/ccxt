@@ -17,6 +17,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GO_STRUCT_RETURN_TYPES } from './go-struct-returns.js';
+import { goChan3ResolvedStmts } from './goTranspiler.js';
 import { goChanMask, goChanClose, goChanExprEnd, goChanQual, goChanSendType, goChanMethodReturn, goChanTable, goChanSetBaseReturnsForTest } from './go-chan.js';
 
 const GO_CHAN3_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), 'go-chan-tables.json');
@@ -341,76 +342,6 @@ function goChan3WatchTwinSuffix (receive: string, want: string, structCarrier: b
         return undefined;
     }
     return { 'at': m[0].length - 1, 'suffix': (want === 'map[string]any') ? 'Map' : 'List' };
-}
-
-function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: string, v: string, direct = false): string {
-    if (direct) {
-        return 'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + expr + '}';
-    }
-    if (want === 'OrderBookInterface') {
-        return 'var ' + v + ' ' + q + 'OrderBookInterface = ' + q + 'OrderBookTyped(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + 'OrderBookInterface]{Value: ' + v + '}';
-    }
-    if (want === 'ArrayCacheInterface') {
-        return 'var ' + v + ' ' + q + 'ArrayCacheInterface = ' + q + 'AsArrayCache(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + 'ArrayCacheInterface]{Value: ' + v + '}';
-    }
-    if (want === 'ClientInterface') {
-        return 'var ' + v + ' ' + q + 'ClientInterface = ' + q + 'AsClient(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + 'ClientInterface]{Value: ' + v + '}';
-    }
-    const box = v + 'Box';
-    const swExpr = (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr);
-    if (want === 'bool') {
-        const lines = [
-            'var ' + v + ' bool',
-            'switch ' + box + ' := ' + swExpr + '.(type) {',
-            'case bool:', '\t' + v + ' = ' + box,
-            'case []any:', '\t' + v + ' = len(' + box + ') > 0',
-            'case map[string]any:', '\t' + v + ' = true',
-            'case nil:',
-            'default:', '\tpanic(' + q + 'ExchangeError("resolved value is not bool"))',
-            '}',
-            'ch <- ' + q + 'AsyncResult[bool]{Value: ' + v + '}',
-        ];
-        return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
-    }
-    if (want === '*string') {
-        const lines = [
-            'var ' + v + ' *string',
-            'switch ' + box + ' := ' + swExpr + '.(type) {',
-            'case *string:', '\t' + v + ' = ' + box,
-            'case string:', '\t' + v + ' = &' + box,
-            'default:', '\t_ = ' + box,
-            '}',
-            'ch <- ' + q + 'AsyncResult[*string]{Value: ' + v + '}',
-        ];
-        return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
-    }
-    if ((want === 'int') || (want === 'int64')) {
-        const lines = [
-            'var ' + v + ' ' + want,
-            'switch ' + box + ' := ' + swExpr + '.(type) {',
-            'case ' + want + ':', '\t' + v + ' = ' + box,
-            'default:', '\t_ = ' + box,
-            '}',
-            'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + v + '}',
-        ];
-        return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
-    }
-    // RF-go-4 (was hx10w9-GO05): a map[string]any coercion has no `case *sync.Map:` arm. No *sync.Map producer is
-    // left in the Go runtime (go/v4 has no `sync.Map{` / `&sync.Map`), so the arm is unreachable by type
-    const conv = (want === '[]any')
-        ? [ 'case ' + q + 'IArrayCache:', '\t' + v + ' = ' + box + '.ToArray()' ]
-        : [];
-    const lines = [
-        'var ' + v + ' ' + want,
-        'switch ' + box + ' := ' + swExpr + '.(type) {',  // struct fields are concrete
-        'case ' + want + ':', '\t' + v + ' = ' + box,
-        ...conv,
-        'case nil:',
-        'default:', '\tpanic(' + q + 'ExchangeError("resolved value is not ' + want + '"))',
-        '}',
-        'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + v + '}',
-    ];
-    return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
 }
 
 function goChan3ResolvedName (fn: string, taken: Set<string>): string {
@@ -835,7 +766,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                         if (twin !== undefined) {
                             receive = receive.substring (0, twin.at) + twin.suffix + receive.substring (twin.at);
                         }
-                        const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, (twin !== undefined) ? rn : goChan3ResolvedName (fnText, freshTaken), twin !== undefined);
+                        const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, (twin !== undefined) ? rn : goChan3ResolvedName (fnText, freshTaken), (twin !== undefined) || structCarrier);
                         edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + lineEnd, 'text': rn + ' := ' + receive + '\n' + ind + 'if ' + rn + '.Err != nil {\n' + ind + '\tpanic(' + rn + '.Err)\n' + ind + '}\n' + ind + stmts });
                         types.add (want as string);
                         continue;
@@ -894,7 +825,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                             edits.push ({ 'start': bodyStart + recvAt + twin.at, 'end': bodyStart + recvAt + twin.at, 'text': twin.suffix });
                             edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, expr, want as string, q, '', true) });
                         } else {
-                            edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, expr, want as string, q, goChan3ResolvedName (fnText, freshTaken)) });
+                            edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, expr, want as string, q, goChan3ResolvedName (fnText, freshTaken), structCarrier) });
                         }
                         types.add (want as string);
                         continue;
@@ -909,7 +840,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
                     const twin = goChan3WatchTwinSuffix (expr, want as string, structCarrier);
                     const receive = (twin === undefined) ? expr : (expr.substring (0, twin.at) + twin.suffix + expr.substring (twin.at));
-                    const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, (twin !== undefined) ? rn : goChan3ResolvedName (fnText, freshTaken), twin !== undefined);
+                    const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, (twin !== undefined) ? rn : goChan3ResolvedName (fnText, freshTaken), (twin !== undefined) || structCarrier);
                     edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': rn + ' := ' + receive + '\n' + ind + 'if ' + rn + '.Err != nil {\n' + ind + '\tpanic(' + rn + '.Err)\n' + ind + '}\n' + ind + stmts });
                     types.add (want as string);
                     continue;
@@ -966,7 +897,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                         }
                     } else if ((proof.reason !== undefined) && goChan3ResolvedOk (want, method, receiver) && /^\s*$/.test (fnMasked.substring (close, fnMasked.indexOf ('\n', close)))) {
                         const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
-                        edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, fnText.substring (open + 1 + 7, close - 1), want as string, q, goChan3ResolvedName (fnText, freshTaken)) });
+                        edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, fnText.substring (open + 1 + 7, close - 1), want as string, q, goChan3ResolvedName (fnText, freshTaken), structCarrier) });
                         types.add (want as string);
                         continue;
                     } else if (proof.reason !== undefined) {
@@ -2390,6 +2321,12 @@ export function goChan3SelfTest (): string[] {
     ok (w.includes ('\tr := <-this.WatchMap(a)\n') && w.includes ('\tch <- ccxt.AsyncResult[map[string]any]{Value: r.Value}\n') && (w.indexOf ('resolved') < 0) && (w.indexOf ('sync.Map') < 0) && (w.indexOf ('import "sync"') < 0)
         && w.includes ('\t\tr1 := <-this.WatchMultipleMap(a)\n\t\tif r1.Err != nil {\n\t\t\tpanic(r1.Err)\n\t\t}\n\t\tch <- ccxt.AsyncResult[map[string]any]{Value: r1.Value}\n'), 'ws2 boundary: ' + w);
     ok (run (w, goChan3Table ()) === w, 'ws2 idempotent');
+    // a struct carrier hands the box to its `<T>FromMap` builder: no switch, no sync import; a plain map keeps the coercion
+    goChan3SetTableForTest (new Map ([ [ 'WatchX', 'Ticker' ], [ 'WatchM', 'map[string]any' ] ]), new Set ([ 'WatchX', 'WatchM' ]));
+    const wsrc = (name: string) => 'package ccxtpro\n\nimport ccxt \"github.com/ccxt/ccxt/go/v4\"\n' + core ('X', '\tr := <-this.Other(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- ccxt.AsyncResult[any]{Value: r.Value}\n\treturn nil\n', name, 'ccxt.');
+    const wt = goChan3Pass (wsrc ('WatchX'), goChan3Table ());
+    ok (wt.includes ('ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r.Value)}') && !wt.includes ('switch resolved') && !wt.includes ('import \"sync\"'), 'struct T: builder takes the box: ' + wt);
+    ok (goChan3Pass (wsrc ('WatchM'), goChan3Table ()).includes ('switch resolvedBox := r.Value.(type)'), 'plain map keeps the coercion');
     // WS2 bool + per-receiver table + nullable value type bool?
     goChan3SetTableForTest (new Map ([ [ 'UnWatchX', 'bool' ], [ 'InitX', 'bool?' ], [ 'A.HelperX', 'map[string]any' ], [ 'B.HelperX', '[]any' ] ]), new Set ([ 'UnWatchX' ]));
     const wb = run ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tch <- <-this.Watch(a)\n\treturn nil\n', 'UnWatchX', 'ccxt.'), goChan3Table ());
