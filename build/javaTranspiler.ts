@@ -5553,7 +5553,7 @@ class NewTranspiler {
             return;
         }
 
-        this.transpileAndSaveJavaExchangeTests(tests, true);
+        await this.transpileAndSaveJavaExchangeTests(tests, true);
     }
 
     async transpileAndSaveJavaExchangeTests(tests: any[], isWs = false) {
