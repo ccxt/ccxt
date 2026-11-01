@@ -1265,7 +1265,7 @@ export default class gate extends Exchange {
                 this.options['unifiedAccount'] = false;
             }
         }
-        const unified = this.safeBool (this.options, 'unifiedAccount', false);
+        const unified = this.safeBool (this.options, 'unifiedAccount') === true;
         return unified;
     }
 

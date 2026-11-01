@@ -11817,7 +11817,7 @@ export default class kucoin extends Exchange {
             const accountMode = this.safeString (data, 'selfAccountMode');
             this.options['uta'] = (accountMode === 'UNIFIED');
         }
-        const uta = this.safeBool (this.options, 'uta', false);
+        const uta = this.safeBool (this.options, 'uta') === true;
         return uta;
     }
 
