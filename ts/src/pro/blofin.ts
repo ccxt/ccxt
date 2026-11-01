@@ -846,7 +846,7 @@ export default class blofin extends blofinRest {
         }
         const request = this.getSubscriptionRequest (rawSubscriptions);
         let privateOrPublic: Str = 'private';
-        if (isPublic) {
+        if (isPublic === true) {
             privateOrPublic = 'public';
         }
         const typeUrls: Dict = this.safeDict (this.urls['api']['ws'], marketType, {});

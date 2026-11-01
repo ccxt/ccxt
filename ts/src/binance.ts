@@ -3342,7 +3342,7 @@ export default class binance extends Exchange {
         const id = this.safeString (entry, 'coin');
         const name = this.safeString (entry, 'name');
         const code = this.safeCurrencyCode (id);
-        const isFiat = this.safeBool (entry, 'isLegalMoney', false);
+        const isFiat = this.safeBool (entry, 'isLegalMoney');
         const networkList: Dict[] = this.safeList (entry, 'networkList', []);
         const fees: Dict = {};
         let fee: Num = undefined;
@@ -3370,7 +3370,7 @@ export default class binance extends Exchange {
             // }
             let withdrawPrecision = this.omitZero (this.safeString2 (networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
             // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
-            if (withdrawPrecision === undefined && isFiat) {
+            if (withdrawPrecision === undefined && (isFiat === true)) {
                 withdrawPrecision = this.safeString (this.options, 'defaultFiatWithdrawPrecision');
             }
             if (networkCode !== undefined) {
@@ -3399,7 +3399,7 @@ export default class binance extends Exchange {
         let type: Str = undefined;
         if (isETF) {
             type = 'other';
-        } else if (isFiat) {
+        } else if (isFiat === true) {
             type = 'fiat';
         } else {
             type = 'crypto';
@@ -8242,9 +8242,9 @@ export default class binance extends Exchange {
                 request['symbol'] = market['id'];
             }
         } else if (!stock) {
-            const warnWithoutSymbol = this.safeBool (this.options['fetchOpenOrders'], 'warnWithoutSymbol', false);
+            const warnWithoutSymbol = this.safeBool (this.options['fetchOpenOrders'], 'warnWithoutSymbol');
             const optValue = this.safeBool (this.options, 'warnOnFetchOpenOrdersWithoutSymbol'); // for backward compatibility
-            if ((optValue === true) || (optValue === undefined && warnWithoutSymbol)) {
+            if ((optValue === true) || (optValue === undefined && (warnWithoutSymbol === true))) {
                 throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnWithoutSymbol"] = false to suppress this warning message.');
             }
         }

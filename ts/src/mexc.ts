@@ -1311,9 +1311,9 @@ export default class mexc extends Exchange {
                 continue;
             }
             const status = this.safeString (market, 'status');
-            const isSpotTradingAllowed = this.safeBool (market, 'isSpotTradingAllowed', false);
+            const isSpotTradingAllowed = this.safeBool (market, 'isSpotTradingAllowed');
             let active = false;
-            if ((status === '1') && isSpotTradingAllowed) {
+            if ((status === '1') && (isSpotTradingAllowed === true)) {
                 active = true;
             }
             const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed');

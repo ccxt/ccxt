@@ -3233,7 +3233,7 @@ export default class okx extends Exchange {
             request['sz'] = this.amountToPrecision (symbol, amount);
         }
         const spot = this.safeBool (market, 'spot', false);
-        const contract = this.safeBool (market, 'contract', false);
+        const contract = this.safeBool (market, 'contract');
         const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -3287,7 +3287,7 @@ export default class okx extends Exchange {
             }
             const tradeMode = (margin) ? marginMode : 'cash';
             request['tdMode'] = tradeMode;
-        } else if (contract) {
+        } else if (contract === true) {
             if ((market['swap'] === true) || (market['future'] === true)) {
                 if (positionSide !== undefined) {
                     request['posSide'] = positionSide;
@@ -3317,7 +3317,7 @@ export default class okx extends Exchange {
         const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString (orderParams, 'tgtCcy', defaultTgtCcy);
         // conditional sell orders must not carry tgtCcy
-        if (!contract && (!margin) && (trigger || (!conditional) || (side !== 'sell'))) {
+        if ((contract !== true) && (!margin) && (trigger || (!conditional) || (side !== 'sell'))) {
             request['tgtCcy'] = tgtCcy;
         }
         if (isMarketOrder || marketIOC) {
@@ -3347,7 +3347,7 @@ export default class okx extends Exchange {
                     request['sz'] = this.costToPrecision (symbol, notional);
                 }
             }
-            if (marketIOC && contract) {
+            if (marketIOC && (contract === true)) {
                 request['ordType'] = 'optimal_limit_ioc';
             }
         } else {
