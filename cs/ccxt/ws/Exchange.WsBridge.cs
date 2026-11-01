@@ -209,10 +209,10 @@ public partial class BaseExchange
             var keepAlive = keepAliveValue;
             var decompressBinary = this.safeBool(this.options, "decompressBinary", true) as bool? ?? true;
             var client = new WebSocketClient(url, proxy,
-                (c, message) => { routeMessage(c, message); return null; },
+                (c, message) => routeMessage(c, message),
                 (c) => ping(c),
-                (c, error) => { onClose(c, error); return null; },
-                (c, error) => { onError(c, error); return null; },
+                (c, error) => onClose(c, error),
+                (c, error) => onError(c, error),
                 this.verbose, keepAlive, decompressBinary);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
