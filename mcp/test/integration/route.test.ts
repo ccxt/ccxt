@@ -268,6 +268,10 @@ test ('execute_route: previews, then the confirmed call places guarded IOC order
     const again = await call (client, 'execute_route', { routeId, 'confirm': second.meta.confirmToken });
     assert.equal (again.ok, false);
     assert.match (again.error.message, /re-execute/);
+    // and the agent cannot switch the re-execution guard off — trading again needs a fresh fetch_route
+    const override = await call (client, 'execute_route', { routeId, 'options': { 'allowReexecution': true } });
+    assert.equal (override.ok, false);
+    assert.equal (override.error.code, 'BAD_REQUEST');
     assert.equal (venues.flatMap ((venue) => venue.createdOrders).length, 1);
 });
 

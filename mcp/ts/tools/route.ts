@@ -174,7 +174,7 @@ export function registerRouteTools (server: McpServer, ctx: ServerContext): void
 // OrderRouter.execute options the agent may pass through. Deliberately absent: onStep (a
 // callback), usdRates/maxNotionalUsd (the account caps are enforced by this server per
 // order instead), idempotencyKey (always the routeId) and live (removed upstream).
-const PASSTHROUGH_OPTIONS = [ 'reconcileToleranceRatio', 'orderTimeoutMs', 'pollIntervalMs', 'retryFailedSteps', 'retryDelayMs', 'maxOrders', 'acknowledgeDispersion', 'allowReexecution', 'orderParams', 'precisionMode' ];
+const PASSTHROUGH_OPTIONS = [ 'reconcileToleranceRatio', 'orderTimeoutMs', 'pollIntervalMs', 'retryFailedSteps', 'retryDelayMs', 'maxOrders', 'acknowledgeDispersion', 'orderParams', 'precisionMode' ];
 
 const REPORT_FIELDS = [ 'planId', 'strategy', 'dryRun', 'from', 'to', 'planAgeMs', 'slippageBps', 'stepCount', 'wouldPlaceOrders', 'ordersPlaced', 'halted', 'haltReason', 'haltStepIndex', 'filledIn', 'filledOut' ];
 const STEP_FIELDS = [ 'stepIndex', 'hopIndex', 'legIndex', 'exchangeId', 'symbol', 'side', 'status', 'requestedAmount', 'filledAmount', 'averagePrice', 'expectedPrice', 'cost', 'inAsset', 'inAmount', 'outAsset', 'outAmount', 'orderId', 'clientOrderId', 'errorCode', 'attempt' ];
