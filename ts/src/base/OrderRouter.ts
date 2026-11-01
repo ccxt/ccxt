@@ -10,7 +10,7 @@
 //      php/OrderRouter.php
 //      cs/ccxt/base/OrderRouter.cs
 //      go/v4/exchange_order_router.go
-//      rust/ccxt-base/src/order_router.rs
+//      rust/ccxt-common/src/order_router.rs
 //
 //  Every construct below is deliberately one that Python, PHP, C#, Go and Rust
 //  can express the same way. The rules that keep the six ports honest:
@@ -1201,6 +1201,9 @@ class OrderRouter {
         }
         if (requestId !== '' && requestId.length <= 200) {
             headers['x-request-id'] = requestId;
+        }
+        if (this.userAgent !== '') {
+            headers['User-Agent'] = this.userAgent;
         }
         const socket = new WebSocketImpl (url, { 'headers': headers });
         const upperFrom = fromAsset.toUpperCase ();

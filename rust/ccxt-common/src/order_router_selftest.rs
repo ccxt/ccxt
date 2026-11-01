@@ -385,6 +385,40 @@ fn capture_one_request(r: &OrderRouter) -> Result<String, String> {
     server.join().map_err(|_| "the loopback server panicked".to_string())
 }
 
+/// Like `capture_one_request`, but for the stream handshake: the loopback server reads the
+/// upgrade request and refuses it, so `watch_route` errors after the headers were sent.
+fn capture_stream_handshake(r: &OrderRouter) -> Result<String, String> {
+    use std::io::{Read, Write};
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").map_err(|e| e.to_string())?;
+    let address = listener.local_addr().map_err(|e| e.to_string())?;
+    let server = std::thread::spawn(move || -> String {
+        let mut head = Vec::new();
+        if let Ok((mut stream, _)) = listener.accept() {
+            let mut buffer = [0u8; 1024];
+            while !head.windows(4).any(|w| w == b"\r\n\r\n") {
+                match stream.read(&mut buffer) {
+                    Ok(0) | Err(_) => break,
+                    Ok(n) => head.extend_from_slice(&buffer[..n]),
+                }
+            }
+            let _ = stream.write_all(b"HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+        }
+        String::from_utf8_lossy(&head).to_string()
+    });
+    let streamer = OrderRouter::new(&config_with(&[
+        ("baseUrl", Value::Str(format!("http://{address}").into())),
+        ("userAgent", Value::Str(r.user_agent().to_string().into())),
+    ]))
+    .map_err(|e| e.to_string())?;
+    let mut params = HashMap::new();
+    params.insert("amountIn".to_string(), Value::Float(10.0));
+    let mut stop = |_: &Value| "stop".to_string();
+    if block_on(streamer.watch_route("USDT", "BTC", &Value::Map(params), &mut stop)).is_ok() {
+        return Err("the refused upgrade surfaces as an error".to_string());
+    }
+    server.join().map_err(|_| "the loopback server panicked".to_string())
+}
+
 fn header_line(head: &str, name: &str) -> String {
     let prefix = format!("{}:", name.to_lowercase());
     for line in head.split("\r\n") {
@@ -414,6 +448,10 @@ fn user_agent_is_sent_only_when_configured() -> Result<(), String> {
     let head = capture_one_request(&configured)?;
     if header_line(&head, "User-Agent") != "ccxt-mcp/1.0.0 (ccxt 4.0.0)" {
         return Err(format!("the configured userAgent is sent, got {head:?}"));
+    }
+    let handshake = capture_stream_handshake(&configured)?;
+    if header_line(&handshake, "User-Agent") != "ccxt-mcp/1.0.0 (ccxt 4.0.0)" {
+        return Err(format!("the configured userAgent is sent on the stream handshake, got {handshake:?}"));
     }
     Ok(())
 }

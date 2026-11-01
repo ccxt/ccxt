@@ -574,7 +574,7 @@ impl OrderRouter {
 impl OrderRouter {
     /// Creates a client for the CCXT order-router service.
     ///
-    /// `config` keys: `apiKey` (required), `baseUrl`, `timeoutMs`,
+    /// `config` keys: `apiKey` (optional; the service rate-limits by IP), `baseUrl`, `timeoutMs`,
     /// `maxNotionalUsd` (an OPT-IN per-trade USD cap, honoured exactly at
     /// whatever value is given; 0 — the default — means NO CAP, and a negative
     /// value is refused), `userAgent` (optional `User-Agent` header sent with every
@@ -1864,6 +1864,12 @@ impl OrderRouter {
             if !request_id.is_empty() && request_id.len() <= 200 {
                 if let Ok(value) = request_id.parse() {
                     headers.insert("x-request-id", value);
+                }
+            }
+            // a userAgent that is not a valid header value is skipped, like x-request-id
+            if !self.user_agent.is_empty() {
+                if let Ok(value) = self.user_agent.parse() {
+                    headers.insert("user-agent", value);
                 }
             }
         }

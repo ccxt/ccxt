@@ -1964,6 +1964,23 @@ test ('streamUrl upgrades the scheme and carries the route grammar unchanged', (
     assert.strictEqual (url.indexOf ('includeQuotes'), -1);
 });
 
+test ('the stream handshake carries userAgent only when configured', async () => {
+    const plain = streamingRouter ();
+    const watchingPlain = plain.watchRoute ('USDT', 'BTC', { 'amountIn': 10 }, () => 'stop');
+    const plainSocket = await socketOpened ();
+    assert.strictEqual ('User-Agent' in plainSocket.options['headers'], false, 'no User-Agent override by default');
+    plainSocket.onopen ();
+    plainSocket.deliver ({ 'hops': [] });
+    await watchingPlain;
+    const configured = streamingRouter ({ 'userAgent': 'ccxt-mcp/1.0.0 (ccxt 4.0.0)' });
+    const watching = configured.watchRoute ('USDT', 'BTC', { 'amountIn': 10 }, () => 'stop');
+    const socket = await socketOpened ();
+    assert.strictEqual (socket.options['headers']['User-Agent'], 'ccxt-mcp/1.0.0 (ccxt 4.0.0)');
+    socket.onopen ();
+    socket.deliver ({ 'hops': [] });
+    await watching;
+});
+
 test ('the stream refuses what the endpoint refuses, before opening a socket', () => {
     const streamer = streamingRouter ();
     //  a socket outlives the holdings it was opened with, so the service refuses both

@@ -12,7 +12,7 @@ package ccxt
 //      python/ccxt/base/order_router.py
 //      php/OrderRouter.php
 //      cs/ccxt/base/OrderRouter.cs
-//      rust/ccxt-base/src/order_router.rs
+//      rust/ccxt-common/src/order_router.rs
 //
 //  The rules that keep the six ports honest, all of them observed here:
 //
@@ -864,6 +864,9 @@ func (this *OrderRouter) WatchRoute(fromAsset string, toAsset string, params map
 	}
 	if requestId := routerStringAt(params, "requestId", ""); requestId != "" && len(requestId) <= 200 {
 		header.Set("x-request-id", requestId)
+	}
+	if this.UserAgent != "" {
+		header.Set("User-Agent", this.UserAgent)
 	}
 	dialer := websocket.Dialer{
 		// the timeout guards the HANDSHAKE only. A stream that has opened is meant to sit idle

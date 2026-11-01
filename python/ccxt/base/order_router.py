@@ -12,7 +12,7 @@
 #     php/OrderRouter.php
 #     cs/ccxt/base/OrderRouter.cs
 #     go/v4/exchange_order_router.go
-#     rust/ccxt-base/src/order_router.rs
+#     rust/ccxt-common/src/order_router.rs
 #
 # The four pure methods — build_execution_plan, check_execution_plan_safety,
 # reconcile_execution_step and build_unwind_plan — must return byte-identical

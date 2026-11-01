@@ -10,7 +10,7 @@
 //      python/ccxt/base/order_router.py
 //      php/OrderRouter.php
 //      go/v4/exchange_order_router.go
-//      rust/ccxt-base/src/order_router.rs
+//      rust/ccxt-common/src/order_router.rs
 //
 //  Every construct below is deliberately one that TypeScript, Python, PHP, Go and
 //  Rust can express the same way. The rules that keep the six ports honest:
@@ -1016,6 +1016,10 @@ public class OrderRouter
             if (requestId != "" && requestId.Length <= 200)
             {
                 socket.Options.SetRequestHeader("x-request-id", requestId);
+            }
+            if (this.userAgent != "")
+            {
+                socket.Options.SetRequestHeader("User-Agent", this.userAgent);
             }
             try
             {

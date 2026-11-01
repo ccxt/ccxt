@@ -2957,3 +2957,25 @@ func TestOrderRouterUserAgentHeader(t *testing.T) {
 		t.Fatalf("the configured userAgent is sent, got %q", seen)
 	}
 }
+
+// the stream handshake carries the configured User-Agent too. The loopback server refuses
+// the upgrade, so WatchRoute fails, but the server has already read the handshake headers.
+func TestOrderRouterStreamUserAgentHeader(t *testing.T) {
+	seen := "unset"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen = r.Header.Get("User-Agent")
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer server.Close()
+	router, err := NewOrderRouter(map[string]any{"baseUrl": server.URL, "userAgent": "ccxt-mcp/1.0.0 (ccxt 4.0.0)"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = router.WatchRoute("USDT", "BTC", map[string]any{"amountIn": 10.0}, func(map[string]any) string { return "stop" })
+	if err == nil {
+		t.Fatal("the refused upgrade surfaces as an error")
+	}
+	if seen != "ccxt-mcp/1.0.0 (ccxt 4.0.0)" {
+		t.Fatalf("the configured userAgent is sent on the handshake, got %q", seen)
+	}
+}
