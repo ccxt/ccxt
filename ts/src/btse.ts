@@ -3505,14 +3505,14 @@ export default class btse extends Exchange {
         if ((marginModeValue !== 'cross') && (marginModeValue !== 'isolated')) {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be either cross or isolated');
         }
-        const hedged = this.safeBool (params, 'hedged');
+        const hedged = this.safeBool (params, 'hedged', false);
         if (marginModeValue === 'cross') {
             if (!('hedged' in params)) {
                 throw new ArgumentsRequired (this.id + ' setMarginMode() requires a hedged parameter for cross margin mode');
-            } else if (hedged === true) {
+            } else if (hedged) {
                 positionMode = 'HEDGE';
             }
-        } else if (('hedged' in params) && (hedged !== true)) {
+        } else if (('hedged' in params) && !hedged) {
             throw new BadRequest (this.id + ' setMarginMode() hedged parameter cannot be false for isolated margin mode');
         } else {
             positionMode = 'ISOLATED';

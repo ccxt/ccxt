@@ -3178,8 +3178,8 @@ export default class binance extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
-        const fetchCurrenciesEnabled = this.safeBool (this.options, 'fetchCurrencies');
-        if (fetchCurrenciesEnabled !== true) {
+        const fetchCurrenciesEnabled = this.safeBool (this.options, 'fetchCurrencies', false);
+        if (!fetchCurrenciesEnabled) {
             return {};
         }
         // this endpoint requires authentication
@@ -3342,7 +3342,7 @@ export default class binance extends Exchange {
         const id = this.safeString (entry, 'coin');
         const name = this.safeString (entry, 'name');
         const code = this.safeCurrencyCode (id);
-        const isFiat = this.safeBool (entry, 'isLegalMoney');
+        const isFiat = this.safeBool (entry, 'isLegalMoney', false);
         const networkList: Dict[] = this.safeList (entry, 'networkList', []);
         const fees: Dict = {};
         let fee: Num = undefined;
@@ -3360,8 +3360,8 @@ export default class binance extends Exchange {
             if (networkCode !== undefined) {
                 fees[networkCode] = withdrawFee;
             }
-            const isDefault = this.safeBool (networkItem, 'isDefault');
-            if ((isDefault === true) || (fee === undefined)) {
+            const isDefault = this.safeBool (networkItem, 'isDefault', false);
+            if (isDefault || (fee === undefined)) {
                 fee = withdrawFee;
             }
             // todo: default networks in "setMarkets" overload
@@ -3370,7 +3370,7 @@ export default class binance extends Exchange {
             // }
             let withdrawPrecision = this.omitZero (this.safeString2 (networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
             // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
-            if (withdrawPrecision === undefined && (isFiat === true)) {
+            if (withdrawPrecision === undefined && isFiat) {
                 withdrawPrecision = this.safeString (this.options, 'defaultFiatWithdrawPrecision');
             }
             if (networkCode !== undefined) {
@@ -3399,7 +3399,7 @@ export default class binance extends Exchange {
         let type: Str = undefined;
         if (isETF) {
             type = 'other';
-        } else if (isFiat === true) {
+        } else if (isFiat) {
             type = 'fiat';
         } else {
             type = 'crypto';
@@ -5119,8 +5119,8 @@ export default class binance extends Exchange {
         //         "closeTime": 1677097200000
         //     }
         //
-        const inverse = this.safeBool (market, 'inverse');
-        const volumeIndex = (inverse === true) ? 7 : 5;
+        const inverse = this.safeBool (market, 'inverse', false);
+        const volumeIndex = inverse ? 7 : 5;
         return [
             this.safeInteger2 (ohlcv, 0, 'openTime'),
             this.safeNumber2 (ohlcv, 1, 'open'),
@@ -8242,9 +8242,9 @@ export default class binance extends Exchange {
                 request['symbol'] = market['id'];
             }
         } else if (!stock) {
-            const warnWithoutSymbol = this.safeBool (this.options['fetchOpenOrders'], 'warnWithoutSymbol');
+            const warnWithoutSymbol = this.safeBool (this.options['fetchOpenOrders'], 'warnWithoutSymbol', false);
             const optValue = this.safeBool (this.options, 'warnOnFetchOpenOrdersWithoutSymbol'); // for backward compatibility
-            if ((optValue === true) || (optValue === undefined && (warnWithoutSymbol === true))) {
+            if ((optValue === true) || (optValue === undefined && warnWithoutSymbol)) {
                 throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnWithoutSymbol"] = false to suppress this warning message.');
             }
         }
@@ -10282,11 +10282,11 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const internal = this.safeBool (params, 'internal');
+        const internal = this.safeBool (params, 'internal', false);
         let paramsOmitted: Dict = this.omit (params, 'internal');
         let paginate = false;
         [ paginate, paramsOmitted ] = this.handleOptionBoolAndParams (paramsOmitted, 'fetchTransfers', 'paginate', false);
-        if (paginate && (internal !== true)) {
+        if (paginate && !internal) {
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, paramsOmitted);
         }
         let currency: Currency = undefined;
@@ -10295,7 +10295,7 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let limitKey = 'limit';
-        if (internal !== true) {
+        if (!internal) {
             const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
             const fromAccount = this.safeString (paramsOmitted, 'fromAccount', defaultType);
             let defaultTo: Str = 'swap';
@@ -10333,7 +10333,7 @@ export default class binance extends Exchange {
             request['endTime'] = until;
         }
         let response: NullableDict = undefined;
-        if (internal === true) {
+        if (internal) {
             response = await this.sapiGetPayTransactions (this.extend (request, paramsOmitted));
             //
             // {
@@ -10716,8 +10716,8 @@ export default class binance extends Exchange {
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.networkIdToCode (networkId, code);
             const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
-            const isDefault = this.safeBool (networkEntry, 'isDefault');
-            if (isDefault === true) {
+            const isDefault = this.safeBool (networkEntry, 'isDefault', false);
+            if (isDefault) {
                 result['withdraw'] = {
                     'fee': withdrawFee,
                     'percentage': undefined,

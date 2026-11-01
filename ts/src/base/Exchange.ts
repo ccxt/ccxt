@@ -4593,7 +4593,7 @@ export class BaseExchange {
         if (market !== undefined) {
             const result = this.extend (cleanStructure, market);
             // set undefined swap/future/etc
-            if (this.safeBool (result, 'spot') === true) {
+            if (this.safeBool (result, 'spot', false)) {
                 if (result['contract'] === undefined) {
                     result['contract'] = false;
                 }
@@ -4646,9 +4646,9 @@ export class BaseExchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], valueDefined);
-            if (this.safeBool (market, 'linear') === true) {
+            if (this.safeBool (market, 'linear', false)) {
                 market['subType'] = 'linear';
-            } else if (this.safeBool (market, 'inverse') === true) {
+            } else if (this.safeBool (market, 'inverse', false)) {
                 market['subType'] = 'inverse';
             } else {
                 market['subType'] = undefined;
@@ -5804,7 +5804,7 @@ export class BaseExchange {
                 throw new BadRequest (this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = this.safeString (market, 'type');
-            if (this.safeBool (market, 'spot') !== true) {
+            if (!this.safeBool (market, 'spot', false)) {
                 isLinearSubType = this.safeBool (market, 'linear');
             }
             const symbol = this.safeString (market, 'symbol', symbols[i]);
@@ -6973,7 +6973,7 @@ export class BaseExchange {
                     const marketTypeResolved: string = (marketType === undefined) ? this.safeString (market, 'type', '') : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
-                        if (this.safeBool (currentMarket, marketTypeResolved) === true) {
+                        if (this.safeBool (currentMarket, marketTypeResolved, false)) {
                             return currentMarket;
                         }
                     }
@@ -7334,9 +7334,9 @@ export class BaseExchange {
         } else {
             // at first, check from market object
             if (market !== undefined) {
-                if (this.safeBool (market, 'linear') === true) {
+                if (this.safeBool (market, 'linear', false)) {
                     subType = 'linear';
-                } else if (this.safeBool (market, 'inverse') === true) {
+                } else if (this.safeBool (market, 'inverse', false)) {
                     subType = 'inverse';
                 }
             }
@@ -7726,7 +7726,7 @@ export class BaseExchange {
             const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
             for (let i = 0; i < marketsList.length; i++) {
                 const market = marketsList[i];
-                if (this.safeBool (market, defaultType) === true) {
+                if (this.safeBool (market, defaultType, false)) {
                     return market;
                 }
             }

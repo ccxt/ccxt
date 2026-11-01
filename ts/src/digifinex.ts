@@ -687,8 +687,8 @@ export default class digifinex extends Exchange {
                 symbol = base + '/' + quote + ':' + settle;
                 isInverse = this.safeBool (market, 'is_inverse');
                 isLinear = (isInverse !== true) ? true : false;
-                const isTrading = this.safeBool (market, 'isTrading');
-                if (isTrading === true) {
+                const isTrading = this.safeBool (market, 'isTrading', false);
+                if (isTrading) {
                     isTradingSwap = true;
                 }
             }
@@ -1389,8 +1389,8 @@ export default class digifinex extends Exchange {
             if (type === undefined) {
                 type = 'limit';
             }
-            const isMaker = this.safeBool (trade, 'is_maker');
-            takerOrMaker = (isMaker === true) ? 'maker' : 'taker';
+            const isMaker = this.safeBool (trade, 'is_maker', false);
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');

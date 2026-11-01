@@ -3774,7 +3774,7 @@ export default class poloniex extends Exchange {
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
         let mode: Str = 'ONE_WAY';
-        if (hedged === true) {
+        if (hedged) {
             mode = 'HEDGE';
         }
         const request: Dict = {

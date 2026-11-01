@@ -1836,14 +1836,14 @@ export default class blofin extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
-        } else if (isTpsl === true) {
+        } else if (isTpsl) {
             request['tpslId'] = id;
         } else {
             request['orderId'] = id;
         }
         const query = this.omit (params, [ 'clientOrderId', 'tpsl', 'TPSL' ]);
         let response: Dict;
-        if (isTpsl === true) {
+        if (isTpsl) {
             response = await this.privateGetTradeOrderTpslDetail (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrderDetail (this.extend (request, query));
@@ -3463,7 +3463,7 @@ export default class blofin extends Exchange {
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
         const request: Dict = {
-            'positionMode': (hedged === true) ? 'long_short_mode' : 'net_mode',
+            'positionMode': hedged ? 'long_short_mode' : 'net_mode',
         };
         //
         //     {

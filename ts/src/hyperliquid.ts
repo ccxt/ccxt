@@ -4348,7 +4348,7 @@ export default class hyperliquid extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const nonce = this.incrementingNonce ();
         if (this.inArray (fromAccount, [ 'spot', 'swap', 'perp' ])) {
             // handle swap <> spot account transfer
@@ -4363,7 +4363,7 @@ export default class hyperliquid extends Exchange {
             const strAmountFinal = strAmount; // java req
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
             const transferPayload: Dict = {
-                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
                 'amount': strAmountFinal,
                 'toPerp': toPerp,
                 'nonce': nonce,
@@ -4428,7 +4428,7 @@ export default class hyperliquid extends Exchange {
             const sourceDex = this.safeString (paramsSendAsset, 'sourceDex', defaultDex);
             const destinationDex = this.safeString (paramsSendAsset, 'destinationDex', defaultDex);
             const sendAssetPayload: Dict = {
-                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
                 'destination': (isDeposit) ? subAccountAddress : masterAddress,
                 'sourceDex': sourceDex,
                 'destinationDex': destinationDex,

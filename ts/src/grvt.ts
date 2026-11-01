@@ -630,8 +630,8 @@ export default class grvt extends Exchange {
                 // }
                 //
                 const authResult = this.safeDict (authResponse, 'result');
-                const ack = this.safeBool (authResult, 'ack');
-                if (ack !== true) {
+                const ack = this.safeBool (authResult, 'ack', false);
+                if (!ack) {
                     throw new ExchangeError ('Builder authorization failed, ' + this.json (authResponse));
                 }
                 this.options['approvedBuilderFee'] = true;
@@ -3023,9 +3023,9 @@ export default class grvt extends Exchange {
                 'id': undefined,
             });
         }
-        const isMarket = this.safeBool (order, 'is_market');
+        const isMarket = this.safeBool (order, 'is_market', false);
         let orderType: Str = 'limit';
-        if (isMarket === true) {
+        if (isMarket) {
             orderType = 'market';
         }
         const isPostOnly = this.safeBool (order, 'post_only');
@@ -3345,7 +3345,7 @@ export default class grvt extends Exchange {
             if (queryString !== '') {
                 requestPath = path + '?' + queryString;
             }
-            if ((requestPath.endsWith ('auth/api_key/login') === true) || (requestPath.endsWith ('auth/wallet/login') === true)) {
+            if (requestPath.endsWith ('auth/api_key/login') || requestPath.endsWith ('auth/wallet/login')) {
                 requestHeaders = {
                     'Content-Type': 'application/json',
                     'Cookie': 'rm=true;',

@@ -1528,9 +1528,9 @@ export default class bigone extends Exchange {
         if (Precise.stringEq (triggerPrice, '0')) {
             triggerPrice = undefined;
         }
-        const immediateOrCancel = this.safeBool (order, 'immediate_or_cancel');
+        const immediateOrCancel = this.safeBool (order, 'immediate_or_cancel', false);
         let timeInForce: Str = undefined;
-        if (immediateOrCancel === true) {
+        if (immediateOrCancel) {
             timeInForce = 'IOC';
         }
         const type = this.parseType (this.safeString (order, 'type'));

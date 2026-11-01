@@ -1778,7 +1778,7 @@ export default class sxbet extends Exchange {
         const timestamp = this.parse8601 (this.safeString (settlement, 'settleDate'));
         let settlePrice: Num = undefined;
         if (won !== undefined) {
-            settlePrice = (won === true) ? 1 : 0;
+            settlePrice = won ? 1 : 0;
         }
         return {
             'info': trade,

@@ -2650,8 +2650,8 @@ export default class extended extends Exchange {
         let builderFeeRate: Str = undefined;
         let builderId: Str = undefined;
         let paramsBuilder = params;
-        const builderEnabled = this.safeBool (this.options, 'builderFee');
-        if (builderEnabled === true) {
+        const builderEnabled = this.safeBool (this.options, 'builderFee', false);
+        if (builderEnabled) {
             if (this.isSandboxModeEnabled) {
                 builderFeeRate = this.safeString2 (params, 'builderFeeRate', 'defaultBuilderFeeRate');
                 builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');

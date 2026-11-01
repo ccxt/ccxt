@@ -3791,12 +3791,12 @@ export default class hitbtc extends Exchange {
                 networkCode = this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper);
             }
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
-            const isDefault = this.safeBool (networkEntry, 'default');
+            const isDefault = this.safeBool (networkEntry, 'default', false);
             const withdrawResult: Dict = {
                 'fee': withdrawFee,
                 'percentage': (withdrawFee !== undefined) ? false : undefined,
             };
-            if (isDefault === true) {
+            if (isDefault) {
                 result['withdraw'] = withdrawResult;
             }
             if (networkCode !== undefined) {

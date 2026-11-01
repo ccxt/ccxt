@@ -2039,9 +2039,9 @@ export default class htx extends Exchange {
         const baseVolume = this.safeString (ticker, 'amount');
         let quoteVolume = this.safeString (ticker, 'vol');
         const marketResolved = this.safeDict (this.markets, symbol, market);
-        if (this.safeBool (marketResolved, 'contract') === true) {
+        if (this.safeBool (marketResolved, 'contract', false)) {
             // contract tickers count 'vol' in contracts
-            if (this.safeBool (marketResolved, 'linear') === true) {
+            if (this.safeBool (marketResolved, 'linear', false)) {
                 quoteVolume = this.safeString (ticker, 'trade_turnover');
             } else {
                 quoteVolume = Precise.stringMul (quoteVolume, this.safeString (marketResolved, 'contractSize'));
@@ -3751,11 +3751,11 @@ export default class htx extends Exchange {
             }
         } else {
             const trigger = this.safeBool2 (paramsMarketType, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeBool (paramsMarketType, 'stopLossTakeProfit');
-            const stopLoss = this.safeBool (paramsMarketType, 'stopLoss');
-            const takeProfit = this.safeBool (paramsMarketType, 'takeProfit');
-            const trailing = this.safeBool (paramsMarketType, 'trailing');
-            const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing === true));
+            const stopLossTakeProfit = this.safeBool (paramsMarketType, 'stopLossTakeProfit', false);
+            const stopLoss = this.safeBool (paramsMarketType, 'stopLoss', false);
+            const takeProfit = this.safeBool (paramsMarketType, 'takeProfit', false);
+            const trailing = this.safeBool (paramsMarketType, 'trailing', false);
+            const isAlgo = ((trigger === true) || stopLoss || takeProfit || stopLossTakeProfit || trailing);
             const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
             const clientOrderId = this.safeStringN (paramsOmitted, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
             const paramsClientOrderId: Dict = (clientOrderId !== undefined) ? this.omit (paramsOmitted, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]) : paramsOmitted;
@@ -3776,13 +3776,13 @@ export default class htx extends Exchange {
                 if (isAlgo) {
                     if (trigger === true) {
                         request['type'] = 'trigger';
-                    } else if (trailing === true) {
+                    } else if (trailing) {
                         request['type'] = 'trailing_stop';
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         request['type'] = 'tpsl';
-                    } else if (stopLoss === true) {
+                    } else if (stopLoss) {
                         request['type'] = 'sl';
-                    } else if (takeProfit === true) {
+                    } else if (takeProfit) {
                         request['type'] = 'tp';
                     }
                     response = await this.contractPrivateGetV5AlgoOrder (this.extend (request, paramsClientOrderId));
@@ -4026,11 +4026,11 @@ export default class htx extends Exchange {
         let paramsUntil = undefined;
         let response = undefined;
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
-        const stopLoss = this.safeBool (params, 'stopLoss');
-        const takeProfit = this.safeBool (params, 'takeProfit');
+        const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit', false);
+        const stopLoss = this.safeBool (params, 'stopLoss', false);
+        const takeProfit = this.safeBool (params, 'takeProfit', false);
         const trailing = this.safeBool (params, 'trailing', false);
-        const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing));
+        const isAlgo = ((trigger === true) || stopLoss || takeProfit || stopLossTakeProfit || (trailing));
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
         if (since !== undefined) {
             request['start_time'] = since;
@@ -4048,11 +4048,11 @@ export default class htx extends Exchange {
                     request['type'] = 'trigger';
                 } else if (trailing) {
                     request['type'] = 'trailing_stop';
-                } else if (stopLossTakeProfit === true) {
+                } else if (stopLossTakeProfit) {
                     request['type'] = 'tpsl';
-                } else if (stopLoss === true) {
+                } else if (stopLoss) {
                     request['type'] = 'sl';
-                } else if (takeProfit === true) {
+                } else if (takeProfit) {
                     request['type'] = 'tp';
                 }
                 response = await this.contractPrivateGetV5AlgoOrderHistory (this.extend (request, paramsMarginMode));
@@ -4141,7 +4141,7 @@ export default class htx extends Exchange {
             if (market['swap'] === true) {
                 if (trigger === true) {
                     response = await this.contractPrivatePostSwapApiV1SwapTriggerHisorders (this.extend (request, paramsUntil));
-                } else if (stopLossTakeProfit === true) {
+                } else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostSwapApiV1SwapTpslHisorders (this.extend (request, paramsUntil));
                 } else if (trailing) {
                     response = await this.contractPrivatePostSwapApiV1SwapTrackHisorders (this.extend (request, paramsUntil));
@@ -4152,7 +4152,7 @@ export default class htx extends Exchange {
                 request['symbol'] = market['settleId'];
                 if (trigger === true) {
                     response = await this.contractPrivatePostApiV1ContractTriggerHisorders (this.extend (request, paramsUntil));
-                } else if (stopLossTakeProfit === true) {
+                } else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostApiV1ContractTpslHisorders (this.extend (request, paramsUntil));
                 } else if (trailing) {
                     response = await this.contractPrivatePostApiV1ContractTrackHisorders (this.extend (request, paramsUntil));
@@ -4177,11 +4177,11 @@ export default class htx extends Exchange {
         const market = this.market (symbol);
         if (market['linear'] === true) {
             const trigger = this.safeBool2 (params, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
-            const stopLoss = this.safeBool (params, 'stopLoss');
-            const takeProfit = this.safeBool (params, 'takeProfit');
+            const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit', false);
+            const stopLoss = this.safeBool (params, 'stopLoss', false);
+            const takeProfit = this.safeBool (params, 'takeProfit', false);
             const trailing = this.safeBool (params, 'trailing', false);
-            const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing));
+            const isAlgo = ((trigger === true) || stopLoss || takeProfit || stopLossTakeProfit || (trailing));
             if (isAlgo) {
                 request['states'] = 'effective';
             } else {
@@ -4275,11 +4275,11 @@ export default class htx extends Exchange {
             const request: Dict = {};
             if (this.safeBool (market, 'linear', false)) {
                 const trigger = this.safeBool2 (paramsMarketType, 'stop', 'trigger');
-                const stopLossTakeProfit = this.safeBool (paramsMarketType, 'stopLossTakeProfit');
-                const stopLoss = this.safeBool (paramsMarketType, 'stopLoss');
-                const takeProfit = this.safeBool (paramsMarketType, 'takeProfit');
+                const stopLossTakeProfit = this.safeBool (paramsMarketType, 'stopLossTakeProfit', false);
+                const stopLoss = this.safeBool (paramsMarketType, 'stopLoss', false);
+                const takeProfit = this.safeBool (paramsMarketType, 'takeProfit', false);
                 const trailing = this.safeBool (paramsMarketType, 'trailing', false);
-                const isAlgo = ((trigger === true) || (stopLoss === true) || (takeProfit === true) || (stopLossTakeProfit === true) || (trailing));
+                const isAlgo = ((trigger === true) || stopLoss || takeProfit || stopLossTakeProfit || (trailing));
                 if (isAlgo) {
                     request['states'] = 'canceled';
                 } else {
@@ -4399,22 +4399,22 @@ export default class htx extends Exchange {
                 }
             }
             const trigger = this.safeBool2 (paramsSubType, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit');
-            const stopLoss = this.safeBool (paramsSubType, 'stopLoss');
-            const takeProfit = this.safeBool (paramsSubType, 'takeProfit');
+            const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit', false);
+            const stopLoss = this.safeBool (paramsSubType, 'stopLoss', false);
+            const takeProfit = this.safeBool (paramsSubType, 'takeProfit', false);
             const trailing = this.safeBool (paramsSubType, 'trailing', false);
             const paramsOmitted: Dict = this.omit (paramsSubType, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
             if (isLinear) {
-                if ((trigger === true) || (trailing) || (stopLossTakeProfit === true) || (stopLoss === true) || (takeProfit === true)) {
+                if ((trigger === true) || (trailing) || stopLossTakeProfit || stopLoss || takeProfit) {
                     if (trigger === true) {
                         request['type'] = 'trigger';
                     } else if (trailing) {
                         request['type'] = 'trailing_stop';
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         request['type'] = 'tpsl';
-                    } else if (stopLoss === true) {
+                    } else if (stopLoss) {
                         request['type'] = 'sl';
-                    } else if (takeProfit === true) {
+                    } else if (takeProfit) {
                         request['type'] = 'tp';
                     }
                     response = await this.contractPrivateGetV5AlgoOrderOpens (this.extend (request, paramsOmitted));
@@ -4425,7 +4425,7 @@ export default class htx extends Exchange {
                 if (marketType === 'swap') {
                     if (trigger === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOpenorders (this.extend (request, paramsOmitted));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslOpenorders (this.extend (request, paramsOmitted));
                     } else if (trailing) {
                         response = await this.contractPrivatePostSwapApiV1SwapTrackOpenorders (this.extend (request, paramsOmitted));
@@ -4436,7 +4436,7 @@ export default class htx extends Exchange {
                     request['symbol'] = this.safeString (market, 'settleId', 'usdt');
                     if (trigger === true) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders (this.extend (request, paramsOmitted));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslOpenorders (this.extend (request, paramsOmitted));
                     } else if (trailing) {
                         response = await this.contractPrivatePostApiV1ContractTrackOpenorders (this.extend (request, paramsOmitted));
@@ -5997,7 +5997,7 @@ export default class htx extends Exchange {
             // 'symbol': market['settleId'],
         };
         const trigger = this.safeBool2 (paramsMarketType, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeBool (paramsMarketType, 'stopLossTakeProfit');
+        const stopLossTakeProfit = this.safeBool (paramsMarketType, 'stopLossTakeProfit', false);
         let query: Dict = this.omit (paramsMarketType, [ 'stop', 'stopLossTakeProfit', 'trigger' ]);
         let response = undefined;
         if (marketType === 'spot') {
@@ -6052,7 +6052,7 @@ export default class htx extends Exchange {
                 if (this.safeBool (market, 'swap', false)) {
                     if (trigger === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel (this.extend (request, query));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancel (this.extend (request, query));
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapCancel (this.extend (request, query));
@@ -6060,7 +6060,7 @@ export default class htx extends Exchange {
                 } else if (this.safeBool (market, 'future', false)) {
                     if (trigger === true) {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancel (this.extend (request, query));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslCancel (this.extend (request, query));
                     } else {
                         response = await this.contractPrivatePostApiV1ContractCancel (this.extend (request, query));
@@ -6143,7 +6143,7 @@ export default class htx extends Exchange {
         //         "ts": 1780822053167
         //     }
         //
-        if ((this.safeBool (market, 'linear', false)) && (trigger !== true) && (stopLossTakeProfit !== true)) {
+        if ((this.safeBool (market, 'linear', false)) && (trigger !== true) && !stopLossTakeProfit) {
             return this.parseCancelOrders (response) as Order[];
         }
         const data = this.safeDict (response, 'data');
@@ -6306,7 +6306,7 @@ export default class htx extends Exchange {
             }
             request['contract_code'] = this.safeString (market, 'id');
             const trigger = this.safeBool2 (paramsMarketType, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeBool (paramsMarketType, 'stopLossTakeProfit');
+            const stopLossTakeProfit = this.safeBool (paramsMarketType, 'stopLossTakeProfit', false);
             const trailing = this.safeBool (paramsMarketType, 'trailing', false);
             const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
             if (this.safeBool (market, 'linear', false)) {
@@ -6330,7 +6330,7 @@ export default class htx extends Exchange {
                 if (this.safeBool (market, 'swap', false)) {
                     if (trigger === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancelall (this.extend (request, paramsOmitted));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancelall (this.extend (request, paramsOmitted));
                     } else if (trailing) {
                         response = await this.contractPrivatePostSwapApiV1SwapTrackCancelall (this.extend (request, paramsOmitted));
@@ -6340,7 +6340,7 @@ export default class htx extends Exchange {
                 } else if (this.safeBool (market, 'future', false)) {
                     if (trigger === true) {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancelall (this.extend (request, paramsOmitted));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslCancelall (this.extend (request, paramsOmitted));
                     } else if (trailing) {
                         response = await this.contractPrivatePostApiV1ContractTrackCancelall (this.extend (request, paramsOmitted));
@@ -6361,7 +6361,7 @@ export default class htx extends Exchange {
             //         "ts": "1683435723755"
             //     }
             //
-            if ((this.safeBool (market, 'linear', false)) && ((trigger !== true) && (!trailing) && (stopLossTakeProfit !== true))) {
+            if ((this.safeBool (market, 'linear', false)) && ((trigger !== true) && (!trailing) && !stopLossTakeProfit)) {
                 return this.parseCancelOrders (response) as Order[];
             }
             const data = this.safeDict (response, 'data');

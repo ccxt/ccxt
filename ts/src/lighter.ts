@@ -674,7 +674,7 @@ export default class lighter extends Exchange {
         const accountIndexStr = this.numberToString (accountIndex);
         const isStandardTier = this.safeBool (tiersForAccountIndexes, accountIndexStr);
         if (isStandardTier !== undefined) {
-            const cachedIsStandard: boolean = (isStandardTier === true);
+            const cachedIsStandard: boolean = isStandardTier;
             return cachedIsStandard;
         }
         const accountLimits = await this.privateGetAccountLimits ({ 'account_index': accountIndex });
@@ -2397,7 +2397,7 @@ export default class lighter extends Exchange {
         const isAskAsInteger = this.safeInteger (order, 'is_ask');
         let side: Str = undefined;
         if (isAsk !== undefined) {
-            side = (isAsk === true) ? 'sell' : 'buy';
+            side = isAsk ? 'sell' : 'buy';
         } else if (isAskAsInteger !== undefined) {
             side = (isAskAsInteger === 1) ? 'sell' : 'buy';
         }
@@ -3119,7 +3119,7 @@ export default class lighter extends Exchange {
         }
         let takerOrMaker: Str = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {
-            const isMaker = (side === 'sell') ? (isMakerAsk === true) : (isMakerAsk === false);
+            const isMaker = (side === 'sell') ? isMakerAsk : !isMakerAsk;
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade ({

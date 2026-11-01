@@ -279,7 +279,7 @@ export default class binance extends binanceRest {
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (baseUrl.endsWith ('/ws') === true) {
+            if (baseUrl.endsWith ('/ws')) {
                 const prefix = baseUrl.slice (0, baseUrl.length - 3);
                 return prefix + '/' + category + '/ws';
             }

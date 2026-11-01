@@ -1859,15 +1859,15 @@ export default class hollaex extends Exchange {
         }
         const currencyId = this.safeString (transaction, 'currency');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
-        const completed = this.safeBool (transaction, 'status');
-        const dismissed = this.safeBool (transaction, 'dismissed');
-        const rejected = this.safeBool (transaction, 'rejected');
+        const completed = this.safeBool (transaction, 'status', false);
+        const dismissed = this.safeBool (transaction, 'dismissed', false);
+        const rejected = this.safeBool (transaction, 'rejected', false);
         let status: Str = undefined;
-        if (completed === true) {
+        if (completed) {
             status = 'ok';
-        } else if (dismissed === true) {
+        } else if (dismissed) {
             status = 'canceled';
-        } else if (rejected === true) {
+        } else if (rejected) {
             status = 'failed';
         } else {
             status = 'pending';
@@ -1996,8 +1996,8 @@ export default class hollaex extends Exchange {
             },
         };
         const networks: Dict = {};
-        const allowWithdrawal = this.safeBool (fee, 'allow_withdrawal');
-        if (allowWithdrawal === true) {
+        const allowWithdrawal = this.safeBool (fee, 'allow_withdrawal', false);
+        if (allowWithdrawal) {
             result['withdraw'] = { 'fee': this.safeNumber (fee, 'withdrawal_fee'), 'percentage': false };
         }
         const withdrawalFees = this.safeDict (fee, 'withdrawal_fees');

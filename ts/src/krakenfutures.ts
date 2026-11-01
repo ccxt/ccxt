@@ -1226,9 +1226,9 @@ export default class krakenfutures extends Exchange {
         const type = this.parseOrderType (rawType); // undefined stays undefined
         const marketResolved: Market = this.safeMarket (marketId, market);
         let cost: Str = undefined;
-        const linear = this.safeBool (marketResolved, 'linear');
+        const linear = this.safeBool (marketResolved, 'linear', false);
         if ((amount !== undefined) && (price !== undefined) && (marketResolved !== undefined)) {
-            if (linear === true) {
+            if (linear) {
                 cost = Precise.stringMul (amount, price); // in quote
             } else {
                 cost = Precise.stringDiv (amount, price); // in base
@@ -1280,7 +1280,7 @@ export default class krakenfutures extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': (linear === true) ? amount : undefined,
+            'amount': linear ? amount : undefined,
             'cost': cost,
             'fee': fee,
         });
@@ -1324,8 +1324,8 @@ export default class krakenfutures extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const triggerSignal = this.safeString (paramsPostOnly, 'triggerSignal', 'last');
-        const reduceOnlyParam = this.safeBool (paramsPostOnly, 'reduceOnly');
-        let reduceOnly = (reduceOnlyParam === true);
+        const reduceOnlyParam = this.safeBool (paramsPostOnly, 'reduceOnly', false);
+        let reduceOnly = reduceOnlyParam;
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
             request['triggerSignal'] = triggerSignal;
         }

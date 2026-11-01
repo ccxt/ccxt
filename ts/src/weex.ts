@@ -2375,8 +2375,8 @@ export default class weex extends Exchange {
         if (isTrigger && (isStopLoss || isTakeProfit)) {
             throw new BadRequest (this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
-        const reduceOnly = this.safeBool (query, 'reduceOnly');
-        const isReduceOnly = isStopLoss || isTakeProfit || (reduceOnly === true);
+        const reduceOnly = this.safeBool (query, 'reduceOnly', false);
+        const isReduceOnly = isStopLoss || isTakeProfit || reduceOnly;
         let positionSide = 'LONG';
         if (isReduceOnly) {
             if (side === 'buy') {

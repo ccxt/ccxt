@@ -3232,8 +3232,8 @@ export default class okx extends Exchange {
         if (!shouldOmitSize) {
             request['sz'] = this.amountToPrecision (symbol, amount);
         }
-        const spot = this.safeBool (market, 'spot');
-        const contract = this.safeBool (market, 'contract');
+        const spot = this.safeBool (market, 'spot', false);
+        const contract = this.safeBool (market, 'contract', false);
         const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -3260,9 +3260,9 @@ export default class okx extends Exchange {
             marginMode = defaultMarginMode;
         }
         const marginParam = this.safeBool (params, 'margin', false);
-        const margin = marginModeIsExplicit || (marginParam === true);
+        const margin = marginModeIsExplicit || marginParam;
         // position side / hedged options only apply to swap and future orders
-        const isSwapOrFuture = (contract === true) && ((market['swap'] === true) || (market['future'] === true));
+        const isSwapOrFuture = contract && ((market['swap'] === true) || (market['future'] === true));
         const [ positionSide, paramsPositionSide ] = this.handleOptionStringAndParams (params, 'createOrder', 'positionSide');
         let paramsSwapOrFuture: Dict = params;
         if (isSwapOrFuture) {
@@ -3279,7 +3279,7 @@ export default class okx extends Exchange {
         if (omitReduceOnly) {
             paramsReduceOnly = this.omit (paramsHedged, 'reduceOnly');
         }
-        if (spot === true) {
+        if (spot) {
             if (margin) {
                 const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
                 const currency = this.safeString (params, 'ccy', defaultCurrency);
@@ -3287,7 +3287,7 @@ export default class okx extends Exchange {
             }
             const tradeMode = (margin) ? marginMode : 'cash';
             request['tdMode'] = tradeMode;
-        } else if (contract === true) {
+        } else if (contract) {
             if ((market['swap'] === true) || (market['future'] === true)) {
                 if (positionSide !== undefined) {
                     request['posSide'] = positionSide;
@@ -3317,12 +3317,12 @@ export default class okx extends Exchange {
         const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString (orderParams, 'tgtCcy', defaultTgtCcy);
         // conditional sell orders must not carry tgtCcy
-        if ((contract !== true) && (!margin) && (trigger || (!conditional) || (side !== 'sell'))) {
+        if (!contract && (!margin) && (trigger || (!conditional) || (side !== 'sell'))) {
             request['tgtCcy'] = tgtCcy;
         }
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
-            if ((spot === true) && (side === 'buy')) {
+            if (spot && (side === 'buy')) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
@@ -3347,7 +3347,7 @@ export default class okx extends Exchange {
                     request['sz'] = this.costToPrecision (symbol, notional);
                 }
             }
-            if (marketIOC && (contract === true)) {
+            if (marketIOC && contract) {
                 request['ordType'] = 'optimal_limit_ioc';
             }
         } else {
@@ -3468,7 +3468,7 @@ export default class okx extends Exchange {
             if (twoWayCondition) {
                 request['ordType'] = 'oco';
             }
-            if ((spot === true) && (!margin)) {
+            if (spot && (!margin)) {
                 // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
                 request['tdMode'] = marginMode;
@@ -9627,13 +9627,13 @@ export default class okx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const auto = this.safeBool (params, 'auto');
+        const auto = this.safeBool (params, 'auto', false);
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMarginAdjustmentHistory () requires a type argument');
         }
         const isAdd = type === 'add';
         let subType = isAdd ? '160' : '161';
-        if (auto === true) {
+        if (auto) {
             if (isAdd) {
                 subType = '162';
             } else {

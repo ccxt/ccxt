@@ -3643,7 +3643,7 @@ class testMainClass {
             const query = this.urlencodedToDict (urlParts[1]);
             clientOrderId = query['label'];
         }
-        assert (clientOrderId !== undefined && clientOrderId.startsWith (id.toString ()) === true, 'clientOrderId does not start with id');
+        assert (clientOrderId !== undefined && clientOrderId.startsWith (id.toString ()), 'clientOrderId does not start with id');
         if (!isSync ()) {
             await close (exchange);
         }

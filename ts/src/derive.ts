@@ -1035,7 +1035,7 @@ export default class derive extends Exchange {
         let value: Str = undefined;
         const isOption = this.safeBool (market, 'option', false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if ((market !== undefined) && (isOption !== true)) {
+        if ((market !== undefined) && !isOption) {
             value = Precise.stringMul (amount, this.safeString (interest, 'M'));
         }
         return this.safeOpenInterest ({
@@ -2813,10 +2813,10 @@ export default class derive extends Exchange {
         const filled = this.safeString (order, 'filled_amount');
         const fee = this.safeString (order, 'order_fee');
         const orderType = this.safeStringLower (order, 'order_type');
-        const isBid = this.safeBool (order, 'is_bid');
+        const isBid = this.safeBool (order, 'is_bid', false);
         let side = this.safeString (order, 'direction');
         if (side === undefined) {
-            if (isBid === true) {
+            if (isBid) {
                 side = 'buy';
             } else {
                 side = 'sell';

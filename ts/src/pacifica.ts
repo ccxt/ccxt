@@ -2777,7 +2777,7 @@ export default class pacifica extends Exchange {
         const rawIsolated = this.safeBool (position, 'isolated');
         let isIsolated: boolean = (margin !== undefined) && (margin !== '0');
         if (rawIsolated !== undefined) {
-            isIsolated = (rawIsolated === true);
+            isIsolated = rawIsolated;
         }
         const marginMode = isIsolated ? 'isolated' : 'cross';
         let side = this.safeString (position, 'side');

@@ -1708,7 +1708,7 @@ export default class predictfun extends Exchange {
     override setSandboxMode (enable: boolean) {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        const wasSandbox = (this.safeBool (this.options, 'sandboxMode', false) === true);
+        const wasSandbox = this.safeBool (this.options, 'sandboxMode', false);
         super.setSandboxMode (enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
@@ -1969,9 +1969,9 @@ export default class predictfun extends Exchange {
         const marketFeeRateBps = this.safeString (marketRow, 'feeRateBps', '200');  // should be at least 200
         const feeRateBps = this.safeString (paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', marketFeeRateBps);
         const marketIsNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
-        const isNegRisk = (this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk) === true);
+        const isNegRisk = this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk);
         const marketIsYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
-        const isYieldBearing = (this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing) === true);
+        const isYieldBearing = this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing);
         const defaultExpiration = this.safeInteger (this.options, 'defaultExpiration', 3600); // 1 hour
         let expirationDelta = defaultExpiration;
         let expiration = this.safeInteger (paramsWarnOnMarketOrderWithoutPrice, 'expiration');
@@ -2823,8 +2823,8 @@ export default class predictfun extends Exchange {
             const marketSymbol = this.safeString (outcomeObj, 'market');
             const marketObj: Dict = this.safeDict (this.markets, marketSymbol, {});
             const marketRow: Dict = this.safeDict (marketObj, 'info', {});
-            isNegRisk = (this.safeBool (marketRow, 'isNegRisk', false) === true);
-            isYieldBearing = (this.safeBool (marketRow, 'isYieldBearing', false) === true);
+            isNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
+            isYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
         }
         if (side === 'sell') {
             const ctfToken = this.safeString (params, 'token', this.conditionalTokensAddress (isNegRisk, isYieldBearing));

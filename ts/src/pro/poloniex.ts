@@ -154,7 +154,7 @@ export default class poloniex extends poloniexRest {
      */
     async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: Strings = undefined, params: Dict = {}) {
         let publicOrPrivate: Str = 'public';
-        if (isPrivate === true) {
+        if (isPrivate) {
             publicOrPrivate = 'private';
         }
         const url = this.safeString (this.urls['api']['ws'], publicOrPrivate);
@@ -1555,9 +1555,9 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeDict (message, 'data');
-        const success = this.safeBool (data, 'success');
+        const success = this.safeBool (data, 'success', false);
         const messageHash = 'authenticated';
-        if (success === true) {
+        if (success) {
             client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));

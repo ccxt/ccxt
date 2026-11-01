@@ -4226,7 +4226,7 @@ export default class phemex extends Exchange {
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         const apiUnrealizedPnl = this.safeString (position, 'unRealisedPnlRv', unrealizedPnl);
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
-        const isCross = this.safeBool (position, 'crossMargin');
+        const isCross = this.safeBool (position, 'crossMargin', false);
         const timestamp = this.safeInteger (position, 'openedTimeNs');
         const lastUpdateTimestamp = this.safeInteger (position, 'updatedTimeNs', this.safeIntegerProduct (position, 'transactTimeNs', 0.000001));
         return this.safePosition ({
@@ -4253,7 +4253,7 @@ export default class phemex extends Exchange {
             'marginRatio': this.parseNumber (marginRatio),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'marginMode': (isCross === true) ? 'cross' : 'isolated',
+            'marginMode': isCross ? 'cross' : 'isolated',
             'side': side,
             'hedged': this.safeString (position, 'posMode') === 'Hedged',
             'percentage': undefined,
@@ -4526,8 +4526,8 @@ export default class phemex extends Exchange {
         //     }
         //
         const marketResolved: Market = this.safeMarket (undefined, market);
-        const inverse = this.safeBool (marketResolved, 'inverse');
-        const codeCurrency = (inverse === true) ? 'base' : 'quote';
+        const inverse = this.safeBool (marketResolved, 'inverse', false);
+        const codeCurrency = inverse ? 'base' : 'quote';
         return {
             'info': data,
             'symbol': this.safeSymbol (undefined, marketResolved),
@@ -4612,7 +4612,7 @@ export default class phemex extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (hedged === true) {
+        if (hedged) {
             request['targetPosMode'] = 'Hedged';
         } else {
             request['targetPosMode'] = 'OneWay';

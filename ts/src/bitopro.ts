@@ -698,8 +698,8 @@ export default class bitopro extends Exchange {
         const type = this.safeStringLower (trade, 'type');
         let side = this.safeStringLower (trade, 'action');
         if (side === undefined) {
-            const isBuyer = this.safeBool (trade, 'isBuyer');
-            if (isBuyer === true) {
+            const isBuyer = this.safeBool (trade, 'isBuyer', false);
+            if (isBuyer) {
                 side = 'buy';
             } else {
                 side = 'sell';

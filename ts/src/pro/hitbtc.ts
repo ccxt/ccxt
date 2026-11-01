@@ -1466,9 +1466,9 @@ export default class hitbtc extends hitbtcRest {
         //        "result": true
         //    }
         //
-        const success = this.safeBool (message, 'result');
+        const success = this.safeBool (message, 'result', false);
         const messageHash = 'authenticated';
-        if (success === true) {
+        if (success) {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {

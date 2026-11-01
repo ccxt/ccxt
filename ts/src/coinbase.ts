@@ -1185,8 +1185,8 @@ export default class coinbase extends Exchange {
         const amountStringAbs = Precise.stringAbs (amountString);
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         if (status === undefined) {
-            const committed = this.safeBool (transaction, 'committed');
-            status = (committed === true) ? 'ok' : 'pending';
+            const committed = this.safeBool (transaction, 'committed', false);
+            status = committed ? 'ok' : 'pending';
         }
         const id = this.safeString (transaction, 'id');
         const currencyId = this.safeString (amountAndCurrencyObject, 'currency');
@@ -1312,11 +1312,11 @@ export default class coinbase extends Exchange {
                 }
             }
         }
-        const sizeInQuote = this.safeBool (trade, 'size_in_quote');
+        const sizeInQuote = this.safeBool (trade, 'size_in_quote', false);
         const v3Price = this.safeString (trade, 'price');
         let v3Cost: Str = undefined;
         let v3Amount = this.safeString (trade, 'size');
-        if (sizeInQuote === true) {
+        if (sizeInQuote) {
             // calculate base size
             v3Cost = v3Amount;
             v3Amount = Precise.stringDiv (v3Amount, v3Price);
@@ -1675,7 +1675,7 @@ export default class coinbase extends Exchange {
             return undefined;
         }
         const marketType = this.safeStringLower (market, 'product_type');
-        const tradingDisabled = this.safeBool (market, 'trading_disabled');
+        const tradingDisabled = this.safeBool (market, 'trading_disabled', false);
         const stablePairs = this.safeList (this.options, 'stablePairs', []);
         const defaultTakerFee = this.safeNumber (this.fees['trading'], 'taker');
         const defaultMakerFee = this.safeNumber (this.fees['trading'], 'maker');
@@ -1696,7 +1696,7 @@ export default class coinbase extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': tradingDisabled !== true,
+            'active': !tradingDisabled,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -1874,8 +1874,8 @@ export default class coinbase extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        const isDisabled = this.safeBool (market, 'is_disabled');
-        const tradingDisabled = (isDisabled === true) || (this.safeBool (market, 'trading_disabled') === true);
+        const isDisabled = this.safeBool (market, 'is_disabled', false);
+        const tradingDisabled = isDisabled || this.safeBool (market, 'trading_disabled', false);
         let symbol = base + '/' + quote;
         let type: Str = undefined;
         if (isSwap) {
@@ -3153,8 +3153,8 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'side': (side as string).toUpperCase (),
         };
-        const reduceOnly = this.safeBool (params, 'reduceOnly');
-        if (reduceOnly === true) {
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        if (reduceOnly) {
             return await this.closePosition (symbol, side, this.extend (this.omit (params, 'reduceOnly'), { 'amount': amount }));
         }
         let paramsMarketBuy = undefined;
@@ -3350,8 +3350,8 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const success = this.safeBool (response, 'success');
-        if (success !== true) {
+        const success = this.safeBool (response, 'success', false);
+        if (!success) {
             const errorResponse = this.safeDict (response, 'error_response');
             const errorTitle = this.safeString (errorResponse, 'error');
             const errorMessage = this.safeString (errorResponse, 'message');
@@ -3589,8 +3589,8 @@ export default class coinbase extends Exchange {
         //
         const orders: Dict[] = this.safeList (response, 'results', []);
         for (let i = 0; i < orders.length; i++) {
-            const success = this.safeBool (orders[i], 'success');
-            if (success !== true) {
+            const success = this.safeBool (orders[i], 'success', false);
+            if (!success) {
                 throw new BadRequest (this.id + ' cancelOrders() has failed, check your arguments and parameters');
             }
         }
@@ -5475,8 +5475,8 @@ export default class coinbase extends Exchange {
                 }
             }
         }
-        const advancedTrade = this.safeBool (this.options, 'advanced');
-        if (!('data' in response) && (advancedTrade !== true)) {
+        const advancedTrade = this.safeBool (this.options, 'advanced', false);
+        if (!('data' in response) && !advancedTrade) {
             throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
         return undefined;

@@ -549,7 +549,7 @@ export default class bitget extends bitgetRest {
         const isStock = market['stock'];
         const paramsStock = this.omit (paramsUta, 'stock');
         const isStockSpot = isStock && (market['spot'] === true);
-        const isStockOrUta = (isStockSpot || (uta === true));
+        const isStockOrUta = (isStockSpot || uta);
         const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
         if (isStockOrUta) {
@@ -603,7 +603,7 @@ export default class bitget extends bitgetRest {
         const isStock = market['stock'];
         const paramsStock = this.omit (params, 'stock');
         const isStockSpot = isStock && market['spot'];
-        const isStockOrUta = (isStockSpot || (uta === true));
+        const isStockOrUta = (isStockSpot || uta);
         const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
         if (isStockOrUta) {
@@ -757,7 +757,7 @@ export default class bitget extends bitgetRest {
         //
         let volumeIndex = 5;
         const isInverse = this.safeBool (market, 'inverse', false);
-        if (isInverse === true) {
+        if (isInverse) {
             volumeIndex = 6;
         }
         const timestamp = this.safeInteger2 (ohlcv, 'start', 0);
@@ -815,7 +815,7 @@ export default class bitget extends bitgetRest {
         const paramsStock = this.omit (params, 'stock');
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsStock, 'unWatchOrderBook', 'uta', false);
         const isStockSpot = isStock && market['spot'];
-        const isStockOrUta = (isStockSpot || (uta === true));
+        const isStockOrUta = (isStockSpot || uta);
         let paramsRequest = paramsUta;
         if (isStockOrUta) {
             paramsRequest = this.extend (paramsUta, { 'uta': true });
@@ -892,7 +892,7 @@ export default class bitget extends bitgetRest {
         }
         const paramsStock = this.omit (params, 'stock');
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsStock, 'watchOrderBookForSymbols', 'uta', false);
-        const isStockOrUta = (isStockSpot || (uta === true));
+        const isStockOrUta = (isStockSpot || uta);
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
@@ -2449,7 +2449,7 @@ export default class bitget extends bitgetRest {
     override async watchBalance (params: Dict = {}): Promise<Balances> {
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'uta', false);
         const [ stock, paramsStock ] = this.handleOptionBoolAndParams (paramsUta, 'watchBalance', 'stock', false);
-        const isStockOrUta = ((stock === true) || (uta === true));
+        const isStockOrUta = (stock || uta);
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, paramsStock);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('watchBalance', paramsMarketType);
         let instTypeDefault: Str = undefined;
@@ -2642,12 +2642,12 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPublic (uta: boolean, messageHash: string, args: Dict, params: Dict = {}) {
-        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = uta ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode) {
             const instType = this.safeString (args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta === true) {
+                if (uta) {
                     url = this.urls['api']['demo']['utaPublic'];
                 } else {
                     url = this.urls['api']['demo']['public'];
@@ -2663,12 +2663,12 @@ export default class bitget extends bitgetRest {
     }
 
     async unWatchPublic (uta: boolean, messageHash: string, args: Dict, params: Dict = {}) {
-        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = uta ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode) {
             const instType = this.safeString (args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta === true) {
+                if (uta) {
                     url = this.urls['api']['demo']['utaPublic'];
                 } else {
                     url = this.urls['api']['demo']['public'];
@@ -2707,13 +2707,13 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPublicMultiple (uta: boolean, messageHashes: string[], argsArray: any[], params: Dict = {}) {
-        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = uta ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode) {
             const argsArrayFirst = this.safeDict (argsArray, 0, {});
             const instType = this.safeString (argsArrayFirst, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                url = (uta === true) ? this.urls['api']['demo']['utaPublic'] : this.urls['api']['demo']['public'];
+                url = uta ? this.urls['api']['demo']['utaPublic'] : this.urls['api']['demo']['public'];
             }
         }
         const request: Dict = {
@@ -2754,12 +2754,12 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPrivate (uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params: Dict = {}) {
-        let url = (uta === true) ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
+        let url = uta ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode) {
             const instType = this.safeString (args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta === true) {
+                if (uta) {
                     url = this.urls['api']['demo']['utaPrivate'];
                 } else {
                     url = this.urls['api']['demo']['private'];

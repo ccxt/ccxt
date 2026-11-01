@@ -1265,7 +1265,7 @@ export default class gate extends Exchange {
                 this.options['unifiedAccount'] = false;
             }
         }
-        const unified = this.safeBool (this.options, 'unifiedAccount') === true;
+        const unified = this.safeBool (this.options, 'unifiedAccount', false);
         return unified;
     }
 
@@ -1831,13 +1831,13 @@ export default class gate extends Exchange {
                 }
                 const expiry = this.safeTimestamp (market, 'expiration_time');
                 const strike = this.safeString (market, 'strike_price', '');
-                const isCall = this.safeBool (market, 'is_call');
+                const isCall = this.safeBool (market, 'is_call', false);
                 let optionLetter: Str = 'P';
-                if (isCall === true) {
+                if (isCall) {
                     optionLetter = 'C';
                 }
                 let optionType: Str = 'put';
-                if (isCall === true) {
+                if (isCall) {
                     optionType = 'call';
                 }
                 const symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter;
@@ -2587,22 +2587,22 @@ export default class gate extends Exchange {
         //        "futures_maker_fee": "0"
         //    }
         //
-        const gtDiscount = this.safeBool (info, 'gt_discount');
+        const gtDiscount = this.safeBool (info, 'gt_discount', false);
         let taker: Str = 'taker_fee';
-        if (gtDiscount === true) {
+        if (gtDiscount) {
             taker = 'gt_taker_fee';
         }
         let maker: Str = 'maker_fee';
-        if (gtDiscount === true) {
+        if (gtDiscount) {
             maker = 'gt_maker_fee';
         }
-        const contract = this.safeBool (market, 'contract');
+        const contract = this.safeBool (market, 'contract', false);
         let takerKey: Str = taker;
-        if (contract === true) {
+        if (contract) {
             takerKey = 'futures_taker_fee';
         }
         let makerKey: Str = maker;
-        if (contract === true) {
+        if (contract) {
             makerKey = 'futures_maker_fee';
         }
         return {
@@ -4714,8 +4714,8 @@ export default class gate extends Exchange {
         let signedAmount: Str = undefined;
         let useGateFuturesDecimalSize = false;
         if (contract === true) {
-            const isClose = this.safeBool (query, 'close');
-            if (isClose !== true) {
+            const isClose = this.safeBool (query, 'close', false);
+            if (!isClose) {
                 signedAmount = this.getGateFuturesSignedAmount (symbol, side, amount);
                 useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize (market);
                 if (!useGateFuturesDecimalSize) {
@@ -8360,11 +8360,11 @@ export default class gate extends Exchange {
         }
         const request: Dict = {};
         let response: Dict;
-        const isUnified = this.safeBool (params, 'unified');
+        const isUnified = this.safeBool (params, 'unified', false);
         const paramsOmitted: Dict = this.omit (params, 'unified');
         if (this.safeBool (market, 'spot', false)) {
             request['currency_pair'] = this.safeString (market, 'id');
-            if (isUnified === true) {
+            if (isUnified) {
                 response = await this.publicMarginGetUniCurrencyPairsCurrencyPair (this.extend (request, paramsOmitted));
                 //
                 //     {
@@ -8389,7 +8389,7 @@ export default class gate extends Exchange {
                 //     }
                 //
             }
-        } else if (isUnified === true) {
+        } else if (isUnified) {
             response = await this.privateUnifiedGetAccounts (this.extend (request, paramsOmitted));
             //
             //     {
@@ -8463,10 +8463,10 @@ export default class gate extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         let response: Dict | List;
-        const isUnified = this.safeBool (params, 'unified');
+        const isUnified = this.safeBool (params, 'unified', false);
         const paramsOmitted: Dict = this.omit (params, 'unified');
         let marketIdRequest = 'id';
-        if (isUnified === true) {
+        if (isUnified) {
             marketIdRequest = 'currency_pair';
             response = await this.publicMarginGetUniCurrencyPairs (paramsOmitted);
             //

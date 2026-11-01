@@ -796,8 +796,8 @@ export default class cryptocom extends Exchange {
             const settle = spot ? undefined : this.safeCurrencyCode (settleId);
             const optionType = this.safeStringLower (market, 'put_call');
             const strike = this.safeString (market, 'strike');
-            const marginBuyEnabled = this.safeBool (market, 'margin_buy_enabled');
-            const marginSellEnabled = this.safeBool (market, 'margin_sell_enabled');
+            const marginBuyEnabled = this.safeBool (market, 'margin_buy_enabled', false);
+            const marginSellEnabled = this.safeBool (market, 'margin_sell_enabled', false);
             const expiryRaw = this.safeInteger (market, 'expiry_timestamp_ms');
             const expiry = (expiryRaw === 0) ? undefined : expiryRaw;
             let symbol: string = base + '/' + quote;
@@ -833,7 +833,7 @@ export default class cryptocom extends Exchange {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': ((marginBuyEnabled === true) || (marginSellEnabled === true)),
+                'margin': (marginBuyEnabled || marginSellEnabled),
                 'swap': swap,
                 'future': future,
                 'option': option,
@@ -3576,13 +3576,13 @@ export default class cryptocom extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.safeString (this.symbols, i, '');
             const market = this.market (symbol);
-            const isSwap = this.safeBool (market, 'swap');
+            const isSwap = this.safeBool (market, 'swap', false);
             let takerFeeKey: Str = 'effective_spot_taker_rate_bps';
-            if (isSwap === true) {
+            if (isSwap) {
                 takerFeeKey = 'effective_deriv_taker_rate_bps';
             }
             let makerFeeKey: Str = 'effective_spot_maker_rate_bps';
-            if (isSwap === true) {
+            if (isSwap) {
                 makerFeeKey = 'effective_deriv_maker_rate_bps';
             }
             const tradingFee = {

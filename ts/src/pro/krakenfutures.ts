@@ -840,8 +840,8 @@ export default class krakenfutures extends krakenfuturesRest {
                 client.resolve (orders, messageHash);
             }
         } else {
-            const isCancel = this.safeBool (message, 'is_cancel');
-            if (isCancel === true) {
+            const isCancel = this.safeBool (message, 'is_cancel', false);
+            if (isCancel) {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
                 // mapping every removal to canceled. Preserve reason on info
@@ -1657,7 +1657,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const timestamp = this.safeInteger (trade, 'time');
         const marketId = this.safeString (trade, 'instrument');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const isBuy = this.safeBool (trade, 'buy');
+        const isBuy = this.safeBool (trade, 'buy', false);
         const feeCurrencyId = this.safeString (trade, 'fee_currency');
         return this.safeTrade ({
             'info': trade,
@@ -1667,7 +1667,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'symbol': this.safeString (marketResolved, 'symbol'),
             'order': this.safeString (trade, 'order_id'),
             'type': this.safeString (trade, 'type'),
-            'side': (isBuy === true) ? 'buy' : 'sell',
+            'side': isBuy ? 'buy' : 'sell',
             'takerOrMaker': this.safeString (trade, 'fill_type'),
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'qty'),

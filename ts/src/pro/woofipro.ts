@@ -613,8 +613,8 @@ export default class woofipro extends woofiproRest {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeBool (message, 'success');
-        if (success === true) {
+        const success = this.safeBool (message, 'success', false);
+        if (success) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
@@ -1319,8 +1319,8 @@ export default class woofipro extends woofiproRest {
         if (!('success' in message)) {
             return false;
         }
-        const success = this.safeBool (message, 'success');
-        if (success === true) {
+        const success = this.safeBool (message, 'success', false);
+        if (success) {
             return false;
         }
         const errorMessage = this.safeString (message, 'errorMsg');
@@ -1345,7 +1345,7 @@ export default class woofipro extends woofiproRest {
     }
 
     override handleMessage (client: Client, message: Dict) {
-        if (this.handleErrorMessage (client, message) === true) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         const methods: Dict = {

@@ -2978,8 +2978,8 @@ export default class lbank extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const fee = response[i];
-            const canWithdraw = this.safeBool (fee, 'canWithDraw');
-            if (canWithdraw === true) {
+            const canWithdraw = this.safeBool (fee, 'canWithDraw', false);
+            if (canWithdraw) {
                 const code = this.safeCurrencyCode (this.safeString (fee, 'assetCode'));
                 if ((code !== undefined) && (codes === undefined || this.inArray (code, codes))) {
                     const withdrawFee = this.safeNumber (fee, 'fee');
@@ -3055,9 +3055,9 @@ export default class lbank extends Exchange {
             const networkEntry = this.safeDict (networkList, j);
             const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);
             const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
-            const isDefault = this.safeBool (networkEntry, 'isDefault');
+            const isDefault = this.safeBool (networkEntry, 'isDefault', false);
             if (withdrawFee !== undefined) {
-                if (isDefault === true) {
+                if (isDefault) {
                     result['withdraw'] = {
                         'fee': withdrawFee,
                         'percentage': undefined,

@@ -633,7 +633,7 @@ export default class ndax extends Exchange {
             return undefined;
         }
         const sessionStatus = this.safeString (market, 'SessionStatus');
-        const isDisable = this.safeBool (market, 'IsDisable');
+        const isDisable = this.safeBool (market, 'IsDisable', false);
         const sessionRunning = (sessionStatus === 'Running');
         return this.safeMarketStructure ({
             'id': id,
@@ -650,7 +650,7 @@ export default class ndax extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': (sessionRunning && (isDisable !== true)),
+            'active': (sessionRunning && !isDisable),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,

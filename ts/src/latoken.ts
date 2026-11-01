@@ -1000,10 +1000,10 @@ export default class latoken extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
         const costString = this.safeString (trade, 'cost');
-        const makerBuyer = this.safeBool (trade, 'makerBuyer');
+        const makerBuyer = this.safeBool (trade, 'makerBuyer', false);
         let side = this.safeString (trade, 'direction');
         if (side === undefined) {
-            side = (makerBuyer === true) ? 'sell' : 'buy';
+            side = makerBuyer ? 'sell' : 'buy';
         } else {
             if (side === 'TRADE_DIRECTION_BUY') {
                 side = 'buy';
@@ -1012,7 +1012,7 @@ export default class latoken extends Exchange {
             }
         }
         const isBuy = (side === 'buy');
-        const isMaker = (makerBuyer === true) && isBuy;
+        const isMaker = makerBuyer && isBuy;
         const takerOrMaker = isMaker ? 'maker' : 'taker';
         const baseId = this.safeString (trade, 'baseCurrency');
         const quoteId = this.safeString (trade, 'quoteCurrency');

@@ -3581,9 +3581,9 @@ export default class woo extends Exchange {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeBool (response, 'success');
+        const success = this.safeBool (response, 'success', false);
         const errorCode = this.safeString (response, 'code');
-        if (success !== true) {
+        if (!success) {
             const feedback = this.id + ' ' + this.json (response);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

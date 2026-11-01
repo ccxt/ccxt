@@ -1114,10 +1114,10 @@ export default class hyperliquid extends hyperliquidRest {
         const paramsValue: Dict = this.safeDict (this.handlePublicAddress ('watchBalance', params), 1, params);
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, paramsValue);
         const unifiedResult = await this.isUnifiedEnabled ('watchBalance', userAddress, false, paramsMarketType);
-        const isUnifiedEnabled = this.safeBool (unifiedResult, 0);
+        const isUnifiedEnabled = this.safeBool (unifiedResult, 0, false);
         const paramsValue2: Dict = this.safeDict (unifiedResult, 1, paramsMarketType);
         const dex = this.safeString (paramsValue2, 'dex');
-        const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
+        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
         let topic: Str = 'clearinghouseState';
         if (isSpot) {
             topic = 'spotState';
@@ -1129,7 +1129,7 @@ export default class hyperliquid extends hyperliquidRest {
             'user': userAddress,
         };
         if (isSpot) {
-            if (isUnifiedEnabled === true) {
+            if (isUnifiedEnabled) {
                 subscription['isPortfolioMargin'] = true;
             }
         } else {
@@ -1166,10 +1166,10 @@ export default class hyperliquid extends hyperliquidRest {
         const paramsValue = this.safeDict (this.handlePublicAddress ('unWatchBalance', params), 1, params);
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('unWatchBalance', undefined, paramsValue);
         const unifiedResult = await this.isUnifiedEnabled ('unWatchBalance', userAddress, false, paramsMarketType);
-        const isUnifiedEnabled = this.safeBool (unifiedResult, 0);
+        const isUnifiedEnabled = this.safeBool (unifiedResult, 0, false);
         const paramsValue2 = this.safeDict (unifiedResult, 1, paramsMarketType);
         const dex = this.safeString (paramsValue2, 'dex');
-        const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
+        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
         let topic: Str = 'clearinghouseState';
         if (isSpot) {
             topic = 'spotState';

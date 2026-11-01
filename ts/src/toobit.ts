@@ -1173,16 +1173,16 @@ export default class toobit extends Exchange {
         const timestamp = this.safeInteger2 (trade, 't', 'time');
         const priceString = this.safeString2 (trade, 'p', 'price');
         const amountString = this.safeString2 (trade, 'q', 'qty');
-        const isBuyer = this.safeBool (trade, 'isBuyer');
+        const isBuyer = this.safeBool (trade, 'isBuyer', false);
         let side: Str = undefined;
         const isBuyerMaker = this.safeBool (trade, 'ibm');
         const isBuyerTaker = this.safeBool (trade, 'm');
         if (isBuyerMaker !== undefined) {
-            side = (isBuyerMaker === true) ? 'sell' : 'buy';
+            side = isBuyerMaker ? 'sell' : 'buy';
         } else if (isBuyerTaker !== undefined) {
-            side = (isBuyerTaker === true) ? 'buy' : 'sell';
+            side = isBuyerTaker ? 'buy' : 'sell';
         } else {
-            if (isBuyer === true) {
+            if (isBuyer) {
                 side = 'buy';
             } else {
                 side = 'sell';

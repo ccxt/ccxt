@@ -2248,7 +2248,7 @@ export default class kucoin extends Exchange {
         }
         const hfParam = this.safeBool (params, 'hf');
         if (hfParam !== undefined) {
-            hf = (hfParam === true);
+            hf = hfParam;
         }
         const paramsOmitted: Dict = this.omit (params, 'hf');
         return [ hf, paramsOmitted ];
@@ -11312,8 +11312,8 @@ export default class kucoin extends Exchange {
         const id = this.safeString (info, 'id');
         const marketResolved: Market = this.safeMarket (id, market);
         const currencyId = this.safeString (info, 'settleCurrency');
-        const crossMode = this.safeBool (info, 'crossMode');
-        const mode = (crossMode === true) ? 'cross' : 'isolated';
+        const crossMode = this.safeBool (info, 'crossMode', false);
+        const mode = crossMode ? 'cross' : 'isolated';
         const marketId = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (info, 'currentTimestamp');
         return {
@@ -11426,7 +11426,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let posMode: Str = '0';
-        if (hedged === true) {
+        if (hedged) {
             posMode = '1';
         }
         const request: Dict = {
@@ -11817,7 +11817,7 @@ export default class kucoin extends Exchange {
             const accountMode = this.safeString (data, 'selfAccountMode');
             this.options['uta'] = (accountMode === 'UNIFIED');
         }
-        const uta = this.safeBool (this.options, 'uta') === true;
+        const uta = this.safeBool (this.options, 'uta', false);
         return uta;
     }
 

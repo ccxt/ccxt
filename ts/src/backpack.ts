@@ -574,7 +574,7 @@ export default class backpack extends Exchange {
         const currencies: Currencies = {};
         for (let i = 0; i < response.length; i++) {
             const currency = this.parseCurrency (this.safeDict (response, i, {}));
-            if ((stock !== true) || (this.safeString (currency, 'type') === 'stock')) {
+            if (!stock || (this.safeString (currency, 'type') === 'stock')) {
                 currencies[currency['code']] = currency;
             }
         }
@@ -713,7 +713,7 @@ export default class backpack extends Exchange {
                     continue;
                 }
                 marketIds[marketId] = true;
-                if ((stock !== true) || this.safeBool (market, 'stock', false)) {
+                if (!stock || this.safeBool (market, 'stock', false)) {
                     markets.push (market);
                 }
             }

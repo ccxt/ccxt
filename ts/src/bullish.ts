@@ -1156,7 +1156,7 @@ export default class bullish extends Exchange {
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
         const side = this.safeStringLower (trade, 'side');
-        const isTaker = this.safeBool (trade, 'isTaker');
+        const isTaker = this.safeBool (trade, 'isTaker', false);
         const currency = this.safeString (marketResolved, 'quote');
         const code = this.safeCurrencyCode (currency);
         const feeCost = this.safeNumber (trade, 'quoteFee');
@@ -1165,7 +1165,7 @@ export default class bullish extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         let takerOrMaker: Str = undefined;
-        if (isTaker === true) {
+        if (isTaker) {
             takerOrMaker = 'taker';
         } else {
             takerOrMaker = 'maker';

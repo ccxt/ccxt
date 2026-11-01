@@ -2599,8 +2599,8 @@ export default class hashkey extends Exchange {
         }
         const request = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
         let response: Dict = {};
-        const test = this.safeBool (params, 'test');
-        if (test === true) {
+        const test = this.safeBool (params, 'test', false);
+        if (test) {
             response = await this.privatePostApiV1SpotOrderTest (request);
         } else if (isMarketBuy && (cost === undefined)) {
             response = await this.privatePostApiV11SpotOrder (request); // the endpoint for market buy orders by amount
@@ -3039,7 +3039,7 @@ export default class hashkey extends Exchange {
             //
         } else if (marketType === 'swap') {
             const [ isTrigger, paramsTrigger ] = this.handleOptionBoolAndParams2 (paramsMarketType, methodName, 'stop', 'trigger', false);
-            if (isTrigger === true) {
+            if (isTrigger) {
                 request['type'] = 'STOP';
             } else {
                 request['type'] = 'LIMIT';
@@ -3239,7 +3239,7 @@ export default class hashkey extends Exchange {
             //
         } else if (marketType === 'swap') {
             const [ isTrigger, paramsTrigger ] = this.handleOptionBoolAndParams2 (paramsMarketType, methodName, 'stop', 'trigger', false);
-            if (isTrigger === true) {
+            if (isTrigger) {
                 request['type'] = 'STOP';
             }
             response = await this.privateGetApiV1FuturesOrder (this.extend (request, paramsTrigger));
@@ -3416,7 +3416,7 @@ export default class hashkey extends Exchange {
         };
         const isTrigger: Bool = false;
         const [ isTriggerTrigger, paramsTrigger ] = this.handleOptionBoolAndParams2 (paramsMethodName, methodNameOption, 'stop', 'trigger', isTrigger);
-        if (isTriggerTrigger === true) {
+        if (isTriggerTrigger) {
             request['type'] = 'STOP';
         } else {
             request['type'] = 'LIMIT';
@@ -3566,7 +3566,7 @@ export default class hashkey extends Exchange {
             }
             request['symbol'] = this.safeString (market, 'id');
             const [ isTrigger, paramsTrigger ] = this.handleOptionBoolAndParams2 (paramsMarketType, methodName, 'stop', 'trigger', false);
-            if (isTrigger === true) {
+            if (isTrigger) {
                 request['type'] = 'STOP';
             } else {
                 request['type'] = 'LIMIT';

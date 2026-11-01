@@ -2166,7 +2166,7 @@ export default class aster extends Exchange {
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
         let strValue: Str = 'false';
-        if (hedged === true) {
+        if (hedged) {
             strValue = 'true';
         }
         const request: Dict = {
@@ -3915,7 +3915,7 @@ export default class aster extends Exchange {
             const isolatedMarginRaw = this.safeString (position, 'isolatedMargin');
             isolated = !Precise.stringEq (isolatedMarginRaw, '0');
         } else {
-            isolated = (isolatedRaw === true);
+            isolated = isolatedRaw;
         }
         let marginMode: Str = undefined;
         let collateralString: Str = undefined;

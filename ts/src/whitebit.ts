@@ -522,14 +522,14 @@ export default class whitebit extends Exchange {
             return undefined;
         }
         const active = this.safeBool (market, 'tradesEnabled');
-        const isCollateral = this.safeBool (market, 'isCollateral');
+        const isCollateral = this.safeBool (market, 'isCollateral', false);
         const typeId = this.safeString (market, 'type');
         let type: Str = undefined;
         let settle: Str = undefined;
         let settleId: Str = undefined;
         let symbol = base + '/' + quote;
         const swap = (typeId === 'futures') || (typeId === 'tradfiFutures');
-        const margin = (isCollateral === true) && !swap;
+        const margin = isCollateral && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'stockPrec')));
         let linear: Bool = undefined;
@@ -2644,9 +2644,9 @@ export default class whitebit extends Exchange {
         const timestamp = this.safeTimestamp2 (order, 'ctime', 'timestamp');
         const lastTradeTimestamp = this.safeTimestamp (order, 'ftime');
         const postOnly = this.safeBool (order, 'postOnly');
-        const ioc = this.safeBool (order, 'ioc');
+        const ioc = this.safeBool (order, 'ioc', false);
         let timeInForce: Str = undefined;
-        if (ioc === true) {
+        if (ioc) {
             timeInForce = 'IOC';
         } else if (postOnly === true) {
             timeInForce = 'PO';

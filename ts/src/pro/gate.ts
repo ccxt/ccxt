@@ -2303,8 +2303,8 @@ export default class gate extends gateRest {
             const data = this.safeDict (message, 'data');
             // use safeValue as result may be Array or an Object
             const result = this.safeValue (data, 'result');
-            const ack = this.safeBool (message, 'ack');
-            if (ack !== true) {
+            const ack = this.safeBool (message, 'ack', false);
+            if (!ack) {
                 client.resolve (result, requestId);
             }
         }

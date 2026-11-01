@@ -2151,7 +2151,7 @@ export default class bitget extends Exchange {
         }
         const [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchMarkets', 'stock', false);
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsStock, 'fetchMarkets', false);
-        if ((stock === true) || (uta === true)) {
+        if (stock || (uta === true)) {
             return await this.fetchUtaMarkets (paramsUTA);
         }
         return await this.fetchDefaultMarkets (paramsUTA);
@@ -4823,8 +4823,8 @@ export default class bitget extends Exchange {
         //         "1399132.341"
         //     ]
         //
-        const inverse = this.safeBool (market, 'inverse');
-        const volumeIndex = (inverse === true) ? 6 : 5;
+        const inverse = this.safeBool (market, 'inverse', false);
+        const volumeIndex = inverse ? 6 : 5;
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -4925,7 +4925,7 @@ export default class bitget extends Exchange {
         const recentDuration: int = recentLimit * duration;
         const recentEndpointDaysMap = this.safeDict (this.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {});
         const recentEndpointAvailableDays = this.safeInteger (recentEndpointDaysMap, timeframe);
-        let historicalEndpointNeeded = (useHistoryEndpoint === true);
+        let historicalEndpointNeeded = useHistoryEndpoint;
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         let calculatedStartTime: Int = undefined;
@@ -5077,7 +5077,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         let paramsUTA = undefined;
         [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsStock, 'fetchBalance', false);
-        const isStock = (stock === true);
+        const isStock = stock;
         const isStockOrUta = (isStock || (uta === true));
         [ marketType, paramsUTA ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsUTA);
         [ marginMode, paramsUTA ] = this.handleMarginModeAndParams ('fetchBalance', paramsUTA);
@@ -6710,7 +6710,7 @@ export default class bitget extends Exchange {
         const isStockSpot = isStock && (market['spot'] === true);
         paramsMarginMode = this.omit (paramsMarginMode, 'stock');
         const request: Dict = {};
-        const trailing = this.safeBool (paramsMarginMode, 'trailing');
+        const trailing = this.safeBool (paramsMarginMode, 'trailing', false);
         const trigger = this.safeBool2 (paramsMarginMode, 'stop', 'trigger');
         paramsMarginMode = this.omit (paramsMarginMode, [ 'stop', 'trigger', 'trailing' ]);
         if (!((market['spot'] === true) && (trigger === true))) {
@@ -6719,7 +6719,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         [ uta, paramsMarginMode ] = await this.handleUTAAndParams (paramsMarginMode, 'cancelOrder', false);
         const isStockOrUta = (isStockSpot || (uta === true));
-        const isPlanOrder = (trigger === true) || (trailing === true);
+        const isPlanOrder = (trigger === true) || trailing;
         const isContract = (market['swap'] === true) || (market['future'] === true);
         const isContractTriggerEndpoint = isContract && isPlanOrder && !isStockOrUta;
         const clientOrderId = this.safeString2 (paramsMarginMode, 'clientOrderId', 'clientOid');
@@ -6757,7 +6757,7 @@ export default class bitget extends Exchange {
             let productType: Str = undefined;
             [ productType, paramsMarginMode ] = this.handleProductTypeAndParams (market, paramsMarginMode);
             request['productType'] = productType;
-            if (trailing === true) {
+            if (trailing) {
                 const planType = this.safeString (paramsMarginMode, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, paramsMarginMode));
@@ -7353,7 +7353,7 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, paramsMarginMode, cursorReceived, cursorSent) as Order[];
         }
         let response = undefined;
-        const trailing = this.safeBool (paramsMarginMode, 'trailing');
+        const trailing = this.safeBool (paramsMarginMode, 'trailing', false);
         const trigger = this.safeBool2 (paramsMarginMode, 'stop', 'trigger');
         const planTypeValue = this.safeString (paramsMarginMode, 'planType');
         const planTypeDefined = (planTypeValue !== undefined);
@@ -7410,7 +7410,7 @@ export default class bitget extends Exchange {
             }
         } else {
             request['productType'] = productType;
-            if (trailing === true) {
+            if (trailing) {
                 const planType = this.safeString (paramsMarginMode, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, paramsMarginMode));
@@ -7817,7 +7817,7 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsUTA, cursorReceived, 'idLessThan') as Order[];
         }
         let response = undefined;
-        const trailing = this.safeBool (paramsUTA, 'trailing');
+        const trailing = this.safeBool (paramsUTA, 'trailing', false);
         const trigger = this.safeBool2 (paramsUTA, 'stop', 'trigger');
         paramsUTA = this.omit (paramsUTA, [ 'stop', 'trigger', 'trailing' ]);
         [ request, paramsUTA ] = this.handleUntilOption ('endTime', request, paramsUTA);
@@ -7870,7 +7870,7 @@ export default class bitget extends Exchange {
             request['productType'] = productType;
             const planTypeValue = this.safeString (paramsUTA, 'planType');
             const planTypeDefined = (planTypeValue !== undefined);
-            if (trailing === true) {
+            if (trailing) {
                 const planType = this.safeString (paramsUTA, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, paramsUTA));
@@ -10355,7 +10355,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let posMode: Str = 'one_way_mode';
-        if (hedged === true) {
+        if (hedged) {
             posMode = 'hedge_mode';
         }
         const request: Dict = {};

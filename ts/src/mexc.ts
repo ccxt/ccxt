@@ -1311,9 +1311,9 @@ export default class mexc extends Exchange {
                 continue;
             }
             const status = this.safeString (market, 'status');
-            const isSpotTradingAllowed = this.safeBool (market, 'isSpotTradingAllowed');
+            const isSpotTradingAllowed = this.safeBool (market, 'isSpotTradingAllowed', false);
             let active = false;
-            if ((status === '1') && (isSpotTradingAllowed === true)) {
+            if ((status === '1') && isSpotTradingAllowed) {
                 active = true;
             }
             const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed');
@@ -2168,9 +2168,9 @@ export default class mexc extends Exchange {
         let changePcnt: Str = undefined;
         let changeValue: Str = undefined;
         let prevClose: Str = undefined;
-        const isSwap = this.safeBool (marketResolved, 'swap');
+        const isSwap = this.safeBool (marketResolved, 'swap', false);
         // if swap
-        if ((isSwap === true) || ('timestamp' in ticker)) {
+        if (isSwap || ('timestamp' in ticker)) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -2198,7 +2198,7 @@ export default class mexc extends Exchange {
             baseVolume = this.safeString (ticker, 'volume24');
             quoteVolume = this.safeString (ticker, 'amount24');
             const contractSize = this.safeString (marketResolved, 'contractSize');
-            if ((isSwap === true) && (contractSize !== undefined)) {
+            if (isSwap && (contractSize !== undefined)) {
                 // volume24 counts contracts, amount24 is in the settle currency
                 const contractVolume = Precise.stringMul (baseVolume, contractSize);
                 if (marketResolved['inverse'] === true) {

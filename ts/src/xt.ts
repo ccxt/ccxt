@@ -1599,9 +1599,9 @@ export default class xt extends Exchange {
         //         "v": "702461.58895"
         //     }
         //
-        const isInverse = this.safeBool (market, 'inverse');
+        const isInverse = this.safeBool (market, 'inverse', false);
         let volumeIndex: Str = 'a';
-        if (isInverse === true) {
+        if (isInverse) {
             volumeIndex = 'v';
         }
         return [
@@ -2859,9 +2859,9 @@ export default class xt extends Exchange {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchOrder', market, paramsMarketType);
         const trigger = this.safeBool2 (paramsSubType, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit');
-        const trailing = this.safeBool (paramsSubType, 'trailing');
-        if (trailing === true) {
+        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit', false);
+        const trailing = this.safeBool (paramsSubType, 'trailing', false);
+        if (trailing) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
                 throw new NotSupported (this.id + ' fetchOrder() trailing orders are only supported on swap and future markets');
@@ -2869,9 +2869,9 @@ export default class xt extends Exchange {
         }
         if (trigger === true) {
             request['entrustId'] = id;
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             request['profitId'] = id;
-        } else if (trailing === true) {
+        } else if (trailing) {
             request['trackId'] = id;
         } else {
             request['orderId'] = id;
@@ -2883,14 +2883,14 @@ export default class xt extends Exchange {
             } else {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanDetail (this.extend (request, paramsOmitted3));
             }
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             const paramsOmitted2: Dict = this.omit (paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustProfitDetail (this.extend (request, paramsOmitted2));
             } else {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitDetail (this.extend (request, paramsOmitted2));
             }
-        } else if (trailing === true) {
+        } else if (trailing) {
             const paramsOmitted: Dict = this.omit (paramsSubType, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustTrackDetail (this.extend (request, paramsOmitted));
@@ -3061,8 +3061,8 @@ export default class xt extends Exchange {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchOrders', market, paramsMarketType);
         const trigger = this.safeBool2 (paramsSubType, 'trigger', 'stop');
-        const trailing = this.safeBool (paramsSubType, 'trailing');
-        if (trailing === true) {
+        const trailing = this.safeBool (paramsSubType, 'trailing', false);
+        if (trailing) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
                 throw new NotSupported (this.id + ' fetchOrders() trailing orders are only supported on swap and future markets');
@@ -3075,7 +3075,7 @@ export default class xt extends Exchange {
             } else {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanListHistory (this.extend (request, paramsOmitted2));
             }
-        } else if (trailing === true) {
+        } else if (trailing) {
             const paramsOmitted: Dict = this.omit (paramsSubType, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory (this.extend (request, paramsOmitted));
@@ -3230,9 +3230,9 @@ export default class xt extends Exchange {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, paramsMarketType);
         const trigger = this.safeBool2 (paramsSubType, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit');
-        const trailing = this.safeBool (paramsSubType, 'trailing');
-        if (trailing === true) {
+        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit', false);
+        const trailing = this.safeBool (paramsSubType, 'trailing', false);
+        if (trailing) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
                 throw new NotSupported (this.id + ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets');
@@ -3242,19 +3242,19 @@ export default class xt extends Exchange {
             // filter runs, so the limit is only applied locally after filtering
             request = this.omit (request, [ 'state', 'size' ]);
         } else if (status === 'open') {
-            if ((trigger === true) || (stopLossTakeProfit === true)) {
+            if ((trigger === true) || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
             } else if (type === 'swap') {
                 request['state'] = 'UNFINISHED'; // NEW & PARTIALLY_FILLED
             }
         } else if (status === 'closed') {
-            if ((trigger === true) || (stopLossTakeProfit === true)) {
+            if ((trigger === true) || stopLossTakeProfit) {
                 request['state'] = 'TRIGGERED';
             } else {
                 request['state'] = 'FILLED';
             }
         } else if (status === 'canceled') {
-            if ((trigger === true) || (stopLossTakeProfit === true)) {
+            if ((trigger === true) || stopLossTakeProfit) {
                 request['state'] = 'USER_REVOCATION';
             } else {
                 request['state'] = 'CANCELED';
@@ -3262,11 +3262,11 @@ export default class xt extends Exchange {
         } else {
             request['state'] = status;
         }
-        if ((trigger === true) || (stopLossTakeProfit === true) || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
+        if ((trigger === true) || stopLossTakeProfit || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
-            if ((limit !== undefined) && (trailing !== true)) {
+            if ((limit !== undefined) && !trailing) {
                 request['size'] = limit;
             }
         }
@@ -3277,14 +3277,14 @@ export default class xt extends Exchange {
             } else {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanList (this.extend (request, paramsOmitted3));
             }
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             const paramsOmitted2: Dict = this.omit (paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustProfitList (this.extend (request, paramsOmitted2));
             } else {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitList (this.extend (request, paramsOmitted2));
             }
-        } else if (trailing === true) {
+        } else if (trailing) {
             const paramsOmitted: Dict = this.omit (paramsSubType, 'trailing');
             if (status === 'open') {
                 if (subType === 'inverse') {
@@ -3510,7 +3510,7 @@ export default class xt extends Exchange {
         } else {
             orders = this.safeList (response, 'result', []);
         }
-        if (trailing === true) {
+        if (trailing) {
             // the track endpoints do not support a server-side state filter
             // and return entries in every state, so filter by status first,
             // otherwise since/limit could cut off matching rows
@@ -3617,9 +3617,9 @@ export default class xt extends Exchange {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('cancelOrder', market, paramsMarketType);
         const trigger = this.safeBool2 (paramsSubType, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit');
-        const trailing = this.safeBool (paramsSubType, 'trailing');
-        if (trailing === true) {
+        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit', false);
+        const trailing = this.safeBool (paramsSubType, 'trailing', false);
+        if (trailing) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
                 throw new NotSupported (this.id + ' cancelOrder() trailing orders are only supported on swap and future markets');
@@ -3627,9 +3627,9 @@ export default class xt extends Exchange {
         }
         if (trigger === true) {
             request['entrustId'] = id;
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             request['profitId'] = id;
-        } else if (trailing === true) {
+        } else if (trailing) {
             request['trackId'] = id;
         } else {
             request['orderId'] = id;
@@ -3641,14 +3641,14 @@ export default class xt extends Exchange {
             } else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelPlan (this.extend (request, paramsOmitted3));
             }
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             const paramsOmitted2: Dict = this.omit (paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelProfitStop (this.extend (request, paramsOmitted2));
             } else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelProfitStop (this.extend (request, paramsOmitted2));
             }
-        } else if (trailing === true) {
+        } else if (trailing) {
             const paramsOmitted: Dict = this.omit (paramsSubType, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelTrack (this.extend (request, paramsOmitted));
@@ -3718,9 +3718,9 @@ export default class xt extends Exchange {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('cancelAllOrders', market, paramsMarketType);
         const trigger = this.safeBool2 (paramsSubType, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit');
-        const trailing = this.safeBool (paramsSubType, 'trailing');
-        if (trailing === true) {
+        const stopLossTakeProfit = this.safeBool (paramsSubType, 'stopLossTakeProfit', false);
+        const trailing = this.safeBool (paramsSubType, 'trailing', false);
+        if (trailing) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
                 throw new NotSupported (this.id + ' cancelAllOrders() trailing orders are only supported on swap and future markets');
@@ -3733,14 +3733,14 @@ export default class xt extends Exchange {
             } else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelAllPlan (this.extend (request, paramsOmitted3));
             }
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             const paramsOmitted2: Dict = this.omit (paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllProfitStop (this.extend (request, paramsOmitted2));
             } else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop (this.extend (request, paramsOmitted2));
             }
-        } else if (trailing === true) {
+        } else if (trailing) {
             const paramsOmitted: Dict = this.omit (paramsSubType, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllTrack (this.extend (request, paramsOmitted));

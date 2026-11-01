@@ -630,7 +630,7 @@ export default class coinsph extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (id);
-        const isFiat = this.safeBool (rawCurrency, 'isLegalMoney');
+        const isFiat = this.safeBool (rawCurrency, 'isLegalMoney', false);
         const networkList: Dict[] = this.safeList (rawCurrency, 'networkList', []);
         const networks: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
@@ -664,7 +664,7 @@ export default class coinsph extends Exchange {
             'id': id,
             'name': this.safeString (rawCurrency, 'name'),
             'code': code,
-            'type': (isFiat === true) ? 'fiat' : 'crypto',
+            'type': isFiat ? 'fiat' : 'crypto',
             'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': undefined,

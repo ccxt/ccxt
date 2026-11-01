@@ -2746,10 +2746,10 @@ export default class bybit extends bybitRest {
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        const success = this.safeBool (message, 'success');
+        const success = this.safeBool (message, 'success', false);
         const code = this.safeInteger (message, 'retCode');
         const messageHash = 'authenticated';
-        if ((success === true) || (code === 0)) {
+        if (success || (code === 0)) {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
