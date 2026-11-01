@@ -515,8 +515,8 @@ public class BaseExchange {
     public Map<String, Object> fundingRates = new ConcurrentHashMap<>();
     public Map<String, Object> bidsasks = new ConcurrentHashMap<>();
     public Map<String, Object> balance = new ConcurrentHashMap<>();
-    public Object liquidations = new ConcurrentHashMap<String, Object>();
-    public Object myLiquidations = new ConcurrentHashMap<String, Object>();
+    public Object liquidations = null;   // ArrayCache, created by the first handler (TS: undefined)
+    public Object myLiquidations = null;
     public Map<String, Object> trades = new ConcurrentHashMap<>();
     public Map<String, Object> orderbooks = new ConcurrentHashMap<>();
     public Map<String, Object> ohlcvs = new ConcurrentHashMap<>();
