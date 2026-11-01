@@ -201,8 +201,8 @@ type BaseExchange struct {
 	WsClients map[string]any // one websocket client per URL
 	// the venue frame handler, resolved on the first frame
 	wsHandler func(client any, message any)
-	// ownersStarted is written only by startOwners, which runs at construction before the
-	// exchange is handed to any other goroutine
+	// ownersStarted guards startOwners (markets load and aux tables only); it is set in the
+	// constructing goroutine, before the exchange is handed to any other
 	ownersStarted bool
 	// a plain map; entries stay boxed because TS `balance` is a Dict of Dicts
 	Balance   map[string]any
