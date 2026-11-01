@@ -877,22 +877,32 @@ public class Krakenfutures extends KrakenfuturesApi
     {
         //
         //    {
-        //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
-        //        "pair": "ETH:USD",
-        //        "symbol": "fi_ethusd_220624",
-        //        "markPrice": "2925.72",
-        //        "bid": "2923.8",
-        //        "bidSize": "16804",
-        //        "ask": "2928.65",
-        //        "askSize": "1339",
-        //        "vol24h": "860493",
-        //        "openInterest": "3023363.00000000",
-        //        "open24h": "3021.25",
-        //        "indexPrice": "2893.71",
-        //        "last": "2942.25",
-        //        "lastTime": "2022-02-18T14:08:15.578Z",
-        //        "lastSize": "151",
-        //        "suspended": false
+        //        "symbol": "PF_XBTUSD",
+        //        "tag": "perpetual",                 // "month", "quarter", "semiannual", "week"
+        //        "pair": "XBT:USD",
+        //        "last": 80462,
+        //        "lastTime": "2026-10-25T19:54:36.877639161Z",
+        //        "lastSize": 0.0043,
+        //        "markPrice": 80460.58444719581,
+        //        "indexPrice": 80454.68,
+        //        "bid": 80462,
+        //        "bidSize": 0.2292,
+        //        "ask": 80463,
+        //        "askSize": 0.1758,
+        //        "open24h": 80424,
+        //        "high24h": 80938,
+        //        "low24h": 79983,
+        //        "vwap24h": 80525.59286860962,
+        //        "vol24h": 2431.0631,
+        //        "volumeQuote": 195762797.4285,
+        //        "change24h": 0.05,
+        //        "openInterest": 2629.0003,
+        //        "fundingRate": 0.8337156123064435,
+        //        "fundingRatePrediction": 0.6968080809793065,
+        //        "relativeFundingRate": 1.0348054166667e-05,
+        //        "relativeFundingRatePrediction": 8.656733333333e-06,
+        //        "suspended": false,
+        //        "postOnly": false
         //    }
         //
         //    {
@@ -911,8 +921,11 @@ public class Krakenfutures extends KrakenfuturesApi
         String percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
         String average = Precise.stringDiv(Precise.stringAdd(open, last), "2");
         String volume = this.safeString(ticker, "vol24h");
+        String quoteVolume = this.safeString(ticker, "volumeQuote");
+        String vwap = this.safeString(ticker, "vwap24h");
+        // vol24h counts contracts: base units on linear markets, quote (usd) units
+        // on inverse ones, where the base side has to come from vwap24h instead
         String baseVolume = null;
-        String quoteVolume = null;
         Boolean isIndex = (Boolean) this.safeBool(marketResolved, "index", false);
         if (!Boolean.TRUE.equals(isIndex))
         {
@@ -921,20 +934,22 @@ public class Krakenfutures extends KrakenfuturesApi
                 baseVolume = volume;
             } else if (java.util.Objects.equals(marketResolved.get("inverse"), true))
             {
-                quoteVolume = volume;
+                baseVolume = Precise.stringDiv(quoteVolume, vwap);
             }
         }
+        String high = this.safeString(ticker, "high24h");
+        String low = this.safeString(ticker, "low24h");
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("symbol", symbol);
         mapLiteral1.put("timestamp", timestamp);
         mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("high", null);
-        mapLiteral1.put("low", null);
+        mapLiteral1.put("high", high);
+        mapLiteral1.put("low", low);
         mapLiteral1.put("bid", this.safeString(ticker, "bid"));
         mapLiteral1.put("bidVolume", this.safeString(ticker, "bidSize"));
         mapLiteral1.put("ask", this.safeString(ticker, "ask"));
         mapLiteral1.put("askVolume", this.safeString(ticker, "askSize"));
-        mapLiteral1.put("vwap", null);
+        mapLiteral1.put("vwap", vwap);
         mapLiteral1.put("open", open);
         mapLiteral1.put("close", last);
         mapLiteral1.put("last", last);

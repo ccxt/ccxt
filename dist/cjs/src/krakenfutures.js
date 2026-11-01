@@ -719,22 +719,32 @@ class krakenfutures extends krakenfutures$1["default"] {
     parseTicker(ticker, market = undefined) {
         //
         //    {
-        //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
-        //        "pair": "ETH:USD",
-        //        "symbol": "fi_ethusd_220624",
-        //        "markPrice": "2925.72",
-        //        "bid": "2923.8",
-        //        "bidSize": "16804",
-        //        "ask": "2928.65",
-        //        "askSize": "1339",
-        //        "vol24h": "860493",
-        //        "openInterest": "3023363.00000000",
-        //        "open24h": "3021.25",
-        //        "indexPrice": "2893.71",
-        //        "last": "2942.25",
-        //        "lastTime": "2022-02-18T14:08:15.578Z",
-        //        "lastSize": "151",
-        //        "suspended": false
+        //        "symbol": "PF_XBTUSD",
+        //        "tag": "perpetual",                 // "month", "quarter", "semiannual", "week"
+        //        "pair": "XBT:USD",
+        //        "last": 80462,
+        //        "lastTime": "2026-10-25T19:54:36.877639161Z",
+        //        "lastSize": 0.0043,
+        //        "markPrice": 80460.58444719581,
+        //        "indexPrice": 80454.68,
+        //        "bid": 80462,
+        //        "bidSize": 0.2292,
+        //        "ask": 80463,
+        //        "askSize": 0.1758,
+        //        "open24h": 80424,
+        //        "high24h": 80938,
+        //        "low24h": 79983,
+        //        "vwap24h": 80525.59286860962,
+        //        "vol24h": 2431.0631,
+        //        "volumeQuote": 195762797.4285,
+        //        "change24h": 0.05,
+        //        "openInterest": 2629.0003,
+        //        "fundingRate": 0.8337156123064435,
+        //        "fundingRatePrediction": 0.6968080809793065,
+        //        "relativeFundingRate": 1.0348054166667e-05,
+        //        "relativeFundingRatePrediction": 8.656733333333e-06,
+        //        "suspended": false,
+        //        "postOnly": false
         //    }
         //
         //    {
@@ -753,28 +763,33 @@ class krakenfutures extends krakenfutures$1["default"] {
         const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(change, open), '100');
         const average = Precise["default"].stringDiv(Precise["default"].stringAdd(open, last), '2');
         const volume = this.safeString(ticker, 'vol24h');
+        const quoteVolume = this.safeString(ticker, 'volumeQuote');
+        const vwap = this.safeString(ticker, 'vwap24h');
+        // vol24h counts contracts: base units on linear markets, quote (usd) units
+        // on inverse ones, where the base side has to come from vwap24h instead
         let baseVolume = undefined;
-        let quoteVolume = undefined;
         const isIndex = this.safeBool(marketResolved, 'index', false);
         if (!isIndex) {
             if (marketResolved['linear'] === true) {
                 baseVolume = volume;
             }
             else if (marketResolved['inverse'] === true) {
-                quoteVolume = volume;
+                baseVolume = Precise["default"].stringDiv(quoteVolume, vwap);
             }
         }
+        const high = this.safeString(ticker, 'high24h');
+        const low = this.safeString(ticker, 'low24h');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': high,
+            'low': low,
             'bid': this.safeString(ticker, 'bid'),
             'bidVolume': this.safeString(ticker, 'bidSize'),
             'ask': this.safeString(ticker, 'ask'),
             'askVolume': this.safeString(ticker, 'askSize'),
-            'vwap': undefined,
+            'vwap': vwap,
             'open': open,
             'close': last,
             'last': last,

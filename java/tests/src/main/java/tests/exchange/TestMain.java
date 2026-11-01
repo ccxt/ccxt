@@ -2358,7 +2358,12 @@ public class TestMain extends BaseTest
             {
                 if (!(Helpers.isInstance(e, InvalidProxySettings.class)))
                 {
-                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                    // if it's not a BadRequest, it means our request was not created succesfully
+                    // so we might have an error in the request creation
+                    this.requestTestsFailed = true;
+                    String creationErrorMessage = (((((((((((("[" + this.lang) + "][STATIC_REQUEST]") + "[") + exchange.id) + "]") + "[") + method) + "]") + "[") + ((Map<String, Object>)data).get("description")) + "]") + exceptionMessage(e));
+                    dump(("[TEST_FAILURE]" + creationErrorMessage));
+                    return true;
                 }
                 output = exchange.last_request_body;
                 requestUrl = exchange.last_request_url;

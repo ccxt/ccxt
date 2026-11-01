@@ -1566,7 +1566,12 @@ class testMainClass:
                 call_exchange_method_dynamically_sync(exchange, method, self.sanitize_data_input(data['input']))
         except Exception as e:
             if not (isinstance(e, InvalidProxySettings)):
-                raise e
+                # if it's not a BadRequest, it means our request was not created succesfully
+                # so we might have an error in the request creation
+                self.request_tests_failed = True
+                creation_error_message = '[' + self.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)
+                dump('[TEST_FAILURE]' + creation_error_message)
+                return True
             output = exchange.last_request_body
             request_url = exchange.last_request_url
         try:

@@ -1980,7 +1980,10 @@ class testMainClass {
             if (!(e instanceof InvalidProxySettings)) {
                 // if it's not a BadRequest, it means our request was not created succesfully
                 // so we might have an error in the request creation
-                throw e;
+                this.requestTestsFailed = true;
+                const creationErrorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exceptionMessage(e);
+                dump('[TEST_FAILURE]' + creationErrorMessage);
+                return true;
             }
             output = exchange.last_request_body;
             requestUrl = exchange.last_request_url;
