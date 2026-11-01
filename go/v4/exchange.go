@@ -100,8 +100,7 @@ type BaseExchange struct {
 
 	// timestamps
 	LastRestRequestTimestamp int64
-	// the last request/response fields below are written by the request book's owner
-	// goroutine only (exchange_request_book.go); readers receive its snapshot
+	// the last request/response fields below are plain fields (exchange_request_book.go)
 	LastRequestHeaders    any
 	Last_request_headers  any
 	Last_response_headers any
@@ -205,12 +204,10 @@ type BaseExchange struct {
 	// ownersStarted is written only by startOwners, which runs at construction before the
 	// exchange is handed to any other goroutine
 	ownersStarted bool
-	// a plain map: a handler's read is the map's own index; entries stay boxed because TS `balance` is a
-	// Dict of Dicts, and the loop's views type one level at a time
+	// a plain map; entries stay boxed because TS `balance` is a Dict of Dicts
 	Balance   map[string]any
 	Positions any
-	// the ws client registry: the dispatch loop is its only reader and writer, so a use site needs
-	// no lock; user-path reads ask the loop for a copy (WsClientsSnapshot)
+	// the ws client registry, a plain map keyed by url
 	Clients    map[string]any
 	newUpdates bool
 	streaming  map[string]any
@@ -280,7 +277,6 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Liquidations = nil
 	this.MyLiquidations = nil
 	this.Clients = make(map[string]any)
-	// the balance map is owned by the ws dispatch loop like the caches above
 	this.Balance = map[string]any{}
 
 	// beforeNs := time.Now().UnixNano()
@@ -1873,7 +1869,6 @@ func (this *BaseExchange) OnConnected(client any, message any) {
 }
 
 func (this *BaseExchange) OnError(client any, err any) {
-	// the registry edit runs on the dispatch loop, the registry's only writer
 	this.wsClientDeleteIfErrored(client.(ClientInterface).GetUrl())
 	client.(ClientInterface).SetError(fmt.Errorf("%v", err))
 }
@@ -1891,7 +1886,7 @@ func (this *BaseExchange) Client(url any) *WSClient {
 	// callers reach this through generated WS code where the url is a
 	// pointer-carried string; normalize once so the assertions below hold
 	url = derefScalar(url)
-	// get-or-create runs on the dispatch loop: one client per URL, one registry writer
+	// get-or-create: one client per URL
 	created := this.wsClientGetOrCreate(url.(string), func() any { return this.newWsClient(url) })
 	if client, ok := created.(*WSClient); ok {
 		return client
@@ -1899,7 +1894,7 @@ func (this *BaseExchange) Client(url any) *WSClient {
 	return nil
 }
 
-// newWsClient builds one ws client for url; the dispatch loop calls it, so a URL builds once.
+// newWsClient builds one ws client for url.
 func (this *BaseExchange) newWsClient(url any) *WSClient {
 	// TODO: what to do with errors
 	// TODO: add options to NewWSClient
@@ -2304,7 +2299,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 func (this *BaseExchange) Close(cleanInstanceData ...any) []error {
 	// ##### language-specific cleanup of WS & REST resources #####
 	// [WS]
-	// the registry is drained on its owner, so the loop hands back every client and clears it
+	// every registered client is closed and the registry is cleared
 	clients := this.wsClientDrain()
 	errs := make([]error, 0)
 	for _, c := range clients {
