@@ -2204,7 +2204,7 @@ export default class grvt extends Exchange {
     }
 
     convertToBigIntCustom (x: any): int {
-        return parseInt (this.numberToString (x) as string);
+        return parseInt (this.numberToString (x));
     }
 
     eipMessageForOrder (order: Dict, structureType: Str): Dict {
@@ -2259,7 +2259,7 @@ export default class grvt extends Exchange {
         };
         if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool (this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
-            returnValue['builderFee'] = this.parseToInt (this.convertToBigIntCustom (this.feeAmountMultiplier ()) * parseFloat (this.safeString (order, 'builder_fee') as string)); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue['builderFee'] = this.parseToInt (this.convertToBigIntCustom (this.feeAmountMultiplier ()) * parseFloat (this.safeString (order, 'builder_fee'))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
     }
@@ -3239,8 +3239,8 @@ export default class grvt extends Exchange {
             messageData = {
                 'mainAccountID': request['main_account_id'],
                 'builderAccountID': request['builder_account_id'],
-                'maxFutureFeeRate': this.parseToInt (parseFloat (this.safeString (request, 'max_futures_fee_rate') as string) * amountMultiplier),
-                'maxSpotFeeRate': this.parseToInt (parseFloat (this.safeString (request, 'max_spot_fee_rate') as string) * amountMultiplier),
+                'maxFutureFeeRate': this.parseToInt (parseFloat (this.safeString (request, 'max_futures_fee_rate')) * amountMultiplier),
+                'maxSpotFeeRate': this.parseToInt (parseFloat (this.safeString (request, 'max_spot_fee_rate')) * amountMultiplier),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration'],
             };
