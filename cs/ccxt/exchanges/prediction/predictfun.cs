@@ -1036,7 +1036,7 @@ public partial class predictfun : PredictionExchange
         string digits = "0123456789";
         List<object> chars = this.stringToCharsArray(text);
         string stripped = "";
-        for (Int64 i = 0; (i < (chars?.Count ?? 0)); i++)
+        for (Int64 i = 0; i < (chars?.Count ?? 0); i++)
         {
             string? ch = ((string)(chars != null && i < chars.Count ? chars[(int)i] : null));
             bool keep = true;
@@ -1048,8 +1048,8 @@ public partial class predictfun : PredictionExchange
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                bool prevIsDigit = ((i > 0)) && (digits.IndexOf(((string)(chars != null && (i - 1) < chars.Count ? chars[(int)(i - 1)] : null)), StringComparison.Ordinal) >= 0);
-                bool nextIsDigit = (isLessThan((add(i, 1)), (chars?.Count ?? 0))) && (digits.IndexOf(((string)(chars != null && (i + 1) < chars.Count ? chars[(int)(i + 1)] : null)), StringComparison.Ordinal) >= 0);
+                bool prevIsDigit = (i > 0) && (digits.IndexOf(((string)(chars != null && (i - 1) < chars.Count ? chars[(int)(i - 1)] : null)), StringComparison.Ordinal) >= 0);
+                bool nextIsDigit = ((((i + 1)) < (chars?.Count ?? 0))) && (digits.IndexOf(((string)(chars != null && (i + 1) < chars.Count ? chars[(int)(i + 1)] : null)), StringComparison.Ordinal) >= 0);
                 keep = !(prevIsDigit && nextIsDigit);
             }
             if (keep)

@@ -10630,13 +10630,13 @@ public partial class bybit : Exchange
         //  ]
         //
         List<object> tiers = new List<object>() {};
-        for (Int64 i = 0; (i < (getArrayLength(info))); i++)
+        for (Int64 i = 0; i < getArrayLength(info); i++)
         {
             IDictionary<string, object> tier = this.safeDict(info, i);
             string? marketId = this.safeString(tier, "symbol");
             Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
             double? minNotional = this.parseNumber("0");
-            if (!(i == 0))
+            if ((i != 0))
             {
                 minNotional = this.safeNumber(getValue(info, (i - 1)), "riskLimitValue");
             }

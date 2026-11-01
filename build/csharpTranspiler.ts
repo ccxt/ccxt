@@ -6,7 +6,6 @@ import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolde
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
 import { MARKET_ROW_STRING_KEYS, MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
-import { hx10C05NativeCompareMath, hx10C05SelfTest } from './hx10w2-C05.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
@@ -3294,6 +3293,8 @@ class NewTranspiler {
                 // RFM-C2-B: hand-written base member -> declared C# type (the printer's csharpDeclaredBaseFieldType)
                 "declaredBaseFieldTypes": csharpDeclaredBaseFieldTypes (),
                 "uniqueMethodNames": csharpDeclaredUniqueMethods (),
+                "numericArgTypes": CORE_NUMERIC_ARGS,
+                "coreArgShadowCallees": CORE_ARG_SHADOW_CALLEES,
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
@@ -4587,6 +4588,11 @@ class NewTranspiler {
         if (cast !== null) {
             // an identity cast, or a cast to object (boxes the same value / null)
             return (cast === targetType || cast === 'object') ? 'read' : '';
+        }
+        // `alias.Value`: the printer's own unboxing of a null-proven nullable-numeric shadow, which only compiles
+        // once the declaration names the nullable type
+        if (targetType === 'Int64?' && /^\.Value\b/.test (post)) {
+            return 'read';
         }
         // `(alias == null)` / `(alias != null)`: the native spelling of the isEqual(alias, null)
         // guard this classifier already accepts at an argument position. The null test reads the
@@ -9608,7 +9614,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...hx10C05SelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks () ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10194,7 +10200,7 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
 // final pass after the declared-helper rewrites: mathMin/mathMax on two declared integers of
 // one kind -> Math.Min/Max, a guarded `Int64?` request value -> `.Value`, `isTrue((x))` on bool/bool?
 export function nativeDeclaredHelperCalls (content: string, objectNull = true, c31 = true): string {
-    const baseOut = hx10C05NativeCompareMath (hx4C29NativeGetValue (hx4C28NativeHelperCalls (objectNull, hx4C27NativeCompare (hx4C26NativeMath (hx4C22NativeMath (hx4C21NativeHelperCalls (hx4C19NativeMath (hx4C18NativeGetValue (hx4C17NativeHelperCalls (hx4C16NativeHelperCalls (nativeC15HelperCalls (hx4C14NativeMath (hx4C13Int64ListReads (nativeC07HelperCalls (hx4C23NativeHelperCalls (hx4C25NativeGetValue (nativeDeclaredHelperCallsBase (content, objectNull)))))))))))))))))); // hx10w2 C05, C08
+    const baseOut = hx4C29NativeGetValue (hx4C28NativeHelperCalls (objectNull, hx4C27NativeCompare (hx4C26NativeMath (hx4C22NativeMath (hx4C21NativeHelperCalls (hx4C19NativeMath (hx4C18NativeGetValue (hx4C17NativeHelperCalls (hx4C16NativeHelperCalls (nativeC15HelperCalls (hx4C14NativeMath (hx4C13Int64ListReads (nativeC07HelperCalls (hx4C23NativeHelperCalls (hx4C25NativeGetValue (nativeDeclaredHelperCallsBase (content, objectNull))))))))))))))))); // hx10w2 C08
     const c33Out = hx4C33NativeHelperCalls (objectNull, baseOut);
     const c30Out = hx4C30NativeMath (objectNull, c33Out);
     const c31Out = (objectNull && c31) ? hx4C31NativeMath (c30Out) : c30Out;
@@ -10644,7 +10650,6 @@ export function csharpHx4SelfTest (): string[] {
         check ('guarded Int64? request field', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((since != null))\n        {\n            request["before"] = mathMax((since - 1), 0);\n        }', 'request["before"] = Math.Max((since.Value - 1), 0);');
         check ('unguarded Int64? request field keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        request["before"] = mathMax((since - 1), 0);', 'mathMax((since - 1), 0)');
         check ('ternary-guarded box-neutral local', '        int maxLimit = 300;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        request["limit"] = v;\n        object d = multiply(v, 2);', 'object v = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);');
-        check ('ternary-guarded local returned emits Math.Min (C05)', '        int maxLimit = 300;\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        return v;', 'Math.Min(limit.Value, maxLimit)');
         check ('C20 !(x == null) guard', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if (!(limit == null))\n        {\n            request["size"] = mathMin(limit, 2000); // max\n        }', 'request["size"] = Math.Min(limit.Value, 2000);');
         check ('C20 && guard', '        bool b = true;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null) && (b == true))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'request["size"] = Math.Min(limit.Value, 2000);');
         check ('C20 guard with statements between brace and call', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null))\n        {\n            Int64 durationVar = 5L;\n            request[\"size\"] = mathMin(limit, 2000);\n        }', 'request[\"size\"] = Math.Min(limit.Value, 2000);');
@@ -10653,7 +10658,6 @@ export function csharpHx4SelfTest (): string[] {
         check ('C20 || guard keeps helper', '        bool b = true;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null) || (b == true))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'mathMin(limit, 2000)');
         check ('C20 guard on other name keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if (!(since == null))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'mathMin(limit, 2000)');
         check ('ternary on another name keeps helper', '        int maxLimit = 300;\n        object v = ((since == null)) ? maxLimit : mathMin(limit, maxLimit);\n        object d = multiply(v, 2);', 'mathMin(limit, maxLimit)');
-        check ('C05 comparison against a countguard', '        List<object> xs = this.stringToCharsArray(since0);\n        for (Int64 i = 0; isLessThan(i, (xs?.Count ?? 0)); i++)\n        {\n        }', '(i < (xs?.Count ?? 0))');
     }
     problems.push (...hx4C18SelfTest ());
     problems.push (...hx4C19SelfTest ()); // hx4 C19
@@ -11020,18 +11024,6 @@ export function hx4C14NativeMath (content: string): string {
             for (let i = start + 1; i < end; i++) if (!except.includes (i) && re.test (masked[i])) return true;
             return false;
         };
-        // (1) integer-literal for counters
-        for (let i = start + 1; i < end; i++) {
-            const loop = /^([ ]*)for \(object ([A-Za-z_]\w*) = (\d{1,9}); (.*); postFixIncrement\(ref \2\)\)[ ]*$/.exec (masked[i]);
-            if ((loop === null) || (masked[i + 1]?.trim () !== '{')) continue;
-            const name = loop[2];
-            const blockEnd = hx4C14BlockEnd (masked, i + 1, end);
-            if (!hx4C14CounterReadsNormalise (masked, i + 2, blockEnd - 1, loop[4], name)) continue;
-            set (i, lines[i].replace ('for (object ' + name + ' = ', 'for (Int64 ' + name + ' = ').replace ('postFixIncrement(ref ' + name + '))', name + '++)'));
-            for (let j = i + 2; j < blockEnd; j++) {
-                set (j, lines[j].replace (new RegExp ('(?<![\\w.])subtract\\(' + name + ', (\\d{1,9})\\)', 'g'), '(' + name + ' - $1)'));
-            }
-        }
         // (2) prefixUnaryNeg(ref x)
         for (let i = start + 1; i < end; i++) {
             const site = /(?<![\w.])prefixUnaryNeg\(ref ([A-Za-z_]\w*)\)/.exec (masked[i]);
@@ -11107,9 +11099,6 @@ export function hx4C14SelfTest (): string[] {
             problems.push (`hx4 C14 native math: ${name}\n${out}`);
         }
     };
-    check ('literal for counter -> Int64 i++', '        for (object i = 0; isLessThan(i, getArrayLength(xs)); postFixIncrement(ref i))\n        {\n            object a = this.safeDict(xs, i);\n            if (!isEqual(i, 0))\n            {\n                object b = getValue(xs, subtract(i, 1));\n            }\n        }',
-        'for (Int64 i = 0; isLessThan(i, getArrayLength(xs)); i++)', 'postFixIncrement');
-    check ('counter body subtract(i, 1) -> (i - 1)', '        for (object i = 1; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = getValue(xs, subtract(i, 1));\n        }', 'getValue(xs, (i - 1))');
     check ('counter read as a string key keeps object', '        for (object i = 0; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = ((string)i);\n        }', 'postFixIncrement(ref i)');
     check ('counter subtract of a typed name keeps object', '        for (object i = 0; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = subtract(i, d);\n        }', 'postFixIncrement(ref i)');
     check ('object-initialised counter keeps helper', '        object s = 0;\n        for (object i = s; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = getValue(xs, i);\n        }', 'postFixIncrement(ref i)');

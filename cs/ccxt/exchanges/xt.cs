@@ -5564,7 +5564,7 @@ public partial class xt : Exchange
         //
         List<object> tiers = new List<object>() {};
         List<object> brackets = this.safeList(info, "leverageBrackets", new List<object>() {});
-        for (Int64 i = 0; (i < brackets.Count); i++)
+        for (Int64 i = 0; i < brackets.Count; i++)
         {
             IDictionary<string, object> tier = this.safeDict(brackets, i);
             string? marketId = this.safeString(info, "symbol");
