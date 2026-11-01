@@ -190,7 +190,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt"
-version = "4.5.90"
+version = "4.5.91"
 dependencies = [
  "async-trait",
  "ccxt-base",
@@ -198,7 +198,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-base"
-version = "4.5.90"
+version = "4.5.91"
 dependencies = [
  "ccxt-common",
  "futures",
@@ -209,7 +209,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-common"
-version = "4.5.90"
+version = "4.5.91"
 dependencies = [
  "async-trait",
  "base64",
@@ -242,7 +242,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-prediction"
-version = "4.5.90"
+version = "4.5.91"
 dependencies = [
  "async-trait",
  "ccxt-base",
@@ -250,7 +250,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-pro"
-version = "4.5.90"
+version = "4.5.91"
 dependencies = [
  "async-trait",
  "ccxt-base",
@@ -1607,9 +1607,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.45"
+version = "0.23.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
+checksum = "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
 dependencies = [
  "once_cell",
  "ring",

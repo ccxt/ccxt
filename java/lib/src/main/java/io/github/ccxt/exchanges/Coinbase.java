@@ -126,7 +126,7 @@ public class Coinbase extends CoinbaseApi
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchIsolatedPositions", false );
-                put( "fetchL2OrderBook", false );
+                put( "fetchL2OrderBook", true );
                 put( "fetchLedger", true );
                 put( "fetchLeverage", false );
                 put( "fetchLeverages", false );

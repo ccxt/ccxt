@@ -618,6 +618,7 @@ build the request payload for cancelling multiple orders
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No |  |
+| params.fast | <code>boolean</code> | No | whether to send the cancel with the fast flag, rejected for trigger orders, (default is false) |
 
 ##### Supported exchanges
 * [hyperliquid](/exchanges/hyperliquid.md#cancelordersrequest)
@@ -4551,7 +4552,6 @@ query historical candlestick data containing the open, high, low, and close pric
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#fetchohlcvws)
 * [bitvavo](/exchanges/bitvavo.md#fetchohlcvws)
-* [lbank](/exchanges/lbank.md#fetchohlcvws)
 
 ---
 
@@ -5123,7 +5123,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#fetchorderbookws)
-* [lbank](/exchanges/lbank.md#fetchorderbookws)
 
 ---
 
@@ -6065,7 +6064,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#fetchtickerws)
 * [cex](/exchanges/cex.md#fetchtickerws)
-* [lbank](/exchanges/lbank.md#fetchtickerws)
 
 ---
 
@@ -6366,7 +6364,6 @@ fetch all trades made by the user
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#fetchtradesws)
-* [lbank](/exchanges/lbank.md#fetchtradesws)
 
 ---
 
@@ -8230,7 +8227,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [htx](/exchanges/htx.md#watchbalance)
 * [hyperliquid](/exchanges/hyperliquid.md#watchbalance)
 * [kucoin](/exchanges/kucoin.md#watchbalance)
-* [lbank](/exchanges/lbank.md#watchbalance)
 * [lighter](/exchanges/lighter.md#watchbalance)
 * [mexc](/exchanges/mexc.md#watchbalance)
 * [modetrade](/exchanges/modetrade.md#watchbalance)
@@ -8580,7 +8576,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [htx](/exchanges/htx.md#watchohlcv)
 * [hyperliquid](/exchanges/hyperliquid.md#watchohlcv)
 * [kucoin](/exchanges/kucoin.md#watchohlcv)
-* [lbank](/exchanges/lbank.md#watchohlcv)
 * [mexc](/exchanges/mexc.md#watchohlcv)
 * [modetrade](/exchanges/modetrade.md#watchohlcv)
 * [nado](/exchanges/nado.md#watchohlcv)
@@ -8685,7 +8680,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [hyperliquid](/exchanges/hyperliquid.md#watchorderbook)
 * [independentreserve](/exchanges/independentreserve.md#watchorderbook)
 * [kucoin](/exchanges/kucoin.md#watchorderbook)
-* [lbank](/exchanges/lbank.md#watchorderbook)
 * [lighter](/exchanges/lighter.md#watchorderbook)
 * [luno](/exchanges/luno.md#watchorderbook)
 * [mexc](/exchanges/mexc.md#watchorderbook)
@@ -8789,7 +8783,6 @@ watches information on multiple orders made by the user
 * [htx](/exchanges/htx.md#watchorders)
 * [hyperliquid](/exchanges/hyperliquid.md#watchorders)
 * [kucoin](/exchanges/kucoin.md#watchorders)
-* [lbank](/exchanges/lbank.md#watchorders)
 * [mexc](/exchanges/mexc.md#watchorders)
 * [modetrade](/exchanges/modetrade.md#watchorders)
 * [nado](/exchanges/nado.md#watchorders)
@@ -8943,7 +8936,6 @@ watches a price ticker, a statistical calculation with the information calculate
 * [htx](/exchanges/htx.md#watchticker)
 * [hyperliquid](/exchanges/hyperliquid.md#watchticker)
 * [kucoin](/exchanges/kucoin.md#watchticker)
-* [lbank](/exchanges/lbank.md#watchticker)
 * [lighter](/exchanges/lighter.md#watchticker)
 * [mexc](/exchanges/mexc.md#watchticker)
 * [modetrade](/exchanges/modetrade.md#watchticker)
@@ -9065,7 +9057,6 @@ watches information on multiple trades made in a market
 * [hyperliquid](/exchanges/hyperliquid.md#watchtrades)
 * [independentreserve](/exchanges/independentreserve.md#watchtrades)
 * [kucoin](/exchanges/kucoin.md#watchtrades)
-* [lbank](/exchanges/lbank.md#watchtrades)
 * [lighter](/exchanges/lighter.md#watchtrades)
 * [luno](/exchanges/luno.md#watchtrades)
 * [mexc](/exchanges/mexc.md#watchtrades)
