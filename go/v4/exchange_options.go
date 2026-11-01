@@ -48,11 +48,11 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.Exceptions = SafeValue(extendedProperties, "exceptions", map[string]any{}).(map[string]any)
 	propertiesMarkets := SafeValue(extendedProperties, "markets", nil)
 	if propertiesMarkets != nil {
-		this.PublishMarkets(this.Extend(propertiesMarkets))
+		this.Markets = this.Extend(propertiesMarkets)
 	}
 	propCurrencies := SafeValue(extendedProperties, "currencies", map[string]any{}).(map[string]any)
 	if len(propCurrencies) > 0 {
-		this.PublishCurrencies(this.Extend(propCurrencies))
+		this.Currencies = this.Extend(propCurrencies)
 	}
 	this.EnableRateLimit = SafeValue(extendedProperties, "enableRateLimit", true).(bool)
 	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)

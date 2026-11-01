@@ -102,11 +102,11 @@ func (this *BaseExchange) GetApi() map[string]any {
 }
 
 func (this *BaseExchange) GetCurrencies() map[string]any {
-	return this.Currencies()
+	return this.Currencies
 }
 
 func (this *BaseExchange) GetMarkets() map[string]any {
-	return this.Markets()
+	return this.Markets
 }
 
 func (this *BaseExchange) GetNetworkAliases() map[string]any {
@@ -142,7 +142,7 @@ func (this *BaseExchange) SetCurrencies(currencies any) {
 	if currencies == nil {
 		return
 	}
-	this.PublishCurrencies(this.Extend(currencies))
+	this.Currencies = this.Extend(currencies)
 }
 
 func (this *BaseExchange) SetPassword(password any) {

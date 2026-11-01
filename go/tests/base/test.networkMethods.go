@@ -14,7 +14,7 @@ func HelperTestNetworkCodeToId(networksMap any) {
 			"networks": networksMap,
 		},
 	}, map[string]any{}, exchange)
-	exchange.PublishCurrencies(exchange.MapToSafeMap(map[string]any{})) // go fix + c# uninitialized prop fix
+	exchange.Currencies = map[string]any{} // go fix + c# uninitialized prop fix
 	// unified code and its alias resolve to the same id, regardless of which one options.networks uses
 	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ERC20"), "Ether"))
 	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ETH"), "Ether"))
@@ -45,7 +45,7 @@ func HelperTestNetworkIdToCode(networksMap any) {
 			"networks": networksMap,
 		},
 	}, map[string]any{}, exchange)
-	exchange.PublishCurrencies(exchange.MapToSafeMap(map[string]any{})) // go fix + c# uninitialized prop fix
+	exchange.Currencies = map[string]any{} // go fix + c# uninitialized prop fix
 	// always the unified code, never an alias, regardless of currency
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Ether"), "ERC20"))
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Ether", "USDC"), "ERC20"))
@@ -73,7 +73,7 @@ func HelperTestNetworkAliases() {
 			"networks": map[string]any{},
 		},
 	}, map[string]any{}, exchange)
-	exchange.PublishCurrencies(exchange.MapToSafeMap(map[string]any{})) // go fix + c# uninitialized prop fix
+	exchange.Currencies = map[string]any{} // go fix + c# uninitialized prop fix
 	var aliases map[string]any = map[string]any{
 		"ETH":     "ERC20",
 		"TRX":     "TRC20",
@@ -92,9 +92,9 @@ func HelperTestNetworkAliases() {
 		}
 	}
 	for i := 0; i < len(keys); i++ {
-		Assert(ccxt.IsEqual(exchange.SafeString(exchange.NetworkAliases, keys[i]), ccxt.GetValue(aliases, keys[i])))
+		Assert(ccxt.IsEqual(exchange.SafeString(exchange.NetworkAliases, keys[i]), aliases[keys[i]]))
 		// unified codes are never aliases themselves
-		Assert(!(ccxt.InOp(exchange.NetworkAliases, ccxt.GetValue(aliases, keys[i]))))
+		Assert(!(ccxt.InOp(exchange.NetworkAliases, aliases[keys[i]])))
 	}
 	Assert(!(ccxt.InOp(exchange.NetworkAliases, "BTC")))
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("ETH"), "ERC20"))

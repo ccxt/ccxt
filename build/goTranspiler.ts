@@ -23,8 +23,6 @@ import { isMainEntry } from "./transpile.js";
 import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest, hx4G30Arith, hx4G30SelfTest, hx4G31Divide, hx4G31Check, hx4G32Comparisons, hx4G32SelfTest, hx4G35InlineMulSub, hx4G35Check, hx4G36Inline, hx4G36Check, hx4G36AddImport, hx4G37InlineComparisons, hx4G37Check, hx4G40InlineIsEqual, hx4G40Check, hx11IsEqualBoolMethod, hx11IsEqualBoolMethodCheck, hx4G42InlineTypeChecks, hx4G42Check, hx5X26CaseAffix, hx5X26Check, hx4G45InlineStr, hx4G45Check, hx5X29ParseNative, hx5X29Check } from './go-native-arith.js';
-import { hx10OG02Pass, hx10OG02Check } from './hx10w4-OG02.js';  // hx10 wave-4 OG02: market tables published immutably
-import { gp19Pass, gp19Check } from './hx10w9-GP19.js';  // hx10 w9 GP19: the same dead bounds guards in every go/v4 venue and pro file
 
 type dict = { [key: string]: string };
 
@@ -1120,9 +1118,6 @@ function goAnyLocalNilSelfTest (): string[] {
     ];
     keep.forEach ((body, index) => ok (f (body).indexOf ('IsEqual(v, nil)') >= 0, 'unproven write must keep the helper #' + index));
     ok (pass ('\nfunc (this *X) f(v any) any {\n\tif IsEqual(v, nil) {\n\t}\n}\n').indexOf ('IsEqual(v, nil)') >= 0, 'a parameter keeps the helper');
-        ok (inop ('\tvar s string = "a"\n\tif (this.Markets() != nil) && (InOp(this.Markets(), s)) {\n\t}\n').includes ('if _, ok := this.Markets()[s]; (this.Markets() != nil) && ok {'), 'this.Markets() reads natively');
-        ok (inop ('\tvar s any = nil\n\tif (this.Markets() != nil) && (InOp(this.Markets(), s)) {\n\t}\n').includes ('InOp(this.Markets(), s)'), 'this.Markets() with an any key keeps the helper');
-        ok (inop ('\tvar s string = "a"\n\tif (this.Markets_by_id() != nil) && (InOp(this.Markets_by_id(), s)) {\n\t}\n').includes ('InOp(this.Markets_by_id(), s)'), 'other getters keep the helper');
     const safe = [
         '\tvar v any = nil\n\tv = Slice(p, 0, 3)\n\tv = ToUpper(Replace(p, "a", "b"))\n\tv = MathMin(p, 2)\n\tv = Iso8601(p)\n',
         '\tvar v any = this.ParseNumber(this.SafeString(p, "a"))\n\tv = this.ParseNumber(p, 0)\n\tv = ParseFloat(p) // note\n',
@@ -2192,16 +2187,14 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
     const found: any[] = [];
     for (const c of calls) {
         const at = c.index;
-        const call = /^(?:ccxt\.)?InOp\((\w+|this\.Markets\(\)), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+        const call = /^(?:ccxt\.)?InOp\((\w+), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
         if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
             continue;
         }
         const [ , name, key ] = call;
-        // this.Markets() answers the published immutable snapshot (map[string]any, nil before load): a
-        // read of it is safe in any function, and a nil map reads ok=false like the helper
         // the params result of `a, p := this.Handle*AndParams(..)` is a map[string]any local (the pair twin's second result)
-        const pairParams = (name !== 'this.Markets()') && goInOpPairParams (maskedFunc, name);
-        if (name !== 'this.Markets()' && !pairParams && ((typeAt (name, k) !== 'map[string]any') || !goInOpReadReceiver (maskedFunc, declOf (name), name, declOf))) {
+        const pairParams = goInOpPairParams (maskedFunc, name);
+        if (!pairParams && ((typeAt (name, k) !== 'map[string]any') || !goInOpReadReceiver (maskedFunc, declOf (name), name, declOf))) {
             continue;
         }
         if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
@@ -3778,10 +3771,8 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx11w8PromiseAllSelfBoundReads (content);  // hx11 w8: GetValue(h, i) inside `for i < len(h)`
     content = goTickerCachePass (content);  // typed ws ticker caches, after goChan3's resolved switches
     content = goBalanceEntryNilCompares (content);  // this.Balance[k] is printed by the owner passes above
-    content = hx10OG02Pass (content);  // hx10 wave-4 OG02: markets book owned by the load path
     content = hx4G39TupleSlotDerefs (content);  // hx4 G39
-    content = hx11m36MarketsByIdInOp (content);  // hx11 m36: after OG02 prints the Markets_by_id() accessor
-    content = gp19Pass (content, filePath);  // hx10 w9 GP19: venue + pro element reads inside a len(list) loop
+    content = hx11m36MarketsByIdInOp (content);  // hx11 m36
     content = gb09CredentialStrings (content);  // hx10 w9 GB09: the credential fields are plain strings
     content = goOrderBookSetterPass (content);  // last: the book local is typed, and a GetAsks call or the assertion proves it non-nil
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: last, on the settled guard literals
@@ -7693,7 +7684,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, goGofmtLayout (this.declareBaseFileStdlibImports (gp19Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), goPredictionBase), baseFile.stdlibImports)));  // hx10 w9 GP19: this base file bypasses formatGoSource
+            fs.writeFileSync (goPredictionBase, goGofmtLayout (this.declareBaseFileStdlibImports ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), baseFile.stdlibImports)));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -10216,7 +10207,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (g04Wired ()).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10OG02Check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gp19Check ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (g04Wired ()).concat (hx10G06Check ()).concat (g08w3Check ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -11576,8 +11567,9 @@ function h2kG13NativeKeysAndRemove (content: string): string {
 }
 
 function h2kG13RewriteLine (line: string, m: string, k: number, maskedFunc: string, typeAt: (name: string, k: number) => string | undefined): string[] {
-    const keys = /^(\s*)var (\w+) \[\]string = (?:ccxt\.)?ObjectKeys\((\w+)\)$/.exec (m.replace (/\s+$/, ''));
-    if (keys && (line.replace (/\s+$/, '') === m.replace (/\s+$/, '')) && (typeAt (keys[3], k) === 'map[string]any') && !/\bobjectKey\b/.test (maskedFunc)) {
+    const keys = /^(\s*)var (\w+) \[\]string = (?:ccxt\.)?ObjectKeys\((\w+|this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id))\)$/.exec (m.replace (/\s+$/, ''));
+    // the four BaseExchange market tables are map[string]any fields (nil before the first load)
+    if (keys && (line.replace (/\s+$/, '') === m.replace (/\s+$/, '')) && (keys[3].startsWith ('this.') || (typeAt (keys[3], k) === 'map[string]any')) && !/\bobjectKey\b/.test (maskedFunc)) {
         const [ , ind, ks, recv ] = keys;
         return [
             ind + 'var ' + ks + ' []string = nil',
@@ -14502,14 +14494,14 @@ function hx4G07FieldInOp (content: string): string {
     return lines.join ('\n');
 }
 
-// ===== hx11 M36: InOp(this.Markets_by_id(), k) -> `if _, ok := this.Markets_by_id()[k]; ...` =====
-// Markets_by_id() is statically map[string]any (nil before load: a nil map reads ok=false like the helper).
+// ===== hx11 M36: InOp(this.Markets_by_id, k) -> `if _, ok := this.Markets_by_id[k]; ...` =====
+// Markets_by_id is a map[string]any field (nil before load: a nil map reads ok=false like the helper).
 // The lookup moves into the if-init, so the key must already be a non-nil string at the `if`: a `string`
 // declaration, or a `*string` (dereferenced) that is never nil there: every write is a SafeString* call
 // with a literal default, or an earlier `if <k> == nil ... {` block of the func ends in return/continue.
 // Lone call in an if header, `ok` unused in the func. Any other shape keeps the helper.
 function hx11m36MarketsByIdInOp (content: string): string {
-    if (!/InOp\(this\.Markets_by_id\(\), /.test (content)) {
+    if (!/InOp\(this\.Markets_by_id, /.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
@@ -14549,7 +14541,7 @@ function hx11m36MarketsByIdInOp (content: string): string {
             continue;
         }
         const at = calls[0].index;
-        const call = /^(?:ccxt\.)?InOp\((this\.Markets_by_id\(\)), (\w+)\)/.exec (lines[k].substring (at));
+        const call = /^(?:ccxt\.)?InOp\((this\.Markets_by_id), (\w+)\)/.exec (lines[k].substring (at));
         if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
             continue;
         }
@@ -14587,14 +14579,14 @@ function hx11m36SelfTest (): string[] {
     const problems: string[] = [];
     const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('hx11-m36: ' + message); } };
     const f = (sig: string, body: string) => hx11m36MarketsByIdInOp ('func (this *X) H(' + sig + ') {\n' + body + '}\n');
-    const nativeStr = f ('', '\tvar s string = "a"\n\tif (this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), s)) {\n\t}\n');
-    ok (nativeStr.includes ('if _, ok := this.Markets_by_id()[s]; (this.Markets_by_id() == nil) || !ok {'), 'string key');
-    ok (f ('', '\tvar s *string = this.SafeString(r, "a", "")\n\tif InOp(this.Markets_by_id(), s) {\n\t}\n').includes ('this.Markets_by_id()[*s]; ok {'), 'default-literal SafeString key');
-    ok (f ('', '\tvar s *string = this.SafeString(r, "a")\n\tif InOp(this.Markets_by_id(), s) {\n\t}\n').includes ('InOp('), 'nilable *string keeps the helper');
-    ok (f ('', '\tvar s *string = this.SafeString(r, "a")\n\tif s == nil {\n\t\tcontinue\n\t}\n\tif (this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), s)) {\n\t}\n').includes ('[*s]; (this.Markets_by_id() == nil) || !ok {'), 'nil-exit above');
-    ok (f ('', '\tvar s *string = this.SafeString(r, "a")\n\tif (s != nil) && (InOp(this.Markets_by_id(), s)) {\n\t}\n').includes ('InOp('), 'guard inside the condition keeps the helper');
-    ok (f ('s any', '\tif InOp(this.Markets_by_id(), s) {\n\t}\n').includes ('InOp('), 'any key keeps the helper');
-    ok (f ('', '\tvar s string = "a"\n\tif InOp(this.Markets(), s) {\n\t}\n').includes ('InOp('), 'other receivers untouched');
+    const nativeStr = f ('', '\tvar s string = "a"\n\tif (this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, s)) {\n\t}\n');
+    ok (nativeStr.includes ('if _, ok := this.Markets_by_id[s]; (this.Markets_by_id == nil) || !ok {'), 'string key');
+    ok (f ('', '\tvar s *string = this.SafeString(r, "a", "")\n\tif InOp(this.Markets_by_id, s) {\n\t}\n').includes ('this.Markets_by_id[*s]; ok {'), 'default-literal SafeString key');
+    ok (f ('', '\tvar s *string = this.SafeString(r, "a")\n\tif InOp(this.Markets_by_id, s) {\n\t}\n').includes ('InOp('), 'nilable *string keeps the helper');
+    ok (f ('', '\tvar s *string = this.SafeString(r, "a")\n\tif s == nil {\n\t\tcontinue\n\t}\n\tif (this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, s)) {\n\t}\n').includes ('[*s]; (this.Markets_by_id == nil) || !ok {'), 'nil-exit above');
+    ok (f ('', '\tvar s *string = this.SafeString(r, "a")\n\tif (s != nil) && (InOp(this.Markets_by_id, s)) {\n\t}\n').includes ('InOp('), 'guard inside the condition keeps the helper');
+    ok (f ('s any', '\tif InOp(this.Markets_by_id, s) {\n\t}\n').includes ('InOp('), 'any key keeps the helper');
+    ok (f ('', '\tvar s string = "a"\n\tif InOp(this.Markets, s) {\n\t}\n').includes ('InOp('), 'other receivers untouched');
     return problems;
 }
 
@@ -15484,6 +15476,9 @@ function hx4G16SelfTest (): string[] {
         ok (inop ('\tvar q map[string]any = this.Extend(map[string]any{}, p)\n\tq = this.OmitDict(this.Options, []any{"a"})\n\tif InOp(q, "symbol") {\n\t}\n').includes ('InOp(q, "symbol")'), 'OmitDict of a field keeps the helper');
         ok (inop ('\tvar q map[string]any = this.Extend(map[string]any{}, p)\n\tq = this.Market("a")\n\tif InOp(q, "symbol") {\n\t}\n').includes ('InOp(q, "symbol")'), 'a shared market row keeps the helper');
         ok (inop ('\tif InOp(p, "symbol") {\n\t}\n').includes ('InOp(p, "symbol")'), 'a parameter keeps the helper');
+        ok (inop ('\tvar s string = "a"\n\tif (this.Markets != nil) && (InOp(this.Markets, s)) {\n\t}\n').includes ('InOp(this.Markets, s)'), 'a market table is not a receiver of this pass: the ast printer owns its reads');
+        ok (inop ('\tvar s any = nil\n\tif (this.Markets != nil) && (InOp(this.Markets, s)) {\n\t}\n').includes ('InOp(this.Markets, s)'), 'this.Markets with an any key keeps the helper');
+        ok (inop ('\tvar s string = "a"\n\tif (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, s)) {\n\t}\n').includes ('InOp(this.Markets_by_id, s)'), 'other getters keep the helper');
         const len = hx4G16PredictionBaseLen ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tvar outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)\n\tfor i := 0; i < GetArrayLength(outcomes); i++ {\n\t}\n\tvar w any = nil\n\treturn GetArrayLength(w)\n}\n');
         ok (len.includes ('i < len(outcomes)') && len.includes ('GetArrayLength(w)'), 'prediction base len: ' + len);
     } catch (e) {
@@ -15630,7 +15625,6 @@ function hx4G20BaseNativePasses (content: string): string {
     content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = hx4G38Pass (hx4G33IsEqual (hx4G28IsEqualSafe (content)));  // hx4 G28, G33, G38
     content = g10kLenNative (goNativeStringAdds (hx4G32Comparisons (hx4G31Divide (hx4G27Comparisons (hx4G23Comparisons (hx4G18NativeCompare (hx4G30Arith (content))))))));  // hx4 G27..G32
-    content = hx10OG02Pass (content);  // hx10 wave-4 OG02: these two base files bypass formatGoSource
     content = hx11m36MarketsByIdInOp (content);  // hx11 m36
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: the guard literals in the base files too
     content = hx11w8TypedFieldNilFold (content);  // hx11 w8: RateLimit/Id are never nil

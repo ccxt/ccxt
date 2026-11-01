@@ -167,6 +167,10 @@ export function goChanSendType (expr: string, fnMasked: string, signature: strin
     if (/^"(?:[^"\\\n]|\\.)*"$/.test (expr)) {
         return { 'type': 'string' };
     }
+    // the four BaseExchange market tables are `map[string]any` fields (go/v4/exchange.go)
+    if (/^this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id)$/.test (expr)) {
+        return { 'type': 'map[string]any' };
+    }
     const literal = /^(map\[string\]any|\[\]any|\[\]string)\{/.exec (expr);
     if (literal !== null) {
         return { 'type': literal[1], 'bind': true };
