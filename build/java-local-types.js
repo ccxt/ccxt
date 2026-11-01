@@ -17003,7 +17003,7 @@ function j13Member (lines, from, to) {
         if (!lines[i].includes ('Helpers.toLongOrNull(')) continue;
         let line = lines[i];
         // toLongOrNull(Helpers.parseInt(<no nested parens>)): parseInt already returns Long or null
-        line = line.replace (/Helpers\.toLongOrNull\(((?:Helpers|io\.github\.ccxt\.base\.JsParse|JsParse)\.parseInt\(\([^()]*\)\))\)/g, '$1');
+        line = line.replace (/Helpers\.toLongOrNull\(((?:Helpers\.parseInt|Long\.parseLong)\(\([^()]*\)\))\)/g, '$1');
         // a primitive long difference/sum over a cast local and a long literal
         line = line.replace (/Helpers\.toLongOrNull\((\(\(\(long\) \w+\) [-+] \d+L\))\)/g, 'Long.valueOf$1');
         line = line.replace (/Helpers\.toLongOrNull\(([A-Za-z_]\w*)\)/g, (all, name) => {
@@ -18374,7 +18374,7 @@ function j14Value (printer, node, declaration, type, depth = 0) {
     }
     // global parseInt(x) prints Helpers.parseInt(x), declared to return Long
     if (type === 'Long' && ts.isIdentifier (value.expression) && value.expression.text === 'parseInt' && value.arguments.length === 1
-        && printer.printNode (value, 0).startsWith ('Helpers.parseInt(') || printer.printNode (value, 0).startsWith ('io.github.ccxt.base.JsParse.parseInt(')) {
+        && /^(?:Helpers\.parseInt|Long\.parseLong)\(/.test (printer.printNode (value, 0))) {
         return { cast: '' };
     }
     if (!isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a)) || isAsyncMethodCall (printer, value)) {
@@ -19381,9 +19381,9 @@ function j27Box (ctx, text) {
     const masked = e.replace (/"(?:[^"\\]|\\.)*"/g, 'j27s');
     const call = (re) => { const m = re.exec (masked); return m === null ? undefined : longLimitCallArgs (masked, m[1]); };
     if (call (/^((?:\w+\.)?this\.(?:safeInteger|safeInteger2|safeIntegerN|safeTimestamp|safeTimestamp2|safeTimestampN|parseToInt))\(/) !== undefined) return 'Long';
-    if (call (/^((?:Helpers|io\.github\.ccxt\.base\.JsParse|JsParse)\.parseInt)\(/) !== undefined) return 'Long';
+    if (call (/^((?:Helpers\.parseInt|Long\.parseLong))\(/) !== undefined) return 'Long';
     if (call (/^((?:\w+\.)?this\.(?:safeNumber|safeNumber2|safeNumberN))\(/) !== undefined) return 'Double';
-    if (call (/^((?:Helpers|io\.github\.ccxt\.base\.JsParse|JsParse)\.parseFloat)\(/) !== undefined) return 'Double';
+    if (call (/^((?:Helpers\.parseFloat|Double\.parseDouble))\(/) !== undefined) return 'Double';
     if (/^[A-Za-z_]\w*$/.test (e)) {
         const t = ctx.declType (e);
         return t === 'Long' || t === 'Double' ? t : undefined;
@@ -19773,7 +19773,7 @@ function j32Member (lines, from, to, overrides) {
         if (e === 'null' || /^-?\d+(?:\.\d+)?L?$/.test (e) || sumCall (e)) return true;
         if (/^this\.(?:milliseconds|seconds)\(\)$/.test (e) && !overrides.has ('milliseconds') && !overrides.has ('seconds')) return true;
         if (!overrides.has ('parseToInt') && longLimitCallArgs (e, 'this.parseToInt') !== undefined) return true;
-        for (const h of [ 'Helpers.parseInt', 'Helpers.multiply', 'Helpers.subtract', 'Helpers.divide', 'Helpers.mod', 'Math.min', 'Math.max' ]) {
+        for (const h of [ 'Helpers.parseInt', 'Long.parseLong', 'Helpers.multiply', 'Helpers.subtract', 'Helpers.divide', 'Helpers.mod', 'Math.min', 'Math.max' ]) {
             if (longLimitCallArgs (e, h) !== undefined) return true;
         }
         if (/^[A-Za-z_]\w*$/.test (e)) return objectNumber (e, seen) || J32_NUMERIC_DECL.includes (ctx.declType (e));

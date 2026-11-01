@@ -9371,8 +9371,8 @@ function j35Member (member: string, content: string): string {
         if (/^\(\(\(?(?:java\.util\.)?List<[\w?]+>\)\s*\(?[\w.]+\)\)?\.size\(\)$|^[A-Za-z_]\w*\.size\(\)$/.test (e)) return false;
         const arith = /^([A-Za-z_]\w*) [*+-] \d+L$/.exec (e);
         if (arith !== null) { const k = nameKind (arith[1]); return k === 'p' || k === 'L' ? false : undefined; }
-        const h = /^(?:Helpers|io\.github\.ccxt\.base\.JsParse|JsParse)\.(getArrayLength|parseInt)\(/.exec (e);
-        if (h !== null && j26Close (e, h[0].length - 1) === e.length - 1) return h[1] === 'parseInt';
+        const h = /^(?:Helpers\.(getArrayLength|parseInt)|Long\.(parseLong))\(/.exec (e);
+        if (h !== null && j26Close (e, h[0].length - 1) === e.length - 1) return h[1] === 'parseInt'; // Long.parseLong never answers null
         const call = /^this\.(\w+)\(/.exec (e);
         if (call !== null && j26Close (e, call[0].length - 1) === e.length - 1 && longCall (call[1])) return true;
         return undefined;

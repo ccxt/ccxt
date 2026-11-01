@@ -87,7 +87,6 @@ import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Trade;
-import io.github.ccxt.base.JsParse;
 
 
 public class BaseExchange {
@@ -5893,7 +5892,7 @@ public Map<String, Object> describe()
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         String stringifiedNumber = this.numberToString(number);
-        Object convertedNumber = ((Object)JsParse.parseFloat(stringifiedNumber));
+        Object convertedNumber = ((Object)Double.parseDouble(stringifiedNumber));
         return Helpers.parseInt(convertedNumber);
     }
 
@@ -5906,9 +5905,9 @@ public Map<String, Object> describe()
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (((String)stringVersion).indexOf(".") >= 0)
         {
-            return JsParse.parseFloat(stringVersion);
+            return Double.parseDouble(stringVersion);
         }
-        return JsParse.parseInt(stringVersion);
+        return Long.parseLong(stringVersion);
     }
 
     public Boolean isRoundNumber(Object value)
@@ -10500,7 +10499,7 @@ public Map<String, Object> describe()
         {
             return null;
         }
-        Long precisionNumber = Helpers.parseInt(precision);
+        Long precisionNumber = Long.parseLong(((String)precision));
         if ((precisionNumber != null && precisionNumber == 0))
         {
             return "1";
@@ -10547,7 +10546,7 @@ public Map<String, Object> describe()
             {
                 return null;
             }
-            Long positivePrecision = JsParse.parseInt(positivePrecisionString);
+            Long positivePrecision = Long.parseLong(positivePrecisionString);
             String parsedPrecision = "1";
             for (var i = 0; i < (positivePrecision - 1L); i++)
             {
@@ -10854,7 +10853,7 @@ public Map<String, Object> describe()
                 ((List<Object>)keysToOmit).add("triggerPrice");
                 ((List<Object>)keysToOmit).add("stopPrice");
             }
-            triggerPriceStr = this.priceToPrecision(symbol, JsParse.parseFloat(triggerPrice));
+            triggerPriceStr = this.priceToPrecision(symbol, Double.parseDouble(triggerPrice));
         }
         if (!java.util.Objects.equals(stopLossPrice, null))
         {
@@ -10862,7 +10861,7 @@ public Map<String, Object> describe()
             {
                 ((List<Object>)keysToOmit).add("stopLossPrice");
             }
-            stopLossPriceStr = this.priceToPrecision(symbol, JsParse.parseFloat(stopLossPrice));
+            stopLossPriceStr = this.priceToPrecision(symbol, Double.parseDouble(stopLossPrice));
         }
         if (!java.util.Objects.equals(takeProfitPrice, null))
         {
@@ -10870,7 +10869,7 @@ public Map<String, Object> describe()
             {
                 ((List<Object>)keysToOmit).add("takeProfitPrice");
             }
-            takeProfitPriceStr = this.priceToPrecision(symbol, JsParse.parseFloat(takeProfitPrice));
+            takeProfitPriceStr = this.priceToPrecision(symbol, Double.parseDouble(takeProfitPrice));
         }
         Integer keysToOmitLength = ((List<?>)keysToOmit).size();
         Map<String, Object> paramsOmitted = ((((keysToOmitLength != null && keysToOmitLength > 0)))) ? this.omit(parameters, keysToOmit) : parameters;
