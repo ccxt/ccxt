@@ -185487,7 +185487,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
 }
 // this is updated by vss.js when building
-_define_property(BaseExchange, "ccxtVersion", '4.5.90');
+_define_property(BaseExchange, "ccxtVersion", '4.5.91');
 class Exchange extends BaseExchange {
     async closePosition(symbol, side = undefined, params = {}) {
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' closePosition() is not supported yet');
@@ -554328,13 +554328,22 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString2(liquidation, 'symbol', 's');
         const marketResolved = this.safeMarket(marketId, market, '', 'contract');
         const timestamp = this.safeInteger2(liquidation, 'updatedTime', 'T');
+        // bybit sends the side of the liquidated position (Buy - a long was liquidated),
+        // the unified side is the side of the liquidation order, as on binance and okx
+        const positionSide = this.safeStringLower2(liquidation, 'side', 'S');
+        let side = undefined;
+        if (positionSide === 'buy') {
+            side = 'sell';
+        } else if (positionSide === 'sell') {
+            side = 'buy';
+        }
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': marketResolved['symbol'],
             'contracts': this.safeNumber2(liquidation, 'size', 'v'),
             'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'price': this.safeNumber2(liquidation, 'price', 'p'),
-            'side': this.safeStringLower2(liquidation, 'side', 'S'),
+            'side': side,
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -690850,7 +690859,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.90';
+const version = '4.5.91';
 //-----------------------------------------------------------------------------
 
 

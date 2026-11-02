@@ -1859,13 +1859,22 @@ export default class bybit extends bybitRest {
         const marketId = this.safeString2 (liquidation, 'symbol', 's');
         const marketResolved: Market = this.safeMarket (marketId, market, '', 'contract');
         const timestamp = this.safeInteger2 (liquidation, 'updatedTime', 'T');
+        // bybit sends the side of the liquidated position (Buy - a long was liquidated),
+        // the unified side is the side of the liquidation order, as on binance and okx
+        const positionSide = this.safeStringLower2 (liquidation, 'side', 'S');
+        let side: Str = undefined;
+        if (positionSide === 'buy') {
+            side = 'sell';
+        } else if (positionSide === 'sell') {
+            side = 'buy';
+        }
         return this.safeLiquidation ({
             'info': liquidation,
             'symbol': marketResolved['symbol'],
             'contracts': this.safeNumber2 (liquidation, 'size', 'v'),
             'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'price': this.safeNumber2 (liquidation, 'price', 'p'),
-            'side': this.safeStringLower2 (liquidation, 'side', 'S'),
+            'side': side,
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,

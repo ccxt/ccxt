@@ -2581,14 +2581,23 @@ impl BybitCore {
         let mut marketId: Value = self.safe_string2(liquidation.clone(), Value::Str("symbol".into()), Value::Str("s".into()), &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Str("".into()), Value::Str("contract".into())]);
         let mut timestamp: Value = self.safe_integer2(liquidation.clone(), Value::Str("updatedTime".into()), Value::Str("T".into()), &[]);
+        // bybit sends the side of the liquidated position (Buy - a long was liquidated),
+        // the unified side is the side of the liquidation order, as on binance and okx
+        let mut positionSide: Option<String> = self.safe_string_lower2(liquidation.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]).as_str().map(str::to_owned);
+        let mut side: Value = Value::Null;
+        if (positionSide.as_deref() == Some("buy")) {
+            side = Value::Str("sell".into());
+        }  else if (positionSide.as_deref() == Some("sell")) {
+            side = Value::Str("buy".into());
+        }
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.safe_number2(liquidation.clone(), Value::Str("size".into()), Value::Str("v".into()), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
-        m.insert("price".to_string(), self.safe_number2(liquidation.clone(), Value::Str("price".into()), Value::Str("p".into()), &[]));
-        m.insert("side".to_string(), self.safe_string_lower2(liquidation, Value::Str("side".into()), Value::Str("S".into()), &[]));
+        m.insert("price".to_string(), self.safe_number2(liquidation, Value::Str("price".into()), Value::Str("p".into()), &[]));
+        m.insert("side".to_string(), side);
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
