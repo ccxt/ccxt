@@ -239,7 +239,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': (market['swap'] === true) ? market['baseName'] : market['id'],
+                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -272,7 +272,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': (market['swap'] === true) ? market['baseName'] : market['id'],
+                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -353,7 +353,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 // always 'activeAssetCtx', the server routes spot coins to the spot channel,
                 // see https://github.com/ccxt/ccxt/issues/27475
                 'type': 'activeAssetCtx',
-                'coin': (market['swap'] === true) ? market['baseName'] : market['id'],
+                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         await this.waitForPendingUnsubscribe(url, messageHash);
@@ -381,7 +381,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'activeAssetCtx',
-                'coin': (market['swap'] === true) ? market['baseName'] : market['id'],
+                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
@@ -802,7 +802,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': (market['swap'] === true) ? market['baseName'] : market['id'],
+                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -836,7 +836,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': (market['swap'] === true) ? market['baseName'] : market['id'],
+                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -969,7 +969,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': (market['swap'] === true) ? market['baseName'] : market['id'],
+                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -1004,7 +1004,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': (market['swap'] === true) ? market['baseName'] : market['id'],
+                'coin': (this.safeBool(market, 'swap', false)) ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -1083,7 +1083,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const paramsValue = this.safeDict(this.handlePublicAddress('watchBalance', params), 1, params);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, paramsValue);
         const unifiedResult = await this.isUnifiedEnabled('watchBalance', userAddress, false, paramsMarketType);
-        const isUnifiedEnabled = this.safeBool(unifiedResult, 0);
+        const isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
         const paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
         const dex = this.safeString(paramsValue2, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
@@ -1098,7 +1098,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'user': userAddress,
         };
         if (isSpot) {
-            if (isUnifiedEnabled === true) {
+            if (isUnifiedEnabled) {
                 subscription['isPortfolioMargin'] = true;
             }
         }
@@ -1135,7 +1135,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const paramsValue = this.safeDict(this.handlePublicAddress('unWatchBalance', params), 1, params);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('unWatchBalance', undefined, paramsValue);
         const unifiedResult = await this.isUnifiedEnabled('unWatchBalance', userAddress, false, paramsMarketType);
-        const isUnifiedEnabled = this.safeBool(unifiedResult, 0);
+        const isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
         const paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
         const dex = this.safeString(paramsValue2, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);

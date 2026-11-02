@@ -1215,7 +1215,7 @@ class blofin extends blofin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
@@ -1828,7 +1828,7 @@ class blofin extends blofin$1["default"] {
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         }
-        else if (isTpsl === true) {
+        else if (isTpsl) {
             request['tpslId'] = id;
         }
         else {
@@ -1836,7 +1836,7 @@ class blofin extends blofin$1["default"] {
         }
         const query = this.omit(params, ['clientOrderId', 'tpsl', 'TPSL']);
         let response;
-        if (isTpsl === true) {
+        if (isTpsl) {
             response = await this.privateGetTradeOrderTpslDetail(this.extend(request, query));
         }
         else {
@@ -3009,7 +3009,7 @@ class blofin extends blofin$1["default"] {
         const contractSizeString = this.numberToString(contractSize);
         const markPriceString = this.safeString(position, 'markPrice');
         let notionalString = this.safeString(position, 'notionalUsd');
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             notionalString = Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         else if (notionalString === undefined) {
@@ -3428,7 +3428,7 @@ class blofin extends blofin$1["default"] {
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         const request = {
-            'positionMode': (hedged === true) ? 'long_short_mode' : 'net_mode',
+            'positionMode': hedged ? 'long_short_mode' : 'net_mode',
         };
         //
         //     {

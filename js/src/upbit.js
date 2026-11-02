@@ -1228,12 +1228,12 @@ export default class upbit extends Exchange {
     }
     calcOrderPrice(symbol, amount = undefined, price = undefined, params = {}) {
         let quoteAmount = undefined;
-        const createMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'createMarketBuyOrderRequiresPrice');
+        const createMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'createMarketBuyOrderRequiresPrice', false);
         const cost = this.safeString(params, 'cost');
         if (cost !== undefined) {
             quoteAmount = this.costToPrecision(symbol, cost);
         }
-        else if (createMarketBuyOrderRequiresPrice === true) {
+        else if (createMarketBuyOrderRequiresPrice) {
             if (price === undefined || amount === undefined) {
                 throw new InvalidOrder(this.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
             }

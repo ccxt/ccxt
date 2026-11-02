@@ -1964,7 +1964,7 @@ export default class tokocrypto extends Exchange {
         else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if ((market['linear'] === true) || (market['inverse'] === true)) {
+            if ((this.safeBool(market, 'linear', false)) || (this.safeBool(market, 'inverse', false))) {
                 priceIsRequired = true;
             }
         }

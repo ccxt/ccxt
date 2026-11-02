@@ -2371,7 +2371,7 @@ class lighter extends lighter$1["default"] {
         const isAskAsInteger = this.safeInteger(order, 'is_ask');
         let side = undefined;
         if (isAsk !== undefined) {
-            side = (isAsk === true) ? 'sell' : 'buy';
+            side = isAsk ? 'sell' : 'buy';
         }
         else if (isAskAsInteger !== undefined) {
             side = (isAskAsInteger === 1) ? 'sell' : 'buy';

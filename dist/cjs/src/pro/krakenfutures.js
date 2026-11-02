@@ -823,8 +823,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             }
         }
         else {
-            const isCancel = this.safeBool(message, 'is_cancel');
-            if (isCancel === true) {
+            const isCancel = this.safeBool(message, 'is_cancel', false);
+            if (isCancel) {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
                 // mapping every removal to canceled. Preserve reason on info
@@ -1489,11 +1489,12 @@ class krakenfutures extends krakenfutures$1["default"] {
                 newAccount['free'] = this.safeString(future, 'available');
                 newAccount['used'] = this.safeString(future, 'initial_margin');
                 newAccount['total'] = this.safeString(future, 'balance');
-                this.balance['margin'][symbol] = {};
+                const symbolAccounts = {};
                 if ((symbol !== undefined) && (code !== undefined)) {
                     futuresSymbols[symbol] = true;
-                    this.balance['margin'][symbol][code] = newAccount;
+                    symbolAccounts[code] = newAccount;
                 }
+                this.balance['margin'][symbol] = symbolAccounts;
             }
             this.balance['margin'] = this.pruneStaleBalanceKeys(this.balance['margin'], futuresSymbols);
             this.balance['margin'] = this.safeBalance(this.balance['margin']);
@@ -1630,7 +1631,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const timestamp = this.safeInteger(trade, 'time');
         const marketId = this.safeString(trade, 'instrument');
         const marketResolved = this.safeMarket(marketId, market);
-        const isBuy = this.safeBool(trade, 'buy');
+        const isBuy = this.safeBool(trade, 'buy', false);
         const feeCurrencyId = this.safeString(trade, 'fee_currency');
         return this.safeTrade({
             'info': trade,
@@ -1640,7 +1641,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'symbol': this.safeString(marketResolved, 'symbol'),
             'order': this.safeString(trade, 'order_id'),
             'type': this.safeString(trade, 'type'),
-            'side': (isBuy === true) ? 'buy' : 'sell',
+            'side': isBuy ? 'buy' : 'sell',
             'takerOrMaker': this.safeString(trade, 'fill_type'),
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString(trade, 'qty'),

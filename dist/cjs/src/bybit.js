@@ -2693,7 +2693,7 @@ class bybit extends bybit$1["default"] {
                 else if (this.safeString(market, 'type') !== currentType) {
                     throw new errors.BadRequest(this.id + ' fetchTickers can only accept a list of symbols of the same type');
                 }
-                if (market['option'] === true) {
+                if (this.safeBool(market, 'option', false)) {
                     const marketBase = this.safeString(market, 'base');
                     if (code !== undefined && code !== marketBase) {
                         throw new errors.BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers');
@@ -2793,8 +2793,8 @@ class bybit extends bybit$1["default"] {
         //         "2.4343353100000003"
         //     ]
         //
-        const isInverse = this.safeBool(market, 'inverse');
-        const volumeIndex = (isInverse === true) ? 6 : 5;
+        const isInverse = this.safeBool(market, 'inverse', false);
+        const volumeIndex = isInverse ? 6 : 5;
         return [
             this.safeInteger(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
@@ -2856,17 +2856,17 @@ class bybit extends bybit$1["default"] {
         [request, paramsUntil] = this.handleUntilOption('end', request, paramsPaginate);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['category'] = 'spot';
             response = await this.publicGetV5MarketKline(this.extend(request, paramsUntil));
         }
         else {
             const price = this.safeString(paramsUntil, 'price');
             const paramsOmitted = this.omit(paramsUntil, 'price');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 request['category'] = 'linear';
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 request['category'] = 'inverse';
             }
             else {
@@ -3370,7 +3370,7 @@ class bybit extends bybit$1["default"] {
         if (feeCostString !== undefined) {
             const feeRateString = this.safeString(trade, 'feeRate');
             let feeCurrencyCode = undefined;
-            if (marketResolved['spot'] === true) {
+            if (this.safeBool(marketResolved, 'spot', false)) {
                 if (Precise["default"].stringGt(feeCostString, '0')) {
                     if (side === 'buy') {
                         feeCurrencyCode = marketResolved['base'];
@@ -3389,7 +3389,7 @@ class bybit extends bybit$1["default"] {
                 }
             }
             else {
-                feeCurrencyCode = (marketResolved['inverse'] === true) ? marketResolved['base'] : marketResolved['settle'];
+                feeCurrencyCode = (this.safeBool(marketResolved, 'inverse', false)) ? marketResolved['base'] : marketResolved['settle'];
             }
             fee = {
                 'cost': feeCostString,
@@ -3495,21 +3495,21 @@ class bybit extends bybit$1["default"] {
             'symbol': market['id'],
         };
         let defaultLimit = 25;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             // limit: [1, 50]. Default: 1
             defaultLimit = 50;
             request['category'] = 'spot';
         }
         else {
-            if (market['option'] === true) {
+            if (this.safeBool(market, 'option', false)) {
                 // limit: [1, 25]. Default: 1
                 request['category'] = 'option';
             }
-            else if (market['linear'] === true) {
+            else if (this.safeBool(market, 'linear', false)) {
                 // limit: [1, 500]. Default: 25
                 request['category'] = 'linear';
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 // limit: [1, 500]. Default: 25
                 request['category'] = 'inverse';
             }
@@ -4172,7 +4172,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -4200,7 +4200,7 @@ class bybit extends bybit$1["default"] {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports UTA accounts only');
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -4257,7 +4257,7 @@ class bybit extends bybit$1["default"] {
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, enableUnifiedAccount);
         const switchToOco = (isStopLossOrder && isTakeProfitOrder) || this.safeBool(params, 'tradingStopEndpoint', false);
         let defaultMethod = undefined;
-        if ((isTrailingOrder || (switchToOco)) && (market['spot'] !== true)) {
+        if ((isTrailingOrder || (switchToOco)) && (!this.safeBool(market, 'spot', false))) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         }
         else {
@@ -4322,7 +4322,7 @@ class bybit extends bybit$1["default"] {
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
         const hedged = this.safeBool(params, 'hedged', false);
-        const reduceOnly = this.safeBool(params, 'reduceOnly');
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeString(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeString(params, 'takeProfitPrice');
@@ -4362,7 +4362,7 @@ class bybit extends bybit$1["default"] {
         const amountString = (amountValue !== undefined) ? this.getAmount(symbolValue, amountValue) : undefined;
         const priceString = (price !== undefined) ? this.getPrice(symbolValue, this.numberToString(price)) : undefined;
         if (endpointIsTradingStop) {
-            if (hasStopLoss || hasTakeProfit || isTriggerOrder || (market['spot'] === true)) {
+            if (hasStopLoss || hasTakeProfit || isTriggerOrder || (this.safeBool(market, 'spot', false))) {
                 throw new errors.InvalidOrder(this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if (isStopLossOrder || isTakeProfitOrder) {
@@ -4438,7 +4438,7 @@ class bybit extends bybit$1["default"] {
             else if (timeInForce === 'ioc') {
                 request['timeInForce'] = 'IOC';
             }
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 // only works for spot market
                 if (triggerPrice !== undefined) {
                     request['orderFilter'] = 'StopOrder';
@@ -4451,7 +4451,7 @@ class bybit extends bybit$1["default"] {
             if (clientOrderId !== undefined) {
                 request['orderLinkId'] = clientOrderId;
             }
-            else if (market['option'] === true) {
+            else if (this.safeBool(market, 'option', false)) {
                 // mandatory field for options
                 request['orderLinkId'] = this.uuid16();
             }
@@ -4467,7 +4467,7 @@ class bybit extends bybit$1["default"] {
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
         const isMarketOrder = lowerCaseType === 'market';
-        if ((market['spot'] === true) && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
+        if ((this.safeBool(market, 'spot', false)) && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
@@ -4486,7 +4486,7 @@ class bybit extends bybit$1["default"] {
                 request['qty'] = amountString;
             }
         }
-        else if ((market['spot'] === true) && isMarketOrder && (side === 'buy')) {
+        else if ((this.safeBool(market, 'spot', false)) && isMarketOrder && (side === 'buy')) {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
@@ -4530,7 +4530,7 @@ class bybit extends bybit$1["default"] {
         else if (isTriggerOrder && !endpointIsTradingStop) {
             const triggerDirection = this.safeString(query, 'triggerDirection');
             query = this.omit(query, ['triggerPrice', 'stopPrice', 'triggerDirection']);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 if (triggerDirection !== undefined) {
                     throw new errors.NotSupported(this.id + ' createOrder() : trigger order does not support triggerDirection for spot markets yet');
                 }
@@ -4572,12 +4572,12 @@ class bybit extends bybit$1["default"] {
                 }
                 else {
                     // for spot market, we need to add this
-                    if (market['spot'] === true) {
+                    if (this.safeBool(market, 'spot', false)) {
                         request['slOrderType'] = 'Market';
                     }
                 }
                 // for spot market, we need to add this
-                if ((market['spot'] === true) && isMarketOrder) {
+                if ((this.safeBool(market, 'spot', false)) && isMarketOrder) {
                     throw new errors.InvalidOrder(this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
                 }
             }
@@ -4592,23 +4592,23 @@ class bybit extends bybit$1["default"] {
                 }
                 else {
                     // for spot market, we need to add this
-                    if (market['spot'] === true) {
+                    if (this.safeBool(market, 'spot', false)) {
                         request['tpOrderType'] = 'Market';
                     }
                 }
                 // for spot market, we need to add this
-                if ((market['spot'] === true) && isMarketOrder) {
+                if ((this.safeBool(market, 'spot', false)) && isMarketOrder) {
                     throw new errors.InvalidOrder(this.id + ' createOrder(): attached takeProfit is not supported for spot market orders');
                 }
             }
         }
-        if ((market['spot'] !== true) && (hedged)) {
-            if (reduceOnly === true) {
+        if ((!this.safeBool(market, 'spot', false)) && (hedged)) {
+            if (reduceOnly) {
                 query = this.omit(query, 'reduceOnly');
             }
             // a reduce-only order closes the position on the opposite side
             let isBuyPosition = false;
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 isBuyPosition = side === 'sell';
             }
             else {
@@ -4942,7 +4942,7 @@ class bybit extends bybit$1["default"] {
             // conditional orders
             // 'orderFilter': '', // Valid for spot only. Order,tpslOrder. If not passed, Order by default
         };
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             // only works for spot market
             const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
             request['orderFilter'] = (isTrigger) ? 'StopOrder' : 'Order';
@@ -4950,7 +4950,7 @@ class bybit extends bybit$1["default"] {
         if (id !== undefined) { // The user can also use argument params["orderLinkId"]
             request['orderId'] = id;
         }
-        const paramsOmitted = (market['spot'] === true) ? this.omit(params, ['stop', 'trigger']) : params;
+        const paramsOmitted = (this.safeBool(market, 'spot', false)) ? this.omit(params, ['stop', 'trigger']) : params;
         const [category, paramsCategory] = this.getBybitType('cancelOrderRequest', market, paramsOmitted);
         request['category'] = category;
         return this.extend(request, paramsCategory);
@@ -5309,7 +5309,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' fetchOrder() is not supported for spot markets');
         }
         const request = {
@@ -6402,7 +6402,7 @@ class bybit extends bybit$1["default"] {
         const enableUnified = this.safeBool(unifiedEnabled, 1, false);
         let currency = undefined;
         let currencyKey = 'coin';
-        if (enableUnified === true) {
+        if (enableUnified) {
             currencyKey = 'currency';
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -6422,7 +6422,7 @@ class bybit extends bybit$1["default"] {
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchLedger', undefined, paramsPaginate);
         let response;
-        if (enableUnified === true) {
+        if (enableUnified) {
             const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
                 response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, paramsSubType));
@@ -7059,7 +7059,7 @@ class bybit extends bybit$1["default"] {
         let notional = undefined;
         const contractSize = this.safeString(marketResolved, 'contractSize');
         const markPrice = this.safeString(position, 'markPrice');
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             notional = Precise["default"].stringDiv(Precise["default"].stringMul(size, contractSize), markPrice);
         }
         else {
@@ -7101,7 +7101,7 @@ class bybit extends bybit$1["default"] {
             else {
                 const bustPrice = this.omitZero(this.safeString(position, 'bustPrice'));
                 const closingFee = this.omitZero(this.safeString(position, 'occClosingFee'));
-                if (marketResolved['linear'] === true) {
+                if (this.safeBool(marketResolved, 'linear', false)) {
                     // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
@@ -7332,10 +7332,10 @@ class bybit extends bybit$1["default"] {
         };
         request['buyLeverage'] = leverageString;
         request['sellLeverage'] = leverageString;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             request['category'] = 'linear';
         }
-        else if (market['inverse'] === true) {
+        else if (this.safeBool(market, 'inverse', false)) {
             request['category'] = 'inverse';
         }
         else {
@@ -7407,7 +7407,7 @@ class bybit extends bybit$1["default"] {
         }
         const market = this.market(symbol);
         let subType = 'inverse';
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             subType = 'linear';
         }
         const category = this.safeString(params, 'category', subType);
@@ -7488,7 +7488,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const timeframe = this.safeString(params, 'interval', '1h');
@@ -7498,7 +7498,7 @@ class bybit extends bybit$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() cannot use the ' + timeframe + ' timeframe');
         }
         let subType = 'inverse';
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             subType = 'linear';
         }
         const category = this.safeString(params, 'category', subType);
@@ -7558,14 +7558,14 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const paginate = this.safeBool(params, 'paginate');
-        if (paginate === true) {
+        const paginate = this.safeBool(params, 'paginate', false);
+        if (paginate) {
             const paramsPaginate = this.omit(params, 'paginate');
             paramsPaginate['timeframe'] = timeframe;
             return await this.fetchPaginatedCallCursor('fetchOpenInterestHistory', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 200);
         }
         const market = this.market(symbol);
-        if ((market['spot'] === true) || (market['option'] === true)) {
+        if ((this.safeBool(market, 'spot', false)) || (this.safeBool(market, 'option', false))) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol);
         }
         ({
@@ -8076,10 +8076,10 @@ class bybit extends bybit$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             request['category'] = 'linear';
         }
-        else if (market['inverse'] === true) {
+        else if (this.safeBool(market, 'inverse', false)) {
             request['category'] = 'inverse';
         }
         const response = await this.publicGetV5MarketRiskLimit(this.extend(request, params));
@@ -8124,7 +8124,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if ((market['spot'] === true) || (market['option'] === true)) {
+        if ((this.safeBool(market, 'spot', false)) || (this.safeBool(market, 'option', false))) {
             throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
         }
         market['id'];
@@ -8964,7 +8964,7 @@ class bybit extends bybit$1["default"] {
         let symbol = undefined;
         if (symbols !== undefined) {
             const market = this.market(symbols[0]);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 throw new errors.NotSupported(this.id + ' fetchLeverageTiers() is not supported for spot market');
             }
             symbol = this.safeString(market, 'symbol');
@@ -9128,7 +9128,7 @@ class bybit extends bybit$1["default"] {
         const marketId = this.safeString(income, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
         let code = 'USDT';
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             code = marketResolved['quote'];
         }
         const timestamp = this.safeInteger(income, 'execTime');
@@ -9473,8 +9473,8 @@ class bybit extends bybit$1["default"] {
         for (let i = 0; i < coins.length; i++) {
             const entry = coins[i];
             const id = this.safeString(entry, 'coin');
-            const disableFrom = this.safeBool(entry, 'disableFrom');
-            const disableTo = this.safeBool(entry, 'disableTo');
+            const disableFrom = this.safeBool(entry, 'disableFrom', false);
+            const disableTo = this.safeBool(entry, 'disableTo', false);
             const inactive = (disableFrom === true) || (disableTo === true);
             const code = this.safeCurrencyCode(id);
             if (code !== undefined) {

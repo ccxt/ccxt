@@ -1122,7 +1122,7 @@ class kraken extends kraken$1["default"] {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                if (market['active'] === true) {
+                if (this.safeBool(market, 'active', false)) {
                     marketIds.push(market['id']);
                 }
             }
@@ -2342,7 +2342,7 @@ class kraken extends kraken$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders, only spot orders are accepted');
         }
         let request = {

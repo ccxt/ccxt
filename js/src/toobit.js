@@ -1167,18 +1167,18 @@ export default class toobit extends Exchange {
         const timestamp = this.safeInteger2(trade, 't', 'time');
         const priceString = this.safeString2(trade, 'p', 'price');
         const amountString = this.safeString2(trade, 'q', 'qty');
-        const isBuyer = this.safeBool(trade, 'isBuyer');
+        const isBuyer = this.safeBool(trade, 'isBuyer', false);
         let side = undefined;
         const isBuyerMaker = this.safeBool(trade, 'ibm');
         const isBuyerTaker = this.safeBool(trade, 'm');
         if (isBuyerMaker !== undefined) {
-            side = (isBuyerMaker === true) ? 'sell' : 'buy';
+            side = isBuyerMaker ? 'sell' : 'buy';
         }
         else if (isBuyerTaker !== undefined) {
-            side = (isBuyerTaker === true) ? 'buy' : 'sell';
+            side = isBuyerTaker ? 'buy' : 'sell';
         }
         else {
-            if (isBuyer === true) {
+            if (isBuyer) {
                 side = 'buy';
             }
             else {
@@ -1431,7 +1431,7 @@ export default class toobit extends Exchange {
         const last = this.safeString(ticker, 'c');
         let baseVolume = this.safeString(ticker, 'v');
         const contractSize = this.safeNumber(marketResolved, 'contractSize');
-        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
+        if ((this.safeBool(marketResolved, 'contract', false)) && (contractSize !== undefined)) {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
         }
@@ -1773,7 +1773,7 @@ export default class toobit extends Exchange {
         }
         const market = this.market(symbol);
         let response = {};
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const [request, paramsRequest] = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostApiV1SpotOrder(this.extend(request, paramsRequest));
         }
@@ -2215,7 +2215,7 @@ export default class toobit extends Exchange {
         };
         const market = this.market(symbol);
         let response = {};
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateGetApiV1SpotOrder(this.extend(request, params));
         }
         else {

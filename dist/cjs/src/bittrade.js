@@ -1179,7 +1179,7 @@ class bittrade extends bittrade$1["default"] {
         const code = this.safeCurrencyCode(id);
         const depositEnabled = this.safeBool(currency, 'deposit-enabled');
         const withdrawEnabled = this.safeBool(currency, 'withdraw-enabled');
-        const countryDisabled = this.safeBool(currency, 'country-disabled');
+        const countryDisabled = this.safeBool(currency, 'country-disabled', false);
         const visible = this.safeBool(currency, 'visible', false);
         const state = this.safeString(currency, 'state');
         const active = (visible) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && (countryDisabled !== true);
@@ -1539,7 +1539,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;

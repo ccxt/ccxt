@@ -515,11 +515,16 @@ class gemini extends gemini$1["default"] {
         const marketId = this.safeString(firstBidAsk, 'symbol', '').toLowerCase();
         const market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol', '');
-        if (!(symbol in this.bidsasks)) {
-            this.bidsasks[symbol] = this.parseTicker({});
-            this.bidsasks[symbol]['symbol'] = symbol;
+        // read-modify-write: the cached entry is copied out, updated, and stored back whole
+        let currentBidAsk = {};
+        if (symbol in this.bidsasks) {
+            const cachedBidAsk = this.bidsasks[symbol];
+            currentBidAsk = this.extend({}, cachedBidAsk);
         }
-        const currentBidAsk = this.bidsasks[symbol];
+        else {
+            currentBidAsk = this.extend(this.parseTicker({}));
+            currentBidAsk['symbol'] = symbol;
+        }
         const messageHash = 'bidsasks:' + symbol;
         // last update always overwrites the previous state and is the latest state
         for (let i = 0; i < rawBidAskChanges.length; i++) {
@@ -557,7 +562,7 @@ class gemini extends gemini$1["default"] {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbolsNormalized[0]);
-        if ((firstMarket['spot'] !== true) && (firstMarket['linear'] !== true)) {
+        if ((!this.safeBool(firstMarket, 'spot', false)) && (!this.safeBool(firstMarket, 'linear', false))) {
             throw new errors.NotSupported(this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
         const messageHashes = [];

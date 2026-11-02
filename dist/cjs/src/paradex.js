@@ -1381,7 +1381,7 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {

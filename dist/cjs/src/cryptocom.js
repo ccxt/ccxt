@@ -795,8 +795,8 @@ class cryptocom extends cryptocom$1["default"] {
             const settle = spot ? undefined : this.safeCurrencyCode(settleId);
             const optionType = this.safeStringLower(market, 'put_call');
             const strike = this.safeString(market, 'strike');
-            const marginBuyEnabled = this.safeBool(market, 'margin_buy_enabled');
-            const marginSellEnabled = this.safeBool(market, 'margin_sell_enabled');
+            const marginBuyEnabled = this.safeBool(market, 'margin_buy_enabled', false);
+            const marginSellEnabled = this.safeBool(market, 'margin_sell_enabled', false);
             const expiryRaw = this.safeInteger(market, 'expiry_timestamp_ms');
             const expiry = (expiryRaw === 0) ? undefined : expiryRaw;
             let symbol = base + '/' + quote;
@@ -3101,7 +3101,7 @@ class cryptocom extends cryptocom$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -3189,7 +3189,7 @@ class cryptocom extends cryptocom$1["default"] {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -3566,13 +3566,13 @@ class cryptocom extends cryptocom$1["default"] {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.safeString(this.symbols, i, '');
             const market = this.market(symbol);
-            const isSwap = this.safeBool(market, 'swap');
+            const isSwap = this.safeBool(market, 'swap', false);
             let takerFeeKey = 'effective_spot_taker_rate_bps';
-            if (isSwap === true) {
+            if (isSwap) {
                 takerFeeKey = 'effective_deriv_taker_rate_bps';
             }
             let makerFeeKey = 'effective_spot_maker_rate_bps';
-            if (isSwap === true) {
+            if (isSwap) {
                 makerFeeKey = 'effective_deriv_maker_rate_bps';
             }
             const tradingFee = {

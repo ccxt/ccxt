@@ -325,7 +325,7 @@ export default class bitrue extends bitrueRest {
         let url = undefined;
         let channel = undefined;
         let cbId = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const baseIdLower = this.safeStringLower(market, 'baseId', '');
             const quoteIdLower = this.safeStringLower(market, 'quoteId', '');
             const wsId = 'e_' + baseIdLower + quoteIdLower;
@@ -458,7 +458,7 @@ export default class bitrue extends bitrueRest {
             return undefined;
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             return rawQuantity;
         }
         const contractSize = this.safeNumber(market, 'contractSize', 1);
@@ -484,7 +484,7 @@ export default class bitrue extends bitrueRest {
         }
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' watchTrades is only supported for swap markets');
         }
         const baseIdLower = this.safeStringLower(market, 'baseId', '');
@@ -597,7 +597,7 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' watchOHLCV is only supported for swap markets');
         }
         const futuresTimeframes = this.safeDict(this.options, 'futuresTimeframes', {});
@@ -702,7 +702,7 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' watchTicker is only supported for swap markets');
         }
         const baseIdLower = this.safeStringLower(market, 'baseId', '');

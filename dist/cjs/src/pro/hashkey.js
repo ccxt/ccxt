@@ -457,7 +457,7 @@ class hashkey extends hashkey$1["default"] {
         let timeInForce = this.safeString(order, 'f');
         let postOnly = undefined;
         [type, timeInForce, postOnly] = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
-        if (marketResolved['contract'] === true) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if (this.safeBool(marketResolved, 'contract', false)) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = undefined;
         }
         return this.safeOrder({
@@ -881,7 +881,7 @@ class hashkey extends hashkey$1["default"] {
             const client = this.client(url);
             this.options['listenKey'] = undefined;
             client.reject(error);
-            delete this.clients[url];
+            delete this.clients[client.url];
         }
     }
     handleListMessage(client, message) {

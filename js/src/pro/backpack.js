@@ -223,8 +223,10 @@ export default class backpack extends backpackRest {
         else {
             await this.watchPublic(topics, messageHashes, payload);
         }
-        const tickers = (bidAsk) ? this.bidsasks : this.tickers;
-        return this.filterByArray(tickers, 'symbol', symbolsResolved);
+        if (bidAsk) {
+            return this.filterByArray(this.bidsasks, 'symbol', symbolsResolved);
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbolsResolved);
     }
     async watchPublic(topics, messageHashes, params = {}, unwatch = false) {
         if (this.markets === undefined) {

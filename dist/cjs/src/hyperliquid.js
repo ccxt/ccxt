@@ -1231,7 +1231,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(symbol);
         const request = {
             'type': 'l2Book',
-            'coin': (market['swap'] === true) ? this.safeString(market, 'baseName') : market['id'],
+            'coin': (this.safeBool(market, 'swap', false)) ? this.safeString(market, 'baseName') : market['id'],
         };
         const response = await this.publicPostInfo(this.extend(request, params));
         //
@@ -1526,7 +1526,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': (market['swap'] === true) ? this.safeString(market, 'baseName') : market['id'],
+                'coin': (this.safeBool(market, 'swap', false)) ? this.safeString(market, 'baseName') : market['id'],
                 'interval': this.safeString(this.timeframes, timeframe, timeframe),
                 'startTime': startTime,
                 'endTime': until,
@@ -1666,7 +1666,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const significantDigits = Math.max(5, integerPart.length);
         const result = this.decimalToPrecision(price, number.ROUND, significantDigits, number.SIGNIFICANT_DIGITS, this.paddingMode);
         let maxDecimals = 6;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             maxDecimals = 8;
         }
         const subtractedValue = maxDecimals - this.precisionFromString(this.safeString(market['precision'], 'amount'));
@@ -4285,7 +4285,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const isSandboxMode = this.safeBool(this.options, 'sandboxMode');
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const nonce = this.incrementingNonce();
         if (this.inArray(fromAccount, ['spot', 'swap', 'perp'])) {
             // handle swap <> spot account transfer
@@ -4300,7 +4300,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             const strAmountFinal = strAmount; // java req
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
             const transferPayload = {
-                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
                 'amount': strAmountFinal,
                 'toPerp': toPerp,
                 'nonce': nonce,
@@ -4367,7 +4367,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             const sourceDex = this.safeString(paramsSendAsset, 'sourceDex', defaultDex);
             const destinationDex = this.safeString(paramsSendAsset, 'destinationDex', defaultDex);
             const sendAssetPayload = {
-                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
                 'destination': (isDeposit) ? subAccountAddress : masterAddress,
                 'sourceDex': sourceDex,
                 'destinationDex': destinationDex,

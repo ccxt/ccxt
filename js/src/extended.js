@@ -2578,7 +2578,7 @@ export default class extended extends Exchange {
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const uppercaseSide = side.toUpperCase();
-        if ((market['spot'] === true) && uppercaseType !== 'LIMIT') {
+        if ((this.safeBool(market, 'spot', false)) && uppercaseType !== 'LIMIT') {
             throw new BadRequest(this.id + ' createOrder() supports limit orders for spot markets only');
         }
         if (!this.inArray(uppercaseType, ['LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL'])) {
@@ -2599,8 +2599,8 @@ export default class extended extends Exchange {
         let builderFeeRate = undefined;
         let builderId = undefined;
         let paramsBuilder = params;
-        const builderEnabled = this.safeBool(this.options, 'builderFee');
-        if (builderEnabled === true) {
+        const builderEnabled = this.safeBool(this.options, 'builderFee', false);
+        if (builderEnabled) {
             if (this.isSandboxModeEnabled) {
                 builderFeeRate = this.safeString2(params, 'builderFeeRate', 'defaultBuilderFeeRate');
                 builderId = this.safeString2(params, 'builderId', 'defaultBuilderId');

@@ -204,7 +204,7 @@ class whitebit extends whitebit$1["default"] {
         //  }
         //
         const params = this.safeList(message, 'params', []);
-        const isSnapshot = this.safeBool(params, 0);
+        const isSnapshot = this.safeBool(params, 0, false);
         const marketId = this.safeString(params, 2);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -217,7 +217,7 @@ class whitebit extends whitebit$1["default"] {
         const orderbook = this.orderbooks[symbol];
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
-        if (isSnapshot === true) {
+        if (isSnapshot) {
             const snapshot = this.parseOrderBook(data, symbol);
             orderbook.reset(snapshot);
         }

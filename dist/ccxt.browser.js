@@ -169524,7 +169524,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             response = await this.fapiPublicGetV3IndexPriceKlines(this.extend(requestUntil, paramsOmitted));
         } else {
             requestUntil['symbol'] = this.safeString(market, 'id', '');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted));
             } else {
                 response = await this.sapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted));
@@ -169685,7 +169685,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         }
         // use historical endpoint for targeted requests
         if (sinceDefined) {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
             } else {
                 response = await this.sapiPublicGetV3AggTrades(this.extend(request, params));
@@ -169706,7 +169706,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         // ]
         //
         } else {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 response = await this.fapiPublicGetV3Trades(this.extend(request, params));
             } else {
                 response = await this.sapiPublicGetV3Trades(this.extend(request, params));
@@ -169817,7 +169817,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
                 1000
             ], limit);
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPublicGetV3Depth(this.extend(request, params));
         } else {
             response = await this.sapiPublicGetV3Depth(this.extend(request, params));
@@ -169949,7 +169949,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, params));
         } else {
             response = await this.sapiPublicGetV3Ticker24hr(this.extend(request, params));
@@ -170476,7 +170476,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} response from the exchange
      */ async setPositionMode(hedged, symbol = undefined, params = {}) {
         let strValue = 'false';
-        if (hedged === true) {
+        if (hedged) {
             strValue = 'true';
         }
         const request = {
@@ -170519,7 +170519,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, params));
         } else {
             response = await this.sapiPrivateGetV3CommissionRate(this.extend(request, params));
@@ -170682,7 +170682,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             request['orderId'] = id;
         }
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateGetV3Order(this.extend(request, paramsOmitted));
         } else {
             response = await this.sapiPrivateGetV3Order(this.extend(request, paramsOmitted));
@@ -170748,7 +170748,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             request['orderId'] = id;
         }
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, paramsOmitted));
         } else {
             response = await this.fapiPrivateGetV3OpenOrder(this.extend(request, paramsOmitted));
@@ -170813,7 +170813,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateGetV3AllOrders(this.extend(requestUntil, paramsUntil));
         } else {
             response = await this.sapiPrivateGetV3AllOrders(this.extend(requestUntil, paramsUntil));
@@ -170946,7 +170946,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivatePostV3Order(request);
         } else {
             response = await this.sapiPrivatePostV3Order(request);
@@ -171014,7 +171014,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         }
         const orderSymbolsResolved = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(orderSymbolsResolved[0]);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrders() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         const request = {
@@ -171100,7 +171100,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         let uppercaseType = initialUppercaseType;
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
@@ -171138,7 +171138,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         let quantityIsRequired = false;
         request['type'] = uppercaseType;
         if (uppercaseType === 'MARKET') {
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
@@ -171227,7 +171227,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         } else {
             requestParams = this.omit(params, omitKeys);
         }
-        if (this.safeBool(this.options, 'builderFee', false) && market['swap'] === true) {
+        if (this.safeBool(this.options, 'builderFee', false) && this.safeBool(market, 'swap', false)) {
             request['builder'] = this.safeString(this.options, 'builder');
             request['feeRate'] = this.safeString(this.options, 'builderRate');
         }
@@ -171252,7 +171252,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, params));
         } else {
             response = await this.sapiPrivateDeleteV3AllOpenOrders(this.extend(request, params));
@@ -171301,7 +171301,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             'clientOrderId'
         ]);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateDeleteV3Order(this.extend(request, paramsOmitted));
         } else {
             response = await this.sapiPrivateDeleteV3Order(this.extend(request, paramsOmitted));
@@ -171338,7 +171338,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             request['orderIdList'] = ids;
         }
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, params));
         //
         //    [
@@ -172120,7 +172120,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             const position = positions[i];
             const marketId = this.safeString(position, 'symbol');
             const market = this.safeMarket(marketId, undefined, undefined, 'contract');
-            const code = market['linear'] === true ? market['quote'] : market['base'];
+            const code = this.safeBool(market, 'linear', false) ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString(position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             const isPositionOpen = maintenanceMargin !== '0' && maintenanceMargin !== '0.00000000';
@@ -173588,7 +173588,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         const currencies = {};
         for(let i = 0; i < response.length; i++){
             const currency = this.parseCurrency(this.safeDict(response, i, {}));
-            if (stock !== true || this.safeString(currency, 'type') === 'stock') {
+            if (!stock || this.safeString(currency, 'type') === 'stock') {
                 currencies[currency['code']] = currency;
             }
         }
@@ -173740,7 +173740,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                     continue;
                 }
                 marketIds[marketId] = true;
-                if (stock !== true || this.safeBool(market, 'stock', false)) {
+                if (!stock || this.safeBool(market, 'stock', false)) {
                     markets.push(market);
                 }
             }
@@ -174759,7 +174759,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchFundingRate() symbol does not support market ' + symbol);
         }
         const request = {
@@ -174817,7 +174817,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
         }
         const request = {
@@ -180298,7 +180298,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         if (market !== undefined) {
             const result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (this.safeBool(result, 'spot') === true) {
+            if (this.safeBool(result, 'spot', false)) {
                 if (result['contract'] === undefined) {
                     result['contract'] = false;
                 }
@@ -180352,9 +180352,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 'precision': this.precision,
                 'limits': this.limits
             }, this.fees['trading'], valueDefined);
-            if (this.safeBool(market, 'linear') === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 market['subType'] = 'linear';
-            } else if (this.safeBool(market, 'inverse') === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 market['subType'] = 'inverse';
             } else {
                 market['subType'] = undefined;
@@ -181475,7 +181475,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 throw new _errors_js__rspack_import_2.BadRequest(this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = this.safeString(market, 'type');
-            if (this.safeBool(market, 'spot') !== true) {
+            if (!this.safeBool(market, 'spot', false)) {
                 isLinearSubType = this.safeBool(market, 'linear');
             }
             const symbol = this.safeString(market, 'symbol', symbols[i]);
@@ -182631,7 +182631,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     const marketTypeResolved = marketType === undefined ? this.safeString(market, 'type', '') : marketType;
                     for(let i = 0; i < markets.length; i++){
                         const currentMarket = markets[i];
-                        if (this.safeBool(currentMarket, marketTypeResolved) === true) {
+                        if (this.safeBool(currentMarket, marketTypeResolved, false)) {
                             return currentMarket;
                         }
                     }
@@ -182988,9 +182988,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         } else {
             // at first, check from market object
             if (market !== undefined) {
-                if (this.safeBool(market, 'linear') === true) {
+                if (this.safeBool(market, 'linear', false)) {
                     subType = 'linear';
-                } else if (this.safeBool(market, 'inverse') === true) {
+                } else if (this.safeBool(market, 'inverse', false)) {
                     subType = 'inverse';
                 }
             }
@@ -183348,7 +183348,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             const defaultType = this.safeString2(this.options, 'defaultType', 'defaultSubType', 'spot');
             for(let i = 0; i < marketsList.length; i++){
                 const market = marketsList[i];
-                if (this.safeBool(market, defaultType) === true) {
+                if (this.safeBool(market, defaultType, false)) {
                     return market;
                 }
             }
@@ -183544,7 +183544,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     async fetchMarketLeverageTiers(symbol, params = {}) {
         if (this.has['fetchLeverageTiers'] !== undefined && this.has['fetchLeverageTiers'] !== false) {
             const market = this.market(symbol);
-            if (market['contract'] !== true) {
+            if (!this.safeBool(market, 'contract', false)) {
                 throw new _errors_js__rspack_import_2.BadSymbol(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers([
@@ -183927,7 +183927,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             await this.loadMarkets();
             const market = this.market(symbol);
             const symbolResolved = market['symbol'];
-            if (market['contract'] !== true) {
+            if (!this.safeBool(market, 'contract', false)) {
                 throw new _errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRate() supports contract markets only');
             }
             const rates = await this.fetchFundingRates([
@@ -183948,7 +183948,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             await this.loadMarkets();
             const market = this.market(symbol);
             const symbolResolved = market['symbol'];
-            if (market['contract'] !== true) {
+            if (!this.safeBool(market, 'contract', false)) {
                 throw new _errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingInterval() supports contract markets only');
             }
             const rates = await this.fetchFundingIntervals([
@@ -198738,7 +198738,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         let response;
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const request = {
                 'symbol': market['id']
             };
@@ -198988,7 +198988,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request = {
@@ -199056,7 +199056,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger(params, 'until');
@@ -199208,9 +199208,9 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
         if (_base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(triggerPrice, '0')) {
             triggerPrice = undefined;
         }
-        const immediateOrCancel = this.safeBool(order, 'immediate_or_cancel');
+        const immediateOrCancel = this.safeBool(order, 'immediate_or_cancel', false);
         let timeInForce = undefined;
-        if (immediateOrCancel === true) {
+        if (immediateOrCancel) {
             timeInForce = 'IOC';
         }
         const type = this.parseType(this.safeString(order, 'type'));
@@ -199262,7 +199262,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -205304,8 +205304,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */ async fetchCurrencies(params = {}) {
-        const fetchCurrenciesEnabled = this.safeBool(this.options, 'fetchCurrencies');
-        if (fetchCurrenciesEnabled !== true) {
+        const fetchCurrenciesEnabled = this.safeBool(this.options, 'fetchCurrencies', false);
+        if (!fetchCurrenciesEnabled) {
             return {};
         }
         // this endpoint requires authentication
@@ -205486,8 +205486,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             if (networkCode !== undefined) {
                 fees[networkCode] = withdrawFee;
             }
-            const isDefault = this.safeBool(networkItem, 'isDefault');
-            if (isDefault === true || fee === undefined) {
+            const isDefault = this.safeBool(networkItem, 'isDefault', false);
+            if (isDefault || fee === undefined) {
                 fee = withdrawFee;
             }
             // todo: default networks in "setMarkets" overload
@@ -206537,9 +206537,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let response = undefined;
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             response = await this.eapiPublicGetDepth(this.extend(request, params));
-        } else if (market['linear'] === true) {
+        } else if (this.safeBool(market, 'linear', false)) {
             const rpi = this.safeBool(params, 'rpi', false);
             const paramsOmitted = this.omit(params, 'rpi');
             if (rpi) {
@@ -206549,7 +206549,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.fapiPublicGetDepth(this.extend(request, paramsOmitted));
             }
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiPublicGetDepth(this.extend(request, params));
         } else {
             response = await this.publicGetDepth(this.extend(request, params));
@@ -206842,11 +206842,11 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response = undefined;
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             response = await this.eapiPublicGetTicker(this.extend(request, params));
-        } else if (market['linear'] === true) {
+        } else if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiPublicGetTicker24hr(this.extend(request, params));
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiPublicGetTicker24hr(this.extend(request, params));
         } else {
             const stock = this.safeBool(market, 'stock', false);
@@ -207126,7 +207126,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response = undefined;
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             response = await this.eapiPublicGetMark(this.extend(request, paramsSubType));
         } else if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetPremiumIndex(this.extend(request, paramsSubType));
@@ -207226,8 +207226,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         //         "closeTime": 1677097200000
         //     }
         //
-        const inverse = this.safeBool(market, 'inverse');
-        const volumeIndex = inverse === true ? 7 : 5;
+        const inverse = this.safeBool(market, 'inverse', false);
+        const volumeIndex = inverse ? 7 : 5;
         return [
             this.safeInteger2(ohlcv, 0, 'openTime'),
             this.safeNumber2(ohlcv, 1, 'open'),
@@ -207306,7 +207306,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             // It didn't work before without the endTime
             // https://github.com/ccxt/ccxt/issues/8454
             //
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 if (since > 0) {
                     const duration = this.parseTimeframe(timeframe);
                     const endTime = this.sum(since, limitValue * duration * 1000 - 1);
@@ -207319,29 +207319,29 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             request['endTime'] = until;
         }
         let response = undefined;
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             response = await this.eapiPublicGetKlines(this.extend(request, paramsOmitted));
         } else if (price === 'mark') {
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiPublicGetMarkPriceKlines(this.extend(request, paramsOmitted));
             } else {
                 response = await this.fapiPublicGetMarkPriceKlines(this.extend(request, paramsOmitted));
             }
         } else if (price === 'index') {
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiPublicGetIndexPriceKlines(this.extend(request, paramsOmitted));
             } else {
                 response = await this.fapiPublicGetIndexPriceKlines(this.extend(request, paramsOmitted));
             }
         } else if (price === 'premiumIndex') {
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiPublicGetPremiumIndexKlines(this.extend(request, paramsOmitted));
             } else {
                 response = await this.fapiPublicGetPremiumIndexKlines(this.extend(request, paramsOmitted));
             }
-        } else if (market['linear'] === true) {
+        } else if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiPublicGetKlines(this.extend(request, paramsOmitted));
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiPublicGetKlines(this.extend(request, paramsOmitted));
         } else {
             response = await this.publicGetKlines(this.extend(request, paramsOmitted));
@@ -207630,7 +207630,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if ('maker' in trade) {
             takerOrMaker = this.safeBool(trade, 'maker', false) ? 'maker' : 'taker';
         }
-        if ('optionSide' in trade || marketResolved['option'] === true) {
+        if ('optionSide' in trade || this.safeBool(marketResolved, 'option', false)) {
             const settle = this.safeCurrencyCode(this.safeString(trade, 'quoteAsset', 'USDT'));
             takerOrMaker = this.safeStringLower(trade, 'liquidity');
             if ('fee' in trade) {
@@ -207654,7 +207654,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'baseQty',
             'total'
         ]);
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             cost = this.safeString(trade, 'baseQty', cost);
         }
         return this.safeTrade({
@@ -207718,7 +207718,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'symbol': market['id']
         };
-        if (market['option'] !== true) {
+        if (!this.safeBool(market, 'option', false)) {
             if (since !== undefined) {
                 request['startTime'] = since;
                 // https://github.com/ccxt/ccxt/issues/6400
@@ -207743,11 +207743,11 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'fetchTradesMethod'
         ]);
         if (method === undefined) {
-            if (market['option'] === true) {
+            if (this.safeBool(market, 'option', false)) {
                 method = 'eapiPublicGetTrades';
-            } else if (market['linear'] === true) {
+            } else if (this.safeBool(market, 'linear', false)) {
                 method = 'fapiPublicGetAggTrades';
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 method = 'dapiPublicGetAggTrades';
             } else {
                 method = 'publicGetAggTrades';
@@ -207869,7 +207869,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editSpotOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         const payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, params);
@@ -208070,7 +208070,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' editOrder() and editOrderWs() require a price argument for swap orders');
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editContractOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         if (side === undefined) {
@@ -208120,13 +208120,13 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const [isPortfolioMargin, paramsPapi] = this.handleOptionBoolAndParams2(params, 'editContractOrder', 'papi', 'portfolioMargin', false);
         const request = this.editContractOrderRequest(id, symbol, type, side, amount, price, paramsPapi);
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             if (isPortfolioMargin) {
                 response = await this.papiPutUmOrder(this.extend(request, paramsPapi));
             } else {
                 response = await this.fapiPrivatePutOrder(this.extend(request, paramsPapi));
             }
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             if (isPortfolioMargin) {
                 response = await this.papiPutCmOrder(this.extend(request, paramsPapi));
             } else {
@@ -208185,10 +208185,10 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return await this.editSpotOrder(id, symbol, type, side, amount, price, params);
         } else {
             return await this.editContractOrder(id, symbol, type, side, amount, price, params);
@@ -208229,7 +208229,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(symbols[0]);
-        if (market['spot'] === true || market['option'] === true) {
+        if (this.safeBool(market, 'spot', false) || this.safeBool(market, 'option', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrders() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         let response = undefined;
@@ -208237,9 +208237,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'batchOrders': ordersRequests
         };
         request = this.extend(request, params);
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiPrivatePutBatchOrders(request);
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiPrivatePutBatchOrders(request);
         }
         //
@@ -208980,7 +208980,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         //   so the field must be picked by the market side, see the coin-m migration changelog.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         let cost = this.safeString2(order, 'cummulativeQuoteQty', 'cumQuote');
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             cost = this.safeString(order, 'cumBase', cost);
         }
         const type = this.safeStringLower2(order, 'type', 'orderType');
@@ -209071,7 +209071,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderMarket = this.market(marketId);
-            if (orderMarket['linear'] === true && orderMarket['option'] !== true && this.isConditionalOrder(orderParams)) {
+            if (this.safeBool(orderMarket, 'linear', false) && !this.safeBool(orderMarket, 'option', false) && this.isConditionalOrder(orderParams)) {
                 // linear conditional order types are only accepted by the algo order endpoints, which have no batch variant
                 // https://developers.binance.com/docs/derivatives/change-log (2025-11-06)
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrders() does not support conditional order types for linear markets, use createOrder() instead');
@@ -209086,7 +209086,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(symbols[0]);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrders() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         let response = undefined;
@@ -209094,9 +209094,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'batchOrders': ordersRequests
         };
         request = this.extend(request, params);
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiPrivatePostBatchOrders(request);
-        } else if (market['option'] === true) {
+        } else if (this.safeBool(market, 'option', false)) {
             response = await this.eapiPrivatePostBatchOrders(request);
         } else {
             response = await this.dapiPrivatePostBatchOrders(request);
@@ -209213,7 +209213,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'isAlgoOrder': isAlgoOrder
         }));
         let response = undefined;
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             response = await this.eapiPrivatePostOrder(request);
         } else if (sor) {
             if (test) {
@@ -209284,11 +209284,11 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
      */ generateClientOrderId(market = undefined, api = undefined, path = undefined) {
         let idMarketType = undefined;
         if (market !== undefined) {
-            if (market['option'] === true) {
+            if (this.safeBool(market, 'option', false)) {
                 idMarketType = 'option';
-            } else if (market['linear'] === true) {
-                idMarketType = market['swap'] === true ? 'swap' : 'future';
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'linear', false)) {
+                idMarketType = this.safeBool(market, 'swap', false) ? 'swap' : 'future';
+            } else if (this.safeBool(market, 'inverse', false)) {
                 idMarketType = 'inverse';
             } else {
                 idMarketType = 'spot';
@@ -209506,7 +209506,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         ];
         const reduceOnly = this.safeBool(paramsPapi, 'reduceOnly', false);
         if (reduceOnly) {
-            if (marketType === 'margin' || market['contract'] !== true && marginMode !== undefined) {
+            if (marketType === 'margin' || !this.safeBool(market, 'contract', false) && marginMode !== undefined) {
                 omitKeys.push('reduceOnly');
                 request['sideEffectType'] = 'AUTO_REPAY';
             }
@@ -209533,7 +209533,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         let uppercaseType = type.toUpperCase();
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
-            if (market['swap'] === true || market['future'] === true) {
+            if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false)) {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
@@ -209574,20 +209574,20 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             stopPrice = stopLossPrice;
             if (isMarketOrder) {
                 // spot STOP_LOSS market orders are not a valid order type
-                uppercaseType = market['contract'] === true ? 'STOP_MARKET' : 'STOP_LOSS';
+                uppercaseType = this.safeBool(market, 'contract', false) ? 'STOP_MARKET' : 'STOP_LOSS';
             } else if (isLimitOrder) {
-                uppercaseType = market['contract'] === true ? 'STOP' : 'STOP_LOSS_LIMIT';
+                uppercaseType = this.safeBool(market, 'contract', false) ? 'STOP' : 'STOP_LOSS_LIMIT';
             }
         } else if (isTakeProfit) {
             stopPrice = takeProfitPrice;
             if (isMarketOrder) {
                 // spot TAKE_PROFIT market orders are not a valid order type
-                uppercaseType = market['contract'] === true ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
+                uppercaseType = this.safeBool(market, 'contract', false) ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
             } else if (isLimitOrder) {
-                uppercaseType = market['contract'] === true ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
+                uppercaseType = this.safeBool(market, 'contract', false) ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
             }
         }
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             if (type === 'market') {
                 throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' ' + type + ' is not a valid order type for the ' + this.safeString(market, 'symbol', '') + ' market');
             }
@@ -209615,7 +209615,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             clientOrderIdRequest = 'clientAlgoId';
         } else if (stock) {
             clientOrderIdRequest = 'clientOrderId';
-        } else if (market['option'] === true) {
+        } else if (this.safeBool(market, 'option', false)) {
             // the option api takes clientOrderId instead of newClientOrderId
             clientOrderIdRequest = 'clientOrderId';
         }
@@ -209627,7 +209627,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         let postOnly = undefined;
         if (!isPortfolioMargin) {
             postOnly = this.isPostOnly(isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', paramsPapi);
-            if (market['spot'] === true || marketType === 'margin') {
+            if (this.safeBool(market, 'spot', false) || marketType === 'margin') {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if (postOnly) {
                     uppercaseType = 'LIMIT_MAKER';
@@ -209639,7 +209639,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         } else {
             postOnly = this.isPostOnly(isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', paramsPapi);
             if (postOnly) {
-                if (market['contract'] !== true) {
+                if (!this.safeBool(market, 'contract', false)) {
                     uppercaseType = 'LIMIT_MAKER';
                 } else {
                     request['timeInForce'] = 'GTX';
@@ -209718,7 +209718,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                         request['quantity'] = this.parseToNumeric(amount);
                     }
                 }
-            } else if (market['spot'] === true) {
+            } else if (this.safeBool(market, 'spot', false)) {
                 const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2(paramsPapi, 'quoteOrderQty', 'cost');
@@ -209750,7 +209750,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         } else if (uppercaseType === 'STOP_LOSS' || uppercaseType === 'TAKE_PROFIT') {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if ((market['linear'] === true || market['inverse'] === true) && priceRequiredForTrailing) {
+            if ((this.safeBool(market, 'linear', false) || this.safeBool(market, 'inverse', false)) && priceRequiredForTrailing) {
                 priceIsRequired = true;
             }
         } else if (uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT_LIMIT') {
@@ -209800,7 +209800,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             }
         }
         if (triggerPriceIsRequired) {
-            if (market['contract'] === true) {
+            if (this.safeBool(market, 'contract', false)) {
                 if (stopPrice === undefined) {
                     throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order');
                 }
@@ -209821,7 +209821,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (timeInForceIsRequired && this.safeString(paramsPapi, 'timeInForce') === undefined && this.safeString(request, 'timeInForce') === undefined) {
             request['timeInForce'] = this.handleOption('createOrder', 'timeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if (!isPortfolioMargin && market['contract'] === true && postOnly) {
+        if (!isPortfolioMargin && this.safeBool(market, 'contract', false) && postOnly) {
             request['timeInForce'] = 'GTX';
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
@@ -209829,7 +209829,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             omitKeys.push('timeInForce');
         }
         const hedged = this.safeBool(paramsPapi, 'hedged', false);
-        if (market['spot'] !== true && market['option'] !== true && hedged) {
+        if (!this.safeBool(market, 'spot', false) && !this.safeBool(market, 'option', false) && hedged) {
             let positionSide = side;
             if (reduceOnly) {
                 omitKeys.push('reduceOnly');
@@ -209841,7 +209841,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const [selfTradePrevention, paramsStp] = this.handleOptionStringAndParams(paramsPapi, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             const warnOnStpForInverse = this.handleOption('createOrder', 'warnOnSTPForInverse');
-            if (market['inverse'] === true && warnOnStpForInverse === true) {
+            if (this.safeBool(market, 'inverse', false) && warnOnStpForInverse === true) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options["createOrder"]["warnOnSTPForInverse"] to false.');
             }
             request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase(); // binance enums exactly match the unified ccxt enums (but needs uppercase)
@@ -209849,7 +209849,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         // unified iceberg
         const icebergAmount = this.safeNumber(paramsPapi, 'icebergAmount');
         if (icebergAmount !== undefined) {
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 request['icebergQty'] = this.amountToPrecision(symbol, icebergAmount);
             }
         }
@@ -209871,7 +209871,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -209893,7 +209893,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -209915,7 +209915,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         params['quoteOrderQty'] = cost;
@@ -210581,17 +210581,17 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'conditional'
         ]);
         const isPortfolioMarginConditional = isPortfolioMargin && isConditional;
-        if (isConditional === true && !isPortfolioMargin && (market['swap'] === true || market['future'] === true)) {
+        if (isConditional === true && !isPortfolioMargin && (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false))) {
             // the algo order endpoints have no open-order-scoped single order query
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOpenOrder() does not support conditional orders, use fetchOrder() or fetchOpenOrders() with the trigger param instead');
         }
         let orderIdRequest = 'orderId';
         if (isPortfolioMarginConditional === true) {
-            orderIdRequest = market['linear'] === true ? 'algoId' : 'strategyId';
+            orderIdRequest = this.safeBool(market, 'linear', false) ? 'algoId' : 'strategyId';
         }
         request[orderIdRequest] = id;
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
                     response = await this.papiGetUmAlgoAlgoOrder(this.extend(request, paramsOmitted));
@@ -210601,7 +210601,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.fapiPrivateGetOpenOrder(this.extend(request, paramsOmitted));
             }
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
                     response = await this.papiGetCmConditionalOpenOrder(this.extend(request, paramsOmitted));
@@ -210612,9 +210612,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 response = await this.dapiPrivateGetOpenOrder(this.extend(request, paramsOmitted));
             }
         } else {
-            if (market['option'] === true) {
+            if (this.safeBool(market, 'option', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOpenOrder() does not support option markets');
-            } else if (market['spot'] === true) {
+            } else if (this.safeBool(market, 'spot', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOpenOrder() does not support spot markets');
             }
         }
@@ -211301,7 +211301,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' cancelOrders is only supported for swap markets.');
         }
         const request = {
@@ -211317,9 +211317,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             request['orderidlist'] = ids;
         }
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiPrivateDeleteBatchOrders(this.extend(request, paramsOmitted));
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiPrivateDeleteBatchOrders(this.extend(request, paramsOmitted));
         }
         //
@@ -212524,11 +212524,11 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const internal = this.safeBool(params, 'internal');
+        const internal = this.safeBool(params, 'internal', false);
         let paramsOmitted = this.omit(params, 'internal');
         let paginate = false;
         [paginate, paramsOmitted] = this.handleOptionBoolAndParams(paramsOmitted, 'fetchTransfers', 'paginate', false);
-        if (paginate && internal !== true) {
+        if (paginate && !internal) {
             return await this.fetchPaginatedCallDynamic('fetchTransfers', code, since, limit, paramsOmitted);
         }
         let currency = undefined;
@@ -212537,7 +212537,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         const request = {};
         let limitKey = 'limit';
-        if (internal !== true) {
+        if (!internal) {
             const defaultType = this.safeString2(this.options, 'fetchTransfers', 'defaultType', 'spot');
             const fromAccount = this.safeString(paramsOmitted, 'fromAccount', defaultType);
             let defaultTo = 'swap';
@@ -212575,7 +212575,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             request['endTime'] = until;
         }
         let response = undefined;
-        if (internal === true) {
+        if (internal) {
             response = await this.sapiGetPayTransactions(this.extend(request, paramsOmitted));
         //
         // {
@@ -212949,8 +212949,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             const networkId = this.safeString(networkEntry, 'network');
             const networkCode = this.networkIdToCode(networkId, code);
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
-            const isDefault = this.safeBool(networkEntry, 'isDefault');
-            if (isDefault === true) {
+            const isDefault = this.safeBool(networkEntry, 'isDefault', false);
+            if (isDefault) {
                 result['withdraw'] = {
                     'fee': withdrawFee,
                     'percentage': undefined
@@ -213343,9 +213343,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiPublicGetPremiumIndex(this.extend(request, params));
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiPublicGetPremiumIndex(this.extend(request, params));
         } else {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchFundingRate() supports linear and inverse contracts only');
@@ -213353,7 +213353,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (response === undefined) {
             throw new _base_errors_js__rspack_import_2.NullResponse(this.id + ' fetchFundingRate() returned empty response');
         }
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             response = this.safeValue(response, 0);
         }
         //
@@ -213563,7 +213563,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             const position = positions[i];
             const marketId = this.safeString(position, 'symbol');
             const market = this.safeMarket(marketId, undefined, undefined, 'contract');
-            const code = market['linear'] === true ? market['quote'] : market['base'];
+            const code = this.safeBool(market, 'linear', false) ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString(position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             const isPositionOpen = maintenanceMargin !== '0' && maintenanceMargin !== '0.00000000';
@@ -214259,7 +214259,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['option'] !== true) {
+        if (!this.safeBool(market, 'option', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchPosition() supports option markets only');
         }
         const request = {
@@ -214781,7 +214781,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
-            if (market['swap'] !== true) {
+            if (!this.safeBool(market, 'swap', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchFundingHistory() supports swap contracts only');
             }
         }
@@ -214847,13 +214847,13 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         };
         const [isPortfolioMargin, paramsPapi] = this.handleOptionBoolAndParams2(params, 'setLeverage', 'papi', 'portfolioMargin', false);
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             if (isPortfolioMargin) {
                 response = await this.papiPostUmLeverage(this.extend(request, paramsPapi));
             } else {
                 response = await this.fapiPrivatePostLeverage(this.extend(request, paramsPapi));
             }
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             if (isPortfolioMargin) {
                 response = await this.papiPostCmLeverage(this.extend(request, paramsPapi));
             } else {
@@ -214905,9 +214905,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         };
         let response = undefined;
         try {
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiPrivatePostMarginType(this.extend(request, params));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiPrivatePostMarginType(this.extend(request, params));
             } else {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setMarginMode() supports linear and inverse contracts only');
@@ -215807,7 +215807,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         };
         let response = undefined;
         let code = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             code = this.safeString(market, 'quote');
             response = await this.fapiPrivatePostPositionMargin(this.extend(request, params));
         } else {
@@ -216507,12 +216507,12 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             request['symbol'] = market['id'];
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
             request['pair'] = this.safeString(market['info'], 'pair');
-            request['contractType'] = market['swap'] === true ? 'PERPETUAL' : this.safeString(market['info'], 'contractType');
+            request['contractType'] = this.safeBool(market, 'swap', false) ? 'PERPETUAL' : this.safeString(market['info'], 'contractType');
         } else {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOpenInterestHistory() supports linear and inverse contracts only');
         }
@@ -216534,7 +216534,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             request['endTime'] = this.sum(since, duration * limitDefault * 1000);
         }
         let response = undefined;
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiDataGetOpenInterestHist(this.extend(request, paramsOmitted));
         } else {
             response = await this.fapiDataGetOpenInterestHist(this.extend(request, paramsOmitted));
@@ -216581,7 +216581,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const request = {};
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             request['underlyingAsset'] = market['baseId'];
             if (this.safeInteger(market, 'expiry') === undefined) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOpenInterest does not support ' + symbol);
@@ -216591,9 +216591,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             response = await this.eapiPublicGetOpenInterest(this.extend(request, params));
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiPublicGetOpenInterest(this.extend(request, params));
         } else {
             response = await this.fapiPublicGetOpenInterest(this.extend(request, params));
@@ -216628,7 +216628,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     ]
         //
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             const symbolValue = market['symbol'];
             const result = this.parseOpenInterestsHistory(response, market);
             for(let i = 0; i < result.length; i++){
@@ -216703,7 +216703,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         if (market !== undefined) {
             let symbolKey = 'symbol';
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 symbolKey = 'isolatedSymbol';
             }
             if (!isPortfolioMargin) {
@@ -217371,9 +217371,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             request['endTime'] = until;
         }
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiPrivateGetPositionMarginHistory(this.extend(request, paramsOmitted));
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiPrivateGetPositionMarginHistory(this.extend(request, paramsOmitted));
         } else {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchMarginAdjustmentHistory () is not supported for markets of type ' + market['type']);
@@ -220346,7 +220346,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const maxLimit = market['inverse'] === true ? 1000 : 1440;
+        const maxLimit = this.safeBool(market, 'inverse', false) ? 1000 : 1440;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
@@ -220368,12 +220368,12 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         ]) : paramsPaginate;
         if (until !== undefined) {
             request['endTime'] = until;
-        } else if (market['inverse'] === true && since !== undefined) {
+        } else if (this.safeBool(market, 'inverse', false) && since !== undefined) {
             const duration = this.parseTimeframe(timeframe) * 1000;
             request['endTime'] = this.sum(since, duration * requestLimit);
         }
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             const [timeZone, paramsTimeZone] = this.handleOptionIntegerAndParams(paramsUntil, 'fetchOHLCV', 'timeZone', 0);
@@ -220382,7 +220382,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             }
             response = await this.spotV1PublicGetMarketKline(this.extend(request, paramsTimeZone));
         } else {
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 response = await this.cswapV1PublicGetMarketKlines(this.extend(request, paramsUntil));
             } else {
                 const price = this.safeString(paramsUntil, 'price');
@@ -220506,7 +220506,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchTrades() is not supported for inverse swap markets');
         }
         const request = {
@@ -220720,7 +220720,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'amount',
             'q'
         ]);
-        if (market !== undefined && market['swap'] === true && 'volume' in trade) {
+        if (market !== undefined && this.safeBool(market, 'swap', false) && 'volume' in trade) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString(trade, 'volume');
@@ -220730,7 +220730,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'p',
             'tradePrice'
         ]);
-        if (market !== undefined && market['linear'] === true && this.safeString(trade, 'x') === 'TRADE') {
+        if (market !== undefined && this.safeBool(market, 'linear', false) && this.safeString(trade, 'x') === 'TRADE') {
             const lastAmount = this.safeString(trade, 'l');
             const lastPrice = this.safeString(trade, 'L');
             if (lastAmount !== undefined && lastPrice !== undefined) {
@@ -220802,7 +220802,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         if (marketType === 'spot') {
             response = await this.spotV1PublicGetMarketDepth(this.extend(request, paramsMarketType));
         } else {
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 response = await this.cswapV1PublicGetMarketDepth(this.extend(request, paramsMarketType));
             } else {
                 response = await this.swapV2PublicGetQuoteDepth(this.extend(request, paramsMarketType));
@@ -220907,7 +220907,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             response = await this.cswapV1PublicGetMarketPremiumIndex(this.extend(request, params));
         } else {
             response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(request, params));
@@ -220929,7 +220929,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         //    }
         //
         let data;
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             const dataList = this.safeList(response, 'data', []);
             data = this.safeDict(dataList, 0, {});
         } else {
@@ -221025,7 +221025,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchFundingRateHistory() is not supported for inverse swap markets');
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
@@ -221188,7 +221188,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             response = await this.cswapV1PublicGetMarketOpenInterest(this.extend(request, params));
         } else {
             response = await this.swapV2PublicGetQuoteOpenInterest(this.extend(request, params));
@@ -221222,7 +221222,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         let result = {};
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             const data = this.safeList(response, 'data', []);
             result = this.safeDict(data, 0, {});
         } else {
@@ -221286,10 +221286,10 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
         } else {
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 response = await this.cswapV1PublicGetMarketTicker(this.extend(request, params));
             } else {
                 response = await this.swapV2PublicGetQuoteTicker(this.extend(request, params));
@@ -221357,7 +221357,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             const response = await this.spotV2PublicGetQuoteBookTicker(this.extend(request, paramsMarketType));
             rows = this.safeList(response, 'data', []);
         } else {
-            if (market === undefined || market['inverse'] === true || symbolsLength !== 1) {
+            if (market === undefined || this.safeBool(market, 'inverse', false) || symbolsLength !== 1) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchBidsAsks() requires exactly one linear swap symbol for contract markets');
             }
             request['symbol'] = this.safeString(market, 'id');
@@ -221628,7 +221628,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const close = this.safeString(ticker, 'lastPrice');
         let quoteVolume = this.safeString(ticker, 'quoteVolume');
         let baseVolume = this.safeString(ticker, 'volume');
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             // Coin-M volume is in contracts; quoteVolume is in the base currency.
             // read the resolved market: parseTickers and fetchTickers reach here with no market argument
             const contractSize = this.safeString(marketResolved, 'contractSize');
@@ -221939,7 +221939,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('endTs', request, params);
         let response;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.swapV1PrivateGetTradePositionHistory(this.extend(requestUntil, paramsUntil));
         } else {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchPositionHistory() is not supported for inverse swap positions');
@@ -222086,14 +222086,14 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPosition() supports swap markets only');
         }
         const request = {
             'symbol': market['id']
         };
         let response;
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             response = await this.cswapV1PrivateGetUserPositions(this.extend(request, params));
         //
         //     {
@@ -222354,7 +222354,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
          * @returns {object} request to be sent to the exchange
          */ const market = this.market(symbol);
         const cost = this.safeString2(params, 'cost', 'quoteOrderQty');
-        if (market['inverse'] === true && cost !== undefined) {
+        if (this.safeBool(market, 'inverse', false) && cost !== undefined) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() with cost or quoteOrderQty is not supported for inverse swap markets');
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('createOrder', market, params);
@@ -222542,7 +222542,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                     }
                     const slQuantity = this.safeString(stopLossDict, 'quantity', stringifiedAmount);
                     let slQuantityRequest = this.parseToNumeric(slQuantity);
-                    if (market['inverse'] !== true) {
+                    if (!this.safeBool(market, 'inverse', false)) {
                         slQuantityRequest = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
                     }
                     slRequest['quantity'] = slQuantityRequest;
@@ -222563,7 +222563,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                     }
                     const tkQuantity = this.safeString(takeProfitDict, 'quantity', stringifiedAmount);
                     let tkQuantityRequest = this.parseToNumeric(tkQuantity);
-                    if (market['inverse'] !== true) {
+                    if (!this.safeBool(market, 'inverse', false)) {
                         tkQuantityRequest = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
                     }
                     tpRequest['quantity'] = tkQuantityRequest;
@@ -222588,7 +222588,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 request['quoteOrderQty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
             } else if (!closePosition) {
                 let amountReq = amount;
-                if (market['inverse'] !== true) {
+                if (!this.safeBool(market, 'inverse', false)) {
                     amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
                 }
                 request['quantity'] = amountReq; // precision not available for inverse contracts
@@ -222651,16 +222651,16 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const test = this.safeBool(params, 'test', false);
-        if (test && (market['swap'] !== true || market['inverse'] === true)) {
+        if (test && (!this.safeBool(market, 'swap', false) || this.safeBool(market, 'inverse', false))) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() only supports test orders for linear swap markets');
         }
         const paramsOmitted = this.omit(params, 'test');
         const request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             if (test) {
                 response = await this.swapV2PrivatePostTradeOrderTest(request);
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.cswapV1PrivatePostTradeOrder(request);
             } else if (type === 'twap') {
                 response = await this.swapV1PrivatePostTwapOrder(request);
@@ -222744,8 +222744,8 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         }
         const data = this.safeDict(response, 'data', {});
         let result = {};
-        if (market['swap'] === true) {
-            if (market['inverse'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
+            if (this.safeBool(market, 'inverse', false)) {
                 result = response;
             } else {
                 result = this.safeDict(data, 'order', data);
@@ -222798,12 +222798,12 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const symbols = this.marketSymbols(marketIds, undefined, false, true, true);
         const symbolsLength = symbols.length;
         const market = this.market(symbols[0]);
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrders() is not supported for inverse swap markets');
         }
         const request = {};
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             if (symbolsLength > 5) {
                 throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrders() can not create more than 5 orders at once for swap markets');
             }
@@ -223219,14 +223219,14 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'n'
         ]);
         if (feeCurrencyCode === undefined) {
-            if (marketResolved['spot'] === true) {
+            if (this.safeBool(marketResolved, 'spot', false)) {
                 if (side === 'buy') {
                     feeCurrencyCode = this.safeString(marketResolved, 'base');
                 } else {
                     feeCurrencyCode = this.safeString(marketResolved, 'quote');
                 }
             } else {
-                const feeKey = marketResolved['inverse'] === true ? 'settle' : 'quote';
+                const feeKey = this.safeBool(marketResolved, 'inverse', false) ? 'settle' : 'quote';
                 feeCurrencyCode = this.safeString(marketResolved, feeKey);
             }
         }
@@ -223679,7 +223679,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' cancelOrders() is not supported for inverse swap markets');
         }
         const request = {
@@ -223699,7 +223699,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             parsedIds.push(stringId);
         }
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             let spotReqKey = 'orderIds';
             if (areClientOrderIds) {
                 spotReqKey = 'clientOrderIDs';
@@ -224035,7 +224035,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         if (type !== 'swap') {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrders() is only supported for swap markets');
         }
-        if (subType === 'inverse' || market !== undefined && market['inverse'] === true) {
+        if (subType === 'inverse' || market !== undefined && this.safeBool(market, 'inverse', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrders() is not supported for inverse swap markets');
         }
         if (limit !== undefined) {
@@ -225179,7 +225179,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             response = await this.cswapV1PrivateGetTradeLeverage(this.extend(request, params));
         //
         //     {
@@ -225290,7 +225290,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'side': side,
             'leverage': leverage
         };
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             return await this.cswapV1PrivatePostTradeLeverage(this.extend(request, paramsOmitted));
         //
         //     {
@@ -225398,25 +225398,25 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             const now = this.milliseconds();
             if (since !== undefined) {
                 let startTimeReq = 'startTs';
-                if (market['spot'] === true) {
+                if (this.safeBool(market, 'spot', false)) {
                     startTimeReq = 'startTime';
                 }
                 request[startTimeReq] = since;
-            } else if (market['swap'] === true) {
+            } else if (this.safeBool(market, 'swap', false)) {
                 request['startTs'] = now - 30 * 24 * 60 * 60 * 1000; // 30 days for swap
             }
             const until = this.safeInteger(paramsSubType, 'until');
             const paramsUntil = this.omit(paramsSubType, 'until');
             if (until !== undefined) {
                 let endTimeReq = 'endTs';
-                if (market['spot'] === true) {
+                if (this.safeBool(market, 'spot', false)) {
                     endTimeReq = 'endTime';
                 }
                 request[endTimeReq] = until;
-            } else if (market['swap'] === true) {
+            } else if (this.safeBool(market, 'swap', false)) {
                 request['endTs'] = now;
             }
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 if (limit !== undefined) {
                     request['limit'] = limit; // default 500, maximum 1000
                 }
@@ -225788,7 +225788,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         let response;
         if (positionId !== undefined) {
-            if (market['swap'] !== true || market['inverse'] === true) {
+            if (!this.safeBool(market, 'swap', false) || this.safeBool(market, 'inverse', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' closePosition() with a positionId is only supported for linear swap markets');
             }
             response = await this.swapV1PrivatePostTradeClosePosition(this.extend(request, params));
@@ -225810,7 +225810,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         //
         } else {
             request['symbol'] = market['id'];
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 response = await this.cswapV1PrivatePostTradeCloseAllPositions(this.extend(request, params));
             //
             //     {
@@ -225921,7 +225921,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             market = this.market(symbol);
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchPositionMode', market, params);
-        if (subType === 'inverse' || market !== undefined && market['inverse'] === true) {
+        if (subType === 'inverse' || market !== undefined && this.safeBool(market, 'inverse', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchPositionMode() is not supported for inverse swap markets');
         }
         const response = await this.swapV1PrivateGetPositionSideDual(paramsSubType);
@@ -225958,7 +225958,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             market = this.market(symbol);
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('setPositionMode', market, params);
-        if (subType === 'inverse' || market !== undefined && market['inverse'] === true) {
+        if (subType === 'inverse' || market !== undefined && this.safeBool(market, 'inverse', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setPositionMode() is not supported for inverse swap markets');
         }
         let dualSidePosition = undefined;
@@ -226016,7 +226016,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() is not supported for inverse swap markets');
         }
         const cancelClientOrderId = this.safeString2(params, 'cancelClientOrderId', 'cancelClientOrderID');
@@ -226027,7 +226027,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         if (cancelClientOrderId !== undefined) {
             let cancelClientOrderIdRequest = 'cancelClientOrderId';
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 cancelClientOrderIdRequest = 'cancelClientOrderID';
             }
             request[cancelClientOrderIdRequest] = cancelClientOrderId;
@@ -226036,7 +226036,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         }
         request['cancelReplaceMode'] = this.safeString(paramsOmitted, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.swapV1PrivatePostTradeCancelReplace(request);
         //
         //    {
@@ -226214,7 +226214,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         };
         let response = undefined;
         let commission = {};
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.spotV1PrivateGetUserCommissionRate(this.extend(request, params));
             //
             //     {
@@ -226229,7 +226229,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             //
             commission = this.safeDict(response, 'data', {});
         } else {
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 response = await this.cswapV1PrivateGetUserCommissionRate(params);
                 //
                 //     {
@@ -226332,10 +226332,10 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchMarketLeverageTiers() supports swap markets only');
         }
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchMarketLeverageTiers() is not supported for inverse swap markets');
         }
         const request = {
@@ -227606,9 +227606,9 @@ class bit2c extends _abstract_bit2c_js__rspack_import_0/* ["default"] */.A {
             const marketId = this.safeString(trade, 'pair');
             const marketByPair = this.safeMarket(marketId, market);
             tradeMarket = this.safeMarket(reference_parts[0], marketByPair);
-            const isMaker = this.safeBool(trade, 'isMaker');
-            makerOrTaker = isMaker === true ? 'maker' : 'taker';
-            orderId = isMaker === true ? reference_parts[2] : reference_parts[1];
+            const isMaker = this.safeBool(trade, 'isMaker', false);
+            makerOrTaker = isMaker ? 'maker' : 'taker';
+            orderId = isMaker ? reference_parts[2] : reference_parts[1];
             const action = this.safeInteger(trade, 'action');
             if (action === 0) {
                 side = 'buy';
@@ -232638,7 +232638,7 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
             orderType = 'FOK';
         }
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('createOrder', params);
-        if (market['spot'] === true && marginMode === undefined) {
+        if (this.safeBool(market, 'spot', false) && marginMode === undefined) {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = 'EXCHANGE ' + orderType;
         }
@@ -233592,7 +233592,7 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
             if (market['quote'] in fiat) {
                 fee['maker'] = makerFeeFiat;
                 fee['taker'] = takerFeeFiat;
-            } else if (market['contract'] === true) {
+            } else if (this.safeBool(market, 'contract', false)) {
                 fee['maker'] = makerFeeDeriv;
                 fee['taker'] = takerFeeDeriv;
             } else {
@@ -234660,7 +234660,7 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setMargin() only support swap markets');
         }
         const request = {
@@ -240050,7 +240050,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         }
         const [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'fetchMarkets', 'stock', false);
         const [uta, paramsUTA] = await this.handleUTAAndParams(paramsStock, 'fetchMarkets', false);
-        if (stock === true || uta === true) {
+        if (stock || uta === true) {
             return await this.fetchUtaMarkets(paramsUTA);
         }
         return await this.fetchDefaultMarkets(paramsUTA);
@@ -240842,7 +240842,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             request['symbol'] = market['id'];
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketPositionTier(this.extend(request, paramsMarginMode));
-        } else if (market['swap'] === true || market['future'] === true) {
+        } else if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false)) {
             request['productType'] = productType;
             request['symbol'] = market['id'];
             response = await this.publicMixGetV2MixMarketQueryPositionLever(this.extend(request, paramsMarginMode));
@@ -241567,7 +241567,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         } else if (uta === true) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOrderbook(this.extend(request, paramsUTA));
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             response = await this.publicSpotGetV2SpotMarketOrderbook(this.extend(request, paramsUTA));
         } else {
             request['productType'] = productType;
@@ -241783,7 +241783,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         if (isStockOrUta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, paramsUTA));
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             response = await this.publicSpotGetV2SpotMarketTickers(this.extend(request, paramsUTA));
         } else {
             request['productType'] = productType;
@@ -241932,7 +241932,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchMarkPrice() is not supported for spot markets');
         } else {
             const [productType, paramsProductType] = this.handleProductTypeAndParams(market, params);
@@ -242346,7 +242346,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             if (isStockOrUta) {
                 request['limit'] = Math.min(limit, 100);
-            } else if (market['contract'] === true) {
+            } else if (this.safeBool(market, 'contract', false)) {
                 request['limit'] = Math.min(limit, 1000);
             } else {
                 request['limit'] = limit;
@@ -242378,7 +242378,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             }
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketFills(this.extend(request, paramsPaginate));
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             const spotOptions = this.safeDict(options, 'spot', {});
             const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetV2SpotMarketFillsHistory');
             const spotMethod = this.safeString(paramsPaginate, 'method', defaultSpotMethod);
@@ -242508,7 +242508,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         }
         let marginMode = undefined;
         [marginMode, paramsUTA] = this.handleMarginModeAndParams('fetchTradingFee', paramsUTA);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (marginMode !== undefined) {
                 request['businessType'] = 'margin';
             } else {
@@ -242728,8 +242728,8 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         //         "1399132.341"
         //     ]
         //
-        const inverse = this.safeBool(market, 'inverse');
-        const volumeIndex = inverse === true ? 6 : 5;
+        const inverse = this.safeBool(market, 'inverse', false);
+        const volumeIndex = inverse ? 6 : 5;
         return [
             this.safeInteger(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
@@ -242799,7 +242799,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             timeframes = this.safeDict(timeframesOption, 'uta');
             request['interval'] = this.safeString(timeframes, timeframe, timeframe);
         } else {
-            marketType = market['spot'] === true ? 'spot' : 'swap';
+            marketType = this.safeBool(market, 'spot', false) ? 'spot' : 'swap';
             timeframes = this.safeDict(timeframesOption, marketType);
             request['granularity'] = this.safeString(timeframes, timeframe, timeframe);
         }
@@ -242816,7 +242816,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
         let key = 'swap';
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             key = 'spot';
         }
         const ohlcOptions = this.safeDict(this.options['fetchOHLCV'], key, {});
@@ -242872,7 +242872,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             calculatedStartTime = calculatedEndTime - historicalDuration;
             request['startTime'] = calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
-            if (market['spot'] !== true) {
+            if (!this.safeBool(market, 'spot', false)) {
                 const maxDistanceForContracts = 90 * msInDay;
                 // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
                 if (calculatedEndTime !== undefined && historicalDuration > maxDistanceForContracts) {
@@ -242904,7 +242904,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.publicUtaGetV3MarketCandles(this.extend(request, paramsProductType));
             }
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             // checks if we need history endpoint
             if (historicalEndpointNeeded) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, paramsProductType));
@@ -243630,7 +243630,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         }
         const orderType = this.safeString(order, 'orderType');
         const isBuyMarket = side === 'buy' && orderType === 'market';
-        if (marketResolved['spot'] === true && isBuyMarket) {
+        if (this.safeBool(marketResolved, 'spot', false) && isBuyMarket) {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = this.safeString(order, 'baseVolume');
         }
@@ -243686,7 +243686,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -243781,7 +243781,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             }
         } else {
             const request = this.createOrderRequest(symbol, type, side, amount, price, paramsUTA);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 if (isTriggerOrder) {
                     response = await this.privateSpotPostV2SpotTradePlacePlanOrder(request);
                 } else if (marginMode === 'isolated') {
@@ -244330,7 +244330,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             'orderList': ordersRequests
         };
         let response = undefined;
-        if (market['swap'] === true || market['future'] === true) {
+        if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false)) {
             let marginModeRequest = 'isolated';
             if (marginMode === undefined || marginMode === 'cross') {
                 marginModeRequest = 'crossed';
@@ -244500,7 +244500,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
                 }
                 response = await this.privateUtaPostV3TradeModifyOrder(this.extend(request, paramsOmitted));
             }
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             const cost = this.safeString(paramsOmitted, 'cost');
             paramsOmitted = this.omit(paramsOmitted, 'cost');
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
@@ -244537,7 +244537,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
                 response = await this.privateSpotPostV2SpotTradeCancelReplaceOrder(this.extend(request, paramsOmitted));
             }
         } else {
-            if (market['swap'] !== true && market['future'] !== true) {
+            if (!this.safeBool(market, 'swap', false) && !this.safeBool(market, 'future', false)) {
                 throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
             }
             request['symbol'] = market['id'];
@@ -244659,14 +244659,14 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         const isStockSpot = isStock && market['spot'] === true;
         paramsMarginMode = this.omit(paramsMarginMode, 'stock');
         const request = {};
-        const trailing = this.safeBool(paramsMarginMode, 'trailing');
+        const trailing = this.safeBool(paramsMarginMode, 'trailing', false);
         const trigger = this.safeBool2(paramsMarginMode, 'stop', 'trigger');
         paramsMarginMode = this.omit(paramsMarginMode, [
             'stop',
             'trigger',
             'trailing'
         ]);
-        if (!(market['spot'] === true && trigger === true)) {
+        if (!(this.safeBool(market, 'spot', false) && trigger === true)) {
             request['symbol'] = market['id'];
         }
         let uta = undefined;
@@ -244706,11 +244706,11 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.privateUtaPostV3TradeCancelOrder(this.extend(request, paramsMarginMode));
             }
-        } else if (market['swap'] === true || market['future'] === true) {
+        } else if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false)) {
             let productType = undefined;
             [productType, paramsMarginMode] = this.handleProductTypeAndParams(market, paramsMarginMode);
             request['productType'] = productType;
-            if (trailing === true) {
+            if (trailing) {
                 const planType = this.safeString(paramsMarginMode, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder(this.extend(request, paramsMarginMode));
@@ -244719,7 +244719,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.privateMixPostV2MixOrderCancelOrder(this.extend(request, paramsMarginMode));
             }
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             if (marginMode !== undefined) {
                 if (marginMode === 'isolated') {
                     response = await this.privateMarginPostV2MarginIsolatedCancelOrder(this.extend(request, paramsMarginMode));
@@ -244885,13 +244885,13 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'symbol': market['id']
         };
-        if (market['spot'] === true && marginMode === undefined) {
+        if (this.safeBool(market, 'spot', false) && marginMode === undefined) {
             request['orderList'] = orderIdList;
         } else {
             request['orderIdList'] = orderIdList;
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (marginMode !== undefined) {
                 if (marginMode === 'cross') {
                     response = await this.privateMarginPostV2MarginCrossedBatchCancelOrder(this.extend(request, paramsUTA));
@@ -244993,7 +244993,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     }
         //
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             if (marginMode !== undefined) {
                 throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead');
             } else {
@@ -245103,9 +245103,9 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         const [uta, paramsUTA] = await this.handleUTAAndParams(paramsOmitted, 'fetchOrder', false);
         if (uta === true) {
             response = await this.privateUtaGetV3TradeOrderInfo(this.extend(request, paramsUTA));
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             response = await this.privateSpotGetV2SpotTradeOrderInfo(this.extend(request, paramsUTA));
-        } else if (market['swap'] === true || market['future'] === true) {
+        } else if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false)) {
             request['symbol'] = market['id'];
             const [productType, paramsProductType] = this.handleProductTypeAndParams(market, paramsUTA);
             request['productType'] = productType;
@@ -245312,7 +245312,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             return await this.fetchPaginatedCallCursor('fetchOpenOrders', symbol, since, limit, paramsMarginMode, cursorReceived, cursorSent);
         }
         let response = undefined;
-        const trailing = this.safeBool(paramsMarginMode, 'trailing');
+        const trailing = this.safeBool(paramsMarginMode, 'trailing', false);
         const trigger = this.safeBool2(paramsMarginMode, 'stop', 'trigger');
         const planTypeValue = this.safeString(paramsMarginMode, 'planType');
         const planTypeDefined = planTypeValue !== undefined;
@@ -245374,7 +245374,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             }
         } else {
             request['productType'] = productType;
-            if (trailing === true) {
+            if (trailing) {
                 const planType = this.safeString(paramsMarginMode, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanPending(this.extend(request, paramsMarginMode));
@@ -245775,7 +245775,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             return await this.fetchPaginatedCallCursor('fetchCanceledAndClosedOrders', symbol, since, limit, paramsUTA, cursorReceived, 'idLessThan');
         }
         let response = undefined;
-        const trailing = this.safeBool(paramsUTA, 'trailing');
+        const trailing = this.safeBool(paramsUTA, 'trailing', false);
         const trigger = this.safeBool2(paramsUTA, 'stop', 'trigger');
         paramsUTA = this.omit(paramsUTA, [
             'stop',
@@ -245834,7 +245834,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             request['productType'] = productType;
             const planTypeValue = this.safeString(paramsUTA, 'planType');
             const planTypeDefined = planTypeValue !== undefined;
-            if (trailing === true) {
+            if (trailing) {
                 const planType = this.safeString(paramsUTA, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory(this.extend(request, paramsUTA));
@@ -246724,7 +246724,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             if (uta === true) {
                 cursorReceived = 'cursor';
                 cursorSent = 'cursor';
-            } else if (market['spot'] === true) {
+            } else if (this.safeBool(market, 'spot', false)) {
                 if (marginMode !== undefined) {
                     cursorReceived = 'minId';
                     cursorSent = 'idLessThan';
@@ -246740,7 +246740,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             response = await this.privateUtaGetV3TradeFills(this.extend(request, paramsUTA));
         } else {
             request['symbol'] = market['id'];
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 if (marginMode !== undefined) {
                     if (since === undefined) {
                         request['startTime'] = this.milliseconds() - 7776000000;
@@ -246895,7 +246895,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         if (uta === true) {
             const fills = this.safeList(data, 'list', []);
             return this.parseTrades(fills, market, since, limit);
-        } else if (market['swap'] === true || market['future'] === true) {
+        } else if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false)) {
             const fills = this.safeList(data, 'fillList', []);
             return this.parseTrades(fills, market, since, limit);
         } else if (marginMode !== undefined) {
@@ -247568,7 +247568,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         let productType = undefined;
@@ -247875,7 +247875,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'endId', 'idLessThan');
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.BadSymbol(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const [productType, paramsProductType] = this.handleProductTypeAndParams(market, paramsPaginate);
@@ -248312,7 +248312,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         let posMode = 'one_way_mode';
-        if (hedged === true) {
+        if (hedged) {
             posMode = 'hedge_mode';
         }
         const request = {};
@@ -248366,7 +248366,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const [productType, paramsProductType] = this.handleProductTypeAndParams(market, params);
@@ -250138,7 +250138,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             request['period'] = timeframe;
         }
         let response = undefined;
-        if (market['swap'] === true || market['future'] === true) {
+        if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false)) {
             response = await this.publicMixGetV2MixMarketAccountLongShort(this.extend(request, params));
         //
         //     {
@@ -254649,8 +254649,8 @@ class bitopro extends _abstract_bitopro_js__rspack_import_0/* ["default"] */.A {
         const type = this.safeStringLower(trade, 'type');
         let side = this.safeStringLower(trade, 'action');
         if (side === undefined) {
-            const isBuyer = this.safeBool(trade, 'isBuyer');
-            if (isBuyer === true) {
+            const isBuyer = this.safeBool(trade, 'isBuyer', false);
+            if (isBuyer) {
                 side = 'buy';
             } else {
                 side = 'sell';
@@ -257407,19 +257407,19 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         let response = {};
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const request = {
                 'contractName': market['id']
             };
             if (limit !== undefined) {
                 request['limit'] = Math.min(limit, 100); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV1PublicGetDepth(this.extend(request, params));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV1PublicGetDepth(this.extend(request, params));
             }
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             const request = {
                 'symbol': market['id']
             };
@@ -257545,17 +257545,17 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         let response = undefined;
         let data = {};
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const request = {
                 'contractName': market['id']
             };
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV1PublicGetTicker(this.extend(request, params));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV1PublicGetTicker(this.extend(request, params));
             }
             data = response;
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             const request = {
                 'symbol': market['id']
             };
@@ -257625,7 +257625,7 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         let response = undefined;
         let data = [];
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const timeframesFuture = this.safeDict(timeframes, 'future', {});
             const request = {
                 'contractName': market['id'],
@@ -257635,13 +257635,13 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV1PublicGetKlines(this.extend(request, params));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV1PublicGetKlines(this.extend(request, params));
             }
             data = response;
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             const timeframesSpot = this.safeDict(timeframes, 'spot', {});
             const request = {
                 'symbol': market['id'],
@@ -257751,16 +257751,16 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         const first = this.safeString(symbolsNormalized, 0);
         const market = this.market(first);
         let response = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const request = {
                 'contractName': market['id']
             };
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV1PublicGetTicker(this.extend(request, params));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV1PublicGetTicker(this.extend(request, params));
             }
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             const request = {
                 'symbol': market['id']
             };
@@ -257817,9 +257817,9 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         if (symbolsNormalized !== undefined) {
             const first = this.safeString(symbolsNormalized, 0);
             const market = this.market(first);
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
-            } else if (market['spot'] === true) {
+            } else if (this.safeBool(market, 'spot', false)) {
                 response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
                 data = this.toArray(response);
             } else {
@@ -257997,7 +257997,7 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         let response = [];
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const request = {
                 'symbol': market['id']
             };
@@ -258169,7 +258169,7 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports swap orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -258216,7 +258216,7 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
             }
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const isMarket = uppercaseType === 'MARKET';
             const timeInForce = this.safeStringLower(params, 'timeInForce');
             const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -258264,13 +258264,13 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
                 'reduce_only',
                 'timeInForce'
             ]);
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivatePostOrder(this.extend(request, paramsSwap));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivatePostOrder(this.extend(request, paramsSwap));
             }
             data = this.safeDict(response, 'data', {});
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision(symbol, amount);
             const validOrderTypes = this.safeList(market['info'], 'orderTypes', []);
@@ -258350,21 +258350,21 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
         } else {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 request['clientOrderId'] = origClientOrderId;
             } else {
                 request['origClientOrderId'] = origClientOrderId;
             }
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['contractName'] = market['id'];
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivateGetOrder(this.extend(request, paramsOmitted));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivateGetOrder(this.extend(request, paramsOmitted));
             }
             data = this.safeDict(response, 'data', {});
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             request['orderId'] = id; // spot market id is mandatory
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOrder(this.extend(request, paramsOmitted));
@@ -258435,7 +258435,7 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchClosedOrders only support spot markets');
         }
         const request = {
@@ -258494,15 +258494,15 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         let response = undefined;
         let data = [];
         const request = {};
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['contractName'] = market['id'];
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivateGetOpenOrders(this.extend(request, params));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivateGetOpenOrders(this.extend(request, params));
             }
             data = this.safeList(response, 'data', []);
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOpenOrders(this.extend(request, params));
             data = response;
@@ -258587,21 +258587,21 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
         } else {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 request['clientOrderId'] = origClientOrderId;
             } else {
                 request['origClientOrderId'] = origClientOrderId;
             }
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['contractName'] = market['id'];
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivatePostCancel(this.extend(request, paramsOmitted));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivatePostCancel(this.extend(request, paramsOmitted));
             }
             data = this.safeDict(response, 'data', {});
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateDeleteOrder(this.extend(request, paramsOmitted));
             data = response;
@@ -258647,13 +258647,13 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         let response = undefined;
         let data = [];
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const request = {
                 'contractName': market['id']
             };
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivatePostAllOpenOrders(this.extend(request, params));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivatePostAllOpenOrders(this.extend(request, params));
             }
             data = this.safeList(response, 'data', []);
@@ -258701,15 +258701,15 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
             limitResolved = limit > 1000 ? 1000 : limit;
             request['limit'] = limitResolved;
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['contractName'] = market['id'];
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivateGetMyTrades(this.extend(request, params));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivateGetMyTrades(this.extend(request, params));
             }
             data = this.safeList(response, 'data', []);
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             response = await this.spotV2PrivateGetMyTrades(this.extend(request, params));
             data = response;
@@ -259307,12 +259307,12 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
             'contractName': market['id'],
             'leverage': leverage
         };
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setLeverage only support swap markets');
         }
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiV2PrivatePostLevelEdit(this.extend(request, params));
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiV2PrivatePostLevelEdit(this.extend(request, params));
         }
         return response;
@@ -259355,7 +259355,7 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setMargin only support swap markets');
         }
         let response = undefined;
@@ -259363,9 +259363,9 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
             'contractName': market['id'],
             'amount': this.parseToNumeric(amount)
         };
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiV2PrivatePostPositionMargin(this.extend(request, params));
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiV2PrivatePostPositionMargin(this.extend(request, params));
         }
         //
@@ -268992,7 +268992,7 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
         const code = this.safeCurrencyCode(id);
         const depositEnabled = this.safeBool(currency, 'deposit-enabled');
         const withdrawEnabled = this.safeBool(currency, 'withdraw-enabled');
-        const countryDisabled = this.safeBool(currency, 'country-disabled');
+        const countryDisabled = this.safeBool(currency, 'country-disabled', false);
         const visible = this.safeBool(currency, 'visible', false);
         const state = this.safeString(currency, 'state');
         const active = visible && depositEnabled === true && withdrawEnabled === true && state === 'online' && countryDisabled !== true;
@@ -269345,7 +269345,7 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -275625,7 +275625,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
@@ -276255,7 +276255,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
-        } else if (isTpsl === true) {
+        } else if (isTpsl) {
             request['tpslId'] = id;
         } else {
             request['orderId'] = id;
@@ -276266,7 +276266,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'TPSL'
         ]);
         let response;
-        if (isTpsl === true) {
+        if (isTpsl) {
             response = await this.privateGetTradeOrderTpslDetail(this.extend(request, query));
         } else {
             response = await this.privateGetTradeOrderDetail(this.extend(request, query));
@@ -277424,7 +277424,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const contractSizeString = this.numberToString(contractSize);
         const markPriceString = this.safeString(position, 'markPrice');
         let notionalString = this.safeString(position, 'notionalUsd');
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             notionalString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contractsAbs, contractSizeString), markPriceString);
         } else if (notionalString === undefined) {
             notionalString = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contractsAbs, contractSizeString), markPriceString);
@@ -277844,7 +277844,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} response from the exchange
      */ async setPositionMode(hedged, symbol = undefined, params = {}) {
         const request = {
-            'positionMode': hedged === true ? 'long_short_mode' : 'net_mode'
+            'positionMode': hedged ? 'long_short_mode' : 'net_mode'
         };
         //
         //     {
@@ -282698,7 +282698,7 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchFundingRateHistory() supports contract markets only');
         }
         let period = undefined;
@@ -282970,7 +282970,7 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
      */ async fetchMarketLeverageTiers(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
         const result = await this.fetchLeverageTiers([
@@ -283057,7 +283057,7 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
         const marketResolved = this.safeMarket(marketId, market);
         const last = this.safeString(ticker, 'lastPrice');
         let baseVolume = this.safeString(ticker, 'amount');
-        if (baseVolume !== undefined && marketResolved !== undefined && marketResolved['contract'] === true) {
+        if (baseVolume !== undefined && marketResolved !== undefined && this.safeBool(marketResolved, 'contract', false)) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
             const contractSizeString = this.numberToString(marketResolved['contractSize']);
@@ -283104,7 +283104,7 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
      */ async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
         }
         const request = {
@@ -283165,7 +283165,7 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
      */ async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchFundingRate() symbol does not support spot markets');
         }
         const request = {
@@ -283607,7 +283607,7 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
      */ async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
         } else {
             return await this.createContractOrder(symbol, type, side, amount, price, params);
@@ -284154,7 +284154,7 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             response = await this.privatePutSpotApiV4TradeOrders(this.extend(request, query));
         } else {
@@ -284206,7 +284206,7 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
         }
         const paramsOmitted = clientOrderId !== undefined ? this.omit(params, 'clientOrderId') : params;
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             response = await this.privateDeleteSpotApiV4TradeOrders(this.extend(request, paramsOmitted));
         } else {
@@ -284926,7 +284926,7 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateGetSpotApiV4TradeFees(this.extend(request, params));
         } else {
             // the futures fees stay on the legacy endpoint, the unified futures
@@ -285219,14 +285219,14 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
         if (marginModeValue !== 'cross' && marginModeValue !== 'isolated') {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' setMarginMode() marginMode argument should be either cross or isolated');
         }
-        const hedged = this.safeBool(params, 'hedged');
+        const hedged = this.safeBool(params, 'hedged', false);
         if (marginModeValue === 'cross') {
             if (!('hedged' in params)) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' setMarginMode() requires a hedged parameter for cross margin mode');
-            } else if (hedged === true) {
+            } else if (hedged) {
                 positionMode = 'HEDGE';
             }
-        } else if ('hedged' in params && hedged !== true) {
+        } else if ('hedged' in params && !hedged) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' setMarginMode() hedged parameter cannot be false for isolated margin mode');
         } else {
             positionMode = 'ISOLATED';
@@ -286828,7 +286828,7 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');
         const side = this.safeStringLower(trade, 'side');
-        const isTaker = this.safeBool(trade, 'isTaker');
+        const isTaker = this.safeBool(trade, 'isTaker', false);
         const currency = this.safeString(marketResolved, 'quote');
         const code = this.safeCurrencyCode(currency);
         const feeCost = this.safeNumber(trade, 'quoteFee');
@@ -286840,7 +286840,7 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
             };
         }
         let takerOrMaker = undefined;
-        if (isTaker === true) {
+        if (isTaker) {
             takerOrMaker = 'taker';
         } else {
             takerOrMaker = 'maker';
@@ -287115,7 +287115,7 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
             return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPagination, maxLimit);
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
         const request = {
@@ -292390,7 +292390,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 } else if (this.safeString(market, 'type') !== currentType) {
                     throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchTickers can only accept a list of symbols of the same type');
                 }
-                if (market['option'] === true) {
+                if (this.safeBool(market, 'option', false)) {
                     const marketBase = this.safeString(market, 'base');
                     if (code !== undefined && code !== marketBase) {
                         throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers');
@@ -292489,8 +292489,8 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         //         "2.4343353100000003"
         //     ]
         //
-        const isInverse = this.safeBool(market, 'inverse');
-        const volumeIndex = isInverse === true ? 6 : 5;
+        const isInverse = this.safeBool(market, 'inverse', false);
+        const volumeIndex = isInverse ? 6 : 5;
         return [
             this.safeInteger(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
@@ -292551,15 +292551,15 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         [request, paramsUntil] = this.handleUntilOption('end', request, paramsPaginate);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['category'] = 'spot';
             response = await this.publicGetV5MarketKline(this.extend(request, paramsUntil));
         } else {
             const price = this.safeString(paramsUntil, 'price');
             const paramsOmitted = this.omit(paramsUntil, 'price');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 request['category'] = 'linear';
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 request['category'] = 'inverse';
             } else {
                 throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchOHLCV() is not supported for option markets');
@@ -293072,7 +293072,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         if (feeCostString !== undefined) {
             const feeRateString = this.safeString(trade, 'feeRate');
             let feeCurrencyCode = undefined;
-            if (marketResolved['spot'] === true) {
+            if (this.safeBool(marketResolved, 'spot', false)) {
                 if (_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(feeCostString, '0')) {
                     if (side === 'buy') {
                         feeCurrencyCode = marketResolved['base'];
@@ -293087,7 +293087,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                     }
                 }
             } else {
-                feeCurrencyCode = marketResolved['inverse'] === true ? marketResolved['base'] : marketResolved['settle'];
+                feeCurrencyCode = this.safeBool(marketResolved, 'inverse', false) ? marketResolved['base'] : marketResolved['settle'];
             }
             fee = {
                 'cost': feeCostString,
@@ -293189,18 +293189,18 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let defaultLimit = 25;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             // limit: [1, 50]. Default: 1
             defaultLimit = 50;
             request['category'] = 'spot';
         } else {
-            if (market['option'] === true) {
+            if (this.safeBool(market, 'option', false)) {
                 // limit: [1, 25]. Default: 1
                 request['category'] = 'option';
-            } else if (market['linear'] === true) {
+            } else if (this.safeBool(market, 'linear', false)) {
                 // limit: [1, 500]. Default: 25
                 request['category'] = 'linear';
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 // limit: [1, 500]. Default: 25
                 request['category'] = 'inverse';
             }
@@ -293864,7 +293864,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -293891,7 +293891,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createMarketSellOrderWithCost() supports UTA accounts only');
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -293947,7 +293947,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, enableUnifiedAccount);
         const switchToOco = isStopLossOrder && isTakeProfitOrder || this.safeBool(params, 'tradingStopEndpoint', false);
         let defaultMethod = undefined;
-        if ((isTrailingOrder || switchToOco) && market['spot'] !== true) {
+        if ((isTrailingOrder || switchToOco) && !this.safeBool(market, 'spot', false)) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
@@ -293988,7 +293988,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         const hedged = this.safeBool(params, 'hedged', false);
-        const reduceOnly = this.safeBool(params, 'reduceOnly');
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeString(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeString(params, 'takeProfitPrice');
@@ -294027,7 +294027,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const amountString = amountValue !== undefined ? this.getAmount(symbolValue, amountValue) : undefined;
         const priceString = price !== undefined ? this.getPrice(symbolValue, this.numberToString(price)) : undefined;
         if (endpointIsTradingStop) {
-            if (hasStopLoss || hasTakeProfit || isTriggerOrder || market['spot'] === true) {
+            if (hasStopLoss || hasTakeProfit || isTriggerOrder || this.safeBool(market, 'spot', false)) {
                 throw new _base_errors_js__rspack_import_1.InvalidOrder(this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if (isStopLossOrder || isTakeProfitOrder) {
@@ -294098,7 +294098,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             } else if (timeInForce === 'ioc') {
                 request['timeInForce'] = 'IOC';
             }
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 // only works for spot market
                 if (triggerPrice !== undefined) {
                     request['orderFilter'] = 'StopOrder';
@@ -294109,7 +294109,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             const clientOrderId = this.safeString(query, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['orderLinkId'] = clientOrderId;
-            } else if (market['option'] === true) {
+            } else if (this.safeBool(market, 'option', false)) {
                 // mandatory field for options
                 request['orderLinkId'] = this.uuid16();
             }
@@ -294125,7 +294125,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = lowerCaseType === 'market' && side === 'buy' && (price !== undefined || cost !== undefined);
         const isMarketOrder = lowerCaseType === 'market';
-        if (market['spot'] === true && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
+        if (this.safeBool(market, 'spot', false) && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if (cost !== undefined || price !== undefined) {
                 request['marketUnit'] = 'quoteCoin';
@@ -294141,7 +294141,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 request['marketUnit'] = 'baseCoin';
                 request['qty'] = amountString;
             }
-        } else if (market['spot'] === true && isMarketOrder && side === 'buy') {
+        } else if (this.safeBool(market, 'spot', false) && isMarketOrder && side === 'buy') {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
@@ -294183,7 +294183,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 'stopPrice',
                 'triggerDirection'
             ]);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 if (triggerDirection !== undefined) {
                     throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrder() : trigger order does not support triggerDirection for spot markets yet');
                 }
@@ -294220,12 +294220,12 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                     request['slLimitPrice'] = this.getPrice(symbolValue, slLimitPrice);
                 } else {
                     // for spot market, we need to add this
-                    if (market['spot'] === true) {
+                    if (this.safeBool(market, 'spot', false)) {
                         request['slOrderType'] = 'Market';
                     }
                 }
                 // for spot market, we need to add this
-                if (market['spot'] === true && isMarketOrder) {
+                if (this.safeBool(market, 'spot', false) && isMarketOrder) {
                     throw new _base_errors_js__rspack_import_1.InvalidOrder(this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
                 }
             }
@@ -294239,23 +294239,23 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                     request['tpLimitPrice'] = this.getPrice(symbolValue, tpLimitPrice);
                 } else {
                     // for spot market, we need to add this
-                    if (market['spot'] === true) {
+                    if (this.safeBool(market, 'spot', false)) {
                         request['tpOrderType'] = 'Market';
                     }
                 }
                 // for spot market, we need to add this
-                if (market['spot'] === true && isMarketOrder) {
+                if (this.safeBool(market, 'spot', false) && isMarketOrder) {
                     throw new _base_errors_js__rspack_import_1.InvalidOrder(this.id + ' createOrder(): attached takeProfit is not supported for spot market orders');
                 }
             }
         }
-        if (market['spot'] !== true && hedged) {
-            if (reduceOnly === true) {
+        if (!this.safeBool(market, 'spot', false) && hedged) {
+            if (reduceOnly) {
                 query = this.omit(query, 'reduceOnly');
             }
             // a reduce-only order closes the position on the opposite side
             let isBuyPosition = false;
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 isBuyPosition = side === 'sell';
             } else {
                 isBuyPosition = side === 'buy';
@@ -294582,7 +294582,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'symbol': market['id']
         };
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             // only works for spot market
             const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
             request['orderFilter'] = isTrigger ? 'StopOrder' : 'Order';
@@ -294590,7 +294590,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         if (id !== undefined) {
             request['orderId'] = id;
         }
-        const paramsOmitted = market['spot'] === true ? this.omit(params, [
+        const paramsOmitted = this.safeBool(market, 'spot', false) ? this.omit(params, [
             'stop',
             'trigger'
         ]) : params;
@@ -294956,7 +294956,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchOrder() is not supported for spot markets');
         }
         const request = {
@@ -296030,7 +296030,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const enableUnified = this.safeBool(unifiedEnabled, 1, false);
         let currency = undefined;
         let currencyKey = 'coin';
-        if (enableUnified === true) {
+        if (enableUnified) {
             currencyKey = 'currency';
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -296049,7 +296049,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchLedger', undefined, paramsPaginate);
         let response;
-        if (enableUnified === true) {
+        if (enableUnified) {
             const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType === 'inverse' && unifiedMarginStatus < 5) {
                 response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, paramsSubType));
@@ -296678,7 +296678,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         let notional = undefined;
         const contractSize = this.safeString(marketResolved, 'contractSize');
         const markPrice = this.safeString(position, 'markPrice');
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             notional = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(size, contractSize), markPrice);
         } else {
             notional = this.safeString2(position, 'positionValue', 'cumExitValue');
@@ -296722,7 +296722,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             } else {
                 const bustPrice = this.omitZero(this.safeString(position, 'bustPrice'));
                 const closingFee = this.omitZero(this.safeString(position, 'occClosingFee'));
-                if (marketResolved['linear'] === true) {
+                if (this.safeBool(marketResolved, 'linear', false)) {
                     // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
@@ -296949,9 +296949,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         };
         request['buyLeverage'] = leverageString;
         request['sellLeverage'] = leverageString;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             request['category'] = 'linear';
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             request['category'] = 'inverse';
         } else {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' setLeverage() only support linear and inverse market');
@@ -297018,7 +297018,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         let subType = 'inverse';
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             subType = 'linear';
         }
         const category = this.safeString(params, 'category', subType);
@@ -297098,7 +297098,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const timeframe = this.safeString(params, 'interval', '1h');
@@ -297108,7 +297108,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOpenInterest() cannot use the ' + timeframe + ' timeframe');
         }
         let subType = 'inverse';
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             subType = 'linear';
         }
         const category = this.safeString(params, 'category', subType);
@@ -297167,14 +297167,14 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const paginate = this.safeBool(params, 'paginate');
-        if (paginate === true) {
+        const paginate = this.safeBool(params, 'paginate', false);
+        if (paginate) {
             const paramsPaginate = this.omit(params, 'paginate');
             paramsPaginate['timeframe'] = timeframe;
             return await this.fetchPaginatedCallCursor('fetchOpenInterestHistory', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 200);
         }
         const market = this.market(symbol);
-        if (market['spot'] === true || market['option'] === true) {
+        if (this.safeBool(market, 'spot', false) || this.safeBool(market, 'option', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol);
         }
         const request = {
@@ -297683,9 +297683,9 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'symbol': market['id']
         };
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             request['category'] = 'linear';
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             request['category'] = 'inverse';
         }
         const response = await this.publicGetV5MarketRiskLimit(this.extend(request, params));
@@ -297730,7 +297730,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         }
         const request = {};
         const market = this.market(symbol);
-        if (market['spot'] === true || market['option'] === true) {
+        if (this.safeBool(market, 'spot', false) || this.safeBool(market, 'option', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
         }
         request['symbol'] = market['id'];
@@ -298566,7 +298566,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         let symbol = undefined;
         if (symbols !== undefined) {
             const market = this.market(symbols[0]);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchLeverageTiers() is not supported for spot market');
             }
             symbol = this.safeString(market, 'symbol');
@@ -298731,7 +298731,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(income, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
         let code = 'USDT';
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             code = marketResolved['quote'];
         }
         const timestamp = this.safeInteger(income, 'execTime');
@@ -299072,8 +299072,8 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         for(let i = 0; i < coins.length; i++){
             const entry = coins[i];
             const id = this.safeString(entry, 'coin');
-            const disableFrom = this.safeBool(entry, 'disableFrom');
-            const disableTo = this.safeBool(entry, 'disableTo');
+            const disableFrom = this.safeBool(entry, 'disableFrom', false);
+            const disableTo = this.safeBool(entry, 'disableTo', false);
             const inactive = disableFrom === true || disableTo === true;
             const code = this.safeCurrencyCode(id);
             if (code !== undefined) {
@@ -302445,7 +302445,7 @@ class bydfi extends _abstract_bydfi_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         let positionType = 'ONEWAY';
-        if (hedged === true) {
+        if (hedged) {
             positionType = 'HEDGE';
         }
         const wallet = 'W001';
@@ -306364,8 +306364,8 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         const amountStringAbs = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(amountString);
         let status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         if (status === undefined) {
-            const committed = this.safeBool(transaction, 'committed');
-            status = committed === true ? 'ok' : 'pending';
+            const committed = this.safeBool(transaction, 'committed', false);
+            status = committed ? 'ok' : 'pending';
         }
         const id = this.safeString(transaction, 'id');
         const currencyId = this.safeString(amountAndCurrencyObject, 'currency');
@@ -306493,11 +306493,11 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
                 }
             }
         }
-        const sizeInQuote = this.safeBool(trade, 'size_in_quote');
+        const sizeInQuote = this.safeBool(trade, 'size_in_quote', false);
         const v3Price = this.safeString(trade, 'price');
         let v3Cost = undefined;
         let v3Amount = this.safeString(trade, 'size');
-        if (sizeInQuote === true) {
+        if (sizeInQuote) {
             // calculate base size
             v3Cost = v3Amount;
             v3Amount = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(v3Amount, v3Price);
@@ -306859,7 +306859,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
             return undefined;
         }
         const marketType = this.safeStringLower(market, 'product_type');
-        const tradingDisabled = this.safeBool(market, 'trading_disabled');
+        const tradingDisabled = this.safeBool(market, 'trading_disabled', false);
         const stablePairs = this.safeList(this.options, 'stablePairs', []);
         const defaultTakerFee = this.safeNumber(this.fees['trading'], 'taker');
         const defaultMakerFee = this.safeNumber(this.fees['trading'], 'maker');
@@ -307057,7 +307057,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         if (base === undefined || quote === undefined) {
             return undefined;
         }
-        const isDisabled = this.safeBool(market, 'is_disabled');
+        const isDisabled = this.safeBool(market, 'is_disabled', false);
         const tradingDisabled = isDisabled === true || this.safeBool(market, 'trading_disabled') === true;
         let symbol = base + '/' + quote;
         let type = undefined;
@@ -308284,7 +308284,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -308329,8 +308329,8 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
             'product_id': market['id'],
             'side': side.toUpperCase()
         };
-        const reduceOnly = this.safeBool(params, 'reduceOnly');
-        if (reduceOnly === true) {
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
+        if (reduceOnly) {
             return await this.closePosition(symbol, side, this.extend(this.omit(params, 'reduceOnly'), {
                 'amount': amount
             }));
@@ -308445,7 +308445,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
             if (isStop || isStopLoss || isTakeProfit) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() only stop limit orders are supported');
             }
-            if (market['spot'] === true && side === 'buy') {
+            if (this.safeBool(market, 'spot', false) && side === 'buy') {
                 let total = undefined;
                 const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber(paramsRequiresPrice, 'cost');
@@ -308549,8 +308549,8 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         //         }
         //     }
         //
-        const success = this.safeBool(response, 'success');
-        if (success !== true) {
+        const success = this.safeBool(response, 'success', false);
+        if (!success) {
             const errorResponse = this.safeDict(response, 'error_response');
             const errorTitle = this.safeString(errorResponse, 'error');
             const errorMessage = this.safeString(errorResponse, 'message');
@@ -308782,8 +308782,8 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         //
         const orders = this.safeList(response, 'results', []);
         for(let i = 0; i < orders.length; i++){
-            const success = this.safeBool(orders[i], 'success');
-            if (success !== true) {
+            const success = this.safeBool(orders[i], 'success', false);
+            if (!success) {
                 throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' cancelOrders() has failed, check your arguments and parameters');
             }
         }
@@ -310307,7 +310307,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         for(let i = 0; i < this.symbols.length; i++){
             const symbol = this.safeString(this.symbols, i, '');
             const market = this.market(symbol);
-            if (isSpot && market['spot'] === true || !isSpot && market['spot'] !== true) {
+            if (isSpot && this.safeBool(market, 'spot', false) || !isSpot && !this.safeBool(market, 'spot', false)) {
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
@@ -310642,8 +310642,8 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
                 }
             }
         }
-        const advancedTrade = this.safeBool(this.options, 'advanced');
-        if (!('data' in response) && advancedTrade !== true) {
+        const advancedTrade = this.safeBool(this.options, 'advanced', false);
+        if (!('data' in response) && !advancedTrade) {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' failed due to a malformed response ' + this.json(response));
         }
         return undefined;
@@ -315230,9 +315230,9 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
         let contracts = this.safeNumber(position, 'size');
         if (this.isNativeDeribitCredentials()) {
             let size = this.safeString(position, 'size');
-            if (marketResolved['option'] !== true) {
+            if (!this.safeBool(marketResolved, 'option', false)) {
                 notional = size;
-                if (marketResolved['linear'] === true) {
+                if (this.safeBool(marketResolved, 'linear', false)) {
                     size = this.safeString(position, 'size_currency');
                 }
             } else {
@@ -315542,7 +315542,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
      * @returns {string} precision-formatted exchange order amount
      */ getOrderAmount(market, amount) {
         let exchangeAmount = this.numberToString(amount);
-        if (this.isNativeDeribitCredentials() && market['contract'] === true) {
+        if (this.isNativeDeribitCredentials() && this.safeBool(market, 'contract', false)) {
             exchangeAmount = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(exchangeAmount, this.safeString(market, 'contractSize'));
         }
         return this.amountToPrecision(market['symbol'], exchangeAmount);
@@ -315828,7 +315828,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
         const lastUpdateTimestamp = this.safeInteger(order, 'last_update_timestamp');
         let filled = this.safeNumber(order, 'filled_amount');
         let amount = this.safeNumber(order, 'amount');
-        if (this.isNativeDeribitCredentials() && marketResolved['contract'] === true) {
+        if (this.isNativeDeribitCredentials() && this.safeBool(marketResolved, 'contract', false)) {
             const contractSize = this.safeString(marketResolved, 'contractSize');
             amount = this.parseNumber(this.safeString(order, 'contracts', _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(this.safeString(order, 'amount'), contractSize)));
             filled = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(this.safeString(order, 'filled_amount'), contractSize));
@@ -315844,7 +315844,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
         let cost = undefined;
         if (filledString !== undefined && averageString !== undefined) {
             cost = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(filledString, averageString));
-            if (this.isNativeDeribitCredentials() && marketResolved['inverse'] === true && marketResolved['option'] !== true) {
+            if (this.isNativeDeribitCredentials() && this.safeBool(marketResolved, 'inverse', false) && !this.safeBool(marketResolved, 'option', false)) {
                 cost = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(filledString, averageString));
             }
         }
@@ -316427,14 +316427,14 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
         const price = this.safeNumber(trade, 'price');
         let amount = this.safeNumber(trade, 'amount');
         const amountString = this.safeString(trade, 'amount');
-        if (this.isNativeDeribitCredentials() && marketResolved['contract'] === true) {
+        if (this.isNativeDeribitCredentials() && this.safeBool(marketResolved, 'contract', false)) {
             amount = this.parseNumber(this.safeString(trade, 'contracts', _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(amountString, this.safeString(marketResolved, 'contractSize'))));
         }
         const priceString = this.safeString(trade, 'price');
         let cost = undefined;
         if (amountString !== undefined && priceString !== undefined) {
             cost = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amountString, priceString));
-            if (this.isNativeDeribitCredentials() && marketResolved['inverse'] === true && marketResolved['option'] !== true) {
+            if (this.isNativeDeribitCredentials() && this.safeBool(marketResolved, 'inverse', false) && !this.safeBool(marketResolved, 'option', false)) {
                 cost = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(amountString, priceString));
             }
         }
@@ -321912,7 +321912,7 @@ class coinsph extends _abstract_coinsph_js__rspack_import_0/* ["default"] */.A {
     parseCurrency(rawCurrency) {
         const id = this.safeString(rawCurrency, 'coin');
         const code = this.safeCurrencyCode(id);
-        const isFiat = this.safeBool(rawCurrency, 'isLegalMoney');
+        const isFiat = this.safeBool(rawCurrency, 'isLegalMoney', false);
         const networkList = this.safeList(rawCurrency, 'networkList', []);
         const networks = {};
         for(let j = 0; j < networkList.length; j++){
@@ -321946,7 +321946,7 @@ class coinsph extends _abstract_coinsph_js__rspack_import_0/* ["default"] */.A {
             'id': id,
             'name': this.safeString(rawCurrency, 'name'),
             'code': code,
-            'type': isFiat === true ? 'fiat' : 'crypto',
+            'type': isFiat ? 'fiat' : 'crypto',
             'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': undefined,
@@ -324362,7 +324362,7 @@ class coinspot extends _abstract_coinspot_js__rspack_import_0/* ["default"] */.A
         for(let i = 0; i < ids.length; i++){
             const id = ids[i];
             const market = this.safeMarket(id);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 const symbol = market['symbol'];
                 const ticker = prices[id];
                 result[symbol] = this.parseTicker(ticker, market);
@@ -325805,8 +325805,8 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
             const settle = spot ? undefined : this.safeCurrencyCode(settleId);
             const optionType = this.safeStringLower(market, 'put_call');
             const strike = this.safeString(market, 'strike');
-            const marginBuyEnabled = this.safeBool(market, 'margin_buy_enabled');
-            const marginSellEnabled = this.safeBool(market, 'margin_sell_enabled');
+            const marginBuyEnabled = this.safeBool(market, 'margin_buy_enabled', false);
+            const marginSellEnabled = this.safeBool(market, 'margin_sell_enabled', false);
             const expiryRaw = this.safeInteger(market, 'expiry_timestamp_ms');
             const expiry = expiryRaw === 0 ? undefined : expiryRaw;
             let symbol = base + '/' + quote;
@@ -328119,7 +328119,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -328206,7 +328206,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -328576,13 +328576,13 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
         for(let i = 0; i < this.symbols.length; i++){
             const symbol = this.safeString(this.symbols, i, '');
             const market = this.market(symbol);
-            const isSwap = this.safeBool(market, 'swap');
+            const isSwap = this.safeBool(market, 'swap', false);
             let takerFeeKey = 'effective_spot_taker_rate_bps';
-            if (isSwap === true) {
+            if (isSwap) {
                 takerFeeKey = 'effective_deriv_taker_rate_bps';
             }
             let makerFeeKey = 'effective_spot_maker_rate_bps';
-            if (isSwap === true) {
+            if (isSwap) {
                 makerFeeKey = 'effective_deriv_maker_rate_bps';
             }
             const tradingFee = {
@@ -330805,7 +330805,7 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         const price = this.safeString(paramsPaginate, 'price');
         let maxLimit = 300;
-        if (market['swap'] === true && price === undefined) {
+        if (this.safeBool(market, 'swap', false) && price === undefined) {
             maxLimit = 1000;
         }
         if (paginate) {
@@ -330938,7 +330938,7 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         const open = this.safeString(ticker, 'open24h');
         let quoteVolume = this.safeString(ticker, 'volCcy24h');
         let baseVolume = this.safeString(ticker, 'vol24h');
-        if (marketResolved['swap'] === true && marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'swap', false) && this.safeBool(marketResolved, 'inverse', false)) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
@@ -331679,7 +331679,7 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         const isTriggerOrder = triggerPrice !== undefined;
         const cost = this.safeString(params, 'cost');
         if (cost !== undefined) {
-            if (market['spot'] !== true || triggerPrice !== undefined) {
+            if (!this.safeBool(market, 'spot', false) || triggerPrice !== undefined) {
                 throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
             }
         }
@@ -331754,7 +331754,7 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' createOrder() requires a price argument for limit orders');
         }
         let paramsRequest = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const cost = this.safeString(paramsOrderType, 'cost');
             if (cost !== undefined) {
                 if (!isMarketOrder) {
@@ -331856,7 +331856,7 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         const paramsOmitted = this.omit(paramsMarginMode, 'reduceOnly');
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginModeOption;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             if (reduceOnly) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';
@@ -332380,7 +332380,7 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' cancelAllOrders() is not supported for spot markets');
         }
         const productGroup = this.getProductGroupFromMarket(market);
@@ -332426,7 +332426,7 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() is not supported for spot markets');
             }
             symbolResolved = market['symbol'];
@@ -332485,7 +332485,7 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' cancelOrders() is not supported for spot markets');
             }
         }
@@ -332902,7 +332902,7 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
@@ -336035,7 +336035,7 @@ class delta extends _abstract_delta_js__rspack_import_0/* ["default"] */.A {
      */ async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -336330,7 +336330,7 @@ class delta extends _abstract_delta_js__rspack_import_0/* ["default"] */.A {
      */ async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -339433,7 +339433,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString(trade, 'amount');
         let cost = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amount, priceString);
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             cost = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(amount, priceString);
         }
         const liquidity = this.safeString(trade, 'liquidity');
@@ -339645,11 +339645,11 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
                 'maker': market['maker'],
                 'taker': market['taker']
             };
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 fee = this.extend(fee, perpetualFee);
-            } else if (market['future'] === true) {
+            } else if (this.safeBool(market, 'future', false)) {
                 fee = this.extend(fee, futureFee);
-            } else if (market['option'] === true) {
+            } else if (this.safeBool(market, 'option', false)) {
                 fee = this.extend(fee, optionFee);
             }
             parsedFees[symbol] = fee;
@@ -341213,7 +341213,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
             return await this.fetchPaginatedCallCursor('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', undefined);
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchLiquidations() does not support ' + this.safeString(market, 'type', '') + ' markets');
         }
         const request = {
@@ -341289,7 +341289,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + this.safeString(market, 'type', '') + ' markets');
         }
         const request = {
@@ -341657,7 +341657,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -341730,7 +341730,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
         const openInterest = this.safeNumber(interest, 'open_interest');
         let openInterestAmount = undefined;
         let openInterestValue = undefined;
-        if (marketResolved['option'] === true || marketResolved['future'] === true && marketResolved['linear'] === true) {
+        if (this.safeBool(marketResolved, 'option', false) || this.safeBool(marketResolved, 'future', false) && this.safeBool(marketResolved, 'linear', false)) {
             openInterestAmount = openInterest;
         } else {
             openInterestValue = openInterest;
@@ -343043,7 +343043,7 @@ class derive extends _abstract_derive_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -343088,7 +343088,7 @@ class derive extends _abstract_derive_js__rspack_import_0/* ["default"] */.A {
         let value = undefined;
         const isOption = this.safeBool(market, 'option', false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if (market !== undefined && isOption !== true) {
+        if (market !== undefined && !isOption) {
             value = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amount, this.safeString(interest, 'M'));
         }
         return this.safeOpenInterest({
@@ -343113,7 +343113,7 @@ class derive extends _abstract_derive_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['option'] !== true) {
+        if (!this.safeBool(market, 'option', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchGreeks() supports option markets only');
         }
         const request = {
@@ -343201,7 +343201,7 @@ class derive extends _abstract_derive_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['option'] !== true) {
+        if (!this.safeBool(market, 'option', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOption() supports option markets only');
         }
         const request = {
@@ -344878,10 +344878,10 @@ class derive extends _abstract_derive_js__rspack_import_0/* ["default"] */.A {
         const filled = this.safeString(order, 'filled_amount');
         const fee = this.safeString(order, 'order_fee');
         const orderType = this.safeStringLower(order, 'order_type');
-        const isBid = this.safeBool(order, 'is_bid');
+        const isBid = this.safeBool(order, 'is_bid', false);
         let side = this.safeString(order, 'direction');
         if (side === undefined) {
-            if (isBid === true) {
+            if (isBid) {
                 side = 'buy';
             } else {
                 side = 'sell';
@@ -347446,8 +347446,8 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
                 symbol = base + '/' + quote + ':' + settle;
                 isInverse = this.safeBool(market, 'is_inverse');
                 isLinear = isInverse !== true ? true : false;
-                const isTrading = this.safeBool(market, 'isTrading');
-                if (isTrading === true) {
+                const isTrading = this.safeBool(market, 'isTrading', false);
+                if (isTrading) {
                     isTradingSwap = true;
                 }
             }
@@ -347886,7 +347886,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['instrument_id'] = market['id'];
             response = await this.publicSwapGetPublicTicker(this.extend(request, params));
         } else {
@@ -347943,7 +347943,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         const data = this.safeDict(response, 'data', {});
         const firstTicker = this.safeDict(tickers, 0, {});
         let result = data;
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             result = this.extend({
                 'date': date
             }, firstTicker);
@@ -347999,12 +347999,12 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
         let timestamp = this.safeTimestamp(ticker, 'date');
-        if (marketResolved['swap'] === true) {
+        if (this.safeBool(marketResolved, 'swap', false)) {
             timestamp = this.safeInteger(ticker, 'timestamp');
         }
         const last = this.safeString(ticker, 'last');
         let percentage = this.safeString2(ticker, 'change', 'price_change_percent');
-        if (marketResolved['swap'] === true) {
+        if (this.safeBool(marketResolved, 'swap', false)) {
             // swap endpoints return a raw ratio, spot already returns a percent
             percentage = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(percentage, '100');
         }
@@ -348144,8 +348144,8 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             if (type === undefined) {
                 type = 'limit';
             }
-            const isMaker = this.safeBool(trade, 'is_maker');
-            takerOrMaker = isMaker === true ? 'maker' : 'taker';
+            const isMaker = this.safeBool(trade, 'is_maker', false);
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
@@ -348239,14 +348239,14 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         const market = this.market(symbol);
         const request = {};
         if (limit !== undefined) {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 request['limit'] = Math.min(limit, 100);
             } else {
                 request['limit'] = limit;
             }
         }
         let response = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['instrument_id'] = market['id'];
             response = await this.publicSwapGetPublicTrades(this.extend(request, params));
         } else {
@@ -348348,7 +348348,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['instrument_id'] = market['id'];
             request['granularity'] = timeframe;
             if (limit !== undefined) {
@@ -348413,7 +348413,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         //     }
         //
         let candles = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const data = this.safeDict(response, 'data', {});
             candles = this.safeList(data, 'candles', []);
         } else {
@@ -348448,7 +348448,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         const marginMode = marginResult[0];
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.privateSwapPostTradeOrderPlace(request);
         } else {
             if (marginMode !== undefined) {
@@ -348531,7 +348531,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.privateSwapPostTradeBatchOrder(ordersRequests);
         } else {
             request['market'] = marginMode !== undefined ? 'margin' : 'spot';
@@ -348561,7 +348561,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         //     }
         //
         let data = [];
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             data = this.safeList(response, 'data', []);
         } else {
             data = this.safeList(response, 'order_ids', []);
@@ -348715,7 +348715,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -350270,7 +350270,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -350368,7 +350368,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -350428,7 +350428,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchTradingFee() supports swap markets only');
         }
         const request = {
@@ -350958,7 +350958,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchMarketLeverageTiers() supports swap markets only');
         }
         const request = {
@@ -356898,7 +356898,7 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const uppercaseSide = side.toUpperCase();
-        if (market['spot'] === true && uppercaseType !== 'LIMIT') {
+        if (this.safeBool(market, 'spot', false) && uppercaseType !== 'LIMIT') {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' createOrder() supports limit orders for spot markets only');
         }
         if (!this.inArray(uppercaseType, [
@@ -356924,8 +356924,8 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
         let builderFeeRate = undefined;
         let builderId = undefined;
         let paramsBuilder = params;
-        const builderEnabled = this.safeBool(this.options, 'builderFee');
-        if (builderEnabled === true) {
+        const builderEnabled = this.safeBool(this.options, 'builderFee', false);
+        if (builderEnabled) {
             if (this.isSandboxModeEnabled) {
                 builderFeeRate = this.safeString2(params, 'builderFeeRate', 'defaultBuilderFeeRate');
                 builderId = this.safeString2(params, 'builderId', 'defaultBuilderId');
@@ -362961,13 +362961,13 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                 }
                 const expiry = this.safeTimestamp(market, 'expiration_time');
                 const strike = this.safeString(market, 'strike_price', '');
-                const isCall = this.safeBool(market, 'is_call');
+                const isCall = this.safeBool(market, 'is_call', false);
                 let optionLetter = 'P';
-                if (isCall === true) {
+                if (isCall) {
                     optionLetter = 'C';
                 }
                 let optionType = 'put';
-                if (isCall === true) {
+                if (isCall) {
                     optionType = 'call';
                 }
                 const symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + optionLetter;
@@ -363070,9 +363070,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
          */ // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
         const request = {};
         if (market !== undefined) {
-            if (market['contract'] === true) {
+            if (this.safeBool(market, 'contract', false)) {
                 request['contract'] = market['id'];
-                if (market['option'] !== true) {
+                if (!this.safeBool(market, 'option', false)) {
                     request['settle'] = market['settleId'];
                 }
             } else {
@@ -363318,7 +363318,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const [request, query] = this.prepareRequest(market, undefined, params);
@@ -363708,22 +363708,22 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         //        "futures_maker_fee": "0"
         //    }
         //
-        const gtDiscount = this.safeBool(info, 'gt_discount');
+        const gtDiscount = this.safeBool(info, 'gt_discount', false);
         let taker = 'taker_fee';
-        if (gtDiscount === true) {
+        if (gtDiscount) {
             taker = 'gt_taker_fee';
         }
         let maker = 'maker_fee';
-        if (gtDiscount === true) {
+        if (gtDiscount) {
             maker = 'gt_maker_fee';
         }
-        const contract = this.safeBool(market, 'contract');
+        const contract = this.safeBool(market, 'contract', false);
         let takerKey = taker;
-        if (contract === true) {
+        if (contract) {
             takerKey = 'futures_taker_fee';
         }
         let makerKey = maker;
-        if (contract === true) {
+        if (contract) {
             makerKey = 'futures_maker_fee';
         }
         return {
@@ -364000,18 +364000,18 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             // gateeu returns an empty book for a spot limit above 100
             const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
-            const maxLimit = market['spot'] === true ? maxSpotLimit : 300;
+            const maxLimit = this.safeBool(market, 'spot', false) ? maxSpotLimit : 300;
             request['limit'] = Math.min(limit, maxLimit);
         }
         request['with_id'] = true;
         let response;
-        if (market['spot'] === true || market['margin'] === true) {
+        if (this.safeBool(market, 'spot', false) || this.safeBool(market, 'margin', false)) {
             response = await this.publicSpotGetOrderBook(this.extend(request, query));
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             response = await this.publicFuturesGetSettleOrderBook(this.extend(request, query));
-        } else if (market['future'] === true) {
+        } else if (this.safeBool(market, 'future', false)) {
             response = await this.publicDeliveryGetSettleOrderBook(this.extend(request, query));
-        } else if (market['option'] === true) {
+        } else if (this.safeBool(market, 'option', false)) {
             response = await this.publicOptionsGetOrderBook(this.extend(request, query));
         } else {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrderBook() not support this market type');
@@ -364085,11 +364085,11 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' method() missing timestamp');
         }
         let timestamp = current;
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             timestamp = current * 1000;
         }
-        const priceKey = market['spot'] === true ? 0 : 'p';
-        const amountKey = market['spot'] === true ? 1 : 's';
+        const priceKey = this.safeBool(market, 'spot', false) ? 0 : 'p';
+        const amountKey = this.safeBool(market, 'spot', false) ? 1 : 's';
         const nonce = this.safeInteger(response, 'id');
         const result = this.parseOrderBook(response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
         result['nonce'] = nonce;
@@ -364113,13 +364113,13 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const [request, query] = this.prepareRequest(market, undefined, params);
         let response;
-        if (market['spot'] === true || market['margin'] === true) {
+        if (this.safeBool(market, 'spot', false) || this.safeBool(market, 'margin', false)) {
             response = await this.publicSpotGetTickers(this.extend(request, query));
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             response = await this.publicFuturesGetSettleTickers(this.extend(request, query));
-        } else if (market['future'] === true) {
+        } else if (this.safeBool(market, 'future', false)) {
             response = await this.publicDeliveryGetSettleTickers(this.extend(request, query));
-        } else if (market['option'] === true) {
+        } else if (this.safeBool(market, 'option', false)) {
             const marketId = market['id'];
             const optionParts = marketId.split('-');
             request['underlying'] = this.safeString(optionParts, 0);
@@ -364128,7 +364128,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchTicker() not support this market type');
         }
         let ticker = undefined;
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             const optionMarketId = this.safeString(market, 'id');
             for(let i = 0; i < response.length; i++){
                 const entry = response[i];
@@ -364642,13 +364642,13 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000);
         }
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             return await this.fetchOptionOHLCV(symbol, timeframe, since, limit, paramsPaginate);
         }
         const price = this.safeString(paramsPaginate, 'price');
         const [request, paramsRequest] = this.prepareRequest(market, undefined, paramsPaginate);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        const maxLimit = market['contract'] === true ? 1999 : 1000;
+        const maxLimit = this.safeBool(market, 'contract', false) ? 1999 : 1000;
         const limitValue = limit === undefined ? maxLimit : Math.min(limit, maxLimit);
         const untilMs = this.safeInteger(paramsRequest, 'until');
         let until = undefined;
@@ -364676,7 +364676,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             request['limit'] = limitValue;
         }
         let response = [];
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const isMark = price === 'mark';
             const isIndex = price === 'index';
             if (isMark || isIndex) {
@@ -364686,9 +364686,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             if (isMark || isIndex) {
                 paramsContract = this.omit(paramsOmitted, 'price');
             }
-            if (market['future'] === true) {
+            if (this.safeBool(market, 'future', false)) {
                 response = await this.publicDeliveryGetSettleCandlesticks(this.extend(request, paramsContract));
-            } else if (market['swap'] === true) {
+            } else if (this.safeBool(market, 'swap', false)) {
                 response = await this.publicFuturesGetSettleCandlesticks(this.extend(request, paramsContract));
             }
         } else {
@@ -364731,7 +364731,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const [request, paramsRequest] = this.prepareRequest(market, undefined, paramsPaginate);
@@ -364866,15 +364866,15 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000); // default 100, max 1000
         }
-        if (since !== undefined && market['contract'] === true) {
+        if (since !== undefined && this.safeBool(market, 'contract', false)) {
             request['from'] = this.parseToInt(since / 1000);
         }
         let response;
         if (market['type'] === 'spot' || market['type'] === 'margin') {
             response = await this.publicSpotGetTrades(this.extend(request, query));
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             response = await this.publicFuturesGetSettleTrades(this.extend(request, query));
-        } else if (market['future'] === true) {
+        } else if (this.safeBool(market, 'future', false)) {
             response = await this.publicDeliveryGetSettleTrades(this.extend(request, query));
         } else if (market['type'] === 'option') {
             response = await this.publicOptionsGetTrades(this.extend(request, query));
@@ -365589,19 +365589,19 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         const nonTriggerOrder = !isTpsl && trigger === undefined;
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response;
-        if (market['spot'] === true || market['margin'] === true) {
+        if (this.safeBool(market, 'spot', false) || this.safeBool(market, 'margin', false)) {
             if (nonTriggerOrder) {
                 response = await this.privateSpotPostOrders(orderRequest);
             } else {
                 response = await this.privateSpotPostPriceOrders(orderRequest);
             }
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             if (nonTriggerOrder) {
                 response = await this.privateFuturesPostSettleOrders(orderRequest);
             } else {
                 response = await this.privateFuturesPostSettlePriceOrders(orderRequest);
             }
-        } else if (market['future'] === true) {
+        } else if (this.safeBool(market, 'future', false)) {
             if (nonTriggerOrder) {
                 response = await this.privateDeliveryPostSettleOrders(orderRequest);
             } else {
@@ -365711,7 +365711,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(symbols[0]);
-        if (market['future'] === true || market['option'] === true) {
+        if (this.safeBool(market, 'future', false) || this.safeBool(market, 'option', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrders() does not support futures or options markets');
         }
         return ordersRequests;
@@ -365734,9 +365734,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         const firstOrder = orders[0];
         const market = this.market(firstOrder['symbol']);
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateSpotPostBatchOrders(ordersRequests);
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             response = await this.privateFuturesPostSettleBatchOrders(ordersRequests);
         }
         return this.parseOrders(response);
@@ -365822,8 +365822,8 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         let signedAmount = undefined;
         let useGateFuturesDecimalSize = false;
         if (contract === true) {
-            const isClose = this.safeBool(query, 'close');
-            if (isClose !== true) {
+            const isClose = this.safeBool(query, 'close', false);
+            if (!isClose) {
                 signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
                 useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize(market);
                 if (!useGateFuturesDecimalSize) {
@@ -365845,7 +365845,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                     'contract': market['id'],
                     'size': sizeRequest
                 };
-                if (market['option'] !== true) {
+                if (!this.safeBool(market, 'option', false)) {
                     request['settle'] = market['settleId']; // filled in prepareRequest above
                 }
                 if (isMarketOrder) {
@@ -365922,7 +365922,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         } else {
-            if (market['option'] === true) {
+            if (this.safeBool(market, 'option', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() conditional option orders are not supported');
             }
             if (contract === true) {
@@ -366042,7 +366042,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         await this.loadUnifiedStatus();
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const paramsExtended = this.extend(params, {
@@ -366069,7 +366069,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             'account': account
         };
         if (amount !== undefined) {
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 request['amount'] = this.amountToPrecision(symbol, amount);
             } else {
                 const signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
@@ -366083,7 +366083,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             request['settle'] = market['settleId'];
         }
         return this.extend(request, paramsUnifiedAccount);
@@ -366111,7 +366111,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateSpotPatchOrdersOrderId(extendedRequest);
         } else {
             response = await this.privateFuturesPutSettleOrdersOrderId(extendedRequest);
@@ -367161,7 +367161,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             const order = this.safeDict(orders, i);
             const symbol = this.safeString(order, 'symbol');
             const market = this.market(symbol);
-            if (market['spot'] !== true) {
+            if (!this.safeBool(market, 'spot', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' cancelOrdersForSymbols() supports only spot markets');
             }
             const id = this.safeString(order, 'id');
@@ -367395,9 +367395,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             request['leverage'] = stringifiedMargin;
         }
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.privateFuturesPostSettlePositionsContractLeverage(this.extend(request, query));
-        } else if (market['future'] === true) {
+        } else if (this.safeBool(market, 'future', false)) {
             response = await this.privateDeliveryPostSettlePositionsContractLeverage(this.extend(request, query));
         } else {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setLeverage() not support this market type');
@@ -367603,15 +367603,15 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPosition() supports contract markets only');
         }
         const [request, paramsValue] = this.prepareRequest(market, this.safeString(market, 'type'), params);
         const extendedRequest = this.extend(request, paramsValue);
         let response = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.privateFuturesGetSettlePositionsContract(extendedRequest);
-        } else if (market['future'] === true) {
+        } else if (this.safeBool(market, 'future', false)) {
             response = await this.privateDeliveryGetSettlePositionsContract(extendedRequest);
         } else if (market['type'] === 'option') {
             response = await this.privateOptionsGetPositionsContract(extendedRequest);
@@ -368380,9 +368380,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         const [request, query] = this.prepareRequest(market, undefined, params);
         request['change'] = this.numberToString(amount);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.privateFuturesPostSettlePositionsContractMargin(this.extend(request, query));
-        } else if (market['future'] === true) {
+        } else if (this.safeBool(market, 'future', false)) {
             response = await this.privateDeliveryPostSettlePositionsContractMargin(this.extend(request, query));
         } else {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' modifyMarginHelper() not support this market type');
@@ -368480,7 +368480,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             return await this.fetchPaginatedCallDeterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, paramsPaginate, 100);
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchOpenInterestHistory() supports swap markets only');
         }
         const request = {
@@ -369090,7 +369090,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchLiquidations() supports swap markets only');
         }
         const request = {
@@ -369143,21 +369143,21 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             'contract': market['id']
         };
         let response;
-        if (market['swap'] === true || market['future'] === true) {
+        if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false)) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
             request['settle'] = market['settleId'];
-        } else if (market['option'] === true) {
+        } else if (this.safeBool(market, 'option', false)) {
             const marketId = market['id'];
             const optionParts = marketId.split('-');
             request['underlying'] = this.safeString(optionParts, 0);
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.privateFuturesGetSettleLiquidates(this.extend(request, params));
-        } else if (market['future'] === true) {
+        } else if (this.safeBool(market, 'future', false)) {
             response = await this.privateDeliveryGetSettleLiquidates(this.extend(request, params));
-        } else if (market['option'] === true) {
+        } else if (this.safeBool(market, 'option', false)) {
             response = await this.privateOptionsGetPositionClose(this.extend(request, params));
         } else {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders');
@@ -369418,11 +369418,11 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         const request = {};
         let response;
-        const isUnified = this.safeBool(params, 'unified');
+        const isUnified = this.safeBool(params, 'unified', false);
         const paramsOmitted = this.omit(params, 'unified');
         if (this.safeBool(market, 'spot', false)) {
             request['currency_pair'] = this.safeString(market, 'id');
-            if (isUnified === true) {
+            if (isUnified) {
                 response = await this.publicMarginGetUniCurrencyPairsCurrencyPair(this.extend(request, paramsOmitted));
             //
             //     {
@@ -369447,7 +369447,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             //     }
             //
             }
-        } else if (isUnified === true) {
+        } else if (isUnified) {
             response = await this.privateUnifiedGetAccounts(this.extend(request, paramsOmitted));
         //
         //     {
@@ -369519,10 +369519,10 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         const symbolsNormalized = this.marketSymbols(symbols);
         let response;
-        const isUnified = this.safeBool(params, 'unified');
+        const isUnified = this.safeBool(params, 'unified', false);
         const paramsOmitted = this.omit(params, 'unified');
         let marketIdRequest = 'id';
-        if (isUnified === true) {
+        if (isUnified) {
             marketIdRequest = 'currency_pair';
             response = await this.publicMarginGetUniCurrencyPairs(paramsOmitted);
         //
@@ -373339,8 +373339,8 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
                 // }
                 //
                 const authResult = this.safeDict(authResponse, 'result');
-                const ack = this.safeBool(authResult, 'ack');
-                if (ack !== true) {
+                const ack = this.safeBool(authResult, 'ack', false);
+                if (!ack) {
                     throw new _base_errors_js__rspack_import_2.ExchangeError('Builder authorization failed, ' + this.json(authResponse));
                 }
                 this.options['approvedBuilderFee'] = true;
@@ -374904,7 +374904,7 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
         return this.parseOrder(data, market);
     }
     convertToBigIntCustom(x) {
-        return parseInt(x);
+        return parseInt(this.numberToString(x));
     }
     eipMessageForOrder(order, structureType) {
         const priceMultiplier = 1000000000;
@@ -374958,7 +374958,7 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
         };
         if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool(this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
-            returnValue['builderFee'] = this.parseToInt(this.convertToBigIntCustom(this.feeAmountMultiplier()) * parseFloat(order['builder_fee'])); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue['builderFee'] = this.parseToInt(this.convertToBigIntCustom(this.feeAmountMultiplier()) * parseFloat(this.safeString(order, 'builder_fee'))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
     }
@@ -375055,7 +375055,7 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
             for(let i = 0; i < symbolsNormalized.length; i++){
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                if (market['contract'] !== true) {
+                if (!this.safeBool(market, 'contract', false)) {
                     throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPositions() supports contract markets only');
                 }
                 baseIds.push(market['baseId']);
@@ -375711,9 +375711,9 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
                 'id': undefined
             });
         }
-        const isMarket = this.safeBool(order, 'is_market');
+        const isMarket = this.safeBool(order, 'is_market', false);
         let orderType = 'limit';
-        if (isMarket === true) {
+        if (isMarket) {
             orderType = 'market';
         }
         const isPostOnly = this.safeBool(order, 'post_only');
@@ -375923,8 +375923,8 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
             messageData = {
                 'mainAccountID': request['main_account_id'],
                 'builderAccountID': request['builder_account_id'],
-                'maxFutureFeeRate': this.parseToInt(parseFloat(request['max_futures_fee_rate']) * amountMultiplier),
-                'maxSpotFeeRate': this.parseToInt(parseFloat(request['max_spot_fee_rate']) * amountMultiplier),
+                'maxFutureFeeRate': this.parseToInt(parseFloat(this.safeString(request, 'max_futures_fee_rate')) * amountMultiplier),
+                'maxSpotFeeRate': this.parseToInt(parseFloat(this.safeString(request, 'max_spot_fee_rate')) * amountMultiplier),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration']
             };
@@ -376035,7 +376035,7 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
             if (queryString !== '') {
                 requestPath = path + '?' + queryString;
             }
-            if (requestPath.endsWith('auth/api_key/login') === true || requestPath.endsWith('auth/wallet/login') === true) {
+            if (requestPath.endsWith('auth/api_key/login') || requestPath.endsWith('auth/wallet/login')) {
                 requestHeaders = {
                     'Content-Type': 'application/json',
                     'Cookie': 'rm=true;'
@@ -378044,7 +378044,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         const last = this.safeString(ticker, 'c');
         let baseVolume = this.safeString(ticker, 'v');
         const contractSizeValue = this.safeString(marketResolved, 'contractSize');
-        if (marketResolved['contract'] === true && contractSizeValue !== undefined) {
+        if (this.safeBool(marketResolved, 'contract', false) && contractSizeValue !== undefined) {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(baseVolume, this.numberToString(contractSizeValue));
         }
@@ -378826,9 +378826,9 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             return await this.createSwapOrder(symbol, type, side, amount, price, params);
         } else {
             const marketTypeValue = this.safeString(market, 'type', '');
@@ -378848,7 +378848,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
         const req = {
@@ -378890,8 +378890,8 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         }
         const request = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
         let response = {};
-        const test = this.safeBool(params, 'test');
-        if (test === true) {
+        const test = this.safeBool(params, 'test', false);
+        if (test) {
             response = await this.privatePostApiV1SpotOrderTest(request);
         } else if (isMarketBuy && cost === undefined) {
             response = await this.privatePostApiV11SpotOrder(request); // the endpoint for market buy orders by amount
@@ -378985,9 +378985,9 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' requires a side argument');
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return this.createSpotOrderRequest(symbol, type, side, amount, price, params);
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             return this.createSwapOrderRequest(symbol, type, side, amount, price, params);
         } else {
             const marketTypeValue = this.safeString(market, 'type', '');
@@ -379189,7 +379189,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             'orders': ordersRequests
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privatePostApiV1SpotBatchOrders(this.extend(request, params));
         //
         //     {
@@ -379218,7 +379218,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         //         "concentration": ""
         //     }
         //
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             response = await this.privatePostApiV1FuturesBatchOrders(this.extend(request, params));
         //
         //     {
@@ -379319,7 +379319,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         //
         } else if (marketType === 'swap') {
             const [isTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMarketType, methodName, 'stop', 'trigger', false);
-            if (isTrigger === true) {
+            if (isTrigger) {
                 request['type'] = 'STOP';
             } else {
                 request['type'] = 'LIMIT';
@@ -379384,12 +379384,12 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             request['side'] = side;
         }
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateDeleteApiV1SpotOpenOrders(this.extend(request, params));
         //
         //     { "success": true }
         //
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             response = await this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, params));
         //
         //     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
@@ -379517,7 +379517,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         //
         } else if (marketType === 'swap') {
             const [isTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMarketType, methodName, 'stop', 'trigger', false);
-            if (isTrigger === true) {
+            if (isTrigger) {
                 request['type'] = 'STOP';
             }
             response = await this.privateGetApiV1FuturesOrder(this.extend(request, paramsTrigger));
@@ -379690,7 +379690,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         };
         const isTrigger = false;
         const [isTriggerTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMethodName, methodNameOption, 'stop', 'trigger', isTrigger);
-        if (isTriggerTrigger === true) {
+        if (isTriggerTrigger) {
             request['type'] = 'STOP';
         } else {
             request['type'] = 'LIMIT';
@@ -379838,7 +379838,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             }
             request['symbol'] = this.safeString(market, 'id');
             const [isTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMarketType, methodName, 'stop', 'trigger', false);
-            if (isTrigger === true) {
+            if (isTrigger) {
                 request['type'] = 'STOP';
             } else {
                 request['type'] = 'LIMIT';
@@ -380315,7 +380315,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         const methodName = 'fetchPosition';
         const methodNameOption = this.safeString(params, 'methodName', methodName);
         const paramsMethodName = this.omit(params, 'methodName');
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' ' + methodNameOption + '() supports swap markets only');
         }
         const request = {
@@ -380475,7 +380475,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' setMarginMode() marginMode must be either cross or isolated');
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.BadSymbol(this.id + ' setMarginMode() supports swap markets only');
         }
         const request = {
@@ -380515,7 +380515,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.BadSymbol(this.id + ' modifyMarginHelper() supports swap markets only');
         }
         const sideParam = this.safeString(params, 'side');
@@ -380701,11 +380701,11 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const methodName = 'fetchTradingFee';
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.fetchTradingFees(params);
             const fee = this.safeDict(response, symbol);
             return fee;
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             response = await this.privateGetApiV1FuturesCommissionRate(this.extend({
                 'symbol': market['id']
             }, params));
@@ -386955,7 +386955,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request = {
@@ -386992,7 +386992,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -387061,7 +387061,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const leverage = this.safeString(params, 'leverage');
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             if (leverage === undefined) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -387373,12 +387373,12 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
                 networkCode = this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper);
             }
             const withdrawFee = this.safeNumber(networkEntry, 'payout_fee');
-            const isDefault = this.safeBool(networkEntry, 'default');
+            const isDefault = this.safeBool(networkEntry, 'default', false);
             const withdrawResult = {
                 'fee': withdrawFee,
                 'percentage': withdrawFee !== undefined ? false : undefined
             };
-            if (isDefault === true) {
+            if (isDefault) {
                 result['withdraw'] = withdrawResult;
             }
             if (networkCode !== undefined) {
@@ -389378,15 +389378,15 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
         }
         const currencyId = this.safeString(transaction, 'currency');
         const currencyResolved = this.safeCurrency(currencyId, currency);
-        const completed = this.safeBool(transaction, 'status');
-        const dismissed = this.safeBool(transaction, 'dismissed');
-        const rejected = this.safeBool(transaction, 'rejected');
+        const completed = this.safeBool(transaction, 'status', false);
+        const dismissed = this.safeBool(transaction, 'dismissed', false);
+        const rejected = this.safeBool(transaction, 'rejected', false);
         let status = undefined;
-        if (completed === true) {
+        if (completed) {
             status = 'ok';
-        } else if (dismissed === true) {
+        } else if (dismissed) {
             status = 'canceled';
-        } else if (rejected === true) {
+        } else if (rejected) {
             status = 'failed';
         } else {
             status = 'pending';
@@ -389512,8 +389512,8 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
             }
         };
         const networks = {};
-        const allowWithdrawal = this.safeBool(fee, 'allow_withdrawal');
-        if (allowWithdrawal === true) {
+        const allowWithdrawal = this.safeBool(fee, 'allow_withdrawal', false);
+        if (allowWithdrawal) {
             result['withdraw'] = {
                 'fee': this.safeNumber(fee, 'withdrawal_fee'),
                 'percentage': false
@@ -392629,9 +392629,9 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const baseVolume = this.safeString(ticker, 'amount');
         let quoteVolume = this.safeString(ticker, 'vol');
         const marketResolved = this.safeDict(this.markets, symbol, market);
-        if (this.safeBool(marketResolved, 'contract') === true) {
+        if (this.safeBool(marketResolved, 'contract', false)) {
             // contract tickers count 'vol' in contracts
-            if (this.safeBool(marketResolved, 'linear') === true) {
+            if (this.safeBool(marketResolved, 'linear', false)) {
                 quoteVolume = this.safeString(ticker, 'trade_turnover');
             } else {
                 quoteVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(quoteVolume, this.safeString(marketResolved, 'contractSize'));
@@ -392678,14 +392678,14 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             request['contract_code'] = market['id'];
             response = await this.contractPublicGetLinearSwapExMarketDetailMerged(this.extend(request, params));
-        } else if (market['inverse'] === true) {
-            if (market['future'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
+            if (this.safeBool(market, 'future', false)) {
                 request['symbol'] = market['id'];
                 response = await this.contractPublicGetMarketDetailMerged(this.extend(request, params));
-            } else if (market['swap'] === true) {
+            } else if (this.safeBool(market, 'swap', false)) {
                 request['contract_code'] = market['id'];
                 response = await this.contractPublicGetSwapExMarketDetailMerged(this.extend(request, params));
             }
@@ -392997,14 +392997,14 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             'type': 'step0'
         };
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             request['contract_code'] = market['id'];
             response = await this.contractPublicGetLinearSwapExMarketDepth(this.extend(request, params));
-        } else if (market['inverse'] === true) {
-            if (market['future'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
+            if (this.safeBool(market, 'future', false)) {
                 request['symbol'] = market['id'];
                 response = await this.contractPublicGetMarketDepth(this.extend(request, params));
-            } else if (market['swap'] === true) {
+            } else if (this.safeBool(market, 'swap', false)) {
                 request['contract_code'] = market['id'];
                 response = await this.contractPublicGetSwapExMarketDepth(this.extend(request, params));
             }
@@ -393499,19 +393499,19 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             request['size'] = Math.min(limit, 2000); // max 2000
         }
         let response = undefined;
-        if (market['future'] === true) {
-            if (market['inverse'] === true) {
+        if (this.safeBool(market, 'future', false)) {
+            if (this.safeBool(market, 'inverse', false)) {
                 request['symbol'] = market['id'];
                 response = await this.contractPublicGetMarketHistoryTrade(this.extend(request, params));
-            } else if (market['linear'] === true) {
+            } else if (this.safeBool(market, 'linear', false)) {
                 request['contract_code'] = market['id'];
                 response = await this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, params));
             }
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             request['contract_code'] = market['id'];
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 response = await this.contractPublicGetSwapExMarketHistoryTrade(this.extend(request, params));
-            } else if (market['linear'] === true) {
+            } else if (this.safeBool(market, 'linear', false)) {
                 response = await this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, params));
             }
         } else {
@@ -393643,8 +393643,8 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             }
         }
         let response = undefined;
-        if (market['future'] === true) {
-            if (market['inverse'] === true) {
+        if (this.safeBool(market, 'future', false)) {
+            if (this.safeBool(market, 'inverse', false)) {
                 request['symbol'] = market['id'];
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryMarkPriceKline(this.extend(request, paramsUntil));
@@ -393655,7 +393655,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 } else {
                     response = await this.contractPublicGetMarketHistoryKline(this.extend(request, paramsUntil));
                 }
-            } else if (market['linear'] === true) {
+            } else if (this.safeBool(market, 'linear', false)) {
                 request['contract_code'] = market['id'];
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, paramsUntil));
@@ -393667,9 +393667,9 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                     response = await this.contractPublicGetLinearSwapExMarketHistoryKline(this.extend(request, paramsUntil));
                 }
             }
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             request['contract_code'] = market['id'];
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistorySwapMarkPriceKline(this.extend(request, paramsUntil));
                 } else if (priceType === 'index') {
@@ -393679,7 +393679,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 } else {
                     response = await this.contractPublicGetSwapExMarketHistoryKline(this.extend(request, paramsUntil));
                 }
-            } else if (market['linear'] === true) {
+            } else if (this.safeBool(market, 'linear', false)) {
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, paramsUntil));
                 } else if (priceType === 'index') {
@@ -394288,10 +394288,10 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             }
         } else {
             const trigger = this.safeBool2(paramsMarketType, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeBool(paramsMarketType, 'stopLossTakeProfit');
-            const stopLoss = this.safeBool(paramsMarketType, 'stopLoss');
-            const takeProfit = this.safeBool(paramsMarketType, 'takeProfit');
-            const trailing = this.safeBool(paramsMarketType, 'trailing');
+            const stopLossTakeProfit = this.safeBool(paramsMarketType, 'stopLossTakeProfit', false);
+            const stopLoss = this.safeBool(paramsMarketType, 'stopLoss', false);
+            const takeProfit = this.safeBool(paramsMarketType, 'takeProfit', false);
+            const trailing = this.safeBool(paramsMarketType, 'trailing', false);
             const isAlgo = trigger === true || stopLoss === true || takeProfit === true || stopLossTakeProfit === true || trailing === true;
             const paramsOmitted = this.omit(paramsMarketType, [
                 'stop',
@@ -394328,13 +394328,13 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 if (isAlgo) {
                     if (trigger === true) {
                         request['type'] = 'trigger';
-                    } else if (trailing === true) {
+                    } else if (trailing) {
                         request['type'] = 'trailing_stop';
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         request['type'] = 'tpsl';
-                    } else if (stopLoss === true) {
+                    } else if (stopLoss) {
                         request['type'] = 'sl';
-                    } else if (takeProfit === true) {
+                    } else if (takeProfit) {
                         request['type'] = 'tp';
                     }
                     response = await this.contractPrivateGetV5AlgoOrder(this.extend(request, paramsClientOrderId));
@@ -394564,9 +394564,9 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         let paramsUntil = undefined;
         let response = undefined;
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
-        const stopLoss = this.safeBool(params, 'stopLoss');
-        const takeProfit = this.safeBool(params, 'takeProfit');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit', false);
+        const stopLoss = this.safeBool(params, 'stopLoss', false);
+        const takeProfit = this.safeBool(params, 'takeProfit', false);
         const trailing = this.safeBool(params, 'trailing', false);
         const isAlgo = trigger === true || stopLoss === true || takeProfit === true || stopLossTakeProfit === true || trailing;
         const paramsOmitted = this.omit(params, [
@@ -394581,7 +394581,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             request['start_time'] = since;
         }
         [request, paramsUntil] = this.handleUntilOption('end_time', request, paramsOmitted);
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
@@ -394593,11 +394593,11 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                     request['type'] = 'trigger';
                 } else if (trailing) {
                     request['type'] = 'trailing_stop';
-                } else if (stopLossTakeProfit === true) {
+                } else if (stopLossTakeProfit) {
                     request['type'] = 'tpsl';
-                } else if (stopLoss === true) {
+                } else if (stopLoss) {
                     request['type'] = 'sl';
-                } else if (takeProfit === true) {
+                } else if (takeProfit) {
                     request['type'] = 'tp';
                 }
                 response = await this.contractPrivateGetV5AlgoOrderHistory(this.extend(request, paramsMarginMode));
@@ -394678,26 +394678,26 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             //     }
             //
             }
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             request['contract'] = market['id'];
             request['type'] = 1; // 1:All Orders,2:Order in Finished Status
             request['trade_type'] = 0; // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
             request['status'] = '0'; // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 if (trigger === true) {
                     response = await this.contractPrivatePostSwapApiV1SwapTriggerHisorders(this.extend(request, paramsUntil));
-                } else if (stopLossTakeProfit === true) {
+                } else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostSwapApiV1SwapTpslHisorders(this.extend(request, paramsUntil));
                 } else if (trailing) {
                     response = await this.contractPrivatePostSwapApiV1SwapTrackHisorders(this.extend(request, paramsUntil));
                 } else {
                     response = await this.contractPrivatePostSwapApiV3SwapHisorders(this.extend(request, paramsUntil));
                 }
-            } else if (market['future'] === true) {
+            } else if (this.safeBool(market, 'future', false)) {
                 request['symbol'] = market['settleId'];
                 if (trigger === true) {
                     response = await this.contractPrivatePostApiV1ContractTriggerHisorders(this.extend(request, paramsUntil));
-                } else if (stopLossTakeProfit === true) {
+                } else if (stopLossTakeProfit) {
                     response = await this.contractPrivatePostApiV1ContractTpslHisorders(this.extend(request, paramsUntil));
                 } else if (trailing) {
                     response = await this.contractPrivatePostApiV1ContractTrackHisorders(this.extend(request, paramsUntil));
@@ -394719,11 +394719,11 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         }
         const request = {};
         const market = this.market(symbol);
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             const trigger = this.safeBool2(params, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
-            const stopLoss = this.safeBool(params, 'stopLoss');
-            const takeProfit = this.safeBool(params, 'takeProfit');
+            const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit', false);
+            const stopLoss = this.safeBool(params, 'stopLoss', false);
+            const takeProfit = this.safeBool(params, 'takeProfit', false);
             const trailing = this.safeBool(params, 'trailing', false);
             const isAlgo = trigger === true || stopLoss === true || takeProfit === true || stopLossTakeProfit === true || trailing;
             if (isAlgo) {
@@ -394815,9 +394815,9 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             const request = {};
             if (this.safeBool(market, 'linear', false)) {
                 const trigger = this.safeBool2(paramsMarketType, 'stop', 'trigger');
-                const stopLossTakeProfit = this.safeBool(paramsMarketType, 'stopLossTakeProfit');
-                const stopLoss = this.safeBool(paramsMarketType, 'stopLoss');
-                const takeProfit = this.safeBool(paramsMarketType, 'takeProfit');
+                const stopLossTakeProfit = this.safeBool(paramsMarketType, 'stopLossTakeProfit', false);
+                const stopLoss = this.safeBool(paramsMarketType, 'stopLoss', false);
+                const takeProfit = this.safeBool(paramsMarketType, 'takeProfit', false);
                 const trailing = this.safeBool(paramsMarketType, 'trailing', false);
                 const isAlgo = trigger === true || stopLoss === true || takeProfit === true || stopLossTakeProfit === true || trailing;
                 if (isAlgo) {
@@ -394935,9 +394935,9 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 }
             }
             const trigger = this.safeBool2(paramsSubType, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeBool(paramsSubType, 'stopLossTakeProfit');
-            const stopLoss = this.safeBool(paramsSubType, 'stopLoss');
-            const takeProfit = this.safeBool(paramsSubType, 'takeProfit');
+            const stopLossTakeProfit = this.safeBool(paramsSubType, 'stopLossTakeProfit', false);
+            const stopLoss = this.safeBool(paramsSubType, 'stopLoss', false);
+            const takeProfit = this.safeBool(paramsSubType, 'takeProfit', false);
             const trailing = this.safeBool(paramsSubType, 'trailing', false);
             const paramsOmitted = this.omit(paramsSubType, [
                 'stop',
@@ -394948,16 +394948,16 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 'takeProfit'
             ]);
             if (isLinear) {
-                if (trigger === true || trailing || stopLossTakeProfit === true || stopLoss === true || takeProfit === true) {
+                if (trigger === true || trailing || stopLossTakeProfit || stopLoss || takeProfit) {
                     if (trigger === true) {
                         request['type'] = 'trigger';
                     } else if (trailing) {
                         request['type'] = 'trailing_stop';
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         request['type'] = 'tpsl';
-                    } else if (stopLoss === true) {
+                    } else if (stopLoss) {
                         request['type'] = 'sl';
-                    } else if (takeProfit === true) {
+                    } else if (takeProfit) {
                         request['type'] = 'tp';
                     }
                     response = await this.contractPrivateGetV5AlgoOrderOpens(this.extend(request, paramsOmitted));
@@ -394968,7 +394968,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 if (marketType === 'swap') {
                     if (trigger === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOpenorders(this.extend(request, paramsOmitted));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslOpenorders(this.extend(request, paramsOmitted));
                     } else if (trailing) {
                         response = await this.contractPrivatePostSwapApiV1SwapTrackOpenorders(this.extend(request, paramsOmitted));
@@ -394979,7 +394979,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                     request['symbol'] = this.safeString(market, 'settleId', 'usdt');
                     if (trigger === true) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders(this.extend(request, paramsOmitted));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslOpenorders(this.extend(request, paramsOmitted));
                     } else if (trailing) {
                         response = await this.contractPrivatePostApiV1ContractTrackOpenorders(this.extend(request, paramsOmitted));
@@ -395623,7 +395623,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -396071,7 +396071,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (isTrailingPercentOrder) {
                 throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrder() does not support trailing orders for spot markets');
             }
@@ -396079,18 +396079,18 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             response = await this.spotPrivatePostV1OrderOrdersPlace(spotRequest);
         } else {
             const contractRequest = this.createContractOrderRequest(symbol, type, side, amount, price, params);
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 if (isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder) {
                     response = await this.contractPrivatePostV5AlgoOrder(contractRequest);
                 } else {
                     response = await this.contractPrivatePostV5TradeOrder(contractRequest);
                 }
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 const offset = this.safeString(params, 'offset');
                 if (offset === undefined) {
                     throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' createOrder () requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
                 }
-                if (market['swap'] === true) {
+                if (this.safeBool(market, 'swap', false)) {
                     if (isTrigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
@@ -396100,7 +396100,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapOrder(contractRequest);
                     }
-                } else if (market['future'] === true) {
+                } else if (this.safeBool(market, 'future', false)) {
                     if (isTrigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOrder(contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
@@ -396171,7 +396171,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         //
         let data = undefined;
         let result = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return this.safeOrder({
                 'info': response,
                 'id': this.safeString(response, 'data'),
@@ -396192,7 +396192,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 'clientOrderId': undefined,
                 'average': undefined
             }, market);
-        } else if (market['linear'] === true) {
+        } else if (this.safeBool(market, 'linear', false)) {
             if (isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                 data = this.safeList(response, 'data', []);
                 result = this.safeDict(data, 0, {});
@@ -396269,7 +396269,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             }
             market = this.market(symbol);
             let orderRequest = undefined;
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 orderRequest = await this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
             } else {
                 orderRequest = this.createContractOrderRequest(marketId, type, side, amount, price, orderParams);
@@ -396593,7 +396593,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const request = {
         };
         const trigger = this.safeBool2(paramsMarketType, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeBool(paramsMarketType, 'stopLossTakeProfit');
+        const stopLossTakeProfit = this.safeBool(paramsMarketType, 'stopLossTakeProfit', false);
         let query = this.omit(paramsMarketType, [
             'stop',
             'stopLossTakeProfit',
@@ -396666,7 +396666,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 if (this.safeBool(market, 'swap', false)) {
                     if (trigger === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, query));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, query));
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, query));
@@ -396674,7 +396674,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 } else if (this.safeBool(market, 'future', false)) {
                     if (trigger === true) {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, query));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, query));
                     } else {
                         response = await this.contractPrivatePostApiV1ContractCancel(this.extend(request, query));
@@ -396757,7 +396757,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         //         "ts": 1780822053167
         //     }
         //
-        if (this.safeBool(market, 'linear', false) && trigger !== true && stopLossTakeProfit !== true) {
+        if (this.safeBool(market, 'linear', false) && trigger !== true && !stopLossTakeProfit) {
             return this.parseCancelOrders(response);
         }
         const data = this.safeDict(response, 'data');
@@ -396905,7 +396905,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             }
             request['contract_code'] = this.safeString(market, 'id');
             const trigger = this.safeBool2(paramsMarketType, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeBool(paramsMarketType, 'stopLossTakeProfit');
+            const stopLossTakeProfit = this.safeBool(paramsMarketType, 'stopLossTakeProfit', false);
             const trailing = this.safeBool(paramsMarketType, 'trailing', false);
             const paramsOmitted = this.omit(paramsMarketType, [
                 'stop',
@@ -396934,7 +396934,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 if (this.safeBool(market, 'swap', false)) {
                     if (trigger === true) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancelall(this.extend(request, paramsOmitted));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancelall(this.extend(request, paramsOmitted));
                     } else if (trailing) {
                         response = await this.contractPrivatePostSwapApiV1SwapTrackCancelall(this.extend(request, paramsOmitted));
@@ -396944,7 +396944,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 } else if (this.safeBool(market, 'future', false)) {
                     if (trigger === true) {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancelall(this.extend(request, paramsOmitted));
-                    } else if (stopLossTakeProfit === true) {
+                    } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostApiV1ContractTpslCancelall(this.extend(request, paramsOmitted));
                     } else if (trailing) {
                         response = await this.contractPrivatePostApiV1ContractTrackCancelall(this.extend(request, paramsOmitted));
@@ -396965,7 +396965,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             //         "ts": "1683435723755"
             //     }
             //
-            if (this.safeBool(market, 'linear', false) && trigger !== true && !trailing && stopLossTakeProfit !== true) {
+            if (this.safeBool(market, 'linear', false) && trigger !== true && !trailing && !stopLossTakeProfit) {
                 return this.parseCancelOrders(response);
             }
             const data = this.safeDict(response, 'data');
@@ -397764,7 +397764,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'contract_code': market['id']
         };
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             if (limit !== undefined) {
                 request['limit'] = Math.min(limit, 100); // max 100
             }
@@ -397779,7 +397779,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             }
         }
         let response = undefined;
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, paramsPaginate));
         //
         //     {
@@ -397803,7 +397803,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         //         "ts": 1781254828066
         //     }
         //
-        } else if (market['linear'] === true) {
+        } else if (this.safeBool(market, 'linear', false)) {
             response = await this.contractPublicGetV5MarketFundingRateHistory(this.extend(request, paramsPaginate));
         //
         //     {
@@ -397825,7 +397825,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         }
         const data = this.safeValue(response, 'data');
         const rates = [];
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             for(let i = 0; i < data.length; i++){
                 const entry = data[i];
                 const marketId = this.safeString(entry, 'contract_code');
@@ -397942,7 +397942,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             'contract_code': market['id']
         };
         let response = undefined;
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             response = await this.contractPublicGetSwapApiV1SwapFundingRate(this.extend(request, params));
         //
         //     {
@@ -397959,7 +397959,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         //         "ts": 1781254404101
         //     }
         //
-        } else if (market['linear'] === true) {
+        } else if (this.safeBool(market, 'linear', false)) {
             response = await this.contractPublicGetV5MarketFundingRate(this.extend(request, params));
         //
         //     {
@@ -397982,7 +397982,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchFundingRate() supports inverse and linear swaps only');
         }
         let result = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             const data = this.safeList(response, 'data', []);
             result = this.safeDict(data, 0, {});
         } else {
@@ -398419,7 +398419,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         };
         const [request, paramsUntil] = this.handleUntilOption('end_time', initialRequest, paramsMarketType);
         if (since !== undefined) {
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 request['start_time'] = since;
             } else {
                 request['start_date'] = since;
@@ -398427,7 +398427,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         }
         let response = undefined;
         if (marketType === 'swap') {
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchFundingHistory', paramsUntil, 'cross');
                 request['margin_mode'] = marginMode;
                 request['contract_code'] = market['id'];
@@ -398508,13 +398508,13 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'lever_rate': leverage
         };
-        if (marketType === 'future' && market['inverse'] === true) {
+        if (marketType === 'future' && this.safeBool(market, 'inverse', false)) {
             request['symbol'] = market['settleId'];
         } else {
             request['contract_code'] = market['id'];
         }
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             const marginModeAndParams = this.handleMarginModeAndParams('setLeverage', params, 'cross');
             const marginMode = marginModeAndParams[0];
             request['margin_mode'] = marginMode;
@@ -398690,7 +398690,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const lastPrice = this.safeString(position, 'last_price');
         const faceValue = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contracts, contractSizeString);
         let notional = undefined;
-        if (marketResolved['linear'] === true) {
+        if (this.safeBool(marketResolved, 'linear', false)) {
             notional = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(faceValue, lastPrice);
         } else {
             notional = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(faceValue, lastPrice);
@@ -398906,16 +398906,16 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const [marginModeOption, paramsMarginMode] = this.handleMarginModeAndParams('fetchPosition', params);
         const [marketType, query] = this.handleMarketTypeAndParams('fetchPosition', market, paramsMarginMode);
         const request = {};
-        if (market['future'] === true && market['inverse'] === true) {
+        if (this.safeBool(market, 'future', false) && this.safeBool(market, 'inverse', false)) {
             request['symbol'] = market['settleId'];
         } else {
-            if (market['linear'] !== true && (marginModeOption === undefined || marginModeOption === 'cross')) {
+            if (!this.safeBool(market, 'linear', false) && (marginModeOption === undefined || marginModeOption === 'cross')) {
                 request['margin_account'] = 'USDT'; // only allowed value
             }
             request['contract_code'] = market['id'];
         }
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.contractPrivateGetV5TradePositionOpens(this.extend(request, query));
         //
         //     {
@@ -399029,7 +399029,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         //
         }
         const data = this.safeValue(response, 'data');
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             const linearPosition = this.safeDict(data, 0, {});
             return this.parsePosition(linearPosition, market);
         }
@@ -399044,7 +399044,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         ]);
         const positions = this.safeList(account, 'positions', []);
         let position = undefined;
-        if (market['future'] === true && market['inverse'] === true) {
+        if (this.safeBool(market, 'future', false) && this.safeBool(market, 'inverse', false)) {
             const marketId = this.safeString(market, 'id');
             for(let i = 0; i < positions.length; i++){
                 const entry = positions[i];
@@ -399300,12 +399300,12 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             request['size'] = limit;
         }
         let response = undefined;
-        if (market['future'] === true) {
+        if (this.safeBool(market, 'future', false)) {
             request['contract_type'] = this.safeString(market['info'], 'contract_type');
             request['symbol'] = market['baseId']; // currency code on coin-m futures
             // coin-m futures
             response = await this.contractPublicGetApiV1ContractHisOpenInterest(this.extend(request, params));
-        } else if (market['linear'] === true) {
+        } else if (this.safeBool(market, 'linear', false)) {
             request['contract_type'] = 'swap';
             request['contract_code'] = market['id'];
             request['contract_code'] = market['id'];
@@ -399466,22 +399466,22 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchOpenInterest() does not currently support option markets');
         }
         const request = {
             'contract_code': market['id']
         };
         let response = undefined;
-        if (market['future'] === true) {
+        if (this.safeBool(market, 'future', false)) {
             request['contract_type'] = this.safeString(market['info'], 'contract_type');
             request['symbol'] = market['baseId'];
             // COIN-M futures
             response = await this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, params));
-        } else if (market['linear'] === true) {
+        } else if (this.safeBool(market, 'linear', false)) {
             // USDT-M swaps
             response = await this.contractPublicGetV5MarketOpenInterest(this.extend(request, params));
         } else {
@@ -399544,7 +399544,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const timestamp = this.safeInteger(response, 'ts');
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             const result = this.safeDict(response, 'data', {});
             return this.extend(this.parseOpenInterest(result, market), {
                 'timestamp': timestamp,
@@ -399823,13 +399823,13 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const request = {};
-        if (market['future'] === true) {
+        if (this.safeBool(market, 'future', false)) {
             request['symbol'] = market['baseId'];
         } else {
             request['contract_code'] = market['id'];
         }
         if (limit !== undefined) {
-            if (market['linear'] === true && market['swap'] === true) {
+            if (this.safeBool(market, 'linear', false) && this.safeBool(market, 'swap', false)) {
                 request['limit'] = limit;
             } else {
                 request['page_size'] = limit;
@@ -399840,8 +399840,8 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, params);
         let response = undefined;
-        if (market['swap'] === true) {
-            if (market['linear'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.contractPublicGetV5MarketSettlementHistory(this.extend(requestUntil, paramsUntil));
             } else {
                 response = await this.contractPublicGetSwapApiV1SwapSettlementRecords(this.extend(requestUntil, paramsUntil));
@@ -399918,7 +399918,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         //         "ts": 1781853150623
         //     }
         //
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             const dataLinear = this.safeList(response, 'data', []);
             const settlementsLinear = this.parseSettlements(dataLinear, market);
             return this.sortBy(settlementsLinear, 'timestamp');
@@ -400101,7 +400101,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         for(let i = 0; i < settlements.length; i++){
             const settlement = this.safeDict(settlements, i);
             const list = this.safeList(settlement, 'list');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 const parsedSettlement = this.parseSettlement(settlement, market);
                 result.push(parsedSettlement);
             } else if (list !== undefined) {
@@ -400186,7 +400186,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const tradeType = this.safeInteger2(params, 'trade_type', 'tradeType', 0);
         const request = {};
-        if (market['linear'] !== true) {
+        if (!this.safeBool(market, 'linear', false)) {
             request['trade_type'] = tradeType;
         }
         const paramsOmitted = this.omit(params, [
@@ -400198,8 +400198,8 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsOmitted);
         let response = undefined;
-        if (market['swap'] === true) {
-            if (market['linear'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
+            if (this.safeBool(market, 'linear', false)) {
                 requestUntil['contract_code'] = market['id'];
                 if (limit !== undefined) {
                     requestUntil['limit'] = limit;
@@ -400229,7 +400229,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 requestUntil['contract'] = market['id'];
                 response = await this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(requestUntil, paramsUntil));
             }
-        } else if (market['future'] === true) {
+        } else if (this.safeBool(market, 'future', false)) {
             requestUntil['symbol'] = market['id'];
             response = await this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(requestUntil, paramsUntil));
         } else {
@@ -400331,7 +400331,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const clientOrderId = this.safeString(params, 'clientOrderId');
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' closePosition() symbol supports contract markets only');
         }
         const request = {
@@ -400342,7 +400342,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             request['client_order_id'] = clientOrderId;
         }
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('closePosition', paramsOmitted, 'cross');
             request['margin_mode'] = marginMode;
             response = await this.contractPrivatePostV5TradePosition(this.extend(request, paramsMarginMode));
@@ -400369,13 +400369,13 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 'volume',
                 'amount'
             ]);
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 response = await this.contractPrivatePostSwapApiV1SwapLightningClosePosition(this.extend(request, paramsVolume));
             } else {
                 response = await this.contractPrivatePostApiV1LightningClosePosition(this.extend(request, paramsVolume));
             }
         }
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             const data = this.safeDict(response, 'data', {});
             return this.parseOrder(data, market);
         }
@@ -400409,7 +400409,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'position_mode': posMode
         };
-        if (market !== undefined && market['inverse'] === true) {
+        if (market !== undefined && this.safeBool(market, 'inverse', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' setPositionMode can only be used for linear markets');
         }
         const response = await this.contractPrivatePostV5PositionMode(this.extend(request, params));
@@ -401881,7 +401881,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         const market = this.market(symbol);
         const request = {
             'type': 'l2Book',
-            'coin': market['swap'] === true ? this.safeString(market, 'baseName') : market['id']
+            'coin': this.safeBool(market, 'swap', false) ? this.safeString(market, 'baseName') : market['id']
         };
         const response = await this.publicPostInfo(this.extend(request, params));
         //
@@ -402172,7 +402172,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['swap'] === true ? this.safeString(market, 'baseName') : market['id'],
+                'coin': this.safeBool(market, 'swap', false) ? this.safeString(market, 'baseName') : market['id'],
                 'interval': this.safeString(this.timeframes, timeframe, timeframe),
                 'startTime': startTime,
                 'endTime': until
@@ -402310,7 +402310,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         const significantDigits = Math.max(5, integerPart.length);
         const result = this.decimalToPrecision(price, (/* inlined export .ROUND */1), significantDigits, (/* inlined export .SIGNIFICANT_DIGITS */3), this.paddingMode);
         let maxDecimals = 6;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             maxDecimals = 8;
         }
         const subtractedValue = maxDecimals - this.precisionFromString(this.safeString(market['precision'], 'amount'));
@@ -405053,7 +405053,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const isSandboxMode = this.safeBool(this.options, 'sandboxMode');
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const nonce = this.incrementingNonce();
         if (this.inArray(fromAccount, [
             'spot',
@@ -405076,7 +405076,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             const strAmountFinal = strAmount; // java req
             const toPerp = toAccount === 'perp' || toAccount === 'swap';
             const transferPayload = {
-                'hyperliquidChain': isSandboxMode === true ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
                 'amount': strAmountFinal,
                 'toPerp': toPerp,
                 'nonce': nonce
@@ -405141,7 +405141,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             const sourceDex = this.safeString(paramsSendAsset, 'sourceDex', defaultDex);
             const destinationDex = this.safeString(paramsSendAsset, 'destinationDex', defaultDex);
             const sendAssetPayload = {
-                'hyperliquidChain': isSandboxMode === true ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
                 'destination': isDeposit ? subAccountAddress : masterAddress,
                 'sourceDex': sourceDex,
                 'destinationDex': destinationDex,
@@ -410323,7 +410323,7 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
             for(let i = 0; i < symbolsNormalized.length; i++){
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                if (market['active'] === true) {
+                if (this.safeBool(market, 'active', false)) {
                     marketIds.push(market['id']);
                 }
             }
@@ -411542,7 +411542,7 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders, only spot orders are accepted');
         }
         let request = {
@@ -413946,9 +413946,9 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         let baseVolume = undefined;
         const isIndex = this.safeBool(marketResolved, 'index', false);
         if (!isIndex) {
-            if (marketResolved['linear'] === true) {
+            if (this.safeBool(marketResolved, 'linear', false)) {
                 baseVolume = volume;
-            } else if (marketResolved['inverse'] === true) {
+            } else if (this.safeBool(marketResolved, 'inverse', false)) {
                 baseVolume = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(quoteVolume, vwap);
             }
         }
@@ -414395,9 +414395,9 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         const type = this.parseOrderType(rawType); // undefined stays undefined
         const marketResolved = this.safeMarket(marketId, market);
         let cost = undefined;
-        const linear = this.safeBool(marketResolved, 'linear');
+        const linear = this.safeBool(marketResolved, 'linear', false);
         if (amount !== undefined && price !== undefined && marketResolved !== undefined) {
-            if (linear === true) {
+            if (linear) {
                 cost = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amount, price); // in quote
             } else {
                 cost = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(amount, price); // in base
@@ -414449,7 +414449,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': linear === true ? amount : undefined,
+            'amount': linear ? amount : undefined,
             'cost': cost,
             'fee': fee
         });
@@ -414492,7 +414492,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const triggerSignal = this.safeString(paramsPostOnly, 'triggerSignal', 'last');
-        const reduceOnlyParam = this.safeBool(paramsPostOnly, 'reduceOnly');
+        const reduceOnlyParam = this.safeBool(paramsPostOnly, 'reduceOnly', false);
         let reduceOnly = reduceOnlyParam === true;
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
             request['triggerSignal'] = triggerSignal;
@@ -415621,7 +415621,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
                 whichPrice = average;
             }
             if (whichPrice !== undefined) {
-                if (marketResolved['linear'] === true) {
+                if (this.safeBool(marketResolved, 'linear', false)) {
                     cost = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(filled, whichPrice); // in quote
                 } else {
                     cost = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(filled, whichPrice); // in base
@@ -416348,7 +416348,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -416793,7 +416793,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
             const marketId = this.safeString(market, 'id', '');
             const splitId = marketId.split('_');
             const splitMarketId = this.safeString(splitId, 1, '');
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 return 'fi_' + splitMarketId;
             } else {
                 return 'fv_' + splitMarketId;
@@ -421163,7 +421163,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             const data = this.safeDict(response, 'data', {});
             const resultList = this.safeList(data, 'list', []);
             result = this.safeDict(resultList, 0, {});
-        } else if (market['contract'] === true) {
+        } else if (this.safeBool(market, 'contract', false)) {
             response = await this.futuresPublicGetTicker(this.extend(request, paramsMarketType));
             //
             //    {
@@ -421232,7 +421232,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, params));
             const data = this.safeDict(response, 'data', {});
             return this.parseTicker(data, market);
@@ -421306,7 +421306,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         }
         if (uta) {
             return await this.fetchUTAOHLCV(symbol, timeframe, since, limit, paramsRequest);
-        } else if (market['contract'] === true) {
+        } else if (this.safeBool(market, 'contract', false)) {
             return await this.fetchContractOHLCV(symbol, timeframe, since, limit, paramsRequest);
         } else {
             return await this.fetchSpotOHLCV(symbol, timeframe, since, limit, paramsRequest);
@@ -421951,9 +421951,9 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         const [utaOption, paramsUta] = this.handleOptionBoolAndParams(params, 'createOrder', 'uta', uta);
         if (utaOption) {
             return await this.createUtaOrder(symbol, type, side, amount, price, paramsUta);
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             return await this.createSpotOrder(symbol, type, side, amount, price, paramsUta);
-        } else if (market['contract'] === true) {
+        } else if (this.safeBool(market, 'contract', false)) {
             return await this.createContractOrder(symbol, type, side, amount, price, paramsUta);
         } else {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() does not support market ' + this.safeString(market, 'type', ''));
@@ -422670,9 +422670,9 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
             }
             const market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 isSpot = true;
-            } else if (market['contract'] === true) {
+            } else if (this.safeBool(market, 'contract', false)) {
                 isContract = true;
             }
         }
@@ -422853,7 +422853,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() supports spot markets only');
         }
         const request = {
@@ -424259,7 +424259,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         }
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        if (marketResolved !== undefined && marketResolved['contract'] === true) {
+        if (marketResolved !== undefined && this.safeBool(marketResolved, 'contract', false)) {
             return this.parseContractOrder(order, marketResolved);
         } else {
             return this.parseSpotOrder(order, marketResolved);
@@ -424344,7 +424344,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         let average = this.safeString(order, 'avgDealPrice');
         if (average === undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(filled, '0')) {
             const contractSize = this.safeString(marketResolved, 'contractSize');
-            if (marketResolved['linear'] === true) {
+            if (this.safeBool(marketResolved, 'linear', false)) {
                 average = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(cost, _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contractSize, filled));
             } else {
                 average = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contractSize, filled), cost);
@@ -425177,7 +425177,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         }
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        if (marketResolved === undefined || marketResolved['spot'] === true) {
+        if (marketResolved === undefined || this.safeBool(marketResolved, 'spot', false)) {
             return this.parseSpotOrUtaTrade(trade, marketResolved);
         } else {
             return this.parseContractTrade(trade, marketResolved);
@@ -425522,7 +425522,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         let response;
         let entry = undefined;
         if (utaOption) {
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 request['tradeType'] = 'SPOT';
             } else {
                 request['tradeType'] = 'FUTURES';
@@ -425547,7 +425547,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             const data = this.safeDict(response, 'data', {});
             const dataList = this.safeList(data, 'list', []);
             entry = this.safeDict(dataList, 0);
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             request['symbols'] = market['id'];
             response = await this.privateGetTradeFees(this.extend(request, paramsUta));
             //
@@ -427851,7 +427851,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchLeverage() supports contract markets only');
         }
         const request = {
@@ -427912,7 +427912,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' setLeverage requires a symbol argument for contract markets');
             }
             market = this.market(symbol);
-            if (market['contract'] === true) {
+            if (this.safeBool(market, 'contract', false)) {
                 return await this.setContractLeverage(leverage, symbol, paramsRequest);
             }
         }
@@ -429194,8 +429194,8 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         const id = this.safeString(info, 'id');
         const marketResolved = this.safeMarket(id, market);
         const currencyId = this.safeString(info, 'settleCurrency');
-        const crossMode = this.safeBool(info, 'crossMode');
-        const mode = crossMode === true ? 'cross' : 'isolated';
+        const crossMode = this.safeBool(info, 'crossMode', false);
+        const mode = crossMode ? 'cross' : 'isolated';
         const marketId = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(info, 'currentTimestamp');
         return {
@@ -429270,7 +429270,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         const request = {
@@ -429304,7 +429304,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         let posMode = '0';
-        if (hedged === true) {
+        if (hedged) {
             posMode = '1';
         }
         const request = {
@@ -429396,7 +429396,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
         const uta = false;
@@ -431269,10 +431269,10 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');
         const costString = this.safeString(trade, 'cost');
-        const makerBuyer = this.safeBool(trade, 'makerBuyer');
+        const makerBuyer = this.safeBool(trade, 'makerBuyer', false);
         let side = this.safeString(trade, 'direction');
         if (side === undefined) {
-            side = makerBuyer === true ? 'sell' : 'buy';
+            side = makerBuyer ? 'sell' : 'buy';
         } else {
             if (side === 'TRADE_DIRECTION_BUY') {
                 side = 'buy';
@@ -433181,7 +433181,7 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
         const symbol = this.safeSymbol(marketId, market);
         const tickerData = this.safeDict(ticker, 'ticker', {});
         const marketResolved = this.safeMarket(marketId, market);
-        const data = marketResolved['contract'] === true ? ticker : tickerData;
+        const data = this.safeBool(marketResolved, 'contract', false) ? ticker : tickerData;
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -433218,7 +433218,7 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const responseForSwap = await this.fetchTickers([
                 market['symbol']
             ], params);
@@ -433411,7 +433411,7 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
         //
         const orderbook = this.safeDict(response, 'data', {});
         const timestamp = this.milliseconds();
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks');
@@ -434035,7 +434035,7 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -435323,8 +435323,8 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
         const result = {};
         for(let i = 0; i < response.length; i++){
             const fee = response[i];
-            const canWithdraw = this.safeBool(fee, 'canWithDraw');
-            if (canWithdraw === true) {
+            const canWithdraw = this.safeBool(fee, 'canWithDraw', false);
+            if (canWithdraw) {
                 const code = this.safeCurrencyCode(this.safeString(fee, 'assetCode'));
                 if (code !== undefined && (codes === undefined || this.inArray(code, codes))) {
                     const withdrawFee = this.safeNumber(fee, 'fee');
@@ -435407,9 +435407,9 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
             const networkEntry = this.safeDict(networkList, j);
             const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'name'), code);
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
-            const isDefault = this.safeBool(networkEntry, 'isDefault');
+            const isDefault = this.safeBool(networkEntry, 'isDefault', false);
             if (withdrawFee !== undefined) {
-                if (isDefault === true) {
+                if (isDefault) {
                     result['withdraw'] = {
                         'fee': withdrawFee,
                         'percentage': undefined
@@ -438180,7 +438180,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
         const isAskAsInteger = this.safeInteger(order, 'is_ask');
         let side = undefined;
         if (isAsk !== undefined) {
-            side = isAsk === true ? 'sell' : 'buy';
+            side = isAsk ? 'sell' : 'buy';
         } else if (isAskAsInteger !== undefined) {
             side = isAskAsInteger === 1 ? 'sell' : 'buy';
         }
@@ -444162,7 +444162,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const response = await this.spotPublicGetDepth(this.extend(request, params));
             //
             //     {
@@ -444181,7 +444181,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             const spotOrderbook = this.parseOrderBook(response, symbol, spotTimestamp);
             spotOrderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
             return spotOrderbook;
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             const response = await this.contractPublicGetDepthSymbol(this.extend(request, params));
             //
             //     {
@@ -444251,7 +444251,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             request['limit'] = limit;
         }
         let trades = [];
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const until = this.safeInteger2(params, 'endTime', 'until');
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -444309,7 +444309,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //         },
         //     ]
         //
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             const response = await this.contractPublicGetDealsSymbol(this.extend(request, params));
             //
             //     {
@@ -444499,7 +444499,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const maxLimit = market['spot'] === true ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
+        const maxLimit = this.safeBool(market, 'spot', false) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
@@ -444521,7 +444521,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
                 'until'
             ]);
         }
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
@@ -444562,7 +444562,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             //     ]
             //
             candles = this.toArray(response);
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             if (since !== undefined) {
                 request['start'] = this.parseToInt(since / 1000);
             }
@@ -444805,9 +444805,9 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         let changePcnt = undefined;
         let changeValue = undefined;
         let prevClose = undefined;
-        const isSwap = this.safeBool(marketResolved, 'swap');
+        const isSwap = this.safeBool(marketResolved, 'swap', false);
         // if swap
-        if (isSwap === true || 'timestamp' in ticker) {
+        if (isSwap || 'timestamp' in ticker) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -444835,10 +444835,10 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             baseVolume = this.safeString(ticker, 'volume24');
             quoteVolume = this.safeString(ticker, 'amount24');
             const contractSize = this.safeString(marketResolved, 'contractSize');
-            if (isSwap === true && contractSize !== undefined) {
+            if (isSwap && contractSize !== undefined) {
                 // volume24 counts contracts, amount24 is in the settle currency
                 const contractVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(baseVolume, contractSize);
-                if (marketResolved['inverse'] === true) {
+                if (this.safeBool(marketResolved, 'inverse', false)) {
                     baseVolume = quoteVolume;
                     quoteVolume = contractVolume;
                 } else {
@@ -444975,7 +444975,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -444997,7 +444997,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -445038,7 +445038,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return await this.createSpotOrder(market, type, side, amount, price, marginMode, query);
         } else {
             return await this.createSwapOrder(market, type, side, amount, price, marginMode, query);
@@ -445346,7 +445346,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             const market = this.market(marketId);
-            if (market['spot'] !== true) {
+            if (!this.safeBool(market, 'spot', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrders() is only supported for spot markets');
             }
             if (symbol === undefined) {
@@ -445415,7 +445415,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let data = {};
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const clientOrderId = this.safeString(params, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['origClientOrderId'] = clientOrderId;
@@ -445476,7 +445476,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //         "updateTime": 1662153107000
         //     }
         //
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             request['order_id'] = id;
             const response = await this.contractPrivateGetOrderGetOrderId(this.extend(request, params));
             //
@@ -446573,7 +446573,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchTradingFee() supports spot markets only');
         }
         const request = {
@@ -448910,7 +448910,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase();
@@ -452776,9 +452776,9 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeBool(response, 'success');
+        const success = this.safeBool(response, 'success', false);
         const errorCode = this.safeString(response, 'code');
-        if (success !== true) {
+        if (!success) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -456431,7 +456431,7 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
      */ async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const tickerId = this.safeString(market['info'], 'ticker_id');
@@ -456482,7 +456482,7 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const [subaccount, paramsSubaccount] = this.handleOptionStringAndParams(params, 'fetchFundingHistory', 'subaccount', 'default');
@@ -456581,7 +456581,7 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
      */ async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const tickerId = this.safeString(market['info'], 'ticker_id');
@@ -458604,7 +458604,7 @@ class ndax extends _abstract_ndax_js__rspack_import_0/* ["default"] */.A {
             return undefined;
         }
         const sessionStatus = this.safeString(market, 'SessionStatus');
-        const isDisable = this.safeBool(market, 'IsDisable');
+        const isDisable = this.safeBool(market, 'IsDisable', false);
         const sessionRunning = sessionStatus === 'Running';
         return this.safeMarketStructure({
             'id': id,
@@ -464300,7 +464300,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             'instId': market['id']
         };
         let response = undefined;
-        if (market['option'] === true) {
+        if (this.safeBool(market, 'option', false)) {
             response = await this.publicGetPublicOptionTrades(this.extend(request, paramsPaginate));
         } else {
             if (limit !== undefined) {
@@ -464665,9 +464665,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'instType': this.convertToInstrumentType(market['type'])
         };
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['instId'] = market['id'];
-        } else if (market['swap'] === true || market['future'] === true || market['option'] === true) {
+        } else if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false) || this.safeBool(market, 'option', false)) {
             request['uly'] = this.safeString(market, 'baseId', '') + '-' + this.safeString(market, 'quoteId', '');
         } else {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchTradingFee() supports spot, swap, future or option markets only');
@@ -464835,7 +464835,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
         }
         const req = {
@@ -464858,7 +464858,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot markets only');
         }
         const req = {
@@ -464893,7 +464893,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (!shouldOmitSize) {
             request['sz'] = this.amountToPrecision(symbol, amount);
         }
-        const spot = this.safeBool(market, 'spot');
+        const spot = this.safeBool(market, 'spot', false);
         const contract = this.safeBool(market, 'contract');
         const triggerPrice = this.safeValueN(params, [
             'triggerPrice',
@@ -464948,7 +464948,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (omitReduceOnly) {
             paramsReduceOnly = this.omit(paramsHedged, 'reduceOnly');
         }
-        if (spot === true) {
+        if (spot) {
             if (margin) {
                 const defaultCurrency = side === 'buy' ? market['quote'] : market['base'];
                 const currency = this.safeString(params, 'ccy', defaultCurrency);
@@ -464957,7 +464957,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             const tradeMode = margin ? marginMode : 'cash';
             request['tdMode'] = tradeMode;
         } else if (contract === true) {
-            if (market['swap'] === true || market['future'] === true) {
+            if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false)) {
                 if (positionSide !== undefined) {
                     request['posSide'] = positionSide;
                 } else {
@@ -465009,7 +465009,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
-            if (spot === true && side === 'buy') {
+            if (spot && side === 'buy') {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
@@ -465176,7 +465176,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             if (twoWayCondition) {
                 request['ordType'] = 'oco';
             }
-            if (spot === true && !margin) {
+            if (spot && !margin) {
                 // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
                 request['tdMode'] = marginMode;
@@ -468122,7 +468122,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         let side = this.safeString2(position, 'posSide', 'direction');
         const hedged = side !== 'net';
         const contracts = this.parseNumber(contractsAbs);
-        if (marketResolved['margin'] === true) {
+        if (this.safeBool(marketResolved, 'margin', false)) {
             // margin position
             if (side === 'net') {
                 const posCcy = this.safeString(position, 'posCcy');
@@ -468151,7 +468151,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const contractSizeString = this.numberToString(contractSize);
         const markPriceString = this.safeString(position, 'markPx');
         let notionalString = this.safeString(position, 'notionalUsd');
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             notionalString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber(notionalString);
@@ -468181,7 +468181,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (initialMarginPercentage === undefined) {
             initialMarginPercentage = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(initialMarginString, notionalString, 4));
         } else if (initialMarginString === undefined) {
-            if (marketResolved['linear'] === true) {
+            if (this.safeBool(marketResolved, 'linear', false)) {
                 const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
                 initialMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(initialMarginPercentageString, notionalString);
             } else {
@@ -468654,7 +468654,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const marketInfo = this.safeDict(market, 'info', {});
         const ruleType = this.safeString(marketInfo, 'ruleType');
         const isExtendedPerpetual = ruleType === 'xperp'; // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-        if (market['swap'] !== true && !isExtendedPerpetual) {
+        if (!this.safeBool(market, 'swap', false) && !isExtendedPerpetual) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets or XPERP futures');
         }
         const request = {
@@ -468700,7 +468700,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 const marketInfo = this.safeDict(market, 'info', {});
                 const ruleType = this.safeString(marketInfo, 'ruleType');
                 const isExtendedPerpetual = ruleType === 'xperp'; // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-                if (market['swap'] !== true && !isExtendedPerpetual) {
+                if (!this.safeBool(market, 'swap', false) && !isExtendedPerpetual) {
                     throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + this.safeString(symbolsNormalized, i, '') + ' is not');
                 }
             }
@@ -468757,8 +468757,8 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['instId'] = market['id'];
-            if (market['contract'] === true) {
-                if (market['linear'] === true) {
+            if (this.safeBool(market, 'contract', false)) {
+                if (this.safeBool(market, 'linear', false)) {
                     request['ctType'] = 'linear';
                     request['ccy'] = market['quoteId'];
                 } else {
@@ -469313,7 +469313,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const amount = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(amountRaw);
         const marketId = this.safeString(data, 'instId');
         const responseMarket = this.safeMarket(marketId, market);
-        const code = responseMarket['inverse'] === true ? responseMarket['base'] : responseMarket['quote'];
+        const code = this.safeBool(responseMarket, 'inverse', false) ? responseMarket['base'] : responseMarket['quote'];
         const timestamp = this.safeInteger(data, 'ts');
         return {
             'info': data,
@@ -469367,7 +469367,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const type = market['spot'] === true ? 'MARGIN' : this.convertToInstrumentType(market['type']);
+        const type = this.safeBool(market, 'spot', false) ? 'MARGIN' : this.convertToInstrumentType(market['type']);
         const instFamily = this.safeString(market['info'], 'instFamily');
         if (instFamily === undefined || instFamily === '') {
             if (type !== 'MARGIN') {
@@ -469650,7 +469650,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const type = this.convertToInstrumentType(market['type']);
@@ -469781,7 +469781,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         };
         let response;
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOpenInterestHistory', market, params);
-        if (market !== undefined && (market['swap'] === true || market['future'] === true)) {
+        if (market !== undefined && (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false))) {
             const instrumentRequest = {
                 'instId': market['id'],
                 'period': timeframeValue
@@ -471112,13 +471112,13 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const auto = this.safeBool(params, 'auto');
+        const auto = this.safeBool(params, 'auto', false);
         if (type === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchMarginAdjustmentHistory () requires a type argument');
         }
         const isAdd = type === 'add';
         let subType = isAdd ? '160' : '161';
-        if (auto === true) {
+        if (auto) {
             if (isAdd) {
                 subType = '162';
             } else {
@@ -472251,7 +472251,7 @@ class onetrading extends _abstract_onetrading_js__rspack_import_0/* ["default"] 
         for(let i = 0; i < symbols.length; i++){
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const tierObject = market['spot'] === true ? firstSpotTier : firstFuturesTier;
+            const tierObject = this.safeBool(market, 'spot', false) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -472318,8 +472318,8 @@ class onetrading extends _abstract_onetrading_js__rspack_import_0/* ["default"] 
         for(let i = 0; i < symbols.length; i++){
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const makerFee = market['spot'] === true ? spotMakerFee : futuresMakerFee;
-            const takerFee = market['spot'] === true ? spotTakerFee : futuresTakerFee;
+            const makerFee = this.safeBool(market, 'spot', false) ? spotMakerFee : futuresMakerFee;
+            const takerFee = this.safeBool(market, 'spot', false) ? spotTakerFee : futuresTakerFee;
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -480602,7 +480602,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -488039,7 +488039,7 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         const apiUnrealizedPnl = this.safeString(position, 'unRealisedPnlRv', unrealizedPnl);
         const marginRatio = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(maintenanceMarginString, collateral);
-        const isCross = this.safeBool(position, 'crossMargin');
+        const isCross = this.safeBool(position, 'crossMargin', false);
         const timestamp = this.safeInteger(position, 'openedTimeNs');
         const lastUpdateTimestamp = this.safeInteger(position, 'updatedTimeNs', this.safeIntegerProduct(position, 'transactTimeNs', 0.000001));
         return this.safePosition({
@@ -488066,7 +488066,7 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             'marginRatio': this.parseNumber(marginRatio),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'marginMode': isCross === true ? 'cross' : 'isolated',
+            'marginMode': isCross ? 'cross' : 'isolated',
             'side': side,
             'hedged': this.safeString(position, 'posMode') === 'Hedged',
             'percentage': undefined,
@@ -488327,8 +488327,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const marketResolved = this.safeMarket(undefined, market);
-        const inverse = this.safeBool(marketResolved, 'inverse');
-        const codeCurrency = inverse === true ? 'base' : 'quote';
+        const inverse = this.safeBool(marketResolved, 'inverse', false);
+        const codeCurrency = inverse ? 'base' : 'quote';
         return {
             'info': data,
             'symbol': this.safeSymbol(undefined, marketResolved),
@@ -488412,7 +488412,7 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'symbol': market['id']
         };
-        if (hedged === true) {
+        if (hedged) {
             request['targetPosMode'] = 'Hedged';
         } else {
             request['targetPosMode'] = 'OneWay';
@@ -490604,11 +490604,11 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             'interval': this.safeString(this.timeframes, timeframe, timeframe)
         };
         let keyStart = 'sTime';
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             keyStart = 'startTime';
         }
         let keyEnd = 'eTime';
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             keyEnd = 'endTime';
         }
         if (since !== undefined) {
@@ -490627,7 +490627,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             const endTimeByLimit = this.sum(firstCandle, duration * (limit - 1));
             requestUntil[keyEnd] = Math.min(endTimeByLimit, this.milliseconds());
         }
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(requestUntil, paramsUntil));
             //
             //     {
@@ -491017,7 +491017,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         const marketResolved = this.safeMarket(marketId);
         let baseVolume = this.safeString2(ticker, 'quantity', 'qty');
         const contractSize = this.safeNumber(marketResolved, 'contractSize');
-        if (marketResolved['contract'] === true && contractSize !== undefined) {
+        if (this.safeBool(marketResolved, 'contract', false) && contractSize !== undefined) {
             // 'quantity' counts contracts, and a ticker reports base volume
             baseVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(baseVolume, this.numberToString(contractSize));
         }
@@ -491235,7 +491235,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         const request = {
             'symbol': market['id']
         };
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const tickers = await this.fetchTickers([
                 market['symbol']
             ], params);
@@ -491429,7 +491429,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, for spot & swap
         }
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const response = await this.swapPublicGetV3MarketTrades(this.extend(request, params));
             //
             //     {
@@ -492007,7 +492007,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         const [requestValue, paramsValue] = this.orderRequest(symbol, type, side, amount, request, price, params);
         let response = {};
-        if (market['swap'] === true || market['future'] === true) {
+        if (this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false)) {
             const responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(requestValue, paramsValue));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
@@ -492153,7 +492153,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             'stopPrice'
         ]);
         if (triggerPrice !== undefined) {
-            if (market['spot'] !== true) {
+            if (!this.safeBool(market, 'spot', false)) {
                 throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() does not support trigger orders for ' + this.safeString(market, 'type', '') + ' markets');
             }
             upperCaseType = price === undefined ? 'STOP' : 'STOP_LIMIT';
@@ -492171,7 +492171,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                 queryOmitted = this.omit(queryOmitted, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (createMarketBuyOrderRequiresPrice && market['spot'] === true) {
+                } else if (createMarketBuyOrderRequiresPrice && this.safeBool(market, 'spot', false)) {
                     if (price === undefined) {
                         throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     } else {
@@ -492184,25 +492184,25 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
                 let amountKey = 'sz';
-                if (market['spot'] === true) {
+                if (this.safeBool(market, 'spot', false)) {
                     amountKey = 'amount';
                 }
                 result[amountKey] = quoteAmount;
             } else {
                 let amountKey = 'sz';
-                if (market['spot'] === true) {
+                if (this.safeBool(market, 'spot', false)) {
                     amountKey = 'quantity';
                 }
                 result[amountKey] = this.amountToPrecision(symbol, amount);
             }
         } else {
             let amountKey = 'sz';
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 amountKey = 'quantity';
             }
             result[amountKey] = this.amountToPrecision(symbol, amount);
             let priceKey = 'px';
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 priceKey = 'price';
             }
             result[priceKey] = this.priceToPrecision(symbol, price);
@@ -492211,7 +492211,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         if (clientOrderId !== undefined) {
             // the futures v3 api silently ignores the spot key and generates its own id
             let clientOrderIdKey = 'clOrdId';
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 clientOrderIdKey = 'clientOrderId';
             }
             result[clientOrderIdKey] = clientOrderId;
@@ -492245,7 +492245,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
      */ async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders, only spot orders are accepted');
         }
         const request = {
@@ -492290,7 +492290,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         }
         const market = this.market(symbol);
         const request = {};
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             request['ordId'] = id;
             const raw = await this.swapPrivateDeleteV3TradeOrder(this.extend(request, params));
@@ -492753,7 +492753,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         };
         if (limit !== undefined) {
             request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (market['contract'] === true) {
+            if (this.safeBool(market, 'contract', false)) {
                 request['limit'] = this.findNearestCeiling([
                     5,
                     10,
@@ -492763,7 +492763,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                 ], limit);
             }
         }
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, params));
             //
             //    {
@@ -493666,7 +493666,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
      * @returns {object} response from the exchange
      */ async setPositionMode(hedged, symbol = undefined, params = {}) {
         let mode = 'ONE_WAY';
-        if (hedged === true) {
+        if (hedged) {
             mode = 'HEDGE';
         }
         const request = {
@@ -511550,9 +511550,7 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
         const ts = this.safeInteger(data, 'ts');
         const outcomes = this.safeList(data, 'outcomes', []);
         const outcomesLength = outcomes.length;
-        if (this.tickers === undefined) {
-            this.tickers = this.createSafeDictionary();
-        }
+        const cachedTickers = this.safeDict(this.options, 'wsTickers', {});
         for(let i = 0; i < outcomesLength; i++){
             const oc = outcomes[i];
             const outcomeId = this.safeString(oc, 'outcome');
@@ -511588,10 +511586,11 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
                 'quoteVolume': undefined,
                 'info': oc
             }, market);
-            this.tickers[sym] = ticker;
+            cachedTickers[sym] = ticker;
             client.resolve(ticker, 'ticker::' + sym);
         }
-        client.resolve(this.tickers, 'tickers');
+        this.options['wsTickers'] = cachedTickers;
+        client.resolve(cachedTickers, 'tickers');
     }
     /**
      * @method
@@ -513847,7 +513846,9 @@ class opinion extends _abstract_prediction_opinion_js__rspack_import_0/* ["defau
             'last': last,
             'info': message
         }, outcomeObj);
-        this.tickers[sym] = ticker;
+        const cachedTickers = this.safeDict(this.options, 'wsTickers', {});
+        cachedTickers[sym] = ticker;
+        this.options['wsTickers'] = cachedTickers;
         client.resolve(ticker, 'ticker::' + sym);
     }
     /**
@@ -519891,7 +519892,7 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
      */ setSandboxMode(enable) {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        const wasSandbox = this.safeBool(this.options, 'sandboxMode', false) === true;
+        const wasSandbox = this.safeBool(this.options, 'sandboxMode', false);
         super.setSandboxMode(enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
@@ -522831,7 +522832,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
                 throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' parseEvent() could not resolve parsed market');
             }
             marketsList.push(parsed);
-            if (parsed['active'] === true) {
+            if (this.safeBool(parsed, 'active', false)) {
                 anyActive = true;
             }
             if (teamOneName === undefined) {
@@ -524080,7 +524081,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         const timestamp = this.parse8601(this.safeString(settlement, 'settleDate'));
         let settlePrice = undefined;
         if (won !== undefined) {
-            settlePrice = won === true ? 1 : 0;
+            settlePrice = won ? 1 : 0;
         }
         return {
             'info': trade,
@@ -524752,14 +524753,14 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         const client = this.client(url);
         const channel = 'best_odds_v3:global';
         let hydrated = false;
-        if (this.safeValue(this.tickers, sym) === undefined) {
+        if (this.safeDict(this.safeDict(this.options, 'wsTickers', {}), sym) === undefined) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             const snapshot = await this.fetchSxbetBookSnapshot(marketHash);
             const raw = this.parseSxbetSnapshotBestOdds(snapshot);
             const ticker = this.parsePredictionTicker(raw, outcomeObj);
-            this.tickers[sym] = ticker;
+            this.setWsOption('wsTickers', sym, ticker);
             hydrated = true;
         }
         const requestId = this.requestId(url);
@@ -524772,7 +524773,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         };
         const future = this.watch(url, messageHash, subscribeMsg, channel);
         if (hydrated) {
-            client.resolve(this.safeValue(this.tickers, sym), messageHash);
+            client.resolve(this.safeDict(this.safeDict(this.options, 'wsTickers', {}), sym), messageHash);
         }
         const tickerResult = await future;
         return tickerResult;
@@ -524815,7 +524816,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
                 }
                 const outcomeObj = this.outcome(sym);
                 const ticker = this.parsePredictionTicker(raw, outcomeObj);
-                this.tickers[sym] = ticker;
+                this.setWsOption('wsTickers', sym, ticker);
                 client.resolve(ticker, 'ticker::' + sym);
             }
         }
@@ -527029,10 +527030,10 @@ class apex extends _apex_js__rspack_import_0/* ["default"] */.A {
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        const success = this.safeBool(message, 'success');
+        const success = this.safeBool(message, 'success', false);
         const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
-        if (success === true || code === 0) {
+        if (success || code === 0) {
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
         } else {
@@ -528452,7 +528453,7 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
         }
         const type = undefined;
         const [typeMarketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params, type);
-        if (type === undefined) {
+        if (type === undefined || typeMarketType === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' watchBalance() requires a market type');
         }
         await this.authenticate(typeMarketType, paramsMarketType);
@@ -528795,7 +528796,7 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
         let messageHash = 'orders';
         const type = undefined;
         const [typeMarketType, paramsMarketType] = this.handleMarketTypeAndParams('watchOrders', market, params, type);
-        if (type === undefined) {
+        if (type === undefined || typeMarketType === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' watchOrders() requires a market type');
         }
         await this.authenticate(typeMarketType, paramsMarketType);
@@ -528841,7 +528842,7 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
         let messageHash = 'myTrades';
         const type = undefined;
         const [typeMarketType, paramsMarketType] = this.handleMarketTypeAndParams('watchMyTrades', market, params, type);
-        if (type === undefined) {
+        if (type === undefined || typeMarketType === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' watchMyTrades() requires a market type');
         }
         await this.authenticate(typeMarketType, paramsMarketType);
@@ -529382,8 +529383,10 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         } else {
             await this.watchPublic(topics, messageHashes, payload);
         }
-        const tickers = bidAsk ? this.bidsasks : this.tickers;
-        return this.filterByArray(tickers, 'symbol', symbolsResolved);
+        if (bidAsk) {
+            return this.filterByArray(this.bidsasks, 'symbol', symbolsResolved);
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbolsResolved);
     }
     async watchPublic(topics, messageHashes, params = {}, unwatch = false) {
         if (this.markets === undefined) {
@@ -531341,7 +531344,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (baseUrl.endsWith('/ws') === true) {
+            if (baseUrl.endsWith('/ws')) {
                 const prefix = baseUrl.slice(0, baseUrl.length - 3);
                 return prefix + '/' + category + '/ws';
             }
@@ -531846,10 +531849,10 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbolsNormalized[0]);
         let type = firstMarket['type'];
-        if (firstMarket['option'] === true) {
+        if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
-        } else if (firstMarket['contract'] === true) {
-            type = firstMarket['linear'] === true ? 'linear' : 'inverse';
+        } else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = this.safeBool(firstMarket, 'linear', false) ? 'linear' : 'inverse';
         }
         let name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -531926,10 +531929,10 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbolsNormalized[0]);
         let type = firstMarket['type'];
-        if (firstMarket['option'] === true) {
+        if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
-        } else if (firstMarket['contract'] === true) {
-            type = firstMarket['linear'] === true ? 'linear' : 'inverse';
+        } else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = this.safeBool(firstMarket, 'linear', false) ? 'linear' : 'inverse';
         }
         const name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -532364,8 +532367,8 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const isOption = firstMarket['option'];
         if (isOption === true) {
             type = 'option';
-        } else if (firstMarket['contract'] === true) {
-            type = firstMarket['linear'] === true ? 'linear' : 'inverse';
+        } else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = this.safeBool(firstMarket, 'linear', false) ? 'linear' : 'inverse';
         }
         const messageHashes = [];
         const subscribeHashes = [];
@@ -532452,8 +532455,8 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const isOption = firstMarket['option'];
         if (isOption === true) {
             type = 'option';
-        } else if (firstMarket['contract'] === true) {
-            type = firstMarket['linear'] === true ? 'linear' : 'inverse';
+        } else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = this.safeBool(firstMarket, 'linear', false) ? 'linear' : 'inverse';
         }
         const subMessageHashes = [];
         const subParams = [];
@@ -532832,11 +532835,11 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const firstMarket = this.market(marketSymbols[0]);
         let type = firstMarket['type'];
         let wsUrlType = type;
-        if (firstMarket['option'] === true) {
+        if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
-        } else if (firstMarket['contract'] === true) {
-            type = firstMarket['linear'] === true ? 'linear' : 'inverse';
+        } else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = this.safeBool(firstMarket, 'linear', false) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
         const isSpot = type === 'spot';
@@ -532912,11 +532915,11 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const firstMarket = this.market(marketSymbols[0]);
         let type = firstMarket['type'];
         let wsUrlType = type;
-        if (firstMarket['option'] === true) {
+        if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
-        } else if (firstMarket['contract'] === true) {
-            type = firstMarket['linear'] === true ? 'linear' : 'inverse';
+        } else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = this.safeBool(firstMarket, 'linear', false) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
         const isSpot = type === 'spot';
@@ -533750,7 +533753,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         // carries `w`, so a miniTicker uses the contract size.
         let baseVolume = this.safeString(message, 'v');
         let quoteVolume = this.safeString(message, 'q');
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             const contracts = baseVolume;
             baseVolume = quoteVolume;
             const weightedAverage = this.safeString(message, 'w');
@@ -534925,7 +534928,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const sor = this.safeBool2(params, 'sor', 'SOR', false);
         const paramsOmitted = this.omit(params, 'sor', 'SOR');
         const isConditional = this.isConditionalOrder(paramsOmitted);
-        if (market['inverse'] === true && isConditional) {
+        if (this.safeBool(market, 'inverse', false) && isConditional) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead');
         }
         const isAlgoOrder = market['linear'] === true && (market['swap'] === true || market['future'] === true) && isConditional;
@@ -537828,7 +537831,7 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
             request['reqType'] = 'sub';
         }
         let subscriptionArgs = {};
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': false,
@@ -537969,7 +537972,7 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
         let snapshot;
         let timestamp = this.safeInteger2(message, 'timestamp', 'ts');
         timestamp = this.safeInteger2(data, 'timestamp', 'ts', timestamp);
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         } else {
             snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks', 0, 1);
@@ -538095,7 +538098,7 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         let candles = undefined;
         if (isSwap) {
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 candles = [
                     this.safeDict(message, 'data', {})
                 ];
@@ -538430,7 +538433,7 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
             };
         }
         const userStreamKey = this.safeString(this.options, 'listenKey');
-        if (baseUrl === undefined || userStreamKey === undefined) {
+        if (type === undefined || baseUrl === undefined || userStreamKey === undefined) {
             throw new _base_errors_js__rspack_import_2.AuthenticationError(this.id + ' watchBalance() requires a websocket URL and a listen key');
         }
         const url = baseUrl + '?listenKey=' + userStreamKey;
@@ -539269,8 +539272,8 @@ class bitfinex extends _bitfinex_js__rspack_import_0/* ["default"] */.A {
         const checksum = this.safeBool(this.options, 'checksum', true);
         if (checksum && channel === 'book') {
             const sub = client.subscriptions[messageHash];
-            const subChecksum = this.safeBool(sub, 'checksum');
-            if (sub !== undefined && subChecksum !== true) {
+            const subChecksum = this.safeBool(sub, 'checksum', false);
+            if (sub !== undefined && !subChecksum) {
                 client.subscriptions[messageHash]['checksum'] = true;
                 await client.send({
                     'event': 'conf',
@@ -541320,7 +541323,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         //
         let volumeIndex = 5;
         const isInverse = this.safeBool(market, 'inverse', false);
-        if (isInverse === true) {
+        if (isInverse) {
             volumeIndex = 6;
         }
         const timestamp = this.safeInteger2(ohlcv, 'start', 0);
@@ -545741,7 +545744,7 @@ class bitrue extends _bitrue_js__rspack_import_0/* ["default"] */.A {
         let url = undefined;
         let channel = undefined;
         let cbId = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const baseIdLower = this.safeStringLower(market, 'baseId', '');
             const quoteIdLower = this.safeStringLower(market, 'quoteId', '');
             const wsId = 'e_' + baseIdLower + quoteIdLower;
@@ -545875,7 +545878,7 @@ class bitrue extends _bitrue_js__rspack_import_0/* ["default"] */.A {
             return undefined;
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             return rawQuantity;
         }
         const contractSize = this.safeNumber(market, 'contractSize', 1);
@@ -545900,7 +545903,7 @@ class bitrue extends _bitrue_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' watchTrades is only supported for swap markets');
         }
         const baseIdLower = this.safeStringLower(market, 'baseId', '');
@@ -546012,7 +546015,7 @@ class bitrue extends _bitrue_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' watchOHLCV is only supported for swap markets');
         }
         const futuresTimeframes = this.safeDict(this.options, 'futuresTimeframes', {});
@@ -546123,7 +546126,7 @@ class bitrue extends _bitrue_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' watchTicker is only supported for swap markets');
         }
         const baseIdLower = this.safeStringLower(market, 'baseId', '');
@@ -553038,7 +553041,7 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         const paramsValue = this.cleanParams(params);
         const options = this.safeDict(this.options, 'watchTicker', {});
         const topic = this.safeString(options, 'name', 'tickers');
-        if (market['spot'] !== true && topic !== 'tickers') {
+        if (!this.safeBool(market, 'spot', false) && topic !== 'tickers') {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' watchTicker() only supports name tickers for contract markets');
         }
         const topics = [
@@ -553568,7 +553571,7 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         const url = await this.getUrlByMarketType(symbolsNormalized[0], false, 'watchOrderBook', params);
         const paramsValue = this.cleanParams(params);
         const market = this.market(symbolsNormalized[0]);
-        const defaultLimit = market['option'] === true ? 100 : 50;
+        const defaultLimit = this.safeBool(market, 'option', false) ? 100 : 50;
         const limitResolved = limit === undefined ? defaultLimit : limit;
         if (limit !== undefined) {
             const limits = {
@@ -553627,7 +553630,7 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         let defaultLimit = 500;
         if (limitParam === undefined) {
             const firstMarket = this.market(symbolsNormalized[0]);
-            defaultLimit = firstMarket['spot'] === true ? 50 : 500;
+            defaultLimit = this.safeBool(firstMarket, 'spot', false) ? 50 : 500;
         }
         const limit = limitParam === undefined ? defaultLimit : limitParam;
         channel += limit.toString();
@@ -555433,10 +555436,10 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        const success = this.safeBool(message, 'success');
+        const success = this.safeBool(message, 'success', false);
         const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
-        if (success === true || code === 0) {
+        if (success || code === 0) {
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
         } else {
@@ -567938,6 +567941,9 @@ class derive extends _derive_js__rspack_import_0/* ["default"] */.A {
         }
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         const subaccountIdKey = this.numberToString(subaccountId);
+        if (subaccountIdKey === undefined) {
+            throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' watchBalance() could not resolve the subaccount id');
+        }
         if (fetchSnapshot && !(subaccountIdKey in this.balance)) {
             const snapshotRequest = {
                 'subaccount_id': subaccountId
@@ -569808,7 +569814,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         const request = this.createOrdersRequest(orders, params);
         const firstOrder = orders[0];
         const market = this.market(firstOrder['symbol']);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrdersWs is not supported for swap markets');
         }
         // todo add swap support
@@ -570005,7 +570011,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
-            if (market['swap'] !== true) {
+            if (!this.safeBool(market, 'swap', false)) {
                 throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
             }
         }
@@ -570054,11 +570060,11 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         const messageHash = 'orderbook' + ':' + symbolValue;
         // max 100 atm, max 50 for options
         let defaultLimit = 100;
-        if (market['spot'] === true || messageType === 'options') {
+        if (this.safeBool(market, 'spot', false) || messageType === 'options') {
             defaultLimit = 50;
         }
         let limitResolved = limit === undefined ? defaultLimit : limit;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
             limitResolved = Math.min(limitResolved, maxSpotLimit);
@@ -570071,7 +570077,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
                 marketId,
                 interval
             ];
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             channel = 'spot.obu';
             let finalInterval = interval;
             if (limitResolved === 400) {
@@ -570122,7 +570128,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         const messageType = this.getTypeByMarket(market);
         let limit = this.safeInteger(paramsInterval, 'limit');
         if (limit === undefined) {
-            limit = market['spot'] === true ? 50 : 100; // max 100 atm
+            limit = this.safeBool(market, 'spot', false) ? 50 : 100; // max 100 atm
             if (messageType === 'options') {
                 limit = 50; // max 50 for options
             }
@@ -570135,7 +570141,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
                 marketId,
                 intervalOption
             ];
-        } else if (market['spot'] === true) {
+        } else if (this.safeBool(market, 'spot', false)) {
             channel = 'spot.obu';
             let finalInterval = intervalOption;
             if (limit === 400) {
@@ -570506,8 +570512,10 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             }
             return items;
         }
-        const result = isWatchTickers ? this.tickers : this.bidsasks;
-        return this.filterByArray(result, 'symbol', symbolsNormalized, true);
+        if (isWatchTickers) {
+            return this.filterByArray(this.tickers, 'symbol', symbolsNormalized, true);
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized, true);
     }
     handleTickerAndBidAsk(objectName, client, message) {
         const channel = this.safeString(message, 'channel');
@@ -571915,8 +571923,8 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             const data = this.safeDict(message, 'data');
             // use safeValue as result may be Array or an Object
             const result = this.safeValue(data, 'result');
-            const ack = this.safeBool(message, 'ack');
-            if (ack !== true) {
+            const ack = this.safeBool(message, 'ack', false);
+            if (!ack) {
                 client.resolve(result, requestId);
             }
         }
@@ -572694,11 +572702,15 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(firstBidAsk, 'symbol', '').toLowerCase();
         const market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol', '');
-        if (!(symbol in this.bidsasks)) {
-            this.bidsasks[symbol] = this.parseTicker({});
-            this.bidsasks[symbol]['symbol'] = symbol;
+        // read-modify-write: the cached entry is copied out, updated, and stored back whole
+        let currentBidAsk = {};
+        if (symbol in this.bidsasks) {
+            const cachedBidAsk = this.bidsasks[symbol];
+            currentBidAsk = this.extend({}, cachedBidAsk);
+        } else {
+            currentBidAsk = this.extend(this.parseTicker({}));
+            currentBidAsk['symbol'] = symbol;
         }
-        const currentBidAsk = this.bidsasks[symbol];
         const messageHash = 'bidsasks:' + symbol;
         // last update always overwrites the previous state and is the latest state
         for(let i = 0; i < rawBidAskChanges.length; i++){
@@ -572735,7 +572747,7 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbolsNormalized[0]);
-        if (firstMarket['spot'] !== true && firstMarket['linear'] !== true) {
+        if (!this.safeBool(firstMarket, 'spot', false) && !this.safeBool(firstMarket, 'linear', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
         const messageHashes = [];
@@ -574616,7 +574628,7 @@ class hashkey extends _hashkey_js__rspack_import_0/* ["default"] */.A {
         let timeInForce = this.safeString(order, 'f');
         let postOnly = undefined;
         [type, timeInForce, postOnly] = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
-        if (marketResolved['contract'] === true) {
+        if (this.safeBool(marketResolved, 'contract', false)) {
             type = undefined;
         }
         return this.safeOrder({
@@ -575035,7 +575047,7 @@ class hashkey extends _hashkey_js__rspack_import_0/* ["default"] */.A {
             const client = this.client(url);
             this.options['listenKey'] = undefined;
             client.reject(error);
-            delete this.clients[url];
+            delete this.clients[client.url];
         }
     }
     handleListMessage(client, message) {
@@ -576525,9 +576537,9 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
         //        "result": true
         //    }
         //
-        const success = this.safeBool(message, 'result');
+        const success = this.safeBool(message, 'result', false);
         const messageHash = 'authenticated';
-        if (success === true) {
+        if (success) {
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
         } else {
@@ -577719,7 +577731,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         }
         let messageHash = '';
         const marketId = this.safeString(market, 'id', '');
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             messageHash = 'market.' + marketId + '.mbp.' + limitResolved.toString();
         } else {
             messageHash = 'market.' + marketId + '.depth.size_' + limitResolved.toString() + '.high_freq';
@@ -577727,12 +577739,12 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;
         let paramsExtended = params;
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             paramsExtended = this.extend(params, {
                 'data_type': 'incremental'
             });
         }
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             method = undefined;
         }
         const orderbook = await this.subscribePublic(url, symbolValue, messageHash, method, paramsExtended);
@@ -577759,12 +577771,12 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         const depth = this.parseToInt(this.safeInteger(options, 'depth', 150));
         const marketId = this.safeString(market, 'id', '');
         let subMessageHash = '';
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             subMessageHash = 'market.' + marketId + '.mbp.' + depth.toString();
         } else {
             subMessageHash = 'market.' + marketId + '.depth.size_' + depth.toString() + '.high_freq';
         }
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             params['data_type'] = 'incremental';
         }
         return await this.unsubscribePublic(market, subMessageHash, topic, params);
@@ -578093,7 +578105,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             orderbook['nonce'] = undefined;
             orderbook.cache = [];
         }
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
         }
     }
@@ -578122,7 +578134,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         if (symbol !== undefined) {
             market = this.market(symbol);
             type = this.safeString(market, 'type');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 subType = 'linear';
             } else {
                 subType = 'inverse';
@@ -578271,7 +578283,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         if (symbol !== undefined) {
             market = this.market(symbol);
             type = this.safeString(market, 'type');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 subType = 'linear';
             } else {
                 subType = 'inverse';
@@ -578889,7 +578901,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         let paramsSubType = {};
         if (market !== undefined) {
             type = this.safeString(market, 'type');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 subType = 'linear';
             } else {
                 subType = 'inverse';
@@ -580600,7 +580612,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] === true ? market['baseName'] : market['id']
+                'coin': this.safeBool(market, 'swap', false) ? market['baseName'] : market['id']
             }
         };
         const message = this.extend(request, params);
@@ -580632,7 +580644,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] === true ? market['baseName'] : market['id']
+                'coin': this.safeBool(market, 'swap', false) ? market['baseName'] : market['id']
             }
         };
         const message = this.extend(request, params);
@@ -580712,7 +580724,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
                 // always 'activeAssetCtx', the server routes spot coins to the spot channel,
                 // see https://github.com/ccxt/ccxt/issues/27475
                 'type': 'activeAssetCtx',
-                'coin': market['swap'] === true ? market['baseName'] : market['id']
+                'coin': this.safeBool(market, 'swap', false) ? market['baseName'] : market['id']
             }
         };
         await this.waitForPendingUnsubscribe(url, messageHash);
@@ -580739,7 +580751,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'activeAssetCtx',
-                'coin': market['swap'] === true ? market['baseName'] : market['id']
+                'coin': this.safeBool(market, 'swap', false) ? market['baseName'] : market['id']
             }
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
@@ -581156,7 +581168,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] === true ? market['baseName'] : market['id']
+                'coin': this.safeBool(market, 'swap', false) ? market['baseName'] : market['id']
             }
         };
         const message = this.extend(request, params);
@@ -581189,7 +581201,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] === true ? market['baseName'] : market['id']
+                'coin': this.safeBool(market, 'swap', false) ? market['baseName'] : market['id']
             }
         };
         const message = this.extend(request, params);
@@ -581324,7 +581336,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] === true ? market['baseName'] : market['id'],
+                'coin': this.safeBool(market, 'swap', false) ? market['baseName'] : market['id'],
                 'interval': timeframe
             }
         };
@@ -581358,7 +581370,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] === true ? market['baseName'] : market['id'],
+                'coin': this.safeBool(market, 'swap', false) ? market['baseName'] : market['id'],
                 'interval': timeframe
             }
         };
@@ -581436,7 +581448,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         const paramsValue = this.safeDict(this.handlePublicAddress('watchBalance', params), 1, params);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, paramsValue);
         const unifiedResult = await this.isUnifiedEnabled('watchBalance', userAddress, false, paramsMarketType);
-        const isUnifiedEnabled = this.safeBool(unifiedResult, 0);
+        const isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
         const paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
         const dex = this.safeString(paramsValue2, 'dex');
         const isSpot = (type === 'spot' || isUnifiedEnabled === true) && dex === undefined;
@@ -581451,7 +581463,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             'user': userAddress
         };
         if (isSpot) {
-            if (isUnifiedEnabled === true) {
+            if (isUnifiedEnabled) {
                 subscription['isPortfolioMargin'] = true;
             }
         } else {
@@ -581486,7 +581498,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         const paramsValue = this.safeDict(this.handlePublicAddress('unWatchBalance', params), 1, params);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('unWatchBalance', undefined, paramsValue);
         const unifiedResult = await this.isUnifiedEnabled('unWatchBalance', userAddress, false, paramsMarketType);
-        const isUnifiedEnabled = this.safeBool(unifiedResult, 0);
+        const isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
         const paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
         const dex = this.safeString(paramsValue2, 'dex');
         const isSpot = (type === 'spot' || isUnifiedEnabled === true) && dex === undefined;
@@ -582783,8 +582795,8 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
             priceType = 'pct';
         }
         if (method === 'createOrderWs') {
-            const reduceOnly = this.safeBool(paramsPostOnly, 'reduceOnly');
-            if (reduceOnly === true) {
+            const reduceOnly = this.safeBool(paramsPostOnly, 'reduceOnly', false);
+            if (reduceOnly) {
                 orderParams['reduce_only'] = true;
             }
             const timeInForce = this.safeStringLower(paramsPostOnly, 'timeInForce');
@@ -585274,8 +585286,8 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
                 client.resolve(orders, messageHash);
             }
         } else {
-            const isCancel = this.safeBool(message, 'is_cancel');
-            if (isCancel === true) {
+            const isCancel = this.safeBool(message, 'is_cancel', false);
+            if (isCancel) {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
                 // mapping every removal to canceled. Preserve reason on info
@@ -585939,11 +585951,12 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
                 newAccount['free'] = this.safeString(future, 'available');
                 newAccount['used'] = this.safeString(future, 'initial_margin');
                 newAccount['total'] = this.safeString(future, 'balance');
-                this.balance['margin'][symbol] = {};
+                const symbolAccounts = {};
                 if (symbol !== undefined && code !== undefined) {
                     futuresSymbols[symbol] = true;
-                    this.balance['margin'][symbol][code] = newAccount;
+                    symbolAccounts[code] = newAccount;
                 }
+                this.balance['margin'][symbol] = symbolAccounts;
             }
             this.balance['margin'] = this.pruneStaleBalanceKeys(this.balance['margin'], futuresSymbols);
             this.balance['margin'] = this.safeBalance(this.balance['margin']);
@@ -586087,7 +586100,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         const timestamp = this.safeInteger(trade, 'time');
         const marketId = this.safeString(trade, 'instrument');
         const marketResolved = this.safeMarket(marketId, market);
-        const isBuy = this.safeBool(trade, 'buy');
+        const isBuy = this.safeBool(trade, 'buy', false);
         const feeCurrencyId = this.safeString(trade, 'fee_currency');
         return this.safeTrade({
             'info': trade,
@@ -586097,7 +586110,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
             'symbol': this.safeString(marketResolved, 'symbol'),
             'order': this.safeString(trade, 'order_id'),
             'type': this.safeString(trade, 'type'),
-            'side': isBuy === true ? 'buy' : 'sell',
+            'side': isBuy ? 'buy' : 'sell',
             'takerOrMaker': this.safeString(trade, 'fill_type'),
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString(trade, 'qty'),
@@ -586453,7 +586466,7 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.requestId().toString();
         const market = this.market(symbol);
         let urlType = 'spot';
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             urlType = 'futures';
         }
         const tradeType = urlType.toUpperCase();
@@ -588407,7 +588420,7 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
         let timestamp = this.safeInteger2(order, 'orderTime', 'createdAt');
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        if (marketResolved['contract'] === true) {
+        if (this.safeBool(marketResolved, 'contract', false)) {
             timestamp = this.safeIntegerProduct(order, 'orderTime', 0.000001);
         }
         const triggerPrice = this.safeString(order, 'stopPrice');
@@ -590062,7 +590075,7 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
     checkContractMarket(market, methodName) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if (market !== undefined && market['contract'] === true) {
+        if (market !== undefined && this.safeBool(market, 'contract', false)) {
             const marketType = this.safeString(market, 'type', '');
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet');
         }
@@ -591062,8 +591075,8 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                const result = this.safeBool(response, 'result');
-                if (result !== true) {
+                const result = this.safeBool(response, 'result', false);
+                if (!result) {
                     throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' failed to get subscribe key');
                 }
                 client.subscriptions['authenticated'] = {
@@ -591421,7 +591434,7 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' watchTicker() is only supported for swap markets');
         }
         const request = {
@@ -591444,7 +591457,7 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' unWatchTicker() is only supported for swap markets');
         }
         const request = {
@@ -591468,7 +591481,7 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if (firstMarket !== undefined && firstMarket['swap'] !== true) {
+        if (firstMarket !== undefined && !this.safeBool(firstMarket, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' watchTickers() is only supported for swap markets');
         }
         const request = {
@@ -591512,7 +591525,7 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if (firstMarket !== undefined && firstMarket['swap'] !== true) {
+        if (firstMarket !== undefined && !this.safeBool(firstMarket, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' unWatchTickers() is only supported for swap markets');
         }
         const request = {
@@ -591599,9 +591612,9 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
         const tradeId = this.safeString(trade, 'trade_id');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
-        const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
+        const isMakerAsk = this.safeBool(trade, 'is_maker_ask', false);
         let side = 'sell';
-        if (isMakerAsk === true) {
+        if (isMakerAsk) {
             side = 'buy';
         }
         return this.safeTrade({
@@ -591759,7 +591772,7 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
         const costString = this.safeString(trade, 'usd_amount');
-        const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
+        const isMakerAsk = this.safeBool(trade, 'is_maker_ask', false);
         const accountIndex = this.safeInteger(trade, 'accountIndex');
         const bidAccountId = this.safeInteger(trade, 'bid_account_id');
         const askAccountId = this.safeInteger(trade, 'ask_account_id');
@@ -591771,16 +591784,16 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
                 // Own trades should use the account's order side
                 side = 'buy';
                 order = this.safeString(trade, 'bid_id');
-                takerOrMaker = isMakerAsk === true ? 'taker' : 'maker';
+                takerOrMaker = isMakerAsk ? 'taker' : 'maker';
             } else if (askAccountId === accountIndex) {
                 side = 'sell';
                 order = this.safeString(trade, 'ask_id');
-                takerOrMaker = isMakerAsk === true ? 'maker' : 'taker';
+                takerOrMaker = isMakerAsk ? 'maker' : 'taker';
             }
         }
         // public trades use Lighter's taker-side convention
         if (side === undefined) {
-            side = isMakerAsk === true ? 'buy' : 'sell';
+            side = isMakerAsk ? 'buy' : 'sell';
         }
         let fee = undefined;
         if (takerOrMaker !== undefined) {
@@ -591968,9 +591981,9 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const timestamp = this.safeInteger(liquidation, 'timestamp');
-        const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask');
+        const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask', false);
         let side = 'sell';
-        if (isMakerAsk === true) {
+        if (isMakerAsk) {
             side = 'buy';
         }
         const contracts = this.safeString(liquidation, 'size');
@@ -593280,7 +593293,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + this.safeString(market, 'id', '');
             return await this.watchSpotPublic(channel, messageHash, params);
         } else {
@@ -593369,7 +593382,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol', '');
         let ticker;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             this.handleBidAsk(client, message); // the bids-asks channel is spot only
             ticker = this.parseWsTicker(rawTicker, market);
             ticker['timestamp'] = timestamp;
@@ -593795,7 +593808,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const timeframeId = this.safeString(timeframes, timeframe);
         const messageHash = 'candles:' + symbolValue + ':' + timeframe;
         let ohlcv = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const channel = 'spot@public.kline.v3.api.pb@' + this.safeString(market, 'id', '') + '@' + timeframeId;
             ohlcv = await this.watchSpotPublic(channel, messageHash, params);
         } else {
@@ -593989,7 +594002,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const messageHash = 'orderbook:' + this.safeString(market, 'symbol', '');
         let orderbook = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const [frequency, paramsFrequency] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + this.safeString(market, 'id', '');
             orderbook = await this.watchSpotPublic(channel, messageHash, paramsFrequency);
@@ -594222,7 +594235,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'trades:' + symbolValue;
         let trades = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + this.safeString(market, 'id', '');
             trades = await this.watchSpotPublic(channel, messageHash, params);
         } else {
@@ -594312,7 +594325,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         }
         for(let j = 0; j < trades.length; j++){
             let parsedTrade;
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 parsedTrade = this.parseWsTrade(trades[j], market);
             } else {
                 parsedTrade = this.parseTrade(trades[j], market);
@@ -594406,7 +594419,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol', '');
         let trade;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             trade = this.parseWsTrade(data, market);
         } else if (data !== undefined) {
             trade = this.parseTrade(data, market);
@@ -594633,7 +594646,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol', '');
         let parsed;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             parsed = this.parseWsOrder(data, market);
             const sendTime = this.safeInteger(message, 'sendTime');
             if (sendTime !== undefined) {
@@ -594969,7 +594982,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const messageHash = 'unsubscribe:ticker:' + market['symbol'];
         let url = undefined;
         let channel = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + this.safeString(market, 'id', '');
             url = this.urls['api']['ws']['spot'];
             params['unsubscribed'] = true;
@@ -595106,7 +595119,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const timeframeId = this.safeString(timeframes, timeframe);
         const messageHash = 'unsubscribe:candles:' + this.safeString(market, 'symbol', '') + ':' + timeframe;
         let url = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.kline.v3.api.pb@' + this.safeString(market, 'id', '') + '@' + timeframeId;
             params['unsubscribed'] = true;
@@ -595141,7 +595154,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const messageHash = 'unsubscribe:orderbook:' + this.safeString(market, 'symbol', '');
         let url = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             url = this.urls['api']['ws']['spot'];
             const [frequency, paramsFrequency] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + this.safeString(market, 'id', '');
@@ -595176,7 +595189,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const messageHash = 'unsubscribe:trades:' + this.safeString(market, 'symbol', '');
         let url = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + this.safeString(market, 'id', '');
             params['unsubscribed'] = true;
@@ -595304,7 +595317,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
             const client = this.client(url);
             this.options['listenKey'] = undefined;
             client.reject(error);
-            delete this.clients[url];
+            delete this.clients[client.url];
         }
     }
     handlePong(client, message) {
@@ -596072,8 +596085,8 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeBool(message, 'success');
-        if (success === true) {
+        const success = this.safeBool(message, 'success', false);
+        if (success) {
             // client.resolve (message, messageHash);
             const future = this.safeValue(client.futures, 'authenticated');
             future.resolve(true);
@@ -596772,8 +596785,8 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
         if (!('success' in message)) {
             return false;
         }
-        const success = this.safeBool(message, 'success');
-        if (success === true) {
+        const success = this.safeBool(message, 'success', false);
+        if (success) {
             return false;
         }
         const errorMessage = this.safeString(message, 'errorMsg');
@@ -602858,10 +602871,10 @@ class onetrading extends _onetrading_js__rspack_import_0/* ["default"] */.A {
             const marketId = this.safeString(ticker, 'instrument');
             const symbol = this.safeSymbol(marketId);
             const parsedTicker = this.parseWSTicker(ticker);
-            this.tickers[symbol] = parsedTicker;
             const timestamp = this.parse8601(datetime);
             parsedTicker['timestamp'] = timestamp;
             parsedTicker['datetime'] = this.iso8601(timestamp);
+            this.tickers[symbol] = parsedTicker;
             client.resolve(parsedTicker, 'ticker.' + symbol);
         }
         client.resolve(this.tickers, 'tickers');
@@ -610981,9 +610994,9 @@ class poloniex extends _poloniex_js__rspack_import_0/* ["default"] */.A {
         //    }
         //
         const data = this.safeDict(message, 'data');
-        const success = this.safeBool(data, 'success');
+        const success = this.safeBool(data, 'success', false);
         const messageHash = 'authenticated';
-        if (success === true) {
+        if (success) {
             client.resolve(message, messageHash);
         } else {
             const error = new _base_errors_js__rspack_import_2.AuthenticationError(this.id + ' ' + this.json(message));
@@ -611970,8 +611983,7 @@ class polymarket extends _polymarket_js__rspack_import_0/* ["default"] */.A {
         this.setBalanceCache(client);
         const fetchBalanceSnapshot = this.handleOption('watchBalance', 'fetchBalanceSnapshot', true);
         const awaitBalanceSnapshot = this.handleOption('watchBalance', 'awaitBalanceSnapshot', true);
-        const balanceLoaded = 'info' in this.balance;
-        if (fetchBalanceSnapshot === true && awaitBalanceSnapshot === true && !balanceLoaded) {
+        if (fetchBalanceSnapshot === true && awaitBalanceSnapshot === true && !('info' in this.balance)) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             const snapshot = await client.future('fetchBalanceSnapshot');
@@ -611988,8 +612000,7 @@ class polymarket extends _polymarket_js__rspack_import_0/* ["default"] */.A {
         return await this.watch(url, 'balance', request, 'portfolio');
     }
     setBalanceCache(client) {
-        const balanceLoaded = 'info' in this.balance;
-        if (balanceLoaded) {
+        if ('info' in this.balance) {
             return;
         }
         const fetchBalanceSnapshot = this.handleOption('watchBalance', 'fetchBalanceSnapshot', true);
@@ -615897,6 +615908,9 @@ class weex extends _weex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        if (type === undefined) {
+            throw new _base_errors_js__rspack_import_4.ArgumentsRequired(this.id + ' watchBalance() requires a market type');
+        }
         const isContract = type !== 'spot';
         let urlType = 'spot';
         if (isContract) {
@@ -616522,7 +616536,7 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
         //  }
         //
         const params = this.safeList(message, 'params', []);
-        const isSnapshot = this.safeBool(params, 0);
+        const isSnapshot = this.safeBool(params, 0, false);
         const marketId = this.safeString(params, 2);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -616535,7 +616549,7 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
         const orderbook = this.orderbooks[symbol];
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
-        if (isSnapshot === true) {
+        if (isSnapshot) {
             const snapshot = this.parseOrderBook(data, symbol);
             orderbook.reset(snapshot);
         } else {
@@ -619008,8 +619022,8 @@ class woo extends _woo_js__rspack_import_0/* ["default"] */.A {
         if (!('success' in message)) {
             return false;
         }
-        const success = this.safeBool(message, 'success');
-        if (success === true) {
+        const success = this.safeBool(message, 'success', false);
+        if (success) {
             return false;
         }
         const errorMessage = this.safeString(message, 'errorMsg');
@@ -619160,8 +619174,8 @@ class woo extends _woo_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeBool(message, 'success');
-        if (success === true) {
+        const success = this.safeBool(message, 'success', false);
+        if (success) {
             // client.resolve (message, messageHash);
             const future = this.safeValue(client.futures, 'authenticated');
             future.resolve(true);
@@ -619782,8 +619796,8 @@ class woofipro extends _woofipro_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeBool(message, 'success');
-        if (success === true) {
+        const success = this.safeBool(message, 'success', false);
+        if (success) {
             // client.resolve (message, messageHash);
             const future = this.safeValue(client.futures, 'authenticated');
             future.resolve(true);
@@ -620470,8 +620484,8 @@ class woofipro extends _woofipro_js__rspack_import_0/* ["default"] */.A {
         if (!('success' in message)) {
             return false;
         }
-        const success = this.safeBool(message, 'success');
-        if (success === true) {
+        const success = this.safeBool(message, 'success', false);
+        if (success) {
             return false;
         }
         const errorMessage = this.safeString(message, 'errorMsg');
@@ -621278,7 +621292,7 @@ class xt extends _xt_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' watchFundingRate() supports swap contracts only');
         }
         return await this.subscribe('fund_rate@' + this.safeString(market, 'id', ''), 'public', 'watchFundingRate', market, undefined, params);
@@ -621296,7 +621310,7 @@ class xt extends _xt_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' unWatchFundingRate() supports swap contracts only');
         }
         const name = 'fund_rate@' + this.safeString(market, 'id', '');
@@ -622148,7 +622162,7 @@ class xt extends _xt_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(tradeSymbol);
         stored.append(parsedTrade);
         let tradeType = 'spot';
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             tradeType = 'contract';
         }
         client.resolve(stored, 'trade::' + tradeType);
@@ -629799,7 +629813,7 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         } else if (uppercaseType === 'STOP_LOSS' || uppercaseType === 'TAKE_PROFIT') {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if (market['linear'] === true || market['inverse'] === true) {
+            if (this.safeBool(market, 'linear', false) || this.safeBool(market, 'inverse', false)) {
                 priceIsRequired = true;
             }
         } else if (uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT_LIMIT') {
@@ -632040,16 +632054,16 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         const timestamp = this.safeInteger2(trade, 't', 'time');
         const priceString = this.safeString2(trade, 'p', 'price');
         const amountString = this.safeString2(trade, 'q', 'qty');
-        const isBuyer = this.safeBool(trade, 'isBuyer');
+        const isBuyer = this.safeBool(trade, 'isBuyer', false);
         let side = undefined;
         const isBuyerMaker = this.safeBool(trade, 'ibm');
         const isBuyerTaker = this.safeBool(trade, 'm');
         if (isBuyerMaker !== undefined) {
-            side = isBuyerMaker === true ? 'sell' : 'buy';
+            side = isBuyerMaker ? 'sell' : 'buy';
         } else if (isBuyerTaker !== undefined) {
-            side = isBuyerTaker === true ? 'buy' : 'sell';
+            side = isBuyerTaker ? 'buy' : 'sell';
         } else {
-            if (isBuyer === true) {
+            if (isBuyer) {
                 side = 'buy';
             } else {
                 side = 'sell';
@@ -632317,7 +632331,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         const last = this.safeString(ticker, 'c');
         let baseVolume = this.safeString(ticker, 'v');
         const contractSize = this.safeNumber(marketResolved, 'contractSize');
-        if (marketResolved['contract'] === true && contractSize !== undefined) {
+        if (this.safeBool(marketResolved, 'contract', false) && contractSize !== undefined) {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(baseVolume, this.numberToString(contractSize));
         }
@@ -632655,7 +632669,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         let response = {};
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const [request, paramsRequest] = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostApiV1SpotOrder(this.extend(request, paramsRequest));
         } else {
@@ -633096,7 +633110,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         };
         const market = this.market(symbol);
         let response = {};
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateGetApiV1SpotOrder(this.extend(request, params));
         } else {
             response = await this.privateGetApiV1FuturesOrder(this.extend(request, params));
@@ -635549,11 +635563,11 @@ class upbit extends _abstract_upbit_js__rspack_import_0/* ["default"] */.A {
     }
     calcOrderPrice(symbol, amount = undefined, price = undefined, params = {}) {
         let quoteAmount = undefined;
-        const createMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'createMarketBuyOrderRequiresPrice');
+        const createMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'createMarketBuyOrderRequiresPrice', false);
         const cost = this.safeString(params, 'cost');
         if (cost !== undefined) {
             quoteAmount = this.costToPrecision(symbol, cost);
-        } else if (createMarketBuyOrderRequiresPrice === true) {
+        } else if (createMarketBuyOrderRequiresPrice) {
             if (price === undefined || amount === undefined) {
                 throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
             }
@@ -638577,7 +638591,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchMarkPrice() supports contract markets only');
         }
         const [priceType, paramsPriceType] = this.handleOptionStringAndParams(params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
@@ -638655,7 +638669,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
             request['limit'] = 200; // default is 15, max is 200
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.publicGetApiV3MarketDepth(this.extend(request, params));
         } else {
             response = await this.contractGetCapiV3MarketDepth(this.extend(request, params));
@@ -638702,7 +638716,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return await this.fetchSpotOHLCV(symbol, timeframe, since, limit, params);
         } else {
             return await this.fetchContractOHLCV(symbol, timeframe, since, limit, params);
@@ -638871,7 +638885,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
             request['limit'] = Math.min(limit, 1000);
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.publicGetApiV3MarketTrades(this.extend(request, params));
         } else {
             response = await this.contractGetCapiV3MarketTrades(this.extend(request, params));
@@ -639352,7 +639366,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             return await this.createContractOrder(symbol, type, side, amount, price, params);
         } else {
             const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
@@ -639509,7 +639523,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
         if (isTrigger && (isStopLoss || isTakeProfit)) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
-        const reduceOnly = this.safeBool(query, 'reduceOnly');
+        const reduceOnly = this.safeBool(query, 'reduceOnly', false);
         const isReduceOnly = isStopLoss || isTakeProfit || reduceOnly === true;
         let positionSide = 'LONG';
         if (isReduceOnly) {
@@ -640097,7 +640111,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrders() supports spot markets only');
         }
         const maxLimit = 1000;
@@ -640735,7 +640749,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
         };
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['swap'] !== true) {
+            if (!this.safeBool(market, 'swap', false)) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchFundingHistory() supports swap contracts only');
             }
             request['symbol'] = market['id'];
@@ -641058,7 +641072,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             // spot markets return 0 for fees
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchTradingFee() is not supported for spot markets');
         }
@@ -642366,7 +642380,7 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
             return undefined;
         }
         const active = this.safeBool(market, 'tradesEnabled');
-        const isCollateral = this.safeBool(market, 'isCollateral');
+        const isCollateral = this.safeBool(market, 'isCollateral', false);
         const typeId = this.safeString(market, 'type');
         let type = undefined;
         let settle = undefined;
@@ -643385,7 +643399,7 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
             for(let i = 0; i < symbolsNormalized.length; i++){
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                if (market['contract'] !== true) {
+                if (!this.safeBool(market, 'contract', false)) {
                     onlyContractSymbols = false;
                     break;
                 }
@@ -644471,9 +644485,9 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
         const timestamp = this.safeTimestamp2(order, 'ctime', 'timestamp');
         const lastTradeTimestamp = this.safeTimestamp(order, 'ftime');
         const postOnly = this.safeBool(order, 'postOnly');
-        const ioc = this.safeBool(order, 'ioc');
+        const ioc = this.safeBool(order, 'ioc', false);
         let timeInForce = undefined;
-        if (ioc === true) {
+        if (ioc) {
             timeInForce = 'IOC';
         } else if (postOnly === true) {
             timeInForce = 'PO';
@@ -647701,7 +647715,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
@@ -647720,7 +647734,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
@@ -647873,7 +647887,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
                 'orderAmount'
             ]);
             const isPriceProvided = price !== undefined;
-            if (market['spot'] === true && (isPriceProvided || cost !== undefined)) {
+            if (this.safeBool(market, 'spot', false) && (isPriceProvided || cost !== undefined)) {
                 let quoteAmount = undefined;
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
@@ -648871,7 +648885,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchTicker() supports swap markets only, there is no spot ticker endpoint');
         }
         const request = {
@@ -648935,7 +648949,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
                 const firstMarket = this.market(symbols[0]);
-                if (firstMarket['swap'] !== true) {
+                if (!this.safeBool(firstMarket, 'swap', false)) {
                     throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchTickers() supports swap markets only');
                 }
             }
@@ -650058,9 +650072,9 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeBool(response, 'success');
+        const success = this.safeBool(response, 'success', false);
         const errorCode = this.safeString(response, 'code');
-        if (success !== true) {
+        if (!success) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -650433,7 +650447,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.v3PrivateGetAccountInfo(params);
         //
         //     {
@@ -650464,7 +650478,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
         //         "timestamp": 1752645129054
         //     }
         //
-        } else if (market['swap'] === true) {
+        } else if (this.safeBool(market, 'swap', false)) {
             const request = {
                 'symbol': market['id']
             };
@@ -655149,9 +655163,9 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeBool(response, 'success');
+        const success = this.safeBool(response, 'success', false);
         const errorCode = this.safeString(response, 'code');
-        if (success !== true) {
+        if (!success) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -657218,7 +657232,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         }
         let limitResolved = limit;
         if (limit !== undefined) {
-            const maxLimit = market['spot'] === true ? 1000 : 1500; // spot : derivatives max limit
+            const maxLimit = this.safeBool(market, 'spot', false) ? 1000 : 1500; // spot : derivatives max limit
             limitResolved = Math.min(limit, maxLimit);
             request['limit'] = limitResolved;
         } else {
@@ -657232,9 +657246,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             request['endTime'] = until;
         }
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.publicLinearGetFutureMarketV1PublicQKline(this.extend(request, paramsOmitted));
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.publicInverseGetFutureMarketV1PublicQKline(this.extend(request, paramsOmitted));
         } else {
             response = await this.publicSpotGetKline(this.extend(request, paramsOmitted));
@@ -657311,9 +657325,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         //         "v": "702461.58895"
         //     }
         //
-        const isInverse = this.safeBool(market, 'inverse');
+        const isInverse = this.safeBool(market, 'inverse', false);
         let volumeIndex = 'a';
-        if (isInverse === true) {
+        if (isInverse) {
             volumeIndex = 'v';
         }
         return [
@@ -657344,7 +657358,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (limit !== undefined) {
                 request['limit'] = Math.min(limit, 500);
             }
@@ -657355,9 +657369,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             } else {
                 request['level'] = 50;
             }
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.publicLinearGetFutureMarketV1PublicQDepth(this.extend(request, params));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.publicInverseGetFutureMarketV1PublicQDepth(this.extend(request, params));
             }
         }
@@ -657409,7 +657423,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         //
         const orderBook = this.safeDict(response, 'result', {});
         const timestamp = this.safeInteger2(orderBook, 'timestamp', 't');
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const ob = this.parseOrderBook(orderBook, symbol, timestamp);
             ob['nonce'] = this.safeInteger(orderBook, 'lastUpdateId');
             return ob;
@@ -657436,9 +657450,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response = undefined;
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.publicLinearGetFutureMarketV1PublicQAggTicker(this.extend(request, params));
-        } else if (market['inverse'] === true) {
+        } else if (this.safeBool(market, 'inverse', false)) {
             response = await this.publicInverseGetFutureMarketV1PublicQAggTicker(this.extend(request, params));
         } else {
             response = await this.publicSpotGetTicker24h(this.extend(request, params));
@@ -657489,7 +657503,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     }
         //
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const tickers = this.safeList(response, 'result', []);
             return this.parseTicker(tickers[0], market);
         }
@@ -657740,10 +657754,10 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         let baseVolume = this.safeString2(ticker, 'a', 'q');
         let quoteVolume = this.safeString(ticker, 'v');
         const contractSize = this.safeString(marketResolved, 'contractSize');
-        if (marketResolved['contract'] === true && contractSize !== undefined) {
+        if (this.safeBool(marketResolved, 'contract', false) && contractSize !== undefined) {
             // 'a' counts contracts, 'v' is in the settle currency
             const contractVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(baseVolume, contractSize);
-            if (marketResolved['inverse'] === true) {
+            if (this.safeBool(marketResolved, 'inverse', false)) {
                 baseVolume = quoteVolume;
                 quoteVolume = contractVolume;
             } else {
@@ -657793,7 +657807,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (limit !== undefined) {
                 request['limit'] = Math.min(limit, 1000);
             }
@@ -657802,9 +657816,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             if (limit !== undefined) {
                 request['num'] = Math.min(limit, 1000);
             }
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.publicLinearGetFutureMarketV1PublicQDeal(this.extend(request, params));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.publicInverseGetFutureMarketV1PublicQDeal(this.extend(request, params));
             }
         }
@@ -658278,7 +658292,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
@@ -658317,7 +658331,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const isTrailing = 'trailingPercent' in params || 'trailingAmount' in params || 'trailingTriggerPrice' in params;
             if (isTrailing) {
                 // do not silently place a regular spot order when a trailing order was requested
@@ -658453,7 +658467,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
         const isTrailing = trailingPercent !== undefined || trailingAmount !== undefined;
-        if (isTrailing && market['swap'] !== true) {
+        if (isTrailing && !this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() trailing orders are only supported on swap markets');
         }
         if (trailingTriggerPrice !== undefined && !isTrailing) {
@@ -658485,9 +658499,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
                 'trailingAmount',
                 'trailingTriggerPrice'
             ]);
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.privateLinearPostFutureTradeV1EntrustCreateTrack(this.extend(request, paramsOmitted3));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.privateInversePostFutureTradeV1EntrustCreateTrack(this.extend(request, paramsOmitted3));
             }
         } else if (isTrigger) {
@@ -658501,9 +658515,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             }
             request['entrustType'] = entrustType;
             const paramsOmitted2 = this.omit(paramsOmitted4, 'triggerPrice');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.privateLinearPostFutureTradeV1EntrustCreatePlan(this.extend(request, paramsOmitted2));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.privateInversePostFutureTradeV1EntrustCreatePlan(this.extend(request, paramsOmitted2));
             }
         } else if (isStopLoss || isTakeProfit) {
@@ -658516,17 +658530,17 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
                 'stopLoss',
                 'takeProfit'
             ]);
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.privateLinearPostFutureTradeV1EntrustCreateProfit(this.extend(request, paramsOmitted));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.privateInversePostFutureTradeV1EntrustCreateProfit(this.extend(request, paramsOmitted));
             }
         } else {
             request['orderSide'] = side.toUpperCase();
             request['orderType'] = type.toUpperCase();
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.privateLinearPostFutureTradeV1OrderCreate(this.extend(request, paramsOmitted4));
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.privateInversePostFutureTradeV1OrderCreate(this.extend(request, paramsOmitted4));
             }
         }
@@ -658569,9 +658583,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrder', market, paramsMarketType);
         const trigger = this.safeBool2(paramsSubType, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeBool(paramsSubType, 'stopLossTakeProfit');
-        const trailing = this.safeBool(paramsSubType, 'trailing');
-        if (trailing === true) {
+        const stopLossTakeProfit = this.safeBool(paramsSubType, 'stopLossTakeProfit', false);
+        const trailing = this.safeBool(paramsSubType, 'trailing', false);
+        if (trailing) {
             const isContract = subType !== undefined || type === 'swap' || type === 'future';
             if (!isContract) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrder() trailing orders are only supported on swap and future markets');
@@ -658579,9 +658593,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         }
         if (trigger === true) {
             request['entrustId'] = id;
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             request['profitId'] = id;
-        } else if (trailing === true) {
+        } else if (trailing) {
             request['trackId'] = id;
         } else {
             request['orderId'] = id;
@@ -658596,14 +658610,14 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanDetail(this.extend(request, paramsOmitted3));
             }
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             const paramsOmitted2 = this.omit(paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustProfitDetail(this.extend(request, paramsOmitted2));
             } else {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitDetail(this.extend(request, paramsOmitted2));
             }
-        } else if (trailing === true) {
+        } else if (trailing) {
             const paramsOmitted = this.omit(paramsSubType, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustTrackDetail(this.extend(request, paramsOmitted));
@@ -658772,8 +658786,8 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrders', market, paramsMarketType);
         const trigger = this.safeBool2(paramsSubType, 'trigger', 'stop');
-        const trailing = this.safeBool(paramsSubType, 'trailing');
-        if (trailing === true) {
+        const trailing = this.safeBool(paramsSubType, 'trailing', false);
+        if (trailing) {
             const isContract = subType !== undefined || type === 'swap' || type === 'future';
             if (!isContract) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrders() trailing orders are only supported on swap and future markets');
@@ -658789,7 +658803,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanListHistory(this.extend(request, paramsOmitted2));
             }
-        } else if (trailing === true) {
+        } else if (trailing) {
             const paramsOmitted = this.omit(paramsSubType, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, paramsOmitted));
@@ -658943,9 +658957,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrdersByStatus', market, paramsMarketType);
         const trigger = this.safeBool2(paramsSubType, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeBool(paramsSubType, 'stopLossTakeProfit');
-        const trailing = this.safeBool(paramsSubType, 'trailing');
-        if (trailing === true) {
+        const stopLossTakeProfit = this.safeBool(paramsSubType, 'stopLossTakeProfit', false);
+        const trailing = this.safeBool(paramsSubType, 'trailing', false);
+        if (trailing) {
             const isContract = subType !== undefined || type === 'swap' || type === 'future';
             if (!isContract) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets');
@@ -658958,19 +658972,19 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
                 'size'
             ]);
         } else if (status === 'open') {
-            if (trigger === true || stopLossTakeProfit === true) {
+            if (trigger === true || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
             } else if (type === 'swap') {
                 request['state'] = 'UNFINISHED'; // NEW & PARTIALLY_FILLED
             }
         } else if (status === 'closed') {
-            if (trigger === true || stopLossTakeProfit === true) {
+            if (trigger === true || stopLossTakeProfit) {
                 request['state'] = 'TRIGGERED';
             } else {
                 request['state'] = 'FILLED';
             }
         } else if (status === 'canceled') {
-            if (trigger === true || stopLossTakeProfit === true) {
+            if (trigger === true || stopLossTakeProfit) {
                 request['state'] = 'USER_REVOCATION';
             } else {
                 request['state'] = 'CANCELED';
@@ -658978,11 +658992,11 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         } else {
             request['state'] = status;
         }
-        if (trigger === true || stopLossTakeProfit === true || subType !== undefined || type === 'swap' || type === 'future') {
+        if (trigger === true || stopLossTakeProfit || subType !== undefined || type === 'swap' || type === 'future') {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
-            if (limit !== undefined && trailing !== true) {
+            if (limit !== undefined && !trailing) {
                 request['size'] = limit;
             }
         }
@@ -658996,14 +659010,14 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanList(this.extend(request, paramsOmitted3));
             }
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             const paramsOmitted2 = this.omit(paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustProfitList(this.extend(request, paramsOmitted2));
             } else {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitList(this.extend(request, paramsOmitted2));
             }
-        } else if (trailing === true) {
+        } else if (trailing) {
             const paramsOmitted = this.omit(paramsSubType, 'trailing');
             if (status === 'open') {
                 if (subType === 'inverse') {
@@ -659229,7 +659243,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         } else {
             orders = this.safeList(response, 'result', []);
         }
-        if (trailing === true) {
+        if (trailing) {
             // the track endpoints do not support a server-side state filter
             // and return entries in every state, so filter by status first,
             // otherwise since/limit could cut off matching rows
@@ -659328,9 +659342,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('cancelOrder', market, paramsMarketType);
         const trigger = this.safeBool2(paramsSubType, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeBool(paramsSubType, 'stopLossTakeProfit');
-        const trailing = this.safeBool(paramsSubType, 'trailing');
-        if (trailing === true) {
+        const stopLossTakeProfit = this.safeBool(paramsSubType, 'stopLossTakeProfit', false);
+        const trailing = this.safeBool(paramsSubType, 'trailing', false);
+        if (trailing) {
             const isContract = subType !== undefined || type === 'swap' || type === 'future';
             if (!isContract) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' cancelOrder() trailing orders are only supported on swap and future markets');
@@ -659338,9 +659352,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         }
         if (trigger === true) {
             request['entrustId'] = id;
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             request['profitId'] = id;
-        } else if (trailing === true) {
+        } else if (trailing) {
             request['trackId'] = id;
         } else {
             request['orderId'] = id;
@@ -659355,14 +659369,14 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelPlan(this.extend(request, paramsOmitted3));
             }
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             const paramsOmitted2 = this.omit(paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelProfitStop(this.extend(request, paramsOmitted2));
             } else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelProfitStop(this.extend(request, paramsOmitted2));
             }
-        } else if (trailing === true) {
+        } else if (trailing) {
             const paramsOmitted = this.omit(paramsSubType, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelTrack(this.extend(request, paramsOmitted));
@@ -659430,9 +659444,9 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('cancelAllOrders', market, paramsMarketType);
         const trigger = this.safeBool2(paramsSubType, 'trigger', 'stop');
-        const stopLossTakeProfit = this.safeBool(paramsSubType, 'stopLossTakeProfit');
-        const trailing = this.safeBool(paramsSubType, 'trailing');
-        if (trailing === true) {
+        const stopLossTakeProfit = this.safeBool(paramsSubType, 'stopLossTakeProfit', false);
+        const trailing = this.safeBool(paramsSubType, 'trailing', false);
+        if (trailing) {
             const isContract = subType !== undefined || type === 'swap' || type === 'future';
             if (!isContract) {
                 throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' cancelAllOrders() trailing orders are only supported on swap and future markets');
@@ -659448,14 +659462,14 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             } else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelAllPlan(this.extend(request, paramsOmitted3));
             }
-        } else if (stopLossTakeProfit === true) {
+        } else if (stopLossTakeProfit) {
             const paramsOmitted2 = this.omit(paramsSubType, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, paramsOmitted2));
             } else {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, paramsOmitted2));
             }
-        } else if (trailing === true) {
+        } else if (trailing) {
             const paramsOmitted = this.omit(paramsSubType, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllTrack(this.extend(request, paramsOmitted));
@@ -660195,7 +660209,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setLeverage() supports contract markets only');
         }
         const request = {
@@ -660487,7 +660501,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'id', 'id', 1, 200);
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -660569,7 +660583,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -660644,7 +660658,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
      */ async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request = {
@@ -660705,7 +660719,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
      */ async fetchTradingFee(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchTradingFee() supports contract markets only');
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchTradingFee', market, params);
@@ -660768,7 +660782,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             const symbol = symbols[i];
             const market = this.market(symbol);
             const matchesSubType = isInverse ? market['inverse'] : market['linear'];
-            if (market['contract'] === true && matchesSubType === true) {
+            if (this.safeBool(market, 'contract', false) && matchesSubType === true) {
                 result[symbol] = this.parseTradingFee(fee, market);
             }
         }
@@ -660800,7 +660814,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const request = {
@@ -661314,7 +661328,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase();
@@ -661394,7 +661408,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         let response = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             if (isStopLoss) {
                 request['triggerStopPrice'] = this.priceToPrecision(symbol, stopLoss);
             } else if (takeProfit !== undefined) {
@@ -661448,7 +661462,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         }
-        const result = market['swap'] === true ? response : this.safeDict(response, 'result', {});
+        const result = this.safeBool(market, 'swap', false) ? response : this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -663182,7 +663196,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'symbol': market['id']
         };
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateSpotGetV2ExTradefee(this.extend(request, params));
             //
             // {
@@ -663281,7 +663295,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             //
             //       {
             //         "asks": [
@@ -663321,7 +663335,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.publicSpotGetV2MarketTicker(this.extend(request, params));
         //
         //     [
@@ -663419,7 +663433,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
         ]);
         let response = undefined;
         let limitResolved = limit;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (limit === undefined) {
                 limitResolved = 100;
             }
@@ -663504,11 +663518,11 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'symbol': market['id']
         };
-        if (market['spot'] === true && limit !== undefined) {
+        if (this.safeBool(market, 'spot', false) && limit !== undefined) {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.publicSpotGetV2MarketTrades(this.extend(request, params));
         } else {
             response = await this.publicSwapGetV1MarketAggTrade(this.extend(request, params));
@@ -663738,7 +663752,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
             'side': side.toUpperCase()
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateSpotPostV2ExOrders(this.spotOrderBody(symbol, type, amount, request, price, query));
         } else {
             const marginAsset = this.safeString(query, 'marginAsset', 'INR');
@@ -663824,7 +663838,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         let response = undefined;
         const request = {};
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['orderId'] = id;
             response = await this.privateSpotDeleteV2ExOrder(this.extend(request, params));
         } else {
@@ -663899,7 +663913,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
         };
         let response = undefined;
         let orders = [];
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['currentPage'] = 1;
             if (limit !== undefined) {
                 request['pageSize'] = limit;
@@ -663964,7 +663978,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['orderId'] = id;
             response = await this.privateSpotGetV2ExOrder(this.extend(request, params));
         } else {

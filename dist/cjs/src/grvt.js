@@ -625,8 +625,8 @@ class grvt extends grvt$1["default"] {
                 // }
                 //
                 const authResult = this.safeDict(authResponse, 'result');
-                const ack = this.safeBool(authResult, 'ack');
-                if (ack !== true) {
+                const ack = this.safeBool(authResult, 'ack', false);
+                if (!ack) {
                     throw new errors.ExchangeError('Builder authorization failed, ' + this.json(authResponse));
                 }
                 this.options['approvedBuilderFee'] = true;
@@ -2189,7 +2189,7 @@ class grvt extends grvt$1["default"] {
         return this.parseOrder(data, market);
     }
     convertToBigIntCustom(x) {
-        return parseInt(x);
+        return parseInt(this.numberToString(x));
     }
     eipMessageForOrder(order, structureType) {
         const priceMultiplier = 1000000000;
@@ -2244,7 +2244,7 @@ class grvt extends grvt$1["default"] {
         };
         if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool(this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
-            returnValue['builderFee'] = this.parseToInt(this.convertToBigIntCustom(this.feeAmountMultiplier()) * parseFloat(order['builder_fee'])); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue['builderFee'] = this.parseToInt(this.convertToBigIntCustom(this.feeAmountMultiplier()) * parseFloat(this.safeString(order, 'builder_fee'))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
     }
@@ -2339,7 +2339,7 @@ class grvt extends grvt$1["default"] {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                if (market['contract'] !== true) {
+                if (!this.safeBool(market, 'contract', false)) {
                     throw new errors.BadRequest(this.id + ' fetchPositions() supports contract markets only');
                 }
                 baseIds.push(market['baseId']);
@@ -2995,9 +2995,9 @@ class grvt extends grvt$1["default"] {
                 'id': undefined,
             });
         }
-        const isMarket = this.safeBool(order, 'is_market');
+        const isMarket = this.safeBool(order, 'is_market', false);
         let orderType = 'limit';
-        if (isMarket === true) {
+        if (isMarket) {
             orderType = 'market';
         }
         const isPostOnly = this.safeBool(order, 'post_only');
@@ -3207,8 +3207,8 @@ class grvt extends grvt$1["default"] {
             messageData = {
                 'mainAccountID': request['main_account_id'],
                 'builderAccountID': request['builder_account_id'],
-                'maxFutureFeeRate': this.parseToInt(parseFloat(request['max_futures_fee_rate']) * amountMultiplier),
-                'maxSpotFeeRate': this.parseToInt(parseFloat(request['max_spot_fee_rate']) * amountMultiplier),
+                'maxFutureFeeRate': this.parseToInt(parseFloat(this.safeString(request, 'max_futures_fee_rate')) * amountMultiplier),
+                'maxSpotFeeRate': this.parseToInt(parseFloat(this.safeString(request, 'max_spot_fee_rate')) * amountMultiplier),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration'],
             };
@@ -3312,7 +3312,7 @@ class grvt extends grvt$1["default"] {
             if (queryString !== '') {
                 requestPath = path + '?' + queryString;
             }
-            if ((requestPath.endsWith('auth/api_key/login') === true) || (requestPath.endsWith('auth/wallet/login') === true)) {
+            if (requestPath.endsWith('auth/api_key/login') || requestPath.endsWith('auth/wallet/login')) {
                 requestHeaders = {
                     'Content-Type': 'application/json',
                     'Cookie': 'rm=true;',

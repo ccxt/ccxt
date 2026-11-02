@@ -628,7 +628,7 @@ class ndax extends ndax$1["default"] {
             return undefined;
         }
         const sessionStatus = this.safeString(market, 'SessionStatus');
-        const isDisable = this.safeBool(market, 'IsDisable');
+        const isDisable = this.safeBool(market, 'IsDisable', false);
         const sessionRunning = (sessionStatus === 'Running');
         return this.safeMarketStructure({
             'id': id,

@@ -391,7 +391,7 @@ class bybit extends bybit$1["default"] {
         const paramsValue = this.cleanParams(params);
         const options = this.safeDict(this.options, 'watchTicker', {});
         const topic = this.safeString(options, 'name', 'tickers');
-        if ((market['spot'] !== true) && topic !== 'tickers') {
+        if ((!this.safeBool(market, 'spot', false)) && topic !== 'tickers') {
             throw new errors.BadRequest(this.id + ' watchTicker() only supports name tickers for contract markets');
         }
         const topics = [topic + '.' + this.safeString(market, 'id', '')];
@@ -910,7 +910,7 @@ class bybit extends bybit$1["default"] {
         const url = await this.getUrlByMarketType(symbolsNormalized[0], false, 'watchOrderBook', params);
         const paramsValue = this.cleanParams(params);
         const market = this.market(symbolsNormalized[0]);
-        const defaultLimit = (market['option'] === true) ? 100 : 50;
+        const defaultLimit = (this.safeBool(market, 'option', false)) ? 100 : 50;
         const limitResolved = (limit === undefined) ? defaultLimit : limit;
         if (limit !== undefined) {
             const limits = {
@@ -957,7 +957,7 @@ class bybit extends bybit$1["default"] {
         let defaultLimit = 500;
         if (limitParam === undefined) {
             const firstMarket = this.market(symbolsNormalized[0]);
-            defaultLimit = (firstMarket['spot'] === true) ? 50 : 500;
+            defaultLimit = (this.safeBool(firstMarket, 'spot', false)) ? 50 : 500;
         }
         const limit = (limitParam === undefined) ? defaultLimit : limitParam;
         channel += limit.toString();
@@ -2712,10 +2712,10 @@ class bybit extends bybit$1["default"] {
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        const success = this.safeBool(message, 'success');
+        const success = this.safeBool(message, 'success', false);
         const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
-        if ((success === true) || (code === 0)) {
+        if (success || (code === 0)) {
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
         }

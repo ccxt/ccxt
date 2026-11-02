@@ -463,7 +463,7 @@ class htx extends htx$1["default"] {
         }
         let messageHash = '';
         const marketId = this.safeString(market, 'id', '');
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             messageHash = 'market.' + marketId + '.mbp.' + limitResolved.toString();
         }
         else {
@@ -472,10 +472,10 @@ class htx extends htx$1["default"] {
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;
         let paramsExtended = params;
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             paramsExtended = this.extend(params, { 'data_type': 'incremental' });
         }
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             method = undefined;
         }
         const orderbook = await this.subscribePublic(url, symbolValue, messageHash, method, paramsExtended);
@@ -503,13 +503,13 @@ class htx extends htx$1["default"] {
         const depth = this.parseToInt(this.safeInteger(options, 'depth', 150));
         const marketId = this.safeString(market, 'id', '');
         let subMessageHash = '';
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             subMessageHash = 'market.' + marketId + '.mbp.' + depth.toString();
         }
         else {
             subMessageHash = 'market.' + marketId + '.depth.size_' + depth.toString() + '.high_freq';
         }
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             params['data_type'] = 'incremental';
         }
         return await this.unsubscribePublic(market, subMessageHash, topic, params);
@@ -843,7 +843,7 @@ class htx extends htx$1["default"] {
             orderbook['nonce'] = undefined;
             orderbook.cache = [];
         }
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
         }
     }
@@ -873,7 +873,7 @@ class htx extends htx$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
             type = this.safeString(market, 'type');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 subType = 'linear';
             }
             else {
@@ -1023,7 +1023,7 @@ class htx extends htx$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
             type = this.safeString(market, 'type');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 subType = 'linear';
             }
             else {
@@ -1636,7 +1636,7 @@ class htx extends htx$1["default"] {
         let paramsSubType = {};
         if (market !== undefined) {
             type = this.safeString(market, 'type');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 subType = 'linear';
             }
             else {

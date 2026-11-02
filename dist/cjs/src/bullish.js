@@ -1150,7 +1150,7 @@ class bullish extends bullish$1["default"] {
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');
         const side = this.safeStringLower(trade, 'side');
-        const isTaker = this.safeBool(trade, 'isTaker');
+        const isTaker = this.safeBool(trade, 'isTaker', false);
         const currency = this.safeString(marketResolved, 'quote');
         const code = this.safeCurrencyCode(currency);
         const feeCost = this.safeNumber(trade, 'quoteFee');
@@ -1159,7 +1159,7 @@ class bullish extends bullish$1["default"] {
             fee = { 'currency': code, 'cost': feeCost };
         }
         let takerOrMaker = undefined;
-        if (isTaker === true) {
+        if (isTaker) {
             takerOrMaker = 'taker';
         }
         else {
@@ -1443,7 +1443,7 @@ class bullish extends bullish$1["default"] {
             return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPagination, maxLimit);
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadRequest(this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
         const request = {

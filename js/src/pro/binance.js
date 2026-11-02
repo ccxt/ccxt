@@ -273,7 +273,7 @@ export default class binance extends binanceRest {
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (baseUrl.endsWith('/ws') === true) {
+            if (baseUrl.endsWith('/ws')) {
                 const prefix = baseUrl.slice(0, baseUrl.length - 3);
                 return prefix + '/' + category + '/ws';
             }
@@ -757,11 +757,11 @@ export default class binance extends binanceRest {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbolsNormalized[0]);
         let type = firstMarket['type'];
-        if (firstMarket['option'] === true) {
+        if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
         }
-        else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = (this.safeBool(firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         let name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -839,11 +839,11 @@ export default class binance extends binanceRest {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbolsNormalized[0]);
         let type = firstMarket['type'];
-        if (firstMarket['option'] === true) {
+        if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
         }
-        else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = (this.safeBool(firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         const name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -1284,8 +1284,8 @@ export default class binance extends binanceRest {
         if (isOption === true) {
             type = 'option';
         }
-        else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = (this.safeBool(firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         const messageHashes = [];
         const subscribeHashes = [];
@@ -1375,8 +1375,8 @@ export default class binance extends binanceRest {
         if (isOption === true) {
             type = 'option';
         }
-        else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = (this.safeBool(firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         const subMessageHashes = [];
         const subParams = [];
@@ -1751,12 +1751,12 @@ export default class binance extends binanceRest {
         const firstMarket = this.market(marketSymbols[0]);
         let type = firstMarket['type'];
         let wsUrlType = type;
-        if (firstMarket['option'] === true) {
+        if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         }
-        else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = (this.safeBool(firstMarket, 'linear', false)) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
         const isSpot = (type === 'spot');
@@ -1833,12 +1833,12 @@ export default class binance extends binanceRest {
         const firstMarket = this.market(marketSymbols[0]);
         let type = firstMarket['type'];
         let wsUrlType = type;
-        if (firstMarket['option'] === true) {
+        if (this.safeBool(firstMarket, 'option', false)) {
             type = 'option';
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         }
-        else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        else if (this.safeBool(firstMarket, 'contract', false)) {
+            type = (this.safeBool(firstMarket, 'linear', false)) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
         const isSpot = (type === 'spot');
@@ -2662,7 +2662,7 @@ export default class binance extends binanceRest {
         // carries `w`, so a miniTicker uses the contract size.
         let baseVolume = this.safeString(message, 'v');
         let quoteVolume = this.safeString(message, 'q');
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             const contracts = baseVolume;
             baseVolume = quoteVolume;
             const weightedAverage = this.safeString(message, 'w');
@@ -3840,7 +3840,7 @@ export default class binance extends binanceRest {
         const sor = this.safeBool2(params, 'sor', 'SOR', false);
         const paramsOmitted = this.omit(params, 'sor', 'SOR');
         const isConditional = this.isConditionalOrder(paramsOmitted);
-        if ((market['inverse'] === true) && isConditional) {
+        if ((this.safeBool(market, 'inverse', false)) && isConditional) {
             throw new NotSupported(this.id + ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead');
         }
         const isAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && isConditional;

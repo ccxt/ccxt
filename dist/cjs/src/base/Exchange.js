@@ -3960,7 +3960,7 @@ class BaseExchange {
         if (market !== undefined) {
             const result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (this.safeBool(result, 'spot') === true) {
+            if (this.safeBool(result, 'spot', false)) {
                 if (result['contract'] === undefined) {
                     result['contract'] = false;
                 }
@@ -4013,10 +4013,10 @@ class BaseExchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], valueDefined);
-            if (this.safeBool(market, 'linear') === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 market['subType'] = 'linear';
             }
-            else if (this.safeBool(market, 'inverse') === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 market['subType'] = 'inverse';
             }
             else {
@@ -5152,7 +5152,7 @@ class BaseExchange {
                 throw new errors.BadRequest(this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = this.safeString(market, 'type');
-            if (this.safeBool(market, 'spot') !== true) {
+            if (!this.safeBool(market, 'spot', false)) {
                 isLinearSubType = this.safeBool(market, 'linear');
             }
             const symbol = this.safeString(market, 'symbol', symbols[i]);
@@ -6294,7 +6294,7 @@ class BaseExchange {
                     const marketTypeResolved = (marketType === undefined) ? this.safeString(market, 'type', '') : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
-                        if (this.safeBool(currentMarket, marketTypeResolved) === true) {
+                        if (this.safeBool(currentMarket, marketTypeResolved, false)) {
                             return currentMarket;
                         }
                     }
@@ -6605,10 +6605,10 @@ class BaseExchange {
         else {
             // at first, check from market object
             if (market !== undefined) {
-                if (this.safeBool(market, 'linear') === true) {
+                if (this.safeBool(market, 'linear', false)) {
                     subType = 'linear';
                 }
-                else if (this.safeBool(market, 'inverse') === true) {
+                else if (this.safeBool(market, 'inverse', false)) {
                     subType = 'inverse';
                 }
             }
@@ -6956,7 +6956,7 @@ class BaseExchange {
             const defaultType = this.safeString2(this.options, 'defaultType', 'defaultSubType', 'spot');
             for (let i = 0; i < marketsList.length; i++) {
                 const market = marketsList[i];
-                if (this.safeBool(market, defaultType) === true) {
+                if (this.safeBool(market, defaultType, false)) {
                     return market;
                 }
             }
@@ -7148,7 +7148,7 @@ class BaseExchange {
     async fetchMarketLeverageTiers(symbol, params = {}) {
         if (this.has['fetchLeverageTiers'] !== undefined && this.has['fetchLeverageTiers'] !== false) {
             const market = this.market(symbol);
-            if (market['contract'] !== true) {
+            if (!this.safeBool(market, 'contract', false)) {
                 throw new errors.BadSymbol(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers([symbol]);
@@ -7510,7 +7510,7 @@ class BaseExchange {
             await this.loadMarkets();
             const market = this.market(symbol);
             const symbolResolved = market['symbol'];
-            if (market['contract'] !== true) {
+            if (!this.safeBool(market, 'contract', false)) {
                 throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports contract markets only');
             }
             const rates = await this.fetchFundingRates([symbolResolved], params);
@@ -7531,7 +7531,7 @@ class BaseExchange {
             await this.loadMarkets();
             const market = this.market(symbol);
             const symbolResolved = market['symbol'];
-            if (market['contract'] !== true) {
+            if (!this.safeBool(market, 'contract', false)) {
                 throw new errors.BadSymbol(this.id + ' fetchFundingInterval() supports contract markets only');
             }
             const rates = await this.fetchFundingIntervals([symbolResolved], params);

@@ -184,8 +184,8 @@ class kraken extends kraken$1["default"] {
             priceType = 'pct';
         }
         if (method === 'createOrderWs') {
-            const reduceOnly = this.safeBool(paramsPostOnly, 'reduceOnly');
-            if (reduceOnly === true) {
+            const reduceOnly = this.safeBool(paramsPostOnly, 'reduceOnly', false);
+            if (reduceOnly) {
                 orderParams['reduce_only'] = true;
             }
             const timeInForce = this.safeStringLower(paramsPostOnly, 'timeInForce');

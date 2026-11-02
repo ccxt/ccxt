@@ -1527,9 +1527,9 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeDict(message, 'data');
-        const success = this.safeBool(data, 'success');
+        const success = this.safeBool(data, 'success', false);
         const messageHash = 'authenticated';
-        if (success === true) {
+        if (success) {
             client.resolve(message, messageHash);
         }
         else {

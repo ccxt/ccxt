@@ -1379,7 +1379,7 @@ export default class aster extends asterRest {
         }
         const type = undefined;
         const [typeMarketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params, type);
-        if (type === undefined) {
+        if ((type === undefined) || (typeMarketType === undefined)) {
             throw new ArgumentsRequired(this.id + ' watchBalance() requires a market type');
         }
         await this.authenticate(typeMarketType, paramsMarketType);
@@ -1726,7 +1726,7 @@ export default class aster extends asterRest {
         let messageHash = 'orders';
         const type = undefined;
         const [typeMarketType, paramsMarketType] = this.handleMarketTypeAndParams('watchOrders', market, params, type);
-        if (type === undefined) {
+        if ((type === undefined) || (typeMarketType === undefined)) {
             throw new ArgumentsRequired(this.id + ' watchOrders() requires a market type');
         }
         await this.authenticate(typeMarketType, paramsMarketType);
@@ -1769,7 +1769,7 @@ export default class aster extends asterRest {
         let messageHash = 'myTrades';
         const type = undefined;
         const [typeMarketType, paramsMarketType] = this.handleMarketTypeAndParams('watchMyTrades', market, params, type);
-        if (type === undefined) {
+        if ((type === undefined) || (typeMarketType === undefined)) {
             throw new ArgumentsRequired(this.id + ' watchMyTrades() requires a market type');
         }
         await this.authenticate(typeMarketType, paramsMarketType);

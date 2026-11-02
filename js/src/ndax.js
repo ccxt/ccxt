@@ -629,7 +629,7 @@ export default class ndax extends Exchange {
             return undefined;
         }
         const sessionStatus = this.safeString(market, 'SessionStatus');
-        const isDisable = this.safeBool(market, 'IsDisable');
+        const isDisable = this.safeBool(market, 'IsDisable', false);
         const sessionRunning = (sessionStatus === 'Running');
         return this.safeMarketStructure({
             'id': id,

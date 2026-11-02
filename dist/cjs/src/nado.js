@@ -1916,7 +1916,7 @@ class nado extends nado$1["default"] {
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const tickerId = this.safeString(market['info'], 'ticker_id');
@@ -1968,7 +1968,7 @@ class nado extends nado$1["default"] {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const [subaccount, paramsSubaccount] = this.handleOptionStringAndParams(params, 'fetchFundingHistory', 'subaccount', 'default');
@@ -2069,7 +2069,7 @@ class nado extends nado$1["default"] {
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const tickerId = this.safeString(market['info'], 'ticker_id');

@@ -234,10 +234,10 @@ class onetrading extends onetrading$1["default"] {
             const marketId = this.safeString(ticker, 'instrument');
             const symbol = this.safeSymbol(marketId);
             const parsedTicker = this.parseWSTicker(ticker);
-            this.tickers[symbol] = parsedTicker;
             const timestamp = this.parse8601(datetime);
             parsedTicker['timestamp'] = timestamp;
             parsedTicker['datetime'] = this.iso8601(timestamp);
+            this.tickers[symbol] = parsedTicker;
             client.resolve(parsedTicker, 'ticker.' + symbol);
         }
         client.resolve(this.tickers, 'tickers');

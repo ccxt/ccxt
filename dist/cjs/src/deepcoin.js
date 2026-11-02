@@ -669,7 +669,7 @@ class deepcoin extends deepcoin$1["default"] {
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         const price = this.safeString(paramsPaginate, 'price');
         let maxLimit = 300;
-        if (market['swap'] === true && price === undefined) {
+        if (this.safeBool(market, 'swap', false) && price === undefined) {
             maxLimit = 1000;
         }
         if (paginate) {
@@ -796,7 +796,7 @@ class deepcoin extends deepcoin$1["default"] {
         const open = this.safeString(ticker, 'open24h');
         let quoteVolume = this.safeString(ticker, 'volCcy24h');
         let baseVolume = this.safeString(ticker, 'vol24h');
-        if ((marketResolved['swap'] === true) && (marketResolved['inverse'] === true)) {
+        if ((this.safeBool(marketResolved, 'swap', false)) && (this.safeBool(marketResolved, 'inverse', false))) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
@@ -1548,7 +1548,7 @@ class deepcoin extends deepcoin$1["default"] {
         const isTriggerOrder = (triggerPrice !== undefined);
         const cost = this.safeString(params, 'cost');
         if (cost !== undefined) {
-            if ((market['spot'] !== true) || (triggerPrice !== undefined)) {
+            if ((!this.safeBool(market, 'spot', false)) || (triggerPrice !== undefined)) {
                 throw new errors.BadRequest(this.id + ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
             }
         }
@@ -1635,7 +1635,7 @@ class deepcoin extends deepcoin$1["default"] {
             throw new errors.BadRequest(this.id + ' createOrder() requires a price argument for limit orders');
         }
         let paramsRequest = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const cost = this.safeString(paramsOrderType, 'cost');
             if (cost !== undefined) {
                 if (!isMarketOrder) {
@@ -1747,7 +1747,7 @@ class deepcoin extends deepcoin$1["default"] {
         const paramsOmitted = this.omit(paramsMarginMode, 'reduceOnly');
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginModeOption;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             if (reduceOnly) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';
@@ -2269,7 +2269,7 @@ class deepcoin extends deepcoin$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported for spot markets');
         }
         const productGroup = this.getProductGroupFromMarket(market);
@@ -2316,7 +2316,7 @@ class deepcoin extends deepcoin$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 throw new errors.NotSupported(this.id + ' editOrder() is not supported for spot markets');
             }
             symbolResolved = market['symbol'];
@@ -2376,7 +2376,7 @@ class deepcoin extends deepcoin$1["default"] {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 throw new errors.NotSupported(this.id + ' cancelOrders() is not supported for spot markets');
             }
         }
@@ -2797,7 +2797,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {

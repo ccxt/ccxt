@@ -1711,7 +1711,7 @@ export default class hashkey extends Exchange {
         const last = this.safeString(ticker, 'c');
         let baseVolume = this.safeString(ticker, 'v');
         const contractSizeValue = this.safeString(marketResolved, 'contractSize');
-        if ((marketResolved['contract'] === true) && (contractSizeValue !== undefined)) {
+        if ((this.safeBool(marketResolved, 'contract', false)) && (contractSizeValue !== undefined)) {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSizeValue));
         }
@@ -2503,10 +2503,10 @@ export default class hashkey extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
         }
-        else if (market['swap'] === true) {
+        else if (this.safeBool(market, 'swap', false)) {
             return await this.createSwapOrder(symbol, type, side, amount, price, params);
         }
         else {
@@ -2528,7 +2528,7 @@ export default class hashkey extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
         const req = {
@@ -2571,8 +2571,8 @@ export default class hashkey extends Exchange {
         }
         const request = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
         let response = {};
-        const test = this.safeBool(params, 'test');
-        if (test === true) {
+        const test = this.safeBool(params, 'test', false);
+        if (test) {
             response = await this.privatePostApiV1SpotOrderTest(request);
         }
         else if (isMarketBuy && (cost === undefined)) {
@@ -2668,10 +2668,10 @@ export default class hashkey extends Exchange {
             throw new ArgumentsRequired(this.id + ' requires a side argument');
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return this.createSpotOrderRequest(symbol, type, side, amount, price, params);
         }
-        else if (market['swap'] === true) {
+        else if (this.safeBool(market, 'swap', false)) {
             return this.createSwapOrderRequest(symbol, type, side, amount, price, params);
         }
         else {
@@ -2878,7 +2878,7 @@ export default class hashkey extends Exchange {
             'orders': ordersRequests,
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privatePostApiV1SpotBatchOrders(this.extend(request, params));
             //
             //     {
@@ -2908,7 +2908,7 @@ export default class hashkey extends Exchange {
             //     }
             //
         }
-        else if (market['swap'] === true) {
+        else if (this.safeBool(market, 'swap', false)) {
             response = await this.privatePostApiV1FuturesBatchOrders(this.extend(request, params));
             //
             //     {
@@ -3012,7 +3012,7 @@ export default class hashkey extends Exchange {
         }
         else if (marketType === 'swap') {
             const [isTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMarketType, methodName, 'stop', 'trigger', false);
-            if (isTrigger === true) {
+            if (isTrigger) {
                 request['type'] = 'STOP';
             }
             else {
@@ -3080,13 +3080,13 @@ export default class hashkey extends Exchange {
             request['side'] = side;
         }
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateDeleteApiV1SpotOpenOrders(this.extend(request, params));
             //
             //     { "success": true }
             //
         }
-        else if (market['swap'] === true) {
+        else if (this.safeBool(market, 'swap', false)) {
             response = await this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, params));
             //
             //     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
@@ -3216,7 +3216,7 @@ export default class hashkey extends Exchange {
         }
         else if (marketType === 'swap') {
             const [isTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMarketType, methodName, 'stop', 'trigger', false);
-            if (isTrigger === true) {
+            if (isTrigger) {
                 request['type'] = 'STOP';
             }
             response = await this.privateGetApiV1FuturesOrder(this.extend(request, paramsTrigger));
@@ -3394,7 +3394,7 @@ export default class hashkey extends Exchange {
         };
         const isTrigger = false;
         const [isTriggerTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMethodName, methodNameOption, 'stop', 'trigger', isTrigger);
-        if (isTriggerTrigger === true) {
+        if (isTriggerTrigger) {
             request['type'] = 'STOP';
         }
         else {
@@ -3546,7 +3546,7 @@ export default class hashkey extends Exchange {
             }
             request['symbol'] = this.safeString(market, 'id');
             const [isTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMarketType, methodName, 'stop', 'trigger', false);
-            if (isTrigger === true) {
+            if (isTrigger) {
                 request['type'] = 'STOP';
             }
             else {
@@ -4011,7 +4011,7 @@ export default class hashkey extends Exchange {
         const methodName = 'fetchPosition';
         const methodNameOption = this.safeString(params, 'methodName', methodName);
         const paramsMethodName = this.omit(params, 'methodName');
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' ' + methodNameOption + '() supports swap markets only');
         }
         const request = {
@@ -4172,7 +4172,7 @@ export default class hashkey extends Exchange {
             throw new ArgumentsRequired(this.id + ' setMarginMode() marginMode must be either cross or isolated');
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new BadSymbol(this.id + ' setMarginMode() supports swap markets only');
         }
         const request = {
@@ -4214,7 +4214,7 @@ export default class hashkey extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new BadSymbol(this.id + ' modifyMarginHelper() supports swap markets only');
         }
         const sideParam = this.safeString(params, 'side');
@@ -4402,12 +4402,12 @@ export default class hashkey extends Exchange {
         const market = this.market(symbol);
         const methodName = 'fetchTradingFee';
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.fetchTradingFees(params);
             const fee = this.safeDict(response, symbol);
             return fee;
         }
-        else if (market['swap'] === true) {
+        else if (this.safeBool(market, 'swap', false)) {
             response = await this.privateGetApiV1FuturesCommissionRate(this.extend({ 'symbol': market['id'] }, params));
             return this.parseTradingFee(response, market);
             //

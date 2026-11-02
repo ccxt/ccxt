@@ -2670,7 +2670,7 @@ export default class delta extends Exchange {
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -2969,7 +2969,7 @@ export default class delta extends Exchange {
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {

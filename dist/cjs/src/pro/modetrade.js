@@ -600,8 +600,8 @@ class modetrade extends modetrade$1["default"] {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeBool(message, 'success');
-        if (success === true) {
+        const success = this.safeBool(message, 'success', false);
+        if (success) {
             // client.resolve (message, messageHash);
             const future = this.safeValue(client.futures, 'authenticated');
             future.resolve(true);
@@ -1306,8 +1306,8 @@ class modetrade extends modetrade$1["default"] {
         if (!('success' in message)) {
             return false;
         }
-        const success = this.safeBool(message, 'success');
-        if (success === true) {
+        const success = this.safeBool(message, 'success', false);
+        if (success) {
             return false;
         }
         const errorMessage = this.safeString(message, 'errorMsg');

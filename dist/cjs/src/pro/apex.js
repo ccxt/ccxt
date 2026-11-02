@@ -1108,10 +1108,10 @@ class apex extends apex$1["default"] {
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        const success = this.safeBool(message, 'success');
+        const success = this.safeBool(message, 'success', false);
         const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
-        if ((success === true) || (code === 0)) {
+        if (success || (code === 0)) {
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
         }

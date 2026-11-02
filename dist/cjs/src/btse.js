@@ -952,7 +952,7 @@ class btse extends btse$1["default"] {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.BadRequest(this.id + ' fetchFundingRateHistory() supports contract markets only');
         }
         let period = undefined;
@@ -1228,7 +1228,7 @@ class btse extends btse$1["default"] {
     async fetchMarketLeverageTiers(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
         const result = await this.fetchLeverageTiers([symbol], params);
@@ -1315,7 +1315,7 @@ class btse extends btse$1["default"] {
         const marketResolved = this.safeMarket(marketId, market);
         const last = this.safeString(ticker, 'lastPrice');
         let baseVolume = this.safeString(ticker, 'amount');
-        if ((baseVolume !== undefined) && (marketResolved !== undefined) && (marketResolved['contract'] === true)) {
+        if ((baseVolume !== undefined) && (marketResolved !== undefined) && (this.safeBool(marketResolved, 'contract', false))) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
             const contractSizeString = this.numberToString(marketResolved['contractSize']);
@@ -1363,7 +1363,7 @@ class btse extends btse$1["default"] {
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
         }
         const request = {
@@ -1426,7 +1426,7 @@ class btse extends btse$1["default"] {
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new errors.BadRequest(this.id + ' fetchFundingRate() symbol does not support spot markets');
         }
         const request = {
@@ -1863,7 +1863,7 @@ class btse extends btse$1["default"] {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
         }
         else {
@@ -2407,7 +2407,7 @@ class btse extends btse$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             response = await this.privatePutSpotApiV4TradeOrders(this.extend(request, query));
         }
@@ -2466,7 +2466,7 @@ class btse extends btse$1["default"] {
         }
         const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, 'clientOrderId') : params;
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             response = await this.privateDeleteSpotApiV4TradeOrders(this.extend(request, paramsOmitted));
         }
@@ -3185,7 +3185,7 @@ class btse extends btse$1["default"] {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateGetSpotApiV4TradeFees(this.extend(request, params));
         }
         else {
@@ -3484,16 +3484,16 @@ class btse extends btse$1["default"] {
         if ((marginModeValue !== 'cross') && (marginModeValue !== 'isolated')) {
             throw new errors.BadRequest(this.id + ' setMarginMode() marginMode argument should be either cross or isolated');
         }
-        const hedged = this.safeBool(params, 'hedged');
+        const hedged = this.safeBool(params, 'hedged', false);
         if (marginModeValue === 'cross') {
             if (!('hedged' in params)) {
                 throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a hedged parameter for cross margin mode');
             }
-            else if (hedged === true) {
+            else if (hedged) {
                 positionMode = 'HEDGE';
             }
         }
-        else if (('hedged' in params) && (hedged !== true)) {
+        else if (('hedged' in params) && !hedged) {
             throw new errors.BadRequest(this.id + ' setMarginMode() hedged parameter cannot be false for isolated margin mode');
         }
         else {

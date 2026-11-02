@@ -588,7 +588,7 @@ class sxbet extends sxbet$1["default"] {
                 throw new errors.ExchangeError(this.id + ' parseEvent() could not resolve parsed market');
             }
             marketsList.push(parsed);
-            if (parsed['active'] === true) {
+            if (this.safeBool(parsed, 'active', false)) {
                 anyActive = true;
             }
             if (teamOneName === undefined) {
@@ -1763,7 +1763,7 @@ class sxbet extends sxbet$1["default"] {
         const timestamp = this.parse8601(this.safeString(settlement, 'settleDate'));
         let settlePrice = undefined;
         if (won !== undefined) {
-            settlePrice = (won === true) ? 1 : 0;
+            settlePrice = won ? 1 : 0;
         }
         return {
             'info': trade,
@@ -2418,14 +2418,14 @@ class sxbet extends sxbet$1["default"] {
         const client = this.client(url);
         const channel = 'best_odds_v3:global';
         let hydrated = false;
-        if (this.safeValue(this.tickers, sym) === undefined) {
+        if (this.safeDict(this.safeDict(this.options, 'wsTickers', {}), sym) === undefined) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             const snapshot = await this.fetchSxbetBookSnapshot(marketHash);
             const raw = this.parseSxbetSnapshotBestOdds(snapshot);
             const ticker = this.parsePredictionTicker(raw, outcomeObj);
-            this.tickers[sym] = ticker;
+            this.setWsOption('wsTickers', sym, ticker);
             hydrated = true;
         }
         const requestId = this.requestId(url);
@@ -2433,7 +2433,7 @@ class sxbet extends sxbet$1["default"] {
         const subscribeMsg = { 'subscribe': { 'channel': channel }, 'id': requestId };
         const future = this.watch(url, messageHash, subscribeMsg, channel);
         if (hydrated) {
-            client.resolve(this.safeValue(this.tickers, sym), messageHash);
+            client.resolve(this.safeDict(this.safeDict(this.options, 'wsTickers', {}), sym), messageHash);
         }
         const tickerResult = await future;
         return tickerResult;
@@ -2472,7 +2472,7 @@ class sxbet extends sxbet$1["default"] {
                 }
                 const outcomeObj = this.outcome(sym);
                 const ticker = this.parsePredictionTicker(raw, outcomeObj);
-                this.tickers[sym] = ticker;
+                this.setWsOption('wsTickers', sym, ticker);
                 client.resolve(ticker, 'ticker::' + sym);
             }
         }

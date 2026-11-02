@@ -316,7 +316,7 @@ export default class lighter extends lighterRest {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' watchTicker() is only supported for swap markets');
         }
         const request = {
@@ -340,7 +340,7 @@ export default class lighter extends lighterRest {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' unWatchTicker() is only supported for swap markets');
         }
         const request = {
@@ -365,7 +365,7 @@ export default class lighter extends lighterRest {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if ((firstMarket !== undefined) && (firstMarket['swap'] !== true)) {
+        if ((firstMarket !== undefined) && (!this.safeBool(firstMarket, 'swap', false))) {
             throw new NotSupported(this.id + ' watchTickers() is only supported for swap markets');
         }
         const request = {
@@ -411,7 +411,7 @@ export default class lighter extends lighterRest {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if ((firstMarket !== undefined) && (firstMarket['swap'] !== true)) {
+        if ((firstMarket !== undefined) && (!this.safeBool(firstMarket, 'swap', false))) {
             throw new NotSupported(this.id + ' unWatchTickers() is only supported for swap markets');
         }
         const request = {
@@ -502,9 +502,9 @@ export default class lighter extends lighterRest {
         const tradeId = this.safeString(trade, 'trade_id');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
-        const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
+        const isMakerAsk = this.safeBool(trade, 'is_maker_ask', false);
         let side = 'sell';
-        if (isMakerAsk === true) {
+        if (isMakerAsk) {
             side = 'buy';
         }
         return this.safeTrade({
@@ -664,7 +664,7 @@ export default class lighter extends lighterRest {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
         const costString = this.safeString(trade, 'usd_amount');
-        const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
+        const isMakerAsk = this.safeBool(trade, 'is_maker_ask', false);
         const accountIndex = this.safeInteger(trade, 'accountIndex');
         const bidAccountId = this.safeInteger(trade, 'bid_account_id');
         const askAccountId = this.safeInteger(trade, 'ask_account_id');
@@ -676,17 +676,17 @@ export default class lighter extends lighterRest {
                 // Own trades should use the account's order side
                 side = 'buy';
                 order = this.safeString(trade, 'bid_id');
-                takerOrMaker = (isMakerAsk === true) ? 'taker' : 'maker';
+                takerOrMaker = isMakerAsk ? 'taker' : 'maker';
             }
             else if (askAccountId === accountIndex) {
                 side = 'sell';
                 order = this.safeString(trade, 'ask_id');
-                takerOrMaker = (isMakerAsk === true) ? 'maker' : 'taker';
+                takerOrMaker = isMakerAsk ? 'maker' : 'taker';
             }
         }
         // public trades use Lighter's taker-side convention
         if (side === undefined) {
-            side = (isMakerAsk === true) ? 'buy' : 'sell';
+            side = isMakerAsk ? 'buy' : 'sell';
         }
         let fee = undefined;
         if (takerOrMaker !== undefined) {
@@ -877,9 +877,9 @@ export default class lighter extends lighterRest {
         //     }
         //
         const timestamp = this.safeInteger(liquidation, 'timestamp');
-        const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask');
+        const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask', false);
         let side = 'sell';
-        if (isMakerAsk === true) {
+        if (isMakerAsk) {
             side = 'buy';
         }
         const contracts = this.safeString(liquidation, 'size');

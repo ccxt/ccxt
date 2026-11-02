@@ -1124,7 +1124,7 @@ export default class kraken extends Exchange {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                if (market['active'] === true) {
+                if (this.safeBool(market, 'active', false)) {
                     marketIds.push(market['id']);
                 }
             }
@@ -2344,7 +2344,7 @@ export default class kraken extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders, only spot orders are accepted');
         }
         let request = {

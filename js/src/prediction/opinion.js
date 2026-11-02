@@ -1832,7 +1832,9 @@ export default class opinion extends Exchange {
             'last': last,
             'info': message,
         }, outcomeObj);
-        this.tickers[sym] = ticker;
+        const cachedTickers = this.safeDict(this.options, 'wsTickers', {});
+        cachedTickers[sym] = ticker;
+        this.options['wsTickers'] = cachedTickers;
         client.resolve(ticker, 'ticker::' + sym);
     }
     /**

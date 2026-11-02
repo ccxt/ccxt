@@ -1216,7 +1216,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
@@ -1829,7 +1829,7 @@ export default class blofin extends Exchange {
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         }
-        else if (isTpsl === true) {
+        else if (isTpsl) {
             request['tpslId'] = id;
         }
         else {
@@ -1837,7 +1837,7 @@ export default class blofin extends Exchange {
         }
         const query = this.omit(params, ['clientOrderId', 'tpsl', 'TPSL']);
         let response;
-        if (isTpsl === true) {
+        if (isTpsl) {
             response = await this.privateGetTradeOrderTpslDetail(this.extend(request, query));
         }
         else {
@@ -3010,7 +3010,7 @@ export default class blofin extends Exchange {
         const contractSizeString = this.numberToString(contractSize);
         const markPriceString = this.safeString(position, 'markPrice');
         let notionalString = this.safeString(position, 'notionalUsd');
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         else if (notionalString === undefined) {
@@ -3429,7 +3429,7 @@ export default class blofin extends Exchange {
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         const request = {
-            'positionMode': (hedged === true) ? 'long_short_mode' : 'net_mode',
+            'positionMode': hedged ? 'long_short_mode' : 'net_mode',
         };
         //
         //     {

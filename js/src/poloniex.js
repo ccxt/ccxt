@@ -696,11 +696,11 @@ export default class poloniex extends Exchange {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         let keyStart = 'sTime';
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             keyStart = 'startTime';
         }
         let keyEnd = 'eTime';
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             keyEnd = 'endTime';
         }
         if (since !== undefined) {
@@ -719,7 +719,7 @@ export default class poloniex extends Exchange {
             const endTimeByLimit = this.sum(firstCandle, duration * (limit - 1));
             requestUntil[keyEnd] = Math.min(endTimeByLimit, this.milliseconds());
         }
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(requestUntil, paramsUntil));
             //
             //     {
@@ -1110,7 +1110,7 @@ export default class poloniex extends Exchange {
         const marketResolved = this.safeMarket(marketId);
         let baseVolume = this.safeString2(ticker, 'quantity', 'qty');
         const contractSize = this.safeNumber(marketResolved, 'contractSize');
-        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
+        if ((this.safeBool(marketResolved, 'contract', false)) && (contractSize !== undefined)) {
             // 'quantity' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
         }
@@ -1331,7 +1331,7 @@ export default class poloniex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const tickers = await this.fetchTickers([market['symbol']], params);
             const contractTicker = this.safeDict(tickers, symbol);
             return contractTicker;
@@ -1515,7 +1515,7 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, for spot & swap
         }
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const response = await this.swapPublicGetV3MarketTrades(this.extend(request, params));
             //
             //     {
@@ -2085,7 +2085,7 @@ export default class poloniex extends Exchange {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         const [requestValue, paramsValue] = this.orderRequest(symbol, type, side, amount, request, price, params);
         let response = {};
-        if ((market['swap'] === true) || (market['future'] === true)) {
+        if ((this.safeBool(market, 'swap', false)) || (this.safeBool(market, 'future', false))) {
             const responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(requestValue, paramsValue));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
@@ -2229,7 +2229,7 @@ export default class poloniex extends Exchange {
         const isPostOnly = this.isPostOnly(isMarket, upperCaseType === 'LIMIT_MAKER', query);
         let queryOmitted = this.omit(query, ['postOnly', 'triggerPrice', 'stopPrice']);
         if (triggerPrice !== undefined) {
-            if (market['spot'] !== true) {
+            if (!this.safeBool(market, 'spot', false)) {
                 throw new InvalidOrder(this.id + ' createOrder() does not support trigger orders for ' + this.safeString(market, 'type', '') + ' markets');
             }
             upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
@@ -2249,7 +2249,7 @@ export default class poloniex extends Exchange {
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 }
-                else if (createMarketBuyOrderRequiresPrice && (market['spot'] === true)) {
+                else if (createMarketBuyOrderRequiresPrice && (this.safeBool(market, 'spot', false))) {
                     if (price === undefined) {
                         throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     }
@@ -2264,14 +2264,14 @@ export default class poloniex extends Exchange {
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
                 let amountKey = 'sz';
-                if (market['spot'] === true) {
+                if (this.safeBool(market, 'spot', false)) {
                     amountKey = 'amount';
                 }
                 result[amountKey] = quoteAmount;
             }
             else {
                 let amountKey = 'sz';
-                if (market['spot'] === true) {
+                if (this.safeBool(market, 'spot', false)) {
                     amountKey = 'quantity';
                 }
                 result[amountKey] = this.amountToPrecision(symbol, amount);
@@ -2279,12 +2279,12 @@ export default class poloniex extends Exchange {
         }
         else {
             let amountKey = 'sz';
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 amountKey = 'quantity';
             }
             result[amountKey] = this.amountToPrecision(symbol, amount);
             let priceKey = 'px';
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 priceKey = 'price';
             }
             result[priceKey] = this.priceToPrecision(symbol, price);
@@ -2293,7 +2293,7 @@ export default class poloniex extends Exchange {
         if (clientOrderId !== undefined) {
             // the futures v3 api silently ignores the spot key and generates its own id
             let clientOrderIdKey = 'clOrdId';
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 clientOrderIdKey = 'clientOrderId';
             }
             result[clientOrderIdKey] = clientOrderId;
@@ -2322,7 +2322,7 @@ export default class poloniex extends Exchange {
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders, only spot orders are accepted');
         }
         const request = {
@@ -2369,7 +2369,7 @@ export default class poloniex extends Exchange {
         }
         const market = this.market(symbol);
         const request = {};
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             request['ordId'] = id;
             const raw = await this.swapPrivateDeleteV3TradeOrder(this.extend(request, params));
@@ -2827,11 +2827,11 @@ export default class poloniex extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (market['contract'] === true) {
+            if (this.safeBool(market, 'contract', false)) {
                 request['limit'] = this.findNearestCeiling([5, 10, 20, 100, 150], limit);
             }
         }
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, params));
             //
             //    {
@@ -3736,7 +3736,7 @@ export default class poloniex extends Exchange {
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         let mode = 'ONE_WAY';
-        if (hedged === true) {
+        if (hedged) {
             mode = 'HEDGE';
         }
         const request = {

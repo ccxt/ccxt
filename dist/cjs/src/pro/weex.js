@@ -1612,6 +1612,9 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchBalance() requires a market type');
+        }
         const isContract = (type !== 'spot');
         let urlType = 'spot';
         if (isContract) {

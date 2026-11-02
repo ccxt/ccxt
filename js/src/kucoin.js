@@ -3203,7 +3203,7 @@ export default class kucoin extends Exchange {
             const resultList = this.safeList(data, 'list', []);
             result = this.safeDict(resultList, 0, {});
         }
-        else if (market['contract'] === true) {
+        else if (this.safeBool(market, 'contract', false)) {
             response = await this.futuresPublicGetTicker(this.extend(request, paramsMarketType));
             //
             //    {
@@ -3274,7 +3274,7 @@ export default class kucoin extends Exchange {
             'symbol': market['id'],
         };
         let response;
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, params));
             const data = this.safeDict(response, 'data', {});
             return this.parseTicker(data, market);
@@ -3352,7 +3352,7 @@ export default class kucoin extends Exchange {
         if (uta) {
             return await this.fetchUTAOHLCV(symbol, timeframe, since, limit, paramsRequest);
         }
-        else if (market['contract'] === true) {
+        else if (this.safeBool(market, 'contract', false)) {
             return await this.fetchContractOHLCV(symbol, timeframe, since, limit, paramsRequest);
         }
         else {
@@ -4021,10 +4021,10 @@ export default class kucoin extends Exchange {
         if (utaOption) {
             return await this.createUtaOrder(symbol, type, side, amount, price, paramsUta);
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             return await this.createSpotOrder(symbol, type, side, amount, price, paramsUta);
         }
-        else if (market['contract'] === true) {
+        else if (this.safeBool(market, 'contract', false)) {
             return await this.createContractOrder(symbol, type, side, amount, price, paramsUta);
         }
         else {
@@ -4750,10 +4750,10 @@ export default class kucoin extends Exchange {
                 throw new ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
             }
             const market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 isSpot = true;
             }
-            else if (market['contract'] === true) {
+            else if (this.safeBool(market, 'contract', false)) {
                 isContract = true;
             }
         }
@@ -4943,7 +4943,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             throw new NotSupported(this.id + ' editOrder() supports spot markets only');
         }
         const request = {
@@ -6365,7 +6365,7 @@ export default class kucoin extends Exchange {
         }
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        if ((marketResolved !== undefined) && (marketResolved['contract'] === true)) {
+        if ((marketResolved !== undefined) && (this.safeBool(marketResolved, 'contract', false))) {
             return this.parseContractOrder(order, marketResolved);
         }
         else {
@@ -6451,7 +6451,7 @@ export default class kucoin extends Exchange {
         let average = this.safeString(order, 'avgDealPrice');
         if ((average === undefined) && Precise.stringGt(filled, '0')) {
             const contractSize = this.safeString(marketResolved, 'contractSize');
-            if (marketResolved['linear'] === true) {
+            if (this.safeBool(marketResolved, 'linear', false)) {
                 average = Precise.stringDiv(cost, Precise.stringMul(contractSize, filled));
             }
             else {
@@ -7304,7 +7304,7 @@ export default class kucoin extends Exchange {
         }
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        if ((marketResolved === undefined) || (marketResolved['spot'] === true)) {
+        if ((marketResolved === undefined) || (this.safeBool(marketResolved, 'spot', false))) {
             return this.parseSpotOrUtaTrade(trade, marketResolved);
         }
         else {
@@ -7651,7 +7651,7 @@ export default class kucoin extends Exchange {
         let response;
         let entry = undefined;
         if (utaOption) {
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 request['tradeType'] = 'SPOT';
             }
             else {
@@ -7678,7 +7678,7 @@ export default class kucoin extends Exchange {
             const dataList = this.safeList(data, 'list', []);
             entry = this.safeDict(dataList, 0);
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             request['symbols'] = market['id'];
             response = await this.privateGetTradeFees(this.extend(request, paramsUta));
             //
@@ -10021,7 +10021,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new NotSupported(this.id + ' fetchLeverage() supports contract markets only');
         }
         const request = {
@@ -10083,7 +10083,7 @@ export default class kucoin extends Exchange {
                 throw new ArgumentsRequired(this.id + ' setLeverage requires a symbol argument for contract markets');
             }
             market = this.market(symbol);
-            if (market['contract'] === true) {
+            if (this.safeBool(market, 'contract', false)) {
                 return await this.setContractLeverage(leverage, symbol, paramsRequest);
             }
         }
@@ -11370,8 +11370,8 @@ export default class kucoin extends Exchange {
         const id = this.safeString(info, 'id');
         const marketResolved = this.safeMarket(id, market);
         const currencyId = this.safeString(info, 'settleCurrency');
-        const crossMode = this.safeBool(info, 'crossMode');
-        const mode = (crossMode === true) ? 'cross' : 'isolated';
+        const crossMode = this.safeBool(info, 'crossMode', false);
+        const mode = crossMode ? 'cross' : 'isolated';
         const marketId = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(info, 'currentTimestamp');
         return {
@@ -11445,7 +11445,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         const request = {
@@ -11480,7 +11480,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets();
         }
         let posMode = '0';
-        if (hedged === true) {
+        if (hedged) {
             posMode = '1';
         }
         const request = {
@@ -11572,7 +11572,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new BadRequest(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
         const uta = false;

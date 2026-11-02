@@ -521,7 +521,7 @@ export default class whitebit extends Exchange {
             return undefined;
         }
         const active = this.safeBool(market, 'tradesEnabled');
-        const isCollateral = this.safeBool(market, 'isCollateral');
+        const isCollateral = this.safeBool(market, 'isCollateral', false);
         const typeId = this.safeString(market, 'type');
         let type = undefined;
         let settle = undefined;
@@ -1538,7 +1538,7 @@ export default class whitebit extends Exchange {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                if (market['contract'] !== true) {
+                if (!this.safeBool(market, 'contract', false)) {
                     onlyContractSymbols = false;
                     break;
                 }
@@ -2638,9 +2638,9 @@ export default class whitebit extends Exchange {
         const timestamp = this.safeTimestamp2(order, 'ctime', 'timestamp');
         const lastTradeTimestamp = this.safeTimestamp(order, 'ftime');
         const postOnly = this.safeBool(order, 'postOnly');
-        const ioc = this.safeBool(order, 'ioc');
+        const ioc = this.safeBool(order, 'ioc', false);
         let timeInForce = undefined;
-        if (ioc === true) {
+        if (ioc) {
             timeInForce = 'IOC';
         }
         else if (postOnly === true) {

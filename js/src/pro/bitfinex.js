@@ -66,8 +66,8 @@ export default class bitfinex extends bitfinexRest {
         const checksum = this.safeBool(this.options, 'checksum', true);
         if ((checksum) && (channel === 'book')) {
             const sub = client.subscriptions[messageHash];
-            const subChecksum = this.safeBool(sub, 'checksum');
-            if ((sub !== undefined) && (subChecksum !== true)) {
+            const subChecksum = this.safeBool(sub, 'checksum', false);
+            if ((sub !== undefined) && !subChecksum) {
                 client.subscriptions[messageHash]['checksum'] = true;
                 await client.send({
                     'event': 'conf',

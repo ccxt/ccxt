@@ -1266,7 +1266,7 @@ class woo extends woo$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
@@ -1286,7 +1286,7 @@ class woo extends woo$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
@@ -1433,7 +1433,7 @@ class woo extends woo$1["default"] {
             // for market buy it requires the amount of quote currency to spend
             const cost = this.safeStringN(paramsMarginMode, ['cost', 'order_amount', 'orderAmount']);
             const isPriceProvided = price !== undefined;
-            if ((market['spot'] === true) && (isPriceProvided || (cost !== undefined))) {
+            if ((this.safeBool(market, 'spot', false)) && (isPriceProvided || (cost !== undefined))) {
                 let quoteAmount = undefined;
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
@@ -2401,7 +2401,7 @@ class woo extends woo$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.NotSupported(this.id + ' fetchTicker() supports swap markets only, there is no spot ticker endpoint');
         }
         const request = {
@@ -2464,7 +2464,7 @@ class woo extends woo$1["default"] {
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
                 const firstMarket = this.market(symbols[0]);
-                if (firstMarket['swap'] !== true) {
+                if (!this.safeBool(firstMarket, 'swap', false)) {
                     throw new errors.NotSupported(this.id + ' fetchTickers() supports swap markets only');
                 }
             }
@@ -3553,9 +3553,9 @@ class woo extends woo$1["default"] {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeBool(response, 'success');
+        const success = this.safeBool(response, 'success', false);
         const errorCode = this.safeString(response, 'code');
-        if (success !== true) {
+        if (!success) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -3934,7 +3934,7 @@ class woo extends woo$1["default"] {
         }
         const market = this.market(symbol);
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.v3PrivateGetAccountInfo(params);
             //
             //     {
@@ -3966,7 +3966,7 @@ class woo extends woo$1["default"] {
             //     }
             //
         }
-        else if (market['swap'] === true) {
+        else if (this.safeBool(market, 'swap', false)) {
             const request = {
                 'symbol': market['id'],
             };

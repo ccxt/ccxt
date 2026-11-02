@@ -765,7 +765,7 @@ class lbank extends lbank$1["default"] {
         const symbol = this.safeSymbol(marketId, market);
         const tickerData = this.safeDict(ticker, 'ticker', {});
         const marketResolved = this.safeMarket(marketId, market);
-        const data = (marketResolved['contract'] === true) ? ticker : tickerData;
+        const data = (this.safeBool(marketResolved, 'contract', false)) ? ticker : tickerData;
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -803,7 +803,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const responseForSwap = await this.fetchTickers([market['symbol']], params);
             const swapTicker = this.safeDict(responseForSwap, market['symbol']);
             return swapTicker;
@@ -998,7 +998,7 @@ class lbank extends lbank$1["default"] {
         //
         const orderbook = this.safeDict(response, 'data', {});
         const timestamp = this.milliseconds();
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks');
@@ -1631,7 +1631,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -2948,8 +2948,8 @@ class lbank extends lbank$1["default"] {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const fee = response[i];
-            const canWithdraw = this.safeBool(fee, 'canWithDraw');
-            if (canWithdraw === true) {
+            const canWithdraw = this.safeBool(fee, 'canWithDraw', false);
+            if (canWithdraw) {
                 const code = this.safeCurrencyCode(this.safeString(fee, 'assetCode'));
                 if ((code !== undefined) && (codes === undefined || this.inArray(code, codes))) {
                     const withdrawFee = this.safeNumber(fee, 'fee');
@@ -3026,9 +3026,9 @@ class lbank extends lbank$1["default"] {
             const networkEntry = this.safeDict(networkList, j);
             const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'name'), code);
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
-            const isDefault = this.safeBool(networkEntry, 'isDefault');
+            const isDefault = this.safeBool(networkEntry, 'isDefault', false);
             if (withdrawFee !== undefined) {
-                if (isDefault === true) {
+                if (isDefault) {
                     result['withdraw'] = {
                         'fee': withdrawFee,
                         'percentage': undefined,

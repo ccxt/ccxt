@@ -1057,7 +1057,7 @@ export default class bigone extends Exchange {
         }
         const market = this.market(symbol);
         let response;
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             const request = {
                 'symbol': market['id'],
             };
@@ -1305,7 +1305,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             throw new NotSupported(this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request = {
@@ -1374,7 +1374,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             throw new NotSupported(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger(params, 'until');
@@ -1531,9 +1531,9 @@ export default class bigone extends Exchange {
         if (Precise.stringEq(triggerPrice, '0')) {
             triggerPrice = undefined;
         }
-        const immediateOrCancel = this.safeBool(order, 'immediate_or_cancel');
+        const immediateOrCancel = this.safeBool(order, 'immediate_or_cancel', false);
         let timeInForce = undefined;
-        if (immediateOrCancel === true) {
+        if (immediateOrCancel) {
             timeInForce = 'IOC';
         }
         const type = this.parseType(this.safeString(order, 'type'));
@@ -1587,7 +1587,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;

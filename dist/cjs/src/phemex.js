@@ -4261,7 +4261,7 @@ class phemex extends phemex$1["default"] {
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         const apiUnrealizedPnl = this.safeString(position, 'unRealisedPnlRv', unrealizedPnl);
         const marginRatio = Precise["default"].stringDiv(maintenanceMarginString, collateral);
-        const isCross = this.safeBool(position, 'crossMargin');
+        const isCross = this.safeBool(position, 'crossMargin', false);
         const timestamp = this.safeInteger(position, 'openedTimeNs');
         const lastUpdateTimestamp = this.safeInteger(position, 'updatedTimeNs', this.safeIntegerProduct(position, 'transactTimeNs', 0.000001));
         return this.safePosition({
@@ -4288,7 +4288,7 @@ class phemex extends phemex$1["default"] {
             'marginRatio': this.parseNumber(marginRatio),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'marginMode': (isCross === true) ? 'cross' : 'isolated',
+            'marginMode': isCross ? 'cross' : 'isolated',
             'side': side,
             'hedged': this.safeString(position, 'posMode') === 'Hedged',
             'percentage': undefined,
@@ -4556,8 +4556,8 @@ class phemex extends phemex$1["default"] {
         //     }
         //
         const marketResolved = this.safeMarket(undefined, market);
-        const inverse = this.safeBool(marketResolved, 'inverse');
-        const codeCurrency = (inverse === true) ? 'base' : 'quote';
+        const inverse = this.safeBool(marketResolved, 'inverse', false);
+        const codeCurrency = inverse ? 'base' : 'quote';
         return {
             'info': data,
             'symbol': this.safeSymbol(undefined, marketResolved),
@@ -4640,7 +4640,7 @@ class phemex extends phemex$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        if (hedged === true) {
+        if (hedged) {
             request['targetPosMode'] = 'Hedged';
         }
         else {

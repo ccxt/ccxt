@@ -575,7 +575,7 @@ export default class backpack extends Exchange {
         const currencies = {};
         for (let i = 0; i < response.length; i++) {
             const currency = this.parseCurrency(this.safeDict(response, i, {}));
-            if ((stock !== true) || (this.safeString(currency, 'type') === 'stock')) {
+            if (!stock || (this.safeString(currency, 'type') === 'stock')) {
                 currencies[currency['code']] = currency;
             }
         }
@@ -712,7 +712,7 @@ export default class backpack extends Exchange {
                     continue;
                 }
                 marketIds[marketId] = true;
-                if ((stock !== true) || this.safeBool(market, 'stock', false)) {
+                if (!stock || this.safeBool(market, 'stock', false)) {
                     markets.push(market);
                 }
             }
@@ -1705,7 +1705,7 @@ export default class backpack extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new BadRequest(this.id + ' fetchFundingRate() symbol does not support market ' + symbol);
         }
         const request = {
@@ -1764,7 +1764,7 @@ export default class backpack extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new BadRequest(this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
         }
         const request = {

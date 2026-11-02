@@ -741,7 +741,7 @@ class bitget extends bitget$1["default"] {
         //
         let volumeIndex = 5;
         const isInverse = this.safeBool(market, 'inverse', false);
-        if (isInverse === true) {
+        if (isInverse) {
             volumeIndex = 6;
         }
         const timestamp = this.safeInteger2(ohlcv, 'start', 0);

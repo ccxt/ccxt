@@ -1175,8 +1175,8 @@ export default class coinbase extends Exchange {
         const amountStringAbs = Precise.stringAbs(amountString);
         let status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         if (status === undefined) {
-            const committed = this.safeBool(transaction, 'committed');
-            status = (committed === true) ? 'ok' : 'pending';
+            const committed = this.safeBool(transaction, 'committed', false);
+            status = committed ? 'ok' : 'pending';
         }
         const id = this.safeString(transaction, 'id');
         const currencyId = this.safeString(amountAndCurrencyObject, 'currency');
@@ -1303,11 +1303,11 @@ export default class coinbase extends Exchange {
                 }
             }
         }
-        const sizeInQuote = this.safeBool(trade, 'size_in_quote');
+        const sizeInQuote = this.safeBool(trade, 'size_in_quote', false);
         const v3Price = this.safeString(trade, 'price');
         let v3Cost = undefined;
         let v3Amount = this.safeString(trade, 'size');
-        if (sizeInQuote === true) {
+        if (sizeInQuote) {
             // calculate base size
             v3Cost = v3Amount;
             v3Amount = Precise.stringDiv(v3Amount, v3Price);
@@ -1668,7 +1668,7 @@ export default class coinbase extends Exchange {
             return undefined;
         }
         const marketType = this.safeStringLower(market, 'product_type');
-        const tradingDisabled = this.safeBool(market, 'trading_disabled');
+        const tradingDisabled = this.safeBool(market, 'trading_disabled', false);
         const stablePairs = this.safeList(this.options, 'stablePairs', []);
         const defaultTakerFee = this.safeNumber(this.fees['trading'], 'taker');
         const defaultMakerFee = this.safeNumber(this.fees['trading'], 'maker');
@@ -1866,7 +1866,7 @@ export default class coinbase extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        const isDisabled = this.safeBool(market, 'is_disabled');
+        const isDisabled = this.safeBool(market, 'is_disabled', false);
         const tradingDisabled = (isDisabled === true) || (this.safeBool(market, 'trading_disabled') === true);
         let symbol = base + '/' + quote;
         let type = undefined;
@@ -3088,7 +3088,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -3134,8 +3134,8 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'side': side.toUpperCase(),
         };
-        const reduceOnly = this.safeBool(params, 'reduceOnly');
-        if (reduceOnly === true) {
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
+        if (reduceOnly) {
             return await this.closePosition(symbol, side, this.extend(this.omit(params, 'reduceOnly'), { 'amount': amount }));
         }
         let paramsMarketBuy = undefined;
@@ -3253,7 +3253,7 @@ export default class coinbase extends Exchange {
             if (isStop || isStopLoss || isTakeProfit) {
                 throw new NotSupported(this.id + ' createOrder() only stop limit orders are supported');
             }
-            if ((market['spot'] === true) && (side === 'buy')) {
+            if ((this.safeBool(market, 'spot', false)) && (side === 'buy')) {
                 let total = undefined;
                 const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber(paramsRequiresPrice, 'cost');
@@ -3346,8 +3346,8 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const success = this.safeBool(response, 'success');
-        if (success !== true) {
+        const success = this.safeBool(response, 'success', false);
+        if (!success) {
             const errorResponse = this.safeDict(response, 'error_response');
             const errorTitle = this.safeString(errorResponse, 'error');
             const errorMessage = this.safeString(errorResponse, 'message');
@@ -3583,8 +3583,8 @@ export default class coinbase extends Exchange {
         //
         const orders = this.safeList(response, 'results', []);
         for (let i = 0; i < orders.length; i++) {
-            const success = this.safeBool(orders[i], 'success');
-            if (success !== true) {
+            const success = this.safeBool(orders[i], 'success', false);
+            if (!success) {
                 throw new BadRequest(this.id + ' cancelOrders() has failed, check your arguments and parameters');
             }
         }
@@ -5118,7 +5118,7 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.safeString(this.symbols, i, '');
             const market = this.market(symbol);
-            if ((isSpot && (market['spot'] === true)) || (!isSpot && (market['spot'] !== true))) {
+            if ((isSpot && (this.safeBool(market, 'spot', false))) || (!isSpot && (!this.safeBool(market, 'spot', false)))) {
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
@@ -5444,8 +5444,8 @@ export default class coinbase extends Exchange {
                 }
             }
         }
-        const advancedTrade = this.safeBool(this.options, 'advanced');
-        if (!('data' in response) && (advancedTrade !== true)) {
+        const advancedTrade = this.safeBool(this.options, 'advanced', false);
+        if (!('data' in response) && !advancedTrade) {
             throw new ExchangeError(this.id + ' failed due to a malformed response ' + this.json(response));
         }
         return undefined;

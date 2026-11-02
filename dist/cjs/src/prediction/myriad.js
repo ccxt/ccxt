@@ -3555,9 +3555,7 @@ class myriad extends myriad$1["default"] {
         const ts = this.safeInteger(data, 'ts');
         const outcomes = this.safeList(data, 'outcomes', []);
         const outcomesLength = outcomes.length;
-        if (this.tickers === undefined) {
-            this.tickers = this.createSafeDictionary();
-        }
+        const cachedTickers = this.safeDict(this.options, 'wsTickers', {});
         for (let i = 0; i < outcomesLength; i++) {
             const oc = outcomes[i];
             const outcomeId = this.safeString(oc, 'outcome');
@@ -3593,10 +3591,11 @@ class myriad extends myriad$1["default"] {
                 'quoteVolume': undefined,
                 'info': oc,
             }, market);
-            this.tickers[sym] = ticker;
+            cachedTickers[sym] = ticker;
             client.resolve(ticker, 'ticker::' + sym);
         }
-        client.resolve(this.tickers, 'tickers');
+        this.options['wsTickers'] = cachedTickers;
+        client.resolve(cachedTickers, 'tickers');
     }
     /**
      * @method

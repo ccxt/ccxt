@@ -1186,7 +1186,7 @@ class aster extends aster$1["default"] {
         }
         else {
             requestUntil['symbol'] = this.safeString(market, 'id', '');
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted));
             }
             else {
@@ -1349,7 +1349,7 @@ class aster extends aster$1["default"] {
         }
         // use historical endpoint for targeted requests
         if (sinceDefined) {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
             }
             else {
@@ -1372,7 +1372,7 @@ class aster extends aster$1["default"] {
             //
         }
         else {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 response = await this.fapiPublicGetV3Trades(this.extend(request, params));
             }
             else {
@@ -1479,7 +1479,7 @@ class aster extends aster$1["default"] {
         if (limit !== undefined) {
             request['limit'] = this.findNearestCeiling([5, 10, 20, 50, 100, 500, 1000], limit);
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPublicGetV3Depth(this.extend(request, params));
         }
         else {
@@ -1614,7 +1614,7 @@ class aster extends aster$1["default"] {
             'symbol': market['id'],
         };
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, params));
         }
         else {
@@ -2155,7 +2155,7 @@ class aster extends aster$1["default"] {
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         let strValue = 'false';
-        if (hedged === true) {
+        if (hedged) {
             strValue = 'true';
         }
         const request = {
@@ -2199,7 +2199,7 @@ class aster extends aster$1["default"] {
             'symbol': market['id'],
         };
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, params));
         }
         else {
@@ -2362,7 +2362,7 @@ class aster extends aster$1["default"] {
             request['orderId'] = id;
         }
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateGetV3Order(this.extend(request, paramsOmitted));
         }
         else {
@@ -2428,7 +2428,7 @@ class aster extends aster$1["default"] {
             request['orderId'] = id;
         }
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, paramsOmitted));
         }
         else {
@@ -2495,7 +2495,7 @@ class aster extends aster$1["default"] {
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateGetV3AllOrders(this.extend(requestUntil, paramsUntil));
         }
         else {
@@ -2633,7 +2633,7 @@ class aster extends aster$1["default"] {
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivatePostV3Order(request);
         }
         else {
@@ -2703,7 +2703,7 @@ class aster extends aster$1["default"] {
         }
         const orderSymbolsResolved = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(orderSymbolsResolved[0]);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' createOrders() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         const request = {
@@ -2786,7 +2786,7 @@ class aster extends aster$1["default"] {
         let uppercaseType = initialUppercaseType;
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
@@ -2828,7 +2828,7 @@ class aster extends aster$1["default"] {
         let quantityIsRequired = false;
         request['type'] = uppercaseType;
         if (uppercaseType === 'MARKET') {
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
@@ -2917,7 +2917,7 @@ class aster extends aster$1["default"] {
         else {
             requestParams = this.omit(params, omitKeys);
         }
-        if ((this.safeBool(this.options, 'builderFee', false)) && (market['swap'] === true)) {
+        if ((this.safeBool(this.options, 'builderFee', false)) && (this.safeBool(market, 'swap', false))) {
             request['builder'] = this.safeString(this.options, 'builder');
             request['feeRate'] = this.safeString(this.options, 'builderRate');
         }
@@ -2943,7 +2943,7 @@ class aster extends aster$1["default"] {
             'symbol': market['id'],
         };
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, params));
         }
         else {
@@ -2992,7 +2992,7 @@ class aster extends aster$1["default"] {
         }
         const paramsOmitted = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateDeleteV3Order(this.extend(request, paramsOmitted));
         }
         else {
@@ -3032,7 +3032,7 @@ class aster extends aster$1["default"] {
             request['orderIdList'] = ids;
         }
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, params));
             //
             //    [
@@ -3835,7 +3835,7 @@ class aster extends aster$1["default"] {
             const position = positions[i];
             const marketId = this.safeString(position, 'symbol');
             const market = this.safeMarket(marketId, undefined, undefined, 'contract');
-            const code = (market['linear'] === true) ? market['quote'] : market['base'];
+            const code = (this.safeBool(market, 'linear', false)) ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString(position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');

@@ -206,7 +206,7 @@ class gate extends gate$1["default"] {
         const request = this.createOrdersRequest(orders, params);
         const firstOrder = orders[0];
         const market = this.market(firstOrder['symbol']);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.NotSupported(this.id + ' createOrdersWs is not supported for swap markets');
         }
         // todo add swap support
@@ -402,7 +402,7 @@ class gate extends gate$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
-            if (market['swap'] !== true) {
+            if (!this.safeBool(market, 'swap', false)) {
                 throw new errors.NotSupported(this.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
             }
         }
@@ -450,11 +450,11 @@ class gate extends gate$1["default"] {
         const messageHash = 'orderbook' + ':' + symbolValue;
         // max 100 atm, max 50 for options
         let defaultLimit = 100;
-        if ((market['spot'] === true) || (messageType === 'options')) {
+        if ((this.safeBool(market, 'spot', false)) || (messageType === 'options')) {
             defaultLimit = 50;
         }
         let limitResolved = (limit === undefined) ? defaultLimit : limit;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
             limitResolved = Math.min(limitResolved, maxSpotLimit);
@@ -465,7 +465,7 @@ class gate extends gate$1["default"] {
             channel = 'spot.order_book_update';
             payload = [marketId, interval];
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             channel = 'spot.obu';
             let finalInterval = interval;
             if (limitResolved === 400) {
@@ -513,7 +513,7 @@ class gate extends gate$1["default"] {
         const messageType = this.getTypeByMarket(market);
         let limit = this.safeInteger(paramsInterval, 'limit');
         if (limit === undefined) {
-            limit = (market['spot'] === true) ? 50 : 100; // max 100 atm
+            limit = (this.safeBool(market, 'spot', false)) ? 50 : 100; // max 100 atm
             if (messageType === 'options') {
                 limit = 50; // max 50 for options
             }
@@ -524,7 +524,7 @@ class gate extends gate$1["default"] {
             channel = 'spot.order_book_update';
             payload = [marketId, intervalOption];
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             channel = 'spot.obu';
             let finalInterval = intervalOption;
             if (limit === 400) {
@@ -887,8 +887,10 @@ class gate extends gate$1["default"] {
             }
             return items;
         }
-        const result = isWatchTickers ? this.tickers : this.bidsasks;
-        return this.filterByArray(result, 'symbol', symbolsNormalized, true);
+        if (isWatchTickers) {
+            return this.filterByArray(this.tickers, 'symbol', symbolsNormalized, true);
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized, true);
     }
     handleTickerAndBidAsk(objectName, client, message) {
         const channel = this.safeString(message, 'channel');
@@ -2271,8 +2273,8 @@ class gate extends gate$1["default"] {
             const data = this.safeDict(message, 'data');
             // use safeValue as result may be Array or an Object
             const result = this.safeValue(data, 'result');
-            const ack = this.safeBool(message, 'ack');
-            if (ack !== true) {
+            const ack = this.safeBool(message, 'ack', false);
+            if (!ack) {
                 client.resolve(result, requestId);
             }
         }

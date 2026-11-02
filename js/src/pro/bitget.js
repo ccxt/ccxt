@@ -748,7 +748,7 @@ export default class bitget extends bitgetRest {
         //
         let volumeIndex = 5;
         const isInverse = this.safeBool(market, 'inverse', false);
-        if (isInverse === true) {
+        if (isInverse) {
             volumeIndex = 6;
         }
         const timestamp = this.safeInteger2(ohlcv, 'start', 0);

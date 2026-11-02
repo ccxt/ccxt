@@ -3367,7 +3367,7 @@ class hitbtc extends hitbtc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request = {
@@ -3405,7 +3405,7 @@ class hitbtc extends hitbtc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -3474,7 +3474,7 @@ class hitbtc extends hitbtc$1["default"] {
         }
         const market = this.market(symbol);
         const leverage = this.safeString(params, 'leverage');
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             if (leverage === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3797,12 +3797,12 @@ class hitbtc extends hitbtc$1["default"] {
                 networkCode = this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper);
             }
             const withdrawFee = this.safeNumber(networkEntry, 'payout_fee');
-            const isDefault = this.safeBool(networkEntry, 'default');
+            const isDefault = this.safeBool(networkEntry, 'default', false);
             const withdrawResult = {
                 'fee': withdrawFee,
                 'percentage': (withdrawFee !== undefined) ? false : undefined,
             };
-            if (isDefault === true) {
+            if (isDefault) {
                 result['withdraw'] = withdrawResult;
             }
             if (networkCode !== undefined) {

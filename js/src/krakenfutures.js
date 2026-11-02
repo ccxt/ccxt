@@ -771,10 +771,10 @@ export default class krakenfutures extends Exchange {
         let baseVolume = undefined;
         const isIndex = this.safeBool(marketResolved, 'index', false);
         if (!isIndex) {
-            if (marketResolved['linear'] === true) {
+            if (this.safeBool(marketResolved, 'linear', false)) {
                 baseVolume = volume;
             }
-            else if (marketResolved['inverse'] === true) {
+            else if (this.safeBool(marketResolved, 'inverse', false)) {
                 baseVolume = Precise.stringDiv(quoteVolume, vwap);
             }
         }
@@ -1224,9 +1224,9 @@ export default class krakenfutures extends Exchange {
         const type = this.parseOrderType(rawType); // undefined stays undefined
         const marketResolved = this.safeMarket(marketId, market);
         let cost = undefined;
-        const linear = this.safeBool(marketResolved, 'linear');
+        const linear = this.safeBool(marketResolved, 'linear', false);
         if ((amount !== undefined) && (price !== undefined) && (marketResolved !== undefined)) {
-            if (linear === true) {
+            if (linear) {
                 cost = Precise.stringMul(amount, price); // in quote
             }
             else {
@@ -1280,7 +1280,7 @@ export default class krakenfutures extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': (linear === true) ? amount : undefined,
+            'amount': linear ? amount : undefined,
             'cost': cost,
             'fee': fee,
         });
@@ -1326,7 +1326,7 @@ export default class krakenfutures extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const triggerSignal = this.safeString(paramsPostOnly, 'triggerSignal', 'last');
-        const reduceOnlyParam = this.safeBool(paramsPostOnly, 'reduceOnly');
+        const reduceOnlyParam = this.safeBool(paramsPostOnly, 'reduceOnly', false);
         let reduceOnly = (reduceOnlyParam === true);
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
             request['triggerSignal'] = triggerSignal;
@@ -2442,7 +2442,7 @@ export default class krakenfutures extends Exchange {
                 whichPrice = average;
             }
             if (whichPrice !== undefined) {
-                if (marketResolved['linear'] === true) {
+                if (this.safeBool(marketResolved, 'linear', false)) {
                     cost = Precise.stringMul(filled, whichPrice); // in quote
                 }
                 else {
@@ -3174,7 +3174,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -3627,7 +3627,7 @@ export default class krakenfutures extends Exchange {
             const marketId = this.safeString(market, 'id', '');
             const splitId = marketId.split('_');
             const splitMarketId = this.safeString(splitId, 1, '');
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 return 'fi_' + splitMarketId;
             }
             else {

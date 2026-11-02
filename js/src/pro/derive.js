@@ -848,6 +848,9 @@ export default class derive extends deriveRest {
         }
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         const subaccountIdKey = this.numberToString(subaccountId);
+        if (subaccountIdKey === undefined) {
+            throw new ExchangeError(this.id + ' watchBalance() could not resolve the subaccount id');
+        }
         if (fetchSnapshot && !(subaccountIdKey in this.balance)) {
             const snapshotRequest = {
                 'subaccount_id': subaccountId,

@@ -1706,7 +1706,7 @@ class predictfun extends predictfun$1["default"] {
     setSandboxMode(enable) {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        const wasSandbox = (this.safeBool(this.options, 'sandboxMode', false) === true);
+        const wasSandbox = this.safeBool(this.options, 'sandboxMode', false);
         super.setSandboxMode(enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key

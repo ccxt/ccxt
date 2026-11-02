@@ -584,7 +584,7 @@ class bingx extends bingx$1["default"] {
             request['reqType'] = 'sub';
         }
         let subscriptionArgs = {};
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': false,
@@ -727,7 +727,7 @@ class bingx extends bingx$1["default"] {
         let snapshot;
         let timestamp = this.safeInteger2(message, 'timestamp', 'ts');
         timestamp = this.safeInteger2(data, 'timestamp', 'ts', timestamp);
-        if (market['inverse'] === true) {
+        if (this.safeBool(market, 'inverse', false)) {
             snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         }
         else {
@@ -854,7 +854,7 @@ class bingx extends bingx$1["default"] {
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         let candles = undefined;
         if (isSwap) {
-            if (market['inverse'] === true) {
+            if (this.safeBool(market, 'inverse', false)) {
                 candles = [this.safeDict(message, 'data', {})];
             }
             else {
@@ -1189,7 +1189,7 @@ class bingx extends bingx$1["default"] {
             };
         }
         const userStreamKey = this.safeString(this.options, 'listenKey');
-        if (baseUrl === undefined || userStreamKey === undefined) {
+        if (type === undefined || baseUrl === undefined || userStreamKey === undefined) {
             throw new errors.AuthenticationError(this.id + ' watchBalance() requires a websocket URL and a listen key');
         }
         const url = baseUrl + '?listenKey=' + userStreamKey;

@@ -1403,7 +1403,7 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.NotSupported(this.id + ' fetchMarkPrice() supports contract markets only');
         }
         const [priceType, paramsPriceType] = this.handleOptionStringAndParams(params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
@@ -1484,7 +1484,7 @@ class weex extends weex$1["default"] {
             request['limit'] = 200; // default is 15, max is 200
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.publicGetApiV3MarketDepth(this.extend(request, params));
         }
         else {
@@ -1533,7 +1533,7 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return await this.fetchSpotOHLCV(symbol, timeframe, since, limit, params);
         }
         else {
@@ -1705,7 +1705,7 @@ class weex extends weex$1["default"] {
             request['limit'] = Math.min(limit, 1000);
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.publicGetApiV3MarketTrades(this.extend(request, params));
         }
         else {
@@ -2199,7 +2199,7 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             return await this.createContractOrder(symbol, type, side, amount, price, params);
         }
         else {
@@ -2361,7 +2361,7 @@ class weex extends weex$1["default"] {
         if (isTrigger && (isStopLoss || isTakeProfit)) {
             throw new errors.BadRequest(this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
-        const reduceOnly = this.safeBool(query, 'reduceOnly');
+        const reduceOnly = this.safeBool(query, 'reduceOnly', false);
         const isReduceOnly = isStopLoss || isTakeProfit || (reduceOnly === true);
         let positionSide = 'LONG';
         if (isReduceOnly) {
@@ -2969,7 +2969,7 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' fetchOrders() supports spot markets only');
         }
         const maxLimit = 1000;
@@ -3605,7 +3605,7 @@ class weex extends weex$1["default"] {
         };
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['swap'] !== true) {
+            if (!this.safeBool(market, 'swap', false)) {
                 throw new errors.NotSupported(this.id + ' fetchFundingHistory() supports swap contracts only');
             }
             request['symbol'] = market['id'];
@@ -3933,7 +3933,7 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             // spot markets return 0 for fees
             throw new errors.NotSupported(this.id + ' fetchTradingFee() is not supported for spot markets');
         }
