@@ -1,0 +1,59 @@
+{
+    "exchange": "jupiter",
+    "skipKeys": [
+        "change"
+    ],
+    "options": {},
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "sol ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "SOL/USDC"
+                ],
+                "httpResponse": {
+                    "So11111111111111111111111111111111111111112": {
+                        "createdAt": "2024-06-05T08:55:25.527Z",
+                        "liquidity": 946740309.1850989,
+                        "usdPrice": 117.11139694501614,
+                        "blockId": 449696083,
+                        "decimals": 9,
+                        "priceChange24h": -0.13087758891799148
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "SOL/USDC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 117.26487038001731,
+                    "close": 117.11139694501614,
+                    "last": 117.11139694501614,
+                    "previousClose": null,
+                    "change": -0.15347343500117452,
+                    "percentage": -0.13087758891799148,
+                    "average": 117.18813366251673,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "createdAt": "2024-06-05T08:55:25.527Z",
+                        "liquidity": 946740309.1850989,
+                        "usdPrice": 117.11139694501614,
+                        "blockId": 449696083,
+                        "decimals": 9,
+                        "priceChange24h": -0.13087758891799148
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ]
+    }
+}
