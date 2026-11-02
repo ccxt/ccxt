@@ -989,7 +989,7 @@ pub fn client_value(url: &str) -> Value {
     Value::Map(m)
 }
 
-/// Typed client handle for the ws drive loop (units R01/R10).
+/// Typed client handle for the ws drive loop.
 ///
 /// The loop owns one per frame and hands it to the venue's `handle_message`;
 /// venues read the four fields it exposes instead of `get_value` on a box.

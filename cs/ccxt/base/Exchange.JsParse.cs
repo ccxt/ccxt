@@ -2,12 +2,9 @@ namespace ccxt;
 
 using System.Globalization;
 
-// hx11 w8: typed, non-throwing twins of the TS globals parseInt(string) / parseFloat(string), for a call
-// whose operand the C# printer proved a `string` / `string?` (build/hx11w8-parse.ts). They follow the
-// ECMAScript algorithm (leading whitespace, sign, longest numeric prefix; no digits -> NaN), reported as
-// null instead of NaN, with the invariant culture. They never throw: a string with no numeric prefix, a
-// null string and an Int64 overflow all answer null (the helpers they replace also answered null on a
-// throw, but accepted whole-string forms like "1e3" for parseInt and threw on "12abc").
+// Typed, non-throwing twins of the TS globals parseInt(string) / parseFloat(string) for operands the C# printer
+// proved `string` / `string?`: ECMAScript prefix parsing (whitespace, sign, longest numeric prefix), invariant
+// culture, and null (never a throw) for no numeric prefix, a null string or an Int64 overflow.
 public static class JsParse
 {
     // ECMAScript WhiteSpace + LineTerminator

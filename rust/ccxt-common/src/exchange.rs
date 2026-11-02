@@ -268,7 +268,7 @@ impl Default for Internals {
 //
 // Every transpiler-visible field is `Value`. Both camelCase and snake_case
 // names appear because the TS source uses both interchangeably.
-// Plain-map state below is single-owner (no lock, no tag): build/hx10w2-R08.ts emits native reads.
+// Plain-map state below is single-owner (no lock, no tag), so the Rust transpiler emits native reads.
 
 #[derive(Clone)]
 pub struct Exchange {
@@ -441,7 +441,7 @@ pub struct Exchange {
 /// Each one is a dict or `Null` for the whole life of the exchange and the
 /// runtime never tags it (`__cacheKind` / `__book_id` / `__ws_subs_url` /
 /// `__live_id`), so reading and writing them is the stdlib map op and nothing
-/// else. `build/hx10w4-BF03.ts` emits those ops natively for the generated
+/// else. The Rust transpiler emits those ops natively for the generated
 /// tiers; the test below holds the invariant they are proven from.
 pub const PLAIN_DICT_FIELDS: [&str; 3] = ["options", "markets", "balance"];
 
@@ -1398,7 +1398,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 
     /// One inbound frame → the venue's `handle_message`, through the typed
     /// handle this loop owns. Still hands over the untyped view, so generated
-    /// handlers are unchanged until R01's dispatcher retype lands.
+    /// handlers keep their untyped `handle_message` signature.
     fn ws_handle_message<'a>(
         &'a mut self,
         client: &'a mut crate::pro::ws_client::ClientHandle,

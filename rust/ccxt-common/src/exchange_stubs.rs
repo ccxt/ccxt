@@ -1495,7 +1495,7 @@ impl Exchange {
         );
     }
 
-    /// `axolotl(payload, hexKey, ed25519)` — curve25519 signing (waves).
+    /// `axolotl(payload, hexKey, ed25519)` — curve25519 signing (Waves exchange).
     pub fn axolotl(&self, _payload: Value, _hex_key: Value, _ed25519: Value) -> Value {
         self.crypto_not_supported("axolotl")
     }

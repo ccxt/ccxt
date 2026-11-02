@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpDictIdentKeyReads, installCsharpNativeComparisons, installCsharpNativeIntProducts, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns, installCsharpDeclaredCollectionLocals, installCsharpNativeAddHx4C02, installCsharpHx4C10NonNullConcat } from './csharp-local-types.js';
+import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpDictIdentKeyReads, installCsharpNativeComparisons, installCsharpNativeIntProducts, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns, installCsharpDeclaredCollectionLocals, installCsharpNativeInt64Add, installCsharpNonNullConcat } from './csharp-local-types.js';
 import log from 'ololog'
 
 // task payload posted by csharpTranspiler.ts#webworkerTranspile (structured clone)
@@ -165,14 +165,14 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     installCsharpGuardedMinMax (transpiler);
     // `getValue (d, k)` on a never-null dictionary local with a string key prints the indexer read
     installCsharpDictIdentKeyReads (transpiler);
-    // S17: `return ((bool)((object)(x))!)` in a bool / bool? method is an identity box + unbox.
+    // `return ((bool)((object)(x))!)` in a bool / bool? method is an identity box + unbox.
     // Drop it when the returned expression's own C# static type already IS the method's boolean
     // type — exact match only, so no nullability (and no spelling) is crossed.
     installCsharpBooleanReturnCasts (csharp);
-    // hx4 C01: emitted collection declarations answer the printer's indexer-read resolver
+    // emitted collection declarations answer the printer's indexer-read resolver
     installCsharpDeclaredCollectionLocals (transpiler);
-    installCsharpNativeAddHx4C02 (transpiler); // hx4 C02
-    installCsharpHx4C10NonNullConcat (transpiler); // hx4 C10
+    installCsharpNativeInt64Add (transpiler); // proven non-null Int64 add prints native
+    installCsharpNonNullConcat (transpiler); // proven non-null string concat prints native
 }
 
 // bare helper calls whose hand-written C# signature returns `bool` and whose printed form IS

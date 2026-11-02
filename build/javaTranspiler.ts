@@ -19,24 +19,24 @@ import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ts } from './csharp-local-types.js';
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
-import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
+import { installJavaFreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
-import { nativeJavaJ04Arithmetic } from './java-local-types.js';
-import { nativeJavaJ20ParamCompare } from './java-local-types.js';
-import { nativeJavaJ04Arithmetic, nativeJavaJ23Arithmetic, nativeJavaJ24Arithmetic, nativeJavaJ27Arithmetic, nativeJavaSumLongLocals } from './java-local-types.js';
-import { nativeJavaJ31Arithmetic, nativeJavaJ32DivModNeg, nativeJavaJ37DivModNeg } from './java-local-types.js';
-import { installH2kJ11StringArgs } from './java-local-types.js';
+import { nativeJavaTypedArithmetic } from './java-local-types.js';
+import { nativeJavaParamCompare } from './java-local-types.js';
+import { nativeJavaTypedArithmetic, nativeJavaPrimitiveArithmetic, nativeJavaNumericLocalsRetype, nativeJavaBoxLocalsRetype, nativeJavaSumLongLocals } from './java-local-types.js';
+import { nativeJavaIntegralMultiplySubtract, nativeJavaNumberDivModNeg, nativeJavaInlineDivModNeg } from './java-local-types.js';
+import { installJavaStringCoreArgs } from './java-local-types.js';
 import { nativeJavaInOp } from './java-local-types.js';
-import { nativeJavaToLongOrNullH2kJ13 } from './java-local-types.js';
-import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
-import { installJ10Types } from './java-local-types.js';
-import { installJ11MapLocals } from './java-local-types.js';
-import { installJ12ParamTypes } from './java-local-types.js';
+import { nativeJavaToLongOrNull } from './java-local-types.js';
+import { installJavaNativePadStartFirst, installJavaLiteralReplace } from './java-local-types.js';
+import { installJavaCounterTypes } from './java-local-types.js';
+import { installJavaMapLocalTypes } from './java-local-types.js';
+import { installJavaParamTypes } from './java-local-types.js';
 import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
-import { installJ13ListLocals } from './java-local-types.js';
-import { installJ14ScalarLocals } from './java-local-types.js';
-import { installJ15J12PreScan } from './java-local-types.js';
-import { installJ17StringReturns } from './java-local-types.js';
+import { installJavaListLocals } from './java-local-types.js';
+import { installJavaScalarLocals } from './java-local-types.js';
+import { installJavaParamTypesPreScan } from './java-local-types.js';
+import { installJavaStringReturns } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -66,8 +66,8 @@ function overwriteFileAndFolder(path: string, content: string) {
     // spelling last, so every regex pass above still matches on the fully-qualified form.
     if (path.endsWith('.java')) {
         content = nativeJavaStringAdd(content);
-        content = applyJavaImports(path.includes('/java/lib/') ? nativeJavaJ44(nativeJavaJ43(nativeJavaJ42(nativeJavaJ41(nativeJavaJ40(content))))) : content); // hx4 J40
-        if (path.includes('/java/lib/')) { content = hx11w8PaginationCursorPuts(content); } // hx11 w8 pagination cursor, after the final element-write passes
+        content = applyJavaImports(path.includes('/java/lib/') ? nativeJavaTypeTests(nativeJavaReplaceAll(nativeJavaParseNumber(nativeJavaStringSliceIndexOf(nativeJavaCoreArgHelpers(content))))) : content);
+        if (path.includes('/java/lib/')) { content = nativeJavaPaginationCursorPuts(content); } // pagination cursor puts, after the final element-write passes
     }
     overwriteFile(path, content);
 }
@@ -553,7 +553,7 @@ function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     if (callee !== null && RETYPE_STRING_RETURN_CALLEES.has (callee[1]) && (token === 'String' || token === 'java.lang.String')) return true;
     // native literal String.replaceFirst/replace (section 52) returns String
     if ((token === 'String' || token === 'java.lang.String') && /^(?:\(\(String\)[\w$]+\)|[\w$]+)\.replace(?:First)?\("/.test (value)) return true;
-    // hx4 J08: guarded native replaceFirst is a String (null arm included)
+    // Guarded native replaceFirst is a String (null arm included)
     if ((token === 'String' || token === 'java.lang.String') && /^\(([\w$.]+) == null \? null : \(\(String\)\1\)\.replaceFirst\(/.test (value)) return true;
     if (value.indexOf ('+') !== -1 && /"/.test (value)) return true;
     // a checkcast proves the value only when it wraps the whole expression, not one argument
@@ -1791,7 +1791,7 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
     return undefined;
 }
 
-// hx11 FJ4-A2: whole-repo facts about a method name for printer.javaBaseListParameterTypeOf (the base-tier program
+// Whole-repo facts about a method name for printer.javaBaseListParameterTypeOf (the base-tier program
 // holds ts/src/base/Exchange.ts and its imports, never the venues). Plain data only, every judgement stays in the
 // printer: how many ts/src declarations carry the name, whether a non-call `.name` reference or a string literal
 // mentions it, whether the hand-written Java above the transpile delimiters calls it, and the argument nodes of
@@ -1877,7 +1877,7 @@ export function installJavaRepoMethodUses (transpiler: any): void {
     };
 }
 
-// hx11 rfm X2: the single-owner stores of the hand-written BaseExchange.java header, handed to the
+// The single-owner stores of the hand-written BaseExchange.java header, handed to the
 // printer (printer.javaOwnerStoreFields / javaOwnerStoreHandoffs). A field is a store when its
 // declaration is `public Map<String, Object> <name> = new SynchronizedOptions (` (put(k, null)
 // removes the key, the contract of the helper's element write); a hand-off key is a name for which
@@ -2491,7 +2491,7 @@ class NewTranspiler {
         this.transpiler.setVerboseMode(false);
         // a lambda body cannot capture a reassigned parameter: fail the transpile instead of copying it
         (this.transpiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
-        installJavaOwnerStores(this.transpiler); // hx11 rfm X2
+        installJavaOwnerStores(this.transpiler);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchJavaPropertyTypes();
         // narrows `Object x = this.safeString(...)` locals to `String` — see
@@ -2535,7 +2535,7 @@ class NewTranspiler {
         // prints `x.get("lit")`. Installed LAST so the observer sees the final text
         // (also applied per worker thread in java-worker.ts)
         installJavaDeclaredLocalTypes(this.transpiler);
-        // hx7 java-03: box the row-builder parameter positions the pin types `Map<String, Object>`
+        // Box the row-builder parameter positions the pin types `Map<String, Object>`
         // although the exchange hands them a raw row/list response (parseCurrency / parseTicker /
         // parseTransfer — the java STATIC_RESPONSE ArrayList->Map sites). Installed LAST so no
         // earlier installer's proof reads a native type this one removes
@@ -2588,19 +2588,19 @@ class NewTranspiler {
         installJavaNativeReplace(this.transpiler);
         // String.replace / native-concat return sites of `: Str` methods (section 53; also in java-worker.ts)
         installJavaStringReturnSites(this.transpiler);
-        installJavaH2kJ02FreshObjectMapWrites(this.transpiler);
-        installH2kJ11StringArgs(this.transpiler);
+        installJavaFreshObjectMapWrites(this.transpiler);
+        installJavaStringCoreArgs(this.transpiler);
         installJavaNativePadStartFirst(this.transpiler);
-        installJ08NativeReplace(this.transpiler);
-        installJ10Types(this.transpiler); // hx4 J10
-        installJ11MapLocals(this.transpiler); // hx4 J11
-        installJ12ParamTypes(this.transpiler); // hx4 J12
-        installJavaMapArgAlreadyTyped(this.transpiler); // hx11 r43
-        installJavaRepoMethodUses(this.transpiler); // hx11 FJ4-A2
-        installJ13ListLocals(this.transpiler); // hx4 J13
-        installJ14ScalarLocals(this.transpiler); // hx4 J14
-        installJ15J12PreScan(this.transpiler); // hx4 J15
-        installJ17StringReturns(this.transpiler); // hx4 J17
+        installJavaLiteralReplace(this.transpiler);
+        installJavaCounterTypes(this.transpiler);
+        installJavaMapLocalTypes(this.transpiler);
+        installJavaParamTypes(this.transpiler);
+        installJavaMapArgAlreadyTyped(this.transpiler);
+        installJavaRepoMethodUses(this.transpiler);
+        installJavaListLocals(this.transpiler);
+        installJavaScalarLocals(this.transpiler);
+        installJavaParamTypesPreScan(this.transpiler);
+        installJavaStringReturns(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -3187,11 +3187,11 @@ class NewTranspiler {
         baseClass = this.removeUnreachableReturnNull(baseClass);
 
         baseClass = this.addDeprecatedAnnotations(baseClass);
-        baseClass = nativeJavaJ24Arithmetic(nativeJavaJ23Arithmetic(baseClass)); // hx4 J23, J24
-        baseClass = nativeJavaJ27Arithmetic(baseClass); // hx4 J27
-        baseClass = nativeJavaJ31Arithmetic(baseClass); // hx4 J31
-        baseClass = nativeJavaJ32DivModNeg(baseClass, true); // hx4 J32
-        baseClass = nativeJavaJ34MapLocals(baseClass); // hx4 J34
+        baseClass = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(baseClass));
+        baseClass = nativeJavaBoxLocalsRetype(baseClass);
+        baseClass = nativeJavaIntegralMultiplySubtract(baseClass);
+        baseClass = nativeJavaNumberDivModNeg(baseClass, true);
+        baseClass = nativeJavaMapLocalOps(baseClass);
         return baseClass;
     }
 
@@ -3363,7 +3363,7 @@ class NewTranspiler {
     // simple java.util / unified-type names; the hand-written header only gains the imports the body needs.
     spliceTranspiledJavaBody(filename: string, javaDelimiter: string, restOfFile: string, body: string, literal: boolean) {
         const pattern = new RegExp(javaDelimiter + restOfFile);
-        const shortened = shortenJavaReferences(nativeJavaJ36MultiplySubtract(hx4J21BaseNativePasses(this, body, filename))); // hx4 J36
+        const shortened = shortenJavaReferences(nativeJavaMultiplySubtract(javaBaseNativePasses(this, body, filename)));
         const replacement = javaDelimiter + '\n' + shortened.source;
         if (literal) {
             this.replaceInFileLiteral(filename, pattern, replacement);
@@ -3371,7 +3371,7 @@ class NewTranspiler {
             replaceInFile(filename, pattern, replacement);
         }
         const contents = fs.readFileSync(filename, 'utf8');
-        const withImports = nativeJavaJ42(nativeJavaJ38(nativeJavaJ36MultiplySubtract(ensureJavaImports(contents, shortened.imports)))); // hx4 J42
+        const withImports = nativeJavaParseNumber(nativeJavaInlineCompare(nativeJavaMultiplySubtract(ensureJavaImports(contents, shortened.imports))));
         if (withImports !== contents) {
             fs.writeFileSync(filename, withImports);
         }
@@ -3800,37 +3800,37 @@ class NewTranspiler {
         }
         if (ws || prediction) {
             content = nativeJavaWsCacheCalls(content);
-            content = nativeJavaJ07WsOrderBookCalls(content);
-            content = h2kJ06NativeCallDynamically(content);
+            content = nativeJavaWsOrderBookCalls(content);
+            content = nativeJavaCallDynamically(content);
         }
         content = this.addDeprecatedAnnotations(content);
 
         // retype the raw-text `final Object` hoists (see retypeFinalVarDeclarations)
         content = this.retypeFinalVarDeclarations(content);
         content = nativeJavaDeclaredElementReads(content);
-        content = nativeJavaJ03ElementReads(content);
+        content = nativeJavaElementReads(content);
         content = nativeJavaArrayLength(content);
-        content = h2kJ07NativeDeclaredLength(content);
+        content = nativeJavaDeclaredLength(content);
         // literal limit locals fed to Long slots (java-local-types section 32)
         content = nativeJavaLongLimitLocals(content);
         content = nativeJavaTopLevelNewMap(content);
-        content = nativeJavaReassignedNewMap(content); // hx4 J03
-        content = nativeJavaEqualTruthy(content); // H2K-j08
-        content = h2kJ10NativeComparisons(content);
+        content = nativeJavaReassignedNewMap(content);
+        content = nativeJavaEqualTruthy(content);
+        content = nativeJavaOrderedComparisons(content);
         content = nativeJavaInOp(content);
-        content = nativeJavaToLongOrNullH2kJ13(content);
-        content = nativeJavaH2kJ15(content);
-        content = nativeJavaNestedNewMaps(content); // H2K-J16
-        content = nativeJavaJ04Arithmetic(content); // hx4 J04
-        // hx4 J19: re-run the long-limit + compare passes over J04's native arithmetic
-        content = nativeJavaJ19Compare(h2kJ10NativeComparisons(nativeJavaLongLimitLocals(content)));
-        content = nativeJavaJ20ParamCompare(content); // hx4 J20
-        content = nativeJavaJ24Arithmetic(nativeJavaJ23Arithmetic(content)); // hx4 J23, J24
-        content = nativeJavaJ27Arithmetic(content); // hx4 J27
-        content = nativeJavaSumLongLocals(content); // hx11 w8 sum-long-local
-        content = nativeJavaJ31Arithmetic(content); // hx4 J31
-        content = nativeJavaJ25Compare(content); // hx4 J25
-        content = nativeJavaJ32DivModNeg(content); // hx4 J32
+        content = nativeJavaToLongOrNull(content);
+        content = nativeJavaPromiseAllObjectValues(content);
+        content = nativeJavaNestedNewMaps(content);
+        content = nativeJavaTypedArithmetic(content);
+        // Re-run the long-limit + compare passes over the typed native arithmetic
+        content = nativeJavaNonNullCompare(nativeJavaOrderedComparisons(nativeJavaLongLimitLocals(content)));
+        content = nativeJavaParamCompare(content);
+        content = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(content));
+        content = nativeJavaBoxLocalsRetype(content);
+        content = nativeJavaSumLongLocals(content);
+        content = nativeJavaIntegralMultiplySubtract(content);
+        content = nativeJavaProvenLocalCompare(content);
+        content = nativeJavaNumberDivModNeg(content);
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
@@ -5070,21 +5070,21 @@ class NewTranspiler {
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
         javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest')))
-        javaSource = hx4J06ObjectValues(javaSource) // hx4 J06
-        javaSource = nativeJavaJ26MapLocals(javaSource) // hx4 J26
-        javaSource = nativeJavaJ22CoreArgs(javaSource) // hx4 J22
-        javaSource = nativeJavaJ28Compare(javaSource) // hx4 J28
-        javaSource = nativeJavaJ29Containers(javaSource) // hx4 J29
-        javaSource = nativeJavaJ30CoreArgs(javaSource) // hx4 J30
-        javaSource = nativeJavaJ33Compare(javaSource) // hx4 J33
-        javaSource = nativeJavaJ34MapLocals(javaSource) // hx4 J34
-        javaSource = nativeJavaJ35(javaSource) // hx4 J35
-        javaSource = nativeJavaJ36MultiplySubtract(javaSource) // hx4 J36
-        javaSource = nativeJavaJ37DivModNeg(javaSource) // hx4 J37
-        javaSource = nativeJavaJ36MultiplySubtract(javaSource) // hx4 J36 post-J37
-        javaSource = nativeJavaJ38(javaSource) // hx4 J38
-        javaSource = nativeJavaJ39Containers(javaSource) // hx4 J39
-        javaSource = hx11w8CacheFieldCasts(javaSource)
+        javaSource = nativeJavaRetypedObjectValues(javaSource)
+        javaSource = nativeJavaMapLocalsRetype(javaSource)
+        javaSource = nativeJavaCoreArgIdentities(javaSource)
+        javaSource = nativeJavaNumberParamCompare(javaSource)
+        javaSource = nativeJavaWsOrderBookContainers(javaSource)
+        javaSource = nativeJavaBoxLocalsCoreArgs(javaSource)
+        javaSource = nativeJavaNumberProvenCompare(javaSource)
+        javaSource = nativeJavaMapLocalOps(javaSource)
+        javaSource = nativeJavaRemainingCoreArgs(javaSource)
+        javaSource = nativeJavaMultiplySubtract(javaSource)
+        javaSource = nativeJavaInlineDivModNeg(javaSource)
+        javaSource = nativeJavaMultiplySubtract(javaSource)
+        javaSource = nativeJavaInlineCompare(javaSource)
+        javaSource = nativeJavaContainerOps(javaSource)
+        javaSource = nativeJavaCacheFieldCasts(javaSource)
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
@@ -5993,7 +5993,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), hx11w8PaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaProvenLocalCompareSelfTest(), javaMapLocalsRetypeSelfTest(), javaBoxLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), javaStringSliceIndexOfSelfTest(), javaParseNumberSelfTest(), javaReplaceAllSelfTest(), javaTypeTestsSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -6013,7 +6013,7 @@ function mapLocalsSelfTest (): string[] {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/\bObject p = /.test(out)) problems.push("map locals: 'p' has an unproven write and must stay Object");
-        // hx4 J11 types the nested safeDict writes and prints their checkcast
+        // the Map-locals pass types the nested safeDict writes and prints their checkcast
         for (const name of [ 'data', 'raw' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out) && !new RegExp(`\\b${name} = \\(java\\.util\\.Map<String, Object>\\) this\\.safeDict\\(`).test(out)) problems.push(`map locals: '${name}' safeDict write needs Object or a checkcast`);
         }
@@ -6026,8 +6026,8 @@ function mapLocalsSelfTest (): string[] {
     return problems;
 }
 
-// H2K-J02: a fresh map local printed Object puts natively; null, published or merged receivers keep the helper
-function h2kJ02SelfTest (): string[] {
+// A fresh map local printed Object puts natively; null, published or merged receivers keep the helper
+function javaFreshObjectMapWritesSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzh2kj02selftest${process.pid}.ts`);
     const body = [
@@ -6042,14 +6042,14 @@ function h2kJ02SelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (/Helpers\.addElementToObject\(a, /.test(out)) problems.push("h2k-j02: fresh local 'a' must put natively");
+        if (/Helpers\.addElementToObject\(a, /.test(out)) problems.push("fresh local 'a' must put natively");
         for (const name of [ 'c', 'd' ]) {
-            if (!new RegExp(`Helpers\\.addElementToObject\\(${name}, `).test(out)) problems.push(`h2k-j02: '${name}' is unproven and must keep the helper`);
+            if (!new RegExp(`Helpers\\.addElementToObject\\(${name}, `).test(out)) problems.push(`'${name}' is unproven and must keep the helper`);
         }
-        // hx4 J11 declares 'b' a Map; only the declared-Map non-null put may fire, never the h2k cast put
-        if (/\(\(java\.util\.Map<String, Object>\)b\)\.put\(/.test(out)) problems.push("h2k-j02: 'b' is unproven and must not take the cast put");
+        // the Map-locals pass declares 'b' a Map; only the declared-Map non-null put may fire, never the cast put
+        if (/\(\(java\.util\.Map<String, Object>\)b\)\.put\(/.test(out)) problems.push("'b' is unproven and must not take the cast put");
     } catch (e: any) {
-        problems.push(`h2k-j02 self-test threw: ${e.message}`);
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
@@ -6130,14 +6130,14 @@ async function runMain() {
     }
 }
 
-// ===== H2K-j01: native top-level newMap (declaration initializer / return value) =====
+// Native top-level newMap (declaration initializer / return value)
 // `Map<String, Object> x = Helpers.newMap("k", v, ...);` -> `new HashMap` + one put per pair, and
 // `return Helpers.newMap(...);` -> a block filling a file-unique temp. Helpers.newMap is exactly a
 // plain HashMap filled in argument order; the map is unreachable until filled, so order is moot.
-const H2K_J01_HEAD = /^(\s*)(?:(Map<String, Object>|java\.util\.Map<String, Object>) ([A-Za-z_$][\w$]*) = |return )Helpers\.newMap\(/;
+const JAVA_NEW_MAP_DECL_HEAD = /^(\s*)(?:(Map<String, Object>|java\.util\.Map<String, Object>) ([A-Za-z_$][\w$]*) = |return )Helpers\.newMap\(/;
 
 // top-level args of the call opened at `start` (index after `(`): [{text, comment}] + end index after `)`
-function h2kJ01ScanArgs (src: string, start: number): { args: { text: string, comment: string }[], end: number } | undefined {
+function newMapScanArgs (src: string, start: number): { args: { text: string, comment: string }[], end: number } | undefined {
     const args: { text: string, comment: string }[] = [];
     let depth = 0;
     let buf = '';
@@ -6196,10 +6196,10 @@ export function nativeJavaTopLevelNewMap (content: string): string {
     const out: string[] = [];
     let temp = 0;
     for (let i = 0; i < lines.length; i++) {
-        const m = H2K_J01_HEAD.exec (lines[i]);
+        const m = JAVA_NEW_MAP_DECL_HEAD.exec (lines[i]);
         if (m === null) { out.push (lines[i]); continue; }
         const rest = lines.slice (i).join ('\n');
-        const scan = h2kJ01ScanArgs (rest, m[0].length);
+        const scan = newMapScanArgs (rest, m[0].length);
         const tail = scan === undefined ? undefined : /^;[ \t]*(\/\/[^\n]*)?(?=\n|$)/.exec (rest.slice (scan.end));
         const pairs = scan?.args ?? [];
         // fail closed: odd arity, non-literal keys, comments the scan cannot place
@@ -6229,13 +6229,13 @@ export function nativeJavaTopLevelNewMap (content: string): string {
     return out.join ('\n');
 }
 
-// ===== H2K-j03: native GetValue reads on declared List/String/TypedMap locals =====
+// Native GetValue reads on declared List/String/TypedMap locals
 // `Helpers.GetValue(x, k)` where x's printed declaration is List<T>, String or a types/ TypedMap view
 // -> the helper's own branch; its null receiver/key and out-of-range answers stay explicit
-const J03_LIST_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$/;
-const J03_TYPED_MAP_VIEWS = new Set([ 'Tickers', 'OpenInterests', 'MarginModes', 'FundingRates', 'LeverageTiers', 'Currencies', 'Balances', 'OrderBooks', 'LastPrices', 'TradingFees', 'CrossBorrowRates', 'IsolatedBorrowRates', 'DepositAddresses', 'DepositWithdrawFees', 'Leverages', 'MarketMarginModes', 'PredictionTickers' ]);
+const ELEMENT_READ_LIST_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$/;
+const JAVA_TYPED_MAP_VIEWS = new Set([ 'Tickers', 'OpenInterests', 'MarginModes', 'FundingRates', 'LeverageTiers', 'Currencies', 'Balances', 'OrderBooks', 'LastPrices', 'TradingFees', 'CrossBorrowRates', 'IsolatedBorrowRates', 'DepositAddresses', 'DepositWithdrawFees', 'Leverages', 'MarketMarginModes', 'PredictionTickers' ]);
 
-function j03DeclaredTypeOf (lines: string[], lineIndex: number, name: string): string | undefined {
+function elementReadDeclaredTypeOf (lines: string[], lineIndex: number, name: string): string | undefined {
     const any = new RegExp('(?:^|[\\s(,])(?:final\\s+)?([A-Za-z_][\\w.]*(?:<[\\w.<>?, ]*>)?)\\s+' + name + '\\s*(?:=|;|:|,|\\))');
     for (let i = lineIndex; i >= 0; i--) {
         if (!/^\s*(?:\/\/|\*)/.test(lines[i])) {
@@ -6252,7 +6252,7 @@ function j03DeclaredTypeOf (lines: string[], lineIndex: number, name: string): s
 }
 
 // int-valued index expression and its null guard (the helper's toInt is intValue for Integer/Long)
-function j03IntIndex (lines: string[], i: number, key: string): { guard: string, idx: string } | undefined {
+function elementReadIntIndex (lines: string[], i: number, key: string): { guard: string, idx: string } | undefined {
     if (/^\d+$/.test(key)) {
         return { guard: '', idx: key };
     }
@@ -6265,14 +6265,14 @@ function j03IntIndex (lines: string[], i: number, key: string): { guard: string,
     if (javaIntCounterIndex(lines, i, key)) {
         return { guard: '', idx: key };
     }
-    const t = j03DeclaredTypeOf(lines, i, key);
+    const t = elementReadDeclaredTypeOf(lines, i, key);
     if (t === 'int') return { guard: '', idx: key };
     if (t === 'long') return { guard: '', idx: '((int) ' + key + ')' };
     if (t === 'Long' || t === 'Integer') return { guard: key + ' == null || ', idx: key + '.intValue()' };
     return undefined;
 }
 
-export function nativeJavaJ03ElementReads (content: string): string {
+export function nativeJavaElementReads (content: string): string {
     if (!content.includes('Helpers.GetValue(')) {
         return content;
     }
@@ -6286,10 +6286,10 @@ export function nativeJavaJ03ElementReads (content: string): string {
         }
         const next = line.replace(call, (whole, r, key) => {
             if (r === 'this' || r === key) return whole;
-            const cls = j03DeclaredTypeOf(lines, i, r);
+            const cls = elementReadDeclaredTypeOf(lines, i, r);
             if (cls === undefined) return whole;
-            if (J03_LIST_RE.test(cls) || cls === 'String') {
-                const ix = j03IntIndex(lines, i, key);
+            if (ELEMENT_READ_LIST_RE.test(cls) || cls === 'String') {
+                const ix = elementReadIntIndex(lines, i, key);
                 if (ix === undefined) return whole;
                 const len = cls === 'String' ? r + '.length()' : r + '.size()';
                 const low = /^\d+$/.test(ix.idx) ? '' : ix.idx + ' < 0 || ';
@@ -6297,7 +6297,7 @@ export function nativeJavaJ03ElementReads (content: string): string {
                 return `(${r} == null || ${ix.guard}${low}${ix.idx} >= ${len} ? null : ${get})`;
             }
             const view = cls.replace(/^io\.github\.ccxt\.types\./, '');
-            if (J03_TYPED_MAP_VIEWS.has(view) && /^[A-Za-z_]\w*$/.test(key) && j03DeclaredTypeOf(lines, i, key) === 'String') {
+            if (JAVA_TYPED_MAP_VIEWS.has(view) && /^[A-Za-z_]\w*$/.test(key) && elementReadDeclaredTypeOf(lines, i, key) === 'String') {
                 return `(${r} == null || ${key} == null ? null : ${r}.get(${key}))`;
             }
             return whole;
@@ -6310,13 +6310,13 @@ export function nativeJavaJ03ElementReads (content: string): string {
     return changed ? lines.join('\n') : content;
 }
 
-// ===== H2K-j05: native `+` for Helpers.add with a statically-String first operand =====
+// Native `+` for Helpers.add with a statically-String first operand
 // javac binds such a call to add(String, String|Object) = `a + String.valueOf(b)`, which is
 // exactly Java's native concat; anything else (Object/number first) keeps the helper.
-const J05_STRING_CALLS = /^this\.(safeString|safeString2|safeStringN|safeStringUpper|safeStringLower|urlencode|json|numberToString|uuid)\(/;
+const JAVA_STRING_PRODUCER_CALLS = /^this\.(safeString|safeString2|safeStringN|safeStringUpper|safeStringLower|urlencode|json|numberToString|uuid)\(/;
 
 // mask string/char literals and comments with spaces (same length)
-function j05Mask (s: string): string {
+function stringAddMask (s: string): string {
     let out = '';
     for (let i = 0; i < s.length; i++) {
         const ch = s[i];
@@ -6341,7 +6341,7 @@ function j05Mask (s: string): string {
 }
 
 // end index (exclusive) of the balanced group opened at `open`, over masked text
-function j05Close (m: string, open: number): number {
+function stringAddClose (m: string, open: number): number {
     let depth = 0;
     for (let i = open; i < m.length; i++) {
         const c = m[i];
@@ -6353,7 +6353,7 @@ function j05Close (m: string, open: number): number {
 
 // split masked expression at top-level occurrences; undefined when it holds any other
 // top-level operator (ternary, comparison, arithmetic, assignment, lambda, ...)
-function j05PlusTerms (m: string): Array<[number, number]> | undefined {
+function stringAddPlusTerms (m: string): Array<[number, number]> | undefined {
     const terms: Array<[number, number]> = [];
     let depth = 0; let start = 0;
     for (let i = 0; i < m.length; i++) {
@@ -6374,19 +6374,19 @@ function j05PlusTerms (m: string): Array<[number, number]> | undefined {
 }
 
 // is the whole (trimmed) masked term one primary expression (no top-level operators)?
-function j05IsPrimary (m: string): boolean {
-    const t = j05PlusTerms(m);
+function stringAddIsPrimary (m: string): boolean {
+    const t = stringAddPlusTerms(m);
     return t !== undefined && t.length === 1;
 }
 
-function j05StripParens (raw: string, m: string): [string, string] {
+function stringAddStripParens (raw: string, m: string): [string, string] {
     let r = raw.trim(); let k = m.trim();
-    while (k.startsWith('(') && j05Close(k, 0) === k.length) { r = r.slice(1, -1).trim(); k = k.slice(1, -1).trim(); }
+    while (k.startsWith('(') && stringAddClose(k, 0) === k.length) { r = r.slice(1, -1).trim(); k = k.slice(1, -1).trim(); }
     return [r, k];
 }
 
 // nearest same-member declaration of `name` before `pos` is `String` (params included)
-function j05StringLocal (masked: string, name: string, pos: number): boolean {
+function stringAddStringLocal (masked: string, name: string, pos: number): boolean {
     const before = masked.slice(0, pos);
     const breaks = [...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)];
     if (breaks.length === 0) { return false; }
@@ -6398,23 +6398,23 @@ function j05StringLocal (masked: string, name: string, pos: number): boolean {
     return last === 'String' || last === 'java.lang.String';
 }
 
-function j05IsString (raw: string, m: string, masked: string, pos: number, ownMethods: Set<string>): boolean {
-    const [r, k] = j05StripParens(raw, m);
-    const terms = j05PlusTerms(k);
+function stringAddIsString (raw: string, m: string, masked: string, pos: number, ownMethods: Set<string>): boolean {
+    const [r, k] = stringAddStripParens(raw, m);
+    const terms = stringAddPlusTerms(k);
     if (terms === undefined || k === '') { return false; }
     if (terms.length > 1) {
-        return terms.some(([a, b]) => j05IsString(r.slice(a, b), k.slice(a, b), masked, pos, ownMethods));
+        return terms.some(([a, b]) => stringAddIsString(r.slice(a, b), k.slice(a, b), masked, pos, ownMethods));
     }
     if (/^"/.test(r) && k.length === r.length && /^"\s*"$/.test(k)) { return true; }
-    if (/^\(String\)/.test(k)) { return j05IsPrimary(k.slice('(String)'.length)); }
+    if (/^\(String\)/.test(k)) { return stringAddIsPrimary(k.slice('(String)'.length)); }
     const field = /^this\.([A-Za-z_]\w*)$/.exec(k);
     if (field !== null) { return JS_STRING_MEMBER_FIELDS.has(field[1]) && !ownMethods.has('field:' + field[1]); }
-    const call = J05_STRING_CALLS.exec(k) || /^(String)\.valueOf\(/.exec(k);
+    const call = JAVA_STRING_PRODUCER_CALLS.exec(k) || /^(String)\.valueOf\(/.exec(k);
     if (call !== null) {
         const open = k.indexOf('(');
-        return j05Close(k, open) === k.length && !ownMethods.has(call[1]);
+        return stringAddClose(k, open) === k.length && !ownMethods.has(call[1]);
     }
-    if (/^[A-Za-z_]\w*$/.test(k)) { return j05StringLocal(masked, k, pos); }
+    if (/^[A-Za-z_]\w*$/.test(k)) { return stringAddStringLocal(masked, k, pos); }
     return false;
 }
 
@@ -6425,7 +6425,7 @@ export function nativeJavaStringAdd (content: string): string {
     for (const d of content.matchAll(/\b(?:public|private|protected)\s+(?:static\s+)?[\w.<>?,\[\] ]+?\s+(\w+)\s*(\(|=|;)/g)) {
         ownMethods.add(d[2] === '(' ? d[1] : 'field:' + d[1]);
     }
-    let masked = j05Mask(content);
+    let masked = stringAddMask(content);
     let from = masked.length;
     for (;;) {
         const at = masked.lastIndexOf('Helpers.add(', from);
@@ -6433,7 +6433,7 @@ export function nativeJavaStringAdd (content: string): string {
         from = at - 1;
         if (at > 0 && /[\w.]/.test(masked[at - 1])) { continue; }
         const open = at + 'Helpers.add'.length;
-        const end = j05Close(masked, open);
+        const end = stringAddClose(masked, open);
         if (end === -1) { continue; }
         const inner = masked.slice(open + 1, end - 1);
         const args = splitTopLevelArgs(inner);
@@ -6441,31 +6441,31 @@ export function nativeJavaStringAdd (content: string): string {
         const aM = args[0]; const bM = args[1];
         const aRaw = content.slice(open + 1, open + 1 + aM.length);
         const bRaw = content.slice(open + 2 + aM.length, end - 1);
-        if (!j05IsString(aRaw, aM, masked, at, ownMethods)) { continue; }
+        if (!stringAddIsString(aRaw, aM, masked, at, ownMethods)) { continue; }
         // a bare statement `Helpers.add(..);` is not a legal native expression statement
         if (/[;{}]\s*$/.test(masked.slice(Math.max(0, at - 200), at)) && /^\s*;/.test(masked.slice(end))) { continue; }
         const b = bRaw.trim();
-        const bPrimary = j05IsPrimary(bM.trim()) && !/^\(\w[\w.<>?, ]*\)/.test(bM.trim());
+        const bPrimary = stringAddIsPrimary(bM.trim()) && !/^\(\w[\w.<>?, ]*\)/.test(bM.trim());
         const a = aRaw.trim();
-        const aSafe = j05PlusTerms(aM.trim()) !== undefined ? a : `(${a})`;
+        const aSafe = stringAddPlusTerms(aM.trim()) !== undefined ? a : `(${a})`;
         const repl = `(${aSafe} + ${bPrimary ? b : `(${b})`})`;
         content = content.slice(0, at) + repl + content.slice(end);
-        masked = j05Mask(content);
+        masked = stringAddMask(content);
     }
     return content;
 }
 
-// ===== H2K-j06: native callDynamically (handler dispatch + ws receivers) =====
+// Native callDynamically (handler dispatch + ws receivers)
 // No generated class is subclassed and only ws/ArrayCache declares append (only ws/OrderBookSide
 // store/storeArray), so the reflective lookup binds exactly the method a typed call binds.
-const H2K_J06_RECEIVER_METHODS: { [method: string]: { cls: string, argc: number[] } } = {
+const CALL_DYNAMICALLY_RECEIVER_METHODS: { [method: string]: { cls: string, argc: number[] } } = {
     'append': { cls: 'io.github.ccxt.ws.ArrayCache', argc: [1] },
     'store': { cls: 'io.github.ccxt.ws.OrderBookSide', argc: [2, 3] },
     'storeArray': { cls: 'io.github.ccxt.ws.OrderBookSide', argc: [1] },
 };
-const H2K_J06_COERCED_PARAMS = /^(?:java\.lang\.)?(?:String|Long|Double|Integer|Float|long|double|int|float|(?:java\.util\.)?List(?:<.*>)?)$/;
+const CALL_DYNAMICALLY_COERCED_PARAMS = /^(?:java\.lang\.)?(?:String|Long|Double|Integer|Float|long|double|int|float|(?:java\.util\.)?List(?:<.*>)?)$/;
 
-function h2kJ06SplitArgs (text: string): string[] {
+function callDynamicallySplitArgs (text: string): string[] {
     const out: string[] = [];
     let depth = 0;
     let buf = '';
@@ -6489,13 +6489,13 @@ function h2kJ06SplitArgs (text: string): string[] {
 }
 
 // `Helpers.callDynamically(<id|this.id>, "<m>", new Object[]{..});` statements for the table above
-function h2kJ06NativeReceiverCalls (content: string): string {
+function nativeJavaWsReceiverCalls (content: string): string {
     const call = /(^|\n)([ \t]*)Helpers\.callDynamically\(((?:this\.)?\w+), "(\w+)", new Object\[\]\{/g;
     let out = '';
     let cursor = 0;
     let m;
     while ((m = call.exec(content)) !== null) {
-        const spec = H2K_J06_RECEIVER_METHODS[m[4]];
+        const spec = CALL_DYNAMICALLY_RECEIVER_METHODS[m[4]];
         if (spec === undefined || m[3] === 'this') continue;
         const argsAt = m.index + m[0].length;
         let depth = 1;
@@ -6511,7 +6511,7 @@ function h2kJ06NativeReceiverCalls (content: string): string {
         }
         if (depth !== 0 || !content.startsWith(');', j)) continue;
         const args = content.slice(argsAt, j - 1).trim();
-        if (!spec.argc.includes(args === '' ? 0 : h2kJ06SplitArgs(args).length)) continue;
+        if (!spec.argc.includes(args === '' ? 0 : callDynamicallySplitArgs(args).length)) continue;
         const start = m.index + m[1].length + m[2].length;
         out += content.slice(cursor, start) + '((' + spec.cls + ') ' + m[3] + ').' + m[4] + '(' + args + ')';
         cursor = j + 1;
@@ -6520,18 +6520,18 @@ function h2kJ06NativeReceiverCalls (content: string): string {
     return cursor === 0 ? content : out + content.slice(cursor);
 }
 
-interface H2kJ06Method { name: string, params: string[][] }
+interface CallDynamicallyMethod { name: string, params: string[][] }
 
-function h2kJ06FileMethods (lines: string[]): { starts: number[], byName: Map<string, H2kJ06Method[]> } {
+function callDynamicallyFileMethods (lines: string[]): { starts: number[], byName: Map<string, CallDynamicallyMethod[]> } {
     const starts: number[] = [];
-    const byName = new Map<string, H2kJ06Method[]>();
+    const byName = new Map<string, CallDynamicallyMethod[]>();
     const sig = /^    (?:public|private|protected)\b(?:\s+(?:static|synchronized|final))*\s+([\w.<>, ?\[\]]+?)\s+(\w+)\((.*)\)\s*(?:throws [\w., ]+)?\s*\{?\s*$/;
     for (let i = 0; i < lines.length; i++) {
         if (!/^    (?:public|private|protected)\b/.test(lines[i])) continue;
         starts.push(i);
         const s = sig.exec(lines[i]);
         if (s === null) continue;
-        const params = h2kJ06SplitArgs(s[3]).map((p) => {
+        const params = callDynamicallySplitArgs(s[3]).map((p) => {
             const pm = /^(?:final\s+)?(.+?)\s+(\w+)$/.exec(p);
             return pm === null ? [ p, '' ] : [ pm[1], pm[2] ];
         });
@@ -6544,10 +6544,10 @@ function h2kJ06FileMethods (lines: string[]): { starts: number[], byName: Map<st
 
 // `Object h = this.safeValue(M, k)` over a same-method never-written `M = {"k": "handleX", ..}` literal,
 // then `Helpers.callDynamically(this, h, ..);` -> switch over the literal's handler names
-function h2kJ06NativeHandlerDispatch (content: string): string {
+function nativeJavaHandlerDispatch (content: string): string {
     if (!content.includes('Helpers.callDynamically(this, ')) return content;
     const lines = content.split('\n');
-    const { starts, byName } = h2kJ06FileMethods(lines);
+    const { starts, byName } = callDynamicallyFileMethods(lines);
     const site = /^(\s*)Helpers\.callDynamically\(this, (\w+), new Object\[\] \{(.*)\}\);\s*$/;
     let changed = false;
     for (let i = lines.length - 1; i >= 0; i--) {
@@ -6586,7 +6586,7 @@ function h2kJ06NativeHandlerDispatch (content: string): string {
         if (uses.some((u) => !readUse.test(u))) continue;
         if ((bodyText.match(new RegExp('\\b' + map + ' = ', 'g')) ?? []).length !== 1) continue;
         // arguments: identifiers with one visible declared type
-        const args = h2kJ06SplitArgs(argText);
+        const args = callDynamicallySplitArgs(argText);
         const signature = byName.get(lines[from].match(/\s(\w+)\(/)?.[1] ?? '')?.find(() => true);
         const argTypes = args.map((a) => {
             if (!/^\w+$/.test(a)) return undefined;
@@ -6605,7 +6605,7 @@ function h2kJ06NativeHandlerDispatch (content: string): string {
                 const t = argTypes[n]!;
                 if (p.endsWith('...')) return undefined;
                 if (t === p) return a;
-                if (t === 'Object' && !H2K_J06_COERCED_PARAMS.test(p)) return '(' + p + ') ' + a;
+                if (t === 'Object' && !CALL_DYNAMICALLY_COERCED_PARAMS.test(p)) return '(' + p + ') ' + a;
                 if (p === 'Object') return a;
                 return undefined;
             });
@@ -6625,16 +6625,16 @@ function h2kJ06NativeHandlerDispatch (content: string): string {
     return changed ? lines.join('\n') : content;
 }
 
-export function h2kJ06NativeCallDynamically (content: string): string {
-    return h2kJ06NativeHandlerDispatch(h2kJ06NativeReceiverCalls(content));
+export function nativeJavaCallDynamically (content: string): string {
+    return nativeJavaHandlerDispatch(nativeJavaWsReceiverCalls(content));
 }
 
-// ===== H2K-j07: getArrayLength on a declared List/String receiver =====
+// GetArrayLength on a declared List/String receiver
 // `Helpers.getArrayLength(x)` -> `(x == null ? 0 : x.size())` / `.length()` when x has exactly one declaration in
 // the member (local or parameter) whose printed type is List/ArrayList/String; the null arm is the helper's own 0.
-const H2K_J07_TYPE_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$|^String$/;
+const DECLARED_LENGTH_TYPE_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$|^String$/;
 
-export function h2kJ07NativeDeclaredLength (content: string): string {
+export function nativeJavaDeclaredLength (content: string): string {
     if (!content.includes('Helpers.getArrayLength(')) {
         return content;
     }
@@ -6662,7 +6662,7 @@ export function h2kJ07NativeDeclaredLength (content: string): string {
                     at = k;
                 }
             }
-            if (types.length !== 1 || at > i || !H2K_J07_TYPE_RE.test(types[0])) {
+            if (types.length !== 1 || at > i || !DECLARED_LENGTH_TYPE_RE.test(types[0])) {
                 return whole;
             }
             return '(' + name + ' == null ? 0 : ' + name + (types[0] === 'String' ? '.length()' : '.size()') + ')';
@@ -6672,18 +6672,18 @@ export function h2kJ07NativeDeclaredLength (content: string): string {
     return changed ? lines.join('\n') : content;
 }
 
-// ===== H2K-j10: native ordered comparisons over declared numeric operands =====
+// Native ordered comparisons over declared numeric operands
 // Helpers.isGreaterThan/isLessThan/isGreaterThanOrEqual/isLessThanOrEqual -> `> < >= <=` when both
 // operands are int literals or locals/params the final text declares Long/Integer/long/int/Double; a
 // boxed operand gets the helper's null table. Double pairs only for `>` (the others go through isEqual).
-const H2K_J10_CALL = /Helpers\.is(GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual)\(/g;
-const H2K_J10_OPS: Record<string, string> = { GreaterThan: '>', LessThan: '<', GreaterThanOrEqual: '>=', LessThanOrEqual: '<=' };
-const H2K_J10_TYPES: Record<string, { kind: string, boxed: boolean }> = {
+const ORDERED_COMPARE_CALL = /Helpers\.is(GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual)\(/g;
+const ORDERED_COMPARE_OPS: Record<string, string> = { GreaterThan: '>', LessThan: '<', GreaterThanOrEqual: '>=', LessThanOrEqual: '<=' };
+const ORDERED_COMPARE_TYPES: Record<string, { kind: string, boxed: boolean }> = {
     Long: { kind: 'long', boxed: true }, Integer: { kind: 'long', boxed: true }, long: { kind: 'long', boxed: false },
     int: { kind: 'long', boxed: false }, Double: { kind: 'double', boxed: true }, double: { kind: 'double', boxed: false },
 };
 
-function h2kJ10SplitArgs (text: string, start: number): { args: string[], end: number } | undefined {
+function orderedCompareSplitArgs (text: string, start: number): { args: string[], end: number } | undefined {
     const args: string[] = [];
     let depth = 0, cur = '', quote = '';
     for (let i = start; i < text.length; i++) {
@@ -6707,7 +6707,7 @@ function h2kJ10SplitArgs (text: string, start: number): { args: string[], end: n
     return undefined;
 }
 
-function h2kJ10StripParens (text: string): string {
+function orderedCompareStripParens (text: string): string {
     while (text.startsWith ('(') && text.endsWith (')')) {
         let depth = 0, wraps = true;
         for (let i = 0; i < text.length - 1; i++) {
@@ -6722,7 +6722,7 @@ function h2kJ10StripParens (text: string): string {
 }
 
 // the one declaration of `name` in the member (none elsewhere, no lambda param, no class field)
-function h2kJ10DeclaredType (member: string, name: string, fields: Set<string>): { kind: string, boxed: boolean } | undefined {
+function orderedCompareDeclaredType (member: string, name: string, fields: Set<string>): { kind: string, boxed: boolean } | undefined {
     if (fields.has (name)) return undefined;
     const esc = name.replace (/\$/g, '\\$');
     const decl = new RegExp ('(?:^|[\\s(,])([\\w.$]+(?:<[\\w.<>, ?]*>)?(?:\\[\\])?)\\s+' + esc + '\\s*(=|;|,|\\)|:)', 'gm');
@@ -6736,27 +6736,27 @@ function h2kJ10DeclaredType (member: string, name: string, fields: Set<string>):
     if (found.length !== 1) return undefined;
     const t = found[0].replace (/^final /, '');
     if (/^var-?\d+$/.test (t)) return { kind: 'long', boxed: false }; // `var i = 0` counter: int
-    return H2K_J10_TYPES[t];
+    return ORDERED_COMPARE_TYPES[t];
 }
 
-function h2kJ10Operand (text: string, member: string, fields: Set<string>): { kind: string, boxed: boolean, text: string, literal?: boolean } | undefined {
-    const inner = h2kJ10StripParens (text);
+function orderedCompareOperand (text: string, member: string, fields: Set<string>): { kind: string, boxed: boolean, text: string, literal?: boolean } | undefined {
+    const inner = orderedCompareStripParens (text);
     if (/^-?\d{1,15}L?$/.test (inner)) return { kind: 'long', boxed: false, text: inner, literal: true };
     if (/^-?\d{1,15}\.\d{1,15}$/.test (inner)) return { kind: 'double', boxed: false, text: inner, literal: true };
     if (/^[A-Za-z_$][\w$]*$/.test (inner)) {
-        const t = h2kJ10DeclaredType (member, inner, fields);
+        const t = orderedCompareDeclaredType (member, inner, fields);
         return t === undefined ? undefined : { ...t, text: inner };
     }
     // `(x + 1L)` / `(x - 1L)` over a declared long: the operand unboxes (or throws) before the helper runs
     const arith = inner.match (/^([A-Za-z_$][\w$]*) ([+-]) (\d+L?)$/);
     if (arith !== null) {
-        const t = h2kJ10DeclaredType (member, arith[1], fields);
+        const t = orderedCompareDeclaredType (member, arith[1], fields);
         if (t !== undefined && t.kind === 'long') return { kind: 'long', boxed: false, text: '(' + inner + ')' };
     }
     return undefined;
 }
 
-function h2kJ10Compare (helper: string, l, r): string | undefined {
+function orderedCompareNative (helper: string, l, r): string | undefined {
     // `>=` adds isEqual, exact for a double only against a small literal; `< <=` are true for NaN (keep)
     const longs = l.kind === 'long' && r.kind === 'long';
     const a = l.text, b = r.text;
@@ -6766,7 +6766,7 @@ function h2kJ10Compare (helper: string, l, r): string | undefined {
         return l.boxed ? `(${a} == null || ${neg})` : `(${neg})`;
     }
     if (!longs && helper !== 'GreaterThan' && (helper !== 'GreaterThanOrEqual' || !(l.literal || r.literal))) return undefined;
-    const cmp = `${a} ${H2K_J10_OPS[helper]} ${b}`;
+    const cmp = `${a} ${ORDERED_COMPARE_OPS[helper]} ${b}`;
     if (!l.boxed && !r.boxed) return `(${cmp})`;
     const join = (parts, sep) => '(' + parts.filter ((x) => x !== undefined).join (sep) + ')';
     switch (helper) {
@@ -6778,7 +6778,7 @@ function h2kJ10Compare (helper: string, l, r): string | undefined {
     return undefined;
 }
 
-export function h2kJ10NativeComparisons (content: string): string {
+export function nativeJavaOrderedComparisons (content: string): string {
     if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
     const lines = content.split ('\n');
     const fields = new Set<string> ();
@@ -6800,15 +6800,15 @@ export function h2kJ10NativeComparisons (content: string): string {
             let line = lines[i], again = true;
             while (again) { // innermost-last: re-scan after each rewrite
                 again = false;
-                H2K_J10_CALL.lastIndex = 0;
+                ORDERED_COMPARE_CALL.lastIndex = 0;
                 let m;
-                while ((m = H2K_J10_CALL.exec (line)) !== null) {
-                    const split = h2kJ10SplitArgs (line, m.index + m[0].length);
+                while ((m = ORDERED_COMPARE_CALL.exec (line)) !== null) {
+                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
                     if (split === undefined || split.args.length !== 2) continue;
-                    const l = h2kJ10Operand (split.args[0], member, fields);
-                    const r = h2kJ10Operand (split.args[1], member, fields);
+                    const l = orderedCompareOperand (split.args[0], member, fields);
+                    const r = orderedCompareOperand (split.args[1], member, fields);
                     if (l === undefined || r === undefined) continue;
-                    const native = h2kJ10Compare (m[1], l, r);
+                    const native = orderedCompareNative (m[1], l, r);
                     if (native === undefined) continue;
                     line = line.slice (0, m.index) + native + line.slice (split.end + 1);
                     again = true;
@@ -6821,9 +6821,9 @@ export function h2kJ10NativeComparisons (content: string): string {
     return lines.join ('\n');
 }
 
-// ===== H2K-j15: native promiseAll / objectValues / opNeg (post-print text pass) =====
+// Native promiseAll / objectValues / opNeg (post-print text pass)
 // index of the `)` closing the `(` at `open`, skipping string/char literals; -1 when unbalanced
-function h2kJ15Close (s: string, open: number): number {
+function promiseAllClose (s: string, open: number): number {
     let depth = 0;
     for (let k = open; k < s.length; k++) {
         const ch = s[k];
@@ -6836,13 +6836,13 @@ function h2kJ15Close (s: string, open: number): number {
 }
 
 // Helpers.promiseAll(x): same List cast, CompletableFuture filter, allOf, in-order join into an ArrayList
-function h2kJ15PromiseAll (content: string): string {
+function nativeJavaPromiseAll (content: string): string {
     const head = 'Helpers.promiseAll(';
     let out = '';
     let at = 0;
     for (let k = content.indexOf (head); k !== -1; k = content.indexOf (head, at)) {
         if (/[\w$.]$/.test (content.slice (0, k))) { out += content.slice (at, k + head.length); at = k + head.length; continue; }
-        const close = h2kJ15Close (content, k + head.length - 1);
+        const close = promiseAllClose (content, k + head.length - 1);
         if (close === -1) break;
         const arg = content.slice (k + head.length, close);
         out += content.slice (at, k) + `((java.util.List<?>)(${arg})).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance)`
@@ -6857,7 +6857,7 @@ function h2kJ15PromiseAll (content: string): string {
 }
 
 // member-local facts: the single declaration line of `name` in lines[from, to) and whether it is re-assigned
-function h2kJ15Local (lines: string[], from: number, to: number, name: string) {
+function objectValuesLocal (lines: string[], from: number, to: number, name: string) {
     const decl = new RegExp (`^\\s*([A-Za-z_][\\w.<>, ]*?)\\s+${name}\\s*=\\s*(.*);\\s*$`);
     const write = new RegExp (`(?<![\\w$.])${name}\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
     const found: { index: number, type: string, init: string }[] = [];
@@ -6873,7 +6873,7 @@ function h2kJ15Local (lines: string[], from: number, to: number, name: string) {
 
 // Helpers.objectValues(m) on a fresh member-local Map (groupBy result / empty literal): no sharing, never null
 // Helpers.opNeg(x) inside the true arm of `!Objects.equals(x, null) ? ... : ...` on a Long/Double local
-function h2kJ15Members (content: string): string {
+function nativeJavaObjectValuesMembers (content: string): string {
     if (!content.includes ('Helpers.objectValues(') && !content.includes ('Helpers.opNeg(')) return content;
     const lines = content.split ('\n');
     const starts: number[] = [];
@@ -6883,14 +6883,14 @@ function h2kJ15Members (content: string): string {
         const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
         for (let j = from + 1; j < to; j++) {
             lines[j] = lines[j].replace (/Helpers\.objectValues\(([A-Za-z_]\w*)\)/g, (call, name) => {
-                const d = h2kJ15Local (lines, from, to, name);
+                const d = objectValuesLocal (lines, from, to, name);
                 if (d === undefined || d.index >= j || d.type !== 'Map<String,Object>') return call;
                 if (!/^this\.groupBy\(/.test (d.init) && !/^new HashMap<String, Object>\(\) \{\{\}\}$/.test (d.init)) return call;
                 if (lines.slice (d.index, j + 1).some ((l) => l.includes ('->'))) return call;
                 return `new java.util.ArrayList<Object>(${name}.values())`;
             });
             lines[j] = lines[j].replace (/\(\(\(!java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)\)\)\) \? ([^?:]*?Helpers\.opNeg\(\1\)[^?:]*?) : /g, (whole, name, arm) => {
-                const d = h2kJ15Local (lines, from, to, name);
+                const d = objectValuesLocal (lines, from, to, name);
                 if (d === undefined || d.index >= j || (d.type !== 'Long' && d.type !== 'Double')) return whole;
                 if (new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`).test (arm)) return whole;
                 return whole.replace (`Helpers.opNeg(${name})`, `${d.type}.valueOf(-${name})`);
@@ -6900,21 +6900,21 @@ function h2kJ15Members (content: string): string {
     return lines.join ('\n');
 }
 
-function nativeJavaH2kJ15 (content: string): string {
-    return h2kJ15Members (content.includes ('Helpers.promiseAll(') ? h2kJ15PromiseAll (content) : content);
+function nativeJavaPromiseAllObjectValues (content: string): string {
+    return nativeJavaObjectValuesMembers (content.includes ('Helpers.promiseAll(') ? nativeJavaPromiseAll (content) : content);
 }
 
-// ===== H2K-J16: nested / argument Helpers.newMap literals -> hoisted native HashMap =====
+// Nested / argument Helpers.newMap literals -> hoisted native HashMap
 // A `Helpers.newMap("k", v, ...)` used as a call argument or literal value (not the whole RHS of a
-// declaration/assignment/return: H2K-J01) becomes a preceding `HashMap` local filled by `put`s,
+// declaration/assignment/return, handled by the top-level newMap pass) becomes a preceding `HashMap` local filled by `put`s,
 // only when everything Java evaluates before it in the statement commutes with its values.
-export function j16Stats (): Record<string, number> { return (globalThis as any).__j16Stats ??= {}; }
-function j16Count (k: string) { const s = j16Stats (); s[k] = (s[k] || 0) + 1; }
+export function javaNestedNewMapStats (): Record<string, number> { return (globalThis as any).__javaNestedNewMapStats ??= {}; }
+function nestedNewMapCount (k: string) { const s = javaNestedNewMapStats (); s[k] = (s[k] || 0) + 1; }
 // base readers that write no state (BaseExchange.java / Exchange.java / java.util)
-function j16PureCall (n: string): boolean { return /^(?:this\.(?:safe(?:String|StringLower|StringUpper|Integer|IntegerProduct|Number|Float|Value|Bool|Dict|List|String2|Integer2|Number2|Value2|Bool2|Dict2|List2|StringN|IntegerN|NumberN|ValueN|Timestamp|Timestamp2|TimestampN)|iso8601|parseNumber|numberToString|omitZero)|java\.util\.Objects\.equals|java\.util\.Objects\.requireNonNullElse|Helpers\.newMap|Precise\.string(?:Abs|Mul|Add|Sub|Div))$/.test (n); }
+function nestedNewMapPureCall (n: string): boolean { return /^(?:this\.(?:safe(?:String|StringLower|StringUpper|Integer|IntegerProduct|Number|Float|Value|Bool|Dict|List|String2|Integer2|Number2|Value2|Bool2|Dict2|List2|StringN|IntegerN|NumberN|ValueN|Timestamp|Timestamp2|TimestampN)|iso8601|parseNumber|numberToString|omitZero)|java\.util\.Objects\.equals|java\.util\.Objects\.requireNonNullElse|Helpers\.newMap|Precise\.string(?:Abs|Mul|Add|Sub|Div))$/.test (n); }
 
 // blank string/char literals and comments (length-preserving) so brackets can be matched
-function j16Mask (s: string): string {
+function nestedNewMapMask (s: string): string {
     const out = s.split ('');
     let i = 0;
     while (i < s.length) {
@@ -6938,7 +6938,7 @@ function j16Mask (s: string): string {
     return out.join ('').replace (/(?<=[A-Za-z_$])<[\w$.?<>, ]*>(?=\s*[({)\[])/g, (g) => g.replace (/,/g, ' '));
 }
 
-function j16Close (m: string, open: number): number {
+function nestedNewMapClose (m: string, open: number): number {
     let d = 0;
     for (let k = open; k < m.length; k++) {
         const c = m[k];
@@ -6948,7 +6948,7 @@ function j16Close (m: string, open: number): number {
     return -1;
 }
 
-function j16Args (m: string, from: number, to: number): Array<[number, number]> {
+function nestedNewMapArgs (m: string, from: number, to: number): Array<[number, number]> {
     const spans: Array<[number, number]> = [];
     let d = 0, s = from;
     for (let k = from; k < to; k++) {
@@ -6962,14 +6962,14 @@ function j16Args (m: string, from: number, to: number): Array<[number, number]> 
 }
 
 // names of the calls in m[a,b) that complete before b (i.e. are evaluated before position b)
-function j16Calls (m: string, a: number, b: number): string[] | undefined {
+function nestedNewMapCalls (m: string, a: number, b: number): string[] | undefined {
     const names: string[] = [];
     const re = /([A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)\s*\(|\)\s*\.\s*([A-Za-z_$][\w$]*)\s*\(/g;
     re.lastIndex = a;
     let r: RegExpExecArray | null;
     while ((r = re.exec (m)) !== null && r.index < b) {
         const open = r.index + r[0].length - 1;
-        const close = j16Close (m, open);
+        const close = nestedNewMapClose (m, open);
         if (close < 0) return undefined;
         re.lastIndex = open + 1;
         if (close >= b) continue;
@@ -6981,11 +6981,11 @@ function j16Calls (m: string, a: number, b: number): string[] | undefined {
 }
 
 // `new C(` keeps its args unevaluated; a cast `(T)` is a parenthesised group with no call name
-function j16Mutates (t: string): boolean { return /\+\+|--|(?<![=!<>+\-*/%&|^])=(?!=)|[+\-*/%&|^]=|->/.test (t); }
-function j16AllPure (names: string[]): boolean { return names.every ((n) => j16PureCall (n)); }
+function nestedNewMapMutates (t: string): boolean { return /\+\+|--|(?<![=!<>+\-*/%&|^])=(?!=)|[+\-*/%&|^]=|->/.test (t); }
+function nestedNewMapAllPure (names: string[]): boolean { return names.every ((n) => nestedNewMapPureCall (n)); }
 
-function j16Emit (raw: string, m: string, open: number, close: number, name: string, indent: string, fresh: () => string, out: string[]): boolean {
-    const spans = j16Args (m, open + 1, close);
+function nestedNewMapEmit (raw: string, m: string, open: number, close: number, name: string, indent: string, fresh: () => string, out: string[]): boolean {
+    const spans = nestedNewMapArgs (m, open + 1, close);
     if (spans.length === 0 || spans.length % 2 !== 0) return false;
     const lines = [indent + 'java.util.HashMap<String, Object> ' + name + ' = new java.util.HashMap<String, Object>();'];
     for (let p = 0; p < spans.length; p += 2) {
@@ -6999,9 +6999,9 @@ function j16Emit (raw: string, m: string, open: number, close: number, name: str
         while (vs < ve && /\s/.test (m[vs])) vs++;
         while (ve > vs && /\s/.test (m[ve - 1])) ve--;
         let value: string;
-        if (m.startsWith ('Helpers.newMap(', vs) && j16Close (m, vs + 'Helpers.newMap('.length - 1) === ve - 1) {
+        if (m.startsWith ('Helpers.newMap(', vs) && nestedNewMapClose (m, vs + 'Helpers.newMap('.length - 1) === ve - 1) {
             value = fresh ();
-            if (!j16Emit (raw, m, vs + 'Helpers.newMap('.length - 1, ve - 1, value, indent, fresh, lines)) return false;
+            if (!nestedNewMapEmit (raw, m, vs + 'Helpers.newMap('.length - 1, ve - 1, value, indent, fresh, lines)) return false;
         } else {
             value = raw.slice (vs, ve);
             if (/\/[/*]/.test (value.replace (/"(?:[^"\\\n]|\\.)*"/g, '""'))) return false;
@@ -7012,12 +7012,12 @@ function j16Emit (raw: string, m: string, open: number, close: number, name: str
     return true;
 }
 
-function j16RewriteOnce (content: string, m: string, from: number, taken: Set<string>): { content: string, next: number } | undefined {
+function nestedNewMapRewriteOnce (content: string, m: string, from: number, taken: Set<string>): { content: string, next: number } | undefined {
     let i = m.indexOf ('Helpers.newMap(', from);
     for (; i >= 0; i = m.indexOf ('Helpers.newMap(', i + 1)) {
         if (i > 0 && /[\w$.]/.test (m[i - 1])) continue;
         const open = i + 'Helpers.newMap('.length - 1;
-        const close = j16Close (m, open);
+        const close = nestedNewMapClose (m, open);
         if (close < 0) continue;
         // statement start, plus the bracket kinds on the path from it to the literal
         let d = 0, k = i - 1;
@@ -7036,10 +7036,10 @@ function j16RewriteOnce (content: string, m: string, from: number, taken: Set<st
         let first = k + 1;
         while (first < i && /\s/.test (m[first])) first++;
         const head = m.slice (first, i);
-        if (path.length === 0) { j16Count ('keep:whole-rhs-or-statement (J01)'); continue; }
-        if (/^(?:if|else|for|while|do|switch|case|default|try|catch|finally|synchronized|super\s*\(|this\s*\(|public|private|protected|static|@)\b/.test (head)) { j16Count ('keep:control-header'); continue; }
+        if (path.length === 0) { nestedNewMapCount ('keep:whole-rhs-or-statement'); continue; }
+        if (/^(?:if|else|for|while|do|switch|case|default|try|catch|finally|synchronized|super\s*\(|this\s*\(|public|private|protected|static|@)\b/.test (head)) { nestedNewMapCount ('keep:control-header'); continue; }
         const lineStart = content.lastIndexOf ('\n', first - 1) + 1;
-        if (content.slice (lineStart, first).trim () !== '') { j16Count ('keep:statement-not-line-start'); continue; }
+        if (content.slice (lineStart, first).trim () !== '') { nestedNewMapCount ('keep:statement-not-line-start'); continue; }
         // the text at path depth (completed sub-expressions removed): no branch may skip the literal
         let top = '';
         for (let q = first, dd = 0; q < i; q++) {
@@ -7049,20 +7049,20 @@ function j16RewriteOnce (content: string, m: string, from: number, taken: Set<st
             if (c === ')' || c === ']' || c === '}') { dd--; continue; }
             if (dd === 0) top += c;
         }
-        if (path.some ((q) => /\b(?:for|while|if|switch|catch|synchronized)\s*$/.test (m.slice (Math.max (0, q - 20), q)))) { j16Count ('keep:control-header'); continue; }
-        if (/\?|&&|\|\||->|:/.test (top) || path.some ((q) => m[q] !== '(')) { j16Count ('keep:conditional-or-lambda-path'); continue; }
+        if (path.some ((q) => /\b(?:for|while|if|switch|catch|synchronized)\s*$/.test (m.slice (Math.max (0, q - 20), q)))) { nestedNewMapCount ('keep:control-header'); continue; }
+        if (/\?|&&|\|\||->|:/.test (top) || path.some ((q) => m[q] !== '(')) { nestedNewMapCount ('keep:conditional-or-lambda-path'); continue; }
         // evaluation order: the prefix Java evaluates before the literal must commute with it
         const assign = head.match (/^(?:(?:final\s+)?[\w$.]+(?:<[^;=()]*>)?(?:\[\])*\s+)?[A-Za-z_$][\w$]*\s*=(?!=)/);
         const prefix = assign ? head.slice (assign[0].length) : head;
-        const prefixCalls = j16Calls (m, first + (assign ? assign[0].length : 0), i);
-        const valueCalls = j16Calls (m, open + 1, close + 1);
-        if (prefixCalls === undefined || valueCalls === undefined) { j16Count ('keep:unparsed'); continue; }
-        if (j16Mutates (prefix) || !j16AllPure (prefixCalls)) { j16Count ('keep:effectful-prefix'); continue; }
-        if (j16Mutates (m.slice (open + 1, close))) { j16Count ('keep:values-write'); continue; }
-        const valuesPure = j16AllPure (valueCalls);
+        const prefixCalls = nestedNewMapCalls (m, first + (assign ? assign[0].length : 0), i);
+        const valueCalls = nestedNewMapCalls (m, open + 1, close + 1);
+        if (prefixCalls === undefined || valueCalls === undefined) { nestedNewMapCount ('keep:unparsed'); continue; }
+        if (nestedNewMapMutates (prefix) || !nestedNewMapAllPure (prefixCalls)) { nestedNewMapCount ('keep:effectful-prefix'); continue; }
+        if (nestedNewMapMutates (m.slice (open + 1, close))) { nestedNewMapCount ('keep:values-write'); continue; }
+        const valuesPure = nestedNewMapAllPure (valueCalls);
         // effectful values: the prefix may only read locals (a call's side effect cannot change them)
         if (!valuesPure && (prefixCalls.length > 0 || /\bthis\s*\.\s*[A-Za-z_$][\w$]*(?!\s*\()|\)\s*[\w$(]/.test (prefix.replace (/\bthis\s*\.\s*[A-Za-z_$][\w$]*\s*\($/, '')))) {
-            j16Count ('keep:effectful-values-after-heap-read'); continue;
+            nestedNewMapCount ('keep:effectful-values-after-heap-read'); continue;
         }
         const indent = content.slice (lineStart, first);
         const fresh = () => {
@@ -7075,11 +7075,11 @@ function j16RewriteOnce (content: string, m: string, from: number, taken: Set<st
         const lines: string[] = [];
         const snapshot = new Set (taken);
         const name = fresh ();
-        if (!j16Emit (content, m, open, close, name, indent, fresh, lines)) {
+        if (!nestedNewMapEmit (content, m, open, close, name, indent, fresh, lines)) {
             taken.clear (); snapshot.forEach ((x) => taken.add (x));
-            j16Count ('keep:non-literal-key-or-multiline-value'); continue;
+            nestedNewMapCount ('keep:non-literal-key-or-multiline-value'); continue;
         }
-        j16Count ('hoisted');
+        nestedNewMapCount ('hoisted');
         const out = content.slice (0, lineStart) + lines.join ('\n') + '\n' + content.slice (lineStart, i) + name + content.slice (close + 1);
         return { content: out, next: lineStart };
     }
@@ -7091,14 +7091,14 @@ export function nativeJavaNestedNewMaps (content: string): string {
     const taken = new Set<string> (content.match (/\bmapLiteral\d+\b/g) || []);
     let from = 0;
     for (;;) {
-        const r = j16RewriteOnce (content, j16Mask (content), from, taken);
+        const r = nestedNewMapRewriteOnce (content, nestedNewMapMask (content), from, taken);
         if (r === undefined) return content;
         content = r.content;
         from = r.next;
     }
 }
 
-// hx4 J03: `x = Helpers.newMap("k", v, ...);` -> a block filling a fresh HashMap, then `x = tmp;`
+// `x = Helpers.newMap("k", v, ...);` -> a block filling a fresh HashMap, then `x = tmp;`
 // (newMap is a plain HashMap put in argument order; values still read the old x)
 export function nativeJavaReassignedNewMap (content: string): string {
     if (content.indexOf ('Helpers.newMap(') < 0) return content;
@@ -7111,7 +7111,7 @@ export function nativeJavaReassignedNewMap (content: string): string {
         const m = head.exec (lines[i]);
         if (m === null) { out.push (lines[i]); continue; }
         const rest = lines.slice (i).join ('\n');
-        const scan = h2kJ01ScanArgs (rest, m[0].length);
+        const scan = newMapScanArgs (rest, m[0].length);
         const tail = scan === undefined ? undefined : /^;[ \t]*(\/\/[^\n]*)?(?=\n|$)/.exec (rest.slice (scan.end));
         const pairs = scan?.args ?? [];
         const ok = scan !== undefined && tail !== null && pairs.length > 0 && pairs.length % 2 === 0
@@ -7133,10 +7133,9 @@ export function nativeJavaReassignedNewMap (content: string): string {
     return out.join ('\n');
 }
 
-// hx4 J06
 // Helpers.objectValues(m) once typeCoreReturns has declared m a fresh member-local Map (groupBy result /
-// empty literal): the H2K-j15 rule, re-run on the retyped declarations; opNeg stays with its own pass
-function hx4J06ObjectValues (content: string): string {
+// empty literal): the promiseAll/objectValues rule, re-run on the retyped declarations; opNeg stays with its own pass
+function nativeJavaRetypedObjectValues (content: string): string {
     if (!content.includes ('Helpers.objectValues(')) return content;
     const lines = content.split ('\n');
     const starts: number[] = [];
@@ -7146,7 +7145,7 @@ function hx4J06ObjectValues (content: string): string {
         const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
         for (let j = from + 1; j < to; j++) {
             lines[j] = lines[j].replace (/Helpers\.objectValues\(([A-Za-z_]\w*)\)/g, (call, name) => {
-                const d = h2kJ15Local (lines, from, to, name);
+                const d = objectValuesLocal (lines, from, to, name);
                 if (d === undefined || d.index >= j || d.type.replace (/^java\.util\./, '') !== 'Map<String,Object>') return call;
                 if (!/^this\.groupBy\(/.test (d.init) && !/^new (?:java\.util\.)?HashMap<String, Object>\(\) \{\{\}\}$/.test (d.init)) return call;
                 if (lines.slice (d.index, j + 1).some ((l) => l.includes ('->'))) return call;
@@ -7167,10 +7166,9 @@ if (isMainEntry(metaUrl)) {
     runMain();
 }
 
-// hx4 J07
 // `Helpers.callDynamically(x, "reset"|"limit", new Object[]{..})` on a local declared io.github.ccxt.ws.WsOrderBook
 // whose args span lines, or `reset` with no args: the helper pads the omitted Object param with null.
-export function nativeJavaJ07WsOrderBookCalls (content: string): string {
+export function nativeJavaWsOrderBookCalls (content: string): string {
     if (content.indexOf ('Helpers.callDynamically(') < 0) return content;
     const lines = content.split ('\n');
     const lineStarts: number[] = [];
@@ -7212,8 +7210,8 @@ export function nativeJavaJ07WsOrderBookCalls (content: string): string {
     return cursor === 0 ? content : out + content.slice (cursor);
 }
 
-// hx4 J10: integer-literal counters print `long`; a counter read as a value (map literal, call argument) or captured stays Object
-function j10CounterSelfTest (): string[] {
+// Integer-literal counters print `long`; a counter read as a value (map literal, call argument) or captured stays Object
+function javaCounterLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzj10selftest${process.pid}.ts`);
     const body = [
@@ -7227,22 +7225,22 @@ function j10CounterSelfTest (): string[] {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         for (const name of [ 'a', 'b' ]) {
-            if (!new RegExp(`\\blong ${name} = `).test(out)) problems.push(`j10: counter '${name}' must print long`);
+            if (!new RegExp(`\\blong ${name} = `).test(out)) problems.push(`counter '${name}' must print long`);
         }
-        if (!/a = \(a \+ 1L\);/.test(out) || !/b = \(b \+ 2L\);/.test(out)) problems.push('j10: counter writes must print native long arithmetic');
+        if (!/a = \(a \+ 1L\);/.test(out) || !/b = \(b \+ 2L\);/.test(out)) problems.push('counter writes must print native long arithmetic');
         for (const name of [ 'c', 'd', 'e' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`j10: '${name}' is read as a value or captured and must stay Object`);
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' is read as a value or captured and must stay Object`);
         }
     } catch (e: any) {
-        problems.push(`j10 self-test threw: ${e.message}`);
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
 
-// hx4 J11: Object locals whose init and every write are Maps print Map<String, Object>; any other write keeps Object
-function j11MapLocalsSelfTest (): string[] {
+// Object locals whose init and every write are Maps print Map<String, Object>; any other write keeps Object
+function javaMapLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzj11selftest${process.pid}.ts`);
     const body = [
@@ -7259,33 +7257,33 @@ function j11MapLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Map<String, Object> a = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("j11: 'a' (safeDict + omit-self) must print Map<String, Object> with a checkcast");
-        if (!/Map<String, Object> b = (\(java\.util\.Map<String, Object>\) )?this\.depositWithdrawFee\(/.test(out)) problems.push("j11: 'b' (fresh-map method) must print Map<String, Object>");
-        if (!/Map<String, Object> c = /.test(out)) problems.push("j11: 'c' (safeDict + Map copy) must print Map<String, Object>");
-        if (/Helpers\.addElementToObject\(a, /.test(out) || /Helpers\.GetValue\(a, /.test(out)) problems.push("j11: 'a' put/get must go native");
+        if (!/Map<String, Object> a = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("'a' (safeDict + omit-self) must print Map<String, Object> with a checkcast");
+        if (!/Map<String, Object> b = (\(java\.util\.Map<String, Object>\) )?this\.depositWithdrawFee\(/.test(out)) problems.push("'b' (fresh-map method) must print Map<String, Object>");
+        if (!/Map<String, Object> c = /.test(out)) problems.push("'c' (safeDict + Map copy) must print Map<String, Object>");
+        if (/Helpers\.addElementToObject\(a, /.test(out) || /Helpers\.GetValue\(a, /.test(out)) problems.push("'a' put/get must go native");
         for (const name of [ 'e', 'f', 'g' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`j11: '${name}' has an unproven write/default and must stay Object`);
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default and must stay Object`);
         }
     } catch (e: any) {
-        problems.push(`j11 self-test threw: ${e.message}`);
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
 
-// hx4 J04: snippet checks for the native arithmetic pass (`--audit-string-types --self-test`)
-function j04ArithmeticSelfTest (): string[] {
+// Snippet checks for the native arithmetic pass (`--audit-string-types --self-test`)
+function javaTypedArithmeticSelfTest (): string[] {
     const problems: string[] = [];
     {
         const assert = {
-            ok: (cond: any, msg?: string) => { if (!cond) { problems.push (`hx4 J04 arithmetic: ${String (msg).slice (0, 300)}`); } },
-            strictEqual: (a: any, b: any) => { if (a !== b) { problems.push (`hx4 J04 arithmetic: ${a} !== ${b}`); } },
+            ok: (cond: any, msg?: string) => { if (!cond) { problems.push (`arithmetic: ${String (msg).slice (0, 300)}`); } },
+            strictEqual: (a: any, b: any) => { if (a !== b) { problems.push (`arithmetic: ${a} !== ${b}`); } },
         };
-        const console = { log: (...a: any[]) => { const s = a.join (' '); if (s.startsWith ('FAIL')) { problems.push (`hx4 J04 arithmetic: ${s.slice (0, 300)}`); } } };
+        const console = { log: (...a: any[]) => { const s = a.join (' '); if (s.startsWith ('FAIL')) { problems.push (`arithmetic: ${s.slice (0, 300)}`); } } };
 
         const member = (body: string) => `    public Object m(Long since, Long limit, Object x)\n    {\n${body}\n    }\n`;
-        const run = (body: string) => nativeJavaJ04Arithmetic (member (body));
+        const run = (body: string) => nativeJavaTypedArithmetic (member (body));
         const cases: [string, string, string | undefined][] = [
             // positives
             [ 'getArrayLength local', '        Integer n = Helpers.getArrayLength(x);\n        Object a = Helpers.GetValue(x, Helpers.subtract(n, 1));', 'Helpers.GetValue(x, (n - 1L))' ],
@@ -7313,9 +7311,9 @@ function j04ArithmeticSelfTest (): string[] {
     return problems;
 }
 
-// hx4 J12: venue-only methods called with typed arguments print typed parameters; a written,
+// Venue-only methods called with typed arguments print typed parameters; a written,
 // mistyped, `+`-left or name-referenced parameter keeps Object
-function j12ParamTypesSelfTest (): string[] {
+function javaParamTypesSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzj12selftest${process.pid}.ts`);
     const body = [
@@ -7332,24 +7330,24 @@ function j12ParamTypesSelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/zzjA\(String code, Boolean flag, java\.util\.List<Object> rows\)/.test(out)) problems.push('j12: zzjA must print String/Boolean/List<Object> params');
-        if (!/this\.zzjA\(s, java\.util\.Objects\.equals\(s, "b"\), \(java\.util\.List<Object>\) \(this\.safeList\(/.test(out)) problems.push('j12: zzjA call must pass the String local bare and checkcast the List');
-        // hx10 w4 PJ01: a plain `string` annotation prints String on a generated venue method whether the
+        if (!/zzjA\(String code, Boolean flag, java\.util\.List<Object> rows\)/.test(out)) problems.push('zzjA must print String/Boolean/List<Object> params');
+        if (!/this\.zzjA\(s, java\.util\.Objects\.equals\(s, "b"\), \(java\.util\.List<Object>\) \(this\.safeList\(/.test(out)) problems.push('zzjA call must pass the String local bare and checkcast the List');
+        // A plain `string` annotation prints String on a generated venue method whether the
         // parameter is written, `+`-left or handed an unproven caller, because writes are cast and the
         // caller carries the checkcast
         for (const name of [ 'zzjB', 'zzjC', 'zzjD', 'zzjE' ]) {
-            if (!new RegExp(`${name}\\(String code\\)`).test(out)) problems.push(`j12: ${name} must print String code`);
+            if (!new RegExp(`${name}\\(String code\\)`).test(out)) problems.push(`java param types self test: ${name} must print String code`);
         }
     } catch (e: any) {
-        problems.push(`j12 self-test threw: ${e.message}`);
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
 
-// hx4 J13: Object locals whose init and every write are Lists print List<Object>; any other write keeps Object
-function j13ListLocalsSelfTest (): string[] {
+// Object locals whose init and every write are Lists print List<Object>; any other write keeps Object
+function javaListLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzj13selftest${process.pid}.ts`);
     const body = [
@@ -7373,32 +7371,32 @@ function j13ListLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/List<Object> a = /.test(out)) problems.push("j13: 'a' ([] + arrayConcat) must print List<Object>");
-        if (!/a = \(java\.util\.List<Object>\) this\.arrayConcat\(/.test(out)) problems.push("j13: 'a' arrayConcat write needs a checkcast");
-        if (!/List<Object> b = \(java\.util\.List<Object>\) this\.safeList\(/.test(out)) problems.push("j13: 'b' (safeList + safeList write) must print List<Object> with a checkcast");
-        if (!/List<Object> c = /.test(out)) problems.push("j13: 'c' (Object.keys) must print List<Object>");
-        if (/Helpers\.getArrayLength\((a|b)\)/.test(out) || /Helpers\.GetValue\((a|b), /.test(out)) problems.push("j13: 'a'/'b' length/get must go native");
+        if (!/List<Object> a = /.test(out)) problems.push("'a' ([] + arrayConcat) must print List<Object>");
+        if (!/a = \(java\.util\.List<Object>\) this\.arrayConcat\(/.test(out)) problems.push("'a' arrayConcat write needs a checkcast");
+        if (!/List<Object> b = \(java\.util\.List<Object>\) this\.safeList\(/.test(out)) problems.push("'b' (safeList + safeList write) must print List<Object> with a checkcast");
+        if (!/List<Object> c = /.test(out)) problems.push("'c' (Object.keys) must print List<Object>");
+        if (/Helpers\.getArrayLength\((a|b)\)/.test(out) || /Helpers\.GetValue\((a|b), /.test(out)) problems.push("'a'/'b' length/get must go native");
         // shapes no earlier section types: toArray / fresh-list method writes, a List<Object> core + sortBy
-        if (!/List<Object> m = /.test(out) || !/m = \(java\.util\.List<Object>\) this\.convertTradingViewToOHLCV\(/.test(out)) problems.push("j13: 'm' ([] + toArray + fresh-list method) must print List<Object> with a write checkcast");
-        if (!/List<Object> o = this\.filterBySinceLimit\(/.test(out)) problems.push("j13: 'o' (filterBySinceLimit + sortBy) must print List<Object>");
-        if (/Helpers\.getArrayLength\([mo]\)/.test(out) || /Helpers\.GetValue\(o, /.test(out)) problems.push("j13: 'm'/'o' length/get must go native");
-        if (/List<Object> q = /.test(out)) problems.push("j13: 'q' (as string[] prints a List<String> cast) must not print List<Object>");
-        if (/List<Object> s = (?!\(java\.util\.List<Object>\) \(\(Object\))/.test(out)) problems.push("j13: 's' (as any prints ((Object)v)) needs the List checkcast");
+        if (!/List<Object> m = /.test(out) || !/m = \(java\.util\.List<Object>\) this\.convertTradingViewToOHLCV\(/.test(out)) problems.push("'m' ([] + toArray + fresh-list method) must print List<Object> with a write checkcast");
+        if (!/List<Object> o = this\.filterBySinceLimit\(/.test(out)) problems.push("'o' (filterBySinceLimit + sortBy) must print List<Object>");
+        if (/Helpers\.getArrayLength\([mo]\)/.test(out) || /Helpers\.GetValue\(o, /.test(out)) problems.push("'m'/'o' length/get must go native");
+        if (/List<Object> q = /.test(out)) problems.push("'q' (as string[] prints a List<String> cast) must not print List<Object>");
+        if (/List<Object> s = (?!\(java\.util\.List<Object>\) \(\(Object\))/.test(out)) problems.push("'s' (as any prints ((Object)v)) needs the List checkcast");
         for (const name of [ 'e', 'f', 'k' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`j13: '${name}' has an unproven write/default and must stay Object`);
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default and must stay Object`);
         }
-        if (/List<Object> g = /.test(out)) problems.push("j13: 'g' has no List write and must not print List<Object>");
-        if (problems.length) problems.push('j13 output:\n' + out);
+        if (/List<Object> g = /.test(out)) problems.push("'g' has no List write and must not print List<Object>");
+        if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
-        problems.push(`j13 self-test threw: ${e.message}`);
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
 
-// hx4 J14: Object locals whose init and every write are one proven scalar box print it; a mixed write keeps Object
-function j14ScalarLocalsSelfTest (): string[] {
+// Object locals whose init and every write are one proven scalar box print it; a mixed write keeps Object
+function javaScalarLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzj14selftest${process.pid}.ts`);
     const body = [
@@ -7415,24 +7413,24 @@ function j14ScalarLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Long a = \(Long\) this\.safeIntegerOmitZero\(/.test(out)) problems.push("j14: 'a' (safeIntegerOmitZero, no default) must print Long with a checkcast");
-        if (!/Boolean b = \(Boolean\) this\.safeBool\(/.test(out)) problems.push("j14: 'b' (safeBool, Boolean default) must print Boolean");
-        if (!/String c = this\.safeString\(/.test(out)) problems.push("j14: 'c' (safeString + safeString2 write) must print String");
-        if (!/Long u = this\.safeInteger\(/.test(out)) problems.push("j14: 'u' (safeInteger + milliseconds write) must print Long");
+        if (!/Long a = \(Long\) this\.safeIntegerOmitZero\(/.test(out)) problems.push("'a' (safeIntegerOmitZero, no default) must print Long with a checkcast");
+        if (!/Boolean b = \(Boolean\) this\.safeBool\(/.test(out)) problems.push("'b' (safeBool, Boolean default) must print Boolean");
+        if (!/String c = this\.safeString\(/.test(out)) problems.push("'c' (safeString + safeString2 write) must print String");
+        if (!/Long u = this\.safeInteger\(/.test(out)) problems.push("'u' (safeInteger + milliseconds write) must print Long");
         for (const name of [ 'e', 'g' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`j14: '${name}' has an unproven write/default/arm and must stay Object`);
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default/arm and must stay Object`);
         }
     } catch (e: any) {
-        problems.push(`j14 self-test threw: ${e.message}`);
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
 
-// hx4 J15: J14 locals compared to each other print a value compare; a J12 callee declared above its caller
+// Scalar-proven locals compared to each other print a value compare; a typed-param callee declared above its caller
 // still reads the caller's typed local
-function j15SelfTest (): string[] {
+function javaParamTypesPreScanSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzj15selftest${process.pid}.ts`);
     const body = [
@@ -7446,20 +7444,20 @@ function j15SelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Long a = this\.safeInteger\(/.test(out) || !/Long b = this\.safeInteger\(/.test(out)) problems.push("j15: 'a'/'b' compared box-to-box must print Long (J14 un-veto)");
-        if (!/!java\.util\.Objects\.equals\(a, b\)/.test(out) || !/[^!]java\.util\.Objects\.equals\(a, b\)/.test(out)) problems.push('j15: Long === / !== Long must print Objects.equals');
-        if (/\ba [!=]= b\b/.test(out)) problems.push('j15: no reference ==/!= on two Long boxes');
-        if (!/zzjHelper\(String code\)/.test(out)) problems.push('j15: zzjHelper above its caller must print String code (J12 pre-scan)');
-        if (problems.length) problems.push('j15 output:\n' + out);
+        if (!/Long a = this\.safeInteger\(/.test(out) || !/Long b = this\.safeInteger\(/.test(out)) problems.push("'a'/'b' compared box-to-box must print Long (box-to-box veto lifted)");
+        if (!/!java\.util\.Objects\.equals\(a, b\)/.test(out) || !/[^!]java\.util\.Objects\.equals\(a, b\)/.test(out)) problems.push('Long === / !== Long must print Objects.equals');
+        if (/\ba [!=]= b\b/.test(out)) problems.push('no reference ==/!= on two Long boxes');
+        if (!/zzjHelper\(String code\)/.test(out)) problems.push('zzjHelper above its caller must print String code (helper return pre-scan)');
+        if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
-        problems.push(`j15 self-test threw: ${e.message}`);
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-// hx4 J17: `: Str` / `: Int` / `: Num` venue methods print String / Long / Double once their bodies print
-function j17ReturnsSelfTest (): string[] {
+// `: Str` / `: Int` / `: Num` venue methods print String / Long / Double once their bodies print
+function javaStringReturnsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzj17selftest${process.pid}.ts`);
     const child = path.join(process.cwd(), 'ts', 'src', `zzj17selftestchild${process.pid}.ts`);
@@ -7487,15 +7485,15 @@ function j17ReturnsSelfTest (): string[] {
         fs.writeFileSync(probe, body);
         fs.writeFileSync(child, childBody);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/public String pairSym\(/.test(out)) problems.push("j17: pairSym (callee printed after its caller, String local return) must print String");
-        if (!/String a = this\.pairSym\(/.test(out)) problems.push("j17: the caller local of pairSym must print String");
-        if (!/public Long tif\(/.test(out)) problems.push("j17: tif (Int, safeInteger return) must print Long");
-        if (!/Long c = this\.tif\(/.test(out)) problems.push("j17: the caller local of tif must print Long");
-        if (!/public Double fromW\(/.test(out)) problems.push("j17: fromW (Num, parseNumber/undefined arms) must print Double");
-        if (!/public Object unboxed\(/.test(out)) problems.push("j17: unboxed has a ternary-arm caller and must stay Object");
-        if (!/public Object over\(/.test(out)) problems.push("j17: over is redeclared by a descendant and must stay Object");
+        if (!/public String pairSym\(/.test(out)) problems.push("pairSym (callee printed after its caller, String local return) must print String");
+        if (!/String a = this\.pairSym\(/.test(out)) problems.push("the caller local of pairSym must print String");
+        if (!/public Long tif\(/.test(out)) problems.push("tif (Int, safeInteger return) must print Long");
+        if (!/Long c = this\.tif\(/.test(out)) problems.push("the caller local of tif must print Long");
+        if (!/public Double fromW\(/.test(out)) problems.push("fromW (Num, parseNumber/undefined arms) must print Double");
+        if (!/public Object unboxed\(/.test(out)) problems.push("unboxed has a ternary-arm caller and must stay Object");
+        if (!/public Object over\(/.test(out)) problems.push("over is redeclared by a descendant and must stay Object");
     } catch (e: any) {
-        problems.push(`j17 self-test threw: ${e.message}`);
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
         fs.rmSync(child, { force: true });
@@ -7503,8 +7501,8 @@ function j17ReturnsSelfTest (): string[] {
     return problems;
 }
 
-// hx4 J19: ordered comparisons / Math.max-min over non-null numeric expressions (runs after J04 + long-limit passes)
-function j19SplitTop (text: string): { left: string, op: string, right: string } | undefined {
+// Ordered comparisons / Math.max-min over non-null numeric expressions (runs after the typed arithmetic + long-limit passes)
+function nonNullCompareSplitTop (text: string): { left: string, op: string, right: string } | undefined {
     let depth = 0, quote = '', at = -1, op = '';
     for (let i = 0; i < text.length; i++) {
         const c = text[i];
@@ -7523,34 +7521,34 @@ function j19SplitTop (text: string): { left: string, op: string, right: string }
     return { left: text.slice (0, at).trim (), op, right: text.slice (at + 3).trim () };
 }
 
-export function j19Operand (text: string, member: string, fields: Set<string>, content: string, depth = 0): { kind: string, boxed: boolean, text: string, literal?: boolean } | undefined {
-    const base = h2kJ10Operand (text, member, fields);
+export function nonNullCompareOperand (text: string, member: string, fields: Set<string>, content: string, depth = 0): { kind: string, boxed: boolean, text: string, literal?: boolean } | undefined {
+    const base = orderedCompareOperand (text, member, fields);
     if (base !== undefined || depth > 8) return base;
-    const inner = h2kJ10StripParens (text);
+    const inner = orderedCompareStripParens (text);
     const prim = (kind: string) => ({ kind, boxed: false, text: '(' + inner + ')' });
     const cast = inner.match (/^\((long|int|double)\) ?(.+)$/);
     if (cast !== null) {
-        const o = j19Operand (cast[2], member, fields, content, depth + 1);
+        const o = nonNullCompareOperand (cast[2], member, fields, content, depth + 1);
         return o === undefined ? undefined : prim (cast[1] === 'double' ? 'double' : 'long');
     }
-    const bin = j19SplitTop (inner);
+    const bin = nonNullCompareSplitTop (inner);
     if (bin !== undefined) {
-        const l = j19Operand (bin.left, member, fields, content, depth + 1);
-        const r = j19Operand (bin.right, member, fields, content, depth + 1);
+        const l = nonNullCompareOperand (bin.left, member, fields, content, depth + 1);
+        const r = nonNullCompareOperand (bin.right, member, fields, content, depth + 1);
         if (l === undefined || r === undefined) return undefined;
         return prim (l.kind === 'double' || r.kind === 'double' ? 'double' : 'long');
     }
     // hand-written base members returning a non-null long / int (no venue redeclaration)
     const call = inner.match (/^this\.(milliseconds|seconds|parseTimeframe)\(/);
-    if (call !== null && h2kJ15Close (inner, call[0].length - 1) === inner.length - 1
+    if (call !== null && promiseAllClose (inner, call[0].length - 1) === inner.length - 1
         && !new RegExp ('^    (?:public|private|protected)[^\\n(]* ' + call[1] + '\\(', 'm').test (content)) return prim ('long');
-    if (/^Helpers\.getArrayLength\(/.test (inner) && h2kJ15Close (inner, 'Helpers.getArrayLength'.length) === inner.length - 1) return prim ('long');
+    if (/^Helpers\.getArrayLength\(/.test (inner) && promiseAllClose (inner, 'Helpers.getArrayLength'.length) === inner.length - 1) return prim ('long');
     if (/\.(?:size|length)\(\)$/.test (inner) && !/\s/.test (inner.replace (/\([^()]*\)/g, ''))) return prim ('long');
     const mm = inner.match (/^Math\.(?:min|max)\(/);
-    if (mm !== null && h2kJ15Close (inner, mm[0].length - 1) === inner.length - 1) {
-        const split = h2kJ10SplitArgs (inner, mm[0].length);
+    if (mm !== null && promiseAllClose (inner, mm[0].length - 1) === inner.length - 1) {
+        const split = orderedCompareSplitArgs (inner, mm[0].length);
         if (split === undefined || split.args.length !== 2) return undefined;
-        const ks = split.args.map ((a) => j19Operand (a, member, fields, content, depth + 1));
+        const ks = split.args.map ((a) => nonNullCompareOperand (a, member, fields, content, depth + 1));
         if (ks.some ((k) => k === undefined)) return undefined;
         return prim (ks.some ((k) => k.kind === 'double') ? 'double' : 'long');
     }
@@ -7558,29 +7556,29 @@ export function j19Operand (text: string, member: string, fields: Set<string>, c
 }
 
 // the expression's Java type is long (Long box once stored): the result box of a native Math.max/min
-function j19LongValued (text: string, member: string, depth = 0): boolean {
-    const e = h2kJ10StripParens (text);
+function nonNullCompareLongValued (text: string, member: string, depth = 0): boolean {
+    const e = orderedCompareStripParens (text);
     if (depth > 8) return false;
     if (/^-?\d{1,15}L$/.test (e) || /^\(long\) ?/.test (e) || /^this\.(?:milliseconds|seconds)\(\)$/.test (e)) return true;
     if (/^[A-Za-z_$][\w$]*$/.test (e)) {
         const decls = [ ...member.matchAll (new RegExp ('(?:^|[\\s(,])([\\w.$<>]+) ' + e.replace (/\$/g, '\\$') + '\\s*(?:=|;|,|\\))', 'gm')) ].map ((d) => d[1]);
         return decls.length === 1 && /^(?:final )?(?:Long|long)$/.test (decls[0]);
     }
-    const bin = j19SplitTop (e);
-    return bin !== undefined && (j19LongValued (bin.left, member, depth + 1) || j19LongValued (bin.right, member, depth + 1));
+    const bin = nonNullCompareSplitTop (e);
+    return bin !== undefined && (nonNullCompareLongValued (bin.left, member, depth + 1) || nonNullCompareLongValued (bin.right, member, depth + 1));
 }
 
 // Helpers.mathMax/mathMin hand back one operand's box: native only for two non-null long-valued operands
-function j19MathNative (helper: string, l, r, args: string[], member: string): string | undefined {
+function nonNullCompareMathNative (helper: string, l, r, args: string[], member: string): string | undefined {
     if (l.kind !== 'long' || r.kind !== 'long' || l.boxed || r.boxed) return undefined;
     const wide = (o) => (o.literal && !/L$/.test (o.text) ? o.text + 'L' : o.text);
     // an int-valued non-literal side would turn the helper's Integer result into a Long
-    if (!args.every ((a, k) => [ l, r ][k].literal || j19LongValued (a, member))) return undefined;
-    if (!args.some ((a) => j19LongValued (a, member))) return undefined;
+    if (!args.every ((a, k) => [ l, r ][k].literal || nonNullCompareLongValued (a, member))) return undefined;
+    if (!args.some ((a) => nonNullCompareLongValued (a, member))) return undefined;
     return `Math.${helper === 'mathMax' ? 'max' : 'min'}(${wide (l)}, ${wide (r)})`;
 }
 
-export function nativeJavaJ19Compare (content: string): string {
+export function nativeJavaNonNullCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than|mathM(?:in|ax))/.test (content)) return content;
     const lines = content.split ('\n');
     const fields = new Set<string> ();
@@ -7604,13 +7602,13 @@ export function nativeJavaJ19Compare (content: string): string {
                 re.lastIndex = 0;
                 let m;
                 while ((m = re.exec (line)) !== null) {
-                    const split = h2kJ10SplitArgs (line, m.index + m[0].length);
+                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
                     if (split === undefined || split.args.length !== 2) continue;
-                    const l = j19Operand (split.args[0], member, fields, content);
-                    const r = j19Operand (split.args[1], member, fields, content);
+                    const l = nonNullCompareOperand (split.args[0], member, fields, content);
+                    const r = nonNullCompareOperand (split.args[1], member, fields, content);
                     if (l === undefined || r === undefined) continue;
                     const helper = m[1].replace (/^is/, '');
-                    const native = m[1].startsWith ('math') ? j19MathNative (m[1], l, r, split.args, member) : h2kJ10Compare (helper, l, r);
+                    const native = m[1].startsWith ('math') ? nonNullCompareMathNative (m[1], l, r, split.args, member) : orderedCompareNative (helper, l, r);
                     if (native === undefined) continue;
                     line = line.slice (0, m.index) + native + line.slice (split.end + 1);
                     again = true;
@@ -7623,7 +7621,7 @@ export function nativeJavaJ19Compare (content: string): string {
     return lines.join ('\n');
 }
 
-function j19CompareSelfTest (): string[] {
+function javaNonNullCompareSelfTest (): string[] {
     const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, Double d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
@@ -7644,19 +7642,19 @@ function j19CompareSelfTest (): string[] {
         [ 'override ms', '        boolean b = Helpers.isLessThan(this.milliseconds(), 5L);\n    }\n    public Long milliseconds()\n    {\n        return 1L;', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ19Compare (member (body));
+        const out = nativeJavaNonNullCompare (member (body));
         const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) problems.push (`hx4 J19 compare ${name}: ${out.slice (0, 400)}`);
+        if (!ok) problems.push (`compare ${name}: ${out.slice (0, 400)}`);
     }
     return problems;
 }
 
-// hx4 J20: the unwritten first parameter of setLeverage / cancelAllOrdersAfter / handleErrors compared to,
+// The unwritten first parameter of setLeverage / cancelAllOrdersAfter / handleErrors compared to,
 // divided or mod-ed with an integer literal prints a double compare carrying the helper's null arm
-function j20ParamCompareSelfTest (): string[] {
+function javaParamCompareSelfTest (): string[] {
     const problems: string[] = [];
     const head = '    public Object handleErrors(Object code, Object reason)\n    {\n';
-    const run = (body: string) => nativeJavaJ20ParamCompare (head + body + '\n    }\n');
+    const run = (body: string) => nativeJavaParamCompare (head + body + '\n    }\n');
     const pos: [string, string][] = [
         [ '        if (Helpers.isEqual(code, 418)) {}', '(code != null && ((Number) code).doubleValue() == 418)' ],
         [ '        if (Helpers.isLessThan(code, 400)) {}', '(code == null || !(((Number) code).doubleValue() >= 400))' ],
@@ -7665,58 +7663,57 @@ function j20ParamCompareSelfTest (): string[] {
         [ '        Object t = this.parseToInt(Helpers.divide(code, 1000));', '(code == null ? null : ((Number) code).doubleValue() / 1000)' ],
         [ '        Object t = Helpers.mod(1000, code);', '(code == null ? null : ((double) 1000) % ((Number) code).doubleValue())' ],
     ];
-    for (const [ body, expect ] of pos) if (!run (body).includes (expect)) problems.push (`j20: expected ${expect} in\n${run (body)}`);
+    for (const [ body, expect ] of pos) if (!run (body).includes (expect)) problems.push (`java param compare self test expected ${expect} in\n${run (body)}`);
     const neg = [
         '        code = this.safeInteger(reason, "c");\n        if (Helpers.isEqual(code, 418)) {}',
         '        if (Helpers.isEqual(reason, 418)) {}',
         '        if (Helpers.isEqual(code, other)) {}',
     ];
-    for (const body of neg) if (run (body) !== head + body + '\n    }\n') problems.push (`j20: must keep the helper in\n${body}`);
+    for (const body of neg) if (run (body) !== head + body + '\n    }\n') problems.push (`must keep the helper in\n${body}`);
     const other = '    public Object fetchX(Object code)\n    {\n        if (Helpers.isEqual(code, 1)) {}\n    }\n';
-    if (nativeJavaJ20ParamCompare (other) !== other) problems.push ('j20: other methods keep the helper');
+    if (nativeJavaParamCompare (other) !== other) problems.push ('other methods keep the helper');
     return problems;
 }
 
-// hx4 J21: the transpiled bodies of BaseExchange.java / Exchange.java / PredictionExchange.java
+// The transpiled bodies of BaseExchange.java / Exchange.java / PredictionExchange.java
 // get the same native post-passes createJavaClass runs on exchange files, in the same order
-function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: string): string {
+function javaBaseNativePasses (transpiler: any, body: string, sourcePath?: string): string {
     let content = body;
     content = transpiler.retypeFinalVarDeclarations(content);
     content = nativeJavaDeclaredElementReads(content);
-    content = nativeJavaJ03ElementReads(content);
+    content = nativeJavaElementReads(content);
     content = nativeJavaArrayLength(content);
-    content = h2kJ07NativeDeclaredLength(content);
+    content = nativeJavaDeclaredLength(content);
     content = nativeJavaLongLimitLocals(content);
     content = nativeJavaTopLevelNewMap(content);
     content = nativeJavaReassignedNewMap(content);
     content = nativeJavaEqualTruthy(content);
-    content = h2kJ10NativeComparisons(content);
+    content = nativeJavaOrderedComparisons(content);
     content = nativeJavaInOp(content);
-    content = nativeJavaToLongOrNullH2kJ13(content);
-    content = nativeJavaH2kJ15(content);
+    content = nativeJavaToLongOrNull(content);
+    content = nativeJavaPromiseAllObjectValues(content);
     content = nativeJavaNestedNewMaps(content);
-    content = nativeJavaJ04Arithmetic(content);
-    content = nativeJavaJ25Compare(content); // hx4 J25
-    content = nativeJavaJ30CoreArgs(content); // hx4 J30
-    content = nativeJavaJ33Compare(content); // hx4 J33
-    content = nativeJavaJ35(content); // hx4 J35
-    content = nativeJavaJ36MultiplySubtract(content); // hx4 J36
-    content = nativeJavaJ37DivModNeg(content); // hx4 J37
-    content = nativeJavaJ38(content); // hx4 J38
-    content = nativeJavaJ39Containers(content); // hx4 J39
-    content = nativeJavaJ40(nativeJavaStringAdd(content)); // hx4 J40
-    content = nativeJavaJ38(nativeJavaJ36MultiplySubtract(nativeJavaJ37DivModNeg(content))); // hx4 J36..J38 post-J40
-    content = nativeJavaJ41(content); // hx4 J41
-    content = nativeJavaJ43(content); // hx4 J43
-    content = nativeJavaJ44(content); // hx4 J44
-    content = hx11w8CacheFieldCasts(content);
+    content = nativeJavaTypedArithmetic(content);
+    content = nativeJavaProvenLocalCompare(content);
+    content = nativeJavaBoxLocalsCoreArgs(content);
+    content = nativeJavaNumberProvenCompare(content);
+    content = nativeJavaRemainingCoreArgs(content);
+    content = nativeJavaMultiplySubtract(content);
+    content = nativeJavaInlineDivModNeg(content);
+    content = nativeJavaInlineCompare(content);
+    content = nativeJavaContainerOps(content);
+    content = nativeJavaCoreArgHelpers(nativeJavaStringAdd(content));
+    content = nativeJavaInlineCompare(nativeJavaMultiplySubtract(nativeJavaInlineDivModNeg(content)));
+    content = nativeJavaStringSliceIndexOf(content);
+    content = nativeJavaReplaceAll(content);
+    content = nativeJavaTypeTests(content);
+    content = nativeJavaCacheFieldCasts(content);
     return content;
 }
 
-// hx4 J22
 // Helpers.toMapArg/toStringArg/toLongOrNull/toStringListArg are identities on a value that already
 // prints the slot type: a name the member declares that type only, or a base call that returns it.
-export function nativeJavaJ22CoreArgs (content: string): string {
+export function nativeJavaCoreArgIdentities (content: string): string {
     const H = /Helpers\.(toMapArg|toStringArg|toLongOrNull|toStringListArg)\(/;
     if (!H.test (content)) return content;
     const MAP = '(?:java\\.util\\.)?Map<String, Object>';
@@ -7811,15 +7808,15 @@ export function nativeJavaJ22CoreArgs (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
-// Test printer: J26/J22 over generated test classes (members sit one level deeper than in exchanges),
+// Test printer: Map-locals retype + core-arg passes over generated test classes (members sit one level deeper than in exchanges),
 // and a list literal handed to callDynamically already is a List, so its toStringListArg is dropped.
 export function nativeJavaTestCoreArgs (content: string): string {
     if (!/Helpers\.(?:toMapArg|toStringListArg)\(/.test (content)) return content;
     const lines = content.split ('\n');
     const deep = lines.map ((l) => /^        (?:public|private|protected)\b/.test (l));
-    // the exchange test param is a BaseExchange: its market/safeMarket print the Map the J26 proof reads off `this`
+    // the exchange test param is a BaseExchange: its market/safeMarket print the Map the Map-locals proof reads off `this`
     const shifted = lines.map ((l, i) => (deep[i] ? l.slice (4) : l)).join ('\n').replace (/\bexchange\.(market|safeMarket)\(/g, 'this.$1(');
-    const done = nativeJavaJ22CoreArgs (nativeJavaJ26MapLocals (shifted)).replace (/\bthis\.(market|safeMarket)\(/g, 'exchange.$1(').split ('\n');
+    const done = nativeJavaCoreArgIdentities (nativeJavaMapLocalsRetype (shifted)).replace (/\bthis\.(market|safeMarket)\(/g, 'exchange.$1(').split ('\n');
     if (done.length !== lines.length) return content;
     return done.map ((l, i) => {
         l = deep[i] ? '    ' + l : l;
@@ -7829,7 +7826,7 @@ export function nativeJavaTestCoreArgs (content: string): string {
     }).join ('\n');
 }
 
-function j22CoreArgsSelfTest (): string[] {
+function javaCoreArgIdentitiesSelfTest (): string[] {
     const problems: string[] = [];
     const body = [
         '    public Object a(Object p, Map<String, Object> q)',
@@ -7848,15 +7845,15 @@ function j22CoreArgsSelfTest (): string[] {
         '        return this.g(Helpers.toMapArg(m));',
         '    }',
     ].join('\n');
-    const out = nativeJavaJ22CoreArgs(body);
+    const out = nativeJavaCoreArgIdentities(body);
     const want = 'return this.f(m, Helpers.toMapArg(o), s, n, l, this.omit(q, "y"), Helpers.toMapArg(this.omit(p, "y")), Helpers.toStringArg(p), this.currency((String) (s)));';
-    if (!out.includes(want)) problems.push('j22: declared-type core args must drop their identity wrapper (only those)');
-    if (!out.includes('return this.g(Helpers.toMapArg(m));')) problems.push('j22: a lambda-shadowed name must keep the wrapper');
+    if (!out.includes(want)) problems.push('declared-type core args must drop their identity wrapper (only those)');
+    if (!out.includes('return this.g(Helpers.toMapArg(m));')) problems.push('a lambda-shadowed name must keep the wrapper');
     return problems;
 }
 
-// hx4 J23: snippet checks for the extended native arithmetic pass (`--audit-string-types --self-test`)
-function j23ArithmeticSelfTest (): string[] {
+// Snippet checks for the extended native arithmetic pass (`--audit-string-types --self-test`)
+function javaPrimitiveArithmeticSelfTest (): string[] {
     const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, String s, Double d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
@@ -7876,15 +7873,15 @@ function j23ArithmeticSelfTest (): string[] {
         [ 'nullable Double', '        Object e = this.sum(x, Helpers.add(d, 1));', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ23Arithmetic (member (body));
+        const out = nativeJavaPrimitiveArithmetic (member (body));
         const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`hx4 J23 arithmetic: ${name}\n${out}`); }
+        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
     }
     return problems;
 }
 
-// hx4 J24: snippet checks for the Object-local retype that lets the J23 arithmetic go native
-function j24ArithmeticSelfTest (): string[] {
+// Snippet checks for the Object-local retype that lets the primitive arithmetic go native
+function javaNumericLocalsRetypeSelfTest (): string[] {
     const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, String s)\n    {\n        Long now = this.milliseconds();\n        int duration = 60;\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
@@ -7899,16 +7896,16 @@ function j24ArithmeticSelfTest (): string[] {
         [ 'ternary arm read', '        Object delta = (duration * 2L);\n        Object t = Helpers.subtract(now, delta);\n        Object u = (s == null) ? delta : x;', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ24Arithmetic (member (body));
+        const out = nativeJavaNumericLocalsRetype (member (body));
         const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`hx4 J24 arithmetic: ${name}\n${out}`); }
+        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
     }
     return problems;
 }
 
-// hx4 J25: compares over Object locals whose single write proves the box: `((String)s).indexOf(..)` /
+// Compares over Object locals whose single write proves the box: `((String)s).indexOf(..)` /
 // Helpers.getIndexOf (a non-null Integer) and a same-file `this.m(..)` whose every return is `this.parseToInt(..)` (Long)
-function j25LongReturningMembers (content: string): Set<string> {
+function javaLongReturningMembers (content: string): Set<string> {
     const out = new Set<string> ();
     if (/^    (?:public|private|protected)[^\n(]* parseToInt\(/m.test (content)) return out;
     const lines = content.split ('\n');
@@ -7927,7 +7924,7 @@ function j25LongReturningMembers (content: string): Set<string> {
     return out;
 }
 
-function j25ProvenLocal (member: string, name: string, longMembers: Set<string>): { kind: string, boxed: boolean, text: string, nullName?: string } | undefined {
+function compareProvenLocal (member: string, name: string, longMembers: Set<string>): { kind: string, boxed: boolean, text: string, nullName?: string } | undefined {
     const esc = name.replace (/\$/g, '\\$');
     const decls = [ ...member.matchAll (new RegExp ('^\\s+Object ' + esc + ' = (.+);$', 'gm')) ];
     if (decls.length !== 1) return undefined;
@@ -7939,13 +7936,13 @@ function j25ProvenLocal (member: string, name: string, longMembers: Set<string>)
         return { kind: 'long', boxed: false, text: '((Integer) ' + name + ')' };
     }
     const call = init.match (/^this\.(\w+)\(/);
-    if (call !== null && longMembers.has (call[1]) && h2kJ15Close (init, call[0].length - 1) === init.length - 1) {
+    if (call !== null && longMembers.has (call[1]) && promiseAllClose (init, call[0].length - 1) === init.length - 1) {
         return { kind: 'long', boxed: true, text: '((Long) ' + name + ')', nullName: name };
     }
     return undefined;
 }
 
-export function nativeJavaJ25Compare (content: string): string {
+export function nativeJavaProvenLocalCompare (content: string): string {
     if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
     const lines = content.split ('\n');
     const fields = new Set<string> ();
@@ -7953,7 +7950,7 @@ export function nativeJavaJ25Compare (content: string): string {
         const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
         if (f !== null) fields.add (f[1]);
     }
-    const longMembers = j25LongReturningMembers (content);
+    const longMembers = javaLongReturningMembers (content);
     const starts: number[] = [];
     for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
     const re = /Helpers\.(is(?:GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual))\(/g;
@@ -7962,12 +7959,12 @@ export function nativeJavaJ25Compare (content: string): string {
         const member = lines.slice (from, to).join ('\n');
         if (!member.includes ('Helpers.is')) continue;
         const operand = (text: string) => {
-            const inner = h2kJ10StripParens (text);
+            const inner = orderedCompareStripParens (text);
             if (/^[A-Za-z_$][\w$]*$/.test (inner) && !fields.has (inner)) {
-                const p = j25ProvenLocal (member, inner, longMembers);
+                const p = compareProvenLocal (member, inner, longMembers);
                 if (p !== undefined) return { ...p, mine: true };
             }
-            const o = j19Operand (text, member, fields, content);
+            const o = nonNullCompareOperand (text, member, fields, content);
             return o === undefined ? undefined : { ...o, mine: false };
         };
         for (let i = from; i < to; i++) {
@@ -7979,11 +7976,11 @@ export function nativeJavaJ25Compare (content: string): string {
                 re.lastIndex = 0;
                 let m;
                 while ((m = re.exec (line)) !== null) {
-                    const split = h2kJ10SplitArgs (line, m.index + m[0].length);
+                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
                     if (split === undefined || split.args.length !== 2) continue;
                     const l = operand (split.args[0]), r = operand (split.args[1]);
                     if (l === undefined || r === undefined || !(l.mine || r.mine)) continue;
-                    let native = h2kJ10Compare (m[1].replace (/^is/, ''), l, r);
+                    let native = orderedCompareNative (m[1].replace (/^is/, ''), l, r);
                     if (native === undefined) continue;
                     for (const o of [ l, r ]) {
                         if (o.mine && o.nullName !== undefined) native = native.split (o.text + ' == null').join (o.nullName + ' == null').split (o.text + ' != null').join (o.nullName + ' != null');
@@ -7999,7 +7996,7 @@ export function nativeJavaJ25Compare (content: string): string {
     return lines.join ('\n');
 }
 
-function j25CompareSelfTest (): string[] {
+function javaProvenLocalCompareSelfTest (): string[] {
     const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Object x, String s)\n    {\n${body}\n    }\n`;
     const sbe = '    public Object rd(Object a)\n    {\n        Object r = 0;\n        return this.parseToInt(r);\n    }\n';
@@ -8017,19 +8014,18 @@ function j25CompareSelfTest (): string[] {
         [ 'parseToInt override', '        Object bl = this.rd(x);\n        boolean b = Helpers.isLessThan(bl, 50);\n    }\n' + sbe + '    public Long parseToInt(Object n)\n    {\n        return null;', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ25Compare (member (body));
+        const out = nativeJavaProvenLocalCompare (member (body));
         const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) problems.push (`hx4 J25 compare ${name}: ${out.slice (0, 500)}`);
+        if (!ok) problems.push (`compare ${name}: ${out.slice (0, 500)}`);
     }
     return problems;
 }
 
-// hx4 J26
 // Object/var locals whose every write is a proven Map (null, a Map literal / newMap, a Map-declared
 // name, a 2-arg extend, omit of a Map, Pair.second() of a Map slot, or slot 1 of an audited tuple
-// producer) print `java.util.Map<String, Object>`; J22 then drops their toMapArg identity wrappers.
+// producer) print `java.util.Map<String, Object>`; the core-arg pass then drops their toMapArg identity wrappers.
 // tuple producers -> index of the params argument slot 1 echoes (or omits from); -1 = always a Map
-function j26Slot1MapProducers (): Record<string, { params: number, venue?: string }> {
+function slotOneMapProducers (): Record<string, { params: number, venue?: string }> {
     return {
     handlePostOnly: { params: 2 }, handleParamBool: { params: 0 }, handleParamBool2: { params: 0 },
     handleParamString: { params: 0 }, handleParamString2: { params: 0 },
@@ -8041,7 +8037,7 @@ function j26Slot1MapProducers (): Record<string, { params: number, venue?: strin
     };
 }
 
-function j26Close (text: string, open: number): number {
+function memberCloseParen (text: string, open: number): number {
     let depth = 0;
     for (let k = open; k < text.length; k++) {
         const c = text[k];
@@ -8053,7 +8049,7 @@ function j26Close (text: string, open: number): number {
 }
 
 // end of the statement starting at `from` (a depth-0 `;`), strings, `//` comments and `{{ }}` bodies skipped
-function j26StatementEnd (text: string, from: number): number {
+function memberStatementEnd (text: string, from: number): number {
     let depth = 0;
     for (let k = from; k < text.length; k++) {
         const c = text[k];
@@ -8066,15 +8062,15 @@ function j26StatementEnd (text: string, from: number): number {
     return -1;
 }
 
-function j26Strip (e: string): string {
+function memberStripParens (e: string): string {
     e = e.trim ();
-    while (e.startsWith ('(') && j26Close (e, 0) === e.length - 1) e = e.slice (1, -1).trim ();
+    while (e.startsWith ('(') && memberCloseParen (e, 0) === e.length - 1) e = e.slice (1, -1).trim ();
     return e;
 }
 
 // top-level arguments of the call whose `(` is at text[open]
-function j26Args (text: string, open: number): string[] | undefined {
-    const close = j26Close (text, open);
+function memberCallArgs (text: string, open: number): string[] | undefined {
+    const close = memberCloseParen (text, open);
     if (close === -1) return undefined;
     const out: string[] = [];
     let depth = 0, at = open + 1;
@@ -8090,7 +8086,7 @@ function j26Args (text: string, open: number): string[] | undefined {
     return out;
 }
 
-function j26Ternary (e: string): [string, string, string] | undefined {
+function memberSplitTernary (e: string): [string, string, string] | undefined {
     let depth = 0, q = -1;
     for (let k = 0; k < e.length; k++) {
         const c = e[k];
@@ -8103,7 +8099,7 @@ function j26Ternary (e: string): [string, string, string] | undefined {
     return undefined;
 }
 
-function j26Member (member: string, className: string): string {
+function mapLocalsRetypeMember (member: string, className: string): string {
     if (!member.includes ('Helpers.toMapArg(')) return member;
     const header = member.slice (0, member.indexOf ('\n') === -1 ? member.length : member.indexOf ('\n'));
     // declared names: name -> list of declared types (params included)
@@ -8137,7 +8133,7 @@ function j26Member (member: string, className: string): string {
         for (const m of member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*(=(?!=)|\\+=|-=|\\+\\+|--)`, 'g'))) {
             if (m[1] !== '=') { ok = false; break; }
             const start = m.index + m[0].length;
-            const end = j26StatementEnd (member, start);
+            const end = memberStatementEnd (member, start);
             if (end === -1) { ok = false; break; }
             list.push ({ start, end, rhs: member.slice (start, end) });
         }
@@ -8155,22 +8151,22 @@ function j26Member (member: string, className: string): string {
         if (m === null) return undefined;
         if ((declTypes.get (h) ?? []).length !== 1) return undefined;
         const open = m.index + m[0].length - 1;
-        const args = j26Args (member, open);
+        const args = memberCallArgs (member, open);
         return args === undefined ? undefined : { name: m[2], args };
     };
     const proves = (e: string, assumed: Set<string>, depth = 0): boolean => {
-        e = j26Strip (e);
+        e = memberStripParens (e);
         if (e === 'null' || e.startsWith ('new HashMap<String, Object>() {{') || e.startsWith ('new java.util.HashMap<String, Object>() {{')) return true;
         if (/^[A-Za-z_]\w*$/.test (e)) return assumed.has (e) || declaredMap (e);
-        const t = j26Ternary (e);
+        const t = memberSplitTernary (e);
         if (t !== undefined) return depth < 4 && proves (t[1], assumed, depth + 1) && proves (t[2], assumed, depth + 1);
         // toMapArg of a proven Map is the identity (the tuple's params argument echoes the local)
         const wrapped = /^Helpers\.toMapArg\(([A-Za-z_]\w*)\)$/.exec (e);
         if (wrapped !== null) return proves (wrapped[1], assumed, depth + 1);
         const call = /^(this\.\w+\(|Helpers\.newMap\()/.exec (e);
-        if (call !== null && j26Close (e, call[0].length - 1) === e.length - 1) {
+        if (call !== null && memberCloseParen (e, call[0].length - 1) === e.length - 1) {
             if (call[1] === 'Helpers.newMap(' || /^this\.(?:market|currency|safeMarket|safeCurrency|keysort|deepExtend)\($/.test (call[1])) return true;
-            const args = j26Args (e, call[0].length - 1) ?? [];
+            const args = memberCallArgs (e, call[0].length - 1) ?? [];
             if (call[1] === 'this.extend(') return args.length === 2;
             if (call[1] === 'this.omit(') return args.length >= 2 && /^[A-Za-z_]\w*$/.test (args[0]) && (assumed.has (args[0]) || declaredMap (args[0]));
             return false;
@@ -8183,7 +8179,7 @@ function j26Member (member: string, className: string): string {
         const slot = /^\(\((?:java\.util\.)?List<Object>\) ([A-Za-z_]\w*)\)\.get\(1\)$/.exec (e);
         if (slot !== null) {
             const holder = holderCall (slot[1]);
-            const spec = holder === undefined ? undefined : j26Slot1MapProducers ()[holder.name];
+            const spec = holder === undefined ? undefined : slotOneMapProducers ()[holder.name];
             if (holder === undefined || spec === undefined || (spec.venue !== undefined && spec.venue !== className)) return false;
             if (spec.params === -1) return true;
             const arg = holder.args[spec.params];
@@ -8215,7 +8211,7 @@ function j26Member (member: string, className: string): string {
         const at = decl.index + decl[1].length;
         edits.push ({ at, end: at + decl[2].length, text: 'java.util.Map<String, Object>' });
         for (const w of writes.get (n) ?? []) {
-            const rhs = j26Strip (w.rhs);
+            const rhs = memberStripParens (w.rhs);
             if (/^\(\((?:java\.util\.)?List<Object>\) [A-Za-z_]\w*\)\.get\(1\)$/.test (rhs)) {
                 const lead = w.rhs.length - w.rhs.trimStart ().length;
                 edits.push ({ at: w.start + lead, end: w.start + lead, text: '(java.util.Map<String, Object>) ' });
@@ -8228,7 +8224,7 @@ function j26Member (member: string, className: string): string {
     return out;
 }
 
-export function nativeJavaJ26MapLocals (content: string): string {
+export function nativeJavaMapLocalsRetype (content: string): string {
     if (!content.includes ('Helpers.toMapArg(')) return content;
     const cls = /^public (?:abstract )?class (\w+)/m.exec (content);
     const className = cls === null ? '' : cls[1];
@@ -8238,15 +8234,15 @@ export function nativeJavaJ26MapLocals (content: string): string {
     if (starts.length === 0) return content;
     starts.push (lines.length);
     const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (j26Member (lines.slice (starts[s], starts[s + 1]).join ('\n'), className));
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (mapLocalsRetypeMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), className));
     return parts.join ('\n');
 }
 
-// hx4 J26: snippet checks for the Map-local retype (`--audit-string-types --self-test`)
-function j26MapLocalsSelfTest (): string[] {
+// Snippet checks for the Map-local retype (`--audit-string-types --self-test`)
+function javaMapLocalsRetypeSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Bitget extends BitgetApi\n{\n    public Object m(Map<String, Object> parameters, Object p)\n    {\n${body}\n    }\n}`;
-    const run = (body: string) => nativeJavaJ22CoreArgs (nativeJavaJ26MapLocals (cls (body)));
+    const run = (body: string) => nativeJavaCoreArgIdentities (nativeJavaMapLocalsRetype (cls (body)));
     const cases: [string, string, string | undefined][] = [
         // positives: Pair slot, omit of a Map, audited tuple slot 1, base handle* over a Map params argument
         [ 'pair + tuple slot', '        Object q = null;\n        Pair<String, Map<String, Object>> aqVariable = this.handleMarginModeAndParams("x", parameters, (String) null);\n        q = aqVariable.second();\n        List<Object> bqVariable = (List<Object>) this.handleProductTypeAndParams(null, Helpers.toMapArg(q));\n        q = ((List<Object>) bqVariable).get(1);\n        return this.f(Helpers.toMapArg(q));',
@@ -8265,14 +8261,14 @@ function j26MapLocalsSelfTest (): string[] {
     ];
     for (const [ name, body, expect ] of cases) {
         const out = run (body);
-        const ok = expect === undefined ? out === nativeJavaJ22CoreArgs (cls (body)) : out.includes (expect);
-        if (!ok) problems.push (`hx4 J26 map locals: ${name}\n${out}`);
+        const ok = expect === undefined ? out === nativeJavaCoreArgIdentities (cls (body)) : out.includes (expect);
+        if (!ok) problems.push (`map locals: ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx4 J27: snippet checks for the Object-local box retype (`--audit-string-types --self-test`)
-function j27ArithmeticSelfTest (): string[] {
+// Snippet checks for the Object-local box retype (`--audit-string-types --self-test`)
+function javaBoxLocalsRetypeSelfTest (): string[] {
     const problems: string[] = [];
     const member = (body: string) => `    public Object m(Object o, Long since)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
@@ -8286,18 +8282,17 @@ function j27ArithmeticSelfTest (): string[] {
         [ 'cast read', '        Object a = this.safeInteger(o, "a");\n        String q = (String) a;\n        if (!java.util.Objects.equals(a, null))\n        {\n            return Helpers.subtract(a, 1);\n        }\n        return null;', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ27Arithmetic (member (body));
+        const out = nativeJavaBoxLocalsRetype (member (body));
         const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`hx4 J27 arithmetic: ${name}\n${out}`); }
+        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
     }
     return problems;
 }
 
-// hx4 J28
 // ordered compares whose operand is an unwritten TS-`number` parameter printed `Object` (audited table, tier/class/method)
 // or a `this.sum(..)` (Generic.sum: a non-null Long/Double); the other side an int literal, a `var i = <int>` counter or
 // a declared Long/Integer/long/int/Double. Forms keep the helper's null table and its NaN answers (LT/LE true, GT/GE false).
-function j28NumberParams (): Record<string, Record<string, string[]>> {
+function numberParamTable (): Record<string, Record<string, string[]>> {
     return {
         'pro/Paradex': {
             sbeReadUint: [ 'length' ], sbeReadVarStrings: [ 'count', 'frameLength' ], parseSbeTrade: [ 'blockLength' ],
@@ -8310,14 +8305,14 @@ function j28NumberParams (): Record<string, Record<string, string[]>> {
     };
 }
 
-function j28ClassKey (content: string): string | undefined {
+function numberParamClassKey (content: string): string | undefined {
     const pkg = content.match (/^package io\.github\.ccxt\.exchanges(\.pro|\.prediction)?;$/m);
     const cls = content.match (/^public class (\w+) extends/m);
     if (pkg === null || cls === null) return undefined;
     return (pkg[1] === '.pro' ? 'pro/' : pkg[1] === '.prediction' ? 'prediction/' : '') + cls[1];
 }
 
-function j28Native (helper: string, l: { text: string, nullName?: string }, r: { text: string, nullName?: string }): string {
+function nullSafeCompareNative (helper: string, l: { text: string, nullName?: string }, r: { text: string, nullName?: string }): string {
     const ln = l.nullName !== undefined ? `${l.nullName} == null` : undefined;
     const rn = r.nullName !== undefined ? `${r.nullName} == null` : undefined;
     const lnn = l.nullName !== undefined ? `${l.nullName} != null` : undefined;
@@ -8335,10 +8330,10 @@ function j28Native (helper: string, l: { text: string, nullName?: string }, r: {
     }
 }
 
-export function nativeJavaJ28Compare (content: string): string {
+export function nativeJavaNumberParamCompare (content: string): string {
     if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
-    const key = j28ClassKey (content);
-    const table = key === undefined ? {} : (j28NumberParams ()[key] ?? {});
+    const key = numberParamClassKey (content);
+    const table = key === undefined ? {} : (numberParamTable ()[key] ?? {});
     const sumOverridden = /^    (?:public|private|protected)[^\n(]* sum\(/m.test (content);
     const lines = content.split ('\n');
     const fields = new Set<string> ();
@@ -8362,13 +8357,13 @@ export function nativeJavaJ28Compare (content: string): string {
             if (head[2].split (',').some ((a) => declared.test (a.trim ())) && !body.some ((l) => write.test (l) || new RegExp (`[\\w>\\]] ${p}\\s*[=;,):]|\\b${p}\\s*->`).test (l))) params.add (p);
         }
         const operand = (text: string) => {
-            const inner = h2kJ10StripParens (text);
+            const inner = orderedCompareStripParens (text);
             if (params.has (inner)) return { text: `((Number) ${inner}).doubleValue()`, nullName: inner, mine: true };
             const sum = inner.match (/^this\.sum\(/);
-            if (sum !== null && !sumOverridden && h2kJ15Close (inner, sum[0].length - 1) === inner.length - 1) return { text: `((Number) ${inner}).doubleValue()`, mine: true };
+            if (sum !== null && !sumOverridden && promiseAllClose (inner, sum[0].length - 1) === inner.length - 1) return { text: `((Number) ${inner}).doubleValue()`, mine: true };
             if (/^-?\d{1,15}L?$/.test (inner)) return { text: inner, mine: false };
             if (/^[A-Za-z_$][\w$]*$/.test (inner)) {
-                const t = h2kJ10DeclaredType (member, inner, fields);
+                const t = orderedCompareDeclaredType (member, inner, fields);
                 if (t !== undefined) return { text: inner, nullName: t.boxed ? inner : undefined, mine: false };
             }
             return undefined;
@@ -8382,11 +8377,11 @@ export function nativeJavaJ28Compare (content: string): string {
                 re.lastIndex = 0;
                 let m;
                 while ((m = re.exec (line)) !== null) {
-                    const split = h2kJ10SplitArgs (line, m.index + m[0].length);
+                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
                     if (split === undefined || split.args.length !== 2) continue;
                     const l = operand (split.args[0]), r = operand (split.args[1]);
                     if (l === undefined || r === undefined || !(l.mine || r.mine)) continue;
-                    line = line.slice (0, m.index) + j28Native (m[1], l, r) + line.slice (split.end + 1);
+                    line = line.slice (0, m.index) + nullSafeCompareNative (m[1], l, r) + line.slice (split.end + 1);
                     again = true;
                     break;
                 }
@@ -8398,7 +8393,7 @@ export function nativeJavaJ28Compare (content: string): string {
     return lines.join ('\n');
 }
 
-function j28CompareSelfTest (): string[] {
+function javaNumberParamCompareSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (pkg: string, name: string, member: string) => `package io.github.ccxt.exchanges${pkg};\n\npublic class ${name} extends X\n{\n${member}    }\n}\n`;
     const sbe = (body: string) => cls ('.pro', 'Paradex', `    public Map<String, Object> parseSbeTrade(Object frameHex, Object blockLength, Object frameLength)\n    {\n${body}\n`);
@@ -8416,16 +8411,16 @@ function j28CompareSelfTest (): string[] {
         [ 'sum override', cls ('', 'Bitget', '    public Object m(Object a, Object b)\n    {\n        if (Helpers.isGreaterThan(this.sum(a, b), 1))\n    }\n    public Object sum(Object a, Object b)\n    {\n        return a;\n'), undefined ],
     ];
     for (const [ name, src, expect ] of cases) {
-        const out = nativeJavaJ28Compare (src);
+        const out = nativeJavaNumberParamCompare (src);
         const ok = expect === undefined ? out === src : out.includes (expect);
-        if (!ok) problems.push (`hx4 J28 compare ${name}: ${out.slice (0, 600)}`);
+        if (!ok) problems.push (`compare ${name}: ${out.slice (0, 600)}`);
     }
     return problems;
 }
 
-// hx4 J29: Helpers.addElementToObject / Helpers.GetValue on locals whose single member-wide declaration
+// Helpers.addElementToObject / Helpers.GetValue on locals whose single member-wide declaration
 // is io.github.ccxt.ws.WsOrderBook (a synchronized Map) or a List<String> read at a `for (var i` counter.
-export function nativeJavaJ29Containers (content: string): string {
+export function nativeJavaWsOrderBookContainers (content: string): string {
     if (!/Helpers\.(?:addElementToObject|GetValue)\(/.test (content)) return content;
     const WS_BOOK = /^(?:io\.github\.ccxt\.ws\.)?WsOrderBook(?:\.(?:Counted|Indexed)OrderBook)?$/;
     const LIST_STRING = /^(?:java\.util\.)?List<String>$/;
@@ -8484,8 +8479,8 @@ export function nativeJavaJ29Containers (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
-// hx4 J29: snippet checks for the WsOrderBook / List<String> container pass (`--audit-string-types --self-test`)
-function j29ContainersSelfTest (): string[] {
+// Snippet checks for the WsOrderBook / List<String> container pass (`--audit-string-types --self-test`)
+function javaWsOrderBookContainersSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (sig: string, body: string) => `public class Gemini extends GeminiRest\n{\n    public void m(${sig})\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string, string | undefined][] = [
@@ -8499,22 +8494,21 @@ function j29ContainersSelfTest (): string[] {
         [ 'Object key', 'Object side', '        io.github.ccxt.ws.WsOrderBook orderbook = this.orderbook(null);\n        Object b = Helpers.GetValue(orderbook, side);\n        Helpers.addElementToObject(orderbook, side, b);', undefined ],
         [ 'mixed declarations', 'Object client', '        io.github.ccxt.ws.WsOrderBook orderbook = this.orderbook(null);\n        Runnable r = () -> { Object orderbook = null; };\n        Helpers.addElementToObject(orderbook, "cache", x);', undefined ],
         [ 'Object index', 'Object i', '        List<String> keys = this.sort(raw);\n        Object key = Helpers.GetValue(keys, i);', undefined ],
-        [ 'List<Object> left to J03', 'Object client', '        List<String> keys = this.sort(raw);\n        Object key = Helpers.GetValue(keys, 0);', undefined ],
+        [ 'List<Object> left to the list-local pass', 'Object client', '        List<String> keys = this.sort(raw);\n        Object key = Helpers.GetValue(keys, 0);', undefined ],
     ];
     for (const [ name, sig, body, expect ] of cases) {
         const input = cls (sig, body);
-        const out = nativeJavaJ29Containers (input);
+        const out = nativeJavaWsOrderBookContainers (input);
         const ok = expect === undefined ? out === input : out.includes (expect);
-        if (!ok) problems.push (`hx4 J29 containers: ${name}\n${out}`);
+        if (!ok) problems.push (`containers: ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx4 J30
 // Object/var locals whose every write proves one box: String / Long (`this.sum` of Long-or-int operands) /
-// List<String> retype so J22 drops toStringArg / toLongOrNull / toStringListArg; Boolean- and Integer-proven
+// List<String> retype so the core-arg pass drops toStringArg / toLongOrNull / toStringListArg; Boolean- and Integer-proven
 // locals turn isTrue / isEqual(x, intLiteral) into Boolean.TRUE.equals / Objects.equals.
-function j30BaseReturnTypes (): Record<string, string> {
+function boxLocalsBaseReturnTypes (): Record<string, string> {
     const s = 'String', l = 'Long';
     return {
         safeString: s, safeString2: s, safeStringN: s, safeStringUpper: s, safeStringUpper2: s, safeStringLower: s,
@@ -8526,7 +8520,7 @@ function j30BaseReturnTypes (): Record<string, string> {
     };
 }
 
-function j30Member (member: string, content: string): string {
+function boxLocalsCoreArgsMember (member: string, content: string): string {
     if (!/Helpers\.(?:toStringArg|toLongOrNull|toStringListArg|isTrue|isEqual)\(/.test (member)) return member;
     const header = member.slice (0, member.indexOf ('\n') === -1 ? member.length : member.indexOf ('\n'));
     const declTypes = new Map<string, string[]> ();
@@ -8545,7 +8539,7 @@ function j30Member (member: string, content: string): string {
         return t !== undefined && t.length === 1 && re.test (t[0]) && !lambdaShadow (n);
     };
     // a base method name answers its table type only when this class declares no other return type for it
-    const baseTypes = j30BaseReturnTypes ();
+    const baseTypes = boxLocalsBaseReturnTypes ();
     const callType = (name: string): string | undefined => {
         const t = baseTypes[name];
         if (t === undefined) return undefined;
@@ -8565,7 +8559,7 @@ function j30Member (member: string, content: string): string {
         for (const m of member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*(=(?!=)|\\+=|-=|\\+\\+|--)`, 'g'))) {
             if (m[1] !== '=') { ok = false; break; }
             const start = m.index + m[0].length;
-            const end = j26StatementEnd (member, start);
+            const end = memberStatementEnd (member, start);
             if (end === -1) { ok = false; break; }
             list.push (member.slice (start, end));
         }
@@ -8577,7 +8571,7 @@ function j30Member (member: string, content: string): string {
     const INT_LIT = /^-?\d+$/;
     type Kind = 'String' | 'Long' | 'List<String>' | 'Boolean' | 'Integer';
     const proves = (kind: Kind, e: string, assumed: Set<string>, depth = 0): boolean => {
-        e = j26Strip (e);
+        e = memberStripParens (e);
         if (e === 'null') return true;
         if (/^[A-Za-z_]\w*$/.test (e)) {
             if (assumed.has (e)) return true;
@@ -8587,25 +8581,25 @@ function j30Member (member: string, content: string): string {
             if (kind === 'Boolean') return e === 'true' || e === 'false' || declaredAs (e, /^(?:Boolean|boolean)$/);
             return false;
         }
-        const t = j26Ternary (e);
+        const t = memberSplitTernary (e);
         if (t !== undefined) return depth < 4 && proves (kind, t[1], assumed, depth + 1) && proves (kind, t[2], assumed, depth + 1);
         if (kind === 'String' && /^"(?:[^"\\]|\\.)*"$/.test (e)) return true;
         if (kind === 'Integer') return INT_LIT.test (e) || (/\.size\(\)$/.test (e) && /^\(\(\(?(?:java\.util\.)?List<\?>\)\s*[A-Za-z_]\w*\)\)?\.size\(\)$|^[A-Za-z_]\w*\.size\(\)$/.test (e));
         if (kind === 'Boolean') {
-            if (/^java\.util\.Objects\.equals\(|^Boolean\.TRUE\.equals\(|^Helpers\.isEqual\(/.test (e) && j26Close (e, e.indexOf ('(')) === e.length - 1) return true;
+            if (/^java\.util\.Objects\.equals\(|^Boolean\.TRUE\.equals\(|^Helpers\.isEqual\(/.test (e) && memberCloseParen (e, e.indexOf ('(')) === e.length - 1) return true;
             if (e.startsWith ('!') && !e.startsWith ('!=')) return true;
             const sb = /^this\.safeBool\(/.exec (e);
-            if (sb !== null && j26Close (e, sb[0].length - 1) === e.length - 1 && callType ('safeBool') === undefined) {
-                const args = j26Args (e, sb[0].length - 1) ?? [];
+            if (sb !== null && memberCloseParen (e, sb[0].length - 1) === e.length - 1 && callType ('safeBool') === undefined) {
+                const args = memberCallArgs (e, sb[0].length - 1) ?? [];
                 return args.length === 3 && /^(?:true|false|null|\(Object\) null)$/.test (args[2]);
             }
             return false;
         }
         const call = /^this\.(\w+)\(/.exec (e);
-        if (call === null || j26Close (e, call[0].length - 1) !== e.length - 1) return false;
+        if (call === null || memberCloseParen (e, call[0].length - 1) !== e.length - 1) return false;
         if (kind === 'Long' && call[1] === 'sum') {
-            const args = j26Args (e, call[0].length - 1) ?? [];
-            return args.length === 2 && args.every ((a) => INT_LIT.test (j26Strip (a)) || (depth < 4 && proves ('Long', a, assumed, depth + 1)));
+            const args = memberCallArgs (e, call[0].length - 1) ?? [];
+            return args.length === 2 && args.every ((a) => INT_LIT.test (memberStripParens (a)) || (depth < 4 && proves ('Long', a, assumed, depth + 1)));
         }
         return callType (call[1]) === kind;
     };
@@ -8672,7 +8666,7 @@ function j30Member (member: string, content: string): string {
     return out;
 }
 
-export function nativeJavaJ30CoreArgs (content: string): string {
+export function nativeJavaBoxLocalsCoreArgs (content: string): string {
     if (!/Helpers\.(?:toStringArg|toLongOrNull|toStringListArg|isTrue|isEqual)\(/.test (content)) return content;
     const lines = content.split ('\n');
     const starts: number[] = [];
@@ -8680,12 +8674,12 @@ export function nativeJavaJ30CoreArgs (content: string): string {
     if (starts.length === 0) return content;
     starts.push (lines.length);
     const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (j30Member (lines.slice (starts[s], starts[s + 1]).join ('\n'), content));
-    return nativeJavaJ22CoreArgs (parts.join ('\n'));
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (boxLocalsCoreArgsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), content));
+    return nativeJavaCoreArgIdentities (parts.join ('\n'));
 }
 
-// hx4 J30: snippet checks (`--audit-string-types --self-test`)
-function j30SelfTest (): string[] {
+// Snippet checks (`--audit-string-types --self-test`)
+function javaBoxLocalsCoreArgsSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> parameters, Object p, Long n)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
@@ -8705,15 +8699,15 @@ function j30SelfTest (): string[] {
         [ 'Integer vs Long write', '        Object c = this.sum(n, 1);\n        if (Helpers.isEqual(c, 1)) {}', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ30CoreArgs (cls (body));
-        const ok = expect === undefined ? out === nativeJavaJ22CoreArgs (cls (body)) : out.includes (expect);
-        if (!ok) problems.push (`hx4 J30: ${name}\n${out}`);
+        const out = nativeJavaBoxLocalsCoreArgs (cls (body));
+        const ok = expect === undefined ? out === nativeJavaCoreArgIdentities (cls (body)) : out.includes (expect);
+        if (!ok) problems.push (`java box locals core args: ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx4 J31: snippet checks for multiply/subtract over Long/Integer/integral-Object locals (`--audit-string-types --self-test`)
-function j31ArithmeticSelfTest (): string[] {
+// Snippet checks for multiply/subtract over Long/Integer/integral-Object locals (`--audit-string-types --self-test`)
+function javaIntegralMultiplySubtractSelfTest (): string[] {
     const problems: string[] = [];
     const member = (body: string) => `    public Object m(Object o, Long since, Long limit, String s)\n    {\n        int duration = 60;\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
@@ -8729,15 +8723,15 @@ function j31ArithmeticSelfTest (): string[] {
         [ 'unknown object write', '        Object r = limit;\n        r = o;\n        Object e = Helpers.multiply(r, 2);', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ31Arithmetic (member (body));
+        const out = nativeJavaIntegralMultiplySubtract (member (body));
         const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`hx4 J31 arithmetic: ${name}\n${out}`); }
+        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
     }
     return problems;
 }
 
-// hx4 J32: snippet checks for native divide / mod / opNeg (`--audit-string-types --self-test`)
-function j32DivModNegSelfTest (): string[] {
+// Snippet checks for native divide / mod / opNeg (`--audit-string-types --self-test`)
+function javaNumberDivModNegSelfTest (): string[] {
     const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Object p, Double d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
@@ -8753,20 +8747,19 @@ function j32DivModNegSelfTest (): string[] {
         [ 'opNeg on object', '        Object r = this.f(Helpers.opNeg(p));', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ32DivModNeg (member (body));
+        const out = nativeJavaNumberDivModNeg (member (body));
         const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`hx4 J32: ${name}\n${out}`); }
+        if (!ok) { problems.push (`java number div mod neg: ${name}\n${out}`); }
     }
     const overridden = `    public Object sum(Object a, Object b)\n    {\n        return a;\n    }\n${member ('        Object r = this.f(Helpers.divide(this.sum(since, 1), 2));')}`;
-    if (nativeJavaJ32DivModNeg (overridden) !== overridden) problems.push ('hx4 J32: an overridden sum keeps the helper');
+    if (nativeJavaNumberDivModNeg (overridden) !== overridden) problems.push ('an overridden sum keeps the helper');
     return problems;
 }
 
-// hx4 J33
 // ordered compares / mathMin / mathMax whose operands are Number-proven: Object/var locals whose every write is a number
 // literal, null, this.sum / milliseconds / parseToInt / safeInteger.. (base, not redeclared), a declared numeric, native
-// arithmetic, a Number-proven local or a ternary of those. Compares keep the helper's null/NaN table (j28Native).
-function j33NumericCalls (): Record<string, boolean> {
+// arithmetic, a Number-proven local or a ternary of those. Compares keep the helper's null/NaN table (nullSafeCompareNative).
+function numberProvenCalls (): Record<string, boolean> {
     // name -> may return null
     return {
         sum: false, milliseconds: false, seconds: false, parseTimeframe: false, parseToInt: true,
@@ -8775,7 +8768,7 @@ function j33NumericCalls (): Record<string, boolean> {
     };
 }
 
-function j33Member (member: string, content: string, fields: Set<string>): string {
+function numberProvenCompareMember (member: string, content: string, fields: Set<string>): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than(?:OrEqual)?|mathM(?:in|ax))\(/.test (member)) return member;
     const header = member.slice (0, member.indexOf ('\n') === -1 ? member.length : member.indexOf ('\n'));
     const declTypes = new Map<string, string[]> ();
@@ -8787,7 +8780,7 @@ function j33Member (member: string, content: string, fields: Set<string>): strin
     }
     const lambdaShadow = (n: string) => new RegExp (`(?:\\(|, )${n}\\) ->|(?<![\\w.])${n} ->`).test (member);
     const isParam = (n: string) => new RegExp (`[(,] ?(?:final )?[\\w.<>, ?]+ ${n}[,)]`).test (header);
-    const calls = j33NumericCalls ();
+    const calls = numberProvenCalls ();
     const callNullable = (name: string): boolean | undefined => {
         if (!(name in calls)) return undefined;
         const decls = [ ...content.matchAll (new RegExp (`^    (?:public|protected|private)(?: static)? ([\\w.<>, ?]+) ${name}\\(`, 'gm')) ];
@@ -8805,7 +8798,7 @@ function j33Member (member: string, content: string, fields: Set<string>): strin
         for (const m of member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*(=(?!=)|[-+*/%]=|\\+\\+|--)`, 'g'))) {
             if (m[1] !== '=') { ok = false; break; }
             const start = m.index + m[0].length;
-            const end = j26StatementEnd (member, start);
+            const end = memberStatementEnd (member, start);
             if (end === -1) { ok = false; break; }
             list.push (member.slice (start, end));
         }
@@ -8815,25 +8808,25 @@ function j33Member (member: string, content: string, fields: Set<string>): strin
     const state = new Map<string, boolean> ();
     for (const n of candidates) state.set (n, false);
     const prove = (e: string, depth = 0): boolean | undefined => {
-        e = j26Strip (e);
+        e = memberStripParens (e);
         if (depth > 6) return undefined;
         if (e === 'null' || e === '(Object) null') return true;
         if (/^-?\d{1,15}L?$/.test (e) || /^-?\d{1,15}\.\d{1,15}$/.test (e)) return false;
         if (/^[A-Za-z_$][\w$]*$/.test (e)) {
             if (state.has (e)) return state.get (e);
-            const t = h2kJ10DeclaredType (member, e, fields);
+            const t = orderedCompareDeclaredType (member, e, fields);
             return t === undefined ? undefined : t.boxed;
         }
-        const tern = j26Ternary (e);
+        const tern = memberSplitTernary (e);
         if (tern !== undefined) {
             const a = prove (tern[1], depth + 1), b = prove (tern[2], depth + 1);
             return a === undefined || b === undefined ? undefined : a || b;
         }
         const call = /^this\.(\w+)\(/.exec (e);
-        if (call !== null && j26Close (e, call[0].length - 1) === e.length - 1) return callNullable (call[1]);
+        if (call !== null && memberCloseParen (e, call[0].length - 1) === e.length - 1) return callNullable (call[1]);
         const h = /^(?:Helpers\.(?:add|subtract|multiply|mathMin|mathMax)|java\.util\.Objects\.requireNonNullElse)\(/.exec (e);
-        if (h !== null && j26Close (e, h[0].length - 1) === e.length - 1) {
-            const args = j26Args (e, h[0].length - 1) ?? [];
+        if (h !== null && memberCloseParen (e, h[0].length - 1) === e.length - 1) {
+            const args = memberCallArgs (e, h[0].length - 1) ?? [];
             if (args.length !== 2) return undefined;
             const ps = args.map ((a) => prove (a, depth + 1));
             if (ps.some ((p) => p === undefined)) return undefined;
@@ -8841,7 +8834,7 @@ function j33Member (member: string, content: string, fields: Set<string>): strin
             if (h[0].startsWith ('java')) return ps[1] === true ? undefined : false;
             return ps[0] || ps[1];
         }
-        const prim = j19Operand (e, member, fields, content);
+        const prim = nonNullCompareOperand (e, member, fields, content);
         return prim === undefined ? undefined : prim.boxed;
     };
     for (let changed = true; changed;) {
@@ -8855,17 +8848,17 @@ function j33Member (member: string, content: string, fields: Set<string>): strin
     const sumOverridden = callNullable ('sum') === undefined;
     // a compare operand: text usable in a primitive comparison + the name to null-check
     const operand = (text: string): { text: string, nullName?: string, pure: boolean, num: string } | undefined => {
-        const inner = h2kJ10StripParens (text);
+        const inner = orderedCompareStripParens (text);
         if (/^-?\d{1,15}L?$/.test (inner) || /^-?\d{1,15}\.\d{1,15}$/.test (inner)) return { text: inner, pure: true, num: `((double) ${inner})` };
         if (/^[A-Za-z_$][\w$]*$/.test (inner)) {
             if (state.has (inner)) return { text: `((Number) ${inner}).doubleValue()`, nullName: state.get (inner) ? inner : undefined, pure: true, num: `((Number) ${inner}).doubleValue()` };
-            const t = h2kJ10DeclaredType (member, inner, fields);
+            const t = orderedCompareDeclaredType (member, inner, fields);
             if (t === undefined) return undefined;
             return { text: inner, nullName: t.boxed ? inner : undefined, pure: true, num: t.boxed ? `((Number) ${inner}).doubleValue()` : `((double) ${inner})` };
         }
         const sum = /^this\.sum\(/.exec (inner);
-        if (sum !== null && !sumOverridden && j26Close (inner, sum[0].length - 1) === inner.length - 1) return { text: `((Number) ${inner}).doubleValue()`, pure: false, num: '' };
-        const prim = j19Operand (inner, member, fields, content);
+        if (sum !== null && !sumOverridden && memberCloseParen (inner, sum[0].length - 1) === inner.length - 1) return { text: `((Number) ${inner}).doubleValue()`, pure: false, num: '' };
+        const prim = nonNullCompareOperand (inner, member, fields, content);
         if (prim === undefined || prim.boxed) return undefined;
         const pure = !/[\w$]\s*\(/.test (inner.replace (/\((?:long|int|double)\)/g, ''));
         return { text: prim.text, pure, num: `((double) ${prim.text})` };
@@ -8881,7 +8874,7 @@ function j33Member (member: string, content: string, fields: Set<string>): strin
             re.lastIndex = 0;
             let m;
             while ((m = re.exec (line)) !== null) {
-                const split = h2kJ10SplitArgs (line, m.index + m[0].length);
+                const split = orderedCompareSplitArgs (line, m.index + m[0].length);
                 if (split === undefined || split.args.length !== 2) continue;
                 const l = operand (split.args[0]), r = operand (split.args[1]);
                 if (l === undefined || r === undefined) continue;
@@ -8889,12 +8882,12 @@ function j33Member (member: string, content: string, fields: Set<string>): strin
                 if (m[1].startsWith ('math')) {
                     // helper: null if either is null, else the ORIGINAL box of the toDouble-smaller (larger) side
                     if (!l.pure || !r.pure) continue;
-                    const a = h2kJ10StripParens (split.args[0]), b = h2kJ10StripParens (split.args[1]);
+                    const a = orderedCompareStripParens (split.args[0]), b = orderedCompareStripParens (split.args[1]);
                     const pick = `(${l.num} ${m[1] === 'mathMin' ? '<' : '>'} ${r.num} ? (Object) (${a}) : (Object) (${b}))`;
                     const nulls = [ l.nullName, r.nullName ].filter ((x) => x !== undefined).map ((x) => `${x} == null`);
                     native = nulls.length === 0 ? pick : `(${nulls.join (' || ')} ? null : ${pick})`;
                 } else {
-                    native = j28Native (m[1], l, r);
+                    native = nullSafeCompareNative (m[1], l, r);
                 }
                 line = line.slice (0, m.index) + native + line.slice (split.end + 1);
                 again = true;
@@ -8906,7 +8899,7 @@ function j33Member (member: string, content: string, fields: Set<string>): strin
     return lines.join ('\n');
 }
 
-export function nativeJavaJ33Compare (content: string): string {
+export function nativeJavaNumberProvenCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than(?:OrEqual)?|mathM(?:in|ax))\(/.test (content)) return content;
     const lines = content.split ('\n');
     const fields = new Set<string> ();
@@ -8919,12 +8912,12 @@ export function nativeJavaJ33Compare (content: string): string {
     if (starts.length === 0) return content;
     starts.push (lines.length);
     const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (j33Member (lines.slice (starts[s], starts[s + 1]).join ('\n'), content, fields));
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (numberProvenCompareMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), content, fields));
     return parts.join ('\n');
 }
 
-// hx4 J33: snippet checks (`--audit-string-types --self-test`)
-function j33SelfTest (): string[] {
+// Snippet checks (`--audit-string-types --self-test`)
+function javaNumberProvenCompareSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object since, Object limit, Long n, Double d)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
@@ -8944,15 +8937,15 @@ function j33SelfTest (): string[] {
         [ 'sum override', '        Object e = this.sum(since, 5);\n        if (Helpers.isGreaterThan(e, 1)) {}\n    }\n    public Object sum(Object a, Object b)\n    {\n        return a;', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ33Compare (cls (body));
+        const out = nativeJavaNumberProvenCompare (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect);
-        if (!ok) problems.push (`hx4 J33: ${name}\n${out}`);
+        if (!ok) problems.push (`java number proven compare self: ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx11w8 requestid-sandbox: every write to this.urls in the file is the base ctor deepExtend read or an omit() result (never a ConcurrentHashMap)
-function hx11w8UrlsPlainMap (content: string): boolean {
+// Every write to this.urls in the file is the base ctor deepExtend read or an omit() result (never a ConcurrentHashMap)
+function urlsIsPlainMap (content: string): boolean {
     for (const m of content.matchAll (/\bthis\.urls\s*=(?!=)\s*([^;]*);/g)) {
         const rhs = m[1].trim ();
         if (rhs === 'newUrls') {
@@ -8962,9 +8955,9 @@ function hx11w8UrlsPlainMap (content: string): boolean {
     return !/\bConcurrentHashMap<[^>]*>\s*\([^)]*\)[^;]*\burls\b/.test (content);
 }
 
-// hx11 w8 addPaginationCursorToResult: the cursor is written into a list element and the element stored back at its own index
+// The cursor is written into a list element and the element stored back at its own index
 // (TS `first[k] = cursor; data[0] = first`). Inside the `cursor != null` / `size > 0` guards both helper calls are plain Map.put / List.set.
-export function hx11w8PaginationCursorPuts (content: string): string {
+export function nativeJavaPaginationCursorPuts (content: string): string {
     if (!/\baddPaginationCursorToResult\(/.test (content)) return content;
     const lines = content.split ('\n');
     let changed = false;
@@ -9009,7 +9002,7 @@ export function hx11w8PaginationCursorPuts (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
-export function hx11w8PaginationCursorSelfTest (): string[] {
+export function javaPaginationCursorSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (sig: string, body: string) => `public class X\n{\n    public List<Object> addPaginationCursorToResult(${sig})\n    {\n${body}\n        return data;\n    }\n}\n`;
     const guard = '        Integer dataLength = ((List<?>)data).size();\n        if (!java.util.Objects.equals(cursor, null) && (dataLength != null && dataLength > 0))\n        {\n';
@@ -9021,19 +9014,18 @@ export function hx11w8PaginationCursorSelfTest (): string[] {
     ];
     for (const [ name, sig, body, expect ] of cases) {
         const input = cls (sig, body);
-        const out = hx11w8PaginationCursorPuts (input);
+        const out = nativeJavaPaginationCursorPuts (input);
         const ok = name === 'unguarded cursor keeps helper'
             ? out.includes ('Helpers.addElementToObject(first, "k", cursor)') && out.includes ('data.set(0, first)')
             : out.includes (expect!);
-        if (!ok) problems.push (`hx11w8 pagination ${name}\n${out}`);
+        if (!ok) problems.push (`pagination ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx4 J34
 // Helpers.addElementToObject / GetValue / inOp / objectKeys on locals declared once per member as Map<String, Object>.
 // put keeps the helper's ConcurrentHashMap null-remove semantics: a nullable value needs a provably fresh (non-concurrent) map.
-export function nativeJavaJ34MapLocals (content: string): string {
+export function nativeJavaMapLocalOps (content: string): string {
     if (!/Helpers\.(?:addElementToObject|GetValue|inOp|objectKeys)\(/.test (content)) return content;
     const MAP = /^(?:java\.util\.)?(?:Map|HashMap|LinkedHashMap)<String, Object>$/;
     const lines = content.split ('\n');
@@ -9044,10 +9036,10 @@ export function nativeJavaJ34MapLocals (content: string): string {
     for (let s = 0; s + 1 < starts.length; s++) {
         const from = starts[s];
         const to = starts[s + 1];
-        // hx11w8 super-parsetrade-parsed-put: `Object x = super.parseTrade(..)` (base returns the Trade view, a Map) written once becomes a Map local
+        // `Object x = super.parseTrade(..)` (base returns the Trade view, a Map) written once becomes a Map local
         for (let i = from; i < to; i++) {
             const decl = /^(\s*)Object ([A-Za-z_]\w*) = (super\.(?:parseTrade|parseWsTrade|parseOrder|parseWsOrder)\()(.*)\);(\s*\/\/.*)?$/.exec (lines[i]);
-            if (decl === null || j26Close (decl[3] + decl[4] + ')', decl[3].length - 1) !== decl[3].length + decl[4].length) continue;
+            if (decl === null || memberCloseParen (decl[3] + decl[4] + ')', decl[3].length - 1) !== decl[3].length + decl[4].length) continue;
             const name = decl[2];
             // the only write is the declaration; no lambda parameter or instanceof test of the same name
             const body = lines.slice (from, to).filter ((l, k) => from + k !== i && !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
@@ -9084,22 +9076,22 @@ export function nativeJavaJ34MapLocals (content: string): string {
             for (const m of member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*(=(?!=)|\\+=|\\+\\+|--)`, 'g'))) {
                 if (m[1] !== '=') { ok = false; break; }
                 const start = m.index! + m[0].length;
-                const end = j26StatementEnd (member, start);
+                const end = memberStatementEnd (member, start);
                 if (end === -1) { ok = false; break; }
-                const rhs = j26Strip (member.slice (start, end).replace (/^\s*\((?:java\.util\.)?Map<String, Object>\)\s*/, ''));
+                const rhs = memberStripParens (member.slice (start, end).replace (/^\s*\((?:java\.util\.)?Map<String, Object>\)\s*/, ''));
                 writes++;
                 const call = /^this\.(extend|keysort|account)\(/.exec (rhs);
                 // parseOrder/parseTrade (+ws) return the typed view (Order/Trade) over a safeOrder/safeTrade payload; TypedMap.put is a plain
                 // raw.put on that LinkedHashMap/HashMap (safeTrade already puts natively into it), never a ConcurrentHashMap, so the helper's null-remove arm cannot fire.
                 // Balances stays excluded: safeBalance(this.balance) wraps the shared ConcurrentHashMap
-                const typedCall = /^(?:this|super)\.(parseOrder|parseWsOrder|parseTrade|parseWsTrade|safeMarketStructure)\(/.exec (rhs); // hx11w8 baseexchange-map-writes: MarketInterface view over a fresh deepExtend LinkedHashMap
-                const typedView = typedCall !== null && j26Close (rhs, typedCall[0].length - 1) === rhs.length - 1
+                const typedCall = /^(?:this|super)\.(parseOrder|parseWsOrder|parseTrade|parseWsTrade|safeMarketStructure)\(/.exec (rhs); // MarketInterface view over a fresh deepExtend LinkedHashMap
+                const typedView = typedCall !== null && memberCloseParen (rhs, typedCall[0].length - 1) === rhs.length - 1
                     && !new RegExp (`public (?!(?:io\\.github\\.ccxt\\.types\\.)?(?:${typedCall[1] === 'safeMarketStructure' ? 'MarketInterface' : 'Order|Trade'})\\b)[\\w.<>, ?]+ ${typedCall[1]}\\(`).test (content);
                 const isFresh = /^new (?:java\.util\.)?(?:Linked)?HashMap<String, Object>\(\) \{\{/.test (rhs)
                     || /^Helpers\.newMap\(/.test (rhs)
                     || typedView
-                    || (call !== null && j26Close (rhs, call[0].length - 1) === rhs.length - 1
-                        && (call[1] !== 'extend' || (j26Args (rhs, call[0].length - 1) ?? []).length === 2));
+                    || (call !== null && memberCloseParen (rhs, call[0].length - 1) === rhs.length - 1
+                        && (call[1] !== 'extend' || (memberCallArgs (rhs, call[0].length - 1) ?? []).length === 2));
                 if (!isFresh) { ok = false; break; }
             }
             // a lambda/anonymous class may write it; any non-Map cast or instanceof may change meaning
@@ -9108,7 +9100,7 @@ export function nativeJavaJ34MapLocals (content: string): string {
             return ok && writes > 0;
         };
         const nonNull = (v: string): boolean => {
-            v = j26Strip (v);
+            v = memberStripParens (v);
             return /^(?:"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?[LD]?|true|false)$/.test (v)
                 || /^new [\w.]+(?:<[\w.<>, ?]*>)?\(/.test (v);
         };
@@ -9116,14 +9108,14 @@ export function nativeJavaJ34MapLocals (content: string): string {
         for (let i = from; i < to; i++) {
             const line = lines[i];
             if (/^\s*(?:\/\/|\*)/.test (line)) continue;
-            // hx11w8 parsewstrade-literal-put: a value spanning lines (literal-map `{{ }}` arg) on a fresh local prints a native put
+            // A value spanning lines (literal-map `{{ }}` arg) on a fresh local prints a native put
             const multi = /^(\s*)Helpers\.addElementToObject\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*), (?!.*\);\s*(?:\/\/.*)?$)/.exec (line);
             if (multi !== null && isMap (multi[2]) && fresh (multi[2]) && (stringKey (multi[3]) || declaredType (multi[3]) === 'String')) {
                 const rest = lines.slice (i, to).join ('\n');
-                const end = j26StatementEnd (rest, 0);
+                const end = memberStatementEnd (rest, 0);
                 const stmt = end === -1 ? '' : rest.slice (0, end + 1);
                 const open = stmt.indexOf ('(');
-                if (stmt !== '' && stmt.endsWith (');') && j26Close (stmt, open) === stmt.length - 2 && (j26Args (stmt, open) ?? []).length === 3) {
+                if (stmt !== '' && stmt.endsWith (');') && memberCloseParen (stmt, open) === stmt.length - 2 && (memberCallArgs (stmt, open) ?? []).length === 3) {
                     const value = stmt.slice (multi[0].length, -2);
                     const span = stmt.split ('\n').length;
                     lines[i] = `${multi[1]}${multi[2]}.put(${multi[3]}, ${value});`;
@@ -9136,7 +9128,7 @@ export function nativeJavaJ34MapLocals (content: string): string {
             let next = line;
             next = next.replace (/^(\s*)Helpers\.addElementToObject\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*), (.*)\);(\s*\/\/.*)?$/, (whole, ind, recv, key, value, tail) => {
                 if (!isMap (recv)) return whole;
-                const args = j26Args (`(${key}, ${value})`, 0);
+                const args = memberCallArgs (`(${key}, ${value})`, 0);
                 if (args === undefined || args.length !== 2) return whole;
                 if (!(fresh (recv) || nonNull (value))) return whole;
                 if (stringKey (key) || declaredType (key) === 'String') return `${ind}${recv}.put(${key}, ${value});${tail ?? ''}`;
@@ -9146,15 +9138,15 @@ export function nativeJavaJ34MapLocals (content: string): string {
             });
             // BaseExchange Map fields: a value that is never null skips the ConcurrentHashMap null-remove branch
             next = next.replace (/^(\s*)Helpers\.addElementToObject\((this\.(?:balance|tickers|orderbooks|urls|has|features)), (.*)\);(\s*\/\/.*)?$/, (whole, ind, recv, rest, tail) => {
-                const args = j26Args (`(${rest})`, 0);
+                const args = memberCallArgs (`(${rest})`, 0);
                 if (args === undefined || args.length !== 2) return whole;
                 const [ key, value ] = args.map ((a) => a.trim ());
-                const v = j26Strip (value);
+                const v = memberStripParens (value);
                 const call = v.match (/^this\.(extend|safeBalance|orderBook)\(/);
-                const closed = call !== null && j26Close (v, call[0].length - 1) === v.length - 1;
-                const twoArgExtend = call === null || call[1] !== 'extend' || (j26Args (v, call[0].length - 1) ?? []).length === 2;
-                // hx11w8 requestid-sandbox: this.urls is only ever a HashMap/LinkedHashMap (deepExtend / omit), so a null value is a plain put
-                const plainUrls = recv === 'this.urls' && (stringKey (key) || declaredType (key) === 'String') && hx11w8UrlsPlainMap (content);
+                const closed = call !== null && memberCloseParen (v, call[0].length - 1) === v.length - 1;
+                const twoArgExtend = call === null || call[1] !== 'extend' || (memberCallArgs (v, call[0].length - 1) ?? []).length === 2;
+                // This.urls is only ever a HashMap/LinkedHashMap (deepExtend / omit), so a null value is a plain put
+                const plainUrls = recv === 'this.urls' && (stringKey (key) || declaredType (key) === 'String') && urlsIsPlainMap (content);
                 if (!(nonNull (value) || (closed && twoArgExtend) || plainUrls)) return whole;
                 if (!stringKey (key) && !/^[A-Za-z_]\w*$/.test (key)) return whole;
                 if (stringKey (key) || declaredType (key) === 'String') return `${ind}${recv}.put(${key}, ${value});${tail ?? ''}`;
@@ -9183,8 +9175,8 @@ export function nativeJavaJ34MapLocals (content: string): string {
     return changed ? lines.filter ((l) => l !== '\u0000').join ('\n') : content;
 }
 
-// hx4 J34: snippet checks for the Map-local put/get/in/keys pass (`--audit-string-types --self-test`)
-function j34MapLocalsSelfTest (): string[] {
+// Snippet checks for the Map-local put/get/in/keys pass (`--audit-string-types --self-test`)
+function javaMapLocalOpsSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (sig: string, body: string) => `public class Gemini extends GeminiRest\n{\n    public Object m(${sig})\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string, string | undefined][] = [
@@ -9227,17 +9219,16 @@ function j34MapLocalsSelfTest (): string[] {
     ];
     for (const [ name, sig, body, expect ] of cases) {
         const input = cls (sig, body);
-        const out = nativeJavaJ34MapLocals (input);
+        const out = nativeJavaMapLocalOps (input);
         const ok = expect === undefined ? out === input : out.includes (expect);
-        if (!ok) problems.push (`hx4 J34 map locals: ${name}\n${out}`);
+        if (!ok) problems.push (`map locals: ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx4 J35
-// Native forms for the remaining core-arg / isEqual / isTrue sites: J26+J30 re-run with `//` comments masked,
+// Native forms for the remaining core-arg / isEqual / isTrue sites: the Map-locals and box-locals passes re-run with `//` comments masked,
 // isEqual on two integral-proven operands, isTrue on Java-boolean expressions, toMapArg on outcome() Map locals.
-function j35SplitComment (line: string): [string, string] {
+function splitLineComment (line: string): [string, string] {
     for (let k = 0; k < line.length; k++) {
         const c = line[k];
         if (c === '"' || c === '\'') { for (k++; k < line.length && line[k] !== c; k++) if (line[k] === '\\') k++; continue; }
@@ -9246,12 +9237,12 @@ function j35SplitComment (line: string): [string, string] {
     return [ line, '' ];
 }
 
-function j35MaskedRerun (content: string): string {
+function commentMaskedRerun (content: string): string {
     const lines = content.split ('\n');
-    const split = lines.map (j35SplitComment);
+    const split = lines.map (splitLineComment);
     if (split.every ((s) => s[1] === '')) return content;
     const masked = split.map ((s) => s[0]).join ('\n');
-    const out = nativeJavaJ30CoreArgs (nativeJavaJ26MapLocals (masked));
+    const out = nativeJavaBoxLocalsCoreArgs (nativeJavaMapLocalsRetype (masked));
     if (out === masked) return content;
     const outLines = out.split ('\n');
     if (outLines.length !== lines.length) return content;
@@ -9259,9 +9250,9 @@ function j35MaskedRerun (content: string): string {
 }
 
 // Java expressions that are boolean by construction (`!x`, `&&`, `||`, `==`, `!=`, instanceof, boolean helpers)
-function j35JavaBoolean (e: string): boolean {
-    e = j26Strip (e);
-    if (/^(?:Helpers\.isEqual|Helpers\.isArray|java\.util\.Objects\.equals|Boolean\.TRUE\.equals)\(/.test (e)) return j26Close (e, e.indexOf ('(')) === e.length - 1;
+function isJavaBooleanExpr (e: string): boolean {
+    e = memberStripParens (e);
+    if (/^(?:Helpers\.isEqual|Helpers\.isArray|java\.util\.Objects\.equals|Boolean\.TRUE\.equals)\(/.test (e)) return memberCloseParen (e, e.indexOf ('(')) === e.length - 1;
     let depth = 0, top = false;
     for (let k = 0; k < e.length; k++) {
         const c = e[k];
@@ -9276,7 +9267,7 @@ function j35JavaBoolean (e: string): boolean {
     return top || (e.startsWith ('!') && !e.startsWith ('!='));
 }
 
-function j35BooleanIsTrue (content: string): string {
+function nativeBooleanIsTrue (content: string): string {
     if (!content.includes ('Helpers.isTrue(')) return content;
     let out = content;
     for (let changed = true; changed;) {
@@ -9284,10 +9275,10 @@ function j35BooleanIsTrue (content: string): string {
         const at = [ ...out.matchAll (/Helpers\.isTrue\(/g) ].map ((m) => m.index).reverse ();
         for (const i of at) {
             const open = i + 'Helpers.isTrue'.length;
-            const close = j26Close (out, open);
+            const close = memberCloseParen (out, open);
             if (close === -1) continue;
             const inner = out.slice (open + 1, close);
-            if (!j35JavaBoolean (inner)) continue;
+            if (!isJavaBooleanExpr (inner)) continue;
             out = out.slice (0, i) + '(' + inner + ')' + out.slice (close + 1);
             changed = true;
         }
@@ -9295,7 +9286,7 @@ function j35BooleanIsTrue (content: string): string {
     return out;
 }
 
-function j35Member (member: string, content: string): string {
+function remainingCoreArgsMember (member: string, content: string): string {
     if (!/Helpers\.(?:isEqual|toMapArg)\(/.test (member)) return member;
     const declTypes = new Map<string, string[]> ();
     const declRe = /(?:^|[\s(,])((?:final )?[\w.]+(?:<[\w.<>, ?]*>)?) ([A-Za-z_]\w*)(?=\s*(?:=(?!=)|[,);:]))/g;
@@ -9316,7 +9307,7 @@ function j35Member (member: string, content: string): string {
         for (const m of writeOps (n)) {
             if (m[1] !== '=') return undefined;
             const start = m.index + m[0].length;
-            const end = j26StatementEnd (member, start);
+            const end = memberStatementEnd (member, start);
             if (end === -1) return undefined;
             list.push (member.slice (start, end));
         }
@@ -9328,7 +9319,7 @@ function j35Member (member: string, content: string): string {
     // `for (var i = <int>; ..; i++)` counters only ever hold an int
     const counter = (n: string) => single (n) === 'var' && new RegExp (`for \\(var ${n} = -?\\d+;`).test (member)
         && writeOps (n).every ((m, k) => (k === 0 && m[1] === '=') || m[1] === '++');
-    const baseTypes = j30BaseReturnTypes ();
+    const baseTypes = boxLocalsBaseReturnTypes ();
     const longCall = (name: string) => {
         if (baseTypes[name] !== 'Long') return false;
         return !new RegExp (`^    (?:public|protected|private) (?!Long )[\\w.<>, ?]+ ${name}\\(`, 'm').test (content);
@@ -9357,12 +9348,12 @@ function j35Member (member: string, content: string): string {
     };
     // undefined = not integral; true = may be null
     const exprNullable = (e: string, depth = 0): boolean | undefined => {
-        e = j26Strip (e).replace (/^\(Object\)\s*/, '');
-        e = j26Strip (e);
+        e = memberStripParens (e).replace (/^\(Object\)\s*/, '');
+        e = memberStripParens (e);
         if (e === 'null') return true;
         if (INT.test (e) || /^-?\d+L$/.test (e)) return false;
         if (/^[A-Za-z_]\w*$/.test (e)) { const k = nameKind (e); return k === undefined ? undefined : (k === 'L' || k === 'N'); }
-        const t = j26Ternary (e);
+        const t = memberSplitTernary (e);
         if (t !== undefined) {
             if (depth > 3) return undefined;
             const a = exprNullable (t[1], depth + 1), b = exprNullable (t[2], depth + 1);
@@ -9372,9 +9363,9 @@ function j35Member (member: string, content: string): string {
         const arith = /^([A-Za-z_]\w*) [*+-] \d+L$/.exec (e);
         if (arith !== null) { const k = nameKind (arith[1]); return k === 'p' || k === 'L' ? false : undefined; }
         const h = /^(?:Helpers\.(getArrayLength|parseInt)|Long\.(parseLong))\(/.exec (e);
-        if (h !== null && j26Close (e, h[0].length - 1) === e.length - 1) return h[1] === 'parseInt'; // Long.parseLong never answers null
+        if (h !== null && memberCloseParen (e, h[0].length - 1) === e.length - 1) return h[1] === 'parseInt'; // Long.parseLong never answers null
         const call = /^this\.(\w+)\(/.exec (e);
-        if (call !== null && j26Close (e, call[0].length - 1) === e.length - 1 && longCall (call[1])) return true;
+        if (call !== null && memberCloseParen (e, call[0].length - 1) === e.length - 1 && longCall (call[1])) return true;
         return undefined;
     };
     for (let changed = true; changed;) {
@@ -9387,7 +9378,7 @@ function j35Member (member: string, content: string): string {
         }
     }
     const operand = (raw: string): { prim: string, boxed: string } | undefined => {
-        const e = j26Strip (raw);
+        const e = memberStripParens (raw);
         if (INT.test (e)) return { prim: `${e}L`, boxed: `${e}L` };
         // `Integer - 1L` unboxes to a primitive long (same NPE on null as the helper's argument)
         const sub = /^([A-Za-z_]\w*) - (\d+L)$/.exec (e);
@@ -9405,8 +9396,8 @@ function j35Member (member: string, content: string): string {
         const at = [ ...out.matchAll (/Helpers\.isEqual\(/g) ].map ((m) => m.index).reverse ();
         for (const i of at) {
             const open = i + 'Helpers.isEqual'.length;
-            const close = j26Close (out, open);
-            const args = close === -1 ? undefined : j26Args (out, open);
+            const close = memberCloseParen (out, open);
+            const args = close === -1 ? undefined : memberCallArgs (out, open);
             if (args === undefined || args.length !== 2) continue;
             const a = operand (args[0]), b = operand (args[1]);
             if (a === undefined || b === undefined) continue;
@@ -9420,13 +9411,13 @@ function j35Member (member: string, content: string): string {
     if (out.includes ('Helpers.toMapArg(')) {
         // Object locals written only from outcome()/loadOutcome().join() (Map<String, Object>) or null retype to Map
         const mapWrite = (w: string): boolean => {
-            const e = j26Strip (w);
+            const e = memberStripParens (w);
             if (e === 'null') return true;
             const c = /^this\.(\w+)\(/.exec (e);
-            if (c !== null && j26Close (e, c[0].length - 1) === e.length - 1) return c[1] === 'outcome' && mapCall ('outcome');
+            if (c !== null && memberCloseParen (e, c[0].length - 1) === e.length - 1) return c[1] === 'outcome' && mapCall ('outcome');
             const j = /^\(this\.loadOutcome\(/.exec (e);
-            return j !== null && mapCall ('loadOutcome') && e.endsWith (').join()') && j26Close (e, 0) === e.length - '.join()'.length - 1
-                && j26Close (e, j[0].length - 1) === e.length - '.join()'.length - 2;
+            return j !== null && mapCall ('loadOutcome') && e.endsWith (').join()') && memberCloseParen (e, 0) === e.length - '.join()'.length - 1
+                && memberCloseParen (e, j[0].length - 1) === e.length - '.join()'.length - 2;
         };
         const retype = new Set<string> ();
         for (const m of out.matchAll (/Helpers\.toMapArg\(\(\(Object\)([A-Za-z_]\w*)\)\)|Helpers\.toMapArg\(([A-Za-z_]\w*)\)/g)) {
@@ -9445,9 +9436,9 @@ function j35Member (member: string, content: string): string {
     return out;
 }
 
-export function nativeJavaJ35 (content: string): string {
-    let out = j35MaskedRerun (content);
-    out = j35BooleanIsTrue (out);
+export function nativeJavaRemainingCoreArgs (content: string): string {
+    let out = commentMaskedRerun (content);
+    out = nativeBooleanIsTrue (out);
     if (!/Helpers\.(?:isEqual|toMapArg)\(/.test (out)) return out;
     const lines = out.split ('\n');
     const starts: number[] = [];
@@ -9455,12 +9446,12 @@ export function nativeJavaJ35 (content: string): string {
     if (starts.length === 0) return out;
     starts.push (lines.length);
     const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (j35Member (lines.slice (starts[s], starts[s + 1]).join ('\n'), out));
-    return nativeJavaJ22CoreArgs (parts.join ('\n'));
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (remainingCoreArgsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), out));
+    return nativeJavaCoreArgIdentities (parts.join ('\n'));
 }
 
-// hx4 J35: snippet checks (`--audit-string-types --self-test`)
-function j35SelfTest (): string[] {
+// Snippet checks (`--audit-string-types --self-test`)
+function javaRemainingCoreArgsSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> parameters, Object p, Long n, String outcome)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
@@ -9479,20 +9470,20 @@ function j35SelfTest (): string[] {
         [ 'ternary isTrue', '        if (Helpers.isTrue(p == null ? n : p)) {}', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ35 (cls (body));
+        const out = nativeJavaRemainingCoreArgs (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect);
-        if (!ok) problems.push (`hx4 J35: ${name}\n${out}`);
+        if (!ok) problems.push (`java remaining core args self: ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx5 X13: J36 no longer inlines the helper body. A Helpers.multiply/subtract call becomes a plain native
+// A Helpers.multiply/subtract call becomes a plain native
 // `(a * b)` / `(a - b)` only when both operands are proven non-null integral primitives (integer literal, a
 // primitive `long`/`int` local or parameter of the enclosing member, an int-returning `.length()`/`.size()`/
 // `this.precisionFromString(..)`/`this.parseTimeframe(..)`, or a product/difference this pass already proved).
 // Long x Long is exactly the helper's Long branch; int is widened to long like the helper's Integer->Long step.
 // Doubles stay on the helper (multiply re-boxes integral doubles to Long), as does every unproven operand.
-function j36SplitArgs (inner: string): string[] | undefined {
+function multiplySubtractSplitArgs (inner: string): string[] | undefined {
     const parts: string[] = [];
     let depth = 0, quote = '', start = 0;
     for (let i = 0; i < inner.length; i++) {
@@ -9507,8 +9498,7 @@ function j36SplitArgs (inner: string): string[] | undefined {
     return (depth === 0 && !quote && parts.length === 2 && parts.every ((p) => p.length > 0)) ? parts : undefined;
 }
 
-// hx5 X13
-function j36Balanced (s: string): boolean {
+function multiplySubtractBalanced (s: string): boolean {
     let depth = 0, quote = '';
     for (let i = 0; i < s.length; i++) {
         const ch = s[i];
@@ -9519,8 +9509,8 @@ function j36Balanced (s: string): boolean {
     return depth === 0 && !quote;
 }
 
-// hx5 X13: 'long' (already long), 'int' (needs widening) or undefined (unproven -> helper call)
-function j36Integral (op: string, member: string, proven: Set<string>): 'long' | 'int' | undefined {
+// 'long' (already long), 'int' (needs widening) or undefined (unproven -> helper call)
+function multiplySubtractIntegral (op: string, member: string, proven: Set<string>): 'long' | 'int' | undefined {
     const o = op.trim ();
     if (proven.has (o)) return 'long';
     if (/^-?\d{1,18}L?$/.test (o)) return 'long';
@@ -9545,11 +9535,11 @@ function j36Integral (op: string, member: string, proven: Set<string>): 'long' |
         return ok ? 'int' : undefined;
     }
     const m = /^this\.(precisionFromString|parseTimeframe)\(([\s\S]*)\)$/.exec (o);
-    if (m !== null && j36Balanced (m[2])) return 'int';
+    if (m !== null && multiplySubtractBalanced (m[2])) return 'int';
     return undefined;
 }
 
-function j36Member (member: string): string {
+function multiplySubtractMember (member: string): string {
     const re = /(?<![\w.])Helpers\.(multiply|subtract)\(/g;
     const proven = new Set<string> ();
     let out = member;
@@ -9568,9 +9558,9 @@ function j36Member (member: string): string {
             if (ch === '(') depth++; else if (ch === ')') depth--;
         }
         if (depth !== 0) continue;
-        const args = j36SplitArgs (out.slice (at + m[0].length, j - 1));
+        const args = multiplySubtractSplitArgs (out.slice (at + m[0].length, j - 1));
         if (args === undefined) continue;
-        const ta = j36Integral (args[0], out, proven), tb = j36Integral (args[1], out, proven);
+        const ta = multiplySubtractIntegral (args[0], out, proven), tb = multiplySubtractIntegral (args[1], out, proven);
         if (ta === undefined || tb === undefined) continue;
         const lit = (x: string) => /^-?\d+$/.test (x) ? x + 'L' : x;
         const a = ta === 'int' ? `((long) ${args[0]})` : lit (args[0]);
@@ -9583,20 +9573,20 @@ function j36Member (member: string): string {
     return out;
 }
 
-function nativeJavaJ36MultiplySubtract (source: string): string {
+function nativeJavaMultiplySubtract (source: string): string {
     if (!/(?<![\w.])Helpers\.(?:multiply|subtract)\(/.test (source)) return source;
     const lines = source.split ('\n');
     const starts: number[] = [];
     for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return j36Member (source);
+    if (starts.length === 0) return multiplySubtractMember (source);
     starts.push (lines.length);
     const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (j36Member (lines.slice (starts[s], starts[s + 1]).join ('\n')));
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (multiplySubtractMember (lines.slice (starts[s], starts[s + 1]).join ('\n')));
     return parts.join ('\n');
 }
 
-// hx5 X13: snippet checks (`--audit-string-types --self-test`)
-function j36SelfTest (): string[] {
+// Snippet checks (`--audit-string-types --self-test`)
+function javaMultiplySubtractSelfTest (): string[] {
     const problems: string[] = [];
     const cases: [string, string, (o: string) => boolean][] = [
         [ 'long local minus int call', 'long maxDecimals = 6; Object v = Helpers.subtract(maxDecimals, this.precisionFromString(this.safeString(m, "a")));', (o) => o.includes ('Object v = (maxDecimals - this.precisionFromString(this.safeString(m, "a")));') ],
@@ -9611,15 +9601,15 @@ function j36SelfTest (): string[] {
         [ 'no lambda ever', 'Object x = Helpers.multiply(p, q);', (o) => !o.includes ('j36') && o === 'Object x = Helpers.multiply(p, q);' ],
     ];
     for (const [ name, src, ok ] of cases) {
-        const out = nativeJavaJ36MultiplySubtract (src);
-        if (!ok (out)) problems.push (`hx5 X13 J36: ${name}\n${out}`);
-        if (nativeJavaJ36MultiplySubtract (out) !== out) problems.push (`hx5 X13 J36: ${name} not idempotent`);
+        const out = nativeJavaMultiplySubtract (src);
+        if (!ok (out)) problems.push (`java multiply subtract self test: ${name}\n${out}`);
+        if (nativeJavaMultiplySubtract (out) !== out) problems.push (`java multiply subtract self test: ${name} not idempotent`);
     }
     return problems;
 }
 
-// hx4 J37: snippet checks (`--audit-string-types --self-test`)
-function j37SelfTest (): string[] {
+// Snippet checks (`--audit-string-types --self-test`)
+function javaInlineDivModNegSelfTest (): string[] {
     const problems: string[] = [];
     const member = (body: string) => `    public Object m(Object p, Object d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string[]][] = [
@@ -9629,18 +9619,17 @@ function j37SelfTest (): string[] {
         [ 'string arg kept', '        Object r = this.f(Helpers.divide(p, "a,b)"));', [ '}).apply(p, "a,b)"))' ] ],
     ];
     for (const [ name, body, expects ] of cases) {
-        const out = nativeJavaJ37DivModNeg (member (body));
-        if (/Helpers\.(?:divide|mod|opNeg)\(/.test (out) || !expects.every ((e) => out.includes (e))) problems.push (`hx4 J37: ${name}\n${out}`);
+        const out = nativeJavaInlineDivModNeg (member (body));
+        if (/Helpers\.(?:divide|mod|opNeg)\(/.test (out) || !expects.every ((e) => out.includes (e))) problems.push (`java inline div mod neg: ${name}\n${out}`);
     }
     const other = member ('        Object r = this.f(MyHelpers.divide(p, 1));');
-    if (nativeJavaJ37DivModNeg (other) !== other) problems.push ('hx4 J37: a foreign divide must stay');
+    if (nativeJavaInlineDivModNeg (other) !== other) problems.push ('a foreign divide must stay');
     return problems;
 }
 
-// hx4 J38
 // Every remaining Helpers.isGreaterThan/isLessThan/isGreaterThanOrEqual/isLessThanOrEqual/mathMin/mathMax
 // call prints as an inline lambda that replays the helper's own dispatch (null, Integer->Long, isNumber, NaN, String, original box).
-function j38Inline (helper: string, a: string, b: string): string {
+function inlineCompareLambda (helper: string, a: string, b: string): string {
     const num = 'java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } };';
     const dbl = 'java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } };';
     if (helper === 'mathMin' || helper === 'mathMax') {
@@ -9654,7 +9643,7 @@ function j38Inline (helper: string, a: string, b: string): string {
     return `((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { ${num} ${dbl} ${gt}${helper === 'isGreaterThan' ? '' : ' ' + eq} return ${ret}; }).test(${a}, ${b})`;
 }
 
-export function nativeJavaJ38 (content: string): string {
+export function nativeJavaInlineCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than|mathM(?:in|ax))/.test (content)) return content;
     const re = /\bHelpers\.(isGreaterThanOrEqual|isLessThanOrEqual|isGreaterThan|isLessThan|mathMin|mathMax)\(/g;
     const lines = content.split ('\n');
@@ -9669,9 +9658,9 @@ export function nativeJavaJ38 (content: string): string {
             while ((m = re.exec (line)) !== null) {
                 const before = line.slice (0, m.index);
                 if (before.includes ('//') || (before.split ('"').length - 1) % 2 === 1) continue;
-                const split = h2kJ10SplitArgs (line, m.index + m[0].length);
+                const split = orderedCompareSplitArgs (line, m.index + m[0].length);
                 if (split === undefined || split.args.length !== 2) continue;
-                line = before + j38Inline (m[1], split.args[0], split.args[1]) + line.slice (split.end + 1);
+                line = before + inlineCompareLambda (m[1], split.args[0], split.args[1]) + line.slice (split.end + 1);
                 again = true;
                 break;
             }
@@ -9681,8 +9670,8 @@ export function nativeJavaJ38 (content: string): string {
     return lines.join ('\n');
 }
 
-// hx4 J38: snippet checks (`--audit-string-types --self-test`)
-function j38SelfTest (): string[] {
+// Snippet checks (`--audit-string-types --self-test`)
+function javaInlineCompareSelfTest (): string[] {
     const problems: string[] = [];
     const cases: [string, string][] = [
         [ '        if (Helpers.isLessThan(a, Helpers.mathMax(b, 1))) {}', '(java.util.function.BiPredicate<Object, Object>)' ],
@@ -9691,29 +9680,28 @@ function j38SelfTest (): string[] {
         [ '        if (Helpers.isLessThanOrEqual(a, 0)) {}', '(java.util.function.BiPredicate<Object, Object>)' ],
     ];
     for (const [ body, expect ] of cases) {
-        const out = nativeJavaJ38 (body);
-        if (!out.includes (expect)) problems.push (`hx4 J38: ${body}\n${out}`);
+        const out = nativeJavaInlineCompare (body);
+        if (!out.includes (expect)) problems.push (`java inline compare self test: ${body}\n${out}`);
     }
-    if (nativeJavaJ38 (cases[0][0]).includes ('Helpers.')) problems.push ('hx4 J38: nested helper left behind');
+    if (nativeJavaInlineCompare (cases[0][0]).includes ('Helpers.')) problems.push ('nested helper left behind');
     return problems;
 }
 
-// hx4 J39
 // getArrayLength / inOp / objectKeys / newMap -> inline Java with the exact dispatch of Helpers.java; addElementToObject /
 // GetValue -> native Map/List operations on receivers declared Map<String, Object> / List<Object> (fields, locals, casts).
-// hx11w8 ws-cache-fields: BaseExchange declares these caches as Map<String, Object>, so a Map cast on `this.<field>` is a no-op
-function hx11w8CacheFieldCasts (content: string): string {
+// BaseExchange declares these caches as Map<String, Object>, so a Map cast on `this.<field>` is a no-op
+function nativeJavaCacheFieldCasts (content: string): string {
     if (!/\(\((?:java\.util\.)?Map\s*<[^()]*>\)\s*this\./.test (content)) return content;
     return content.replace (/\(\((?:java\.util\.)?Map\s*<(?:\?\s*,\s*\?|String\s*,\s*Object)>\)\s*this\.(tickers|bidsasks|fundingRates)\)(?=\.(?:get|containsKey|remove|put|keySet|size|isEmpty)\()/g, (whole, f) =>
         new RegExp (`^    (?:public |protected |private )?(?!Map<String, Object> )[\\w.<>, ?]+ ${f}\\s*(?:=|;)`, 'm').test (content) ? whole : `this.${f}`);
 }
 
-function j39MapFields (): Set<string> {
+function javaMapCacheFields (): Set<string> {
     return new Set ([ 'options', 'urls', 'has', 'features', 'api', 'exceptions', 'headers', 'commonCurrencies', 'markets_by_id', 'baseCurrencies', 'quoteCurrencies', 'transformedApi', 'userAgents' ]);
 }
 
 // end of the string / char literal or comment starting at k (index of its last char), or -1 when text[k] starts none
-function j39SkipLiteral (t: string, k: number): number {
+function containerOpsSkipLiteral (t: string, k: number): number {
     const c = t[k];
     if (c === '"' || c === '\'') {
         for (let j = k + 1; j < t.length; j++) { if (t[j] === '\\') j++; else if (t[j] === c) return j; }
@@ -9724,10 +9712,10 @@ function j39SkipLiteral (t: string, k: number): number {
     return -1;
 }
 
-function j39Close (t: string, open: number): number {
+function containerOpsClose (t: string, open: number): number {
     let depth = 0;
     for (let k = open; k < t.length; k++) {
-        const s = j39SkipLiteral (t, k);
+        const s = containerOpsSkipLiteral (t, k);
         if (s !== -1) { k = s; continue; }
         const c = t[k];
         if (c === '(' || c === '[' || c === '{') depth++;
@@ -9737,11 +9725,11 @@ function j39Close (t: string, open: number): number {
 }
 
 // top-level comma split of t; generic argument lists (`HashMap<String, Object>`) are one token
-function j39Split (t: string): string[] {
+function containerOpsSplitArgs (t: string): string[] {
     const out: string[] = [];
     let depth = 0, at = 0;
     for (let k = 0; k < t.length; k++) {
-        const s = j39SkipLiteral (t, k);
+        const s = containerOpsSkipLiteral (t, k);
         if (s !== -1) { k = s; continue; }
         const c = t[k];
         if (c === '<' && /[\w]/.test (t[k - 1] ?? '')) {
@@ -9757,15 +9745,15 @@ function j39Split (t: string): string[] {
     return out;
 }
 
-function j39Unparen (e: string): string {
+function containerOpsUnparen (e: string): string {
     e = e.trim ();
-    while (e.startsWith ('(') && j39Close (e, 0) === e.length - 1) e = e.slice (1, -1).trim ();
+    while (e.startsWith ('(') && containerOpsClose (e, 0) === e.length - 1) e = e.slice (1, -1).trim ();
     return e;
 }
 
-// hx11 w8: a newMap literal that is the whole argument of a statement-level `((List<Object>)x).add(...)` becomes
+// A newMap literal that is the whole argument of a statement-level `((List<Object>)x).add(...)` becomes
 // statement-level puts instead of a `switch (0)` lambda blob. Unbraced control bodies keep the switch form.
-function j39HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
+function containerOpsHoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
     if (args.length === 0 || args.length % 2 !== 0 || args.some ((a, i) => i % 2 === 0 && !/^"(?:[^"\\]|\\.)*"$/.test (a))) return undefined;
     const prefix = t.slice (lineStart, at);
     if (!/^[ \t]*\(\([A-Za-z.<>?, ]+\)[A-Za-z_]\w*\)\.add\($/.test (prefix) || t.slice (close + 1, close + 3) !== ');') return undefined;
@@ -9778,7 +9766,7 @@ function j39HoistStatement (t: string, at: number, close: number, args: string[]
     return { text: lines.join ('\n'), end: close + 3 };
 }
 
-function j39Member (member: string, fresh: () => string): string {
+function containerOpsMember (member: string, fresh: () => string): string {
     const typeCache = new Map<string, string | undefined> ();
     const declaredType = (name: string): string | undefined => {
         if (typeCache.has (name)) return typeCache.get (name);
@@ -9800,10 +9788,10 @@ function j39Member (member: string, fresh: () => string): string {
     const fieldRef = (e: string) => /^this(?:\.[A-Za-z_]\w*)+$/.test (e);
     // re-evaluating it reads the same value and runs nothing
     const pure = (e: string): boolean => {
-        e = j39Unparen (e);
+        e = containerOpsUnparen (e);
         if (ident (e) || fieldRef (e) || strLit (e) || numLit (e)) return true;
         const cast = /^\(([\w.]+(?:<[\w.<>, ?]*>)?)\)\s*(.+)$/s.exec (e);
-        return cast !== null && j39Close (e, 0) === cast[1].length + 1 && pure (cast[2]);
+        return cast !== null && containerOpsClose (e, 0) === cast[1].length + 1 && pure (cast[2]);
     };
     const asObject = (e: string) => (strLit (e) ? e : `((Object)(${e}))`);
     const rewrite = (helper: string, args: string[], statement: boolean, indent: string): string | undefined => {
@@ -9835,7 +9823,7 @@ function j39Member (member: string, fresh: () => string): string {
             const sep = args.some ((a) => a.includes ('\n')) || args.length > 2 ? `\n${indent}    ` : ' ';
             return `(switch (0) { default -> { java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();${sep}${puts.join (sep)}${sep}yield ${n}; } })`;
         }
-        // hx5 X22: GetValue / addElementToObject -> plain native op on a proven receiver + key, else the helper call
+        // GetValue / addElementToObject -> plain native op on a proven receiver + key, else the helper call
         if (helper === 'GetValue' || helper === 'addElementToObject') return x22MapRewrite (helper, args, statement, declaredType, member);
         return undefined;
     };
@@ -9843,7 +9831,7 @@ function j39Member (member: string, fresh: () => string): string {
     const starts: number[] = [];
     const head = /Helpers\.(?:GetValue|addElementToObject|getArrayLength|inOp|objectKeys|newMap)\(/y;
     for (let k = 0; k < member.length; k++) {
-        const s = j39SkipLiteral (member, k);
+        const s = containerOpsSkipLiteral (member, k);
         if (s !== -1) { k = s; continue; }
         if (member[k] === 'H' && !/[\w.]/.test (member[k - 1] ?? '')) { head.lastIndex = k; if (head.test (member)) starts.push (k); }
     }
@@ -9852,13 +9840,13 @@ function j39Member (member: string, fresh: () => string): string {
         const at = starts[i];
         const helper = /^Helpers\.(\w+)\(/.exec (out.slice (at))![1];
         const open = at + 'Helpers.'.length + helper.length;
-        const close = j39Close (out, open);
+        const close = containerOpsClose (out, open);
         if (close === -1) continue;
-        const args = j39Split (out.slice (open + 1, close));
+        const args = containerOpsSplitArgs (out.slice (open + 1, close));
         const lineStart = out.lastIndexOf ('\n', at - 1) + 1;
         const indent = /^\s*/.exec (out.slice (lineStart))![0];
         const statement = out.slice (lineStart, at).trim () === '' && out[close + 1] === ';';
-        const hoisted = helper === 'newMap' ? j39HoistStatement (out, at, close, args, lineStart, indent, fresh) : undefined;
+        const hoisted = helper === 'newMap' ? containerOpsHoistStatement (out, at, close, args, lineStart, indent, fresh) : undefined;
         if (hoisted !== undefined) { out = out.slice (0, lineStart) + hoisted.text + out.slice (hoisted.end); continue; }
         const text = rewrite (helper, args, statement, indent);
         if (text === undefined) continue;
@@ -9867,7 +9855,7 @@ function j39Member (member: string, fresh: () => string): string {
     return out;
 }
 
-export function nativeJavaJ39Containers (content: string): string {
+export function nativeJavaContainerOps (content: string): string {
     if (!/Helpers\.(?:GetValue|addElementToObject|getArrayLength|inOp|objectKeys|newMap)\(/.test (content)) return content;
     const prefix = /\bj39[a-z]\d/.test (content) ? 'j39z' : 'j39';
     let counter = 0;
@@ -9877,12 +9865,12 @@ export function nativeJavaJ39Containers (content: string): string {
     for (let i = 1; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
     starts.push (lines.length);
     const parts: string[] = [];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (j39Member (lines.slice (starts[s], starts[s + 1]).join ('\n'), fresh));
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (containerOpsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), fresh));
     return parts.join ('\n');
 }
 
-// hx4 J39: snippet checks (`--audit-string-types --self-test`)
-function j39SelfTest (): string[] {
+// Snippet checks (`--audit-string-types --self-test`)
+function javaContainerOpsSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
@@ -9904,34 +9892,34 @@ function j39SelfTest (): string[] {
         [ 'in string', '        return "Helpers.inOp(o, s)";', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ39Containers (cls (body));
+        const out = nativeJavaContainerOps (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect);
-        if (!ok) problems.push (`hx4 J39: ${name}\n${out}`);
+        if (!ok) problems.push (`java container ops self test: ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx4 J40: core-arg / truthiness / literal-equality / literal-add helpers as inline pattern switches
+// Core-arg / truthiness / literal-equality / literal-add helpers as inline pattern switches
 // that replay the Helpers.java branches exactly (null, Integer->Long, Double, String, Float/BigDecimal).
-function j40Lit (raw: string): string | undefined {
+function coreArgLiteral (raw: string): string | undefined {
     const t = raw.trim().replace(/^\((-?\d+L?)\)$/, '$1');
     if (/^-?\d{1,15}L?$/.test(t)) { return t.replace(/L$/, ''); }
     return undefined;
 }
 
 // a String literal no Double.parseDouble / BigDecimal parse accepts (Helpers.isNumber is false)
-function j40Unparseable (lit: string): boolean {
+function isUnparseableNumberLiteral (lit: string): boolean {
     if (!/^"(?:[^"\\]|\\.)*"$/.test(lit) || /\\/.test(lit)) { return false; }
     return !/^\s*[+-]?(?:NaN|Infinity|0[xX][0-9a-fA-F.]*(?:[pP][+-]?\d+)?|[\d.]+(?:[eE][+-]?\d+)?)[fFdD]?\s*$/.test(lit.slice(1, -1));
 }
 
 // the literal holds a character no numeric text can contain anywhere, so any concatenation stays unparseable
-function j40PoisonsNumber (lit: string): boolean {
+function poisonsNumberAdd (lit: string): boolean {
     return /^"(?:[^"\\]|\\.)*"$/.test(lit) && /[^0-9A-Za-z.+\-\s\\]/.test(lit.slice(1, -1));
 }
 
 // nearest same-member declaration type of `name` before `pos` (params included)
-function j40DeclType (masked: string, name: string, pos: number): string | undefined {
+function coreArgDeclType (masked: string, name: string, pos: number): string | undefined {
     const before = masked.slice(0, pos);
     const breaks = [...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)];
     if (breaks.length === 0) { return undefined; }
@@ -9943,9 +9931,9 @@ function j40DeclType (masked: string, name: string, pos: number): string | undef
     return last;
 }
 
-interface J40Ctx { masked: string, pos: number, fields: Set<string>, methods: Set<string> }
+interface CoreArgHelperCtx { masked: string, pos: number, fields: Set<string>, methods: Set<string> }
 
-function j40Rewrite (name: string, args: string[], argsM: string[], n: number, intConsts: Set<string>, ctx: J40Ctx): string | undefined {
+function coreArgHelperRewrite (name: string, args: string[], argsM: string[], n: number, intConsts: Set<string>, ctx: CoreArgHelperCtx): string | undefined {
     const v = 'hx4J40v' + n;
     const x = args[0] === undefined ? '' : args[0].trim();
     if (name === 'toStringArg' || name === 'toString') {
@@ -9965,46 +9953,46 @@ function j40Rewrite (name: string, args: string[], argsM: string[], n: number, i
         return `((long) (switch ((Object) (${x})) { case null -> Long.parseLong("null"); case Long ${v} -> ${v}.longValue(); case Integer ${v} -> ${v}.longValue(); case Double ${v} -> ${v}.longValue(); case Float ${v} -> ${v}.longValue(); case java.math.BigDecimal ${v} -> ${v}.longValue(); case String ${v} -> Long.parseLong(${v}); case Object ${v} -> Long.parseLong(String.valueOf(${v})); }))`;
     }
     if (name === 'isTrue') {
-        // hx5 X14: native only on a proven boolean/Boolean operand, else the helper call stays
-        return args.length === 1 ? j40X14IsTrue(x, ctx) : undefined;
+        // Native only on a proven boolean/Boolean operand, else the helper call stays
+        return args.length === 1 ? nativeIsTrue(x, ctx) : undefined;
     }
     if (args.length !== 2) { return undefined; }
     const a = args[0].trim(); const b = args[1].trim();
-    if (name === 'isEqual') { return j40X15Equal(a, b, intConsts, ctx); } // hx5 X15
+    if (name === 'isEqual') { return nativeIsEqual(a, b, intConsts, ctx); }
     // name === 'add': only the (Object, Object) overload; a String-typed `a` binds add(String, ..)
-    if (/^this\.(?:id|version)$/.test(a) && !ctx.fields.has(a.slice(5))) { return `(${a} + ${j05IsPrimary(argsM[1].trim()) ? b : `(${b})`})`; }
-    const aOk = /^this\.(?:parseToInt|seconds|milliseconds)\(/.test(a) && j05Close(argsM[0].trim(), argsM[0].trim().indexOf('(')) === argsM[0].trim().length && !new RegExp(`\\bString\\s+${a.slice(5, a.indexOf('('))}\\(`).test(ctx.masked)
-        || /^\(*Helpers\.(?:divide|multiply|subtract|mod|GetValue)\(/.test(a) && j05IsPrimary(argsM[0].trim())
-        || /^\(\((?:java\.util\.function\.BinaryOperator<Object>\)|Object\) \(switch )/.test(a) && j05IsPrimary(argsM[0].trim())
-        || /^[A-Za-z_]\w*$/.test(a) && [ 'Object', 'Long', 'Integer', 'Double', 'long' ].includes(j40DeclType(ctx.masked, a, ctx.pos) ?? '');
+    if (/^this\.(?:id|version)$/.test(a) && !ctx.fields.has(a.slice(5))) { return `(${a} + ${stringAddIsPrimary(argsM[1].trim()) ? b : `(${b})`})`; }
+    const aOk = /^this\.(?:parseToInt|seconds|milliseconds)\(/.test(a) && stringAddClose(argsM[0].trim(), argsM[0].trim().indexOf('(')) === argsM[0].trim().length && !new RegExp(`\\bString\\s+${a.slice(5, a.indexOf('('))}\\(`).test(ctx.masked)
+        || /^\(*Helpers\.(?:divide|multiply|subtract|mod|GetValue)\(/.test(a) && stringAddIsPrimary(argsM[0].trim())
+        || /^\(\((?:java\.util\.function\.BinaryOperator<Object>\)|Object\) \(switch )/.test(a) && stringAddIsPrimary(argsM[0].trim())
+        || /^[A-Za-z_]\w*$/.test(a) && [ 'Object', 'Long', 'Integer', 'Double', 'long' ].includes(coreArgDeclType(ctx.masked, a, ctx.pos) ?? '');
     const aT = argsM[0].trim();
     const objCall = /^this\.(implodeParams|implodeHostname|remove0xPrefix|formatNumber)\(/.exec(a);
-    const aObj = aOk || j05IsPrimary(aT) && (
-        objCall !== null && j05Close(aT, aT.indexOf('(')) === aT.length && !new RegExp(`\\bString\\s+${objCall[1]}\\(`).test(ctx.masked)
+    const aObj = aOk || stringAddIsPrimary(aT) && (
+        objCall !== null && stringAddClose(aT, aT.indexOf('(')) === aT.length && !new RegExp(`\\bString\\s+${objCall[1]}\\(`).test(ctx.masked)
         || /^\w+\.this\.(?:milliseconds|seconds)\(\)$/.test(a) && !/\bString\s+(?:milliseconds|seconds)\(/.test(ctx.masked)
-        || /^\(\(Map<String, Object>\)\w+\)\.get\(/.test(a) && j05Close(aT, aT.indexOf('.get(') + 4) === aT.length
+        || /^\(\(Map<String, Object>\)\w+\)\.get\(/.test(a) && stringAddClose(aT, aT.indexOf('.get(') + 4) === aT.length
         || /^\(\w+ == null \|\| .*\? null : \(\(List<\?>\)\w+\)\.get\(\w+\)\)$/.test(a)
-        || /^\w+\.get\("\w+"\)$/.test(a) && /^(?:java\.util\.)?Map<String, ?Object>$/.test(j40DeclType(ctx.masked, a.slice(0, a.indexOf('.')), ctx.pos) ?? ''));
+        || /^\w+\.get\("\w+"\)$/.test(a) && /^(?:java\.util\.)?Map<String, ?Object>$/.test(coreArgDeclType(ctx.masked, a.slice(0, a.indexOf('.')), ctx.pos) ?? ''));
     // a String-typed `a` binds add(String, ..): a + String.valueOf(b), which is Java's own `+`
-    const aStr = /^this\.intToBase16\(/.test(a) && j05Close(aT, aT.indexOf('(')) === aT.length && !/\b(?:Object|var|Long)\s+intToBase16\(/.test(ctx.masked)
+    const aStr = /^this\.intToBase16\(/.test(a) && stringAddClose(aT, aT.indexOf('(')) === aT.length && !/\b(?:Object|var|Long)\s+intToBase16\(/.test(ctx.masked)
         || /^\(\(String\)\w+\)\.(?:toLowerCase|toUpperCase|trim)\(\)$/.test(a);
-    if (aStr) { return `(${a} + ${j05IsPrimary(argsM[1].trim()) ? b : `(${b})`})`; }
+    if (aStr) { return `(${a} + ${stringAddIsPrimary(argsM[1].trim()) ? b : `(${b})`})`; }
     if (!aObj) { return undefined; }
-    const lit = j40Lit(b);
+    const lit = coreArgLiteral(b);
     if (lit !== undefined) {
         return `((Object) (switch ((Object) (${a})) { case null -> (Object) null; case Long ${v} -> (Object) (${v} + ${lit}L); case Integer ${v} -> (Object) (${v}.longValue() + ${lit}L); case Double ${v} -> (Object) (${v} + ((double) ${lit}L)); case String ${v} -> (Object) (${v} + "${lit}"); default -> (Object) null; }))`;
     }
     // b is a String whose leading literal no number parse accepts, so only a Double `a` stays numeric
-    const terms = j05PlusTerms(j05StripParens(b, argsM[1])[1]);
-    const bStr = j05StripParens(b, argsM[1])[0];
-    if (terms !== undefined && j40PoisonsNumber(bStr.slice(terms[0][0], terms[0][1]).trim()) && !/^"/.test(a)) {
+    const terms = stringAddPlusTerms(stringAddStripParens(b, argsM[1])[1]);
+    const bStr = stringAddStripParens(b, argsM[1])[0];
+    if (terms !== undefined && poisonsNumberAdd(bStr.slice(terms[0][0], terms[0][1]).trim()) && !/^"/.test(a)) {
         return `((Object) (switch ((Object) (${a})) { case null -> (Object) ("null" + (${b})); case Double ${v} -> (Object) (${v} + 0.0); case Object ${v} -> (Object) (String.valueOf(${v}) + (${b})); }))`;
     }
     const x0 = a; const y0 = b;
     return `((java.util.function.BinaryOperator<Object>) (${v}A, ${v}B) -> { Object ${v}P = ${v}A instanceof Integer ${v}i ? (Object) Long.valueOf(${v}i.longValue()) : ${v}A; Object ${v}Q = ${v}B instanceof Integer ${v}i ? (Object) Long.valueOf(${v}i.longValue()) : ${v}B; if (${v}P instanceof Long ${v}l && ${v}Q instanceof Long ${v}r) { return ${v}l + ${v}r; } if (${v}P instanceof Double || ${v}Q instanceof Double) { java.util.function.ToDoubleFunction<Object> ${v}D = ${v}o -> { if (${v}o instanceof Double || ${v}o instanceof Float || ${v}o instanceof Long || ${v}o instanceof Integer || ${v}o instanceof java.math.BigDecimal) { return ((Number) ${v}o).doubleValue(); } try { return Double.parseDouble(String.valueOf(${v}o)); } catch (NumberFormatException ${v}e) { return 0.0; } }; return ${v}D.applyAsDouble(${v}P) + ${v}D.applyAsDouble(${v}Q); } if (${v}P instanceof String || ${v}Q instanceof String) { return String.valueOf(${v}P) + String.valueOf(${v}Q); } return null; }).apply(${x0}, ${y0})`;
 }
 
-export function nativeJavaJ40 (content: string): string {
+export function nativeJavaCoreArgHelpers (content: string): string {
     const re = /Helpers\.(isEqual|isTrue|toMapArg|toStringArg|toStringListArg|toLongOrNull|toString|toInt64|add)\($/;
     if (!/Helpers\.(isEqual|isTrue|toMapArg|toStringArg|toStringListArg|toLongOrNull|toString|toInt64|add)\(/.test(content)) { return content; }
     const intConsts = new Set([ 'TICK_SIZE', 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS' ]);
@@ -10013,7 +10001,7 @@ export function nativeJavaJ40 (content: string): string {
     for (const d of content.matchAll(/\b(?:public|private|protected)\s+(?:static\s+)?[\w.<>?,\[\] ]+?\s+(\w+)\s*(\(|=|;)/g)) {
         (d[2] === '(' ? methods : fields).add(d[1]);
     }
-    let masked = j05Mask(content);
+    let masked = stringAddMask(content);
     let from = masked.length;
     // binding names stay unique when the pass re-runs over its own output
     let n = 1 + Math.max(-1, ...[ ...content.matchAll(/hx4J40v(\d+)/g) ].map((m) => Number(m[1])));
@@ -10025,29 +10013,29 @@ export function nativeJavaJ40 (content: string): string {
         const head = /^Helpers\.(\w+)\(/.exec(masked.slice(at, at + 40));
         if (head === null || !re.test(head[0])) { continue; }
         const open = at + head[0].length - 1;
-        const end = j05Close(masked, open);
+        const end = stringAddClose(masked, open);
         if (end === -1) { continue; }
         // a bare statement `Helpers.x(..);` is not a legal native expression statement
         if (/[;{}]\s*$/.test(masked.slice(Math.max(0, at - 200), at)) && /^\s*;/.test(masked.slice(end))) { continue; }
         const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
         const args: string[] = []; let p = open + 1;
         for (const m of argsM) { args.push(content.slice(p, p + m.length)); p += m.length + 1; }
-        const repl = j40Rewrite(head[1], args, argsM, n++, intConsts, { masked, pos: at, fields, methods });
+        const repl = coreArgHelperRewrite(head[1], args, argsM, n++, intConsts, { masked, pos: at, fields, methods });
         if (repl === undefined) { continue; }
         content = content.slice(0, at) + repl + content.slice(end);
-        masked = j05Mask(content);
+        masked = stringAddMask(content);
     }
     return content;
 }
 
-// hx4 J40: snippet checks (`--audit-string-types --self-test`)
-function j40SelfTest (): string[] {
-    const problems: string[] = j40X14SelfTest();
+// Snippet checks (`--audit-string-types --self-test`)
+function javaCoreArgHelpersSelfTest (): string[] {
+    const problems: string[] = javaIsTrueSelfTest();
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, Long n)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'isEqual null', '        if (Helpers.isEqual(p, null)) {}', 'if ((((Object) (p)) == null)) {}' ],
         [ 'isEqual word', '        if (Helpers.isEqual(p, "abc")) {}', '"abc".equals(p)' ],
-        [ 'isTrue Object', '        if (Helpers.isTrue(p)) {}', undefined ], // hx5 X14
+        [ 'isTrue Object', '        if (Helpers.isTrue(p)) {}', undefined ],
         [ 'toMapArg', '        return this.f(Helpers.toMapArg(p));', 'case java.util.Map<?, ?> hx4J40v0' ],
         [ 'toStringArg', '        return this.f(Helpers.toStringArg(p));', 'this.f(java.util.Objects.toString(p, null))' ],
         [ 'add Object lit', '        Object x = p;\n        return Helpers.add(x, 1);', 'case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1L);' ],
@@ -10059,19 +10047,19 @@ function j40SelfTest (): string[] {
         [ 'statement', '        Helpers.toMapArg(p);', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ40 (cls (body));
+        const out = nativeJavaCoreArgHelpers (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.');
-        if (!ok) problems.push (`hx4 J40: ${name}\n${out}`);
+        if (!ok) problems.push (`java core arg helpers self: ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx4 J41 -> hx5 X16: the inline lambdas that replayed Helpers.slice / Helpers.getIndexOf are gone.
-// A call collapses to a plain String op only when the generator proves it equivalent (see the hx5 X16 block
-// at the end of the file); every other site keeps the helper call exactly as master emitted it.
-export function nativeJavaJ41 (content: string): string {
+// The inline lambdas that replayed Helpers.slice / Helpers.getIndexOf are gone.
+// A call collapses to a plain String op only when the generator proves it equivalent (see the non-null String
+// ops block at the end of the file); every other site keeps the helper call.
+export function nativeJavaStringSliceIndexOf (content: string): string {
     if (!/Helpers\.(?:slice|getIndexOf)\(/.test(content)) { return content; }
-    let masked = j05Mask(content);
+    let masked = stringAddMask(content);
     let from = masked.length;
     for (;;) {
         const at = masked.lastIndexOf('Helpers.', from);
@@ -10081,28 +10069,28 @@ export function nativeJavaJ41 (content: string): string {
         const head = /^Helpers\.(slice|getIndexOf)\(/.exec(masked.slice(at, at + 24));
         if (head === null) { continue; }
         const open = at + head[0].length - 1;
-        const end = j05Close(masked, open);
+        const end = stringAddClose(masked, open);
         if (end === -1) { continue; }
         const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
         const args: string[] = []; let p = open + 1;
         for (const m of argsM) { args.push(content.slice(p, p + m.length).trim()); p += m.length + 1; }
-        const repl = hx5X16Native(head[1], args, content);
+        const repl = nativeStringSliceIndexOf(head[1], args, content);
         if (repl === undefined) { continue; }
         content = content.slice(0, at) + repl + content.slice(end);
-        masked = j05Mask(content);
+        masked = stringAddMask(content);
     }
     return content;
 }
 
-// hx5 X16: snippet checks (`--audit-string-types --self-test`)
-function j41SelfTest (): string[] {
-    return hx5X16SelfTest();
+// Snippet checks (`--audit-string-types --self-test`)
+function javaStringSliceIndexOfSelfTest (): string[] {
+    return javaNonNullStringOpsSelfTest();
 }
 
-// hx5 X17: J42 no longer inlines Helpers.toLong/toDouble; see x17J42Native at the end of the file.
-export function nativeJavaJ42 (content: string): string {
+// Helpers.parseInt/parseFloat go native only when proven; see x17J42Native at the end of the file.
+export function nativeJavaParseNumber (content: string): string {
     if (!/Helpers\.(?:parseInt|parseFloat)\(/.test(content)) { return content; }
-    let masked = j05Mask(content);
+    let masked = stringAddMask(content);
     let from = masked.length;
     for (;;) {
         const at = masked.lastIndexOf('Helpers.', from);
@@ -10112,23 +10100,23 @@ export function nativeJavaJ42 (content: string): string {
         const head = /^Helpers\.(parseInt|parseFloat)\(/.exec(masked.slice(at, at + 24));
         if (head === null) { continue; }
         const open = at + head[0].length - 1;
-        const end = j05Close(masked, open);
+        const end = stringAddClose(masked, open);
         if (end === -1) { continue; }
         // a bare statement `Helpers.x(..);` is not a legal native expression statement
         if (/[;{}]\s*$/.test(masked.slice(Math.max(0, at - 200), at)) && /^\s*;/.test(masked.slice(end))) { continue; }
         const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
         if (argsM.length !== 1) { continue; }
         const x = content.slice(open + 1, end - 1).trim();
-        const native = x17J42Native(head[1], x, content, at); // hx5 X17
+        const native = x17J42Native(head[1], x, content, at);
         if (native === undefined) { continue; }
         content = content.slice(0, at) + native + content.slice(end);
-        masked = j05Mask(content);
+        masked = stringAddMask(content);
     }
     return content;
 }
 
-// hx5 X17: J42 snippet checks (`--audit-string-types --self-test`)
-function j42SelfTest (): string[] {
+// parse-number snippet checks (`--audit-string-types --self-test`)
+function javaParseNumberSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, long l, double d, Long b)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
@@ -10149,16 +10137,16 @@ function j42SelfTest (): string[] {
         [ 'shadowed by Object local', '        Object l2 = p;\n        Object x = Helpers.parseInt(p);', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ42 (cls (body));
+        const out = nativeJavaParseNumber (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.parse(?:Int|Float)\(/.test (out) && !out.includes ('switch');
-        if (!ok) problems.push (`hx5 X17 J42: ${name}\n${out}`);
+        if (!ok) problems.push (`java parse number self test: ${name}\n${out}`);
     }
-    const once = nativeJavaJ42 (cls ('        Object x = Helpers.parseInt(l) + Helpers.parseInt(p);'));
-    if (nativeJavaJ42 (once) !== once) problems.push ('hx5 X17 J42: not idempotent');
+    const once = nativeJavaParseNumber (cls ('        Object x = Helpers.parseInt(l) + Helpers.parseInt(p);'));
+    if (nativeJavaParseNumber (once) !== once) problems.push ('not idempotent');
     return problems;
 }
 
-// hx5 X18 (was hx4 J43): no curried lambdas. Helpers.replaceAll(s, f, r) becomes the plain
+// No curried lambdas. Helpers.replaceAll(s, f, r) becomes the plain
 // `s.replace(f, r)` only when s is proven a non-null String and f/r are string literals with
 // f non-empty (helper: null s -> null, "" f -> s, all occurrences, literal). Everything else
 // stays the helper call: Helpers.replace is replaceFirst (JS semantics, String.replace is
@@ -10170,17 +10158,17 @@ function x18NonNullString (e: string): string | undefined {
     for (;;) {
         // strip `((String)X)` / `(String)X` casts
         const m = /^\(\s*\(String\)\s*(.*)\)$/s.exec (x);
-        if (m !== null && j05Close (j05Mask (x), 0) === x.length) { x = m[1].trim (); continue; }
+        if (m !== null && stringAddClose (stringAddMask (x), 0) === x.length) { x = m[1].trim (); continue; }
         const c = /^\(String\)\s*(.*)$/s.exec (x);
         if (c !== null) { x = c[1].trim (); continue; }
         break;
     }
     if (/^"(?:[^"\\\n]|\\.)*"$/.test (x)) { return x; }
-    const mk = j05Mask (x);
+    const mk = stringAddMask (x);
     // `(<expr>).toLowerCase()` / `.toUpperCase()` / `.trim()`: NPEs on null before the helper, else non-null
     const call = /\.(toLowerCase|toUpperCase|trim)\(\)$/.exec (mk);
-    if (call !== null && mk.startsWith ('(') && j05Close (mk, 0) === call.index) { return x; }
-    if (mk.startsWith ('String.valueOf(') && j05Close (mk, 'String.valueOf'.length) === mk.length) { return x; }
+    if (call !== null && mk.startsWith ('(') && stringAddClose (mk, 0) === call.index) { return x; }
+    if (mk.startsWith ('String.valueOf(') && stringAddClose (mk, 'String.valueOf'.length) === mk.length) { return x; }
     return undefined;
 }
 
@@ -10191,7 +10179,7 @@ function x18Literal (e: string): string | undefined {
     return /^"(?:[^"\\\n]|\\.)*"$/.test (x) ? x : undefined;
 }
 
-function j43Rewrite (name: string, args: string[]): string | undefined {
+function replaceAllRewrite (name: string, args: string[]): string | undefined {
     if (name !== 'replaceAll' || args.length !== 3) { return undefined; }
     const s = x18NonNullString (args[0]);
     const f = x18Literal (args[1]);
@@ -10200,9 +10188,9 @@ function j43Rewrite (name: string, args: string[]): string | undefined {
     return `${s}.replace(${f}, ${r})`;
 }
 
-export function nativeJavaJ43 (content: string): string {
+export function nativeJavaReplaceAll (content: string): string {
     if (!/Helpers\.replaceAll\(/.test (content)) { return content; }
-    let masked = j05Mask (content);
+    let masked = stringAddMask (content);
     let from = masked.length;
     for (;;) {
         const at = masked.lastIndexOf ('Helpers.replaceAll(', from);
@@ -10210,21 +10198,21 @@ export function nativeJavaJ43 (content: string): string {
         from = at - 1;
         if (at > 0 && /[\w.]/.test (masked[at - 1])) { continue; }
         const open = at + 'Helpers.replaceAll'.length;
-        const end = j05Close (masked, open);
+        const end = stringAddClose (masked, open);
         if (end === -1) { continue; }
         const argsM = splitTopLevelArgs (masked.slice (open + 1, end - 1));
         const args: string[] = []; let p = open + 1;
         for (const m of argsM) { args.push (content.slice (p, p + m.length)); p += m.length + 1; }
-        const repl = j43Rewrite ('replaceAll', args);
+        const repl = replaceAllRewrite ('replaceAll', args);
         if (repl === undefined) { continue; }
         content = content.slice (0, at) + repl + content.slice (end);
-        masked = j05Mask (content);
+        masked = stringAddMask (content);
     }
     return content;
 }
 
-// hx5 X18: snippet checks (`--audit-string-types --self-test`)
-function j43SelfTest (): string[] {
+// Snippet checks (`--audit-string-types --self-test`)
+function javaReplaceAllSelfTest (): string[] {
     const problems: string[] = [];
     const cases: [string, string][] = [
         // native: receiver proven non-null String, literal non-empty search
@@ -10240,16 +10228,16 @@ function j43SelfTest (): string[] {
         [ 'String x = Helpers.padEnd(f, ((Number)6).intValue(), ((String)"0").charAt(0));', 'String x = Helpers.padEnd(f, ((Number)6).intValue(), ((String)"0").charAt(0));' ],
     ];
     for (const [ src, expect ] of cases) {
-        const out = nativeJavaJ43 (src);
-        if (out !== expect || /hx4J43|->/.test (out)) { problems.push (`hx5 X18: ${src}\n${out}`); }
-        if (nativeJavaJ43 (out) !== out) { problems.push (`hx5 X18: not idempotent: ${src}`); }
+        const out = nativeJavaReplaceAll (src);
+        if (out !== expect || /hx4J43|->/.test (out)) { problems.push (`java replace all self test: ${src}\n${out}`); }
+        if (nativeJavaReplaceAll (out) !== out) { problems.push (`not idempotent: ${src}`); }
     }
     return problems;
 }
 
-// hx5 X19: Helpers.isInstance / inOp / isArray become a plain native op only on a proven
+// Helpers.isInstance / inOp / isArray become a plain native op only on a proven
 // operand; every other site keeps the master helper call (no inlined switch or lambda).
-// isEqual / isTrue are not rewritten here: J40 (X14/X15) already runs before this pass.
+// isEqual / isTrue are not rewritten here: the core-arg helpers pass (truthiness / literal equality) already runs before this one.
 
 // innermost member window (from the last `public|private|protected` line) before `pos`
 function x19Member (masked: string, pos: number): string | undefined {
@@ -10270,7 +10258,7 @@ function x19CatchSync (masked: string, name: string, pos: number): boolean {
     while ((mm = re.exec(member)) !== null) { hit = mm; }
     if (hit === null) { return false; }
     const catchOpen = base + hit.index + hit[0].length - 1;
-    const catchEnd = j05Close(masked, catchOpen);
+    const catchEnd = stringAddClose(masked, catchOpen);
     if (catchEnd === -1 || catchEnd < pos) { return false; }
     // `name` must not be reassigned inside the catch body before the site
     if (new RegExp(`(?<![\\w.])${name}\\s*=(?!=)`).test(masked.slice(catchOpen, pos))) { return false; }
@@ -10327,9 +10315,9 @@ function x19Rewrite (name: string, args: string[], masked: string, at: number): 
     return undefined;
 }
 
-export function nativeJavaJ44 (content: string): string {
+export function nativeJavaTypeTests (content: string): string {
     if (!/Helpers\.(?:isInstance|isArray|inOp)\(/.test(content)) { return content; }
-    let masked = j05Mask(content);
+    let masked = stringAddMask(content);
     let from = masked.length;
     for (;;) {
         const at = masked.lastIndexOf('Helpers.', from);
@@ -10339,7 +10327,7 @@ export function nativeJavaJ44 (content: string): string {
         const head = /^Helpers\.(isInstance|isArray|inOp)\(/.exec(masked.slice(at, at + 40));
         if (head === null) { continue; }
         const open = at + head[0].length - 1;
-        const end = j05Close(masked, open);
+        const end = stringAddClose(masked, open);
         if (end === -1) { continue; }
         if (/[;{}]\s*$/.test(masked.slice(Math.max(0, at - 200), at)) && /^\s*;/.test(masked.slice(end))) { continue; }
         const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
@@ -10348,13 +10336,13 @@ export function nativeJavaJ44 (content: string): string {
         const repl = x19Rewrite(head[1], args, masked, at);
         if (repl === undefined) { continue; }
         content = content.slice(0, at) + repl + content.slice(end);
-        masked = j05Mask(content);
+        masked = stringAddMask(content);
     }
     return content;
 }
 
-// hx5 X19: snippet checks (`--audit-string-types --self-test`)
-function j44SelfTest (): string[] {
+// Snippet checks (`--audit-string-types --self-test`)
+function javaTypeTestsSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Object q)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
@@ -10367,23 +10355,23 @@ function j44SelfTest (): string[] {
         [ 'inOp Object receiver', '        if (Helpers.inOp(p, Helpers.GetValue(q, "id"))) {}', undefined ],
         [ 'isArray Object', '        if (Helpers.isArray(p)) {}', undefined ],
         [ 'isArray fresh list', '        List<Object> r = new ArrayList<Object>(java.util.Arrays.asList());\n        if (Helpers.isArray(r)) {}', 'if (true) {}' ],
-        [ 'isTrue Object', '        if (Helpers.isTrue(p)) {}', undefined ], // hx5 X14: helper left alone
+        [ 'isTrue Object', '        if (Helpers.isTrue(p)) {}', undefined ], // helper left alone
         [ 'statement', '        Helpers.isArray(p);', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ44 (cls (body));
+        const out = nativeJavaTypeTests (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.(?:isInstance|isArray|inOp)\(/.test (out);
-        if (!ok) problems.push (`hx5 X19: ${name}\n${out}`);
-        if (nativeJavaJ44 (out) !== out) problems.push (`hx5 X19: not idempotent: ${name}`);
-        if (/hx4J44|switch|BiPredicate/.test (out)) problems.push (`hx5 X19: inlined body: ${name}`);
+        if (!ok) problems.push (`java type tests self test: ${name}\n${out}`);
+        if (nativeJavaTypeTests (out) !== out) problems.push (`not idempotent: ${name}`);
+        if (/hx4J44|switch|BiPredicate/.test (out)) problems.push (`java type tests self test inlined body: ${name}`);
     }
     return problems;
 }
 
-// hx5 X14: J40 truthiness. Helpers.isTrue tests null, Boolean, Long, Integer, Double, String, List, Map in
+// Truthiness. Helpers.isTrue tests null, Boolean, Long, Integer, Double, String, List, Map in
 // order, so a native test is only correct on a proven boolean (`x`) or Boolean (`Boolean.TRUE.equals(x)`).
 // Every other operand keeps the plain helper call; no inline pattern switch is ever emitted.
-function j40X14DeclTypes (masked: string, name: string, pos: number): string[] {
+function isTrueDeclTypes (masked: string, name: string, pos: number): string[] {
     const before = masked.slice(0, pos);
     const breaks = [ ...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm) ];
     if (breaks.length === 0) { return []; }
@@ -10401,10 +10389,10 @@ function j40X14DeclTypes (masked: string, name: string, pos: number): string[] {
 
 // A Bool field of the TS MarketInterface only holds true/false/null, so `Boolean.TRUE.equals` equals isTrue.
 // The receiver must be one local declared once as a Market (MarketInterface, or a Map from this.market/safeMarket).
-const J40_MARKET_BOOL_KEYS = new Set ([ 'active', 'spot', 'margin', 'swap', 'future', 'option', 'index', 'stock', 'prediction', 'contract', 'linear', 'inverse', 'quanto', 'percentage', 'tierBased' ]);
-function j40MarketBoolRead (e: string, ctx: J40Ctx): boolean {
+const MARKET_BOOL_KEYS = new Set ([ 'active', 'spot', 'margin', 'swap', 'future', 'option', 'index', 'stock', 'prediction', 'contract', 'linear', 'inverse', 'quanto', 'percentage', 'tierBased' ]);
+function isMarketBoolRead (e: string, ctx: CoreArgHelperCtx): boolean {
     const m = /^(?:([A-Za-z_]\w*)|\(\(Map<String, Object>\)([A-Za-z_]\w*)\))\.get\("(\w+)"\)$/.exec (e);
-    if (m === null || !J40_MARKET_BOOL_KEYS.has (m[3])) { return false; }
+    if (m === null || !MARKET_BOOL_KEYS.has (m[3])) { return false; }
     const name = m[1] ?? m[2];
     const before = ctx.masked.slice (0, ctx.pos);
     const breaks = [ ...before.matchAll (/^[ \t]*(?:public|private|protected)[ \t]/gm) ];
@@ -10418,27 +10406,27 @@ function j40MarketBoolRead (e: string, ctx: J40Ctx): boolean {
     return init;
 }
 
-function j40X14Type (e: string, ctx: J40Ctx): 'boolean' | 'Boolean' | undefined {
+function isTrueOperandType (e: string, ctx: CoreArgHelperCtx): 'boolean' | 'Boolean' | undefined {
     let t = e.trim();
-    while (/^\(.*\)$/s.test(t) && j05Close(t, 0) === t.length) { t = t.slice(1, -1).trim(); }
+    while (/^\(.*\)$/s.test(t) && stringAddClose(t, 0) === t.length) { t = t.slice(1, -1).trim(); }
     if (/^[A-Za-z_]\w*$/.test(t)) {
         if (ctx.fields.has(t) || /^(?:true|false|null|this)$/.test(t)) { return t === 'true' || t === 'false' ? 'boolean' : undefined; }
-        const decls = j40X14DeclTypes(ctx.masked, t, ctx.pos);
+        const decls = isTrueDeclTypes(ctx.masked, t, ctx.pos);
         if (decls.length === 0) { return undefined; }
         if (decls.every((d) => d === 'boolean')) { return 'boolean'; }
         if (decls.every((d) => d === 'boolean' || d === 'Boolean' || d === 'java.lang.Boolean')) { return 'Boolean'; }
         return undefined;
     }
-    if (j40MarketBoolRead (t, ctx)) { return 'Boolean'; }
+    if (isMarketBoolRead (t, ctx)) { return 'Boolean'; }
     // requireNonNullElse(<Boolean>, <boolean literal>) is a non-null Boolean
     const r = /^java\.util\.Objects\.requireNonNullElse\(([A-Za-z_]\w*), (?:true|false)\)$/.exec(t);
-    if (r !== null && j40X14Type(r[1], ctx) !== undefined) { return 'Boolean'; }
-    if (j35JavaBoolean(t) || j40X14TopLogic(t)) { return 'boolean'; }
+    if (r !== null && isTrueOperandType(r[1], ctx) !== undefined) { return 'Boolean'; }
+    if (isJavaBooleanExpr(t) || isTopLevelLogic(t)) { return 'boolean'; }
     return undefined;
 }
 
 // a top-level `&&` / `||` (no top-level `?:` or assignment) is a Java boolean: both operands must be boolean
-function j40X14TopLogic (e: string): boolean {
+function isTopLevelLogic (e: string): boolean {
     let depth = 0, logic = false;
     for (let k = 0; k < e.length; k++) {
         const c = e[k];
@@ -10454,14 +10442,14 @@ function j40X14TopLogic (e: string): boolean {
     return logic && depth === 0;
 }
 
-function j40X14IsTrue (x: string, ctx: J40Ctx): string | undefined {
-    const t = j40X14Type(x, ctx);
-    if (t === 'boolean') { return j05IsPrimary(x) ? x : `(${x})`; }
+function nativeIsTrue (x: string, ctx: CoreArgHelperCtx): string | undefined {
+    const t = isTrueOperandType(x, ctx);
+    if (t === 'boolean') { return stringAddIsPrimary(x) ? x : `(${x})`; }
     if (t === 'Boolean') { return `Boolean.TRUE.equals(${x})`; }
     return undefined;
 }
 
-function j40X14SelfTest (): string[] {
+function javaIsTrueSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Boolean q, boolean r)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
@@ -10481,18 +10469,18 @@ function j40X14SelfTest (): string[] {
         [ 'call', '        if (Helpers.isTrue(this.safeBool(p, "a"))) {}', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ40 (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.isTrue(') && !out.includes ('switch') && nativeJavaJ40 (out) === out;
-        if (!ok) problems.push (`hx5 X14: ${name}\n${out}`);
+        const out = nativeJavaCoreArgHelpers (cls (body));
+        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.isTrue(') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out;
+        if (!ok) problems.push (`java is true self test: ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx5 X15: J40 literal equality. Exactly two outcomes per Helpers.isEqual site:
+// Literal equality. Exactly two outcomes per Helpers.isEqual site:
 // a proven operand type -> plain native `==` / `.equals`; anything else -> the helper call, untouched.
 // `==` is only emitted between proven primitives (boxed `==` is reference identity, and the helper
 // compares numbers across widths and handles null); `.equals` only on a non-null String receiver.
-function j40X15Equal (a: string, b: string, intConsts: Set<string>, ctx: J40Ctx): string | undefined {
+function nativeIsEqual (a: string, b: string, intConsts: Set<string>, ctx: CoreArgHelperCtx): string | undefined {
     // isEqual(x, null) is x == null for every x
     if (b === 'null') { return `(((Object) (${a})) == null)`; }
     if (a === 'null') { return `(((Object) (${b})) == null)`; }
@@ -10501,20 +10489,20 @@ function j40X15Equal (a: string, b: string, intConsts: Set<string>, ctx: J40Ctx)
     // or a `((double) x) op ((double) y)` expression
     const prim = (t: string): boolean => /^-?\d{1,15}L?$/.test(t) || /^\(-?\d{1,15}L?\)$/.test(t)
         || intConsts.has(t)
-        || /^[A-Za-z_]\w*$/.test(t) && [ 'long', 'int', 'double', 'short', 'byte' ].includes(j40DeclType(ctx.masked, t, ctx.pos) ?? '')
+        || /^[A-Za-z_]\w*$/.test(t) && [ 'long', 'int', 'double', 'short', 'byte' ].includes(coreArgDeclType(ctx.masked, t, ctx.pos) ?? '')
         || /^\(\(\(double\) \w+\) [-+*/%] \(\(double\) \w+\)\)$/.test(t);
     const isLit = (t: string) => /^\(?-?\d{1,15}L?\)?$/.test(t) || intConsts.has(t);
     if (prim(a) && prim(b) && !(isLit(a) && isLit(b))) { return `(${a} == ${b})`; }
     // the literal is a non-null String receiver; a number-shaped literal is equal to numbers too,
     // so it only goes native against a declared String operand
-    const isStr = (t: string) => /^[A-Za-z_]\w*$/.test(t) && j40DeclType(ctx.masked, t, ctx.pos) === 'String';
-    if (strLit(b) && !strLit(a) && (j40Unparseable(b) || isStr(a))) { return `${b}.equals(${a})`; }
-    if (strLit(a) && !strLit(b) && (j40Unparseable(a) || isStr(b))) { return `${a}.equals(${b})`; }
+    const isStr = (t: string) => /^[A-Za-z_]\w*$/.test(t) && coreArgDeclType(ctx.masked, t, ctx.pos) === 'String';
+    if (strLit(b) && !strLit(a) && (isUnparseableNumberLiteral(b) || isStr(a))) { return `${b}.equals(${a})`; }
+    if (strLit(a) && !strLit(b) && (isUnparseableNumberLiteral(a) || isStr(b))) { return `${a}.equals(${b})`; }
     return undefined;
 }
 
-// hx5 X15: snippet checks (`--audit-string-types --self-test`)
-function j40X15SelfTest (): string[] {
+// Snippet checks (`--audit-string-types --self-test`)
+function javaIsEqualSelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, Long n, long k, double d)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
@@ -10534,28 +10522,27 @@ function j40X15SelfTest (): string[] {
         [ 'Object pair', '        if (Helpers.isEqual(p, n)) {}', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ40 (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.') && !out.includes ('switch') && nativeJavaJ40 (out) === out;
-        if (!ok) problems.push (`hx5 X15: ${name}\n${out}`);
+        const out = nativeJavaCoreArgHelpers (cls (body));
+        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out;
+        if (!ok) problems.push (`java is equal self test: ${name}\n${out}`);
     }
     return problems;
 }
 
-// hx5 X16
-// Proof for nativeJavaJ41. Native only when equivalent to the helper:
+// Proof for nativeJavaStringSliceIndexOf. Native only when equivalent to the helper:
 //  - getIndexOf(s, t) -> s.indexOf(t): s a proven non-null String (literal, or a local declared
 //    `String s = "lit"` exactly once in the file and never reassigned), t a string literal (non-null String,
 //    so indexOf neither NPEs nor diverges from the helper's String/String branch).
 //  - slice(s, b, e) -> s.substring(b[, e]): s a string literal and b/e integer literals (or null end) whose
 //    clamped bounds equal the raw ones, so substring cannot throw and returns what Helpers.Slice returns.
 // Anything else returns undefined: the helper call stays.
-function hx5X16Literal (x: string): string | undefined {
+function nonNullStringLiteral (x: string): string | undefined {
     const m = /^"((?:[^"\\]|\\.)*)"$/.exec(x.trim());
     if (m === null || m[1].includes('\\')) { return undefined; }
     return m[1];
 }
 
-function hx5X16StringLocal (name: string, content: string): boolean {
+function isNonNullStringLocal (name: string, content: string): boolean {
     if (!/^[A-Za-z_]\w*$/.test(name)) { return false; }
     const masked = content.replace(/"(?:[^"\\\n]|\\.)*"/g, '""');
     const decl = new RegExp('(^|[^\\w.])String\\s+' + name + '\\s*=\\s*""\\s*;', 'g');
@@ -10569,18 +10556,18 @@ function hx5X16StringLocal (name: string, content: string): boolean {
     return (masked.match(assign) || []).length === 1;
 }
 
-function hx5X16NonNullString (x: string, content: string): boolean {
-    return hx5X16Literal(x) !== undefined || hx5X16StringLocal(x.trim(), content);
+function isNonNullString (x: string, content: string): boolean {
+    return nonNullStringLiteral(x) !== undefined || isNonNullStringLocal(x.trim(), content);
 }
 
-function hx5X16Native (name: string, args: string[], content: string): string | undefined {
+function nativeStringSliceIndexOf (name: string, args: string[], content: string): string | undefined {
     if (name === 'getIndexOf' && args.length === 2) {
-        if (hx5X16Literal(args[1]) === undefined) { return undefined; }
-        if (!hx5X16NonNullString(args[0], content)) { return undefined; }
+        if (nonNullStringLiteral(args[1]) === undefined) { return undefined; }
+        if (!isNonNullString(args[0], content)) { return undefined; }
         return args[0] + '.indexOf(' + args[1] + ')';
     }
     if (name === 'slice' && args.length === 3) {
-        const s = hx5X16Literal(args[0]);
+        const s = nonNullStringLiteral(args[0]);
         if (s === undefined) { return undefined; }
         const len = s.length;
         if (!/^\d+$/.test(args[1])) { return undefined; }
@@ -10597,7 +10584,7 @@ function hx5X16Native (name: string, args: string[], content: string): string | 
     return undefined;
 }
 
-function hx5X16SelfTest (): string[] {
+function javaNonNullStringOpsSelfTest (): string[] {
     const problems: string[] = [];
     const cases: [string, string][] = [
         // unproven receivers keep the helper call verbatim
@@ -10624,14 +10611,14 @@ function hx5X16SelfTest (): string[] {
         [ '        String q = "Helpers.slice(a, 0, 1)";', '"Helpers.slice(a, 0, 1)"' ],
     ];
     for (const [ body, expect ] of cases) {
-        const out = nativeJavaJ41 (body);
-        const again = nativeJavaJ41 (out);
-        if (!out.includes (expect) || again !== out || /hx4J41|java\.util\.function/.test (out)) problems.push (`hx5 X16: ${body}\n${out}`);
+        const out = nativeJavaStringSliceIndexOf (body);
+        const again = nativeJavaStringSliceIndexOf (out);
+        if (!out.includes (expect) || again !== out || /hx4J41|java\.util\.function/.test (out)) problems.push (`java non null string ops: ${body}\n${out}`);
     }
     return problems;
 }
 
-// hx5 X17: Helpers.parseInt/parseFloat only become native when the operand's Java type makes the
+// Helpers.parseInt/parseFloat only become native when the operand's Java type makes the
 // result identical to Helpers.toLong/toDouble under the helper's catch-all (parseInt: failure -> null;
 // parseFloat: failure or null -> 0.0). A String operand is NEVER made native: Long.parseLong /
 // Double.parseDouble throw where the helper returns null / 0.0. Unproven -> the helper call stays.
@@ -10654,7 +10641,7 @@ function x17J42Native (name: string, x: string, content: string, at: number): st
     return undefined;
 }
 
-// hx5 X17: the declared Java type of `name` at `at`: the nearest local declaration above in the same
+// The declared Java type of `name` at `at`: the nearest local declaration above in the same
 // member, else the member's parameter list. Java's static typing makes that declaration sound.
 function x17J42DeclaredType (content: string, at: number, name: string): string | undefined {
     const lines = content.slice(0, at).split('\n');
@@ -10677,7 +10664,7 @@ function x17J42DeclaredType (content: string, at: number, name: string): string 
     return undefined;
 }
 
-// hx5 X21: Object locals proven String (base `: Str` producers) / Map (venue `: Dict` omit/fresh-map
+// Object locals proven String (base `: Str` producers) / Map (venue `: Dict` omit/fresh-map
 // callees) print their concrete type; any unproven write or producer keeps Object
 function x21SelfTest (): string[] {
     const problems: string[] = [];
@@ -10700,30 +10687,29 @@ function x21SelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/String a = \(String\) this\.currencyToPrecision\(/.test(out)) problems.push("x21: 'a' (currencyToPrecision + literal write) must print String with a checkcast");
-        if (!/String b = \(String\) this\.parsePrecision\(/.test(out)) problems.push("x21: 'b' (parsePrecision) must print String");
-        if (!/Map<String, Object> d = /.test(out)) problems.push("x21: 'd' (venue omit-of-Map-param callee) must print Map");
-        if (!/Map<String, Object> e = /.test(out)) problems.push("x21: 'e' (venue omit-of-handle-element-1 callee) must print Map");
-        // hx10 w4 PJ03 types a venue method's proven Dict return, so a local off zzxLoose is a Map too
-        if (!/Map<String, Object> f = /.test(out)) problems.push("x21: 'f' (venue Dict-returning callee) must print Map");
+        if (!/String a = \(String\) this\.currencyToPrecision\(/.test(out)) problems.push("'a' (currencyToPrecision + literal write) must print String with a checkcast");
+        if (!/String b = \(String\) this\.parsePrecision\(/.test(out)) problems.push("'b' (parsePrecision) must print String");
+        if (!/Map<String, Object> d = /.test(out)) problems.push("'d' (venue omit-of-Map-param callee) must print Map");
+        if (!/Map<String, Object> e = /.test(out)) problems.push("'e' (venue omit-of-handle-element-1 callee) must print Map");
+        // a venue method's proven Dict return is typed, so a local off zzxLoose is a Map too
+        if (!/Map<String, Object> f = /.test(out)) problems.push("'f' (venue Dict-returning callee) must print Map");
         for (const name of [ 'c' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`x21: '${name}' has an unproven write/producer and must stay Object`);
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/producer and must stay Object`);
         }
-        if (problems.length) problems.push('x21 output:\n' + out);
+        if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
-        problems.push(`x21 self-test threw: ${e.message}`);
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
 
-// hx5 X22
-// Helpers.GetValue / Helpers.addElementToObject inside nativeJavaJ39Containers. Exactly two outcomes per site:
+// Helpers.GetValue / Helpers.addElementToObject inside nativeJavaContainerOps. Exactly two outcomes per site:
 //   * receiver + key proven -> the plain Map/List op (`m.get(k)`, `m.put(k, v);`, `l.get(N)`), with only the null
 //     guard the helper's own contract needs (GetValue answers null for a null receiver / key / out-of-range index);
-//   * anything else -> the helper call, untouched. The hx4 J39 inline blobs (pattern-match + synchronized
-//     ConcurrentHashMap null-remove replay) are gone.
+//   * anything else -> the helper call, untouched; no inline pattern-match or
+//     ConcurrentHashMap null-remove replay is emitted.
 // put is native only on a FRESH local (every write is `new [Linked]HashMap<String, Object>(...)`, not a parameter):
 // such a map is never a ConcurrentHashMap (put(k, null) would throw where the helper removes), never null, and
 // unshared, so the helper's `synchronized (m)` pairing with objectKeys has no reader. Fields (this.options is a
@@ -10752,7 +10738,7 @@ function x22MapRewrite (helper: string, args: string[], statement: boolean, decl
         const fieldMap = /^this\.([A-Za-z_]\w*)$/.exec (t);
         // GetValue does not synchronize: a plain get on a declared-Map base field is the same read
         // markets_by_id is volatile and reset to null by other threads: the guard's double read could NPE, keep the helper
-        const mapRecv = (ident (t) && isMap (declaredType (t))) || (fieldMap !== null && fieldMap[1] !== 'markets_by_id' && j39MapFields ().has (fieldMap[1]));
+        const mapRecv = (ident (t) && isMap (declaredType (t))) || (fieldMap !== null && fieldMap[1] !== 'markets_by_id' && javaMapCacheFields ().has (fieldMap[1]));
         if (mapRecv && stringKey (k)) {
             const recvNonNull = ident (t) && fresh (t);
             // HashMap.get(null) answers null; a possibly-concurrent map throws, so guard an identifier key
@@ -10775,7 +10761,7 @@ function x22MapRewrite (helper: string, args: string[], statement: boolean, decl
     return undefined;
 }
 
-// hx5 X22: snippet checks (`--audit-string-types --self-test`)
+// Snippet checks (`--audit-string-types --self-test`)
 function x22SelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
@@ -10800,10 +10786,10 @@ function x22SelfTest (): string[] {
         [ 'get options id key', '        return Helpers.GetValue(this.options, o);', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaJ39Containers (cls (body));
+        const out = nativeJavaContainerOps (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/j39|switch|synchronized/.test (out);
-        if (!ok) problems.push (`hx5 X22: ${name}\n${out}`);
-        if (nativeJavaJ39Containers (out) !== out) problems.push (`hx5 X22: ${name} not idempotent`);
+        if (!ok) problems.push (`java selftest: ${name}\n${out}`);
+        if (nativeJavaContainerOps (out) !== out) problems.push (`java selftest: ${name} not idempotent`);
     }
     return problems;
 }

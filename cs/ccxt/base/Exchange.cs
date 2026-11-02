@@ -1486,7 +1486,7 @@ public partial class BaseExchange
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }
 
-    // U37: the body is a single throw (no return path), so the declared type is free; the
+    // The body is a single throw (no return path), so the declared type is free; the
     // Dictionary spelling is what lets dydx#retrieveCredentials's `credentials` local join
     // its safeDict initializer (IDictionary) with this write.
     public Dictionary<string, object> retrieveDydxCredentials(object entropy)

@@ -10,12 +10,12 @@ import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import {
-    nativeGetValue, r01TypedLocals, r07StringNatives, hx11RustSignApiStr, r05FieldChainInserts, bf03PlainDictChains,
-    r02NativeInserts, hx10w2R03, hx10w3R03, r04Scalars, r04Callee, r06Push, r06w3Push, r10ClientHandle,
-    hx10w9Rp02ParamKind, hx10w9Rp02DispatchArg, hx10w9Rp02SplitArgs, hx10w9Rp02RefMapParamNames,
+    nativeGetValue, rustTypedLocals, rustStringNatives, rustSignApiStr, fieldChainInserts, plainDictChains,
+    nativeInserts, nativeContainerOps, calleeShapeContainerOps, nativeBoolScalars, nativeBoolCallee, arrOnlyVecPush, rustVecPushInline, clientHandleViews,
+    mapParamKind, mapParamDispatchArg, mapParamSplitArgs, refMapParamNames,
     narrowStrSinkLocals, narrowStrNullLocals,
-    hx11w9RustIntLocalNullSinkOptionI64, hx11w9RustStrLiteralLocalNativeString, hx11w9StrLocalReassign, hx11w9RustBoolKLocalOptionBool,
-    hx11w9RustBool2LocalOptionBool, hx11w9RustBoolNLocalOptionBool, hx11w9RustStr2LocalOptionString, hx11w9RustNumber2LocalOptionF64, hx11w9RustInt2IntNLocalOptionI64, hx11w9RustStrNLocalOptionString, hx11w9RustNumber2SinkLocalOptionF64R2,
+    rustIntLocalNullSinkOptionI64, rustStrLiteralLocalNativeString, strLocalReassign, rustBoolKLocalOptionBool,
+    rustBool2LocalOptionBool, rustBoolNLocalOptionBool, rustStr2LocalOptionString, rustNumber2LocalOptionF64, rustInt2IntNLocalOptionI64, rustStrNLocalOptionString, rustNumber2SinkLocalOptionF64R2,
 } from 'ast-transpiler';
 
 ansi.nice;
@@ -320,7 +320,7 @@ export class RustTranspilerBuilder {
     /**
      * `throw new <Class>(msg)` where the class is a runtime value — either
      * a local variable (digifinex `const [ExceptionClass] = …`, lbank
-     * `const ErrorClass = …`, waves `const Exception = …`) or a dynamic
+     * `const ErrorClass = …`, Waves `const Exception = …`) or a dynamic
      * lookup (krakenfutures `throw new errors[status](…)` →
      * `get_value(&errors,&status)::new(…)`). The transpiler emits
      * `panic!("{}", <classExpr>::new(msg))`, treating the value as a
@@ -3264,7 +3264,7 @@ export class RustTranspilerBuilder {
             const catchPart = this.rewriteTryCatchAsync(catchBody, isVoid);
             // A handler that never reads its binding needs no `Value` payload:
             // `Err(_)` / `is_err()` are native, so the helper call disappears
-            // (hx10 R10). Bindings the body does read keep `panic_to_value`.
+            // Bindings the body does read keep `panic_to_value`.
             const errUsed = ifMatch !== null
                 && new RegExp(`(?<![A-Za-z0-9_])${errName}(?![A-Za-z0-9_])`).test(catchPart);
             // Inside an `async {}` catch_unwind block, `return ident;`
@@ -6938,8 +6938,8 @@ export class RustTranspilerBuilder {
      */
     dropDeadValueSlotClones(content: string): string {
         if (!content.includes('.clone()')) return content;
-        // hx10w9 RP02: a `&mut IndexMap` parameter is never moved, only copied.
-        const refMapParams = hx10w9Rp02RefMapParamNames(content);
+        // A `&mut IndexMap` parameter is never moved, only copied.
+        const refMapParams = refMapParamNames(content);
         const masked = this.maskStrings(content);
         const blocks = this.rustBlocksOf(masked);
         const closures = blocks.filter(b => b.kind === 'closure');
@@ -7805,7 +7805,7 @@ export class RustTranspilerBuilder {
             // Args inside the parens — collect (Value-typed) names so we
             // can pack them into a `vec![...]` to forward.
             const argList = m[2];
-            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
+            const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
             const vecArgs: string[] = [];
             let hasSlice = false;
             for (const p of params) {
@@ -7862,7 +7862,7 @@ export class RustTranspilerBuilder {
             // Build the forwarding call. The trait method takes fixed-arity
             // `Value` args; we pull them from the inherent method's params.
             const argList = m[3];
-            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
+            const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
             // Classify each inherent param: 'value' (a fixed Value),
             // 'slice' (the `optional_args: &[Value]` bag), or unknown.
             type ParamInfo = { name: string, kind: 'value' | 'slice' | 'other' };
@@ -8027,10 +8027,10 @@ export class RustTranspilerBuilder {
             const isVoid = !isValue;
             // Skip if there's no `self` receiver.
             if (!/\bself\b/.test(argList)) continue;
-            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
+            const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
             const paramKinds = params.map(p => {
                 if (/:\s*&\[/.test(p)) return 'slice';
-                if (hx10w9Rp02ParamKind(p) !== undefined) return 'map';
+                if (mapParamKind(p) !== undefined) return 'map';
                 if (/:\s*Vec<String>/.test(p)) return 'strvec';
                 if (/:\s*Value\b/.test(p)) return 'value';
                 if (/:\s*bool\b/.test(p)) return 'bool';
@@ -8152,7 +8152,7 @@ export class RustTranspilerBuilder {
                 } else if (paramKinds[i] === 'strvec') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
-                    callArgs.push(hx10w9Rp02DispatchArg(i));
+                    callArgs.push(mapParamDispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -8207,7 +8207,7 @@ ${arms.join('\n')}
                 } else if (paramKinds[i] === 'strvec') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
-                    callArgs.push(hx10w9Rp02DispatchArg(i));
+                    callArgs.push(mapParamDispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -8291,7 +8291,7 @@ ${arms.join('\n')}
                 } else if (paramKinds[i] === 'strvec') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
-                    callArgs.push(hx10w9Rp02DispatchArg(i));
+                    callArgs.push(mapParamDispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     // Pass the remaining args as a slice of `args` itself.
                     callArgs.push(this.dispatchSliceArg(i));
@@ -8337,7 +8337,7 @@ ${isBase
                 } else if (paramKinds[i] === 'strvec') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
-                    callArgs.push(hx10w9Rp02DispatchArg(i));
+                    callArgs.push(mapParamDispatchArg(i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -8417,8 +8417,8 @@ ${fallthrough}
             const isVoid = retType === '';
             const isValue = /->\s*(crate::)?Value\s*$/.test(retType);
             if (!isVoid && !isValue) continue; // e.g. `-> bool` — not dispatchable
-            const params = hx10w9Rp02SplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
-            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (hx10w9Rp02ParamKind(p) !== undefined ? 'map' : (/:\s*Vec<String>/.test(p) ? 'strvec' : (p.match(/:\s*bool\b/) ? 'bool' : (p.match(/:\s*Value\b/) ? 'value' : 'other')))));
+            const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
+            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (mapParamKind(p) !== undefined ? 'map' : (/:\s*Vec<String>/.test(p) ? 'strvec' : (p.match(/:\s*bool\b/) ? 'bool' : (p.match(/:\s*Value\b/) ? 'value' : 'other')))));
             if (kinds.some(k => k === 'other')) continue;
             seen.add(name);
             const callArgs = kinds.map((k, i) => k === 'slice'
@@ -8428,7 +8428,7 @@ ${fallthrough}
                     : k === 'bool'
                     ? `args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`
                     : k === 'map'
-                        ? hx10w9Rp02DispatchArg(i)
+                        ? mapParamDispatchArg(i)
                         : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
             const call = `self.${name}(${callArgs.join(', ')})`;
             arms.push(isVoid
@@ -9210,11 +9210,11 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.dropNativeCallIsTrue(rustContent);
                 rustContent = this.dropSelfBoolFieldIsTrue(rustContent);
                 rustContent = this.dropOptionShadowIsTrue(rustContent);
-                rustContent = this.hx4R24BoolParamIsTrue(rustContent);
-                rustContent = this.hx4R03DropBoolBoxedIsTrue(rustContent);
-                rustContent = this.hx4R19NativeBoolEquals(rustContent);
-                rustContent = this.hx4R19NativeBoolIsTrue(rustContent);
-                rustContent = this.hx4R25InlineLiteralIsEqual(rustContent);
+                rustContent = this.rustBoolParamIsTrue(rustContent);
+                rustContent = this.rustDropBoolBoxedIsTrue(rustContent);
+                rustContent = this.rustNativeBoolEquals(rustContent);
+                rustContent = this.rustNativeBoolIsTrue(rustContent);
+                rustContent = this.rustInlineLiteralIsEqual(rustContent);
                 // Last: drop `.clone()` on the value arg of
                 // extend/omit/market/parse_number when the local is dead
                 // afterwards (those callees take the Value by value).
@@ -9229,10 +9229,10 @@ impl std::ops::DerefMut for ${coreName} {
                 // write-back pass appends `set_value(&mut X, ..)` lines those
                 // locals must keep the box for).
                 rustContent = this.typeSafeListLocals(rustContent);
-                // hx10w2 R06: `append_to_array` on an Arr-only local is a plain `Vec` push.
-                rustContent = r06Push(rustContent);
-                // hx10 W3 R06: append_to_array on a marker-free local receiver is a plain Vec push.
-                rustContent = r06w3Push(rustContent);
+                // `append_to_array` on an Arr-only local is a plain `Vec` push.
+                rustContent = arrOnlyVecPush(rustContent);
+                // append_to_array on a marker-free local receiver is a plain Vec push.
+                rustContent = rustVecPushInline(rustContent);
                 // And `instanceof <errorClass>` whose class has no subclass.
                 rustContent = this.rewriteNativeErrorClassChecks(rustContent);
                 // Last: a `.clone()` in a by-value slot whose local is dead
@@ -9241,42 +9241,42 @@ impl std::ops::DerefMut for ${coreName} {
                 // And `while (true)` → `loop {` (rustc's `while_true` lint is
                 // an error under the CI clippy lane's `-D warnings`).
                 rustContent = this.whileTrueToLoop(rustContent);
-                rustContent = this.r28Truth(rustContent); // hx4 R28
-                rustContent = r04Scalars(rustContent); // hx10 R04
-                rustContent = r04Callee(rustContent); // hx10w3 R04
-                rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
-                rustContent = this.r31Str(rustContent); // hx4 R31
-                rustContent = this.r32Native(rustContent); // hx4 R32
+                rustContent = this.rustNativeTruthAndEquality(rustContent);
+                rustContent = nativeBoolScalars(rustContent);
+                rustContent = nativeBoolCallee(rustContent);
+                rustContent = this.rustInlineCollectionHelpers(rustContent);
+                rustContent = this.rustInlineStringHelpers(rustContent);
+                rustContent = this.rustNativeObjectHelpers(rustContent);
                 // Last of all: native get_value on a receiver whose container shape
                 // the final text pins (needs the clone/write passes to be done).
-                rustContent = nativeGetValue(rustContent); // hx10 R01
-                rustContent = r02NativeInserts(rustContent); // hx10 R02
-                rustContent = hx10w2R03(rustContent); // hx10w2 R03
-                // hx10 W3 R01: typed locals run last, on the final text.
-                rustContent = r01TypedLocals(rustContent);
-                rustContent = r07StringNatives(rustContent); // hx10 W3 R07
-                rustContent = hx11RustSignApiStr(rustContent);
-                rustContent = hx10w3R03(rustContent); // hx10 wave-3 R03
-                rustContent = r05FieldChainInserts(rustContent); // hx10 R05
-                rustContent = bf03PlainDictChains(rustContent); // hx10w4 BF03
-                // hx10w7 R10: venue reads of the ws client go through the typed
+                rustContent = nativeGetValue(rustContent);
+                rustContent = nativeInserts(rustContent);
+                rustContent = nativeContainerOps(rustContent);
+                // Typed locals run last, on the final text.
+                rustContent = rustTypedLocals(rustContent);
+                rustContent = rustStringNatives(rustContent);
+                rustContent = rustSignApiStr(rustContent);
+                rustContent = calleeShapeContainerOps(rustContent);
+                rustContent = fieldChainInserts(rustContent);
+                rustContent = plainDictChains(rustContent);
+                // Venue reads of the ws client go through the typed
                 // handle the drive loop owns (field reads, no `get_value` lookup).
-                rustContent = r10ClientHandle(rustContent);
-                // hx11 W4 P1: `safe_string*` locals whose only sink is a `format!` print a `String`.
+                rustContent = clientHandleViews(rustContent);
+                // `safe_string*` locals whose only sink is a `format!` print a `String`.
                 rustContent = narrowStrSinkLocals(rustContent);
-                rustContent = narrowStrNullLocals(rustContent); // hx11 W7
+                rustContent = narrowStrNullLocals(rustContent);
                 rustContent = this.splitLongIntegerRead(rustContent);
-                rustContent = hx11w9RustIntLocalNullSinkOptionI64(rustContent); // hx11 W9
-                rustContent = hx11w9RustStrLiteralLocalNativeString(rustContent); // hx11 W9
-                rustContent = hx11w9StrLocalReassign(rustContent); // hx11 W9
-                rustContent = hx11w9RustBoolKLocalOptionBool(rustContent); // hx11 W9
-                rustContent = hx11w9RustBool2LocalOptionBool(rustContent); // hx11 W9
-                rustContent = hx11w9RustBoolNLocalOptionBool(rustContent); // hx11 W9
-                rustContent = hx11w9RustStr2LocalOptionString(rustContent); // hx11 W9
-                rustContent = hx11w9RustNumber2LocalOptionF64(rustContent); // hx11 W9
-                rustContent = hx11w9RustInt2IntNLocalOptionI64(rustContent); // hx11 W9
-                rustContent = hx11w9RustStrNLocalOptionString(rustContent); // hx11 W9
-                rustContent = hx11w9RustNumber2SinkLocalOptionF64R2(rustContent); // hx11 W9
+                rustContent = rustIntLocalNullSinkOptionI64(rustContent);
+                rustContent = rustStrLiteralLocalNativeString(rustContent);
+                rustContent = strLocalReassign(rustContent);
+                rustContent = rustBoolKLocalOptionBool(rustContent);
+                rustContent = rustBool2LocalOptionBool(rustContent);
+                rustContent = rustBoolNLocalOptionBool(rustContent);
+                rustContent = rustStr2LocalOptionString(rustContent);
+                rustContent = rustNumber2LocalOptionF64(rustContent);
+                rustContent = rustInt2IntNLocalOptionI64(rustContent);
+                rustContent = rustStrNLocalOptionString(rustContent);
+                rustContent = rustNumber2SinkLocalOptionF64R2(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9988,52 +9988,52 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.dropNativeCallIsTrue(finalFile);
         finalFile = this.dropSelfBoolFieldIsTrue(finalFile);
         finalFile = this.dropOptionShadowIsTrue(finalFile);
-        finalFile = this.hx4R24BoolParamIsTrue(finalFile);
-        finalFile = this.hx4R03DropBoolBoxedIsTrue(finalFile);
-        finalFile = this.hx4R19NativeBoolEquals(finalFile);
-        finalFile = this.hx4R19NativeBoolIsTrue(finalFile);
-        finalFile = this.hx4R25InlineLiteralIsEqual(finalFile);
+        finalFile = this.rustBoolParamIsTrue(finalFile);
+        finalFile = this.rustDropBoolBoxedIsTrue(finalFile);
+        finalFile = this.rustNativeBoolEquals(finalFile);
+        finalFile = this.rustNativeBoolIsTrue(finalFile);
+        finalFile = this.rustInlineLiteralIsEqual(finalFile);
         finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);
-        // hx10w2 R06: `append_to_array` on an Arr-only local is a plain `Vec` push.
-        finalFile = r06Push(finalFile);
-        finalFile = r06w3Push(finalFile); // hx10 W3 R06
+        // `append_to_array` on an Arr-only local is a plain `Vec` push.
+        finalFile = arrOnlyVecPush(finalFile);
+        finalFile = rustVecPushInline(finalFile);
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
         // And `while (true)` → `loop {` (rustc's `while_true` lint is an error
         // under the CI clippy lane's `-D warnings`).
         finalFile = this.whileTrueToLoop(finalFile);
-        finalFile = this.r28Truth(finalFile); // hx4 R28
-        finalFile = r04Scalars(finalFile); // hx10 R04
-        finalFile = r04Callee(finalFile); // hx10w3 R04
-        finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
-        finalFile = this.r31Str(finalFile); // hx4 R31
-        finalFile = this.r32Native(finalFile); // hx4 R32
-        // Last of all: native get_value on a pinned receiver (hx10 R01).
+        finalFile = this.rustNativeTruthAndEquality(finalFile);
+        finalFile = nativeBoolScalars(finalFile);
+        finalFile = nativeBoolCallee(finalFile);
+        finalFile = this.rustInlineCollectionHelpers(finalFile);
+        finalFile = this.rustInlineStringHelpers(finalFile);
+        finalFile = this.rustNativeObjectHelpers(finalFile);
+        // Last of all: native get_value on a pinned receiver.
         finalFile = nativeGetValue(finalFile);
-        finalFile = r02NativeInserts(finalFile); // hx10 R02
-        finalFile = hx10w2R03(finalFile); // hx10w2 R03
-        finalFile = r01TypedLocals(finalFile); // hx10 W3 R01
-        finalFile = r07StringNatives(finalFile); // hx10 W3 R07
-        finalFile = hx11RustSignApiStr(finalFile);
-                finalFile = hx10w3R03(finalFile); // hx10 wave-3 R03
-        finalFile = r05FieldChainInserts(finalFile); // hx10 R05
-        finalFile = bf03PlainDictChains(finalFile); // hx10w4 BF03
-        finalFile = narrowStrSinkLocals(finalFile); // hx11 W4 P1
-        finalFile = narrowStrNullLocals(finalFile); // hx11 W7
-        finalFile = hx11w9RustIntLocalNullSinkOptionI64(finalFile); // hx11 W9
-        finalFile = hx11w9RustStrLiteralLocalNativeString(finalFile); // hx11 W9
-        finalFile = hx11w9StrLocalReassign(finalFile); // hx11 W9
-        finalFile = hx11w9RustBoolKLocalOptionBool(finalFile); // hx11 W9
-        finalFile = hx11w9RustBool2LocalOptionBool(finalFile); // hx11 W9
-        finalFile = hx11w9RustBoolNLocalOptionBool(finalFile); // hx11 W9
-        finalFile = hx11w9RustStr2LocalOptionString(finalFile); // hx11 W9
-        finalFile = hx11w9RustNumber2LocalOptionF64(finalFile); // hx11 W9
-        finalFile = hx11w9RustInt2IntNLocalOptionI64(finalFile); // hx11 W9
-        finalFile = hx11w9RustStrNLocalOptionString(finalFile); // hx11 W9
-        finalFile = hx11w9RustNumber2SinkLocalOptionF64R2(finalFile); // hx11 W9
+        finalFile = nativeInserts(finalFile);
+        finalFile = nativeContainerOps(finalFile);
+        finalFile = rustTypedLocals(finalFile);
+        finalFile = rustStringNatives(finalFile);
+        finalFile = rustSignApiStr(finalFile);
+                finalFile = calleeShapeContainerOps(finalFile);
+        finalFile = fieldChainInserts(finalFile);
+        finalFile = plainDictChains(finalFile);
+        finalFile = narrowStrSinkLocals(finalFile);
+        finalFile = narrowStrNullLocals(finalFile);
+        finalFile = rustIntLocalNullSinkOptionI64(finalFile);
+        finalFile = rustStrLiteralLocalNativeString(finalFile);
+        finalFile = strLocalReassign(finalFile);
+        finalFile = rustBoolKLocalOptionBool(finalFile);
+        finalFile = rustBool2LocalOptionBool(finalFile);
+        finalFile = rustBoolNLocalOptionBool(finalFile);
+        finalFile = rustStr2LocalOptionString(finalFile);
+        finalFile = rustNumber2LocalOptionF64(finalFile);
+        finalFile = rustInt2IntNLocalOptionI64(finalFile);
+        finalFile = rustStrNLocalOptionString(finalFile);
+        finalFile = rustNumber2SinkLocalOptionF64R2(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -11326,9 +11326,9 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.wrapAssertInIsTrue(content);
         content = this.dropRedundantIsTrue(content);
         content = this.rewriteNativeErrorClassChecks(content);
-                content = hx10w3R03(content); // hx10 wave-3 R03
-        content = r05FieldChainInserts(content); // hx10 R05
-        content = bf03PlainDictChains(content); // hx10w4 BF03
+                content = calleeShapeContainerOps(content);
+        content = fieldChainInserts(content);
+        content = plainDictChains(content);
         return content;
     }
 
@@ -11998,12 +11998,12 @@ impl std::ops::DerefMut for ${coreName} {
         }
     }
 
-    // hx4 R03 — `is_true(&X)` -> `X.as_bool() == Some(true)` when X can only hold
+    // `is_true(&X)` -> `X.as_bool() == Some(true)` when X can only hold
     // `Value::Bool(..)` / `Value::Null` (exact: `is_truthy` reads Bool by payload, Null false).
 
     /** Every return path is a `Value::Bool(..)` box or `Value::Null`: explicit
      *  `return`s plus the fn's tail expression (after the last top-level `;`/`}`). */
-    hx4R03BodyReturnsBoolNullOnly(body: string): boolean {
+    rustFnBodyReturnsBoolOrNull(body: string): boolean {
         const masked = this.maskStringsAndComments(body);
         const inner = masked.slice(1, masked.lastIndexOf('}'));
         if (/\?\s*[;)}\n]/.test(inner)) return false;
@@ -12027,16 +12027,16 @@ impl std::ops::DerefMut for ${coreName} {
     }
 
     /** Hand-written base fields whose every write in the runtime is a `Value::Bool(..)` box. */
-    hx4R03BoolFields(): Set<string> {
+    rustBoolOnlyFields(): Set<string> {
         const cache = this as any;
-        if (cache._hx4R03BoolFields !== undefined) return cache._hx4R03BoolFields;
+        if (cache._rustBoolOnlyFields !== undefined) return cache._rustBoolOnlyFields;
         const out = new Set<string>();
         let srcs: string[] = [];
         try {
             const core = fs.readdirSync(RUST_CORE).filter(f => f.endsWith('.rs') && f !== 'exchange.rs').map(f => `${RUST_CORE}/${f}`);
             srcs = [`${RUST_CORE}/exchange.rs`, ...core].map(f => this.maskStringsAndComments(fs.readFileSync(f, 'utf8')));
         } catch {
-            cache._hx4R03BoolFields = out;
+            cache._rustBoolOnlyFields = out;
             return out;
         }
         const decl = srcs[0];
@@ -12055,14 +12055,14 @@ impl std::ops::DerefMut for ${coreName} {
                 if (new RegExp(`&mut\\s+self\\.${name}\\b`).test(src)) ok = false;
                 if (!ok) break;
             }
-            if (ok && inits > 0 && !this.hx4R03TsWritesField(name)) out.add(name);
+            if (ok && inits > 0 && !this.rustTsWritesField(name)) out.add(name);
         }
-        cache._hx4R03BoolFields = out;
+        cache._rustBoolOnlyFields = out;
         return out;
     }
 
     /** A venue source (ts/src, ts/src/pro, ts/src/prediction) assigns `this.<field>`. */
-    hx4R03TsWritesField(field: string): boolean {
+    rustTsWritesField(field: string): boolean {
         const re = new RegExp(`\\bthis\\.${field}\\s*=(?!=)`);
         for (const dir of ['./ts/src', './ts/src/pro', './ts/src/prediction']) {
             let files: string[] = [];
@@ -12073,9 +12073,9 @@ impl std::ops::DerefMut for ${coreName} {
     }
 
     /** `crate::precise::Precise::stringX` comparators returning only `Bool(false)` / `vbool(..)`. */
-    hx4R03PreciseBoolFns(): Set<string> {
+    rustPreciseBoolFns(): Set<string> {
         const cache = this as any;
-        if (cache._hx4R03PreciseBoolFns !== undefined) return cache._hx4R03PreciseBoolFns;
+        if (cache._rustPreciseBoolFns !== undefined) return cache._rustPreciseBoolFns;
         const out = new Set<string>();
         try {
             const src = fs.readFileSync(`${RUST_CORE}/precise.rs`, 'utf8');
@@ -12087,20 +12087,20 @@ impl std::ops::DerefMut for ${coreName} {
                 if (out.has(m[2])) out.add(m[1]);
             }
         } catch { /* precise.rs absent: keep the helper */ }
-        cache._hx4R03PreciseBoolFns = out;
+        cache._rustPreciseBoolFns = out;
         return out;
     }
 
     /** True when the printed expression can only be a `Value::Bool(..)` / Null box. */
-    hx4R03IsBoolBoxedExpr(raw: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+    rustIsBoolBoxedExpr(raw: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
         const e = this.stripOuterParens(raw.trim());
         if (this.isBoolValuedRhs(e)) return true;
-        if (this.hx4X03IsBoolTupleHead(e, content, own, memo)) return true;
+        if (this.rustIsBoolTupleHead(e, content, own, memo)) return true;
         const field = /^self\.([A-Za-z_][A-Za-z0-9_]*)(?:\.clone\(\))?$/.exec(e);
-        if (field !== null) return this.hx4R03BoolFields().has(field[1]) && this.hx4R03FieldWritesBoxed(content, field[1]);
+        if (field !== null) return this.rustBoolOnlyFields().has(field[1]) && this.rustFieldWritesBoolBoxed(content, field[1]);
         const precise = /^crate::precise::Precise::([A-Za-z]+)\(/.exec(e);
         if (precise !== null) {
-            return this.closeParenAt(e, precise[0].length - 1) === e.length - 1 && this.hx4R03PreciseBoolFns().has(precise[1]);
+            return this.closeParenAt(e, precise[0].length - 1) === e.length - 1 && this.rustPreciseBoolFns().has(precise[1]);
         }
         const call = /^self\.([a-z_][a-z0-9_]*)\(/.exec(e);
         if (call === null || this.closeParenAt(e, call[0].length - 1) !== e.length - 1) return false;
@@ -12114,14 +12114,14 @@ impl std::ops::DerefMut for ${coreName} {
             const asyncDecl = srcs.some(s => [...s.matchAll(sigRe)].some(m => m[1] !== undefined ||
                 !/->\s*(?:crate::)?Value\s*$/.test(s.slice(m.index, m.index + 400).split('{')[0].trim())));
             const bodies = srcs.flatMap(s => this.rustFnBodies(s, name));
-            ok = !asyncDecl && bodies.length > 0 && bodies.every(b => this.hx4R03BodyReturnsBoolNullOnly(b));
+            ok = !asyncDecl && bodies.length > 0 && bodies.every(b => this.rustFnBodyReturnsBoolOrNull(b));
         }
         memo.set(name, ok);
         return ok;
     }
 
     /** No write in this file can put a non-bool box in `self.<field>`. */
-    hx4R03FieldWritesBoxed(content: string, field: string): boolean {
+    rustFieldWritesBoolBoxed(content: string, field: string): boolean {
         const masked = this.maskStringsAndComments(content);
         if (new RegExp(`&mut\\s+self\\.${field}\\b`).test(masked)) return false;
         for (const w of masked.matchAll(new RegExp(`\\.${field}\\s*=(?!=)\\s*`, 'g'))) {
@@ -12132,7 +12132,7 @@ impl std::ops::DerefMut for ${coreName} {
     }
 
     /** Rewrites `is_true(&X)` in a proven bool slot when X is bool-boxed (call/field/local). */
-    hx4R03DropBoolBoxedIsTrue(content: string): string {
+    rustDropBoolBoxedIsTrue(content: string): string {
         if (!content.includes('is_true(&')) return content;
         // Prime the base-source cache shared with the D-32 call fold.
         this.rustEmittedBoolReturnMethods(content, []);
@@ -12163,12 +12163,12 @@ impl std::ops::DerefMut for ${coreName} {
                     !new RegExp(`(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`).test(region)) {
                     const initAt = (decls[0].index as number) + decls[0][0].length;
                     const initEnd = this.endOfRustStatement(region, initAt);
-                    ok = initEnd >= 0 && this.hx4R03IsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo);
+                    ok = initEnd >= 0 && this.rustIsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo);
                     for (const w of ok ? region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=(?!=)\\s*`, 'g')) : []) {
                         const rhsAt = (w.index as number) + w[0].length;
                         const end = this.endOfRustStatement(region, rhsAt);
                         const rhs = end < 0 ? '' : content.slice(from + rhsAt, from + end);
-                        if (end < 0 || !this.hx4R03IsBoolBoxedExpr(rhs, content, own, memo)) { ok = false; break; }
+                        if (end < 0 || !this.rustIsBoolBoxedExpr(rhs, content, own, memo)) { ok = false; break; }
                     }
                 }
                 localOk.set(name, ok);
@@ -12194,7 +12194,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // A read before the sole `let` names a parameter / outer binding.
                 const declAt = ident ? region.search(new RegExp(`let (?:mut )?${inner}\\b`)) : -1;
                 if (ident && (declAt < 0 || declAt > (sm.index as number))) continue;
-                if (ident ? !provenLocal(inner) : !this.hx4R03IsBoolBoxedExpr(inner, content, own, memo)) continue;
+                if (ident ? !provenLocal(inner) : !this.rustIsBoolBoxedExpr(inner, content, own, memo)) continue;
                 const cmp = `${inner}.as_bool() == Some(true)`;
                 rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
             }
@@ -12209,11 +12209,11 @@ impl std::ops::DerefMut for ${coreName} {
         return out + content.slice(at);
     }
 
-    // hx4 X03 — element 0 of a tuple returned by a sync `self.m(..)` whose every
+    // element 0 of a tuple returned by a sync `self.m(..)` whose every
     // return is `Value::from(vec![<bool-boxed head>, ..])` or Null (handleOptionBoolAndParams[2]).
 
     /** `R.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)` with R a proven tuple call or tuple local. */
-    hx4X03IsBoolTupleHead(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+    rustIsBoolTupleHead(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
         const suffix = '.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)';
         // A destructuring temp the printer declares `Vec<Value>` reads element 0
         // through the slice: `<tmp>.get(0).cloned().unwrap_or(Value::Null)`.
@@ -12234,7 +12234,7 @@ impl std::ops::DerefMut for ${coreName} {
                 if (end < 0) return false;
                 const init = content.slice(at, end).trim();
                 if (!init.endsWith(tail)) return false;
-                if (!this.hx4X03IsBoolTupleCall(init.slice(0, init.length - tail.length).trim(), content, own, memo)) return false;
+                if (!this.rustIsBoolTupleCall(init.slice(0, init.length - tail.length).trim(), content, own, memo)) return false;
             }
             return true;
         }
@@ -12249,15 +12249,15 @@ impl std::ops::DerefMut for ${coreName} {
             for (const d of decls) {
                 const at = (d.index as number) + d[0].length;
                 const end = this.endOfRustStatement(masked, at);
-                if (end < 0 || !this.hx4X03IsBoolTupleCall(content.slice(at, end).trim(), content, own, memo)) return false;
+                if (end < 0 || !this.rustIsBoolTupleCall(content.slice(at, end).trim(), content, own, memo)) return false;
             }
             return true;
         }
-        return this.hx4X03IsBoolTupleCall(recv, content, own, memo);
+        return this.rustIsBoolTupleCall(recv, content, own, memo);
     }
 
     /** `self.m(..)` (whole expression) where m is sync, prints `-> Value`, and only returns bool-headed tuples / Null. */
-    hx4X03IsBoolTupleCall(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+    rustIsBoolTupleCall(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
         const call = /^self\.([a-z_][a-z0-9_]*)\(/.exec(e);
         if (call === null || this.closeParenAt(e, call[0].length - 1) !== e.length - 1) return false;
         const key = `tuple:${call[1]}`;
@@ -12270,14 +12270,14 @@ impl std::ops::DerefMut for ${coreName} {
             const badDecl = srcs.some(s => [...s.matchAll(sigRe)].some(m => m[1] !== undefined ||
                 !/->\s*(?:crate::)?Value\s*$/.test(s.slice(m.index, m.index + 400).split('{')[0].trim())));
             const bodies = srcs.flatMap(s => this.rustFnBodies(s, call[1]));
-            ok = !badDecl && bodies.length > 0 && bodies.every(b => this.hx4X03BodyReturnsBoolTuples(b, content, own, memo));
+            ok = !badDecl && bodies.length > 0 && bodies.every(b => this.rustBodyReturnsBoolTuples(b, content, own, memo));
         }
         memo.set(key, ok);
         return ok;
     }
 
     /** Every explicit return is `Value::from(vec![H, ..])` (H bool-boxed) or Null; the tail is Null. */
-    hx4X03BodyReturnsBoolTuples(body: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+    rustBodyReturnsBoolTuples(body: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
         const masked = this.maskStringsAndComments(body);
         const inner = masked.slice(1, masked.lastIndexOf('}'));
         if (/\?\s*[;)}\n]/.test(inner)) return false;
@@ -12289,7 +12289,7 @@ impl std::ops::DerefMut for ${coreName} {
             const head = /^(?:crate::)?Value::from\(vec!\[/.exec(t);
             if (head === null || !t.endsWith('])')) return false;
             const parts = this.splitTopLevelCommas(t.slice(head[0].length, t.length - 2));
-            if (parts.length < 2 || !this.hx4R03IsBoolBoxedExpr(parts[0], content, own, memo)) return false;
+            if (parts.length < 2 || !this.rustIsBoolBoxedExpr(parts[0], content, own, memo)) return false;
             returns += 1;
         }
         const lastStmt = Math.max(inner.lastIndexOf(';'), inner.lastIndexOf('}'));
@@ -12297,11 +12297,11 @@ impl std::ops::DerefMut for ${coreName} {
         return returns > 0 && (tail === 'Value::Null' || tail === 'crate::Value::Null');
     }
 
-    // hx4 R19 — `is_equal(&X, &Value::Bool(b))` -> `X.as_bool() == Some(b)` when X can only hold
-    // `Value::Bool(..)` / `Value::Null` (R03 proof): Bool compares by payload, Null never equals a Bool.
+    // `is_equal(&X, &Value::Bool(b))` -> `X.as_bool() == Some(b)` when X can only hold
+    // `Value::Bool(..)` / `Value::Null` (same proof as rustIsBoolBoxedExpr): Bool compares by payload, Null never equals a Bool.
 
-    /** R03's local proof for `name` inside one fn region (single typed `let`, every write bool-boxed). */
-    hx4R19BoolBoxedLocal(name: string, region: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+    /** The bool-boxed local proof for `name` inside one fn region (single typed `let`, every write bool-boxed). */
+    rustBoolBoxedLocal(name: string, region: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
         const decls = [...region.matchAll(new RegExp(`let (?:mut )?${name}\\b(\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
         if (decls.length !== 1 || decls[0][1] === undefined) return false;
         const vetoes = [
@@ -12315,19 +12315,19 @@ impl std::ops::DerefMut for ${coreName} {
         if (vetoes.some(v => new RegExp(v).test(region))) return false;
         const initAt = (decls[0].index as number) + decls[0][0].length;
         const initEnd = this.endOfRustStatement(region, initAt);
-        if (initEnd < 0 || !this.hx4R03IsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo)) return false;
+        if (initEnd < 0 || !this.rustIsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo)) return false;
         for (const w of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=(?!=)\\s*`, 'g'))) {
             const rhsAt = (w.index as number) + w[0].length;
             const end = this.endOfRustStatement(region, rhsAt);
             const rhs = end < 0 ? '' : content.slice(from + rhsAt, from + end);
-            if (end < 0 || !(this.hx4R03IsBoolBoxedExpr(rhs, content, own, memo) ||
-                this.hx4R19DestrTmpBoolHead(rhs, region.slice(0, w.index as number), from, content, own, memo))) return false;
+            if (end < 0 || !(this.rustIsBoolBoxedExpr(rhs, content, own, memo) ||
+                this.rustDestrTmpBoolHead(rhs, region.slice(0, w.index as number), from, content, own, memo))) return false;
         }
         return true;
     }
 
     /** `__destr_tmp.as_array()..get(0)..` whose nearest preceding `let __destr_tmp = C;` binds a proven bool-tuple call C. */
-    hx4R19DestrTmpBoolHead(rhs: string, before: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+    rustDestrTmpBoolHead(rhs: string, before: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
         const m = /^(__destr_tmp[A-Za-z0-9_]*)\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\(0\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
         // The printer declares the destructuring temp `Vec<Value>`: element 0 reads through the slice.
         const typed = /^(__destr_tmp[A-Za-z0-9_]*)\.get\(0\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
@@ -12348,11 +12348,11 @@ impl std::ops::DerefMut for ${coreName} {
             if (!typedInit.endsWith(typedTail)) return false;
             end = at + typedInit.length - typedTail.length;
         }
-        return this.hx4X03IsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
+        return this.rustIsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
     }
 
     /** Rewrites `is_equal(&X, &Value::Bool(b))` in a proven bool slot when X is bool-boxed. */
-    hx4R19NativeBoolEquals(content: string): string {
+    rustNativeBoolEquals(content: string): string {
         if (!content.includes('is_equal(&') && !content.includes('is_true(&')) return content;
         this.rustEmittedBoolReturnMethods(content, []);
         const masked = this.maskStringsAndComments(content);
@@ -12379,7 +12379,7 @@ impl std::ops::DerefMut for ${coreName} {
                 if (args.length !== 2) continue;
                 const lit = /^&(?:crate::)?Value::Bool\((true|false)\)$/.exec(args[1].trim());
                 if (lit === null || !args[0].trim().startsWith('&')) continue;
-                // `is_true` sites over non-locals stay with R03 (already rewritten when proven).
+                // `is_true` sites over non-locals stay with rustDropBoolBoxedIsTrue (already rewritten when proven).
                 if (isTrue && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(this.stripOuterParens(args[0].trim().slice(1).trim()))) continue;
                 const lead = content.slice(Math.max(0, start - 12), start);
                 const slot = this.rustIsTrueBoolSlot(content, start, end) ??
@@ -12391,9 +12391,9 @@ impl std::ops::DerefMut for ${coreName} {
                 if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(inner)) {
                     const declAt = region.search(new RegExp(`let (?:mut )?${inner}\\b`));
                     if (declAt < 0 || declAt > (sm.index as number)) continue;
-                    if (!localOk.has(inner)) localOk.set(inner, this.hx4R19BoolBoxedLocal(inner, region, from, content, own, memo));
+                    if (!localOk.has(inner)) localOk.set(inner, this.rustBoolBoxedLocal(inner, region, from, content, own, memo));
                     if (!localOk.get(inner)) continue;
-                } else if (!this.hx4R03IsBoolBoxedExpr(inner, content, own, memo)) continue;
+                } else if (!this.rustIsBoolBoxedExpr(inner, content, own, memo)) continue;
                 const recv = /^[A-Za-z_][A-Za-z0-9_.]*$/.test(inner) ? inner : `(${inner})`;
                 const cmp = `${recv}.as_bool() == Some(${lit[1]})`;
                 rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
@@ -12411,7 +12411,7 @@ impl std::ops::DerefMut for ${coreName} {
 
     /** A printed expression that is a native Rust `bool`: `&&`/`||`/`!` over `X.as_str().is_some_and(|__s| __s.starts_with|ends_with("lit"))`
      *  and `X.as_bool() == Some(b)` atoms (`is_true` on a `bool` is the identity). */
-    hx4R19IsNativeBoolExpr(raw: string, depth = 0): boolean {
+    rustIsNativeBoolExpr(raw: string, depth = 0): boolean {
         const e = this.stripOuterParens(raw.trim());
         if (depth > 6 || e === '') return false;
         if (/^[A-Za-z_][A-Za-z0-9_]*\.as_str\(\)\.is_some_and\(\|__s\| __s\.(?:starts_with|ends_with)\("(?:[^"\\]|\\.)*"\)\)$/.test(e)) return true;
@@ -12429,13 +12429,13 @@ impl std::ops::DerefMut for ${coreName} {
             }
         }
         parts.push(e.slice(startAt));
-        if (parts.length > 1) return parts.every(pt => this.hx4R19IsNativeBoolExpr(pt, depth + 1));
-        if (e.startsWith('!') && e[1] === '(') return this.hx4R19IsNativeBoolExpr(e.slice(1), depth + 1);
+        if (parts.length > 1) return parts.every(pt => this.rustIsNativeBoolExpr(pt, depth + 1));
+        if (e.startsWith('!') && e[1] === '(') return this.rustIsNativeBoolExpr(e.slice(1), depth + 1);
         return false;
     }
 
     /** `is_true(&(E))` with E a native bool expression in a proven bool slot -> `(E)`. */
-    hx4R19NativeBoolIsTrue(content: string): string {
+    rustNativeBoolIsTrue(content: string): string {
         if (!content.includes('is_true(&(')) return content;
         const masked = this.maskStringsAndComments(content);
         const rewrites: Array<{ start: number, end: number, text: string }> = [];
@@ -12452,7 +12452,7 @@ impl std::ops::DerefMut for ${coreName} {
                  /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
             if (slot === undefined) continue;
             const inner = content.slice(open + 2, close).trim();
-            if (!inner.startsWith('(') || !this.hx4R19IsNativeBoolExpr(inner)) continue;
+            if (!inner.startsWith('(') || !this.rustIsNativeBoolExpr(inner)) continue;
             rewrites.push({ start, end, text: `(${this.stripOuterParens(inner)})` });
         }
         if (rewrites.length === 0) return content;
@@ -12465,15 +12465,15 @@ impl std::ops::DerefMut for ${coreName} {
         return out + content.slice(at);
     }
 
-    // hx4 R24 — `is_true(&p)` -> `p.as_bool() == Some(true)` for a never-reassigned parameter
+    // `is_true(&p)` -> `p.as_bool() == Some(true)` for a never-reassigned parameter
     // whose every TS caller passes `true`/`false`/`undefined`/omits it (or forwards a parameter
     // proven the same way), so its Value is only ever `Bool(..)` or Null.
 
-    private hx4R24Ts: { files: string[], heads: Array<{ file: number, at: number, end: number, name: string, params: Array<[string, string | undefined]> }> } | undefined;
+    private rustTsMethodIndexCache: { files: string[], heads: Array<{ file: number, at: number, end: number, name: string, params: Array<[string, string | undefined]> }> } | undefined;
 
     /** Method headers of every ts/src source (venues, pro, prediction, base, tests). */
-    hx4R24TsIndex() {
-        if (this.hx4R24Ts !== undefined) return this.hx4R24Ts;
+    rustTsMethodIndex() {
+        if (this.rustTsMethodIndexCache !== undefined) return this.rustTsMethodIndexCache;
         const files: string[] = [];
         const walk = (dir: string) => {
             let entries: fs.Dirent[] = [];
@@ -12500,12 +12500,12 @@ impl std::ops::DerefMut for ${coreName} {
             for (let i = 0; i + 1 < own.length; i++) own[i].end = own[i + 1].at;
             heads.push(...own);
         });
-        this.hx4R24Ts = { files, heads };
-        return this.hx4R24Ts;
+        this.rustTsMethodIndexCache = { files, heads };
+        return this.rustTsMethodIndexCache;
     }
 
     /** Top-level comma-split argument list starting after a `(`; undefined when unbalanced. */
-    hx4R24Args(text: string, from: number): string[] | undefined {
+    rustTsCallArgs(text: string, from: number): string[] | undefined {
         const out: string[] = []; let depth = 0; let cur = '';
         for (let i = from; i < text.length; i++) {
             const c = text[i];
@@ -12519,15 +12519,15 @@ impl std::ops::DerefMut for ${coreName} {
         return undefined;
     }
 
-    private hx4R24Memo = new Map<string, boolean>();
+    private rustBoolOnlyParamMemo = new Map<string, boolean>();
 
     /** Every value the TS parameter `param` of every `method` declaration can receive is a bool or nullish. */
-    hx4R24BoolOnlyParam(method: string, param: string, stack: Set<string> = new Set()): boolean {
+    rustBoolOnlyParam(method: string, param: string, stack: Set<string> = new Set()): boolean {
         const key = `${method}:${param}`;
-        if (this.hx4R24Memo.has(key)) return this.hx4R24Memo.get(key) as boolean;
+        if (this.rustBoolOnlyParamMemo.has(key)) return this.rustBoolOnlyParamMemo.get(key) as boolean;
         if (stack.has(key)) return true; // a self-forward adds no new value
         stack.add(key);
-        const { files, heads } = this.hx4R24TsIndex();
+        const { files, heads } = this.rustTsMethodIndex();
         let ok = true;
         const slots = new Set<number>();
         for (const h of heads) {
@@ -12540,13 +12540,13 @@ impl std::ops::DerefMut for ${coreName} {
         }
         if (slots.size !== 1) ok = false;
         const slot = [...slots][0];
-        if (ok && !this.hx4R27StaticInputsBool(method, slot)) ok = false;
+        if (ok && !this.rustStaticFixtureInputsBool(method, slot)) ok = false;
         for (let f = 0; ok && f < files.length; f++) {
             const text = files[f];
             // Dynamic dispatch (`this[name]`, option-named methods) and unbound references.
-            if (!this.hx4R27MentionsSafe(method, f) || new RegExp(`\\.${method}\\b(?!\\s*\\()`).test(text)) { ok = false; break; }
+            if (!this.rustQuotedMethodMentionsSafe(method, f) || new RegExp(`\\.${method}\\b(?!\\s*\\()`).test(text)) { ok = false; break; }
             for (const c of text.matchAll(new RegExp(`\\.${method}\\s*\\(`, 'g'))) {
-                const args = this.hx4R24Args(text, (c.index as number) + c[0].length);
+                const args = this.rustTsCallArgs(text, (c.index as number) + c[0].length);
                 if (args === undefined || args.some(a => a.startsWith('...'))) { ok = false; break; }
                 if (args.length <= slot) continue;
                 const arg = args[slot];
@@ -12555,23 +12555,23 @@ impl std::ops::DerefMut for ${coreName} {
                 const body = encl === undefined ? '' : text.slice(encl.at, encl.end);
                 if (encl !== undefined && /^\w+$/.test(arg) && encl.params.some(p => p[0] === arg)
                     && !new RegExp(`(?<![\\w.])${arg}\\s*(?:[-+*/%|&^]|\\?\\?|\\|\\||&&)?=(?!=)`).test(body.slice(body.indexOf('{')))
-                    && this.hx4R24BoolOnlyParam(encl.name, arg, stack)) continue;
+                    && this.rustBoolOnlyParam(encl.name, arg, stack)) continue;
                 ok = false; break;
             }
         }
         stack.delete(key);
-        this.hx4R24Memo.set(key, ok);
+        this.rustBoolOnlyParamMemo.set(key, ok);
         return ok;
     }
 
-    // hx4 R27 — a quoted method name only vetoes the R24 proof when it can reach dynamic dispatch:
+    // A quoted method name only vetoes the rustBoolOnlyParam proof when it can reach dynamic dispatch:
     // object keys, non-call indexes and args of non-dispatching `this.f(` calls are inert.
     // Static request/response/ws fixtures call methods by name, so their inputs must be bool/null.
-    private hx4R27Dispatchers: Set<string> | undefined;
+    private rustDynamicDispatchers: Set<string> | undefined;
 
-    hx4R27MentionsSafe(method: string, file: number): boolean {
-        const { files, heads } = this.hx4R24TsIndex();
-        if (this.hx4R27Dispatchers === undefined) {
+    rustQuotedMethodMentionsSafe(method: string, file: number): boolean {
+        const { files, heads } = this.rustTsMethodIndex();
+        if (this.rustDynamicDispatchers === undefined) {
             const disp = new Set<string>();
             const fwd: Array<{ name: string, callees: string[] }> = [];
             for (const h of heads) {
@@ -12579,7 +12579,7 @@ impl std::ops::DerefMut for ${coreName} {
                 if (/(?:this|exchange)\s*\[\s*\w+\s*\]\s*\(/.test(body)) disp.add(h.name);
                 const callees: string[] = [];
                 for (const c of body.matchAll(/this\.(\w+)\s*\(/g)) {
-                    const args = this.hx4R24Args(body, (c.index as number) + c[0].length) ?? [];
+                    const args = this.rustTsCallArgs(body, (c.index as number) + c[0].length) ?? [];
                     if (args.some(a => h.params.some(p => p[0] === a))) callees.push(c[1]);
                 }
                 if (callees.length > 0) fwd.push({ name: h.name, callees });
@@ -12591,7 +12591,7 @@ impl std::ops::DerefMut for ${coreName} {
                     if (!disp.has(f.name) && f.callees.some(c => disp.has(c))) { disp.add(f.name); grew = true; }
                 }
             }
-            this.hx4R27Dispatchers = disp;
+            this.rustDynamicDispatchers = disp;
         }
         const text = files[file];
         for (const m of text.matchAll(new RegExp(`['"\`]${method}['"\`]`, 'g'))) {
@@ -12603,27 +12603,27 @@ impl std::ops::DerefMut for ${coreName} {
             if (/^\s*:/.test(after) && !/\?\s*$/.test(before)) continue;
             if (/\[\s*$/.test(before) && /^\s*\](?!\s*\()/.test(after)) continue;
             const call = /this\.(\w+)\s*\(([^()]|\([^()]*\))*$/.exec(before);
-            if (call !== null && !this.hx4R27Dispatchers.has(call[1]) && /^\s*[,)]/.test(after)) continue;
+            if (call !== null && !this.rustDynamicDispatchers.has(call[1]) && /^\s*[,)]/.test(after)) continue;
             return false;
         }
         return true;
     }
 
-    private hx4R27Static: any[] | undefined;
+    private rustStaticFixtures: any[] | undefined;
 
-    hx4R27StaticInputsBool(method: string, slot: number): boolean {
-        if (this.hx4R27Static === undefined) {
-            this.hx4R27Static = [];
+    rustStaticFixtureInputsBool(method: string, slot: number): boolean {
+        if (this.rustStaticFixtures === undefined) {
+            this.rustStaticFixtures = [];
             for (const kind of ['request', 'response', 'ws']) {
                 const dir = `./ts/src/test/static/${kind}`;
                 let names: string[] = [];
                 try { names = fs.readdirSync(dir).filter(n => n.endsWith('.json')); } catch { continue; }
                 for (const n of names) {
-                    try { this.hx4R27Static.push(JSON.parse(fs.readFileSync(`${dir}/${n}`, 'utf8'))); } catch { this.hx4R27Static.push(undefined); }
+                    try { this.rustStaticFixtures.push(JSON.parse(fs.readFileSync(`${dir}/${n}`, 'utf8'))); } catch { this.rustStaticFixtures.push(undefined); }
                 }
             }
         }
-        for (const d of this.hx4R27Static) {
+        for (const d of this.rustStaticFixtures) {
             if (d === undefined) return false; // unreadable fixture: assume the worst
             const cases = d?.methods?.[method];
             if (cases === undefined) continue;
@@ -12639,11 +12639,11 @@ impl std::ops::DerefMut for ${coreName} {
     }
 
     /** Snake-case fns the hand-written runtime calls (their callers are outside ts/src). */
-    private hx4R24Hand: string | undefined;
+    private rustHandRuntimeCallText: string | undefined;
 
-    hx4R24BoolParamIsTrue(content: string): string {
+    rustBoolParamIsTrue(content: string): string {
         if (!content.includes('is_true(&')) return content;
-        if (this.hx4R24Hand === undefined) {
+        if (this.rustHandRuntimeCallText === undefined) {
             const parts: string[] = [];
             const walk = (dir: string) => {
                 let entries: fs.Dirent[] = [];
@@ -12654,9 +12654,9 @@ impl std::ops::DerefMut for ${coreName} {
                 }
             };
             walk(RUST_CORE);
-            this.hx4R24Hand = parts.join('\n');
+            this.rustHandRuntimeCallText = parts.join('\n');
         }
-        const hand = this.hx4R24Hand;
+        const hand = this.rustHandRuntimeCallText;
         const masked = this.maskStringsAndComments(content);
         const headers: number[] = [];
         for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
@@ -12685,7 +12685,7 @@ impl std::ops::DerefMut for ${coreName} {
                     && !new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(body)
                     && !new RegExp(`(?:for|if let|while let)\\s+[^=]*\\b${name}\\b[^=]*\\s+(?:in|=)`).test(body)
                     && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`).test(body)
-                    && this.hx4R24BoolOnlyParam(method, name);
+                    && this.rustBoolOnlyParam(method, name);
                 proven.set(name, ok);
                 return ok;
             };
@@ -12712,9 +12712,9 @@ impl std::ops::DerefMut for ${coreName} {
         return out + content.slice(at);
     }
 
-    // hx4 R25 — `is_equal(&X, &Value::Bool|Int(lit))` / `&Value::Str("<number>")` prints the helper's
+    // `is_equal(&X, &Value::Bool|Int(lit))` / `&Value::Str("<number>")` prints the helper's
     // dispatch inline: same-variant payload compare, else the f64 coercion (Int/Float, Str parse, Bool 1/0).
-    hx4R25InlineLiteralIsEqual(content: string): string {
+    rustInlineLiteralIsEqual(content: string): string {
         if (!content.includes('is_equal(&')) return content;
         const masked = this.maskStringsAndComments(content);
         const loose = '(match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })';
@@ -12750,11 +12750,11 @@ impl std::ops::DerefMut for ${coreName} {
         return out + content.slice(at);
     }
 
-    // hx4 R28 — last pass: `is_equal(&A, &B)` prints `runtime::is_equal`'s own match inline; `is_true(&E)`
-    // (hx5 X38) stays the helper unless E is a proven bool:
+    // Last pass: `is_equal(&A, &B)` goes native only for proven scalar pairs (x37Eq); `is_true(&E)`
+    // stays the helper unless E is a proven bool:
     // `(E)` when E is a top-level bool expression, a `: bool` local or a `-> bool` callee; else the helper stays.
-    private _r28Rets: Map<string, Set<string>> | null = null;
-    private r28Rets(content: string): Map<string, Set<string>> {
+    private _rustFnReturnTypes: Map<string, Set<string>> | null = null;
+    private rustFnReturnTypes(content: string): Map<string, Set<string>> {
         const scan = (src: string, into: Map<string, Set<string>>) => {
             for (const m of src.matchAll(/\bfn ([a-z_][a-z0-9_]*)\s*(?:<[^>]*>)?\(([^)]*)\)\s*(?:->\s*([A-Za-z_][A-Za-z0-9_:<>]*))?/g)) {
                 const set = into.get(m[1]) ?? new Set<string>();
@@ -12762,34 +12762,34 @@ impl std::ops::DerefMut for ${coreName} {
                 into.set(m[1], set);
             }
         };
-        if (this._r28Rets === null) {
+        if (this._rustFnReturnTypes === null) {
             const base = new Map<string, Set<string>>();
             const dirs = [`${RUST_BASE}/exchanges`, `${RUST_BASE}/prediction`, './rust/ccxt-common/src', './rust/ccxt-pro/src/pro', './rust/ccxt-pro/src'];
             for (const d of dirs) {
                 if (!fs.existsSync(d)) continue;
                 for (const f of fs.readdirSync(d)) if (f.endsWith('.rs')) scan(fs.readFileSync(`${d}/${f}`, 'utf8'), base);
             }
-            this._r28Rets = base;
+            this._rustFnReturnTypes = base;
         }
         const out = new Map<string, Set<string>>();
-        for (const [k, v] of this._r28Rets) out.set(k, new Set(v));
+        for (const [k, v] of this._rustFnReturnTypes) out.set(k, new Set(v));
         scan(content, out);
         return out;
     }
 
-    private _r28Fields: Set<string> | null = null;
-    private r28Fields(): Set<string> {
-        if (this._r28Fields === null) {
+    private _rustExchangeValueFields: Set<string> | null = null;
+    private rustExchangeValueFields(): Set<string> {
+        if (this._rustExchangeValueFields === null) {
             const f = './rust/ccxt-common/src/exchange.rs';
             const src = fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
             const at = src.indexOf('pub struct Exchange {');
             const body = at < 0 ? '' : src.slice(at, src.indexOf('\n}', at));
-            this._r28Fields = new Set([...body.matchAll(/^\s*pub ([A-Za-z_][A-Za-z0-9_]*):\s*Value,/gm)].map(m => m[1]));
+            this._rustExchangeValueFields = new Set([...body.matchAll(/^\s*pub ([A-Za-z_][A-Za-z0-9_]*):\s*Value,/gm)].map(m => m[1]));
         }
-        return this._r28Fields;
+        return this._rustExchangeValueFields;
     }
 
-    private r28BoolExpr(e: string): boolean {
+    private rustIsTopLevelBoolExpr(e: string): boolean {
         let depth = 0;
         for (let i = 0; i < e.length; i++) {
             const c = e[i];
@@ -12805,7 +12805,7 @@ impl std::ops::DerefMut for ${coreName} {
         return false;
     }
 
-    r28Truth(content: string): string {
+    rustNativeTruthAndEquality(content: string): string {
         if (!content.includes('is_true(&') && !content.includes('is_equal(&')) return content;
         const masked = this.maskStringsAndComments(content);
         const headers: number[] = [0];
@@ -12834,7 +12834,7 @@ impl std::ops::DerefMut for ${coreName} {
             return t === 'Value' ? 'Value' : t === 'bool' ? 'bool' : undefined;
         };
         let fnReturns: Map<string, Set<string>> | null = null;
-        const fields = this.r28Fields();
+        const fields = this.rustExchangeValueFields();
         const helperRe = /(?<![A-Za-z0-9_:.])is_(?:equal|true)\(/;
         const rewrites: Array<{ start: number, end: number, text: string }> = [];
         for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:.])(is_true|is_equal)\(&/g)) {
@@ -12849,7 +12849,7 @@ impl std::ops::DerefMut for ${coreName} {
                 const a = args[0].trim(); const b = args[1].trim();
                 if (!a.startsWith('&') || !b.startsWith('&') || helperRe.test(a + b)) continue;
                 this._x37Src = content;
-                const eq = this.x37Eq(a.slice(1).trim(), b.slice(1).trim(), masked, regionOf(start)); // hx5 X37
+                const eq = this.x37Eq(a.slice(1).trim(), b.slice(1).trim(), masked, regionOf(start));
                 if (eq !== undefined) rewrites.push({ start, end: close + 1, text: eq });
                 continue;
             }
@@ -12859,20 +12859,20 @@ impl std::ops::DerefMut for ${coreName} {
             let text: string | undefined;
             if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
                 const t = identType(e, start);
-                // hx5 X38: a `Value` local is not a proven bool -> helper stays,
+                // A `Value` local is not a proven bool -> helper stays,
                 // unless its only binding is a `Value::Bool(..)` box never reassigned.
                 if (t === 'bool') text = e;
                 else if (t === 'Value' && this.x38BoolBoxedLocal(masked.slice(...regionOf(start)), e)) text = `${e}.as_bool() == Some(true)`;
             } else if (/^self\.[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
-                // hx5 X38: base `Value` fields are not proven bools -> `is_true(&self.f)` stays.
-            } else if (this.r28BoolExpr(e)) {
+                // Base `Value` fields are not proven bools -> `is_true(&self.f)` stays.
+            } else if (this.rustIsTopLevelBoolExpr(e)) {
                 text = `(${e})`;
             } else {
                 const cm = /^(?:self\.(?:parent\.)?)?([a-z_][a-z0-9_]*)\(/.exec(e);
                 if (cm !== null && this.closeParenAt(e, cm[0].length - 1) === e.length - 1) {
-                    fnReturns ??= this.r28Rets(content);
+                    fnReturns ??= this.rustFnReturnTypes(content);
                     const rets = fnReturns.get(cm[1]);
-                    // hx5 X38: `-> Value` callees keep the helper; only `-> bool` is native.
+                    // `-> Value` callees keep the helper; only `-> bool` is native.
                     if (rets !== undefined && rets.size === 1 && rets.has('bool')) text = `(${e})`;
                 }
             }
@@ -12888,32 +12888,30 @@ impl std::ops::DerefMut for ${coreName} {
         return out + content.slice(at);
     }
 
-    // hx4 R29 — `in_op` / `object_keys` / `get_array_length` / `remove` print the runtime fn's own
-    // dispatch inline (public `Value::len`, `value::side_entries_as_value`, `ws_client::value_subs_remove`).
-    // Not for rust/tests (no `crate::value`); innermost-first so nested calls rewrite too.
-    hx4R29InlineCollectionHelpers(content: string): string {
-        const names = [ 'in_op', 'object_keys', 'remove' ]; // hx5 X35
+    // Collection helpers (`in_op` / `object_keys` / `remove`): only a proven-map `in_op` goes native;
+    // everything else keeps the runtime helper. Not for rust/tests (no `crate::value`); innermost-first.
+    rustInlineCollectionHelpers(content: string): string {
+        const names = [ 'in_op', 'object_keys', 'remove' ];
         if (!names.some(n => content.includes(n + '('))) return content;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
-            // hx5 X33 — in_op: no inline `match`. Native `contains_key` only on a local declared as a
+            // in_op: no inline `match`. Native `contains_key` only on a local declared as a
             // concrete map (`Arc<IndexMap<String, Value>>` / `IndexMap<String, Value>`) with a literal
             // string key; every other site keeps the `in_op(..)` helper call (Null / non-map / array).
-            if (name === 'in_op') return hx5X33InOp(a, content);
-            // hx5 X34 — no inline `match` for `object_keys`: every generated receiver is a `Value` (no
+            if (name === 'in_op') return rustInlineInOp(a, content);
+            // No inline `match` for `object_keys`: every generated receiver is a `Value` (no
             // typed map binding exists), and the runtime fn also drops the `__ws_subs_url`/`__ws_sub_ref`
-            // tags, so no site is proven; `runtime::object_keys(..)` stays exactly as master emitted it.
+            // tags, so no site is proven; `runtime::object_keys(..)` stays the helper call.
             if (name === 'object_keys') return undefined;
-            // hx5 X35 — no inline `get_array_length` match: the call text is left untouched, so an
-            // unproven operand keeps master's helper call (`Value::len` counts chars, and the helper also
-            // unwraps book/cache/side markers, so no plain `.len()` on a `&Value` matches it).
-            // hx5 X36 — `remove` is never inlined. Every generated receiver is a `Value` (no typed
+            // `get_array_length` is not rewritten: `Value::len` counts chars and the helper also unwraps
+            // book/cache/side markers, so no plain `.len()` on a `&Value` matches it.
+            // `remove` is never inlined. Every generated receiver is a `Value` (no typed
             // `IndexMap` local exists in emitted Rust), so no site proves a plain map and the native
             // `shift_remove` would also skip `try_ws_subs_remove`; `remove(...)` stays the helper call.
             if (name === 'remove') return undefined;
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|remove)\(/g; // hx5 X35: get_array_length dropped
+        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|remove)\(/g; // get_array_length is not a target
         // Repeat until no rewrite applies: each round replaces calls whose args hold no further helper call.
         for (let round = 0; round < 8; round++) {
             const masked = this.maskStringsAndComments(content);
@@ -12927,8 +12925,7 @@ impl std::ops::DerefMut for ${coreName} {
                 const close = this.closeParenAt(content, open);
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
-                // hx5 X33: a retained `in_op(` helper call inside the args no longer blocks the outer rewrite.
-                // hx5 X35: get_array_length is no longer rewritten by this pass, so it never blocks either.
+                // A retained `in_op(` / `get_array_length(` helper call inside the args does not block the outer rewrite.
                 if (/(?<![A-Za-z0-9_:.])(object_keys|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
@@ -12947,27 +12944,27 @@ impl std::ops::DerefMut for ${coreName} {
         return content;
     }
 
-    // hx4 R31 — string helpers print `runtime.rs`'s own body inline (each arg bound once, innermost-first).
+    // string helpers print `runtime.rs`'s own body inline (each arg bound once, innermost-first).
     // `stringify_simple` is private: scalars inline, the `__precise` dict goes through the public
     // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
-    r31Str(content: string): string {
-        // hx5 X41: pad_start/pad_end/to_fixed (and slice) are not r31 targets: no site has a proven `&str`/number
-        // operand with in-range bounds, so the master `runtime::` helper call stays. Never print their bodies inline.
-        const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // hx5 X39: starts_with/ends_with via x39Affix
+    rustInlineStringHelpers(content: string): string {
+        // pad_start/pad_end/to_fixed (and slice) are not targets: no site has a proven `&str`/number
+        // operand with in-range bounds, so the `runtime::` helper call stays. Never print their bodies inline.
+        const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // starts_with/ends_with via x39Affix
         if (!names.some(n => content.includes(n + '('))) return content;
         const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
-            if (name === 'to_string_val') return this.x42ToStr(a); // hx5 X42: proven native or helper
-            // hx5 X40: split/join/replace_str are never inlined. Every r31 site reaches this pass as a
+            if (name === 'to_string_val') return this.x42ToStr(a); // proven native or helper
+            // split/join/replace_str are never inlined. Every site reaches this pass as a
             // `&Value` operand that no emitted declaration proves to be a `Value::Str` / `Value::Arr` of
             // strings (and the runtime differs from a bare `.split`/`.join`/`.replace` on non-Str, null and
-            // element type), so the plain `runtime::*` helper call master emitted stays.
+            // element type), so the plain `runtime::*` helper call stays.
             if (name === 'join' || name === 'split' || name === 'replace_str') return undefined;
-            // hx5 X39: starts_with/ends_with tier-2 arm deleted (x39Affix handles proven Str boxes).
+            // starts_with/ends_with are handled by x39Affix (proven Str boxes only).
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str)\(/g; // hx5 X39/X41
+        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str)\(/g;
         for (let round = 0; round < 8; round++) {
             const masked = this.maskStringsAndComments(content);
             const rewrites: Array<{ start: number, end: number, text: string }> = [];
@@ -12979,7 +12976,7 @@ impl std::ops::DerefMut for ${coreName} {
                 const close = this.closeParenAt(content, open);
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
-                if (/(?<![A-Za-z0-9_:.])(to_string_val)\(/.test(this.maskStringsAndComments(inner))) continue; // hx5 X40: helper-call args do not block the outer site (X39/X41: affix/pad/to_fixed no longer rewritten here)
+                if (/(?<![A-Za-z0-9_:.])(to_string_val)\(/.test(this.maskStringsAndComments(inner))) continue; // helper-call args do not block the outer site
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 rewrites.push({ start, end: close + 1, text });
@@ -12996,24 +12993,18 @@ impl std::ops::DerefMut for ${coreName} {
         return content;
     }
 
-    // hx5 X43 — the hx4 R32 inline bodies (is_instance / is_function / object_values / shift) are deleted.
-    // No call site has a type proof that makes a plain native op equivalent to the helper:
-    //   is_instance  needs the `[Cls]` / leading-`[Kind]` + errorHierarchy subtree walk (only the helper is concise);
-    //   is_function  is `false` but must still evaluate its argument (the helper does);
-    //   object_values drops the two ws tag keys, which only the helper knows;
-    //   shift        is a by-value pop of the arg (see the ndax `shift(stored.clone())` note in the X43 report).
-    // So every site keeps master's `runtime::*` helper call. The pass is kept (wired in both pipelines) as an
-    // identity so the call sites stay stable; it is trivially idempotent.
-    r32Native(content: string): string {
+    // Identity pass: is_instance / is_function / object_values / shift keep the `runtime::*` helper, since no
+    // site proves a native op equivalent (errorHierarchy walk, arg evaluation, ws tag keys, by-value pop).
+    // Kept wired in both pipelines so call sites stay stable.
+    rustNativeObjectHelpers(content: string): string {
         return content;
     }
 
-    // hx5 X37 — r28 `is_equal(&A, &B)`: native only where both operands are proven to hold one scalar
+    // `is_equal(&A, &B)`: native only where both operands are proven to hold one scalar
     // variant or Null (`S`=Str, `B`=Bool, `I`=Int, `N`=Null). `runtime::is_equal` on such a pair is exactly
     // `as_str()/as_bool()/as_i64()` equality: same-variant arms compare the payload, Null∘Null is true and a
     // Null∘scalar pair (also Bool∘Bool / Int∘Int only) reaches `as_f64(Null) = None` → false. Mixed scalar
-    // kinds (`"1" == 1`, `true == 1`) coerce at runtime, so they keep the helper. The hx4 inline replay of
-    // the runtime match is gone: an unproven pair keeps `is_equal(&a, &b)` exactly as master printed it.
+    // kinds (`"1" == 1`, `true == 1`) coerce at runtime, so they keep the helper.
     private x37Kind(e: string, masked: string, region: [number, number], depth = 0): Set<string> | undefined {
         e = this.stripOuterParens(e.trim()).trim();
         if (e === 'Value::Null') return new Set(['N']);
@@ -13086,7 +13077,7 @@ impl std::ops::DerefMut for ${coreName} {
         return `(${a}.${acc}() == ${b}.${acc}())`;
     }
 
-    // hx5 X38 — `let [mut ]x[: Value] = Value::Bool(..)` as the only binding, never reassigned
+    // `let [mut ]x[: Value] = Value::Bool(..)` as the only binding, never reassigned
     // (no `x = `, no `&mut x`, no `set_value(&mut x`): x can only hold a bool.
     x38BoolBoxedLocal(region: string, name: string): boolean {
         const decls = [...region.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b\\s*(?::\\s*Value\\s*)?=\\s*([^;]*);`, 'g'))];
@@ -13116,11 +13107,11 @@ impl std::ops::DerefMut for ${coreName} {
         }).join('\n');
     }
 
-    // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
+    // `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
     // (helper = `Value::Str(stringify_simple(..))`, identity on Str, so the box itself is
     // the result and E is evaluated once). Every other operand keeps the helper call verbatim:
     // `Display` differs from `stringify_simple` on Arr/Dict and the `__precise` dict.
-    // parse_int/parse_float are emitted as `crate::runtime::parse_*`, never inlined by r31: left alone.
+    // parse_int/parse_float are emitted as `crate::runtime::parse_*`, never inlined here.
     x42ToStr(a: string[]): string | undefined {
         if (a.length !== 1) return undefined;
         const m = /^&\s*(Value::Str\(([\s\S]*)\))$/.exec(a[0]);
@@ -13165,8 +13156,8 @@ if (isMainEntry(import.meta.url)) {
     }
 }
 
-// hx5 X33 — `in_op` arm of the r29 pass: plain native op on a proven map, else the helper call.
-function hx5X33InOp (a: string[], content: string): string | undefined {
+// `in_op` arm of rustInlineCollectionHelpers: plain native op on a proven map, else the helper call.
+function rustInlineInOp (a: string[], content: string): string | undefined {
     if (a.length !== 2) return undefined;
     const recv = /^&([A-Za-z_][A-Za-z0-9_]*)$/.exec(a[0]);
     const key = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/.exec(a[1]);

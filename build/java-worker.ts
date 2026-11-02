@@ -3,16 +3,16 @@ import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
 import { installJavaExpressionTypeResolver, installJavaOwnerStores, installJavaRepoMethodUses } from './javaTranspiler.js';
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
-import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
-import { installH2kJ11StringArgs } from './java-local-types.js';
-import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
-import { installJ10Types } from './java-local-types.js';
-import { installJ11MapLocals } from './java-local-types.js';
-import { installJ12ParamTypes } from './java-local-types.js';
+import { installJavaFreshObjectMapWrites } from './java-local-types.js';
+import { installJavaStringCoreArgs } from './java-local-types.js';
+import { installJavaNativePadStartFirst, installJavaLiteralReplace } from './java-local-types.js';
+import { installJavaCounterTypes } from './java-local-types.js';
+import { installJavaMapLocalTypes } from './java-local-types.js';
+import { installJavaParamTypes } from './java-local-types.js';
 import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
-import { installJ13ListLocals } from './java-local-types.js';
-import { installJ14ScalarLocals } from './java-local-types.js';
-import { installJ17StringReturns } from './java-local-types.js';
+import { installJavaListLocals } from './java-local-types.js';
+import { installJavaScalarLocals } from './java-local-types.js';
+import { installJavaStringReturns } from './java-local-types.js';
 import log from 'ololog'
 import { readFileSync, existsSync } from 'fs';
 import { dirname, resolve as resolvePath } from 'path';
@@ -95,7 +95,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         cachedTranspiler.setVerboseMode (false);
         // same strict effectively-final rule as the main thread's setupTranspiler()
         (cachedTranspiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
-        installJavaOwnerStores (cachedTranspiler); // hx11 rfm X2
+        installJavaOwnerStores (cachedTranspiler);
         // same printer hook the main thread installs in setupTranspiler(); the
         // batch below prints through this very javaTranspiler instance
         patchJavaLocalTypes (cachedTranspiler);
@@ -109,7 +109,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         patchJavaStringReceiverCasts (cachedTranspiler);
         // java-09: last-installed declaration observer (same order as the main thread)
         installJavaDeclaredLocalTypes (cachedTranspiler);
-        // hx7 java-03: same row-builder parameter boxing as the main thread's setupTranspiler()
+        // Same row-builder parameter boxing as the main thread's setupTranspiler()
         installJavaObjectParamPositions (cachedTranspiler);
         // java-13: the same printed-Java String proof the main thread installs at the end
         // of setupTranspiler() — both print paths must emit byte-identical Java
@@ -140,18 +140,18 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaBooleanWriteLocals (cachedTranspiler);
         installJavaNativeReplace (cachedTranspiler);
         installJavaStringReturnSites (cachedTranspiler);
-        installJavaH2kJ02FreshObjectMapWrites (cachedTranspiler);
-        installH2kJ11StringArgs (cachedTranspiler);
+        installJavaFreshObjectMapWrites (cachedTranspiler);
+        installJavaStringCoreArgs (cachedTranspiler);
         installJavaNativePadStartFirst (cachedTranspiler);
-        installJ08NativeReplace (cachedTranspiler);
-        installJ10Types (cachedTranspiler); // hx4 J10
-        installJ11MapLocals (cachedTranspiler); // hx4 J11
-        installJ12ParamTypes (cachedTranspiler); // hx4 J12
-        installJavaMapArgAlreadyTyped (cachedTranspiler); // hx11 r43
-        installJavaRepoMethodUses (cachedTranspiler); // hx11 FJ4-A2
-        installJ13ListLocals (cachedTranspiler); // hx4 J13
-        installJ14ScalarLocals (cachedTranspiler); // hx4 J14
-        installJ17StringReturns (cachedTranspiler); // hx4 J17
+        installJavaLiteralReplace (cachedTranspiler);
+        installJavaCounterTypes (cachedTranspiler);
+        installJavaMapLocalTypes (cachedTranspiler);
+        installJavaParamTypes (cachedTranspiler);
+        installJavaMapArgAlreadyTyped (cachedTranspiler);
+        installJavaRepoMethodUses (cachedTranspiler);
+        installJavaListLocals (cachedTranspiler);
+        installJavaScalarLocals (cachedTranspiler);
+        installJavaStringReturns (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
@@ -172,7 +172,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         if (verbose) {
             log.blue ('[worker][java] Transpiling', filePath);
         }
-        // hx11 w6 determinism: the printer answers "what type did that callee's local/return print as"
+        // The printer answers "what type did that callee's local/return print as"
         // from records made while a file is printed. A venue file therefore printed differently
         // depending on whether its parent/REST tier had been printed earlier in the same worker thread,
         // which is piscina scheduling, so identical builds drifted by a few Object locals. Print every

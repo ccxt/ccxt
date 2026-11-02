@@ -330,7 +330,7 @@ function goChan3ResolvedOk (want: string | undefined, method: string, receiver?:
 }
 
 // `var <v> T` + a type switch over `expr` + the typed send, as statements at indent `ind` (first line unindented)
-// RF-go-4 (was hx10w10-GP27): the value of a shared watch receive is a dictionary or a list by type. Watch /
+// The value of a shared watch receive is a dictionary or a list by type. Watch /
 // WatchMultiple (hand-written, `args ...any`) are the only producers, so the shape belongs to the channel:
 // WatchMap / WatchMultipleMap / WatchList / WatchMultipleList apply the coercion once and the core sends `rN.Value`.
 // text of the receive (`<-this.Watch(..)`) -> the typed twin's name suffix for the wanted carrier, else undefined
