@@ -107,6 +107,13 @@ func InjectWsMessage(exchange ccxt.ICoreExchange, url any, message any) {
 	// feed one already-json-parsed frame into the exchange's ws message
 	// handler - the same entry point the real transport invokes
 	client := exchange.(wsClientProvider).Client(url)
+	// a panicking handler must fail the pending watch instead of hanging it
+	defer func() {
+		if r := recover(); r != nil {
+			client.Reject(ccxt.RecoveredError(r))
+			panic(r)
+		}
+	}()
 	client.OnMessageCallback(client, message)
 }
 

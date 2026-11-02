@@ -173,12 +173,12 @@ type BaseExchange struct {
 	Orders         any // *ArrayCache  // cache object, not a map
 	MyTrades       any // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
-	Liquidations   any // *ArrayCacheBySymbolBySide
+	Liquidations   any // *ArrayCache, nil until a handler creates it (ts parity)
 	FundingRates   *sync.Map
 	Bidsasks       *TickerCache
 	TriggerOrders  any // *ArrayCache
 	Transactions   *sync.Map
-	MyLiquidations any // *ArrayCacheBySymbolBySide
+	MyLiquidations any // *ArrayCache, nil until a handler creates it (ts parity)
 
 	PaddingMode int
 
@@ -272,8 +272,6 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.TriggerOrders = NewArrayCache(limit)
 	this.MyTrades = NewArrayCache(limit)
 	this.Transactions = &sync.Map{}
-	this.Liquidations = &sync.Map{}
-	this.MyLiquidations = &sync.Map{}
 	this.Clients = make(map[string]any)
 	// this.Balance = make(map[string]any)
 	this.Balance = &sync.Map{}
