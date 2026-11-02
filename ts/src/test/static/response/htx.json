@@ -5336,7 +5336,6 @@
                     "USDT",
                     1.85,
                     "0x63d35481cb74fa959aec61d33a5d4507a6164873",
-                    null,
                     {
                         "network": "ERC20",
                         "includeFee": true
