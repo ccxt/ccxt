@@ -257,10 +257,7 @@ func (this *Sxbet) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInterf
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rawMarkets []any = nil
-	if r.Value != nil {
-		rawMarkets = ccxt.MapSliceToList(r.Value)
-	}
+	var rawMarkets []any = ccxt.MapSliceToList(r.Value)
 	var markets []any = []any{}
 	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
@@ -632,8 +629,8 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 		}()
 		ccxt.AppendToArray(&retRes48412, raw)
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var result []any = []any{}
 	var orderLength int = len(order)
@@ -760,7 +757,7 @@ func (this *Sxbet) ParseEvent(fixtureId any, rawMarkets any) map[string]any {
 			panic(ccxt.ExchangeError(this.Id + " parseEvent() could not resolve parsed market"))
 		}
 		marketsList = append(marketsList, parsed)
-		if ccxt.GetValue(parsed, "active") == true {
+		if *this.SafeBool(parsed, "active", false) {
 			anyActive = true
 		}
 		if teamOneName == nil {
@@ -3329,7 +3326,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	}
 	var client any = this.Client(url)
 	var isNewSubscription bool = ccxt.IsEqual(client.(ccxt.ClientInterface).SubscriptionSafe(channel), nil)
-	if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
+	if ccxt.IsEqual(this.Orderbooks[sym], nil) {
 		// seed from the REST snapshot so the book is served before the first publication
 		this.SetWsOption("wsWatchedBooks", sym, marketHash)
 
@@ -3342,9 +3339,9 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 			snapshot = r2.Value
 		}
 		this.ApplySxbetWsSnapshot(snapshot)
-		if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
+		if ccxt.IsEqual(this.Orderbooks[sym], nil) {
 			var emptyBook any = this.OrderBook(map[string]any{})
-			this.WsCacheSet("Orderbooks", sym, emptyBook)
+			this.Orderbooks[sym] = emptyBook.(ccxt.OrderBookInterface)
 		}
 	}
 	var requestId int64 = this.RequestId(url)
@@ -3358,7 +3355,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	var future any = this.Watch(url, messageHash, subscribeMsg, channel)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next publication
-		client.(ccxt.ClientInterface).Resolve(this.WsCacheGet("Orderbooks", sym), messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym], messageHash)
 	}
 
 	r3 := <-future.(<-chan ccxt.AsyncResult[any])
@@ -3411,7 +3408,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 		var outcomeId *string = this.SafeString(outcomeObj, "outcomeId")
 		var isOutcomeOne bool = (outcomeId == marketHash || (outcomeId != nil && marketHash != nil && *outcomeId == *marketHash))
 		var sides map[string]any = this.ParseSxbetV3BookSides(snapshot, isOutcomeOne)
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(sym)
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[sym]
 		if orderbook == nil {
 			orderbook = this.OrderBook(map[string]any{})
 			this.Orderbooks[sym] = orderbook
@@ -3443,7 +3440,7 @@ func (this *Sxbet) HandleOrderBook(client any, rows []any) {
 		var refreshedLength int = len(refreshed)
 		for j := 0; j < refreshedLength; j++ {
 			var sym *string = ccxt.SafeStringPtr(ccxt.DerefScalar(refreshed[j]))
-			client.(ccxt.ClientInterface).Resolve(this.Orderbooks.Get(sym), "orderbook::"+*sym)
+			client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*sym], "orderbook::"+*sym)
 		}
 	}
 }
@@ -3486,7 +3483,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	var client any = this.Client(url)
 	var channel string = "best_odds_v3:global"
 	var hydrated bool = false
-	if ccxt.IsEqual(this.WsCacheGet("Tickers", sym), nil) {
+	if ccxt.IsEqual(this.SafeDict(this.SafeDict(this.Options, "wsTickers", map[string]any{}), sym), nil) {
 		// hydrate from the REST snapshot so the first call does not hang until the
 		// market's next top-of-book change - the channel is global, so the seed must fire
 		// for every newly watched market, not only on a fresh subscription
@@ -3501,7 +3498,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 		}
 		var raw map[string]any = this.ParseSxbetSnapshotBestOdds(snapshot)
 		var ticker map[string]any = this.ParsePredictionTicker(raw, outcomeObj)
-		this.WsCacheSet("Tickers", sym, ticker)
+		this.SetWsOption("wsTickers", sym, ticker)
 		hydrated = true
 	}
 	var requestId int64 = this.RequestId(url)
@@ -3514,7 +3511,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	}
 	var future any = this.Watch(url, messageHash, subscribeMsg, channel)
 	if hydrated {
-		client.(ccxt.ClientInterface).Resolve(this.WsCacheGet("Tickers", sym), messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.SafeDict(this.SafeDict(this.Options, "wsTickers", map[string]any{}), sym), messageHash)
 	}
 
 	r3 := <-future.(<-chan ccxt.AsyncResult[any])
@@ -3570,7 +3567,7 @@ func (this *Sxbet) HandleTicker(client any, rows []any) {
 			}
 			var outcomeObj map[string]any = this.Outcome(sym)
 			var ticker map[string]any = this.ParsePredictionTicker(raw, outcomeObj)
-			this.Tickers.Store(sym, ticker)
+			this.SetWsOption("wsTickers", sym, ticker)
 			client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+sym)
 		}
 	}
@@ -3685,13 +3682,13 @@ func (this *Sxbet) HandleTrades(client any, rows []any) {
 			continue
 		}
 		if this.Trades == nil {
-			this.Trades = ccxt.TradesCache{}
+			this.Trades = map[string]ccxt.WsArrayCache{}
 		}
-		if this.Trades.Get(sym) == nil {
+		if this.Trades[*sym] == nil {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
 		}
-		var stored ccxt.WsArrayCache = this.Trades.Get(sym)
+		var stored ccxt.WsArrayCache = this.Trades[*sym]
 		stored.Append(trade)
 		client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
 	}

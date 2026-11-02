@@ -52,7 +52,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -172,7 +172,7 @@ func (this *Upbit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers", symbols)}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbols)}
 	return nil
 }
 
@@ -376,7 +376,7 @@ func (this *Upbit) HandleTicker(client any, message map[string]any) {
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(message))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol != nil {
-		this.Tickers.Store(symbol, ticker)
+		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -406,15 +406,12 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	var typeVar *string = this.SafeString(message, "stream_type")
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var limit *int64 = this.SafeInteger(options, "limit", 15)
-	if (typeVar != nil && *typeVar == "SNAPSHOT") && !(this.Orderbooks.Has(symbol)) {
+	if (typeVar != nil && *typeVar == "SNAPSHOT") && !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	// upbit always returns a snapshot of 15 topmost entries
 	// the "REALTIME" deltas are not incremental
 	// therefore we reset the orderbook on each update
@@ -464,7 +461,7 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 	if symbol == nil {
 		return
 	}
-	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
+	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -603,7 +600,7 @@ func (this *Upbit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -654,7 +651,7 @@ func (this *Upbit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -943,7 +940,7 @@ func (this *Upbit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -993,7 +990,7 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 		if code != nil {
 			this.Balance[*code] = account
 		}
-		this.WsBalanceReplace(this.SafeBalance(this.Balance))
+		this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	}
 	var messageHash *string = this.SafeString(message, "type")
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)

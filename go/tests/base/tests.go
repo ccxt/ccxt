@@ -1346,12 +1346,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan ccxt.AsyncResult[any],
 				}
 				var scopesToTestLength int = len(scopesToTest)
 				for sj := 0; sj < scopesToTestLength; sj++ {
-					var scope any = func() any {
-						if sj >= 0 && sj < len(scopesToTest) {
-							return DerefScalar(scopesToTest[sj])
-						}
-						return nil
-					}()
+					var scope any = DerefScalar(scopesToTest[sj])
 					// fetchEvents scoped by a single parameter must return a non-empty, valid list
 
 					r3 := <-CallExchangeMethodDynamically(exchange, "fetchEvents", []any{scope})

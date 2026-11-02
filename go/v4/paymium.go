@@ -219,8 +219,11 @@ func (this *Paymium) ParseBalance(response any) map[string]any {
 		"info": response,
 	}
 	var currencies []string = nil
-	for k := range this.Currencies() {
-		currencies = append(currencies, k)
+	if this.Currencies != nil {
+		currencies = make([]string, 0, len(this.Currencies))
+		for objectKey := range this.Currencies {
+			currencies = append(currencies, objectKey)
+		}
 	}
 	for i := 0; i < len(currencies); i++ {
 		var code string = currencies[i]
@@ -255,7 +258,7 @@ func (this *Paymium) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -295,7 +298,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -386,7 +389,7 @@ func (this *Paymium) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -478,7 +481,7 @@ func (this *Paymium) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -490,11 +493,11 @@ func (this *Paymium) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"currency": market["id"],
 	}
 
-	listEp465 := <-this.PublicGetDataCurrencyTrades(this.Extend(request, params))
-	if listEp465.Err != nil {
-		panic(listEp465.Err)
+	responseRecv := <-this.PublicGetDataCurrencyTrades(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp465.Value
+	var response []any = responseRecv.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
@@ -519,7 +522,7 @@ func (this *Paymium) createDepositAddressBody(ch chan AsyncResult[DepositAddress
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -564,7 +567,7 @@ func (this *Paymium) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -614,7 +617,7 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -622,11 +625,11 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 		}
 	}
 
-	listEp576 := <-this.PrivateGetUserAddresses(params)
-	if listEp576.Err != nil {
-		panic(listEp576.Err)
+	responseRecv := <-this.PrivateGetUserAddresses(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp576.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -688,7 +691,7 @@ func (this *Paymium) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -779,7 +782,7 @@ func (this *Paymium) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

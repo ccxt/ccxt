@@ -67,7 +67,7 @@ func (this *Bitfinex) subscribeBody(ch chan ccxt.AsyncResult[any], channel strin
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -95,8 +95,8 @@ func (this *Bitfinex) subscribeBody(ch chan ccxt.AsyncResult[any], channel strin
 	var checksum *bool = this.SafeBool(this.Options, "checksum", true)
 	if (checksum != nil && *checksum) && (channel == "book") {
 		var sub any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
-		var subChecksum *bool = this.SafeBool(sub, "checksum")
-		if (sub != nil) && (subChecksum == nil || *subChecksum != true) {
+		var subChecksum *bool = this.SafeBool(sub, "checksum", false)
+		if (sub != nil) && !(subChecksum != nil && *subChecksum) {
 			ccxt.AddElementToObject(client.(ccxt.ClientInterface).SubscriptionGet(messageHash), "checksum", true)
 
 			r2 := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
@@ -122,7 +122,7 @@ func (this *Bitfinex) unSubscribeBody(ch chan ccxt.AsyncResult[bool], channel st
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -178,7 +178,7 @@ func (this *Bitfinex) SubscribePrivateAsync(messageHash string) <-chan ccxt.Asyn
 func (this *Bitfinex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -227,7 +227,7 @@ func (this *Bitfinex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -284,7 +284,7 @@ func (this *Bitfinex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	_ = timeframe
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -400,16 +400,12 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	var timeframe *string = this.FindTimeframe(interval)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = channel + ":" + *interval + ":" + marketId
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
-	if symbol != nil {
-		if timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
-		}
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -518,7 +514,7 @@ func (this *Bitfinex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -680,10 +676,12 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 	var market map[string]any = this.SafeMarket(marketId)
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
+	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	if stored == nil {
 		stored = ccxt.NewArrayCache(tradesLimit)
-		this.Trades.Store(symbol, stored)
+		if symbol != nil {
+			this.Trades[*symbol] = stored
+		}
 	}
 	var messageLength int = len(message)
 	if messageLength == 2 {
@@ -891,7 +889,9 @@ func (this *Bitfinex) HandleTicker(client any, message []any, subscription map[s
 	var parsed map[string]any = this.ParseWsTicker(ticker, market)
 	var channel string = "ticker"
 	var messageHash string = channel + ":" + marketId
-	this.Tickers.Store(symbol, parsed)
+	if symbol != nil {
+		this.Tickers[*symbol] = ccxt.TickerFromMap(parsed)
+	}
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 }
 func (this *Bitfinex) ParseWsTicker(ticker []any, optionalArgs ...any) map[string]any {
@@ -1019,7 +1019,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 	var prec string = *this.SafeString(subscription, "prec", "P0")
 	var isRaw bool = (prec == "R0")
 	// if it is an initial snapshot
-	if !(this.Orderbooks.Has(symbol)) {
+	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		var limit *int64 = this.SafeInteger(subscription, "len")
 		if isRaw {
 			// raw order books
@@ -1032,10 +1032,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
 			}
 		}
-		var orderbook any
-		if symbol != nil {
-			orderbook = this.Orderbooks[*symbol]
-		}
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		if isRaw {
 			var deltas []any = ccxt.SafeListTyped(message, 1)
 			for i := 0; i < len(deltas); i++ {
@@ -1087,15 +1084,9 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		ccxt.AddElementToObject(orderbook, "symbol", symbol)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
-		var orderbook any
-		if symbol != nil {
-			orderbook = this.Orderbooks[*symbol]
-		}
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var deltas any = this.SafeValue(message, 1)
-		var orderbookItem ccxt.OrderBookInterface
-		if symbol != nil {
-			orderbookItem = this.Orderbooks[*symbol]
-		}
+		var orderbookItem ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		if isRaw {
 			var price *string = this.SafeString(deltas, 1)
 			var deltas2 *float64 = this.SafeNumber(deltas, 2)
@@ -1151,7 +1142,7 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 	var symbol *string = this.SafeSymbol(marketId)
 	var channel string = "book"
 	var messageHash string = channel + ":" + marketId
-	var book map[string]any = ccxt.SafeMapTyped(this.Orderbooks.ToMap(), symbol)
+	var book map[string]any = ccxt.SafeMapTyped(this.Orderbooks, symbol)
 	if book == nil {
 		return
 	}
@@ -1217,7 +1208,7 @@ func (this *Bitfinex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1316,7 +1307,9 @@ func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[
 			oldBalance[*code] = balance
 		}
 		oldBalance["info"] = message
-		ccxt.AddElementToObject(this.Balance, balanceType, this.SafeBalance(oldBalance))
+		if balanceType != nil {
+			this.Balance[*balanceType] = this.SafeBalance(oldBalance)
+		}
 		if balanceType != nil {
 			updatedTypes[*balanceType] = true
 		}
@@ -1382,7 +1375,7 @@ func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]
 	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(messageHashes[i]))
 		var subHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(subMessageHashes) {
 				return subMessageHashes[i]
@@ -1530,7 +1523,7 @@ func (this *Bitfinex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1612,7 +1605,7 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 			return
 		}
 		for i := 0; i < len(data); i++ {
-			var value any = data[i]
+			var value any = ccxt.DerefScalar(data[i])
 			var parsed any = this.ParseWsOrder(value)
 			var symbol *string = this.SafeString(parsed, "symbol", "")
 			if symbol != nil {

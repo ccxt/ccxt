@@ -153,7 +153,7 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 			this.Balance[*code] = account
 		}
 	}
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	var messageHash *string = this.SafeString(message, "oid")
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
@@ -188,7 +188,7 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 		panic(ccxt.ArgumentsRequired(this.Id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance"))
 	}
 	ccxt.AddElementToObject(this.Options["watchTrades"], "symbol", symbol)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -200,7 +200,7 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var messageHash string = "trades"
 	var subscriptionHash string = "old:" + symbolValue
-	var client any = this.SafeValue(this.WsClientsSnapshot(), url)
+	var client any = this.SafeValue(this.Clients, url)
 	if client != nil {
 		var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 		for i := 0; i < len(subscriptionKeys); i++ {
@@ -301,7 +301,7 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 	}
-	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
+	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	var market map[string]any = this.Market(symbol)
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
@@ -335,7 +335,7 @@ func (this *Cex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -396,7 +396,7 @@ func (this *Cex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticke
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -437,7 +437,7 @@ func (this *Cex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticke
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers", symbolsNormalized)}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
 
@@ -460,7 +460,7 @@ func (this *Cex) fetchTickerWsBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -502,7 +502,7 @@ func (this *Cex) HandleTicker(client any, message map[string]any) {
 	if symbol == nil {
 		return
 	}
-	this.Tickers.Store(symbol, ticker)
+	this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	var messageHash string = "ticker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	client.(ccxt.ClientInterface).Resolve(ticker, "tickers")
@@ -595,7 +595,7 @@ func (this *Cex) fetchBalanceWsBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -652,7 +652,7 @@ func (this *Cex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -721,7 +721,7 @@ func (this *Cex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1135,7 +1135,7 @@ func (this *Cex) FromPrecision(amount any, scale any) any {
 	return precise.String()
 }
 func (this *Cex) CurrencyFromPrecision(currency any, amount any) any {
-	var scale *int64 = this.SafeInteger(ccxt.GetValue(this.Currencies(), currency), "precision", 0)
+	var scale *int64 = this.SafeInteger(ccxt.GetValue(this.Currencies, currency), "precision", 0)
 	return this.FromPrecision(amount, scale)
 }
 func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
@@ -1197,7 +1197,7 @@ func (this *Cex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1274,10 +1274,10 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	// reset the existing orderbook instead of replacing it: a consumer
 	// holds a reference to the old object and would never see updates
 	// after a re-subscription snapshot
-	if _, ok := this.Orderbooks[symbol]; !ok {
+	if !(this.Orderbooks[symbol] != nil) {
 		this.Orderbooks[symbol] = this.OrderBook(map[string]any{})
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	snapshot["nonce"] = incrementalId
 	orderbook.Reset(snapshot)
@@ -1320,7 +1320,7 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	if symbol == "" {
 		return
 	}
-	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
+	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	var messageHash string = "orderbook:" + symbol
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	if (nonce == nil) || (!ccxt.IsEqual(incrementalId, *nonce+1)) {
@@ -1332,11 +1332,11 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(data, "time")
 	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
-	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "asks"), asks)
-	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "bids"), bids)
-	ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
-	ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(storedOrderBook, "nonce", incrementalId)
+	this.HandleDeltas(storedOrderBook.GetAsks(), asks)
+	this.HandleDeltas(storedOrderBook.GetBids(), bids)
+	storedOrderBook.SetTimestamp(timestamp)
+	storedOrderBook.SetDatetime(this.Iso8601(timestamp))
+	storedOrderBook.SetNonce(incrementalId)
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func (this *Cex) HandleDelta(bookside any, delta any) {
@@ -1377,7 +1377,7 @@ func (this *Cex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1553,7 +1553,7 @@ func (this *Cex) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id strin
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1620,7 +1620,7 @@ func (this *Cex) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchOpenOrdersWs requires a symbol."))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1683,7 +1683,7 @@ func (this *Cex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol 
 	if price == nil {
 		panic(ccxt.BadRequest(this.Id + " createOrderWs requires a price argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1754,7 +1754,7 @@ func (this *Cex) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string
 	if price == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " editOrder() requires a price argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1814,7 +1814,7 @@ func (this *Cex) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1876,7 +1876,7 @@ func (this *Cex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids 
 	if symbol != nil {
 		panic(ccxt.BadRequest(this.Id + " cancelOrderWs does not allow filtering by symbol"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

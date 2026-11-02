@@ -4265,8 +4265,8 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 			rawQuestions = ccxt.ArrayTyped(this.SafeList(responses, 1, []any{}))
 		}
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var seenMarketHandles map[string]any = map[string]any{}
 	var result []any = []any{}
@@ -4644,7 +4644,7 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var future any = this.Watch(url, messageHash, subscribeMsg, channel)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next delta
-		client.(ccxt.ClientInterface).Resolve(this.WsCacheGet("Orderbooks", sym), messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym.(string)], messageHash)
 	}
 
 	r3 := <-future.(<-chan ccxt.AsyncResult[any])
@@ -4678,7 +4678,9 @@ func (this *Myriad) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome st
 	}
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
 	orderbook.Reset(snapshot)
-	this.WsCacheSet("Orderbooks", sym, orderbook)
+	if wsKey, ok := sym.(string); ok {
+		this.Orderbooks[wsKey] = orderbook
+	}
 	return nil
 }
 func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
@@ -4695,10 +4697,10 @@ func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
 		if sym == nil {
 			continue
 		}
-		if ccxt.IsEqual(this.Orderbooks.Get(sym), nil) {
+		if ccxt.IsEqual(this.Orderbooks[sym.(string)], nil) {
 			continue
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(sym)
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[sym.(string)]
 		var price any = this.FromWei(this.SafeString(change, "price"))
 		var amount any = this.FromWei(this.SafeString(change, "amount"))
 		var sideStr *string = this.SafeString(change, "side")
@@ -4882,13 +4884,15 @@ func (this *Myriad) HandleTrades(client any, data any) {
 		},
 	}, market)
 	if this.Trades == nil {
-		this.Trades = ccxt.TradesCache{}
+		this.Trades = map[string]ccxt.WsArrayCache{}
 	}
-	if this.Trades.Get(sym) == nil {
+	if this.Trades[sym.(string)] == nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		this.Trades.Store(sym, ccxt.NewArrayCache(tradesLimit))
+		if wsKey, ok := sym.(string); ok {
+			this.Trades[wsKey] = ccxt.NewArrayCache(tradesLimit)
+		}
 	}
-	var stored ccxt.WsArrayCache = this.Trades.Get(sym)
+	var stored ccxt.WsArrayCache = this.Trades[sym.(string)]
 	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trades::", sym))
 	// also surface the wallet's own fills (taker or maker leg) with their real execution prices
@@ -5145,9 +5149,7 @@ func (this *Myriad) HandleTicker(client any, data any) {
 	var ts *int64 = this.SafeInteger(data, "ts")
 	var outcomes []any = ccxt.SafeListTyped(data, "outcomes")
 	var outcomesLength int = len(outcomes)
-	if this.Tickers == nil {
-		this.Tickers = ccxt.TickerCache{}
-	}
+	var cachedTickers any = this.SafeDict(this.Options, "wsTickers", map[string]any{})
 	for i := 0; i < outcomesLength; i++ {
 		var oc any = outcomes[i]
 		var outcomeId *string = this.SafeString(oc, "outcome")
@@ -5183,10 +5185,11 @@ func (this *Myriad) HandleTicker(client any, data any) {
 			"quoteVolume":   nil,
 			"info":          oc,
 		}, market)
-		this.Tickers.Store(sym, ticker)
+		ccxt.AddElementToObject(cachedTickers, sym, ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add("ticker::", sym))
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Tickers.ToMap(), "tickers")
+	this.Options["wsTickers"] = cachedTickers
+	client.(ccxt.ClientInterface).Resolve(cachedTickers, "tickers")
 }
 
 /**

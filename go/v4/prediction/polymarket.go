@@ -770,9 +770,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]ma
 				_, ok := seen[*eventId]
 				return ok
 			}()) {
-				if eventId != nil {
-					seen[*eventId] = true
-				}
+				seen[*eventId] = true
 				rawEvents = append(rawEvents, rawEvent)
 			}
 		}
@@ -1279,8 +1277,8 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 		}()
 		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
 		if rawMarketsLength > 0 {
-			if this.Markets() == nil {
-				this.PublishMarkets(map[string]any{})
+			if this.Markets == nil {
+				this.Markets = map[string]any{}
 			}
 			var ccxtMarkets []any = ccxt.ArrayTyped(this.ParseEventToMarkets(map[string]any{
 				"markets": rawMarkets,
@@ -1340,8 +1338,8 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 	}
 	var tokenIdsLength int = len(tokenIds)
 	if tokenIdsLength > 0 {
-		if this.Markets() == nil {
-			this.PublishMarkets(map[string]any{})
+		if this.Markets == nil {
+			this.Markets = map[string]any{}
 		}
 		// token ids are ~78 chars each, so cap the batch to keep the URL under common limits
 		var chunkSize *int64 = this.SafeInteger(this.Options, "fetchOutcomesBatchSize", 50)
@@ -1532,7 +1530,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 		var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 		if tokenId != nil {
 			if _, ok := outcomesByTokenId[*tokenId]; !ok {
-				ccxt.AddElementToObject(outcomesByTokenId, tokenId, outcomeObj)
+				outcomesByTokenId[*tokenId] = outcomeObj
 				tokenIds = append(tokenIds, tokenId)
 			}
 		}
@@ -1954,7 +1952,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 	}
 	var unsortedCandles []any = []any{}
 	for i := 0; i < len(bucketKeys); i++ {
-		unsortedCandles = append(unsortedCandles, ccxt.GetValue(buckets, bucketKeys[i]))
+		unsortedCandles = append(unsortedCandles, buckets[bucketKeys[i]])
 	}
 	var candles []any = this.SortBy(unsortedCandles, 0)
 	var candlesLength int = len(candles)
@@ -2097,11 +2095,11 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan ccxt.AsyncResult[ccxt.Pred
 		"market": conditionId,
 	}
 
-	listEp2004 := <-this.DataPublicGetOi(this.Extend(request, params))
-	if listEp2004.Err != nil {
-		panic(listEp2004.Err)
+	responseRecv := <-this.DataPublicGetOi(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2004.Value
+	var response []any = responseRecv.Value
 	//
 	//     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
 	//
@@ -3680,8 +3678,8 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if this.Events == nil {
 		this.Events = map[string]any{}
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var result []any = []any{}
 	for rei := 0; rei < ccxt.GetArrayLength(rawEvents); rei++ {
@@ -4415,11 +4413,13 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 	if outcome == nil {
 		return
 	}
-	if !(this.Orderbooks.Has(outcome)) {
+	if !(this.Orderbooks[outcome.(string)] != nil) {
 		var seededBook any = this.OrderBook(map[string]any{})
-		this.Orderbooks.Store(outcome, seededBook)
+		if wsKey, ok := outcome.(string); ok {
+			this.Orderbooks[wsKey] = seededBook.(ccxt.OrderBookInterface)
+		}
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(outcome)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[outcome.(string)]
 	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
 	var rawBids []any = ccxt.SafeListTyped(event, "bids")
 	var rawAsks []any = ccxt.SafeListTyped(event, "asks")
@@ -4454,18 +4454,18 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 		var change map[string]any = ccxt.SafeMapTyped(changes, i)
 		var tokenId *string = this.SafeString(change, "asset_id")
 		var outcome any = this.TokenIdToSymbol(tokenId)
-		if (outcome == nil) || !(this.Orderbooks.Has(outcome)) {
+		if (outcome == nil) || !(this.Orderbooks[outcome.(string)] != nil) {
 			continue
 		}
-		var orderbook any = this.Orderbooks.Get(outcome)
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[outcome.(string)]
 		var price *float64 = this.SafeNumber(change, "price")
 		var size *float64 = this.SafeNumber(change, "size")
 		var isBuy bool = (this.SafeStringUpper(change, "side", "") != nil && *this.SafeStringUpper(change, "side", "") == "BUY")
 		var side any = func() any {
 			if isBuy {
-				return ccxt.GetValue(orderbook, "bids")
+				return orderbook.GetBids()
 			}
-			return ccxt.GetValue(orderbook, "asks")
+			return orderbook.GetAsks()
 		}()
 		// storeArray([price, size]) inserts/updates or removes (size=0) the level
 		var sideRef any = side
@@ -4483,7 +4483,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 	}
 	for k := 0; k < len(updatedSymbols); k++ {
 		var outcome string = updatedSymbols[k]
-		var orderbook any = this.Orderbooks[outcome]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[outcome]
 		client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+outcome)
 		client.(ccxt.ClientInterface).Resolve(orderbook, "ticker::"+outcome)
 	}
@@ -4517,13 +4517,15 @@ func (this *Polymarket) HandleTrade(client any, event any) {
 		"fee":          nil,
 	}, market)
 	if this.Trades == nil {
-		this.Trades = ccxt.TradesCache{}
+		this.Trades = map[string]ccxt.WsArrayCache{}
 	}
-	var stored ccxt.WsArrayCache = this.Trades.Get(outcome)
+	var stored ccxt.WsArrayCache = this.Trades[outcome.(string)]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades.Store(outcome, stored)
+		if wsKey, ok := outcome.(string); ok {
+			this.Trades[wsKey] = stored
+		}
 	}
 	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trades::", outcome))
@@ -4661,10 +4663,10 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		"assets_ids": []any{tokenId},
 		"type":       "market",
 	}
-	if !this.WsCacheHas("Orderbooks", outcomeValue) {
+	if !(this.Orderbooks[*outcomeValue] != nil) {
 		var seededBook any = this.OrderBook(map[string]any{})
 		if outcomeValue != nil {
-			this.WsCacheSet("Orderbooks", *outcomeValue, seededBook)
+			this.Orderbooks[*outcomeValue] = seededBook.(ccxt.OrderBookInterface)
 		}
 	}
 	var url any = this.UrlsApi["ws"]
@@ -4948,7 +4950,7 @@ func (this *Polymarket) TokenIdToSymbol(tokenId *string) any {
 	}
 	// safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
 	// but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
-	var market map[string]any = ccxt.SafeMapTyped(this.Markets_by_id(), tokenId)
+	var market map[string]any = ccxt.SafeMapTyped(this.Markets_by_id, tokenId)
 	return this.SafeString2(market, "market", "symbol")
 }
 func (this *Polymarket) ParsePolyTimestamp(raw *string) any {

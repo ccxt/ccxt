@@ -427,8 +427,11 @@ func (this *Btcbox) ParseBalance(response any) map[string]any {
 		"info": response,
 	}
 	var codes []string = nil
-	for k := range this.Currencies() {
-		codes = append(codes, k)
+	if this.Currencies != nil {
+		codes = make([]string, 0, len(this.Currencies))
+		for objectKey := range this.Currencies {
+			codes = append(codes, objectKey)
+		}
 	}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
@@ -464,7 +467,7 @@ func (this *Btcbox) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -504,7 +507,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -575,7 +578,7 @@ func (this *Btcbox) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -619,7 +622,7 @@ func (this *Btcbox) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -699,7 +702,7 @@ func (this *Btcbox) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -713,11 +716,11 @@ func (this *Btcbox) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		request["coin"] = market["baseId"]
 	}
 
-	listEp677 := <-this.PublicGetOrders(this.Extend(request, params))
-	if listEp677.Err != nil {
-		panic(listEp677.Err)
+	responseRecv := <-this.PublicGetOrders(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp677.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -759,7 +762,7 @@ func (this *Btcbox) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -812,7 +815,7 @@ func (this *Btcbox) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -939,7 +942,7 @@ func (this *Btcbox) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -996,7 +999,7 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan AsyncResult[[]Order], typeVar 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1016,11 +1019,11 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan AsyncResult[[]Order], typeVar 
 		"coin": market["baseId"],
 	}
 
-	listEp952 := <-this.PrivatePostTradeList(this.Extend(request, params))
-	if listEp952.Err != nil {
-		panic(listEp952.Err)
+	responseRecv := <-this.PrivatePostTradeList(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp952.Value
+	var response []any = responseRecv.Value
 	//
 	// [
 	//      {

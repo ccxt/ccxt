@@ -82,7 +82,7 @@ func (this *Coinone) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -146,7 +146,7 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	}
 	var symbol any = this.Symbol(*base + "/" + *quote)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol.(string)]
 	if orderbook == nil {
 		orderbook = this.OrderBook()
 	} else {
@@ -160,7 +160,9 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
-	this.Orderbooks.Store(symbol, orderbook)
+	if wsKey, ok := symbol.(string); ok {
+		this.Orderbooks[wsKey] = orderbook
+	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Coinone) HandleDelta(bookside any, delta any) {
@@ -187,7 +189,7 @@ func (this *Coinone) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -250,9 +252,9 @@ func (this *Coinone) HandleTicker(client any, message map[string]any) {
 	if symbol == nil {
 		return
 	}
-	this.Tickers.Store(symbol, ticker)
+	this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	var messageHash string = "ticker:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(symbol), messageHash)
+	client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
 }
 func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
@@ -341,7 +343,7 @@ func (this *Coinone) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -393,7 +395,7 @@ func (this *Coinone) HandleTrades(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var trade map[string]any = this.ParseWsTrade(data)
 	var symbol string = *this.SafeString(trade, "symbol", "")
-	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
+	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)

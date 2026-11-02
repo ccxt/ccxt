@@ -195,8 +195,8 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 		priceType = "pct"
 	}
 	if method == "createOrderWs" {
-		var reduceOnly *bool = this.SafeBool(paramsPostOnly, "reduceOnly")
-		if reduceOnly != nil && *reduceOnly == true {
+		var reduceOnly *bool = this.SafeBool(paramsPostOnly, "reduceOnly", false)
+		if reduceOnly != nil && *reduceOnly {
 			orderParams["reduce_only"] = true
 		}
 		var timeInForce *string = this.SafeStringLower(paramsPostOnly, "timeInForce")
@@ -718,7 +718,9 @@ func (this *Kraken) HandleTicker(client any, message map[string]any) {
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
 	}))
-	this.Tickers.Store(symbol, result)
+	if symbol != nil {
+		this.Tickers[*symbol] = ccxt.TickerFromMap(result)
+	}
 	client.(ccxt.ClientInterface).Resolve(result, messageHash)
 }
 func (this *Kraken) HandleTrades(client any, message map[string]any) {
@@ -743,11 +745,13 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	var trade map[string]any = ccxt.SafeMapTyped(data, 0)
 	var symbol *string = this.SafeString(trade, "symbol")
 	var messageHash string = this.GetMessageHash("trade", nil, symbol)
-	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
+	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades.Store(symbol, stored)
+		if symbol != nil {
+			this.Trades[*symbol] = stored
+		}
 	}
 	var market map[string]any = this.Market(symbol)
 	var parsed []any = this.ParseTrades(data, market)
@@ -783,8 +787,8 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var marketId *string = this.SafeString(first, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	if symbol != nil {
-		if _, ok := this.Ohlcvs[*symbol]; !ok {
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
@@ -795,10 +799,8 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && timeframe != nil {
 		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -903,7 +905,7 @@ func (this *Kraken) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers", symbolsNormalized)}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
 
@@ -952,7 +954,7 @@ func (this *Kraken) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Bidsasks", symbolsNormalized)}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsNormalized)}
 	return nil
 }
 
@@ -1472,9 +1474,9 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
 	var orderbook ccxt.OrderBookInterface
 	if typeVar != nil && *typeVar == "update" {
-		orderbook = this.Orderbooks.Get(symbol)
-		var storedAsks any = ccxt.GetValue(orderbook, "asks")
-		var storedBids any = ccxt.GetValue(orderbook, "bids")
+		orderbook = this.Orderbooks[*symbol]
+		var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
+		var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
 		if a != nil {
 			this.CustomHandleDeltas(storedAsks, a)
 		}
@@ -1482,9 +1484,9 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 			this.CustomHandleDeltas(storedBids, b)
 		}
 		var datetime *string = this.SafeString(first, "timestamp")
-		ccxt.AddElementToObject(orderbook, "symbol", symbol)
-		ccxt.AddElementToObject(orderbook, "timestamp", this.Parse8601(datetime))
-		ccxt.AddElementToObject(orderbook, "datetime", datetime)
+		orderbook.SetSymbol(symbol)
+		orderbook.SetTimestamp(this.Parse8601(datetime))
+		orderbook.SetDatetime(datetime)
 	} else {
 		// snapshot
 		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
@@ -1501,7 +1503,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		}())
 		var depths map[string]any = this.SafeDictMap(this.Options, "wsOrderBookDepths", map[string]any{})
 		var storedDepth *int64 = this.SafeInteger(depths, symbol)
-		if !(this.Orderbooks.Has(symbol)) || (storedDepth == nil || *storedDepth != depth) {
+		if !(symbol != nil && this.Orderbooks[*symbol] != nil) || (storedDepth == nil || *storedDepth != depth) {
 			// rebuild only on the first snapshot or when the depth changes,
 			// e.g. a re-subscription with a different limit
 			if symbol != nil {
@@ -1514,7 +1516,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		}
 		// reset in place so that references held by users keep receiving
 		// updates after a reconnect snapshot (a new object would orphan them)
-		orderbook = this.Orderbooks.Get(symbol)
+		orderbook = this.Orderbooks[*symbol]
 		orderbook.Reset(map[string]any{})
 		var keys []string = []string{"asks", "bids"}
 		for i := 0; i < len(keys); i++ {
@@ -1534,8 +1536,8 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	if checksum == true {
 		var payloadArray []string = []string{}
 		if c != nil {
-			var checkAsks any = ccxt.GetValue(orderbook, "asks")
-			var checkBids any = ccxt.GetValue(orderbook, "bids")
+			var checkAsks ccxt.IOrderBookSide = orderbook.GetAsks()
+			var checkBids ccxt.IOrderBookSide = orderbook.GetBids()
 			// const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ])
 			// const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ])
 			for i := 0; i < 10; i++ {
@@ -2278,15 +2280,21 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	this.Balance[typeVar] = this.SafeDict(this.Balance, typeVar, map[string]any{})
-	this.WsBalanceEntryForWrite(typeVar)["info"] = message
+	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+		entry["info"] = message
+	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var currencyId *string = this.SafeString(ccxt.DerefScalar(data[i]), "asset")
+		var currencyId *string = this.SafeString(data[i], "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
-		var eq *string = this.SafeString(ccxt.DerefScalar(data[i]), "balance")
+		var eq *string = this.SafeString(data[i], "balance")
 		account["total"] = eq
-		ccxt.AddElementToObject(this.Balance[typeVar], code, account)
+		if code != nil {
+			if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+				entry[*code] = account
+			}
+		}
 	}
 	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
 	var channel *string = this.SafeString(message, "channel")

@@ -135,7 +135,7 @@ func (this *Woofipro) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -188,7 +188,7 @@ func (this *Woofipro) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var topic *string = this.SafeString(message, "topic")
-	if _, ok := this.Orderbooks[*symbol]; !ok {
+	if !(this.Orderbooks[*symbol] != nil) {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
@@ -217,7 +217,7 @@ func (this *Woofipro) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -304,7 +304,9 @@ func (this *Woofipro) HandleTicker(client any, message map[string]any) any {
 	data["date"] = timestamp
 	var ticker map[string]any = this.ParseWsTicker(data, market)
 	ticker["symbol"] = market["symbol"]
-	this.Tickers.Store(market["symbol"], ticker)
+	if wsKey, ok := market["symbol"].(string); ok {
+		this.Tickers[wsKey] = ccxt.TickerFromMap(ticker)
+	}
 	client.(ccxt.ClientInterface).Resolve(ticker, topic)
 	return message
 }
@@ -330,7 +332,7 @@ func (this *Woofipro) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -380,12 +382,14 @@ func (this *Woofipro) HandleTickers(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var marketId *string = this.SafeString(ccxt.DerefScalar(data[i]), "symbol")
+		var marketId *string = this.SafeString(data[i], "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var ticker map[string]any = this.ParseWsTicker(this.Extend(ccxt.DerefScalar(data[i]), map[string]any{
+		var ticker map[string]any = this.ParseWsTicker(this.Extend(data[i], map[string]any{
 			"date": timestamp,
 		}), market)
-		this.Tickers.Store(market["symbol"], ticker)
+		if wsKey, ok := market["symbol"].(string); ok {
+			this.Tickers[wsKey] = ccxt.TickerFromMap(ticker)
+		}
 		result = append(result, ticker)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
@@ -412,7 +416,7 @@ func (this *Woofipro) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -463,7 +467,7 @@ func (this *Woofipro) HandleBidAsk(client any, message map[string]any) {
 		}))
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			this.Tickers.Store(tickerSymbol, ticker)
+			this.Tickers[*tickerSymbol] = ccxt.TickerFromMap(ticker)
 		}
 		result = append(result, ticker)
 	}
@@ -516,7 +520,7 @@ func (this *Woofipro) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -577,10 +581,8 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(data, "type")
 	var timeframe *string = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
 	if symbol != nil && timeframe != nil {
@@ -624,7 +626,7 @@ func (this *Woofipro) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -681,7 +683,7 @@ func (this *Woofipro) HandleTrade(client any, message map[string]any) {
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
+	var trades ccxt.WsArrayCache = this.Trades[symbol]
 	trades.Append(trade)
 	this.Trades[symbol] = trades
 	client.(ccxt.ClientInterface).Resolve(trades, topic)
@@ -776,8 +778,8 @@ func (this *Woofipro) HandleAuth(client any, message map[string]any) {
 	//     }
 	//
 	var messageHash string = "authenticated"
-	var success *bool = this.SafeBool(message, "success")
-	if success != nil && *success == true {
+	var success *bool = this.SafeBool(message, "success", false)
+	if success != nil && *success {
 		// client.resolve (message, messageHash)
 		var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
 		future.(*ccxt.Future).Resolve(true)
@@ -937,7 +939,7 @@ func (this *Woofipro) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1013,7 +1015,7 @@ func (this *Woofipro) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1334,7 +1336,7 @@ func (this *Woofipro) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1362,7 +1364,7 @@ func (this *Woofipro) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	this.SetPositionsCache(client, symbolsNormalized)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.WsCacheObjGet("Positions") == nil) {
+	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.Positions == nil) {
 
 		r1 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
 		if r1.Err != nil {
@@ -1389,7 +1391,7 @@ func (this *Woofipro) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.WsCacheObjGet("Positions"), symbolsNormalized, since, limit, true))}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
 func (this *Woofipro) SetPositionsCache(client any, optionalArgs ...any) {
@@ -1403,15 +1405,15 @@ func (this *Woofipro) SetPositionsCache(client any, optionalArgs ...any) {
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 		}
 	} else {
-		this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
+		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Woofipro) LoadPositionsSnapshotAsync(client any, messageHash any) <-chan ccxt.AsyncResult[bool] {
+func (this *Woofipro) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Woofipro) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any) any {
+func (this *Woofipro) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1419,12 +1421,9 @@ func (this *Woofipro) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
-	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
-	var cache any = this.WsCacheObjGet("Positions")
+	var positions []any = ccxt.PositionsToList(r.Value)
+	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
+	var cache any = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *string = this.SafeString(position, "contracts", "0")
@@ -1586,7 +1585,7 @@ func (this *Woofipro) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1672,7 +1671,7 @@ func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 			}))
 		}
 	}
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 func (this *Woofipro) HandleErrorMessage(client any, message map[string]any) any {
@@ -1682,8 +1681,8 @@ func (this *Woofipro) HandleErrorMessage(client any, message map[string]any) any
 	if _, ok := message["success"]; !ok {
 		return false
 	}
-	var success *bool = this.SafeBool(message, "success")
-	if success != nil && *success == true {
+	var success *bool = this.SafeBool(message, "success", false)
+	if success != nil && *success {
 		return false
 	}
 	var errorMessage *string = this.SafeString(message, "errorMsg")
@@ -1786,12 +1785,12 @@ func (this *Woofipro) Ping(client any) any {
 		"event": "ping",
 	}
 }
-func (this *Woofipro) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Woofipro) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Woofipro) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Woofipro) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 

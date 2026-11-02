@@ -502,11 +502,11 @@ func (this *Onetrading) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp500 := <-this.PublicGetCurrencies(params)
-	if listEp500.Err != nil {
-		panic(listEp500.Err)
+	responseRecv := <-this.PublicGetCurrencies(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp500.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -568,11 +568,11 @@ func (this *Onetrading) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp562 := <-this.PublicGetInstruments(params)
-	if listEp562.Err != nil {
-		panic(listEp562.Err)
+	responseRecv := <-this.PublicGetInstruments(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp562.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -818,7 +818,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan AsyncResult[map[strin
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -826,11 +826,11 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan AsyncResult[map[strin
 		}
 	}
 
-	listEp811 := <-this.PublicGetFees(params)
-	if listEp811.Err != nil {
-		panic(listEp811.Err)
+	responseRecv := <-this.PublicGetFees(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp811.Value
+	var response []any = responseRecv.Value
 	//
 	// [
 	//     {
@@ -887,7 +887,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan AsyncResult[map[strin
 		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var tierObject any = func() any {
-			if market["spot"] == true {
+			if *this.SafeBool(market, "spot", false) {
 				return firstSpotTier
 			}
 			return firstFuturesTier
@@ -916,7 +916,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan AsyncResult[map[stri
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -979,13 +979,13 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan AsyncResult[map[stri
 		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var makerFee *string = func() *string {
-			if market["spot"] == true {
+			if *this.SafeBool(market, "spot", false) {
 				return spotMakerFee
 			}
 			return futuresMakerFee
 		}()
 		var takerFee *string = func() *string {
-			if market["spot"] == true {
+			if *this.SafeBool(market, "spot", false) {
 				return spotTakerFee
 			}
 			return futuresTakerFee
@@ -1098,7 +1098,7 @@ func (this *Onetrading) fetchTickerBody(ch chan AsyncResult[Ticker], symbol stri
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1159,7 +1159,7 @@ func (this *Onetrading) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1168,11 +1168,11 @@ func (this *Onetrading) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp1133 := <-this.PublicGetMarketTicker(params)
-	if listEp1133.Err != nil {
-		panic(listEp1133.Err)
+	responseRecv := <-this.PublicGetMarketTicker(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1133.Value
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         {
@@ -1229,7 +1229,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1382,7 +1382,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1561,7 +1561,7 @@ func (this *Onetrading) fetchBalanceBody(ch chan AsyncResult[Balances], optional
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1754,7 +1754,7 @@ func (this *Onetrading) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1855,7 +1855,7 @@ func (this *Onetrading) cancelOrderBody(ch chan AsyncResult[Order], id any, opti
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1917,7 +1917,7 @@ func (this *Onetrading) cancelAllOrdersBody(ch chan AsyncResult[[]Order], option
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1969,7 +1969,7 @@ func (this *Onetrading) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2020,7 +2020,7 @@ func (this *Onetrading) fetchOrderBody(ch chan AsyncResult[Order], id string, op
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2110,7 +2110,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2303,7 +2303,7 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id st
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2390,7 +2390,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

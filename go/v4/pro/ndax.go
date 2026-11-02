@@ -64,7 +64,7 @@ func (this *Ndax) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -127,7 +127,7 @@ func (this *Ndax) HandleTicker(client any, message map[string]any) {
 	var symbol *string = this.SafeString(ticker, "symbol")
 	var market map[string]any = this.Market(symbol)
 	if symbol != nil {
-		this.Tickers.Store(symbol, ticker)
+		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
 	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeLevel1"
@@ -161,7 +161,7 @@ func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -231,7 +231,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 			if symbol == nil {
 				return nil
 			}
-			return this.Trades.Get(symbol)
+			return this.Trades[*symbol]
 		}()
 		if tradesArray == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -239,7 +239,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 		}
 		tradesArray.Append(trade)
 		if symbol != nil {
-			this.Trades.Store(symbol, tradesArray)
+			this.Trades[*symbol] = tradesArray
 		}
 		if symbol != nil {
 			updates[*symbol] = true
@@ -257,7 +257,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 		var market map[string]any = this.Market(symbol)
 		var marketId string = *this.SafeString(market, "id", "")
 		var messageHash string = name + ":" + marketId
-		var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
+		var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
 		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	}
 }
@@ -291,7 +291,7 @@ func (this *Ndax) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -421,7 +421,9 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 					marketUpdates[timeframe] = true
 				}
 			}
-			this.Ohlcvs[*symbol][timeframe] = stored
+			if this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][timeframe] = stored
+			}
 		}
 		if marketId != nil {
 			updates[*marketId] = marketUpdates
@@ -472,7 +474,7 @@ func (this *Ndax) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -555,7 +557,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	}
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	if orderbook == nil {
 		return
 	}
@@ -644,7 +646,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	// reset the existing orderbook instead of replacing it: a consumer
 	// holds a reference to the old object and would never see updates
 	// after a re-subscription snapshot
-	if _, ok := this.Orderbooks[*symbol]; !ok {
+	if !(this.Orderbooks[*symbol] != nil) {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]

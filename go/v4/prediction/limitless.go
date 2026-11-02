@@ -363,9 +363,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 					_, ok := seen[*slug]
 					return ok
 				}()) {
-					if slug != nil {
-						seen[*slug] = true
-					}
+					seen[*slug] = true
 					allRaw = append(allRaw, raw)
 				}
 			}
@@ -1915,11 +1913,11 @@ func (this *Limitless) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		request["limit"] = limit
 	}
 
-	listEp1871 := <-this.LimitlessPrivateGetMarketsSlugUserOrders(this.Extend(request, params))
-	if listEp1871.Err != nil {
-		panic(listEp1871.Err)
+	responseRecv := <-this.LimitlessPrivateGetMarketsSlugUserOrders(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1871.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -3827,9 +3825,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 					_, ok := seen[*rawSlug]
 					return ok
 				}()) {
-					if rawSlug != nil {
-						seen[*rawSlug] = true
-					}
+					seen[*rawSlug] = true
 					rawMarkets = append(rawMarkets, raw)
 				}
 			}
@@ -3862,8 +3858,8 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	if this.Events == nil {
 		this.Events = map[string]any{}
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var eventGroups map[string]any = map[string]any{}
 	// group rows carry their tradeable children in a nested `markets` list — expand them
@@ -4071,7 +4067,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 		var categoryMarkets []any = ccxt.MapSliceToList(r1.Value)
 		var categoryMarketsLength int = len(categoryMarkets)
 		for mi := 0; mi < categoryMarketsLength; mi++ {
-			var raw any = ccxt.GetValue(categoryMarkets, mi)
+			var raw any = categoryMarkets[mi]
 			var slug *string = this.SafeString(raw, "slug")
 			if slug != nil {
 				if _, ok := seen[*slug]; !ok {

@@ -510,7 +510,7 @@ func (this *Extended) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 	markets := r.Value
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
-		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies())
+		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies)
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: markets}
@@ -3636,7 +3636,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 	var market map[string]any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
 	var uppercaseSide string = ToUpper(side)
-	if (market["spot"] == true) && (uppercaseType != "LIMIT") {
+	if (*this.SafeBool(market, "spot", false)) && (uppercaseType != "LIMIT") {
 		panic(BadRequest(this.Id + " createOrder() supports limit orders for spot markets only"))
 	}
 	if !this.InArray(uppercaseType, []any{"LIMIT", "MARKET", "CONDITIONAL", "TPSL"}) {
@@ -3662,8 +3662,8 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 	var builderFeeRate *string = nil
 	var builderId *string = nil
 	var paramsBuilder any = params
-	var builderEnabled *bool = this.SafeBool(this.Options, "builderFee")
-	if builderEnabled != nil && *builderEnabled == true {
+	var builderEnabled *bool = this.SafeBool(this.Options, "builderFee", false)
+	if builderEnabled != nil && *builderEnabled {
 		if this.IsSandboxModeEnabled {
 			builderFeeRate = this.SafeString2(params, "builderFeeRate", "defaultBuilderFeeRate")
 			builderId = this.SafeString2(params, "builderId", "defaultBuilderId")

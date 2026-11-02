@@ -678,7 +678,7 @@ func (this *Cex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -718,7 +718,7 @@ func (this *Cex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -820,7 +820,7 @@ func (this *Cex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -834,7 +834,6 @@ func (this *Cex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 	if since != nil {
 		request["fromDateISO"] = this.Iso8601(since)
 	}
-	var until *int64 = nil
 	until, paramsUntil := this.HandleParamInteger2(params, "until", "till")
 	if until != nil {
 		request["toDateISO"] = this.Iso8601(until)
@@ -925,7 +924,7 @@ func (this *Cex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1000,7 +999,7 @@ func (this *Cex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	if dataType == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\""))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1016,7 +1015,6 @@ func (this *Cex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	if since != nil {
 		request["fromISO"] = this.Iso8601(since)
 	}
-	var until *int64 = nil
 	until, paramsUntil := this.HandleParamInteger2(paramsDataType, "until", "till")
 	if until != nil {
 		request["toISO"] = this.Iso8601(until)
@@ -1084,7 +1082,7 @@ func (this *Cex) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeI
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1168,7 +1166,7 @@ func (this *Cex) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1337,7 +1335,7 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status st
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1363,7 +1361,6 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status st
 		// exchange requires a `since` parameter for closed orders, so set default to allowed 365
 		request["serverCreateTimestampFrom"] = this.Milliseconds() - (364*24)*60*60*1000
 	}
-	var until *int64 = nil
 	until, paramsUntil := this.HandleParamInteger2(params, "until", "till")
 	if until != nil {
 		request["serverCreateTimestampTo"] = *until
@@ -1524,7 +1521,7 @@ func (this *Cex) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, optio
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1539,8 +1536,8 @@ func (this *Cex) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1462, _ := OrdersToList(r1.Value), r1.Value != nil
-	var result []any = listRecv1462
+	resultRecv, _ := OrdersToList(r1.Value), r1.Value != nil
+	var result []any = resultRecv
 	var order map[string]any = SafeMapTyped(result, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -1569,7 +1566,7 @@ func (this *Cex) fetchClosedOrderBody(ch chan AsyncResult[Order], id string, opt
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1584,8 +1581,8 @@ func (this *Cex) fetchClosedOrderBody(ch chan AsyncResult[Order], id string, opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1499, _ := OrdersToList(r1.Value), r1.Value != nil
-	var result []any = listRecv1499
+	resultRecv, _ := OrdersToList(r1.Value), r1.Value != nil
+	var result []any = resultRecv
 	var order map[string]any = SafeMapTyped(result, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -1718,7 +1715,7 @@ func (this *Cex) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1829,7 +1826,7 @@ func (this *Cex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArg
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1877,7 +1874,7 @@ func (this *Cex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1942,7 +1939,7 @@ func (this *Cex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1961,7 +1958,6 @@ func (this *Cex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var until *int64 = nil
 	until, paramsUntil := this.HandleParamInteger2(params, "until", "till")
 	if until != nil {
 		request["dateTo"] = *until
@@ -2063,7 +2059,7 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2081,7 +2077,6 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var until *int64 = nil
 	until, paramsUntil := this.HandleParamInteger2(params, "until", "till")
 	if until != nil {
 		request["dateTo"] = *until
@@ -2228,7 +2223,7 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan AsyncResult[Transf
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2292,7 +2287,7 @@ func (this *Cex) transferBetweenSubAccountsBody(ch chan AsyncResult[TransferEntr
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2389,7 +2384,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

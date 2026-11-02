@@ -487,8 +487,8 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	var eventId *string = this.SafeString(paramsOmitted, "eventId")
 	var l1Category *string = this.SafeString(paramsOmitted, "l1Category")
 	var l2Category *string = this.SafeString(paramsOmitted, "l2Category")
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var rawTopics any = []any{}
 	if allQueriesLength > 0 {
@@ -622,11 +622,11 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[strin
 		}
 		request["topK"] = limitResolved
 
-		listEp576 := <-this.SapiPrivateGetMarketSearch(this.Extend(request, rest))
-		if listEp576.Err != nil {
-			panic(listEp576.Err)
+		responseRecv := <-this.SapiPrivateGetMarketSearch(this.Extend(request, rest))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		var response []any = listEp576.Value
+		var response []any = responseRecv.Value
 		//
 		//     [
 		//         {

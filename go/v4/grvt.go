@@ -954,8 +954,8 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[bool], optionalArgs .
 				// }
 				//
 				var authResult map[string]any = SafeMapTyped(authResponse, "result")
-				var ack *bool = this.SafeBool(authResult, "ack")
-				if ack == nil || *ack != true {
+				var ack *bool = this.SafeBool(authResult, "ack", false)
+				if !(ack != nil && *ack) {
 					panic(ExchangeError("Builder authorization failed, " + this.Json(authResponse)))
 				}
 				this.Options["approvedBuilderFee"] = true
@@ -1241,7 +1241,7 @@ func (this *Grvt) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1378,7 +1378,7 @@ func (this *Grvt) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1451,7 +1451,7 @@ func (this *Grvt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1635,7 +1635,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var maxLimit int = 1000
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1760,7 +1760,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3009,7 +3009,7 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	return nil
 }
 func (this *Grvt) ConvertToBigIntCustom(x any) any {
-	return ParseInt(x)
+	return ParseInt(this.NumberToString(x))
 }
 func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string) map[string]any {
 	var priceMultiplier int = 1000000000
@@ -3063,7 +3063,7 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 	}
 	if (structureType == "EIP712_ORDER_WITH_BUILDER_TYPE") && (*this.SafeBool(this.Options, "builderFee", true)) {
 		returnValue["builder"] = order["builder"]
-		returnValue["builderFee"] = this.ParseToInt(Multiply(this.ConvertToBigIntCustom(this.FeeAmountMultiplier()), ParseFloat(order["builder_fee"]))) // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+		returnValue["builderFee"] = this.ParseToInt(Multiply(this.ConvertToBigIntCustom(this.FeeAmountMultiplier()), ParseFloat(this.SafeString(order, "builder_fee")))) // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
 	}
 	return returnValue
 }
@@ -3214,7 +3214,7 @@ func (this *Grvt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
-			if market["contract"] != true {
+			if !(*this.SafeBool(market, "contract", false)) {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))
 			}
 			baseIds = append(baseIds, market["baseId"])
@@ -4079,9 +4079,9 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 			"id":   nil,
 		})
 	}
-	var isMarket *bool = this.SafeBool(order, "is_market")
+	var isMarket *bool = this.SafeBool(order, "is_market", false)
 	var orderType string = "limit"
-	if isMarket != nil && *isMarket == true {
+	if isMarket != nil && *isMarket {
 		orderType = "market"
 	}
 	var isPostOnly *bool = this.SafeBool(order, "post_only")
@@ -4361,8 +4361,8 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 		messageData = map[string]any{
 			"mainAccountID":    request["main_account_id"],
 			"builderAccountID": request["builder_account_id"],
-			"maxFutureFeeRate": this.ParseToInt(Multiply(ParseFloat(request["max_futures_fee_rate"]), amountMultiplier)),
-			"maxSpotFeeRate":   this.ParseToInt(Multiply(ParseFloat(request["max_spot_fee_rate"]), amountMultiplier)),
+			"maxFutureFeeRate": this.ParseToInt(Multiply(ParseFloat(this.SafeString(request, "max_futures_fee_rate")), amountMultiplier)),
+			"maxSpotFeeRate":   this.ParseToInt(Multiply(ParseFloat(this.SafeString(request, "max_spot_fee_rate")), amountMultiplier)),
 			"nonce":            requestSignature["nonce"],
 			"expiration":       requestSignature["expiration"],
 		}
@@ -4488,7 +4488,7 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) map[string]any {
 		if queryString != "" {
 			requestPath = path + "?" + queryString
 		}
-		if (strings.HasSuffix(requestPath, "auth/api_key/login") == true) || (strings.HasSuffix(requestPath, "auth/wallet/login") == true) {
+		if strings.HasSuffix(requestPath, "auth/api_key/login") || strings.HasSuffix(requestPath, "auth/wallet/login") {
 			requestHeaders = map[string]any{
 				"Content-Type": "application/json",
 				"Cookie":       "rm=true;",

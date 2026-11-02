@@ -408,8 +408,8 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	}
 	var slug *string = this.SafeString2(paramsValue, "slug", "eventId")
 	var rest map[string]any = this.OmitDict(paramsValue, []any{"status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"})
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var rawTopics any = []any{}
 	if slug != nil {
@@ -1969,7 +1969,7 @@ func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any
 func (this *Predictfun) SetSandboxMode(enable bool) {
 	// read before the flag is overwritten: only an actual switch touches the token, so calling
 	// this twice with the same value is a no-op rather than a forced re-authentication
-	var wasSandbox bool = (this.SafeBool(this.Options, "sandboxMode", false) != nil && *this.SafeBool(this.Options, "sandboxMode", false) == true)
+	var wasSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	this.BaseExchange.SetSandboxMode(enable)
 	// the testnet is a different chain, so the EIP-712 chainId and every verifying contract
 	// change with it - and the venue serves the testnet without an api key
@@ -1981,7 +1981,7 @@ func (this *Predictfun) SetSandboxMode(enable bool) {
 		return 56
 	}()
 	this.RequiredCredentials["apiKey"] = !enable
-	if wasSandbox != enable {
+	if wasSandbox == nil || *wasSandbox != enable {
 		// a token minted for one host is not valid on the other, so the live one is set aside
 		// on the way in and taken back on the way out - a round trip through the sandbox then
 		// costs no re-authentication. the sandbox token is not kept: it dies with the switch
@@ -2302,7 +2302,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	// row - signing with the wrong pair places the order under a different verifying contract
 	// and the venue answers create_order_hash_mismatch
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
-	var marketObj map[string]any = ccxt.SafeMapTyped(this.Markets(), marketSymbol)
+	var marketObj map[string]any = ccxt.SafeMapTyped(this.Markets, marketSymbol)
 	var marketRow map[string]any = ccxt.SafeMapTyped(marketObj, "info")
 	var marketFeeRateBps *string = this.SafeString(marketRow, "feeRateBps", "200") // should be at least 200
 	var feeRateBps *string = this.SafeString(paramsWarnOnMarketOrderWithoutPrice, "feeRateBps", marketFeeRateBps)
@@ -3412,7 +3412,7 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		}
 		var outcomeObj map[string]any = this.Outcome(outcome)
 		var marketSymbol *string = this.SafeString(outcomeObj, "market")
-		var marketObj map[string]any = ccxt.SafeMapTyped(this.Markets(), marketSymbol)
+		var marketObj map[string]any = ccxt.SafeMapTyped(this.Markets, marketSymbol)
 		var marketRow map[string]any = ccxt.SafeMapTyped(marketObj, "info")
 		isNegRisk = (this.SafeBool(marketRow, "isNegRisk", false) != nil && *this.SafeBool(marketRow, "isNegRisk", false) == true)
 		isYieldBearing = (this.SafeBool(marketRow, "isYieldBearing", false) != nil && *this.SafeBool(marketRow, "isYieldBearing", false) == true)
@@ -4304,7 +4304,7 @@ func (this *Predictfun) HandleOrderBook(client any, message map[string]any) {
 		var isYesOutcome bool = (this.SafeInteger(outcomeInfo, "indexSet") != nil && *this.SafeInteger(outcomeInfo, "indexSet") == 1)
 		var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
 		if outcomeHandle != nil {
-			if _, ok := this.Orderbooks[*outcomeHandle]; !ok {
+			if !(outcomeHandle != nil && this.Orderbooks[*outcomeHandle] != nil) {
 				this.Orderbooks[*outcomeHandle] = this.OrderBook(map[string]any{})
 			}
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*outcomeHandle]
@@ -4671,12 +4671,12 @@ func (this *Predictfun) HandleHeartbeat(client any, message map[string]any) {
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw probe
  */
-func (this *Predictfun) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Predictfun) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the server probes every fifteen seconds and drops the connection on the next probe unless

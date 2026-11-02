@@ -104,7 +104,7 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -178,7 +178,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -257,7 +257,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers", symbolsResolved)}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsResolved)}
 	return nil
 }
 func (this *Bithumb) HandleTicker(client any, message map[string]any) {
@@ -336,19 +336,29 @@ func (this *Bithumb) HandleTicker(client any, message map[string]any) {
 	if marketId == nil {
 		return
 	}
-	var symbol *string = nil
+	var symbol any = nil
 	if isGenerationTwo {
-		symbol = this.SafeSymbol(marketId, nil, "-")
+		if derefPtr := this.SafeSymbol(marketId, nil, "-"); derefPtr != nil {
+			symbol = *derefPtr
+		} else {
+			symbol = nil
+		}
 	} else {
-		symbol = this.SafeSymbol(marketId, nil, "_")
+		if derefPtr := this.SafeSymbol(marketId, nil, "_"); derefPtr != nil {
+			symbol = *derefPtr
+		} else {
+			symbol = nil
+		}
 	}
 	if symbol == nil {
 		return
 	}
 	var ticker map[string]any = this.ParseWsTicker(tickerMessage)
-	var messageHash string = "ticker:" + *symbol
-	this.Tickers.Store(symbol, ticker)
-	client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(symbol), messageHash)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
+	if wsKey, ok := symbol.(string); ok {
+		this.Tickers[wsKey] = ccxt.TickerFromMap(ticker)
+	}
+	client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[symbol.(string)]), messageHash)
 }
 func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
@@ -510,7 +520,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -620,20 +630,17 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 			str := *timestampStr
 			return str[0:min(13, len(str))]
 		}())
-		if !(this.Orderbooks.Has(legacySymbol)) {
+		if !(legacySymbol != nil && this.Orderbooks[*legacySymbol] != nil) {
 			var ob ccxt.OrderBookInterface = this.OrderBook()
-			ccxt.AddElementToObject(ob, "symbol", legacySymbol)
+			ob.SetSymbol(legacySymbol)
 			if legacySymbol != nil {
 				this.Orderbooks[*legacySymbol] = ob
 			}
 		}
-		var legacyOrderbook ccxt.OrderBookInterface
-		if legacySymbol != nil {
-			legacyOrderbook = this.Orderbooks[*legacySymbol]
-		}
+		var legacyOrderbook ccxt.OrderBookInterface = this.Orderbooks[*legacySymbol]
 		this.HandleBookDeltas(legacyOrderbook, list)
 		ccxt.AddElementToObject(legacyOrderbook, "timestamp", legacyTimestamp)
-		ccxt.AddElementToObject(legacyOrderbook, "datetime", this.Iso8601(legacyTimestamp))
+		legacyOrderbook.SetDatetime(this.Iso8601(legacyTimestamp))
 		var legacyMessageHash string = "orderbook" + ":" + *legacySymbol
 		client.(ccxt.ClientInterface).Resolve(legacyOrderbook, legacyMessageHash)
 		return
@@ -645,7 +652,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var obLimit *int64 = this.SafeInteger(options, "limit", 1000)
-	if _, ok := this.Orderbooks[*symbol]; !ok {
+	if !(this.Orderbooks[*symbol] != nil) {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, obLimit)
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
@@ -731,7 +738,7 @@ func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -837,12 +844,14 @@ func (this *Bithumb) HandleTrades(client any, message map[string]any) {
 		}
 		var parsed map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol *string = this.SafeString(parsed, "symbol", fallbackSymbol)
-		if !(this.Trades.Has(symbol)) {
+		if !(symbol != nil && this.Trades[*symbol] != nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-			this.Trades.Store(symbol, stored)
+			if symbol != nil {
+				this.Trades[*symbol] = stored
+			}
 		}
-		var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
+		var trades ccxt.WsArrayCache = this.Trades[*symbol]
 		trades.Append(parsed)
 		var messageHash string = "trade" + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve(trades, messageHash)
@@ -999,7 +1008,7 @@ func (this *Bithumb) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1067,7 +1076,7 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	this.Balance["datetime"] = this.Iso8601(timestamp)
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 
@@ -1086,7 +1095,7 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType string, subscription map[string]any) []any {
 	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
 	var subscriptions map[string]any = this.SafeDictMap(wsOptions, "gen2Subscriptions", map[string]any{})
-	ccxt.AddElementToObject(subscriptions, subscriptionType, subscription)
+	subscriptions[subscriptionType] = subscription
 	wsOptions["gen2Subscriptions"] = subscriptions
 	this.Options["ws"] = wsOptions
 	var request []any = []any{map[string]any{
@@ -1169,7 +1178,7 @@ func (this *Bithumb) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

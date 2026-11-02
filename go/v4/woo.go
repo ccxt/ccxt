@@ -1190,7 +1190,7 @@ func (this *Woo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1361,7 +1361,7 @@ func (this *Woo) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], s
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1413,7 +1413,7 @@ func (this *Woo) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeI
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1709,7 +1709,7 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], sy
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1717,7 +1717,7 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], sy
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["spot"] != true {
+	if !(*this.SafeBool(market, "spot", false)) {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 
@@ -1749,7 +1749,7 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], s
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1757,7 +1757,7 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["spot"] != true {
+	if !(*this.SafeBool(market, "spot", false)) {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
 
@@ -1906,7 +1906,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only"})
 	var orderType string = strings.ToUpper(typeVar)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1968,7 +1968,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		// for market buy it requires the amount of quote currency to spend
 		var cost *string = this.SafeStringN(paramsMarginMode, []any{"cost", "order_amount", "orderAmount"})
 		var isPriceProvided bool = (price != nil)
-		if (market["spot"] == true) && (isPriceProvided || (cost != nil)) {
+		if (*this.SafeBool(market, "spot", false)) && (isPriceProvided || (cost != nil)) {
 			var quoteAmount any = nil
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
@@ -2113,7 +2113,7 @@ func (this *Woo) editOrderBody(ch chan AsyncResult[Order], id string, symbol any
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2231,7 +2231,7 @@ func (this *Woo) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArg
 	if (!(isTrigger != nil && *isTrigger)) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2318,7 +2318,7 @@ func (this *Woo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2385,7 +2385,7 @@ func (this *Woo) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any], t
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2448,7 +2448,7 @@ func (this *Woo) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalA
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2527,7 +2527,7 @@ func (this *Woo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...a
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2624,7 +2624,7 @@ func (this *Woo) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2681,7 +2681,7 @@ func (this *Woo) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2909,7 +2909,7 @@ func (this *Woo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3024,7 +3024,7 @@ func (this *Woo) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3032,7 +3032,7 @@ func (this *Woo) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["swap"] != true {
+	if !(*this.SafeBool(market, "swap", false)) {
 		panic(NotSupported(this.Id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint"))
 	}
 	var request map[string]any = map[string]any{
@@ -3105,7 +3105,7 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3120,7 +3120,7 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 			// type" apart from a malformed request, marketSymbols still enforces that the
 			// rest of the list matches
 			var firstMarket map[string]any = this.Market(symbols[0])
-			if firstMarket["swap"] != true {
+			if !(*this.SafeBool(firstMarket, "swap", false)) {
 				panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 			}
 		}
@@ -3153,7 +3153,7 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 		if marketId == nil {
 			continue
 		}
-		if _, ok := this.Markets_by_id()[*marketId]; (this.Markets_by_id() == nil) || !ok {
+		if _, ok := this.Markets_by_id[*marketId]; (this.Markets_by_id == nil) || !ok {
 			continue
 		}
 		var ticker map[string]any = this.Extend(map[string]any{
@@ -3195,7 +3195,7 @@ func (this *Woo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3286,7 +3286,7 @@ func (this *Woo) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3358,7 +3358,7 @@ func (this *Woo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3585,7 +3585,7 @@ func (this *Woo) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3664,7 +3664,7 @@ func (this *Woo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	// this method is TODO because of networks unification
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3761,7 +3761,7 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optionalArg
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3785,7 +3785,7 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optionalArg
 		request["size"] = mathMin(limit, 1000)
 	}
 	var transactionType *string = this.SafeString(paramsNetworkCode, "type")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsNetworkCode, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsNetworkCode, "type")
 	if transactionType != nil {
 		request["type"] = transactionType
 	}
@@ -3868,8 +3868,8 @@ func (this *Woo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3657, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3657
+	currencyRowsRecv, _ := r.Value, r.Value != nil
+	var currencyRows []any = currencyRowsRecv
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -4080,8 +4080,8 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3853, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3853
+	currencyRowsRecv, _ := r.Value, r.Value != nil
+	var currencyRows []any = currencyRowsRecv
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 
@@ -4180,7 +4180,7 @@ func (this *Woo) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4411,7 +4411,7 @@ func (this *Woo) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 		}
 		return nil
 	}()
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4486,7 +4486,7 @@ func (this *Woo) repayMarginBody(ch chan AsyncResult[MarginLoan], code string, a
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4643,9 +4643,9 @@ func (this *Woo) HandleErrors(code int64, reason string, url string, method stri
 	//     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
 	//                     {"code":"-1011","message":"The system is under maintenance.","success":false}
 	//
-	var success *bool = this.SafeBool(response, "success")
+	var success *bool = this.SafeBool(response, "success", false)
 	var errorCode *string = this.SafeString(response, "code")
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		var feedback string = this.Id + " " + this.Json(response)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
@@ -4726,7 +4726,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4906,7 +4906,7 @@ func (this *Woo) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol s
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4972,7 +4972,7 @@ func (this *Woo) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRat
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5042,7 +5042,7 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5195,7 +5195,7 @@ func (this *Woo) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5204,14 +5204,14 @@ func (this *Woo) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, op
 	}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
-	if market["spot"] == true {
+	if *this.SafeBool(market, "spot", false) {
 
 		r1 := <-this.V3PrivateGetAccountInfo(params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
@@ -5292,7 +5292,7 @@ func (this *Woo) setLeverageBody(ch chan AsyncResult[map[string]any], leverage i
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5410,7 +5410,7 @@ func (this *Woo) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], sym
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5452,7 +5452,7 @@ func (this *Woo) fetchPositionBody(ch chan AsyncResult[Position], symbol any, op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5529,7 +5529,7 @@ func (this *Woo) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5725,7 +5725,7 @@ func (this *Woo) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fromCode
 	_ = amount
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5793,7 +5793,7 @@ func (this *Woo) createConvertTradeBody(ch chan AsyncResult[Conversion], id stri
 	_ = amount
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5847,7 +5847,7 @@ func (this *Woo) fetchConvertTradeBody(ch chan AsyncResult[Conversion], id strin
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5921,7 +5921,7 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversion],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6045,7 +6045,7 @@ func (this *Woo) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], opt
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6134,7 +6134,7 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optionalA
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

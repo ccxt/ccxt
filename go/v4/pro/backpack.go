@@ -93,7 +93,7 @@ func (this *Backpack) prepareWsStockParamsBody(ch chan ccxt.AsyncResult[any], me
 		return nil
 	}()
 	var query map[string]any = ccxt.MapTyped(stockqueryVariable[1])
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -255,9 +255,13 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 			subscriptions = this.Omit(subscriptions, messageHash)
 			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, "unsubscribe:"+messageHash)
 			if bidAsk == true {
-				this.WsCacheDelete("Bidsasks", symbol)
+				if symbol != nil {
+					delete(this.Bidsasks, *symbol)
+				}
 			} else {
-				this.WsCacheDelete("Tickers", symbol)
+				if symbol != nil {
+					delete(this.Tickers, *symbol)
+				}
 			}
 		} else {
 			ccxt.AddElementToObject(subscriptions, messageHash, map[string]any{
@@ -299,14 +303,13 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 			panic(r1.Err)
 		}
 	}
-	var tickers any = func() any {
-		if bidAsk == true {
-			return this.WsCacheSnapshot("Bidsasks")
-		}
-		return this.WsCacheSnapshot("Tickers")
-	}()
+	if bidAsk == true {
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArray(tickers, "symbol", symbolsResolved)}
+		ch <- ccxt.AsyncResult[any]{Value: ccxt.TickerMapToMap(this.FilterTickersBySymbol(this.Bidsasks, symbolsResolved))}
+		return nil
+	}
+
+	ch <- ccxt.AsyncResult[any]{Value: ccxt.TickerMapToMap(this.FilterTickersBySymbol(this.Tickers, symbolsResolved))}
 	return nil
 }
 func (this *Backpack) WatchPublicAsync(topics any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
@@ -321,7 +324,7 @@ func (this *Backpack) watchPublicBody(ch chan ccxt.AsyncResult[any], topics any,
 	_ = params
 	var unwatch bool = ccxt.GetArgBool(optionalArgs, 1, false)
 	_ = unwatch
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -408,26 +411,26 @@ func (this *Backpack) HandleUnsubscriptions(url string, messageHashes any, messa
 		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 		if strings.Index(*messageHash, "ticker") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:ticker:", "", 1)
-			if this.Tickers.Has(symbol) {
-				this.Tickers.Delete(symbol)
+			if _, ok := this.Tickers[symbol]; ok {
+				delete(this.Tickers, symbol)
 			}
 		} else if strings.Index(*messageHash, "bidask") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:bidask:", "", 1)
-			if this.Bidsasks.Has(symbol) {
-				this.Bidsasks.Delete(symbol)
+			if _, ok := this.Bidsasks[symbol]; ok {
+				delete(this.Bidsasks, symbol)
 			}
 		} else if strings.Index(*messageHash, "candles") >= 0 {
 			var splitHashes []string = strings.Split(*messageHash, ":")
 			var symbol *string = this.SafeString(splitHashes, 2)
 			var timeframe *string = this.SafeString(splitHashes, 3)
-			if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
+			if _, ok := this.Ohlcvs[*symbol]; (symbol != nil) && (timeframe != nil) && ok {
 				if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
 					delete(this.Ohlcvs[*symbol], *timeframe)
 				}
 			}
 		} else if strings.Index(*messageHash, "orderbook") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:orderbook:", "", 1)
-			if _, ok := this.Orderbooks[symbol]; ok {
+			if this.Orderbooks[symbol] != nil {
 				delete(this.Orderbooks, symbol)
 			}
 		} else if strings.Index(*messageHash, "trades") >= 0 {
@@ -644,7 +647,7 @@ func (this *Backpack) HandleTicker(client any, message map[string]any) {
 		})
 		var parsedTicker map[string]any = this.ParseWsTicker(mappedTicker, market)
 		parsedTicker["info"] = ticker
-		this.Tickers.Store(symbol, parsedTicker)
+		this.Tickers[*symbol] = ccxt.TickerFromMap(parsedTicker)
 		client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 	}
 	if hashesLength > 0 {
@@ -655,7 +658,9 @@ func (this *Backpack) HandleTicker(client any, message map[string]any) {
 	var fallbackSymbol *string = this.SafeSymbol(marketId, fallbackMarket)
 	var fallbackTicker map[string]any = this.ParseWsTicker(ticker, fallbackMarket)
 	var fallbackHash string = "ticker" + ":" + *fallbackSymbol
-	this.Tickers.Store(fallbackSymbol, fallbackTicker)
+	if fallbackSymbol != nil {
+		this.Tickers[*fallbackSymbol] = ccxt.TickerFromMap(fallbackTicker)
+	}
 	client.(ccxt.ClientInterface).Resolve(fallbackTicker, fallbackHash)
 }
 func (this *Backpack) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
@@ -745,9 +750,9 @@ func (this *Backpack) HandleStockTicker(client any, message map[string]any) bool
 			"info":      data,
 		}, market))
 		if *this.SafeBool(subscription, "bidAsk", false) {
-			this.Bidsasks.Store(symbol, parsed)
+			this.Bidsasks[*symbol] = ccxt.TickerFromMap(parsed)
 		} else {
-			this.Tickers.Store(symbol, parsed)
+			this.Tickers[*symbol] = ccxt.TickerFromMap(parsed)
 		}
 		client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 	}
@@ -856,7 +861,7 @@ func (this *Backpack) HandleBidAsk(client any, message map[string]any) {
 		}
 		var market map[string]any = this.Market(symbol)
 		var parsedBidAsk any = this.ParseWsBidAsk(data, market)
-		this.Bidsasks.Store(symbol, parsedBidAsk)
+		this.Bidsasks[*symbol] = ccxt.TickerFromMap(parsedBidAsk)
 		client.(ccxt.ClientInterface).Resolve(parsedBidAsk, messageHash)
 	}
 	if hashesLength > 0 {
@@ -867,7 +872,9 @@ func (this *Backpack) HandleBidAsk(client any, message map[string]any) {
 	var fallbackSymbol *string = this.SafeSymbol(marketId, fallbackMarket)
 	var fallbackBidAsk any = this.ParseWsBidAsk(data, fallbackMarket)
 	var fallbackHash string = "bidask" + ":" + *fallbackSymbol
-	this.Bidsasks.Store(fallbackSymbol, fallbackBidAsk)
+	if fallbackSymbol != nil {
+		this.Bidsasks[*fallbackSymbol] = ccxt.TickerFromMap(fallbackBidAsk)
+	}
 	client.(ccxt.ClientInterface).Resolve(fallbackBidAsk, fallbackHash)
 }
 func (this *Backpack) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
@@ -1040,7 +1047,7 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[stri
 	if (symbolsLength == 0) || !ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -1107,7 +1114,7 @@ func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	if (symbolsLength == 0) || !ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)) {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -1172,20 +1179,20 @@ func (this *Backpack) HandleOHLCV(client any, message map[string]any) {
 	var stream string = *this.SafeString(message, "stream", "")
 	var parts []string = strings.Split(stream, ".")
 	var timeframe *string = this.SafeString(parts, 1, "")
-	if symbol != nil {
-		if _, ok := this.Ohlcvs[*symbol]; !ok {
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+	if _, ok := this.Ohlcvs[*symbol][*timeframe]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+		if symbol != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
 	var ohlcv any
-	if symbol != nil && timeframe != nil {
+	if symbol != nil {
 		ohlcv = this.Ohlcvs[*symbol][*timeframe]
 	}
 	var parsed any = this.ParseWsOHLCV(data)
@@ -1326,7 +1333,7 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 		panic(r.Err)
 	}
 	query := r.Value
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -1392,7 +1399,7 @@ func (this *Backpack) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 		panic(r.Err)
 	}
 	query := r.Value
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -1455,12 +1462,14 @@ func (this *Backpack) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.Market(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if !(this.Trades.Has(symbol)) {
+	if !(symbol != nil && this.Trades[*symbol] != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		this.Trades.Store(symbol, stored)
+		if symbol != nil {
+			this.Trades[*symbol] = stored
+		}
 	}
-	var cache ccxt.WsArrayCache = this.Trades.Get(symbol)
+	var cache ccxt.WsArrayCache = this.Trades[*symbol]
 	var trade map[string]any = this.ParseWsTrade(data, market)
 	cache.Append(trade)
 	var messageHash string = "trades:" + *symbol
@@ -1598,7 +1607,7 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt
 		panic(r.Err)
 	}
 	query := r.Value
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -1614,8 +1623,8 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt
 		var market map[string]any = this.Market(symbol)
 		this.WsVenueMarketId("watchOrderBookForSymbols", market, query)
 		topics = append(topics, "depth."+*this.SafeString(market, "id", ""))
-		if !this.WsCacheHas("Orderbooks", symbol) {
-			this.WsCacheSet("Orderbooks", symbol, this.OrderBook(map[string]any{}, limit))
+		if !(this.Orderbooks[symbol] != nil) {
+			this.Orderbooks[symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 	}
 
@@ -1691,7 +1700,7 @@ func (this *Backpack) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bo
 		panic(r.Err)
 	}
 	query := r.Value
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -1750,15 +1759,12 @@ func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	var symbol *string = this.SafeSymbol(marketId)
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
+	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
+		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 	}
-	var storedOrderBook ccxt.OrderBookInterface
-	if symbol != nil {
-		storedOrderBook = this.Orderbooks[*symbol]
-	}
+	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var deltaNonce *int64 = this.SafeInteger(data, "u")
 	var messageHash string = "orderbook:" + *symbol
@@ -1869,7 +1875,7 @@ func (this *Backpack) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 		panic(r.Err)
 	}
 	query := r.Value
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -1949,7 +1955,7 @@ func (this *Backpack) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 		panic(r.Err)
 	}
 	query := r.Value
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -2229,12 +2235,10 @@ func (this *Backpack) HandleBalance(client any, message map[string]any) bool {
 	}, "balances", map[string]any{})
 	var microseconds int64 = *this.SafeInteger(data, "E", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
-	if parsed != nil {
-		parsed["timestamp"] = timestamp
-	}
+	parsed["timestamp"] = timestamp
 	ccxt.AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(parsed, "info", assets)
-	this.WsBalanceReplace(parsed)
+	this.Balance = parsed
 	client.(ccxt.ClientInterface).Resolve(parsed, "balance")
 	return true
 }
@@ -2364,7 +2368,7 @@ func (this *Backpack) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2406,7 +2410,7 @@ func (this *Backpack) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.WsCacheObjGet("Positions"), symbolsNormalized, since, limit, true))}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
 
@@ -2431,7 +2435,7 @@ func (this *Backpack) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optio
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

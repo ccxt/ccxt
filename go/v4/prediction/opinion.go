@@ -581,8 +581,8 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	}
 	var rawEventsLength int = len(rawEvents)
 	var parsedEvents []any = []any{}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	for i := 0; i < rawEventsLength; i++ {
 		var event map[string]any = this.ParseEvent(rawEvents[i])
@@ -1954,8 +1954,8 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
 	if ccxt.IsEqual(market, nil) {
 		panic(ccxt.ExchangeError(this.Id + " loadTradeMarket() could not parse market " + idStr))
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var marketHandle string = *this.SafeString(market, "market", "")
 	this.AddMarketsEntry(marketHandle, market)
@@ -2536,16 +2536,19 @@ func (this *Opinion) HandleMessage(client any, message map[string]any) {
  * @returns {object} the outcome object, or undefined
  */
 func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId *int64, outcomeSide *int64) any {
-	if (marketId == nil) || (this.Markets() == nil) {
+	if (marketId == nil) || (this.Markets == nil) {
 		return nil
 	}
 	var marketKeys []string = nil
-	for k := range this.Markets() {
-		marketKeys = append(marketKeys, k)
+	if this.Markets != nil {
+		marketKeys = make([]string, 0, len(this.Markets))
+		for objectKey := range this.Markets {
+			marketKeys = append(marketKeys, objectKey)
+		}
 	}
 	var marketKeysLength int = len(marketKeys)
 	for i := 0; i < marketKeysLength; i++ {
-		var market map[string]any = ccxt.SafeMapTyped(this.Markets(), marketKeys[i])
+		var market map[string]any = ccxt.SafeMapTyped(this.Markets, marketKeys[i])
 		var info map[string]any = ccxt.SafeMapTyped(market, "info")
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
 			var outcomes []any = ccxt.SafeListTyped(market, "outcomes")
@@ -2621,7 +2624,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	var future any = this.Watch(url, messageHash, subscribeMsg, subscriptionKey)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next delta
-		client.(ccxt.ClientInterface).Resolve(this.WsCacheGet("Orderbooks", sym), messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym.(string)], messageHash)
 	}
 
 	r3 := <-future.(<-chan ccxt.AsyncResult[any])
@@ -2655,7 +2658,9 @@ func (this *Opinion) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome s
 	}
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
 	orderbook.Reset(snapshot)
-	this.WsCacheSet("Orderbooks", sym, orderbook)
+	if wsKey, ok := sym.(string); ok {
+		this.Orderbooks[wsKey] = orderbook
+	}
 	return nil
 }
 func (this *Opinion) HandleOrderBook(client any, message map[string]any) {
@@ -2676,7 +2681,7 @@ func (this *Opinion) HandleOrderBook(client any, message map[string]any) {
 	if sym == nil {
 		return
 	}
-	if _, ok := this.Orderbooks[*sym]; !ok {
+	if !(this.Orderbooks[*sym] != nil) {
 		// the delta belongs to the market's other token, whose book is not being watched
 		return
 	}
@@ -2764,7 +2769,9 @@ func (this *Opinion) HandleTicker(client any, message map[string]any) {
 		"last":      last,
 		"info":      message,
 	}, outcomeObj)
-	this.Tickers.Store(sym, ticker)
+	var cachedTickers any = this.SafeDict(this.Options, "wsTickers", map[string]any{})
+	ccxt.AddElementToObject(cachedTickers, sym, ticker)
+	this.Options["wsTickers"] = cachedTickers
 	client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*sym)
 }
 
@@ -2854,13 +2861,13 @@ func (this *Opinion) HandleTrades(client any, message map[string]any) {
 		"fee":          nil,
 	}, outcomeObj)
 	if this.Trades == nil {
-		this.Trades = ccxt.TradesCache{}
+		this.Trades = map[string]ccxt.WsArrayCache{}
 	}
-	if this.Trades.Get(sym) == nil {
+	if this.Trades[*sym] == nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
 	}
-	var stored ccxt.WsArrayCache = this.Trades.Get(sym)
+	var stored ccxt.WsArrayCache = this.Trades[*sym]
 	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
 }

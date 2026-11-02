@@ -317,11 +317,11 @@ func (this *Zaif) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp319 := <-this.PublicGetCurrencyPairsAll(params)
-	if listEp319.Err != nil {
-		panic(listEp319.Err)
+	marketsRecv := <-this.PublicGetCurrencyPairsAll(params)
+	if marketsRecv.Err != nil {
+		panic(marketsRecv.Err)
 	}
-	var markets []any = listEp319.Value
+	var markets []any = marketsRecv.Value
 
 	//
 	//     [
@@ -465,7 +465,7 @@ func (this *Zaif) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -505,7 +505,7 @@ func (this *Zaif) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -588,7 +588,7 @@ func (this *Zaif) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -690,7 +690,7 @@ func (this *Zaif) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -702,11 +702,11 @@ func (this *Zaif) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		"pair": market["id"],
 	}
 
-	listEp676 := <-this.PublicGetTradesPair(this.Extend(request, params))
-	if listEp676.Err != nil {
-		panic(listEp676.Err)
+	responseRecv := <-this.PublicGetTradesPair(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp676.Value
+	var response []any = responseRecv.Value
 	//
 	//      [
 	//          {
@@ -757,7 +757,7 @@ func (this *Zaif) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -934,7 +934,7 @@ func (this *Zaif) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -986,7 +986,7 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1041,7 +1041,7 @@ func (this *Zaif) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	_ = params
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

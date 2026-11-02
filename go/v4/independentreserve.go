@@ -559,7 +559,7 @@ func (this *Independentreserve) fetchBalanceBody(ch chan AsyncResult[Balances], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -567,11 +567,11 @@ func (this *Independentreserve) fetchBalanceBody(ch chan AsyncResult[Balances], 
 		}
 	}
 
-	listEp562 := <-this.PrivatePostGetAccounts(params)
-	if listEp562.Err != nil {
-		panic(listEp562.Err)
+	responseRecv := <-this.PrivatePostGetAccounts(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp562.Value
+	var response []any = responseRecv.Value
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
@@ -598,7 +598,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan AsyncResult[OrderBook
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -689,7 +689,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan AsyncResult[Ticker], sym
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -885,7 +885,7 @@ func (this *Independentreserve) fetchOrderBody(ch chan AsyncResult[Order], id st
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -935,7 +935,7 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan AsyncResult[[]Order]
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -995,7 +995,7 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan AsyncResult[[]Orde
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1055,7 +1055,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan AsyncResult[[]Trade], 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1153,7 +1153,7 @@ func (this *Independentreserve) fetchTradesBody(ch chan AsyncResult[[]Trade], sy
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1195,7 +1195,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[map[str
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1203,11 +1203,11 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[map[str
 		}
 	}
 
-	listEp1142 := <-this.PrivatePostGetBrokerageFees(params)
-	if listEp1142.Err != nil {
-		panic(listEp1142.Err)
+	responseRecv := <-this.PrivatePostGetBrokerageFees(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1142.Value
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         {
@@ -1275,7 +1275,7 @@ func (this *Independentreserve) createOrderBody(ch chan AsyncResult[Order], symb
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1343,7 +1343,7 @@ func (this *Independentreserve) cancelOrderBody(ch chan AsyncResult[Order], id a
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1398,7 +1398,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan AsyncResult[Depo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1476,7 +1476,7 @@ func (this *Independentreserve) withdrawBody(ch chan AsyncResult[Transaction], c
 	_ = params
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

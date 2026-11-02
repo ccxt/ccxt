@@ -1484,7 +1484,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 			return this.SafeDict(this.Outcomes_by_id, key, map[string]any{})
 		}
 	}
-	if ((this.Markets() != nil) && (ccxt.InOp(this.Markets(), outcomeInput))) || ((this.Markets_by_id() != nil) && (ccxt.InOp(this.Markets_by_id(), outcomeInput))) {
+	if ((this.Markets != nil) && (ccxt.InOp(this.Markets, outcomeInput))) || ((this.Markets_by_id != nil) && (ccxt.InOp(this.Markets_by_id, outcomeInput))) {
 		var market map[string]any = this.SafeMarket(outcomeInput)
 		var sideHintOrDefault any = "YES"
 		if sideHint != nil {

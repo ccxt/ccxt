@@ -73,7 +73,7 @@ func (this *Independentreserve) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -123,15 +123,19 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 	var marketId *string = this.SafeString(data, "Pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var messageHash string = "trades:" + *symbol
-	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
+	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		if symbol != nil {
+			this.Trades[*symbol] = stored
+		}
 	}
 	var trade map[string]any = this.ParseWsTrade(data)
 	stored.Append(trade)
-	this.Trades[*symbol] = stored
+	if symbol != nil {
+		this.Trades[*symbol] = stored
+	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Independentreserve) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -189,7 +193,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -270,7 +274,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	var receivedSnapshot *bool = this.SafeBool(subscription, "receivedSnapshot", false)
 	var timestamp *int64 = this.SafeInteger(message, "Time")
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
-	if _, ok := this.Orderbooks[symbol]; !ok {
+	if !(this.Orderbooks[symbol] != nil) {
 		this.Orderbooks[symbol] = this.OrderBook(map[string]any{})
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]

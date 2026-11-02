@@ -902,8 +902,8 @@ func (this *Nado) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv863, _ := OrdersToList(r.Value), r.Value != nil
-	var orders []any = listRecv863
+	ordersRecv, _ := OrdersToList(r.Value), r.Value != nil
+	var orders []any = ordersRecv
 	var canceled map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(canceled)}
@@ -1117,7 +1117,7 @@ func (this *Nado) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, option
 	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
-		}, cancelledOrders[i]), market)))
+		}, DerefScalar(cancelledOrders[i])), market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(result)}
@@ -2456,11 +2456,11 @@ func (this *Nado) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp2289 := <-this.GatewayV2PublicGetAssets(params)
-	if listEp2289.Err != nil {
-		panic(listEp2289.Err)
+	responseRecv := <-this.GatewayV2PublicGetAssets(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2289.Value
+	var response []any = responseRecv.Value
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
@@ -2608,7 +2608,7 @@ func (this *Nado) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["swap"] != true {
+	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
@@ -2687,7 +2687,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["swap"] != true {
+	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " fetchFundingHistory() supports swap contracts only"))
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "fetchFundingHistory", "subaccount", "default")
@@ -2836,7 +2836,7 @@ func (this *Nado) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["swap"] != true {
+	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " fetchOpenInterest() supports swap contracts only"))
 	}
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
@@ -3054,11 +3054,11 @@ func (this *Nado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		request["limit"] = mathMin(limit, 500)
 	}
 
-	listEp2824 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
-	if listEp2824.Err != nil {
-		panic(listEp2824.Err)
+	responseRecv := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2824.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
