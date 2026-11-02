@@ -269,7 +269,9 @@ export default class cryptomus extends Exchange {
                     // {"message":"Minimum amount 15 USDT","state":1}
                     // {"message":"Insufficient funds. USDT wallet balance is 35.21617400.","state":1}
                 },
-                'broad': {},
+                'broad': {
+                    'Market ': BadSymbol, // {"code":1,"message":"Market NOPE_USDT doesn't exist."}
+                },
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
@@ -1218,7 +1220,7 @@ export default class cryptomus extends Exchange {
             const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-            this.throwOnUnknownMarket (message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         } else if ('message' in response) {
             //
@@ -1228,28 +1230,8 @@ export default class cryptomus extends Exchange {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            this.throwOnUnknownMarket (message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name cryptomus#throwOnUnknownMarket
-     * @description throws BadSymbol when the exchange reports that a market does not exist
-     * @param {string|undefined} message exchange error message
-     * @param {string} feedback full error feedback
-     */
-    throwOnUnknownMarket (message: Str, feedback: string) {
-        // {"code":1,"message":"Market NOPE_USDT doesn't exist."}
-        if (message !== undefined) {
-            const startsWithMarket = message.indexOf ('Market ') === 0;
-            const marketMissing = message.indexOf ('doesn\'t exist') >= 0;
-            if (startsWithMarket && marketMissing) {
-                throw new BadSymbol (feedback);
-            }
-        }
     }
 }
