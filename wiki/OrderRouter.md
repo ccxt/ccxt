@@ -54,6 +54,7 @@ creates a client for the CCXT order-router service
 | config.trackBalances | <code>bool</code> | No | read those venues' wallets and route on what you can actually fund, default false. Off, fetchRoute never touches a venue and stays a single HTTP request |
 | config.timeoutMs | <code>int</code> | No | request timeout in milliseconds, defaults to 30000 |
 | config.maxNotionalUsd | <code>float</code> | No | optional per-trade USD notional guardrail. Omitted or 0 means NO cap and no notional check at all; any positive value is honoured exactly, never clamped |
+| config.userAgent | <code>string</code> | No | optional User-Agent header sent with every router request, so the service can attribute traffic, e.g. 'ccxt-mcp/1.2.3 (ccxt 4.5.6)'. Omitted or '' keeps the runtime's default User-Agent. Browsers forbid setting it, so there it is silently dropped |
 
 
 ```javascript

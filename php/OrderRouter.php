@@ -12,7 +12,7 @@
 //      python/ccxt/base/order_router.py
 //      cs/ccxt/base/OrderRouter.cs
 //      go/v4/exchange_order_router.go
-//      rust/ccxt-base/src/order_router.rs
+//      rust/ccxt-common/src/order_router.rs
 //
 //  Every construct below is deliberately one that TypeScript, Python, C#, Go and Rust
 //  can express the same way. The rules that keep the six ports honest:
@@ -137,6 +137,9 @@ class OrderRouter {
     const ROUTE_QUERY_KEYS = array('amountIn', 'amountOut', 'strategy', 'maxVenues', 'bridges', 'exchanges', 'balances', 'balanceMode', 'includeQuotes', 'includeFees', 'certified', 'requireFullFill', 'hopPenaltyBps', 'minLegNotional');
 
     public $apiKey;
+    //  sent as the User-Agent header when non-empty, so the router service can attribute
+    //  traffic to the integration that made it
+    public $userAgent;
     public $baseUrl;
     public $timeoutMs;
     public $maxNotionalUsd;
@@ -155,12 +158,14 @@ class OrderRouter {
      *     string  baseUrl         router base url, defaults to https://docs.ccxt.com/router/api
      *     int     timeoutMs       request timeout in milliseconds, defaults to 30000
      *     float   maxNotionalUsd  per-trade USD notional cap, an OPT-IN guardrail; defaults to 0, which is NO CAP
+     *     string  userAgent       optional User-Agent header sent with every router request, so the service can attribute traffic, e.g. 'ccxt-mcp/1.2.3 (ccxt 4.5.6)'. Omitted or '' keeps curl's default behaviour
      */
     public function __construct($config = array()) {
         //  The service dropped API keys in favour of per-IP rate limiting, so an empty key is
         //  the normal case and must not throw. A key supplied anyway is CARRIED rather than
         //  ignored, so the same client works against both servers.
         $this->apiKey = $this->stringAt($config, 'apiKey', '');
+        $this->userAgent = $this->stringAt($config, 'userAgent', '');
         $baseUrl = $this->stringAt($config, 'baseUrl', self::DEFAULT_BASE_URL);
         while ((strlen($baseUrl) > 0) && (substr($baseUrl, -1) === '/')) {
             $baseUrl = substr($baseUrl, 0, strlen($baseUrl) - 1);
@@ -968,6 +973,12 @@ class OrderRouter {
             if (strlen($requestId) <= 200) {
                 $headers[] = 'x-request-id: ' . $requestId;
             }
+        }
+        //  only when configured: an empty value keeps curl's own default rather than sending a
+        //  blank one. (Browsers forbid setting User-Agent, so the TS port silently drops it
+        //  there; no such restriction applies here.)
+        if ($this->userAgent !== '') {
+            $headers[] = 'User-Agent: ' . $this->userAgent;
         }
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
