@@ -82,7 +82,7 @@ public partial class whitebit : ccxt.whitebit
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        Int64? interval = this.safeInteger((this.options.ContainsKey("timeframes") ? this.options["timeframes"] : null), timeframeVar);
+        Int64? interval = this.safeInteger((this.options != null && this.options.ContainsKey("timeframes") ? this.options["timeframes"] : null), timeframeVar);
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         // currently there is no way of knowing
         // the interval upon getting an update
@@ -167,7 +167,7 @@ public partial class whitebit : ccxt.whitebit
         Int64? limitValue = ((limit == null)) ? 10 : limit;
         string messageHash = (("orderbook" + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string method = "depth_subscribe";
-        string? defaultPriceInterval = this.safeString((this.options.ContainsKey("watchOrderBook") ? this.options["watchOrderBook"] : null), "priceInterval", "0");
+        string? defaultPriceInterval = this.safeString((this.options != null && this.options.ContainsKey("watchOrderBook") ? this.options["watchOrderBook"] : null), "priceInterval", "0");
         string? priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "priceInterval"));
         List<object> reqParams = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), limitValue, priceInterval, true};
@@ -215,7 +215,7 @@ public partial class whitebit : ccxt.whitebit
         //  }
         //
         List<object> parameters = this.safeList(message, "params", new List<object>() {});
-        bool? isSnapshot = this.safeBool(parameters, 0);
+        bool? isSnapshot = this.safeBool(parameters, 0, false);
         string? marketId = this.safeString(parameters, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));

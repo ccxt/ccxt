@@ -663,7 +663,7 @@ public partial class sxbet : PredictionExchange
                 throw new ExchangeError ((this.id + " parseEvent() could not resolve parsed market")) ;
             }
             marketsList.Add(parsed);
-            if ((getValue(parsed, "active") is true))
+            if ((this.safeBool(parsed, "active", false) == true))
             {
                 anyActive = true;
             }
@@ -2027,7 +2027,7 @@ public partial class sxbet : PredictionExchange
         int? settlePrice = null;
         if ((won != null))
         {
-            settlePrice = ((won == true)) ? 1 : 0;
+            settlePrice = won == true ? 1 : 0;
         }
         return new Dictionary<string, object>() {
             { "info", trade },
@@ -2424,12 +2424,12 @@ public partial class sxbet : PredictionExchange
         {
             this.options["requestId"] = this.createSafeDictionary();
         }
-        object options = (this.options.ContainsKey("requestId") ? this.options["requestId"] : null);
+        object options = (this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null);
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         if ((url != null))
         {
-            ((IDictionary<string,object>)(this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
         }
         return newValue;
     }
@@ -2806,7 +2806,7 @@ public partial class sxbet : PredictionExchange
         var client = this.client(url);
         string channel = "best_odds_v3:global";
         bool hydrated = false;
-        if ((this.safeValue(this.tickers, sym) == null))
+        if ((this.safeDict(this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {}), sym) == null))
         {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
@@ -2814,7 +2814,7 @@ public partial class sxbet : PredictionExchange
             IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
             IDictionary<string, object> raw = ((IDictionary<string, object>)this.parseSxbetSnapshotBestOdds(snapshot));
             Dictionary<string, object> ticker = this.parsePredictionTicker(raw, ((object)outcomeObj));
-            this.tickers[(string)sym] = ((object)ticker);
+            this.setWsOption("wsTickers", sym, ((object)ticker));
             hydrated = true;
         }
         Int64 requestId = this.requestId(url);
@@ -2828,7 +2828,7 @@ public partial class sxbet : PredictionExchange
         var future = this.watch(url, messageHash, subscribeMsg, channel);
         if (hydrated)
         {
-            client.resolve(this.safeValue(this.tickers, sym), messageHash);
+            client.resolve(this.safeDict(this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {}), sym), messageHash);
         }
         object tickerResult = await future;
         return ccxt.BaseExchange.ToTicker(tickerResult);
@@ -2877,7 +2877,7 @@ public partial class sxbet : PredictionExchange
                 }
                 object outcomeObj = this.outcome(sym);
                 Dictionary<string, object> ticker = this.parsePredictionTicker(raw, outcomeObj);
-                this.tickers[(string)sym] = ((object)ticker);
+                this.setWsOption("wsTickers", sym, ((object)ticker));
                 client.resolve(ticker, ("ticker::" + sym));
             }
         }

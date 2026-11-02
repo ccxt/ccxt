@@ -76,10 +76,10 @@ public partial class pacifica : ccxt.pacifica
         {
             if (!(this.handleOption("setupApiKeyHeaders", "apiKey") == null))
             {
-                headers["PF-API-KEY"] = (this.options.ContainsKey("apiKey") ? this.options["apiKey"] : null);
+                headers["PF-API-KEY"] = (this.options != null && this.options.ContainsKey("apiKey") ? this.options["apiKey"] : null);
             }
         }
-        ((IDictionary<string,object>)getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = headers;
+        ((IDictionary<string,object>)getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = headers;
     }
 
     /**

@@ -792,7 +792,7 @@ public partial class whitebit : Exchange
             return null;
         }
         bool? active = this.safeBool(market, "tradesEnabled");
-        bool? isCollateral = this.safeBool(market, "isCollateral");
+        bool? isCollateral = this.safeBool(market, "isCollateral", false);
         string? typeId = this.safeString(market, "type");
         string? type = null;
         string? settle = null;
@@ -1888,7 +1888,7 @@ public partial class whitebit : Exchange
             {
                 string? symbol = ((string)symbolsNormalized[i]);
                 Dictionary<string, object> market = this.market(symbol);
-                if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+                if (!(this.safeBool(market, "contract", false) == true))
                 {
                     onlyContractSymbols = false;
                     break;
@@ -2878,7 +2878,7 @@ public partial class whitebit : Exchange
             response = await this.v4PrivatePostCollateralAccountBalance(paramsMarketType);
         } else
         {
-            string? defaultAccount = this.safeString((this.options.ContainsKey("fetchBalance") ? this.options["fetchBalance"] : null), "account");
+            string? defaultAccount = this.safeString((this.options != null && this.options.ContainsKey("fetchBalance") ? this.options["fetchBalance"] : null), "account");
             string? account = this.safeString2(paramsMarketType, "account", "type", defaultAccount);
             Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, new List<object>() {"account", "type"});
             if (account == "main" || account == "funding")
@@ -3127,7 +3127,7 @@ public partial class whitebit : Exchange
         Int64? timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
         Int64? lastTradeTimestamp = this.safeTimestamp(order, "ftime");
         bool? postOnly = this.safeBool(order, "postOnly");
-        bool? ioc = this.safeBool(order, "ioc");
+        bool? ioc = this.safeBool(order, "ioc", false);
         string? timeInForce = null;
         if ((ioc == true))
         {
@@ -3602,8 +3602,8 @@ public partial class whitebit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        string? fromAccountId = this.safeString((this.options.ContainsKey("accountsByType") ? this.options["accountsByType"] : null), fromAccount, fromAccount);
-        string? toAccountId = this.safeString((this.options.ContainsKey("accountsByType") ? this.options["accountsByType"] : null), toAccount, toAccount);
+        string? fromAccountId = this.safeString((this.options != null && this.options.ContainsKey("accountsByType") ? this.options["accountsByType"] : null), fromAccount, fromAccount);
+        string? toAccountId = this.safeString((this.options != null && this.options.ContainsKey("accountsByType") ? this.options["accountsByType"] : null), toAccount, toAccount);
         string? amountString = this.currencyToPrecision(code, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", (currency.ContainsKey("id") ? currency["id"] : null) },

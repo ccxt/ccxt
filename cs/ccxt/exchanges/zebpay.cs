@@ -627,7 +627,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.privateSpotGetV2ExTradefee(this.extend(request, parameters));
             //
@@ -744,7 +744,7 @@ public partial class zebpay : Exchange
             request["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             //
             //       {
@@ -791,7 +791,7 @@ public partial class zebpay : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.publicSpotGetV2MarketTicker(this.extend(request, parameters));
         } else
@@ -882,7 +882,7 @@ public partial class zebpay : Exchange
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until", "endtime", "endTime", "interval", "startTime"}));
         Dictionary<string, object> response = null;
         Int64? limitResolved = limit;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             if ((limit == null))
             {
@@ -982,12 +982,12 @@ public partial class zebpay : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && (limit != null))
+        if ((this.safeBool(market, "spot", false) == true) && (limit != null))
         {
             request["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.publicSpotGetV2MarketTrades(this.extend(request, parameters));
         } else
@@ -1247,7 +1247,7 @@ public partial class zebpay : Exchange
             { "side", side.ToUpper() },
         };
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.privateSpotPostV2ExOrders(this.spotOrderBody(symbol, type, amount, request, price, query));
         } else
@@ -1348,7 +1348,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             request["orderId"] = id;
             response = await this.privateSpotDeleteV2ExOrder(this.extend(request, parameters));
@@ -1437,7 +1437,7 @@ public partial class zebpay : Exchange
         };
         Dictionary<string, object> response = null;
         List<object> orders = new List<object>() {};
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             request["currentPage"] = 1;
             if ((limit != null))
@@ -1512,7 +1512,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             request["orderId"] = id;
             response = await this.privateSpotGetV2ExOrder(this.extend(request, parameters));

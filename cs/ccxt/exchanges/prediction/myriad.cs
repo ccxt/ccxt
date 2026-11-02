@@ -3569,12 +3569,12 @@ public partial class myriad : PredictionExchange
         {
             this.options["requestId"] = this.createSafeDictionary();
         }
-        object options = (this.options.ContainsKey("requestId") ? this.options["requestId"] : null);
+        object options = (this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null);
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         if ((url != null))
         {
-            ((IDictionary<string,object>)(this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
         }
         return newValue;
     }
@@ -4069,7 +4069,7 @@ public partial class myriad : PredictionExchange
                 this.watch(url, "tickers", subscribeMsg, channel);
             }
         }
-        object tickers = await client.future("tickers");
+        IDictionary<string, object> tickers = ((IDictionary<string, object>)await client.future("tickers"));
         return ccxt.BaseExchange.ToPredictionTickers(this.filterByArray(tickers, "outcome", resolvedSymbols, true));
     }
 
@@ -4110,10 +4110,7 @@ public partial class myriad : PredictionExchange
         Int64? ts = this.safeInteger(data, "ts");
         List<object> outcomes = this.safeList(data, "outcomes", new List<object>() {});
         int outcomesLength = outcomes.Count;
-        if ((this.tickers == null))
-        {
-            this.tickers = this.createSafeDictionary();
-        }
+        IDictionary<string, object> cachedTickers = this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {});
         for (int i = 0; i < outcomesLength; i++)
         {
             object oc = (outcomes != null && i < outcomes.Count ? outcomes[i] : null);
@@ -4151,10 +4148,11 @@ public partial class myriad : PredictionExchange
                 { "quoteVolume", null },
                 { "info", oc },
             }, market);
-            this.tickers[(string)sym] = ((object)ticker);
+            cachedTickers[(string)sym] = ticker;
             client.resolve(ticker, ("ticker::" + sym));
         }
-        client.resolve(this.tickers, "tickers");
+        this.options["wsTickers"] = cachedTickers;
+        client.resolve(cachedTickers, "tickers");
     }
 
     /**

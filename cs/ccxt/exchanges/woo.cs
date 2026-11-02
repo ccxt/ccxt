@@ -1578,7 +1578,7 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -1603,7 +1603,7 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
@@ -1775,7 +1775,7 @@ public partial class woo : Exchange
             // for market buy it requires the amount of quote currency to spend
             string? cost = this.safeStringN(paramsMarginMode, new List<object>() {"cost", "order_amount", "orderAmount"});
             bool isPriceProvided = (price != null);
-            if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && (isPriceProvided || ((cost != null))))
+            if ((this.safeBool(market, "spot", false) == true) && (isPriceProvided || ((cost != null))))
             {
                 string? quoteAmount = null;
                 if ((cost != null))
@@ -2660,7 +2660,7 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint")) ;
         }
@@ -2733,7 +2733,7 @@ public partial class woo : Exchange
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
                 Dictionary<string, object> firstMarket = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
-                if ((((firstMarket != null && firstMarket.ContainsKey("swap") ? firstMarket["swap"] : null) as bool?) != true))
+                if (!(this.safeBool(firstMarket, "swap", false) == true))
                 {
                     throw new NotSupported ((this.id + " fetchTickers() supports swap markets only")) ;
                 }
@@ -3974,9 +3974,9 @@ public partial class woo : Exchange
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        bool? success = this.safeBool(response, "success");
+        bool? success = this.safeBool(response, "success", false);
         string? errorCode = this.safeString(response, "code");
-        if ((success != true))
+        if (success != true)
         {
             string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
@@ -4403,10 +4403,10 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.v3PrivateGetAccountInfo(parameters);
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },

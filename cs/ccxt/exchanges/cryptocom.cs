@@ -1047,8 +1047,8 @@ public partial class cryptocom : Exchange
             string? settle = spot ? null : this.safeCurrencyCode(settleId);
             string? optionType = this.safeStringLower(market, "put_call");
             string? strike = this.safeString(market, "strike");
-            bool? marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
-            bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
+            bool? marginBuyEnabled = this.safeBool(market, "margin_buy_enabled", false);
+            bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled", false);
             Int64? expiryRaw = this.safeInteger(market, "expiry_timestamp_ms");
             Int64? expiry = ((expiryRaw == 0)) ? null : expiryRaw;
             string symbol = ((bs + "/") + quote);
@@ -3649,7 +3649,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new BadSymbol ((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
@@ -3749,7 +3749,7 @@ public partial class cryptocom : Exchange
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new BadSymbol ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
@@ -4172,7 +4172,7 @@ public partial class cryptocom : Exchange
         {
             string? symbol = this.safeString(this.symbols, i, "");
             Dictionary<string, object> market = this.market(symbol);
-            bool? isSwap = this.safeBool(market, "swap");
+            bool? isSwap = this.safeBool(market, "swap", false);
             string takerFeeKey = "effective_spot_taker_rate_bps";
             if ((isSwap == true))
             {

@@ -1259,7 +1259,7 @@ public partial class kraken : Exchange
             {
                 string? symbol = ((string)symbolsNormalized[i]);
                 Dictionary<string, object> market = this.market(symbol);
-                if ((((market.ContainsKey("active") ? market["active"] : null) as bool?) == true))
+                if ((this.safeBool(market, "active", false) == true))
                 {
                     marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
                 }
@@ -2069,7 +2069,7 @@ public partial class kraken : Exchange
         {
             return id;
         }
-        IDictionary<string, object> market = this.safeDict((this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null), id);
+        IDictionary<string, object> market = this.safeDict((this.options != null && this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null), id);
         if ((market != null))
         {
             return market;
@@ -2106,7 +2106,7 @@ public partial class kraken : Exchange
             { "baseId", baseId },
             { "quoteId", quoteId },
         };
-        ((IDictionary<string,object>)(this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null))[(string)id] = market;
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null))[(string)id] = market;
         return market;
     }
 
@@ -2633,7 +2633,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((((this.id + " editOrder() does not support ") + this.safeString(market, "type", "")) + " orders, only spot orders are accepted")) ;
         }

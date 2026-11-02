@@ -1760,7 +1760,7 @@ public partial class woo : ccxt.woo
         {
             return ((bool?)((object)(false)));
         }
-        bool? success = this.safeBool(message, "success");
+        bool? success = this.safeBool(message, "success", false);
         if ((success == true))
         {
             return ((bool?)((object)(false)));
@@ -1946,7 +1946,7 @@ public partial class woo : ccxt.woo
         //     }
         //
         string messageHash = "authenticated";
-        bool? success = this.safeBool(message, "success");
+        bool? success = this.safeBool(message, "success", false);
         if ((success == true))
         {
             // client.resolve (message, messageHash);

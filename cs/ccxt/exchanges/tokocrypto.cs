@@ -2130,7 +2130,7 @@ public partial class tokocrypto : Exchange
         {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) || ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)))
+            if ((this.safeBool(market, "linear", false) == true) || (this.safeBool(market, "inverse", false) == true))
             {
                 priceIsRequired = true;
             }

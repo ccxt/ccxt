@@ -651,7 +651,7 @@ public partial class bingx : ccxt.bingx
             request["reqType"] = "sub";
         }
         Dictionary<string, object> subscriptionArgs = new Dictionary<string, object>() {};
-        if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+        if ((this.safeBool(market, "inverse", false) == true))
         {
             subscriptionArgs = new Dictionary<string, object>() {
                 { "id", uuid },
@@ -805,7 +805,7 @@ public partial class bingx : ccxt.bingx
         Dictionary<string, object> snapshot = null;
         Int64? timestamp = this.safeInteger2(message, "timestamp", "ts");
         timestamp = this.safeInteger2(data, "timestamp", "ts", timestamp);
-        if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+        if ((this.safeBool(market, "inverse", false) == true))
         {
             snapshot = ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a"));
         } else
@@ -935,7 +935,7 @@ public partial class bingx : ccxt.bingx
         List<object> candles = null;
         if (isSwap)
         {
-            if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+            if ((this.safeBool(market, "inverse", false) == true))
             {
                 candles = new List<object> {this.safeDict(message, "data", new Dictionary<string, object>() {})};
             } else
@@ -1297,7 +1297,7 @@ public partial class bingx : ccxt.bingx
         }
         await this.authenticate();
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
-        string type = (string)typeparamsMarketTypeVariable[0];
+        string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchBalance", null, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
@@ -1338,7 +1338,7 @@ public partial class bingx : ccxt.bingx
             };
         }
         string? userStreamKey = this.safeString(this.options, "listenKey");
-        if ((baseUrl == null) || (userStreamKey == null))
+        if ((type == null) || (baseUrl == null) || (userStreamKey == null))
         {
             throw new AuthenticationError ((this.id + " watchBalance() requires a websocket URL and a listen key")) ;
         }

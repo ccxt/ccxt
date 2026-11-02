@@ -873,12 +873,12 @@ public partial class poloniex : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         string keyStart = "sTime";
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             keyStart = "startTime";
         }
         string keyEnd = "eTime";
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             keyEnd = "endTime";
         }
@@ -903,7 +903,7 @@ public partial class poloniex : Exchange
             object endTimeByLimit = this.sum(firstCandle, (duration * ((limit - 1))));
             requestUntil[keyEnd] = mathMin(endTimeByLimit, this.milliseconds());
         }
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
             Dictionary<string, object> responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(requestUntil, paramsUntil));
             //
@@ -1327,7 +1327,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId);
         string? baseVolume = this.safeString2(ticker, "quantity", "qty");
         double? contractSize = this.safeNumber(marketResolved, "contractSize");
-        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && ((contractSize != null)))
+        if ((this.safeBool(marketResolved, "contract", false) == true) && ((contractSize != null)))
         {
             // 'quantity' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
@@ -1568,7 +1568,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
             Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters));
             IDictionary<string, object> contractTicker = this.safeDict(tickers, symbol);
@@ -1760,7 +1760,7 @@ public partial class poloniex : Exchange
         {
             request["limit"] = limit; // max 1000, for spot & swap
         }
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
             Dictionary<string, object> response = await this.swapPublicGetV3MarketTrades(this.extend(request, parameters));
             //
@@ -2384,7 +2384,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> requestValue = (Dictionary<string, object>)requestValueparamsValueVariable[0];
         var paramsValue = requestValueparamsValueVariable[1];
         IDictionary<string, object> response = new Dictionary<string, object>() {};
-        if (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true)))
+        if ((this.safeBool(market, "swap", false) == true) || (this.safeBool(market, "future", false) == true))
         {
             Dictionary<string, object> responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(requestValue, paramsValue));
             //
@@ -2555,7 +2555,7 @@ public partial class poloniex : Exchange
         object queryOmitted = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
         if ((triggerPrice != null))
         {
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+            if (!(this.safeBool(market, "spot", false) == true))
             {
                 throw new InvalidOrder ((((this.id + " createOrder() does not support trigger orders for ") + this.safeString(market, "type", "")) + " markets")) ;
             }
@@ -2580,7 +2580,7 @@ public partial class poloniex : Exchange
                 if ((cost != null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if ((createMarketBuyOrderRequiresPrice == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)))
+                } else if ((createMarketBuyOrderRequiresPrice == true) && (this.safeBool(market, "spot", false) == true))
                 {
                     if ((price == null))
                     {
@@ -2597,7 +2597,7 @@ public partial class poloniex : Exchange
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
                 string amountKey = "sz";
-                if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+                if ((this.safeBool(market, "spot", false) == true))
                 {
                     amountKey = "amount";
                 }
@@ -2605,7 +2605,7 @@ public partial class poloniex : Exchange
             } else
             {
                 string amountKey = "sz";
-                if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+                if ((this.safeBool(market, "spot", false) == true))
                 {
                     amountKey = "quantity";
                 }
@@ -2614,13 +2614,13 @@ public partial class poloniex : Exchange
         } else
         {
             string amountKey = "sz";
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            if ((this.safeBool(market, "spot", false) == true))
             {
                 amountKey = "quantity";
             }
             result[(string)amountKey] = this.amountToPrecision(symbol, amount);
             string priceKey = "px";
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            if ((this.safeBool(market, "spot", false) == true))
             {
                 priceKey = "price";
             }
@@ -2631,7 +2631,7 @@ public partial class poloniex : Exchange
         {
             // the futures v3 api silently ignores the spot key and generates its own id
             string clientOrderIdKey = "clOrdId";
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            if ((this.safeBool(market, "spot", false) == true))
             {
                 clientOrderIdKey = "clientOrderId";
             }
@@ -2664,7 +2664,7 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((((this.id + " editOrder() does not support ") + this.safeString(market, "type", "")) + " orders, only spot orders are accepted")) ;
         }
@@ -2719,7 +2719,7 @@ public partial class poloniex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             request["ordId"] = idVar;
@@ -3234,12 +3234,12 @@ public partial class poloniex : Exchange
         if ((limit != null))
         {
             request["limit"] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+            if ((this.safeBool(market, "contract", false) == true))
             {
                 request["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 100, 150}, limit);
             }
         }
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
             Dictionary<string, object> responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, parameters));
             //
@@ -4257,7 +4257,7 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string mode = "ONE_WAY";
-        if ((hedged == true))
+        if (hedged)
         {
             mode = "HEDGE";
         }

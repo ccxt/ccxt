@@ -3253,7 +3253,7 @@ public partial class phemex : Exchange
                     string? stopLossTriggerPriceType = this.safeString2(stopLoss, "triggerPriceType", "slTrigger");
                     if ((stopLossTriggerPriceType != null))
                     {
-                        request["slTrigger"] = this.safeString((this.options.ContainsKey("triggerPriceTypesMap") ? this.options["triggerPriceTypesMap"] : null), stopLossTriggerPriceType, stopLossTriggerPriceType);
+                        request["slTrigger"] = this.safeString((this.options != null && this.options.ContainsKey("triggerPriceTypesMap") ? this.options["triggerPriceTypesMap"] : null), stopLossTriggerPriceType, stopLossTriggerPriceType);
                     }
                     string? slLimitPrice = this.safeString(stopLoss, "price");
                     if ((slLimitPrice != null))
@@ -3278,7 +3278,7 @@ public partial class phemex : Exchange
                     string? takeProfitTriggerPriceType = this.safeString2(takeProfit, "triggerPriceType", "tpTrigger");
                     if ((takeProfitTriggerPriceType != null))
                     {
-                        request["tpTrigger"] = this.safeString((this.options.ContainsKey("triggerPriceTypesMap") ? this.options["triggerPriceTypesMap"] : null), takeProfitTriggerPriceType, takeProfitTriggerPriceType);
+                        request["tpTrigger"] = this.safeString((this.options != null && this.options.ContainsKey("triggerPriceTypesMap") ? this.options["triggerPriceTypesMap"] : null), takeProfitTriggerPriceType, takeProfitTriggerPriceType);
                     }
                     string? tpLimitPrice = this.safeString(takeProfit, "price");
                     if ((tpLimitPrice != null))
@@ -4752,7 +4752,7 @@ public partial class phemex : Exchange
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         string? apiUnrealizedPnl = this.safeString(position, "unRealisedPnlRv", unrealizedPnl);
         string? marginRatio = Precise.stringDiv(maintenanceMarginString, collateral);
-        bool? isCross = this.safeBool(position, "crossMargin");
+        bool? isCross = this.safeBool(position, "crossMargin", false);
         Int64? timestamp = this.safeInteger(position, "openedTimeNs");
         Int64? lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
         return this.safePosition(new Dictionary<string, object>() {
@@ -4779,7 +4779,7 @@ public partial class phemex : Exchange
             { "marginRatio", this.parseNumber(marginRatio) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "marginMode", ((isCross == true)) ? "cross" : "isolated" },
+            { "marginMode", isCross == true ? "cross" : "isolated" },
             { "side", side },
             { "hedged", (this.safeString(position, "posMode") == "Hedged") },
             { "percentage", null },
@@ -5072,8 +5072,8 @@ public partial class phemex : Exchange
         //     }
         //
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
-        bool? inverse = this.safeBool(marketResolved, "inverse");
-        string codeCurrency = ((inverse == true)) ? "base" : "quote";
+        bool? inverse = this.safeBool(marketResolved, "inverse", false);
+        string codeCurrency = inverse == true ? "base" : "quote";
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", this.safeSymbol(null, marketResolved) },
@@ -5172,7 +5172,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((hedged == true))
+        if (hedged)
         {
             request["targetPosMode"] = "Hedged";
         } else

@@ -837,7 +837,7 @@ public partial class deepcoin : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         string? price = this.safeString(paramsPaginate, "price");
         int maxLimit = 300;
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true) && (price == null))
+        if ((this.safeBool(market, "swap", false) == true) && (price == null))
         {
             maxLimit = 1000;
         }
@@ -982,7 +982,7 @@ public partial class deepcoin : Exchange
         string? open = this.safeString(ticker, "open24h");
         object quoteVolume = this.safeString(ticker, "volCcy24h");
         object baseVolume = this.safeString(ticker, "vol24h");
-        if (((((marketResolved != null && marketResolved.ContainsKey("swap") ? marketResolved["swap"] : null) as bool?) == true)) && ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true)))
+        if ((this.safeBool(marketResolved, "swap", false) == true) && (this.safeBool(marketResolved, "inverse", false) == true))
         {
             object temp = baseVolume;
             baseVolume = quoteVolume;
@@ -1841,7 +1841,7 @@ public partial class deepcoin : Exchange
         string? cost = this.safeString(parameters, "cost");
         if ((cost != null))
         {
-            if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true)) || ((triggerPrice != null)))
+            if ((!(this.safeBool(market, "spot", false) == true)) || ((triggerPrice != null)))
             {
                 throw new BadRequest ((this.id + " createOrder() accepts a cost parameter for spot non-trigger market orders only")) ;
             }
@@ -1930,7 +1930,7 @@ public partial class deepcoin : Exchange
             throw new BadRequest ((this.id + " createOrder() requires a price argument for limit orders")) ;
         }
         object paramsRequest = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             string? cost = this.safeString(paramsOrderType, "cost");
             if ((cost != null))
@@ -2055,7 +2055,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, "reduceOnly");
         request["isCrossMargin"] = isCrossMargin;
         request["tdMode"] = marginModeOption;
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
             if ((reduceOnly == true))
             {
@@ -2661,7 +2661,7 @@ public partial class deepcoin : Exchange
             throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " cancelAllOrders() is not supported for spot markets")) ;
         }
@@ -2716,7 +2716,7 @@ public partial class deepcoin : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            if ((this.safeBool(market, "spot", false) == true))
             {
                 throw new NotSupported ((this.id + " editOrder() is not supported for spot markets")) ;
             }
@@ -2790,7 +2790,7 @@ public partial class deepcoin : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            if ((this.safeBool(market, "spot", false) == true))
             {
                 throw new NotSupported ((this.id + " cancelOrders() is not supported for spot markets")) ;
             }
@@ -3261,7 +3261,7 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new ExchangeError ((this.id + " fetchFundingRate() is only valid for swap markets")) ;
         }

@@ -2943,7 +2943,7 @@ public partial class extended : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = type.ToUpper();
         string uppercaseSide = side.ToUpper();
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && uppercaseType != "LIMIT")
+        if ((this.safeBool(market, "spot", false) == true) && uppercaseType != "LIMIT")
         {
             throw new BadRequest ((this.id + " createOrder() supports limit orders for spot markets only")) ;
         }
@@ -2968,7 +2968,7 @@ public partial class extended : Exchange
         string? builderFeeRate = null;
         string? builderId = null;
         object paramsBuilder = parameters;
-        bool? builderEnabled = this.safeBool(this.options, "builderFee");
+        bool? builderEnabled = this.safeBool(this.options, "builderFee", false);
         if ((builderEnabled == true))
         {
             if (this.isSandboxModeEnabled)

@@ -1338,7 +1338,7 @@ public partial class bullish : Exchange
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "quantity");
         string? side = this.safeStringLower(trade, "side");
-        bool? isTaker = this.safeBool(trade, "isTaker");
+        bool? isTaker = this.safeBool(trade, "isTaker", false);
         string? currency = this.safeString(marketResolved, "quote");
         string? code = this.safeCurrencyCode(currency);
         double? feeCost = this.safeNumber(trade, "quoteFee");
@@ -1669,7 +1669,7 @@ public partial class bullish : Exchange
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPagination, maxLimit));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new BadRequest ((this.id + " fetchFundingRateHistory() supports swap markets only")) ;
         }

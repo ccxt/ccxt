@@ -875,10 +875,10 @@ public partial class krakenfutures : Exchange
         bool? isIndex = this.safeBool(marketResolved, "index", false);
         if (isIndex != true)
         {
-            if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
+            if ((this.safeBool(marketResolved, "linear", false) == true))
             {
                 baseVolume = volume;
-            } else if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
+            } else if ((this.safeBool(marketResolved, "inverse", false) == true))
             {
                 baseVolume = Precise.stringDiv(quoteVolume, vwap);
             }
@@ -1370,7 +1370,7 @@ public partial class krakenfutures : Exchange
         string? type = this.parseOrderType(rawType); // undefined stays undefined
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? cost = null;
-        bool? linear = this.safeBool(marketResolved, "linear");
+        bool? linear = this.safeBool(marketResolved, "linear", false);
         if (((amount != null)) && ((price != null)) && ((marketResolved != null)))
         {
             if ((linear == true))
@@ -1434,7 +1434,7 @@ public partial class krakenfutures : Exchange
             { "side", side },
             { "takerOrMaker", takerOrMaker },
             { "price", price },
-            { "amount", ((linear == true)) ? amount : null },
+            { "amount", linear == true ? amount : null },
             { "cost", cost },
             { "fee", fee },
         });
@@ -1489,7 +1489,7 @@ public partial class krakenfutures : Exchange
         bool isTakeProfitTriggerOrder = (takeProfitTriggerPrice != null);
         bool isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         string? triggerSignal = this.safeString(paramsPostOnly, "triggerSignal", "last");
-        bool? reduceOnlyParam = this.safeBool(paramsPostOnly, "reduceOnly");
+        bool? reduceOnlyParam = this.safeBool(paramsPostOnly, "reduceOnly", false);
         bool reduceOnly = ((reduceOnlyParam == true));
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder)
         {
@@ -2730,7 +2730,7 @@ public partial class krakenfutures : Exchange
             }
             if ((whichPrice != null))
             {
-                if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
+                if ((this.safeBool(marketResolved, "linear", false) == true))
                 {
                     cost = Precise.stringMul(filled, whichPrice); // in quote
                 } else
@@ -3528,7 +3528,7 @@ public partial class krakenfutures : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new BadRequest ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
@@ -4019,7 +4019,7 @@ public partial class krakenfutures : Exchange
             string? marketId = this.safeString(market, "id", "");
             List<object> splitId = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? splitMarketId = this.safeString(splitId, 1, "");
-            if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+            if ((this.safeBool(market, "inverse", false) == true))
             {
                 return ("fi_" + splitMarketId);
             } else
@@ -4259,12 +4259,12 @@ public partial class krakenfutures : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        IDictionary<string, object> apiVersions = this.safeDict((this.options.ContainsKey("versions") ? this.options["versions"] : null), apiName, new Dictionary<string, object>() {});
+        IDictionary<string, object> apiVersions = this.safeDict((this.options != null && this.options.ContainsKey("versions") ? this.options["versions"] : null), apiName, new Dictionary<string, object>() {});
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, this.version);
         object version = this.safeString(parameters, "version", defaultVersion);
         object paramsOmitted = this.omit(parameters, "version");
-        IDictionary<string, object> apiAccess = this.safeDict((this.options.ContainsKey("access") ? this.options["access"] : null), apiName, new Dictionary<string, object>() {});
+        IDictionary<string, object> apiAccess = this.safeDict((this.options != null && this.options.ContainsKey("access") ? this.options["access"] : null), apiName, new Dictionary<string, object>() {});
         IDictionary<string, object> methodAccess = this.safeDict(apiAccess, method, new Dictionary<string, object>() {});
         string? access = this.safeString(methodAccess, path, "public");
         string? endpoint = ((string)((object)(version == null ? null : version + "/" + this.implodeParams(path, paramsOmitted))));

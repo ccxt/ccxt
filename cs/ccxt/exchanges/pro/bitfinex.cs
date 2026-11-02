@@ -69,8 +69,8 @@ public partial class bitfinex : ccxt.bitfinex
         if ((checksum == true) && ((channel == "book")))
         {
             object sub = (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash) ? client.subscriptions[messageHash] : null);
-            bool? subChecksum = this.safeBool(sub, "checksum");
-            if (((sub != null)) && ((subChecksum != true)))
+            bool? subChecksum = this.safeBool(sub, "checksum", false);
+            if (((sub != null)) && subChecksum != true)
             {
                 ((IDictionary<string,object>)(client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash) ? client.subscriptions[messageHash] : null))["checksum"] = true;
                 await client.send(new Dictionary<string, object>() {

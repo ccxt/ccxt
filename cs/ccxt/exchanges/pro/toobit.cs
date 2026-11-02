@@ -334,7 +334,7 @@ public partial class toobit : ccxt.toobit
         }
         string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "common", "") + "/quote/ws/v1");
         List<object> messageHashes = new List<object>() {};
-        IDictionary<string, object> timeframes = this.safeDict((this.options.ContainsKey("ws") ? this.options["ws"] : null), "timeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "timeframes", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>() {};
         string? selectedTimeframe = null;
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
@@ -413,7 +413,7 @@ public partial class toobit : ccxt.toobit
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((stored == null))
         {
-            Int64? limit = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "OHLCVLimit", 1000);
+            Int64? limit = this.safeInteger((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
             if ((timeframe != null))
             {
@@ -681,7 +681,7 @@ public partial class toobit : ccxt.toobit
             string messageHash = ((("orderBook::" + symbol) + "::") + "diffDepth");
             if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
-                Int64? limit = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "orderBookLimit", 1000);
+                Int64? limit = this.safeInteger((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "orderBookLimit", 1000);
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
             ccxt.pro.IOrderBook orderBook = this.getOrderBook(this.orderbooks, symbol);
@@ -745,7 +745,7 @@ public partial class toobit : ccxt.toobit
             string messageHash = ((("orderBook::" + symbol) + "::") + channel);
             if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
-                Int64? limit = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "orderBookLimit", 1000);
+                Int64? limit = this.safeInteger((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "orderBookLimit", 1000);
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
@@ -1334,8 +1334,8 @@ public partial class toobit : ccxt.toobit
     {
         parameters ??= new Dictionary<string, object>();
         Int64 time = this.milliseconds();
-        Int64? lastAuthenticatedTime = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "lastAuthenticatedTime", 0);
-        Int64? listenKeyRefreshRate = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKeyRefreshRate", 1200000);
+        Int64? lastAuthenticatedTime = this.safeInteger((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "lastAuthenticatedTime", 0);
+        Int64? listenKeyRefreshRate = this.safeInteger((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKeyRefreshRate", 1200000);
         Int64? delay = (listenKeyRefreshRate + 10000);
         if (((time - lastAuthenticatedTime) > delay))
         {
@@ -1425,14 +1425,14 @@ public partial class toobit : ccxt.toobit
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
-        Int64? listenKeyRefreshRate = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKeyRefreshRate", 1200000);
+        Int64? listenKeyRefreshRate = this.safeInteger((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKeyRefreshRate", 1200000);
         this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
     }
 
     public virtual string? getUserStreamUrl()
     {
         string wsBaseUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "common", "");
-        string? listenKey = this.safeString((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKey", "");
+        string? listenKey = this.safeString((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKey", "");
         return ((wsBaseUrl + "/api/v1/ws/") + listenKey);
     }
 

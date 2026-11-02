@@ -2752,7 +2752,7 @@ public partial class lighter : Exchange
         string? side = null;
         if ((isAsk != null))
         {
-            side = ((isAsk == true)) ? "sell" : "buy";
+            side = isAsk == true ? "sell" : "buy";
         } else if ((isAskAsInteger != null))
         {
             side = ((isAskAsInteger == 1)) ? "sell" : "buy";

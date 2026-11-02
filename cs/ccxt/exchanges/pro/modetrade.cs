@@ -71,7 +71,7 @@ public partial class modetrade : ccxt.modetrade
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
         return newValue;
     }
 
@@ -661,7 +661,7 @@ public partial class modetrade : ccxt.modetrade
         //     }
         //
         string messageHash = "authenticated";
-        bool? success = this.safeBool(message, "success");
+        bool? success = this.safeBool(message, "success", false);
         if ((success == true))
         {
             // client.resolve (message, messageHash);
@@ -1453,7 +1453,7 @@ public partial class modetrade : ccxt.modetrade
         {
             return false;
         }
-        bool? success = this.safeBool(message, "success");
+        bool? success = this.safeBool(message, "success", false);
         if ((success == true))
         {
             return false;

@@ -519,7 +519,7 @@ public partial class htx : ccxt.htx
         }
         string messageHash = "";
         string? marketId = this.safeString(market, "id", "");
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             messageHash = ((("market." + marketId) + ".mbp.") + ((object)limitResolved).ToString());
         } else
@@ -529,13 +529,13 @@ public partial class htx : ccxt.htx
         string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
         object method = this.handleOrderBookSubscription;
         object paramsExtended = parameters;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
                 { "data_type", "incremental" },
             });
         }
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             method = null;
         }
@@ -568,14 +568,14 @@ public partial class htx : ccxt.htx
         Int64? depth = this.parseToInt(this.safeInteger(options, "depth", 150));
         string? marketId = this.safeString(market, "id", "");
         string subMessageHash = "";
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             subMessageHash = ((("market." + marketId) + ".mbp.") + ((object)depth).ToString());
         } else
         {
             subMessageHash = (((("market." + marketId) + ".depth.size_") + ((object)depth).ToString()) + ".high_freq");
         }
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             ((IDictionary<string,object>)parameters)["data_type"] = "incremental";
         }
@@ -947,7 +947,7 @@ public partial class htx : ccxt.htx
             orderbook["nonce"] = null;
             (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
         }
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             this.spawn(this.watchOrderBookSnapshot, new object[] { client, message, subscription});
         }
@@ -983,7 +983,7 @@ public partial class htx : ccxt.htx
         {
             market = this.market(symbol);
             type = this.safeString(market, "type");
-            if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 subType = "linear";
             } else
@@ -1158,7 +1158,7 @@ public partial class htx : ccxt.htx
         {
             market = this.market(symbol);
             type = this.safeString(market, "type");
-            if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 subType = "linear";
             } else
@@ -1801,7 +1801,7 @@ public partial class htx : ccxt.htx
         if ((market != null))
         {
             type = this.safeString(market, "type");
-            if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 subType = "linear";
             } else

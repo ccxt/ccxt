@@ -797,7 +797,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " watchFundingRate() supports swap contracts only")) ;
         }
@@ -821,7 +821,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " unWatchFundingRate() supports swap contracts only")) ;
         }
@@ -1744,7 +1744,7 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> market = this.market(tradeSymbol);
         stored.append(ccxt.BaseExchange.FromTrade(parsedTrade));
         string tradeType = "spot";
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
             tradeType = "contract";
         }

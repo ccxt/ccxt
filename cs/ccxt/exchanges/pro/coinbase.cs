@@ -975,7 +975,7 @@ public partial class coinbase : ccxt.coinbase
         {
             IDictionary<string, object> trade = this.safeDict(updates, i);
             string? sideId = this.safeString(trade, "side");
-            string? side = this.safeString((this.options.ContainsKey("sides") ? this.options["sides"] : null), sideId);
+            string? side = this.safeString((this.options != null && this.options.ContainsKey("sides") ? this.options["sides"] : null), sideId);
             double? price = this.safeNumber(trade, "price_level");
             double? amount = this.safeNumber(trade, "new_quantity");
             object orderbookSide = this.safeValue(orderbook, side);

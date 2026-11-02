@@ -291,7 +291,7 @@ public partial class bybit : ccxt.bybit
             { "args", new List<object>() {orderRequest} },
             { "header", new Dictionary<string, object>() {
                 { "X-BAPI-TIMESTAMP", this.milliseconds().ToString() },
-                { "X-BAPI-RECV-WINDOW", this.numberToString((this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)) },
+                { "X-BAPI-RECV-WINDOW", this.numberToString((this.options != null && this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)) },
             } },
         };
         return ccxt.BaseExchange.ToOrder(await this.watch(url, requestId, request, requestId, true));
@@ -339,7 +339,7 @@ public partial class bybit : ccxt.bybit
             { "args", new List<object>() {orderRequest} },
             { "header", new Dictionary<string, object>() {
                 { "X-BAPI-TIMESTAMP", this.milliseconds().ToString() },
-                { "X-BAPI-RECV-WINDOW", this.numberToString((this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)) },
+                { "X-BAPI-RECV-WINDOW", this.numberToString((this.options != null && this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)) },
             } },
         };
         return ccxt.BaseExchange.ToOrder(await this.watch(url, requestId, request, requestId, true));
@@ -383,7 +383,7 @@ public partial class bybit : ccxt.bybit
             { "args", new List<object>() {orderRequest} },
             { "header", new Dictionary<string, object>() {
                 { "X-BAPI-TIMESTAMP", this.milliseconds().ToString() },
-                { "X-BAPI-RECV-WINDOW", this.numberToString((this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)) },
+                { "X-BAPI-RECV-WINDOW", this.numberToString((this.options != null && this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)) },
             } },
         };
         return ccxt.BaseExchange.ToOrder(await this.watch(url, requestId, request, requestId, true));
@@ -413,7 +413,7 @@ public partial class bybit : ccxt.bybit
         object paramsValue = this.cleanParams(parameters);
         IDictionary<string, object> options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
         string topic = this.safeString(options, "name", "tickers");
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true)) && topic != "tickers")
+        if ((!(this.safeBool(market, "spot", false) == true)) && topic != "tickers")
         {
             throw new BadRequest ((this.id + " watchTicker() only supports name tickers for contract markets")) ;
         }
@@ -996,7 +996,7 @@ public partial class bybit : ccxt.bybit
         string? url = await this.getUrlByMarketType((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null), false, "watchOrderBook", parameters);
         object paramsValue = this.cleanParams(parameters);
         Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-        int defaultLimit = ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true)) ? 100 : 50;
+        int defaultLimit = (this.safeBool(market, "option", false) == true) ? 100 : 50;
         Int64? limitResolved = ((limit == null)) ? defaultLimit : limit;
         if ((limit != null))
         {
@@ -1051,7 +1051,7 @@ public partial class bybit : ccxt.bybit
         if ((limitParam == null))
         {
             Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-            defaultLimit = ((((firstMarket != null && firstMarket.ContainsKey("spot") ? firstMarket["spot"] : null) as bool?) == true)) ? 50 : 500;
+            defaultLimit = (this.safeBool(firstMarket, "spot", false) == true) ? 50 : 500;
         }
         Int64? limit = ((limitParam == null)) ? defaultLimit : limitParam;
         channel = channel + ((object)limit).ToString();
@@ -3030,10 +3030,10 @@ public partial class bybit : ccxt.bybit
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        bool? success = this.safeBool(message, "success");
+        bool? success = this.safeBool(message, "success", false);
         Int64? code = this.safeInteger(message, "retCode");
         string messageHash = "authenticated";
-        if (((success == true)) || ((code == 0)))
+        if ((success == true) || ((code == 0)))
         {
             Future future = client.getFuture(messageHash);
             (future as Future).resolve(true);

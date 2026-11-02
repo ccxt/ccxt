@@ -1850,7 +1850,7 @@ public partial class mexc : Exchange
         {
             request["limit"] = limit;
         }
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             Dictionary<string, object> response = await this.spotPublicGetDepth(this.extend(request, parameters));
             //
@@ -1870,7 +1870,7 @@ public partial class mexc : Exchange
             ccxt.OrderBook spotOrderbook = this.parseOrderBook(response, symbol, spotTimestamp);
             spotOrderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "lastUpdateId"));
             return spotOrderbook;
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             Dictionary<string, object> response = await this.contractPublicGetDepthSymbol(this.extend(request, parameters));
             //
@@ -1946,7 +1946,7 @@ public partial class mexc : Exchange
             request["limit"] = limit;
         }
         List<object> trades = new List<object>() {};
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             Int64? until = this.safeInteger2(parameters, "endTime", "until");
             if ((since != null))
@@ -1981,7 +1981,7 @@ public partial class mexc : Exchange
             {
                 throw new NotSupported ((this.id + " fetchTrades() not support this method")) ;
             }
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             Dictionary<string, object> response = await this.contractPublicGetDealsSymbol(this.extend(request, parameters));
             //
@@ -2190,7 +2190,7 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        int maxLimit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
+        int maxLimit = (this.safeBool(market, "spot", false) == true) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
@@ -2214,7 +2214,7 @@ public partial class mexc : Exchange
         {
             paramsUntil = this.omit(paramsPaginate, new List<object>() {"until"});
         }
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             if ((since != null))
             {
@@ -2263,7 +2263,7 @@ public partial class mexc : Exchange
             //     ]
             //
             candles = this.toArray(response);
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             if ((since != null))
             {
@@ -2488,9 +2488,9 @@ public partial class mexc : Exchange
         string? changePcnt = null;
         string? changeValue = null;
         string? prevClose = null;
-        bool? isSwap = this.safeBool(marketResolved, "swap");
+        bool? isSwap = this.safeBool(marketResolved, "swap", false);
         // if swap
-        if (((isSwap == true)) || ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("timestamp"))))
+        if ((isSwap == true) || ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("timestamp"))))
         {
             //
             //     {
@@ -2519,11 +2519,11 @@ public partial class mexc : Exchange
             baseVolume = this.safeString(ticker, "volume24");
             quoteVolume = this.safeString(ticker, "amount24");
             string? contractSize = this.safeString(marketResolved, "contractSize");
-            if (((isSwap == true)) && ((contractSize != null)))
+            if ((isSwap == true) && ((contractSize != null)))
             {
                 // volume24 counts contracts, amount24 is in the settle currency
                 string? contractVolume = Precise.stringMul(baseVolume, contractSize);
-                if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
+                if ((this.safeBool(marketResolved, "inverse", false) == true))
                 {
                     baseVolume = quoteVolume;
                     quoteVolume = contractVolume;
@@ -2668,7 +2668,7 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -2696,7 +2696,7 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
@@ -2745,7 +2745,7 @@ public partial class mexc : Exchange
         (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginModequeryVariable.Item1;
         IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable.Item2);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             return await this.CreateSpotOrder(market, type, side, amount, price, marginMode, query);
         } else
@@ -3104,7 +3104,7 @@ public partial class mexc : Exchange
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             Dictionary<string, object> market = this.market(marketId);
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+            if (!(this.safeBool(market, "spot", false) == true))
             {
                 throw new NotSupported ((this.id + " createOrders() is only supported for spot markets")) ;
             }
@@ -3185,7 +3185,7 @@ public partial class mexc : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object data = new Dictionary<string, object>() {};
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             string? clientOrderId = this.safeString(parameters, "clientOrderId");
             if ((clientOrderId != null))
@@ -3210,7 +3210,7 @@ public partial class mexc : Exchange
             {
                 data = await this.spotPrivateGetOrder(this.extend(request, query));
             }
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             request["order_id"] = id;
             Dictionary<string, object> response = await this.contractPrivateGetOrderGetOrderId(this.extend(request, parameters));
@@ -4386,7 +4386,7 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " fetchTradingFee() supports spot markets only")) ;
         }
@@ -4757,7 +4757,7 @@ public partial class mexc : Exchange
                 Int64? end = this.safeInteger(paramsMarketType, "end_time");
                 if ((end == null))
                 {
-                    request["end_time"] = this.sum(since, (this.options.ContainsKey("maxTimeTillEnd") ? this.options["maxTimeTillEnd"] : null));
+                    request["end_time"] = this.sum(since, (this.options != null && this.options.ContainsKey("maxTimeTillEnd") ? this.options["maxTimeTillEnd"] : null));
                 }
             }
             if ((limit != null))
@@ -6613,7 +6613,7 @@ public partial class mexc : Exchange
         {
             IDictionary<string, object> networkEntry = this.safeDict(networkList, j);
             string? networkId = this.safeString(networkEntry, "network");
-            string? networkCode = this.safeString((this.options.ContainsKey("networks") ? this.options["networks"] : null), networkId, networkId);
+            string? networkCode = this.safeString((this.options != null && this.options.ContainsKey("networks") ? this.options["networks"] : null), networkId, networkId);
             double? fee = this.safeNumber(networkEntry, "withdrawFee");
             result[(string)networkCode] = fee;
         }
@@ -6929,7 +6929,7 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " setMarginMode() supports contract markets only")) ;
         }

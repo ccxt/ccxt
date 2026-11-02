@@ -1519,8 +1519,8 @@ public partial class BaseExchange
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         string stringifiedNumber = this.numberToString(number);
-        object convertedNumber = ((object)JsParse.parseFloat(stringifiedNumber));
-        return ((Int64?)((object)(parseInt(convertedNumber))));
+        object convertedNumber = JsParse.parseFloat(stringifiedNumber);
+        return ((Int64?)((object)(parseInt(((object)convertedNumber)))));
     }
 
     public virtual object parseToNumeric(object number)
@@ -2119,7 +2119,7 @@ public partial class BaseExchange
         {
             Dictionary<string, object> result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if ((this.safeBool(result, "spot") == true))
+            if ((this.safeBool(result, "spot", false) == true))
             {
                 if (((result != null && result.ContainsKey("contract") ? result["contract"] : null) == null))
                 {
@@ -2184,10 +2184,10 @@ public partial class BaseExchange
                 { "precision", this.precision },
                 { "limits", this.limits },
             }, (this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), valueDefined);
-            if ((this.safeBool(market, "linear") == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 market["subType"] = "linear";
-            } else if ((this.safeBool(market, "inverse") == true))
+            } else if ((this.safeBool(market, "inverse", false) == true))
             {
                 market["subType"] = "inverse";
             } else
@@ -3602,7 +3602,7 @@ public partial class BaseExchange
                 throw new BadRequest ((((this.id + " symbols must be of the same type ") + (type)) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
             marketType = this.safeString(market, "type");
-            if ((this.safeBool(market, "spot") != true))
+            if (!(this.safeBool(market, "spot", false) == true))
             {
                 isLinearSubType = this.safeBool(market, "linear");
             }
@@ -5083,7 +5083,7 @@ public partial class BaseExchange
                     for (int i = 0; i < (markets?.Count ?? 0); i++)
                     {
                         object currentMarket = markets[i];
-                        if ((this.safeBool(currentMarket, marketTypeResolved) == true))
+                        if ((this.safeBool(currentMarket, marketTypeResolved, false) == true))
                         {
                             return ((Dictionary<string, object>)((object)(currentMarket)));
                         }
@@ -5535,10 +5535,10 @@ public partial class BaseExchange
             // at first, check from market object
             if ((market != null))
             {
-                if ((this.safeBool(market, "linear") == true))
+                if ((this.safeBool(market, "linear", false) == true))
                 {
                     subType = "linear";
-                } else if ((this.safeBool(market, "inverse") == true))
+                } else if ((this.safeBool(market, "inverse", false) == true))
                 {
                     subType = "inverse";
                 }
@@ -6052,7 +6052,7 @@ public partial class BaseExchange
             for (int i = 0; i < getArrayLength(marketsList); i++)
             {
                 object market = getValue(marketsList, i);
-                if ((this.safeBool(market, defaultType) == true))
+                if ((this.safeBool(market, defaultType, false) == true))
                 {
                     return ccxt.BaseExchange.ToDict(market);
                 }
@@ -6291,7 +6291,7 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " loadTimeDifference() missing serverTime")) ;
         }
         this.options["timeDifference"] = (after - serverTime);
-        return this.parseToInt((this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null));
+        return this.parseToInt((this.options != null && this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null));
     }
 
     public virtual string? implodeHostname(object url)
@@ -6307,7 +6307,7 @@ public partial class BaseExchange
         if (!((this.has.ContainsKey("fetchLeverageTiers") ? this.has["fetchLeverageTiers"] : null) == null) && (((this.has.ContainsKey("fetchLeverageTiers") ? this.has["fetchLeverageTiers"] : null) as bool?) != false))
         {
             Dictionary<string, object> market = this.market(symbol);
-            if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+            if (!(this.safeBool(market, "contract", false) == true))
             {
                 throw new BadSymbol ((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
@@ -6784,7 +6784,7 @@ public partial class BaseExchange
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
             string? symbolResolved = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+            if (!(this.safeBool(market, "contract", false) == true))
             {
                 throw new BadSymbol ((this.id + " fetchFundingRate() supports contract markets only")) ;
             }
@@ -6811,7 +6811,7 @@ public partial class BaseExchange
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
             string? symbolResolved = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+            if (!(this.safeBool(market, "contract", false) == true))
             {
                 throw new BadSymbol ((this.id + " fetchFundingInterval() supports contract markets only")) ;
             }
@@ -6926,7 +6926,7 @@ public partial class BaseExchange
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce"); // supported values GTC, IOC, PO
         if ((timeInForce != null))
         {
-            string? exchangeValue = this.safeString((this.options.ContainsKey("timeInForce") ? this.options["timeInForce"] : null), timeInForce);
+            string? exchangeValue = this.safeString((this.options != null && this.options.ContainsKey("timeInForce") ? this.options["timeInForce"] : null), timeInForce);
             if ((exchangeValue == null))
             {
                 throw new ExchangeError ((((this.id + " does not support timeInForce \"") + timeInForce) + "\"")) ;

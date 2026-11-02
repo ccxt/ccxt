@@ -742,7 +742,7 @@ public partial class bitopro : Exchange
         string? side = this.safeStringLower(trade, "action");
         if ((side == null))
         {
-            bool? isBuyer = this.safeBool(trade, "isBuyer");
+            bool? isBuyer = this.safeBool(trade, "isBuyer", false);
             if ((isBuyer == true))
             {
                 side = "buy";

@@ -758,7 +758,7 @@ public partial class coinsph : Exchange
     {
         string? id = this.safeString(rawCurrency, "coin");
         string? code = this.safeCurrencyCode(id);
-        bool? isFiat = this.safeBool(rawCurrency, "isLegalMoney");
+        bool? isFiat = this.safeBool(rawCurrency, "isLegalMoney", false);
         List<object> networkList = this.safeList(rawCurrency, "networkList", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < networkList.Count; j++)
@@ -794,7 +794,7 @@ public partial class coinsph : Exchange
             { "id", id },
             { "name", this.safeString(rawCurrency, "name") },
             { "code", code },
-            { "type", ((isFiat == true)) ? "fiat" : "crypto" },
+            { "type", isFiat == true ? "fiat" : "crypto" },
             { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "transferPrecision"))) },
             { "info", rawCurrency },
             { "active", null },

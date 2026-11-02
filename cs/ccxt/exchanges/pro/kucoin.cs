@@ -155,9 +155,9 @@ public partial class kucoin : ccxt.kucoin
             return result;
         } catch(Exception e)
         {
-            var future = this.safeValue((this.options.ContainsKey("urls") ? this.options["urls"] : null), connectId);
+            var future = this.safeValue((this.options != null && this.options.ContainsKey("urls") ? this.options["urls"] : null), connectId);
             ((Future)future).reject(e);
-            ((IDictionary<string,object>)(this.options.ContainsKey("urls") ? this.options["urls"] : null)).Remove(connectId);
+            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("urls") ? this.options["urls"] : null)).Remove(connectId);
         }
         return null;
     }
@@ -196,7 +196,7 @@ public partial class kucoin : ccxt.kucoin
         string requestId = this.requestId().ToString();
         Dictionary<string, object> market = this.market(symbol);
         string urlType = "spot";
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
             urlType = "futures";
         }
@@ -2374,7 +2374,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? timestamp = this.safeInteger2(order, "orderTime", "createdAt");
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        if ((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true))
+        if ((this.safeBool(marketResolved, "contract", false) == true))
         {
             timestamp = this.safeIntegerProduct(order, "orderTime", 0.000001);
         }
@@ -3933,7 +3933,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 type = type + "Futures";
             }
-            ((IDictionary<string,object>)(this.options.ContainsKey("urls") ? this.options["urls"] : null))[type] = null;
+            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("urls") ? this.options["urls"] : null))[type] = null;
         }
         this.handleErrors(1L, "",((string)client.url), "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, "");
         return ((bool?)((object)(false)));

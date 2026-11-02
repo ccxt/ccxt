@@ -714,7 +714,7 @@ public partial class backpack : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             Dictionary<string, object> currency = this.parseCurrency(this.safeDict(response, i, new Dictionary<string, object>() {}));
-            if (((stock != true)) || ((this.safeString(currency, "type") == "stock")))
+            if (stock != true || ((this.safeString(currency, "type") == "stock")))
             {
                 currencies[(string)(currency.ContainsKey("code") ? currency["code"] : null)] = currency;
             }
@@ -877,7 +877,7 @@ public partial class backpack : Exchange
                     continue;
                 }
                 marketIds[(string)marketId] = true;
-                if (((stock != true)) || (this.safeBool(market, "stock", false) == true))
+                if (stock != true || (this.safeBool(market, "stock", false) == true))
                 {
                     markets.Add(market);
                 }
@@ -2025,7 +2025,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             throw new BadRequest (((this.id + " fetchFundingRate() symbol does not support market ") + symbol)) ;
         }
@@ -2091,7 +2091,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             throw new BadRequest (((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
         }

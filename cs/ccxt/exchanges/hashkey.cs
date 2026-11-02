@@ -1835,7 +1835,7 @@ public partial class hashkey : Exchange
         string? last = this.safeString(ticker, "c");
         string? baseVolume = this.safeString(ticker, "v");
         string? contractSizeValue = this.safeString(marketResolved, "contractSize");
-        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && ((contractSizeValue != null)))
+        if ((this.safeBool(marketResolved, "contract", false) == true) && ((contractSizeValue != null)))
         {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSizeValue));
@@ -2737,10 +2737,10 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             return await this.CreateSpotOrder(symbol, type, side, amount, price, parameters);
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             return await this.CreateSwapOrder(symbol, type, side, amount, price, parameters);
         } else
@@ -2767,7 +2767,7 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() is supported for spot markets only")) ;
         }
@@ -2817,7 +2817,7 @@ public partial class hashkey : Exchange
         }
         Dictionary<string, object> request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        bool? test = this.safeBool(parameters, "test");
+        bool? test = this.safeBool(parameters, "test", false);
         if ((test == true))
         {
             response = await this.privatePostApiV1SpotOrderTest(request);
@@ -2843,10 +2843,10 @@ public partial class hashkey : Exchange
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             return this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             return this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
         } else
@@ -3096,10 +3096,10 @@ public partial class hashkey : Exchange
             { "orders", ordersRequests },
         };
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.privatePostApiV1SpotBatchOrders(this.extend(request, parameters));
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             response = await this.privatePostApiV1FuturesBatchOrders(this.extend(request, parameters));
         } else
@@ -3218,10 +3218,10 @@ public partial class hashkey : Exchange
             request["side"] = side;
         }
         object response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.privateDeleteApiV1SpotOpenOrders(this.extend(request, parameters));
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             response = await this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, parameters));
         } else
@@ -4095,7 +4095,7 @@ public partial class hashkey : Exchange
         string methodName = "fetchPosition";
         string? methodNameOption = this.safeString(parameters, "methodName", methodName);
         IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)this.omit(parameters, "methodName"));
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((((this.id + " ") + methodNameOption) + "() supports swap markets only")) ;
         }
@@ -4276,7 +4276,7 @@ public partial class hashkey : Exchange
             throw new ArgumentsRequired ((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new BadSymbol ((this.id + " setMarginMode() supports swap markets only")) ;
         }
@@ -4329,7 +4329,7 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new BadSymbol ((this.id + " modifyMarginHelper() supports swap markets only")) ;
         }
@@ -4534,12 +4534,12 @@ public partial class hashkey : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string methodName = "fetchTradingFee";
         object response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = ccxt.BaseExchange.FromTradingFees(await this.FetchTradingFees(parameters));
             IDictionary<string, object> fee = this.safeDict(response, symbol);
             return ccxt.BaseExchange.ToTradingFeeInterface(fee);
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             response = await this.privateGetApiV1FuturesCommissionRate(this.extend(new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },

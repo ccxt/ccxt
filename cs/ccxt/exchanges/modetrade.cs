@@ -3946,9 +3946,9 @@ public partial class modetrade : Exchange
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        bool? success = this.safeBool(response, "success");
+        bool? success = this.safeBool(response, "success", false);
         string? errorCode = this.safeString(response, "code");
-        if ((success != true))
+        if (success != true)
         {
             string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);

@@ -511,7 +511,7 @@ public partial class hashkey : ccxt.hashkey
         type = ((IList<object>)typetimeInForcepostOnlyVariable)[0];
         timeInForce = ((IList<object>)typetimeInForcepostOnlyVariable)[1];
         postOnly = ((IList<object>)typetimeInForcepostOnlyVariable)[2];
-        if ((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true))
+        if ((this.safeBool(marketResolved, "contract", false) == true))
         {
             type = null;
         }
@@ -991,7 +991,7 @@ public partial class hashkey : ccxt.hashkey
             var client = this.client(url);
             this.options["listenKey"] = null;
             client.reject(error);
-            ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove(url);
+            ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove((string)client.url);
         }
     }
 

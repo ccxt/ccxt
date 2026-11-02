@@ -1585,7 +1585,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "contract", false) == true))
         {
             throw new NotSupported ((this.id + " fetchMarkPrice() supports contract markets only")) ;
         }
@@ -1679,7 +1679,7 @@ public partial class weex : Exchange
             request["limit"] = 200; // default is 15, max is 200
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.publicGetApiV3MarketDepth(this.extend(request, parameters));
         } else
@@ -1735,7 +1735,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             return await this.FetchSpotOHLCV(symbol,timeframeVar, since, limit, parameters);
         } else
@@ -1937,7 +1937,7 @@ public partial class weex : Exchange
             request["limit"] = Math.Min(limit.Value, 1000);
         }
         List<object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.publicGetApiV3MarketTrades(this.extend(request, parameters));
         } else
@@ -2502,7 +2502,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
             return await this.CreateContractOrder(symbol, type, side, amount, price, parameters);
         } else
@@ -2698,7 +2698,7 @@ public partial class weex : Exchange
         {
             throw new BadRequest ((this.id + " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
         }
-        bool? reduceOnly = this.safeBool(query, "reduceOnly");
+        bool? reduceOnly = this.safeBool(query, "reduceOnly", false);
         bool isReduceOnly = isStopLoss || isTakeProfit || ((reduceOnly == true));
         string positionSide = "LONG";
         if (isReduceOnly)
@@ -3418,7 +3418,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " fetchOrders() supports spot markets only")) ;
         }
@@ -4156,7 +4156,7 @@ public partial class weex : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+            if (!(this.safeBool(market, "swap", false) == true))
             {
                 throw new NotSupported ((this.id + " fetchFundingHistory() supports swap contracts only")) ;
             }
@@ -4524,7 +4524,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " fetchTradingFee() is not supported for spot markets")) ;
         }

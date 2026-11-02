@@ -356,7 +356,7 @@ public partial class lighter : ccxt.lighter
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " watchTicker() is only supported for swap markets")) ;
         }
@@ -385,7 +385,7 @@ public partial class lighter : ccxt.lighter
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " unWatchTicker() is only supported for swap markets")) ;
         }
@@ -415,7 +415,7 @@ public partial class lighter : ccxt.lighter
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if (((firstMarket != null)) && ((((firstMarket != null && firstMarket.ContainsKey("swap") ? firstMarket["swap"] : null) as bool?) != true)))
+        if (((firstMarket != null)) && (!(this.safeBool(firstMarket, "swap", false) == true)))
         {
             throw new NotSupported ((this.id + " watchTickers() is only supported for swap markets")) ;
         }
@@ -471,7 +471,7 @@ public partial class lighter : ccxt.lighter
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if (((firstMarket != null)) && ((((firstMarket != null && firstMarket.ContainsKey("swap") ? firstMarket["swap"] : null) as bool?) != true)))
+        if (((firstMarket != null)) && (!(this.safeBool(firstMarket, "swap", false) == true)))
         {
             throw new NotSupported ((this.id + " unWatchTickers() is only supported for swap markets")) ;
         }
@@ -577,7 +577,7 @@ public partial class lighter : ccxt.lighter
         string? tradeId = this.safeString(trade, "trade_id");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "size");
-        bool? isMakerAsk = this.safeBool(trade, "is_maker_ask");
+        bool? isMakerAsk = this.safeBool(trade, "is_maker_ask", false);
         string side = "sell";
         if ((isMakerAsk == true))
         {
@@ -755,7 +755,7 @@ public partial class lighter : ccxt.lighter
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "size");
         string? costString = this.safeString(trade, "usd_amount");
-        bool? isMakerAsk = this.safeBool(trade, "is_maker_ask");
+        bool? isMakerAsk = this.safeBool(trade, "is_maker_ask", false);
         Int64? accountIndex = this.safeInteger(trade, "accountIndex");
         Int64? bidAccountId = this.safeInteger(trade, "bid_account_id");
         Int64? askAccountId = this.safeInteger(trade, "ask_account_id");
@@ -769,18 +769,18 @@ public partial class lighter : ccxt.lighter
                 // Own trades should use the account's order side
                 side = "buy";
                 order = this.safeString(trade, "bid_id");
-                takerOrMaker = ((isMakerAsk == true)) ? "taker" : "maker";
+                takerOrMaker = isMakerAsk == true ? "taker" : "maker";
             } else if ((askAccountId == accountIndex))
             {
                 side = "sell";
                 order = this.safeString(trade, "ask_id");
-                takerOrMaker = ((isMakerAsk == true)) ? "maker" : "taker";
+                takerOrMaker = isMakerAsk == true ? "maker" : "taker";
             }
         }
         // public trades use Lighter's taker-side convention
         if ((side == null))
         {
-            side = ((isMakerAsk == true)) ? "buy" : "sell";
+            side = isMakerAsk == true ? "buy" : "sell";
         }
         Dictionary<string, object> fee = null;
         if ((takerOrMaker != null))
@@ -996,7 +996,7 @@ public partial class lighter : ccxt.lighter
         //     }
         //
         Int64? timestamp = this.safeInteger(liquidation, "timestamp");
-        bool? isMakerAsk = this.safeBool(liquidation, "is_maker_ask");
+        bool? isMakerAsk = this.safeBool(liquidation, "is_maker_ask", false);
         string side = "sell";
         if ((isMakerAsk == true))
         {
@@ -1329,7 +1329,7 @@ public partial class lighter : ccxt.lighter
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
         return this.numberToString(newValue);
     }
 

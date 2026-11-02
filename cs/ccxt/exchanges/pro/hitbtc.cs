@@ -1612,7 +1612,7 @@ public partial class hitbtc : ccxt.hitbtc
         //        "result": true
         //    }
         //
-        bool? success = this.safeBool(message, "result");
+        bool? success = this.safeBool(message, "result", false);
         string messageHash = "authenticated";
         if ((success == true))
         {

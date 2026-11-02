@@ -735,7 +735,7 @@ public partial class bittrade : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? method = this.safeString((this.options.ContainsKey("fetchMarkets") ? this.options["fetchMarkets"] : null), "method", "publicGetCommonSymbols");
+        string? method = this.safeString((this.options != null && this.options.ContainsKey("fetchMarkets") ? this.options["fetchMarkets"] : null), "method", "publicGetCommonSymbols");
         Dictionary<string, object> response = null;
         if (method == "publicGetCommonSymbols")
         {
@@ -1464,7 +1464,7 @@ public partial class bittrade : Exchange
         string? code = this.safeCurrencyCode(id);
         bool? depositEnabled = this.safeBool(currency, "deposit-enabled");
         bool? withdrawEnabled = this.safeBool(currency, "withdraw-enabled");
-        bool? countryDisabled = this.safeBool(currency, "country-disabled");
+        bool? countryDisabled = this.safeBool(currency, "country-disabled", false);
         bool? visible = this.safeBool(currency, "visible", false);
         string? state = this.safeString(currency, "state");
         bool active = (visible == true) && ((depositEnabled == true)) && ((withdrawEnabled == true)) && (state == "online") && ((countryDisabled != true));
@@ -1543,7 +1543,7 @@ public partial class bittrade : Exchange
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        string? method = this.safeString((this.options.ContainsKey("fetchBalance") ? this.options["fetchBalance"] : null), "method", "privateGetAccountAccountsIdBalance");
+        string? method = this.safeString((this.options != null && this.options.ContainsKey("fetchBalance") ? this.options["fetchBalance"] : null), "method", "privateGetAccountAccountsIdBalance");
         IDictionary<string, object> account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", (account != null && account.ContainsKey("id") ? account["id"] : null) },
@@ -1575,7 +1575,7 @@ public partial class bittrade : Exchange
             market = this.market(symbol);
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        string? method = this.safeString((this.options.ContainsKey("fetchOrdersByStates") ? this.options["fetchOrdersByStates"] : null), "method", "privateGetOrderOrders");
+        string? method = this.safeString((this.options != null && this.options.ContainsKey("fetchOrdersByStates") ? this.options["fetchOrdersByStates"] : null), "method", "privateGetOrderOrders");
         Dictionary<string, object> response = null;
         if ((method == "private_get_order_history") || (method == "privateGetOrderHistory"))
         {
@@ -1657,7 +1657,7 @@ public partial class bittrade : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? method = this.safeString((this.options.ContainsKey("fetchOpenOrders") ? this.options["fetchOpenOrders"] : null), "method", "fetch_open_orders_v1");
+        string? method = this.safeString((this.options != null && this.options.ContainsKey("fetchOpenOrders") ? this.options["fetchOpenOrders"] : null), "method", "fetch_open_orders_v1");
         if ((method == "fetch_open_orders_v2") || (method == "fetchOpenOrdersV2"))
         {
             return await this.FetchOpenOrdersV2(symbol, since, limit, parameters);
@@ -1879,7 +1879,7 @@ public partial class bittrade : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -1917,7 +1917,7 @@ public partial class bittrade : Exchange
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
         if ((clientOrderId == null))
         {
-            string brokerId = this.safeString((this.options.ContainsKey("broker") ? this.options["broker"] : null), "id", "");
+            string brokerId = this.safeString((this.options != null && this.options.ContainsKey("broker") ? this.options["broker"] : null), "id", "");
             request["client-order-id"] = (brokerId + this.uuid());
         } else
         {
@@ -1966,7 +1966,7 @@ public partial class bittrade : Exchange
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
-        string? method = this.safeString((this.options.ContainsKey("createOrder") ? this.options["createOrder"] : null), "method", "privatePostOrderOrdersPlace");
+        string? method = this.safeString((this.options != null && this.options.ContainsKey("createOrder") ? this.options["createOrder"] : null), "method", "privatePostOrderOrdersPlace");
         Dictionary<string, object> response = null;
         if (method == "privatePostOrderOrdersPlace")
         {
@@ -2414,7 +2414,7 @@ public partial class bittrade : Exchange
         {
             network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
         }
-        network = this.safeStringLower((this.options.ContainsKey("networks") ? this.options["networks"] : null), network, network); // handle ETH>ERC20 alias
+        network = this.safeStringLower((this.options != null && this.options.ContainsKey("networks") ? this.options["networks"] : null), network, network); // handle ETH>ERC20 alias
         if ((network != null))
         {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt

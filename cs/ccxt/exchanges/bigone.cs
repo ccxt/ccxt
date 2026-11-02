@@ -1116,7 +1116,7 @@ public partial class bigone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1397,7 +1397,7 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
             throw new NotSupported ((this.id + " fetchTrades () can only fetch trades for spot markets")) ;
         }
@@ -1468,7 +1468,7 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        if ((this.safeBool(market, "contract", false) == true))
         {
             throw new NotSupported ((this.id + " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
@@ -1644,7 +1644,7 @@ public partial class bigone : Exchange
         {
             triggerPrice = null;
         }
-        bool? immediateOrCancel = this.safeBool(order, "immediate_or_cancel");
+        bool? immediateOrCancel = this.safeBool(order, "immediate_or_cancel", false);
         string? timeInForce = null;
         if ((immediateOrCancel == true))
         {
@@ -1706,7 +1706,7 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }

@@ -145,8 +145,8 @@ public partial class p2b : ccxt.p2b
         string nameOption = nameOptionparamsNameVariable.Item1;
         IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
-        ((IDictionary<string,object>)(this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null))[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
-        object tickerSubs = (this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null);
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null))[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
+        object tickerSubs = (this.options != null && this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null);
         List<object> request = new List<object>(((IDictionary<string,object>)tickerSubs).Keys);
         return ccxt.BaseExchange.ToTicker(await this.subscribe((nameOption + ".subscribe"), ((nameOption + "::") + this.safeString(market, "symbol", "")), request, paramsName));
     }

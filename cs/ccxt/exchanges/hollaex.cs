@@ -1983,9 +1983,9 @@ public partial class hollaex : Exchange
         }
         string? currencyId = this.safeString(transaction, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        bool? completed = this.safeBool(transaction, "status");
-        bool? dismissed = this.safeBool(transaction, "dismissed");
-        bool? rejected = this.safeBool(transaction, "rejected");
+        bool? completed = this.safeBool(transaction, "status", false);
+        bool? dismissed = this.safeBool(transaction, "dismissed", false);
+        bool? rejected = this.safeBool(transaction, "rejected", false);
         string? status = null;
         if ((completed == true))
         {
@@ -2133,7 +2133,7 @@ public partial class hollaex : Exchange
             } },
         };
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        bool? allowWithdrawal = this.safeBool(fee, "allow_withdrawal");
+        bool? allowWithdrawal = this.safeBool(fee, "allow_withdrawal", false);
         if ((allowWithdrawal == true))
         {
             result["withdraw"] = new Dictionary<string, object>() {

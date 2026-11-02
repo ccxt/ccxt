@@ -193,7 +193,7 @@ public partial class kraken : ccxt.kraken
         }
         if ((method == "createOrderWs"))
         {
-            bool? reduceOnly = this.safeBool(paramsPostOnly, "reduceOnly");
+            bool? reduceOnly = this.safeBool(paramsPostOnly, "reduceOnly", false);
             if ((reduceOnly == true))
             {
                 orderParams["reduce_only"] = true;

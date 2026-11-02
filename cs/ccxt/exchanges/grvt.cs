@@ -874,8 +874,8 @@ public partial class grvt : Exchange
                 // }
                 //
                 IDictionary<string, object> authResult = this.safeDict(authResponse, "result");
-                bool? ack = this.safeBool(authResult, "ack");
-                if ((ack != true))
+                bool? ack = this.safeBool(authResult, "ack", false);
+                if (ack != true)
                 {
                     throw new ExchangeError (("Builder authorization failed, " + this.json(authResponse))) ;
                 }
@@ -2598,7 +2598,7 @@ public partial class grvt : Exchange
 
     public virtual Int64? convertToBigIntCustom(object x)
     {
-        return ((Int64?)((object)(parseInt(x))));
+        return ((Int64?)((object)(parseInt(((object)this.numberToString(x))))));
     }
 
     public virtual Dictionary<string, object> eipMessageForOrder(IDictionary<string, object> order, string? structureType)
@@ -2659,7 +2659,7 @@ public partial class grvt : Exchange
         if ((structureType == "EIP712_ORDER_WITH_BUILDER_TYPE") && (this.safeBool(this.options, "builderFee", true) == true))
         {
             returnValue["builder"] = (order != null && order.ContainsKey("builder") ? order["builder"] : null);
-            returnValue["builderFee"] = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(this.convertToBigIntCustom(this.feeAmountMultiplier()), parseFloat((order != null && order.ContainsKey("builder_fee") ? order["builder_fee"] : null)))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue["builderFee"] = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(this.convertToBigIntCustom(this.feeAmountMultiplier()), parseFloat(((object)this.safeString(order, "builder_fee"))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
     }
@@ -2770,7 +2770,7 @@ public partial class grvt : Exchange
             {
                 string? symbol = ((string)symbolsNormalized[i]);
                 Dictionary<string, object> market = this.market(symbol);
-                if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+                if (!(this.safeBool(market, "contract", false) == true))
                 {
                     throw new BadRequest ((this.id + " fetchPositions() supports contract markets only")) ;
                 }
@@ -3476,7 +3476,7 @@ public partial class grvt : Exchange
                 { "id", null },
             });
         }
-        bool? isMarket = this.safeBool(order, "is_market");
+        bool? isMarket = this.safeBool(order, "is_market", false);
         string orderType = "limit";
         if ((isMarket == true))
         {
@@ -3712,8 +3712,8 @@ public partial class grvt : Exchange
             messageData = new Dictionary<string, object>() {
                 { "mainAccountID", (request != null && request.ContainsKey("main_account_id") ? request["main_account_id"] : null) },
                 { "builderAccountID", (request != null && request.ContainsKey("builder_account_id") ? request["builder_account_id"] : null) },
-                { "maxFutureFeeRate", this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(parseFloat((request != null && request.ContainsKey("max_futures_fee_rate") ? request["max_futures_fee_rate"] : null)), amountMultiplier)) },
-                { "maxSpotFeeRate", this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(parseFloat((request != null && request.ContainsKey("max_spot_fee_rate") ? request["max_spot_fee_rate"] : null)), amountMultiplier)) },
+                { "maxFutureFeeRate", this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(parseFloat(((object)this.safeString(request, "max_futures_fee_rate"))), amountMultiplier)) },
+                { "maxSpotFeeRate", this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(parseFloat(((object)this.safeString(request, "max_spot_fee_rate"))), amountMultiplier)) },
                 { "nonce", (requestSignature != null && requestSignature.ContainsKey("nonce") ? requestSignature["nonce"] : null) },
                 { "expiration", (requestSignature != null && requestSignature.ContainsKey("expiration") ? requestSignature["expiration"] : null) },
             };
@@ -3840,7 +3840,7 @@ public partial class grvt : Exchange
             {
                 requestPath = ((path + "?") + queryString);
             }
-            if (((requestPath.EndsWith("auth/api_key/login") == true)) || ((requestPath.EndsWith("auth/wallet/login") == true)))
+            if (requestPath.EndsWith("auth/api_key/login") || requestPath.EndsWith("auth/wallet/login"))
             {
                 requestHeaders = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },

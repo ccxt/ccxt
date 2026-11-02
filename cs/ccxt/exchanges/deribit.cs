@@ -1946,7 +1946,7 @@ public partial class deribit : Exchange
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         string? amount = this.safeString(trade, "amount");
         string? cost = Precise.stringMul(amount, priceString);
-        if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
+        if ((this.safeBool(marketResolved, "inverse", false) == true))
         {
             cost = Precise.stringDiv(amount, priceString);
         }
@@ -2179,13 +2179,13 @@ public partial class deribit : Exchange
                 { "maker", (market.ContainsKey("maker") ? market["maker"] : null) },
                 { "taker", (market.ContainsKey("taker") ? market["taker"] : null) },
             };
-            if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+            if ((this.safeBool(market, "swap", false) == true))
             {
                 fee = this.extend(fee, perpetualFee);
-            } else if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "future", false) == true))
             {
                 fee = this.extend(fee, futureFee);
-            } else if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "option", false) == true))
             {
                 fee = this.extend(fee, optionFee);
             }
@@ -3944,7 +3944,7 @@ public partial class deribit : Exchange
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, paramsPaginate, "continuation", "continuation", null));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((((this.id + " fetchLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
         }
@@ -4033,7 +4033,7 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
         }
@@ -4430,7 +4430,7 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "contract", false) == true))
         {
             throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
@@ -4506,7 +4506,7 @@ public partial class deribit : Exchange
         double? openInterest = this.safeNumber(interest, "open_interest");
         double? openInterestAmount = null;
         double? openInterestValue = null;
-        if (((((marketResolved != null && marketResolved.ContainsKey("option") ? marketResolved["option"] : null) as bool?) == true)) || (((((marketResolved != null && marketResolved.ContainsKey("future") ? marketResolved["future"] : null) as bool?) == true)) && ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))))
+        if ((this.safeBool(marketResolved, "option", false) == true) || ((this.safeBool(marketResolved, "future", false) == true) && (this.safeBool(marketResolved, "linear", false) == true)))
         {
             openInterestAmount = openInterest;
         } else

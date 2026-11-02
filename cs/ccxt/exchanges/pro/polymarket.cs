@@ -1031,8 +1031,7 @@ public partial class polymarket : ccxt.polymarket
         this.setBalanceCache(client);
         bool fetchBalanceSnapshot = ((bool)this.handleOption("watchBalance", "fetchBalanceSnapshot", true));
         object awaitBalanceSnapshot = this.handleOption("watchBalance", "awaitBalanceSnapshot", true);
-        bool balanceLoaded = ((this.balance != null && this.balance.ContainsKey("info")));
-        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot is true)) && (!balanceLoaded))
+        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot is true)) && !((this.balance != null && this.balance.ContainsKey("info"))))
         {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
@@ -1046,8 +1045,7 @@ public partial class polymarket : ccxt.polymarket
 
     public virtual void setBalanceCache(WebSocketClient client)
     {
-        bool balanceLoaded = ((this.balance != null && this.balance.ContainsKey("info")));
-        if (balanceLoaded)
+        if ((this.balance != null && this.balance.ContainsKey("info")))
         {
             return;
         }

@@ -568,12 +568,17 @@ public partial class gemini : ccxt.gemini
         string marketId = this.safeString(firstBidAsk, "symbol", "").ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
-        if (!(((symbol != null) && (this.bidsasks != null && this.bidsasks.ContainsKey(symbol)))))
+        // read-modify-write: the cached entry is copied out, updated, and stored back whole
+        Dictionary<string, object> currentBidAsk = new Dictionary<string, object>() {};
+        if (((symbol != null) && (this.bidsasks != null && this.bidsasks.ContainsKey(symbol))))
         {
-            this.bidsasks[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(new Dictionary<string, object>() {}));
-            ((IDictionary<string,object>)(this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol) ? this.bidsasks[symbol] : null))["symbol"] = symbol;
+            object cachedBidAsk = (this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol) ? this.bidsasks[symbol] : null);
+            currentBidAsk = this.extend(new Dictionary<string, object>() {}, cachedBidAsk);
+        } else
+        {
+            currentBidAsk = this.extend(ccxt.BaseExchange.FromTicker(this.parseTicker(new Dictionary<string, object>() {})));
+            currentBidAsk["symbol"] = symbol;
         }
-        object currentBidAsk = (this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol) ? this.bidsasks[symbol] : null);
         string messageHash = ("bidsasks:" + symbol);
         // last update always overwrites the previous state and is the latest state
         for (int i = 0; i < (rawBidAskChanges?.Count ?? 0); i++)
@@ -589,17 +594,17 @@ public partial class gemini : ccxt.gemini
             double? size = this.parseNumber(sizeString);
             if (rawSide == "bid")
             {
-                ((IDictionary<string,object>)currentBidAsk)["bid"] = price;
-                ((IDictionary<string,object>)currentBidAsk)["bidVolume"] = size;
+                currentBidAsk["bid"] = price;
+                currentBidAsk["bidVolume"] = size;
             } else
             {
-                ((IDictionary<string,object>)currentBidAsk)["ask"] = price;
-                ((IDictionary<string,object>)currentBidAsk)["askVolume"] = size;
+                currentBidAsk["ask"] = price;
+                currentBidAsk["askVolume"] = size;
             }
         }
-        ((IDictionary<string,object>)currentBidAsk)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)currentBidAsk)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)currentBidAsk)["info"] = rawBidAskChanges;
+        currentBidAsk["timestamp"] = timestamp;
+        currentBidAsk["datetime"] = this.iso8601(timestamp);
+        currentBidAsk["info"] = rawBidAskChanges;
         Dictionary<string, object> bidsAsksDict = new Dictionary<string, object>() {};
         bidsAsksDict[(string)symbol] = currentBidAsk;
         this.bidsasks[(string)symbol] = currentBidAsk;
@@ -619,7 +624,7 @@ public partial class gemini : ccxt.gemini
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-        if (((((firstMarket != null && firstMarket.ContainsKey("spot") ? firstMarket["spot"] : null) as bool?) != true)) && ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) != true)))
+        if ((!(this.safeBool(firstMarket, "spot", false) == true)) && (!(this.safeBool(firstMarket, "linear", false) == true)))
         {
             throw new NotSupported ((this.id + " watchMultiple supports only spot or linear-swap symbols")) ;
         }
@@ -1113,8 +1118,8 @@ public partial class gemini : ccxt.gemini
             { "X-GEMINI-PAYLOAD", b64 },
             { "X-GEMINI-SIGNATURE", signature },
         };
-        ((IDictionary<string,object>)getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = headers;
+        ((IDictionary<string,object>)getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = headers;
         this.client(url);
-        ((IDictionary<string,object>)getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = originalHeaders;
+        ((IDictionary<string,object>)getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = originalHeaders;
     }
 }

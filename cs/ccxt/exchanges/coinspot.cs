@@ -809,7 +809,7 @@ public partial class coinspot : Exchange
         {
             string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            if ((this.safeBool(market, "spot", false) == true))
             {
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 object ticker = (id != null && prices.ContainsKey(id) ? prices[id] : null);

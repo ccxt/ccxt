@@ -146,12 +146,12 @@ public partial class cex : ccxt.cex
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? currentSymbol = this.safeString((this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
+        string? currentSymbol = this.safeString((this.options != null && this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
         if ((currentSymbol != null) && (currentSymbol != symbol))
         {
             throw new ArgumentsRequired ((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
         }
-        ((IDictionary<string,object>)(this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null))["symbol"] = symbol;
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null))["symbol"] = symbol;
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -258,7 +258,7 @@ public partial class cex : ccxt.cex
     public virtual void handleTradesInner(WebSocketClient client, Dictionary<string, object> message)
     {
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        string? symbol = this.safeString((this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
+        string? symbol = this.safeString((this.options != null && this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
         if ((symbol == null))
         {
             return;
@@ -1141,7 +1141,7 @@ public partial class cex : ccxt.cex
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         snapshot.nonce = ccxt.BaseExchange.StructInt64(incrementalId);
         (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
-        ((IDictionary<string,object>)(this.options.ContainsKey("orderbook") ? this.options["orderbook"] : null))[(string)symbol] = new Dictionary<string, object>() {
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("orderbook") ? this.options["orderbook"] : null))[(string)symbol] = new Dictionary<string, object>() {
             { "incrementalId", incrementalId },
         };
         client.resolve(orderbook, messageHash);

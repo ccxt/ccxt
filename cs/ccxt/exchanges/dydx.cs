@@ -2905,6 +2905,6 @@ public partial class dydx : Exchange
         // rewrite testnet parameters
         this.options["chainName"] = "dydx-testnet-4";
         this.options["chainId"] = 11155111;
-        ((IDictionary<string,object>)(this.options.ContainsKey("feeDenom") ? this.options["feeDenom"] : null))["CHAINTOKEN_DENOM"] = "adv4tnt";
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("feeDenom") ? this.options["feeDenom"] : null))["CHAINTOKEN_DENOM"] = "adv4tnt";
     }
 }

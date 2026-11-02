@@ -877,7 +877,7 @@ public partial class lbank : Exchange
         string? symbol = this.safeSymbol(marketId, market);
         IDictionary<string, object> tickerData = this.safeDict(ticker, "ticker", new Dictionary<string, object>() {});
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        object data = ((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) ? ticker : tickerData;
+        object data = (this.safeBool(marketResolved, "contract", false) == true) ? ticker : tickerData;
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -919,7 +919,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
             Dictionary<string, object> responseForSwap = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters));
             IDictionary<string, object> swapTicker = this.safeDict(responseForSwap, (market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -1131,7 +1131,7 @@ public partial class lbank : Exchange
         //
         IDictionary<string, object> orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64 timestamp = this.milliseconds();
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
             return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "volume");
         }
@@ -1828,7 +1828,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -3258,7 +3258,7 @@ public partial class lbank : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             object fee = (response != null && i < response.Count ? response[i] : null);
-            bool? canWithdraw = this.safeBool(fee, "canWithDraw");
+            bool? canWithdraw = this.safeBool(fee, "canWithDraw", false);
             if ((canWithdraw == true))
             {
                 string? code = this.safeCurrencyCode(this.safeString(fee, "assetCode"));
@@ -3348,7 +3348,7 @@ public partial class lbank : Exchange
             IDictionary<string, object> networkEntry = this.safeDict(networkList, j);
             string? networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             double? withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
-            bool? isDefault = this.safeBool(networkEntry, "isDefault");
+            bool? isDefault = this.safeBool(networkEntry, "isDefault", false);
             if ((withdrawFee != null))
             {
                 if ((isDefault == true))

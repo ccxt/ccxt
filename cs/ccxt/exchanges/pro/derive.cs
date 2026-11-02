@@ -53,7 +53,7 @@ public partial class derive : ccxt.derive
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
         return newValue;
     }
 
@@ -949,6 +949,10 @@ public partial class derive : ccxt.derive
         }
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         string subaccountIdKey = this.numberToString(subaccountId);
+        if ((subaccountIdKey == null))
+        {
+            throw new ExchangeError ((this.id + " watchBalance() could not resolve the subaccount id")) ;
+        }
         if ((fetchSnapshot == true) && !((this.balance != null && this.balance.ContainsKey(subaccountIdKey))))
         {
             Dictionary<string, object> snapshotRequest = new Dictionary<string, object>() {

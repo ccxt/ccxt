@@ -1688,7 +1688,7 @@ public partial class indodax : Exchange
             privateBody = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "method", path },
                 { "timestamp", this.nonce() },
-                { "recvWindow", (this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null) },
+                { "recvWindow", (this.options != null && this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null) },
             }, parameters));
             privateHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },

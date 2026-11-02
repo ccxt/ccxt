@@ -357,7 +357,7 @@ public partial class bitrue : ccxt.bitrue
         object url = null;
         string? channel = null;
         string? cbId = null;
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
             string? baseIdLower = this.safeStringLower(market, "baseId", "");
             string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
@@ -510,7 +510,7 @@ public partial class bitrue : ccxt.bitrue
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "contract", false) == true))
         {
             return rawQuantity;
         }
@@ -542,7 +542,7 @@ public partial class bitrue : ccxt.bitrue
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = this.safeString(market, "symbol", "");
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " watchTrades is only supported for swap markets")) ;
         }
@@ -671,7 +671,7 @@ public partial class bitrue : ccxt.bitrue
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " watchOHLCV is only supported for swap markets")) ;
         }
@@ -792,7 +792,7 @@ public partial class bitrue : ccxt.bitrue
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " watchTicker is only supported for swap markets")) ;
         }

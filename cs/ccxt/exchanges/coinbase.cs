@@ -1356,8 +1356,8 @@ public partial class coinbase : Exchange
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         if ((status == null))
         {
-            bool? committed = this.safeBool(transaction, "committed");
-            status = ((committed == true)) ? "ok" : "pending";
+            bool? committed = this.safeBool(transaction, "committed", false);
+            status = committed == true ? "ok" : "pending";
         }
         string? id = this.safeString(transaction, "id");
         string? currencyId = this.safeString(amountAndCurrencyObject, "currency");
@@ -1491,7 +1491,7 @@ public partial class coinbase : Exchange
                 }
             }
         }
-        bool? sizeInQuote = this.safeBool(trade, "size_in_quote");
+        bool? sizeInQuote = this.safeBool(trade, "size_in_quote", false);
         string? v3Price = this.safeString(trade, "price");
         string? v3Cost = null;
         string? v3Amount = this.safeString(trade, "size");
@@ -1897,7 +1897,7 @@ public partial class coinbase : Exchange
             return ((Dictionary<string, object>)((object)(null)));
         }
         string? marketType = this.safeStringLower(market, "product_type");
-        bool? tradingDisabled = this.safeBool(market, "trading_disabled");
+        bool? tradingDisabled = this.safeBool(market, "trading_disabled", false);
         List<object> stablePairs = this.safeList(this.options, "stablePairs", new List<object>() {});
         double? defaultTakerFee = this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "taker");
         double? defaultMakerFee = this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "maker");
@@ -2098,7 +2098,7 @@ public partial class coinbase : Exchange
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
-        bool? isDisabled = this.safeBool(market, "is_disabled");
+        bool? isDisabled = this.safeBool(market, "is_disabled", false);
         bool tradingDisabled = ((isDisabled == true)) || ((this.safeBool(market, "trading_disabled") == true));
         string symbol = ((bs + "/") + quote);
         string? type = null;
@@ -2275,11 +2275,11 @@ public partial class coinbase : Exchange
             string? name = this.safeString(currency, "name");
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.options.ContainsKey("networks") ? this.options["networks"] : null))[(string)code] = name.ToLower();
+                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networks") ? this.options["networks"] : null))[(string)code] = name.ToLower();
             }
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.options.ContainsKey("networksById") ? this.options["networksById"] : null))[(string)code] = name.ToLower();
+                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networksById") ? this.options["networksById"] : null))[(string)code] = name.ToLower();
             }
             string type = "fiat";
             if ((assetId != null))
@@ -2341,8 +2341,8 @@ public partial class coinbase : Exchange
                 }
             }
         }
-        this.options["networks"] = this.extend(networks, (this.options.ContainsKey("networks") ? this.options["networks"] : null));
-        this.options["networksById"] = this.extend(networksById, (this.options.ContainsKey("networksById") ? this.options["networksById"] : null));
+        this.options["networks"] = this.extend(networks, (this.options != null && this.options.ContainsKey("networks") ? this.options["networks"] : null));
+        this.options["networksById"] = this.extend(networksById, (this.options != null && this.options.ContainsKey("networksById") ? this.options["networksById"] : null));
         return ((IDictionary<string, object>)((object)(result)));
     }
 
@@ -2754,8 +2754,8 @@ public partial class coinbase : Exchange
             return this.safeBalance(balanceResult);
         }
         List<object> balances = this.safeList2(response, "data", "accounts", new List<object>() {});
-        List<object> accounts = this.safeList(parameters, "type", (this.options.ContainsKey("accounts") ? this.options["accounts"] : null));
-        List<object> v3Accounts = this.safeList(parameters, "type", (this.options.ContainsKey("v3Accounts") ? this.options["v3Accounts"] : null));
+        List<object> accounts = this.safeList(parameters, "type", (this.options != null && this.options.ContainsKey("accounts") ? this.options["accounts"] : null));
+        List<object> v3Accounts = this.safeList(parameters, "type", (this.options != null && this.options.ContainsKey("v3Accounts") ? this.options["v3Accounts"] : null));
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -3445,7 +3445,7 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -3496,7 +3496,7 @@ public partial class coinbase : Exchange
             { "product_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side.ToUpper() },
         };
-        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         if ((reduceOnly == true))
         {
             return await this.ClosePosition(symbol,side, this.extend(this.omit(parameters, "reduceOnly"), new Dictionary<string, object>() {
@@ -3630,7 +3630,7 @@ public partial class coinbase : Exchange
             {
                 throw new NotSupported ((this.id + " createOrder() only stop limit orders are supported")) ;
             }
-            if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && ((side == "buy")))
+            if ((this.safeBool(market, "spot", false) == true) && ((side == "buy")))
             {
                 string? total = null;
                 (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -3731,8 +3731,8 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        bool? success = this.safeBool(response, "success");
-        if ((success != true))
+        bool? success = this.safeBool(response, "success", false);
+        if (success != true)
         {
             IDictionary<string, object> errorResponse = this.safeDict(response, "error_response");
             string? errorTitle = this.safeString(errorResponse, "error");
@@ -3992,8 +3992,8 @@ public partial class coinbase : Exchange
         List<object> orders = this.safeList(response, "results", new List<object>() {});
         for (int i = 0; i < orders.Count; i++)
         {
-            bool? success = this.safeBool(orders[i], "success");
-            if ((success != true))
+            bool? success = this.safeBool(orders[i], "success", false);
+            if (success != true)
             {
                 throw new BadRequest ((this.id + " cancelOrders() has failed, check your arguments and parameters")) ;
             }
@@ -5730,7 +5730,7 @@ public partial class coinbase : Exchange
         {
             string? symbol = this.safeString(this.symbols, i, "");
             Dictionary<string, object> market = this.market(symbol);
-            if ((isSpot && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) || (!isSpot && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))))
+            if ((isSpot && (this.safeBool(market, "spot", false) == true)) || (!isSpot && (!(this.safeBool(market, "spot", false) == true))))
             {
                 result[(string)symbol] = new Dictionary<string, object>() {
                     { "info", response },
@@ -6121,8 +6121,8 @@ public partial class coinbase : Exchange
                 }
             }
         }
-        bool? advancedTrade = this.safeBool(this.options, "advanced");
-        if (!(inOp(response, "data")) && ((advancedTrade != true)))
+        bool? advancedTrade = this.safeBool(this.options, "advanced", false);
+        if (!(inOp(response, "data")) && advancedTrade != true)
         {
             throw new ExchangeError (((this.id + " failed due to a malformed response ") + this.json(response))) ;
         }

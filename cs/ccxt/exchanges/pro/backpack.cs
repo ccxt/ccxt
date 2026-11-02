@@ -261,8 +261,11 @@ public partial class backpack : ccxt.backpack
         {
             await this.watchPublic(topics, messageHashes, payload);
         }
-        object tickers = bidAsk == true ? this.bidsasks : this.tickers;
-        return this.filterByArray(tickers, "symbol", symbolsResolved);
+        if (bidAsk == true)
+        {
+            return this.filterByArray(this.bidsasks, "symbol", symbolsResolved);
+        }
+        return this.filterByArray(this.tickers, "symbol", symbolsResolved);
     }
 
     public async virtual Task<object> watchPublic(object topics, object messageHashes, object parameters = null, bool? unwatch = null)

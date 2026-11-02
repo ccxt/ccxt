@@ -272,7 +272,7 @@ public partial class testMainClass : BaseTest
         }
         finalAmount = add(finalAmount, amountPrecision);
         finalAmount = multiply(finalAmount, 1.1); // add around 10% to ensure "cost" is enough
-        finalAmount = parseFloat(exchange.decimalToPrecision(finalAmount, 2, getValue(getValue(market, "precision"), "amount"), exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
+        finalAmount = parseFloat(((string)exchange.decimalToPrecision(finalAmount, 2, getValue(getValue(market, "precision"), "amount"), exchange.precisionMode))); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
         return finalAmount;
     }
     async static public Task<object> tcoTryCancelOrder(BaseExchange exchange, object symbol, object order, object skippedProperties)

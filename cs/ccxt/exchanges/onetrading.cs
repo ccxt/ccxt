@@ -788,7 +788,7 @@ public partial class onetrading : Exchange
         {
             string? symbol = ((string)symbols[i]);
             Dictionary<string, object> market = this.market(symbol);
-            IDictionary<string, object> tierObject = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? firstSpotTier : firstFuturesTier;
+            IDictionary<string, object> tierObject = (this.safeBool(market, "spot", false) == true) ? firstSpotTier : firstFuturesTier;
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", spotFees },
                 { "symbol", symbol },
@@ -860,8 +860,8 @@ public partial class onetrading : Exchange
         {
             string? symbol = ((string)symbols[i]);
             Dictionary<string, object> market = this.market(symbol);
-            string? makerFee = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? spotMakerFee : futuresMakerFee;
-            string? takerFee = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? spotTakerFee : futuresTakerFee;
+            string? makerFee = (this.safeBool(market, "spot", false) == true) ? spotMakerFee : futuresMakerFee;
+            string? takerFee = (this.safeBool(market, "spot", false) == true) ? spotTakerFee : futuresTakerFee;
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },

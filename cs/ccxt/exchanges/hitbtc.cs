@@ -3704,7 +3704,7 @@ public partial class hitbtc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new BadSymbol ((this.id + " fetchOpenInterest() supports swap contracts only")) ;
         }
@@ -3747,7 +3747,7 @@ public partial class hitbtc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new BadSymbol ((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
@@ -3823,7 +3823,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? leverage = this.safeString(parameters, "leverage");
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
             if ((leverage == null))
             {
@@ -4186,7 +4186,7 @@ public partial class hitbtc : Exchange
                 networkCode = this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper);
             }
             double? withdrawFee = this.safeNumber(networkEntry, "payout_fee");
-            bool? isDefault = this.safeBool(networkEntry, "default");
+            bool? isDefault = this.safeBool(networkEntry, "default", false);
             Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
                 { "fee", withdrawFee },
                 { "percentage", ((withdrawFee != null)) ? false : null },

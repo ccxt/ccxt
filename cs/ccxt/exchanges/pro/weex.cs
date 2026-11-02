@@ -156,7 +156,7 @@ public partial class weex : ccxt.weex
         string timestamp = this.nonce().ToString();
         string payload = (timestamp + "/v3/ws/private");
         string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
-        IDictionary<string, object> originalHeaders = this.safeDict(getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"), "headers");
+        IDictionary<string, object> originalHeaders = this.safeDict(getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"), "headers");
         string? userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
         Dictionary<string, object> extendedOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
@@ -1831,8 +1831,12 @@ public partial class weex : ccxt.weex
             await this.loadMarkets();
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
-        string type = (string)typeparamsMarketTypeVariable[0];
+        string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
+        if ((type == null))
+        {
+            throw new ArgumentsRequired ((this.id + " watchBalance() requires a market type")) ;
+        }
         bool isContract = (!(type == "spot"));
         string urlType = "spot";
         if (isContract)

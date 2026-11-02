@@ -2141,7 +2141,9 @@ public partial class opinion : PredictionExchange
             { "last", last },
             { "info", message },
         }, outcomeObj);
-        this.tickers[(string)sym] = ((object)ticker);
+        IDictionary<string, object> cachedTickers = this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {});
+        cachedTickers[(string)sym] = ticker;
+        this.options["wsTickers"] = cachedTickers;
         client.resolve(ticker, ("ticker::" + sym));
     }
 

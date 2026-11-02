@@ -1058,7 +1058,7 @@ public partial class btse : Exchange
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "contract", false) == true))
         {
             throw new BadRequest ((this.id + " fetchFundingRateHistory() supports contract markets only")) ;
         }
@@ -1359,7 +1359,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "contract", false) == true))
         {
             throw new BadRequest ((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
         }
@@ -1455,7 +1455,7 @@ public partial class btse : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? last = this.safeString(ticker, "lastPrice");
         string? baseVolume = this.safeString(ticker, "amount");
-        if (((baseVolume != null)) && ((marketResolved != null)) && ((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)))
+        if (((baseVolume != null)) && ((marketResolved != null)) && (this.safeBool(marketResolved, "contract", false) == true))
         {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
@@ -1506,7 +1506,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             throw new BadRequest (((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
         }
@@ -1580,7 +1580,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             throw new BadRequest ((this.id + " fetchFundingRate() symbol does not support spot markets")) ;
         }
@@ -2064,7 +2064,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             return await this.CreateSpotOrder(symbol, type, side, amount, price, parameters);
         } else
@@ -2686,7 +2686,7 @@ public partial class btse : Exchange
             throw new ArgumentsRequired ((this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
         }
         List<object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privatePutSpotApiV4TradeOrders(this.extend(request, query));
@@ -2753,7 +2753,7 @@ public partial class btse : Exchange
         }
         object paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, "clientOrderId") : parameters;
         List<object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privateDeleteSpotApiV4TradeOrders(this.extend(request, paramsOmitted));
@@ -3553,7 +3553,7 @@ public partial class btse : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.privateGetSpotApiV4TradeFees(this.extend(request, parameters));
         } else
@@ -3876,7 +3876,7 @@ public partial class btse : Exchange
         {
             throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be either cross or isolated")) ;
         }
-        bool? hedged = this.safeBool(parameters, "hedged");
+        bool? hedged = this.safeBool(parameters, "hedged", false);
         if (marginModeValue == "cross")
         {
             if (!(((IDictionary<string, object>)parameters).ContainsKey("hedged")))
@@ -3886,7 +3886,7 @@ public partial class btse : Exchange
             {
                 positionMode = "HEDGE";
             }
-        } else if ((((IDictionary<string, object>)parameters).ContainsKey("hedged")) && ((hedged != true)))
+        } else if ((((IDictionary<string, object>)parameters).ContainsKey("hedged")) && hedged != true)
         {
             throw new BadRequest ((this.id + " setMarginMode() hedged parameter cannot be false for isolated margin mode")) ;
         } else

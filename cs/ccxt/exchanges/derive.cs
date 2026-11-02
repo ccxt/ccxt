@@ -1259,7 +1259,7 @@ public partial class derive : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "contract", false) == true))
         {
             throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
@@ -1307,7 +1307,7 @@ public partial class derive : Exchange
         string? value = null;
         bool? isOption = this.safeBool(market, "option", false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if (((market != null)) && ((isOption != true)))
+        if (((market != null)) && isOption != true)
         {
             value = Precise.stringMul(amount, this.safeString(interest, "M"));
         }
@@ -1338,7 +1338,7 @@ public partial class derive : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "option", false) == true))
         {
             throw new BadRequest ((this.id + " fetchGreeks() supports option markets only")) ;
         }
@@ -1434,7 +1434,7 @@ public partial class derive : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "option", false) == true))
         {
             throw new BadRequest ((this.id + " fetchOption() supports option markets only")) ;
         }
@@ -3176,7 +3176,7 @@ public partial class derive : Exchange
         string? filled = this.safeString(order, "filled_amount");
         string? fee = this.safeString(order, "order_fee");
         string? orderType = this.safeStringLower(order, "order_type");
-        bool? isBid = this.safeBool(order, "is_bid");
+        bool? isBid = this.safeBool(order, "is_bid", false);
         string? side = this.safeString(order, "direction");
         if ((side == null))
         {

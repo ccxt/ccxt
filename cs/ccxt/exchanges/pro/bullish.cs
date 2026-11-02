@@ -115,7 +115,7 @@ public partial class bullish : ccxt.bullish
         Dictionary<string, object> cookies = new Dictionary<string, object>() {
             { "JWT_COOKIE", token },
         };
-        ((IDictionary<string,object>)(this.options.ContainsKey("ws") ? this.options["ws"] : null))["cookies"] = cookies;
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null))["cookies"] = cookies;
         string id = this.requestId().ToString();
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },

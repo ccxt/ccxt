@@ -97,7 +97,7 @@ public partial class okx : ccxt.okx
     {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
         access ??= "public";
-        object isSandbox = (this.options.ContainsKey("sandboxMode") ? this.options["sandboxMode"] : null);
+        object isSandbox = (this.options != null && this.options.ContainsKey("sandboxMode") ? this.options["sandboxMode"] : null);
         string sandboxSuffix = "";
         if ((isSandbox is true))
         {

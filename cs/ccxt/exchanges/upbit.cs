@@ -1365,7 +1365,7 @@ public partial class upbit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? quoteAmount = null;
-        bool? createMarketBuyOrderRequiresPrice = this.safeBool(this.options, "createMarketBuyOrderRequiresPrice");
+        bool? createMarketBuyOrderRequiresPrice = this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false);
         string? cost = this.safeString(parameters, "cost");
         if ((cost != null))
         {

@@ -1373,16 +1373,16 @@ public partial class toobit : Exchange
         Int64? timestamp = this.safeInteger2(trade, "t", "time");
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "q", "qty");
-        bool? isBuyer = this.safeBool(trade, "isBuyer");
+        bool? isBuyer = this.safeBool(trade, "isBuyer", false);
         string? side = null;
         bool? isBuyerMaker = this.safeBool(trade, "ibm");
         bool? isBuyerTaker = this.safeBool(trade, "m");
         if ((isBuyerMaker != null))
         {
-            side = ((isBuyerMaker == true)) ? "sell" : "buy";
+            side = isBuyerMaker == true ? "sell" : "buy";
         } else if ((isBuyerTaker != null))
         {
-            side = ((isBuyerTaker == true)) ? "buy" : "sell";
+            side = isBuyerTaker == true ? "buy" : "sell";
         } else
         {
             if ((isBuyer == true))
@@ -1604,7 +1604,7 @@ public partial class toobit : Exchange
         string? last = this.safeString(ticker, "c");
         string? baseVolume = this.safeString(ticker, "v");
         double? contractSize = this.safeNumber(marketResolved, "contractSize");
-        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && ((contractSize != null)))
+        if ((this.safeBool(marketResolved, "contract", false) == true) && ((contractSize != null)))
         {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
@@ -1970,7 +1970,7 @@ public partial class toobit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             var requestparamsRequestVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             var request = ((IList<object>) requestparamsRequestVariable)[0];
@@ -2465,7 +2465,7 @@ public partial class toobit : Exchange
         };
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.privateGetApiV1SpotOrder(this.extend(request, parameters));
         } else

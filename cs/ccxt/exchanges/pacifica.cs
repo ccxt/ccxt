@@ -4235,7 +4235,7 @@ public partial class pacifica : Exchange
         }
         if (!(this.handleOption("sign", "apiKey") == null))
         {
-            headersValue["PF-API-KEY"] = (this.options.ContainsKey("apiKey") ? this.options["apiKey"] : null);
+            headersValue["PF-API-KEY"] = (this.options != null && this.options.ContainsKey("apiKey") ? this.options["apiKey"] : null);
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -4334,7 +4334,7 @@ public partial class pacifica : Exchange
             }
             if ((builderCode != null))
             {
-                bool? isOperationSupportBuilder = this.safeBool((this.options.ContainsKey("builderSupportOperations") ? this.options["builderSupportOperations"] : null), operationType, false);
+                bool? isOperationSupportBuilder = this.safeBool((this.options != null && this.options.ContainsKey("builderSupportOperations") ? this.options["builderSupportOperations"] : null), operationType, false);
                 if ((isOperationSupportBuilder == true))
                 {
                     sigPayload["builder_code"] = builderCode;

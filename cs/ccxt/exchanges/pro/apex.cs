@@ -1264,10 +1264,10 @@ public partial class apex : ccxt.apex
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        bool? success = this.safeBool(message, "success");
+        bool? success = this.safeBool(message, "success", false);
         Int64? code = this.safeInteger(message, "retCode");
         string messageHash = "authenticated";
-        if (((success == true)) || ((code == 0)))
+        if ((success == true) || ((code == 0)))
         {
             Future future = client.getFuture(messageHash);
             (future as Future).resolve(true);

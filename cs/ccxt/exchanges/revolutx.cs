@@ -403,7 +403,7 @@ public partial class revolutx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
+        string? region = this.safeString2(parameters, "region", "region", (this.options != null && this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
             request["region"] = region;
@@ -502,7 +502,7 @@ public partial class revolutx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
+        string? region = this.safeString2(parameters, "region", "region", (this.options != null && this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
             request["region"] = region;
@@ -620,7 +620,7 @@ public partial class revolutx : Exchange
             }
             request["symbols"] = String.Join(",", marketIds.ToArray());
         }
-        string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
+        string? region = this.safeString2(parameters, "region", "region", (this.options != null && this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
             request["region"] = region;
@@ -720,7 +720,7 @@ public partial class revolutx : Exchange
         {
             request["limit"] = limit;
         }
-        string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
+        string? region = this.safeString2(parameters, "region", "region", (this.options != null && this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
             request["region"] = region;
@@ -801,7 +801,7 @@ public partial class revolutx : Exchange
         {
             request["until"] = this.milliseconds();
         }
-        string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
+        string? region = this.safeString2(parameters, "region", "region", (this.options != null && this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
             request["region"] = region;

@@ -171,8 +171,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "event", "subscribe" },
             { "feed", name },
             { "api_key", this.apiKey },
-            { "original_challenge", (this.options.ContainsKey("challenge") ? this.options["challenge"] : null) },
-            { "signed_challenge", (this.options.ContainsKey("signedChallenge") ? this.options["signedChallenge"] : null) },
+            { "original_challenge", (this.options != null && this.options.ContainsKey("challenge") ? this.options["challenge"] : null) },
+            { "signed_challenge", (this.options != null && this.options.ContainsKey("signedChallenge") ? this.options["signedChallenge"] : null) },
         };
         Dictionary<string, object> request = this.extend(subscribe, parameters);
         return await this.watch(url, messageHash, request, messageHash);
@@ -925,7 +925,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             }
         } else
         {
-            bool? isCancel = this.safeBool(message, "is_cancel");
+            bool? isCancel = this.safeBool(message, "is_cancel", false);
             if ((isCancel == true))
             {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
@@ -1639,12 +1639,13 @@ public partial class krakenfutures : ccxt.krakenfutures
                 newAccount["free"] = this.safeString(future, "available");
                 newAccount["used"] = this.safeString(future, "initial_margin");
                 newAccount["total"] = this.safeString(future, "balance");
-                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null))[(string)symbol] = new Dictionary<string, object>() {};
+                Dictionary<string, object> symbolAccounts = new Dictionary<string, object>() {};
                 if (((symbol != null)) && ((code != null)))
                 {
                     futuresSymbols[(string)symbol] = true;
-                    ((IDictionary<string,object>)getValue((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), symbol))[(string)code] = newAccount;
+                    symbolAccounts[(string)code] = newAccount;
                 }
+                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null))[(string)symbol] = symbolAccounts;
             }
             this.balance["margin"] = this.pruneStaleBalanceKeys((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), futuresSymbols);
             this.balance["margin"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null));
@@ -1799,7 +1800,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         Int64? timestamp = this.safeInteger(trade, "time");
         string? marketId = this.safeString(trade, "instrument");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        bool? isBuy = this.safeBool(trade, "buy");
+        bool? isBuy = this.safeBool(trade, "buy", false);
         string? feeCurrencyId = this.safeString(trade, "fee_currency");
         return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1809,7 +1810,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "symbol", this.safeString(marketResolved, "symbol") },
             { "order", this.safeString(trade, "order_id") },
             { "type", this.safeString(trade, "type") },
-            { "side", ((isBuy == true)) ? "buy" : "sell" },
+            { "side", isBuy == true ? "buy" : "sell" },
             { "takerOrMaker", this.safeString(trade, "fill_type") },
             { "price", this.safeString(trade, "price") },
             { "amount", this.safeString(trade, "qty") },

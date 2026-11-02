@@ -2889,12 +2889,12 @@ public partial class htx : Exchange
             }
             if (isEqual(constructedId, symbolOrMarketId))
             {
-                ((IDictionary<string,object>)(this.options.ContainsKey("futureMarketIdsForSymbols") ? this.options["futureMarketIdsForSymbols"] : null))[(string)symbolOrMarketId] = marketSymbol;
+                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("futureMarketIdsForSymbols") ? this.options["futureMarketIdsForSymbols"] : null))[(string)symbolOrMarketId] = marketSymbol;
                 return marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        ((IDictionary<string,object>)(this.options.ContainsKey("futureMarketIdsForSymbols") ? this.options["futureMarketIdsForSymbols"] : null))[(string)symbolOrMarketId] = symbolOrMarketId;
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("futureMarketIdsForSymbols") ? this.options["futureMarketIdsForSymbols"] : null))[(string)symbolOrMarketId] = symbolOrMarketId;
         return symbolOrMarketId;
     }
 
@@ -2982,10 +2982,10 @@ public partial class htx : Exchange
         string? baseVolume = this.safeString(ticker, "amount");
         string? quoteVolume = this.safeString(ticker, "vol");
         IDictionary<string, object> marketResolved = this.safeDict(this.markets, symbol, market);
-        if ((this.safeBool(marketResolved, "contract") == true))
+        if ((this.safeBool(marketResolved, "contract", false) == true))
         {
             // contract tickers count 'vol' in contracts
-            if ((this.safeBool(marketResolved, "linear") == true))
+            if ((this.safeBool(marketResolved, "linear", false) == true))
             {
                 quoteVolume = this.safeString(ticker, "trade_turnover");
             } else
@@ -3039,17 +3039,17 @@ public partial class htx : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.contractPublicGetLinearSwapExMarketDetailMerged(this.extend(request, parameters));
-        } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "inverse", false) == true))
         {
-            if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+            if ((this.safeBool(market, "future", false) == true))
             {
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
                 response = await this.contractPublicGetMarketDetailMerged(this.extend(request, parameters));
-            } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "swap", false) == true))
             {
                 request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
                 response = await this.contractPublicGetSwapExMarketDetailMerged(this.extend(request, parameters));
@@ -3329,17 +3329,17 @@ public partial class htx : Exchange
             { "type", "step0" },
         };
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.contractPublicGetLinearSwapExMarketDepth(this.extend(request, parameters));
-        } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "inverse", false) == true))
         {
-            if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+            if ((this.safeBool(market, "future", false) == true))
             {
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
                 response = await this.contractPublicGetMarketDepth(this.extend(request, parameters));
-            } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "swap", false) == true))
             {
                 request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
                 response = await this.contractPublicGetSwapExMarketDepth(this.extend(request, parameters));
@@ -3886,24 +3886,24 @@ public partial class htx : Exchange
             request["size"] = Math.Min(limitVar.Value, 2000); // max 2000
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+        if ((this.safeBool(market, "future", false) == true))
         {
-            if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+            if ((this.safeBool(market, "inverse", false) == true))
             {
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
                 response = await this.contractPublicGetMarketHistoryTrade(this.extend(request, parameters));
-            } else if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "linear", false) == true))
             {
                 request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
                 response = await this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters));
             }
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
-            if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+            if ((this.safeBool(market, "inverse", false) == true))
             {
                 response = await this.contractPublicGetSwapExMarketHistoryTrade(this.extend(request, parameters));
-            } else if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "linear", false) == true))
             {
                 response = await this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters));
             }
@@ -4049,9 +4049,9 @@ public partial class htx : Exchange
             }
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+        if ((this.safeBool(market, "future", false) == true))
         {
-            if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+            if ((this.safeBool(market, "inverse", false) == true))
             {
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
                 if (priceType == "mark")
@@ -4067,7 +4067,7 @@ public partial class htx : Exchange
                 {
                     response = await this.contractPublicGetMarketHistoryKline(this.extend(request, paramsUntil));
                 }
-            } else if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "linear", false) == true))
             {
                 request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
                 if (priceType == "mark")
@@ -4084,10 +4084,10 @@ public partial class htx : Exchange
                     response = await this.contractPublicGetLinearSwapExMarketHistoryKline(this.extend(request, paramsUntil));
                 }
             }
-        } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "swap", false) == true))
         {
             request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
-            if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+            if ((this.safeBool(market, "inverse", false) == true))
             {
                 if (priceType == "mark")
                 {
@@ -4102,7 +4102,7 @@ public partial class htx : Exchange
                 {
                     response = await this.contractPublicGetSwapExMarketHistoryKline(this.extend(request, paramsUntil));
                 }
-            } else if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "linear", false) == true))
             {
                 if (priceType == "mark")
                 {
@@ -4346,7 +4346,7 @@ public partial class htx : Exchange
         }
         if ((code != null))
         {
-            ((IDictionary<string,object>)(this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null))[(string)code] = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null))[(string)code] = new Dictionary<string, object>() {};
         }
         List<object> chains = this.safeList(rawCurrency, "chains", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
@@ -4357,11 +4357,11 @@ public partial class htx : Exchange
             string? title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if ((code != null) && (title != null))
             {
-                ((IDictionary<string,object>)getValue((this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null), code))[(string)title] = uniqueChainId;
+                ((IDictionary<string,object>)getValue((this.options != null && this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null), code))[(string)title] = uniqueChainId;
             }
             if ((uniqueChainId != null))
             {
-                ((IDictionary<string,object>)(this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null))[(string)uniqueChainId] = title;
+                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null))[(string)uniqueChainId] = title;
             }
             string? networkCode = this.networkIdToCode(uniqueChainId, code);
             if ((networkCode != null))
@@ -4424,13 +4424,13 @@ public partial class htx : Exchange
         {
             return null;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)(this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null)).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null)).Keys);
         int keysLength = keys.Count;
         if ((keysLength == 0))
         {
             throw new ExchangeError ((this.id + " networkIdToCode() - markets need to be loaded at first")) ;
         }
-        string? networkTitle = this.safeString((this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null), networkId, networkId);
+        string? networkTitle = this.safeString((this.options != null && this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null), networkId, networkId);
         return ((string?)((object)(base.networkIdToCode(networkTitle, currencyCode))));
     }
 
@@ -4444,13 +4444,13 @@ public partial class htx : Exchange
         {
             return ((string?)((object)(base.networkCodeToId(networkCode))));
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)(this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null)).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null)).Keys);
         int keysLength = keys.Count;
         if ((keysLength == 0))
         {
             throw new ExchangeError ((this.id + " networkCodeToId() - markets need to be loaded at first")) ;
         }
-        IDictionary<string, object> uniqueNetworkIds = this.safeDict((this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null), currencyCode, new Dictionary<string, object>() {});
+        IDictionary<string, object> uniqueNetworkIds = this.safeDict((this.options != null && this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null), currencyCode, new Dictionary<string, object>() {});
         if ((uniqueNetworkIds != null && networkCode is string inOpKey2 && uniqueNetworkIds.ContainsKey(inOpKey2)))
         {
             return ((string?)((object)((uniqueNetworkIds != null && networkCode != null && uniqueNetworkIds.ContainsKey((string)networkCode) ? uniqueNetworkIds[(string)networkCode] : null))));
@@ -4821,10 +4821,10 @@ public partial class htx : Exchange
         } else
         {
             bool? trigger = this.safeBool2(paramsMarketType, "stop", "trigger");
-            bool? stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit");
-            bool? stopLoss = this.safeBool(paramsMarketType, "stopLoss");
-            bool? takeProfit = this.safeBool(paramsMarketType, "takeProfit");
-            bool? trailing = this.safeBool(paramsMarketType, "trailing");
+            bool? stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
+            bool? stopLoss = this.safeBool(paramsMarketType, "stopLoss", false);
+            bool? takeProfit = this.safeBool(paramsMarketType, "takeProfit", false);
+            bool? trailing = this.safeBool(paramsMarketType, "trailing", false);
             bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || ((trailing == true)));
             Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
             string? clientOrderId = this.safeStringN(paramsOmitted, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
@@ -5129,9 +5129,9 @@ public partial class htx : Exchange
         object paramsUntil = null;
         Dictionary<string, object> response = null;
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
-        bool? stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-        bool? stopLoss = this.safeBool(parameters, "stopLoss");
-        bool? takeProfit = this.safeBool(parameters, "takeProfit");
+        bool? stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit", false);
+        bool? stopLoss = this.safeBool(parameters, "stopLoss", false);
+        bool? takeProfit = this.safeBool(parameters, "takeProfit", false);
         bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || (trailing == true));
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"}));
@@ -5142,7 +5142,7 @@ public partial class htx : Exchange
         IList<object> requestparamsUntilVariable = (IList<object>)this.handleUntilOption("end_time", request, paramsOmitted);
         request = (Dictionary<string, object>)requestparamsUntilVariable[0];
         paramsUntil = requestparamsUntilVariable[1];
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             if ((limit != null))
             {
@@ -5176,13 +5176,13 @@ public partial class htx : Exchange
             {
                 response = await this.contractPrivateGetV5TradeOrderHistory(this.extend(request, paramsMarginMode));
             }
-        } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "inverse", false) == true))
         {
             request["contract"] = (market.ContainsKey("id") ? market["id"] : null);
             request["type"] = 1; // 1:All Orders,2:Order in Finished Status
             request["trade_type"] = 0; // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
             request["status"] = "0"; // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
-            if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+            if ((this.safeBool(market, "swap", false) == true))
             {
                 if ((trigger == true))
                 {
@@ -5197,7 +5197,7 @@ public partial class htx : Exchange
                 {
                     response = await this.contractPrivatePostSwapApiV3SwapHisorders(this.extend(request, paramsUntil));
                 }
-            } else if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "future", false) == true))
             {
                 request["symbol"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
                 if ((trigger == true))
@@ -5233,12 +5233,12 @@ public partial class htx : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             bool? trigger = this.safeBool2(parameters, "stop", "trigger");
-            bool? stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            bool? stopLoss = this.safeBool(parameters, "stopLoss");
-            bool? takeProfit = this.safeBool(parameters, "takeProfit");
+            bool? stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit", false);
+            bool? stopLoss = this.safeBool(parameters, "stopLoss", false);
+            bool? takeProfit = this.safeBool(parameters, "takeProfit", false);
             bool? trailing = this.safeBool(parameters, "trailing", false);
             bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || (trailing == true));
             if (isAlgo)
@@ -5359,9 +5359,9 @@ public partial class htx : Exchange
             if ((this.safeBool(market, "linear", false) == true))
             {
                 bool? trigger = this.safeBool2(paramsMarketType, "stop", "trigger");
-                bool? stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit");
-                bool? stopLoss = this.safeBool(paramsMarketType, "stopLoss");
-                bool? takeProfit = this.safeBool(paramsMarketType, "takeProfit");
+                bool? stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
+                bool? stopLoss = this.safeBool(paramsMarketType, "stopLoss", false);
+                bool? takeProfit = this.safeBool(paramsMarketType, "takeProfit", false);
                 bool? trailing = this.safeBool(paramsMarketType, "trailing", false);
                 bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || (trailing == true));
                 if (isAlgo)
@@ -5517,14 +5517,14 @@ public partial class htx : Exchange
                 }
             }
             bool? trigger = this.safeBool2(paramsSubType, "stop", "trigger");
-            bool? stopLossTakeProfit = this.safeBool(paramsSubType, "stopLossTakeProfit");
-            bool? stopLoss = this.safeBool(paramsSubType, "stopLoss");
-            bool? takeProfit = this.safeBool(paramsSubType, "takeProfit");
+            bool? stopLossTakeProfit = this.safeBool(paramsSubType, "stopLossTakeProfit", false);
+            bool? stopLoss = this.safeBool(paramsSubType, "stopLoss", false);
+            bool? takeProfit = this.safeBool(paramsSubType, "takeProfit", false);
             bool? trailing = this.safeBool(paramsSubType, "trailing", false);
             Dictionary<string, object> paramsOmitted = this.omit(paramsSubType, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
             if (isLinear)
             {
-                if (((trigger == true)) || (trailing == true) || ((stopLossTakeProfit == true)) || ((stopLoss == true)) || ((takeProfit == true)))
+                if (((trigger == true)) || (trailing == true) || (stopLossTakeProfit == true) || (stopLoss == true) || (takeProfit == true))
                 {
                     if ((trigger == true))
                     {
@@ -6218,7 +6218,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "spot", false) == true))
         {
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -6721,7 +6721,7 @@ public partial class htx : Exchange
         bool isStopLossTriggerOrder = (stopLossTriggerPrice != null);
         bool isTakeProfitTriggerOrder = (takeProfitTriggerPrice != null);
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             if (isTrailingPercentOrder)
             {
@@ -6732,7 +6732,7 @@ public partial class htx : Exchange
         } else
         {
             Dictionary<string, object> contractRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
-            if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 if (isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder)
                 {
@@ -6741,14 +6741,14 @@ public partial class htx : Exchange
                 {
                     response = await this.contractPrivatePostV5TradeOrder(contractRequest);
                 }
-            } else if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "inverse", false) == true))
             {
                 string? offset = this.safeString(parameters, "offset");
                 if ((offset == null))
                 {
                     throw new ArgumentsRequired ((this.id + " createOrder () requires an extra parameter params[\"offset\"] to be set to \"open\" or \"close\" when placing orders in inverse markets")) ;
                 }
-                if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+                if ((this.safeBool(market, "swap", false) == true))
                 {
                     if (isTrigger)
                     {
@@ -6763,7 +6763,7 @@ public partial class htx : Exchange
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapOrder(contractRequest);
                     }
-                } else if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+                } else if ((this.safeBool(market, "future", false) == true))
                 {
                     if (isTrigger)
                     {
@@ -6839,10 +6839,10 @@ public partial class htx : Exchange
         //
         object data = null;
         IDictionary<string, object> result = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             return this.safeOrder(new Dictionary<string, object>() {                 { "info", response },                 { "id", this.safeString(response, "data") },                 { "timestamp", null },                 { "datetime", null },                 { "lastTradeTimestamp", null },                 { "status", null },                 { "symbol", null },                 { "type", type },                 { "side", side },                 { "price", price },                 { "amount", amount },                 { "filled", null },                 { "remaining", null },                 { "cost", null },                 { "trades", null },                 { "fee", null },                 { "clientOrderId", null },                 { "average", null },             }, market);
-        } else if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "linear", false) == true))
         {
             if (isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder)
             {
@@ -6935,7 +6935,7 @@ public partial class htx : Exchange
             }
             market = this.market(symbol);
             object orderRequest = null;
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            if ((this.safeBool(market, "spot", false) == true))
             {
                 orderRequest = await this.CreateSpotOrderRequest(marketId, type, side, amount, price, orderParams);
             } else
@@ -7289,7 +7289,7 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool? trigger = this.safeBool2(paramsMarketType, "stop", "trigger");
-        bool? stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit");
+        bool? stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
         Dictionary<string, object> query = this.omit(paramsMarketType, new List<object>() {"stop", "stopLossTakeProfit", "trigger"});
         Dictionary<string, object> response = null;
         if ((marketType == "spot"))
@@ -7464,7 +7464,7 @@ public partial class htx : Exchange
         //         "ts": 1780822053167
         //     }
         //
-        if ((this.safeBool(market, "linear", false) == true) && ((trigger != true)) && ((stopLossTakeProfit != true)))
+        if ((this.safeBool(market, "linear", false) == true) && ((trigger != true)) && stopLossTakeProfit != true)
         {
             return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(response));
         }
@@ -7628,7 +7628,7 @@ public partial class htx : Exchange
             }
             request["contract_code"] = this.safeString(market, "id");
             bool? trigger = this.safeBool2(paramsMarketType, "stop", "trigger");
-            bool? stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit");
+            bool? stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
             bool? trailing = this.safeBool(paramsMarketType, "trailing", false);
             Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if ((this.safeBool(market, "linear", false) == true))
@@ -7681,7 +7681,7 @@ public partial class htx : Exchange
             //         "ts": "1683435723755"
             //     }
             //
-            if ((this.safeBool(market, "linear", false) == true) && (((trigger != true)) && (trailing != true) && ((stopLossTakeProfit != true))))
+            if ((this.safeBool(market, "linear", false) == true) && (((trigger != true)) && (trailing != true) && stopLossTakeProfit != true))
             {
                 return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(response));
             }
@@ -8591,7 +8591,7 @@ public partial class htx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contract_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             if ((limit != null))
             {
@@ -8612,10 +8612,10 @@ public partial class htx : Exchange
             }
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+        if ((this.safeBool(market, "inverse", false) == true))
         {
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, paramsPaginate));
-        } else if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "linear", false) == true))
         {
             response = await this.contractPublicGetV5MarketFundingRateHistory(this.extend(request, paramsPaginate));
         } else
@@ -8624,7 +8624,7 @@ public partial class htx : Exchange
         }
         object data = this.safeValue(response, "data");
         List<object> rates = new List<object>() {};
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             for (int i = 0; i < getArrayLength(data); i++)
             {
@@ -8754,10 +8754,10 @@ public partial class htx : Exchange
             { "contract_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+        if ((this.safeBool(market, "inverse", false) == true))
         {
             response = await this.contractPublicGetSwapApiV1SwapFundingRate(this.extend(request, parameters));
-        } else if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "linear", false) == true))
         {
             response = await this.contractPublicGetV5MarketFundingRate(this.extend(request, parameters));
         } else
@@ -8765,7 +8765,7 @@ public partial class htx : Exchange
             throw new NotSupported ((this.id + " fetchFundingRate() supports inverse and linear swaps only")) ;
         }
         IDictionary<string, object> result = null;
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             List<object> data = this.safeList(response, "data", new List<object>() {});
             result = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -9274,7 +9274,7 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestparamsUntilVariable[1]);
         if ((since != null))
         {
-            if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 request["start_time"] = since;
             } else
@@ -9285,7 +9285,7 @@ public partial class htx : Exchange
         Dictionary<string, object> response = null;
         if ((marketType == "swap"))
         {
-            if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchFundingHistory", paramsUntil, "cross");
                 string? marginMode = marginModeparamsMarginModeVariable.Item1;
@@ -9362,7 +9362,7 @@ public partial class htx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "lever_rate", leverage },
         };
-        if ((marketType == "future") && ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)))
+        if ((marketType == "future") && (this.safeBool(market, "inverse", false) == true))
         {
             request["symbol"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
         } else
@@ -9370,7 +9370,7 @@ public partial class htx : Exchange
             request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             (string?, object) marginModeAndParams = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             string? marginMode = marginModeAndParams.Item1;
@@ -9526,7 +9526,7 @@ public partial class htx : Exchange
         string? lastPrice = this.safeString(position, "last_price");
         string? faceValue = Precise.stringMul(contracts, contractSizeString);
         string? notional = null;
-        if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
+        if ((this.safeBool(marketResolved, "linear", false) == true))
         {
             notional = Precise.stringMul(faceValue, lastPrice);
         } else
@@ -9692,19 +9692,19 @@ public partial class htx : Exchange
         string? marketType = (string)marketTypequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)marketTypequeryVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true)) && ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)))
+        if ((this.safeBool(market, "future", false) == true) && (this.safeBool(market, "inverse", false) == true))
         {
             request["symbol"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
         } else
         {
-            if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) != true)) && (((marginModeOption == null)) || ((marginModeOption == "cross"))))
+            if ((!(this.safeBool(market, "linear", false) == true)) && (((marginModeOption == null)) || ((marginModeOption == "cross"))))
             {
                 request["margin_account"] = "USDT"; // only allowed value
             }
             request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             response = await this.contractPrivateGetV5TradePositionOpens(this.extend(request, query));
         } else
@@ -9721,7 +9721,7 @@ public partial class htx : Exchange
             }
         }
         object data = this.safeValue(response, "data");
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             IDictionary<string, object> linearPosition = this.safeDict(data, 0, new Dictionary<string, object>() {});
             return ccxt.BaseExchange.ToPosition(this.parsePosition(linearPosition, market));
@@ -9737,7 +9737,7 @@ public partial class htx : Exchange
         object omitted = this.omit(account, new List<object>() {"positions"});
         List<object> positions = this.safeList(account, "positions", new List<object>() {});
         object position = null;
-        if (((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true)) && ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)))
+        if ((this.safeBool(market, "future", false) == true) && (this.safeBool(market, "inverse", false) == true))
         {
             string? marketId = this.safeString(market, "id");
             for (int i = 0; i < positions.Count; i++)
@@ -10032,13 +10032,13 @@ public partial class htx : Exchange
             request["size"] = limit;
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+        if ((this.safeBool(market, "future", false) == true))
         {
             request["contract_type"] = this.safeString((market.ContainsKey("info") ? market["info"] : null), "contract_type");
             request["symbol"] = (market.ContainsKey("baseId") ? market["baseId"] : null); // currency code on coin-m futures
             // coin-m futures
             response = await this.contractPublicGetApiV1ContractHisOpenInterest(this.extend(request, parameters));
-        } else if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "linear", false) == true))
         {
             request["contract_type"] = "swap";
             request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
@@ -10185,11 +10185,11 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "contract", false) == true))
         {
             throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
-        if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
+        if ((this.safeBool(market, "option", false) == true))
         {
             throw new NotSupported ((this.id + " fetchOpenInterest() does not currently support option markets")) ;
         }
@@ -10197,13 +10197,13 @@ public partial class htx : Exchange
             { "contract_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+        if ((this.safeBool(market, "future", false) == true))
         {
             request["contract_type"] = this.safeString((market.ContainsKey("info") ? market["info"] : null), "contract_type");
             request["symbol"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             // COIN-M futures
             response = await this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, parameters));
-        } else if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "linear", false) == true))
         {
             // USDT-M swaps
             response = await this.contractPublicGetV5MarketOpenInterest(this.extend(request, parameters));
@@ -10268,7 +10268,7 @@ public partial class htx : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "ts");
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             IDictionary<string, object> result = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return ccxt.BaseExchange.ToOpenInterest(this.extend(this.parseOpenInterest(result, market), new Dictionary<string, object>() {                 { "timestamp", timestamp },                 { "datetime", this.iso8601(timestamp) },             }));
@@ -10574,7 +10574,7 @@ public partial class htx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+        if ((this.safeBool(market, "future", false) == true))
         {
             request["symbol"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
         } else
@@ -10583,7 +10583,7 @@ public partial class htx : Exchange
         }
         if ((limit != null))
         {
-            if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)))
+            if ((this.safeBool(market, "linear", false) == true) && (this.safeBool(market, "swap", false) == true))
             {
                 request["limit"] = limit;
             } else
@@ -10599,9 +10599,9 @@ public partial class htx : Exchange
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
-            if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 response = await this.contractPublicGetV5MarketSettlementHistory(this.extend(requestUntil, paramsUntil));
             } else
@@ -10681,7 +10681,7 @@ public partial class htx : Exchange
         //         "ts": 1781853150623
         //     }
         //
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             List<object> dataLinear = this.safeList(response, "data", new List<object>() {});
             List<object> settlementsLinear = this.parseSettlements(dataLinear, market);
@@ -10879,7 +10879,7 @@ public partial class htx : Exchange
         {
             IDictionary<string, object> settlement = this.safeDict(settlements, i);
             List<object> list = this.safeList(settlement, "list");
-            if (((market != null && market.ContainsKey("linear") ? market["linear"] : null) is true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 Dictionary<string, object> parsedSettlement = this.parseSettlement(settlement, market);
                 result.Add(parsedSettlement);
@@ -10975,7 +10975,7 @@ public partial class htx : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Int64? tradeType = this.safeInteger2(parameters, "trade_type", "tradeType", 0);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "linear", false) == true))
         {
             request["trade_type"] = tradeType;
         }
@@ -10988,9 +10988,9 @@ public partial class htx : Exchange
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        if ((this.safeBool(market, "swap", false) == true))
         {
-            if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 requestUntil["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
                 if ((limit != null))
@@ -11003,7 +11003,7 @@ public partial class htx : Exchange
                 requestUntil["contract"] = (market.ContainsKey("id") ? market["id"] : null);
                 response = await this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(requestUntil, paramsUntil));
             }
-        } else if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "future", false) == true))
         {
             requestUntil["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(requestUntil, paramsUntil));
@@ -11114,7 +11114,7 @@ public partial class htx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "contract", false) == true))
         {
             throw new BadRequest ((this.id + " closePosition() symbol supports contract markets only")) ;
         }
@@ -11127,7 +11127,7 @@ public partial class htx : Exchange
             request["client_order_id"] = clientOrderId;
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("closePosition", paramsOmitted, "cross");
             string? marginMode = marginModeparamsMarginModeVariable.Item1;
@@ -11145,7 +11145,7 @@ public partial class htx : Exchange
             request["volume"] = this.amountToPrecision(symbol, amount);
             request["direction"] = side;
             object paramsVolume = this.omit(paramsOmitted, new List<object>() {"volume", "amount"});
-            if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+            if ((this.safeBool(market, "swap", false) == true))
             {
                 response = await this.contractPrivatePostSwapApiV1SwapLightningClosePosition(this.extend(request, paramsVolume));
             } else
@@ -11153,7 +11153,7 @@ public partial class htx : Exchange
                 response = await this.contractPrivatePostApiV1LightningClosePosition(this.extend(request, paramsVolume));
             }
         }
-        if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+        if ((this.safeBool(market, "linear", false) == true))
         {
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return this.parseOrder(data, market);
@@ -11196,7 +11196,7 @@ public partial class htx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "position_mode", posMode },
         };
-        if (((market != null)) && ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)))
+        if (((market != null)) && (this.safeBool(market, "inverse", false) == true))
         {
             throw new BadRequest ((this.id + " setPositionMode can only be used for linear markets")) ;
         }

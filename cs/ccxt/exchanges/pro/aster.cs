@@ -1502,8 +1502,8 @@ public partial class aster : ccxt.aster
                 {
                     throw new AuthenticationError ((this.id + " authenticate() received an empty listenKey")) ;
                 }
-                ((IDictionary<string,object>)(this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null))[(string)type] = listenKey;
-                ((IDictionary<string,object>)(this.options.ContainsKey("lastAuthenticatedTime") ? this.options["lastAuthenticatedTime"] : null))[(string)type] = time;
+                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null))[(string)type] = listenKey;
+                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("lastAuthenticatedTime") ? this.options["lastAuthenticatedTime"] : null))[(string)type] = time;
                 Dictionary<string, object> keepAliveParams = this.extend(new Dictionary<string, object>() {
                     { "type", type },
                 }, parameters);
@@ -1551,8 +1551,8 @@ public partial class aster : ccxt.aster
                 string? messageHash = ((string)messageHashes[i]);
                 client.reject(error, messageHash);
             }
-            ((IDictionary<string,object>)(this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null))[(string)type] = null;
-            ((IDictionary<string,object>)(this.options.ContainsKey("lastAuthenticatedTime") ? this.options["lastAuthenticatedTime"] : null))[(string)type] = 0;
+            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null))[(string)type] = null;
+            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("lastAuthenticatedTime") ? this.options["lastAuthenticatedTime"] : null))[(string)type] = 0;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -1589,9 +1589,9 @@ public partial class aster : ccxt.aster
         }
         string? type = null;
         IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
-        string typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
+        string? typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeMarketTypeparamsMarketTypeVariable[1]);
-        if ((type == null))
+        if (((type == null)) || ((typeMarketType == null)))
         {
             throw new ArgumentsRequired ((this.id + " watchBalance() requires a market type")) ;
         }
@@ -1989,7 +1989,7 @@ public partial class aster : ccxt.aster
         IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
         string? typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeMarketTypeparamsMarketTypeVariable[1]);
-        if ((type == null))
+        if (((type == null)) || ((typeMarketType == null)))
         {
             throw new ArgumentsRequired ((this.id + " watchOrders() requires a market type")) ;
         }
@@ -2042,7 +2042,7 @@ public partial class aster : ccxt.aster
         IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
         string? typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeMarketTypeparamsMarketTypeVariable[1]);
-        if ((type == null))
+        if (((type == null)) || ((typeMarketType == null)))
         {
             throw new ArgumentsRequired ((this.id + " watchMyTrades() requires a market type")) ;
         }

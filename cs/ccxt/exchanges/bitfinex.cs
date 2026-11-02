@@ -805,9 +805,9 @@ public partial class bitfinex : Exchange
     public virtual string? getCurrencyName(string? code)
     {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (inOp((this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))
+        if (inOp((this.options != null && this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))
         {
-            return ((string?)((object)(getValue((this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))));
+            return ((string?)((object)(getValue((this.options != null && this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))));
         }
         throw new NotSupported ((((this.id + " ") + code) + " not supported for withdrawal")) ;
     }
@@ -1773,7 +1773,7 @@ public partial class bitfinex : Exchange
                 { "currency", feeCurrency },
             };
             object orderType = (tradeList != null && 6 < tradeList.Count ? tradeList[6] : null);
-            type = this.safeString((this.options.ContainsKey("exchangeTypes") ? this.options["exchangeTypes"] : null), orderType);
+            type = this.safeString((this.options != null && this.options.ContainsKey("exchangeTypes") ? this.options["exchangeTypes"] : null), orderType);
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -2142,7 +2142,7 @@ public partial class bitfinex : Exchange
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && ((marginMode == null)))
+        if ((this.safeBool(market, "spot", false) == true) && ((marginMode == null)))
         {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = ("EXCHANGE " + orderType);
@@ -3195,7 +3195,7 @@ public partial class bitfinex : Exchange
             {
                 fee["maker"] = makerFeeFiat;
                 fee["taker"] = takerFeeFiat;
-            } else if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "contract", false) == true))
             {
                 fee["maker"] = makerFeeDeriv;
                 fee["taker"] = takerFeeDeriv;
@@ -4409,7 +4409,7 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " setMargin() only support swap markets")) ;
         }

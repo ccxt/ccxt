@@ -213,7 +213,7 @@ public partial class gate : ccxt.gate
         object request = this.createOrdersRequest(orders, parameters);
         IDictionary<string, object> firstOrder = ((IDictionary<string, object>)(orders != null && 0 < orders.Count ? orders[0] : null));
         Dictionary<string, object> market = this.market((firstOrder != null && firstOrder.ContainsKey("symbol") ? firstOrder["symbol"] : null));
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " createOrdersWs is not supported for swap markets")) ;
         }
@@ -453,7 +453,7 @@ public partial class gate : ccxt.gate
         {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
-            if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+            if (!(this.safeBool(market, "swap", false) == true))
             {
                 throw new NotSupported ((this.id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets")) ;
             }
@@ -511,12 +511,12 @@ public partial class gate : ccxt.gate
         string messageHash = (("orderbook" + ":") + symbolValue);
         // max 100 atm, max 50 for options
         int defaultLimit = 100;
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) || (messageType == "options"))
+        if ((this.safeBool(market, "spot", false) == true) || (messageType == "options"))
         {
             defaultLimit = 50;
         }
         object limitResolved = ((limit == null)) ? defaultLimit : limit;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             Int64? maxSpotLimit = this.parseToInt(this.handleOption("fetchOrderBook", "maxSpotLimit", 1000));
@@ -528,7 +528,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.order_book_update";
             payload = new List<object>() {marketId, interval};
-        } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "spot", false) == true))
         {
             channel = "spot.obu";
             string? finalInterval = interval;
@@ -586,7 +586,7 @@ public partial class gate : ccxt.gate
         object limit = this.safeInteger(paramsInterval, "limit");
         if ((limit == null))
         {
-            limit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 50 : 100; // max 100 atm
+            limit = (this.safeBool(market, "spot", false) == true) ? 50 : 100; // max 100 atm
             if (messageType == "options")
             {
                 limit = 50; // max 50 for options
@@ -598,7 +598,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.order_book_update";
             payload = new List<object>() {marketId, intervalOption};
-        } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        } else if ((this.safeBool(market, "spot", false) == true))
         {
             channel = "spot.obu";
             string? finalInterval = intervalOption;
@@ -1020,8 +1020,11 @@ public partial class gate : ccxt.gate
             }
             return items;
         }
-        object result = isWatchTickers ? this.tickers : this.bidsasks;
-        return this.filterByArray(result, "symbol", symbolsNormalized, true);
+        if (isWatchTickers)
+        {
+            return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
     }
 
     public virtual void handleTickerAndBidAsk(string objectName, WebSocketClient client, object message)
@@ -2601,8 +2604,8 @@ public partial class gate : ccxt.gate
             IDictionary<string, object> data = this.safeDict(message, "data");
             // use safeValue as result may be Array or an Object
             object result = this.safeValue(data, "result");
-            bool? ack = this.safeBool(message, "ack");
-            if ((ack != true))
+            bool? ack = this.safeBool(message, "ack", false);
+            if (ack != true)
             {
                 client.resolve(result, requestId);
             }

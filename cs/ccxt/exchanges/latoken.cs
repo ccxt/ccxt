@@ -1142,11 +1142,11 @@ public partial class latoken : Exchange
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "quantity");
         string? costString = this.safeString(trade, "cost");
-        bool? makerBuyer = this.safeBool(trade, "makerBuyer");
+        bool? makerBuyer = this.safeBool(trade, "makerBuyer", false);
         string? side = this.safeString(trade, "direction");
         if ((side == null))
         {
-            side = ((makerBuyer == true)) ? "sell" : "buy";
+            side = makerBuyer == true ? "sell" : "buy";
         } else
         {
             if (side == "TRADE_DIRECTION_BUY")

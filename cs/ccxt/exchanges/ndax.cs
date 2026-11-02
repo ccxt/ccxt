@@ -837,7 +837,7 @@ public partial class ndax : Exchange
             return null;
         }
         string? sessionStatus = this.safeString(market, "SessionStatus");
-        bool? isDisable = this.safeBool(market, "IsDisable");
+        bool? isDisable = this.safeBool(market, "IsDisable", false);
         bool sessionRunning = (sessionStatus == "Running");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },

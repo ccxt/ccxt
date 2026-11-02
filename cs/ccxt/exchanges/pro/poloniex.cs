@@ -1721,7 +1721,7 @@ public partial class poloniex : ccxt.poloniex
         //    }
         //
         IDictionary<string, object> data = this.safeDict(message, "data");
-        bool? success = this.safeBool(data, "success");
+        bool? success = this.safeBool(data, "success", false);
         string messageHash = "authenticated";
         if ((success == true))
         {
