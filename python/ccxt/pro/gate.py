@@ -212,7 +212,7 @@ class gate(ccxt.async_support.gate):
         request = self.createOrdersRequest(orders, params)
         firstOrder = orders[0]
         market = self.market(firstOrder['symbol'])
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' createOrdersWs is not supported for swap markets')
         # todo add swap support
         messageType = self.get_type_by_market(market)
@@ -395,7 +395,7 @@ class gate(ccxt.async_support.gate):
         if symbol is not None:
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
-            if market['swap'] is not True:
+            if not self.safe_bool(market, 'swap', False):
                 raise NotSupported(self.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets')
         request, requestParams = self.prepareOrdersByStatusRequest(status, symbolResolved, since, limit, params)
         newRequest = self.omit(request, ['settle'])
@@ -439,10 +439,10 @@ class gate(ccxt.async_support.gate):
         messageHash = 'orderbook' + ':' + symbolValue
         # max 100 atm, max 50 for options
         defaultLimit = 100
-        if (market['spot'] is True) or (messageType == 'options'):
+        if (self.safe_bool(market, 'spot', False)) or (messageType == 'options'):
             defaultLimit = 50
         limitResolved = defaultLimit if (limit is None) else limit
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             # the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             maxSpotLimit = self.parse_to_int(self.handle_option('fetchOrderBook', 'maxSpotLimit', 1000))
             limitResolved = min(limitResolved, maxSpotLimit)
@@ -451,7 +451,7 @@ class gate(ccxt.async_support.gate):
         if isEuUrl:
             channel = 'spot.order_book_update'
             payload = [marketId, interval]
-        elif market['spot'] is True:
+        elif self.safe_bool(market, 'spot', False):
             channel = 'spot.obu'
             finalInterval = interval
             if limitResolved == 400:
@@ -492,7 +492,7 @@ class gate(ccxt.async_support.gate):
         messageType = self.get_type_by_market(market)
         limit = self.safe_integer(paramsInterval, 'limit')
         if limit is None:
-            limit = 50 if (market['spot'] is True) else 100  # max 100 atm
+            limit = 50 if (self.safe_bool(market, 'spot', False)) else 100  # max 100 atm
             if messageType == 'options':
                 limit = 50  # max 50 for options
         payload = []
@@ -500,7 +500,7 @@ class gate(ccxt.async_support.gate):
         if isEuUrl:
             channel = 'spot.order_book_update'
             payload = [marketId, intervalOption]
-        elif market['spot'] is True:
+        elif self.safe_bool(market, 'spot', False):
             channel = 'spot.obu'
             finalInterval = intervalOption
             if limit == 400:
@@ -830,8 +830,9 @@ class gate(ccxt.async_support.gate):
             if tickerOrBidAskSymbol is not None:
                 items[tickerOrBidAskSymbol] = tickerOrBidAsk
             return items
-        result = self.tickers if isWatchTickers else self.bidsasks
-        return self.filter_by_array(result, 'symbol', symbolsNormalized, True)
+        if isWatchTickers:
+            return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized, True)
+        return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized, True)
 
     def handle_ticker_and_bid_ask(self, objectName: str, client: Client, message: dict):
         channel = self.safe_string(message, 'channel')
@@ -2097,8 +2098,8 @@ class gate(ccxt.async_support.gate):
             data = self.safe_dict(message, 'data')
             # use safeValue as result may be Array or an Object
             result = self.safe_value(data, 'result')
-            ack = self.safe_bool(message, 'ack')
-            if ack is not True:
+            ack = self.safe_bool(message, 'ack', False)
+            if not ack:
                 client.resolve(result, requestId)
 
     def get_url_by_market(self, market: object) -> str:

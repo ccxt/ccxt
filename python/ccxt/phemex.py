@@ -3987,7 +3987,7 @@ class phemex(Exchange, ImplicitAPI):
         # the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         apiUnrealizedPnl = self.safe_string(position, 'unRealisedPnlRv', unrealizedPnl)
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
-        isCross = self.safe_bool(position, 'crossMargin')
+        isCross = self.safe_bool(position, 'crossMargin', False)
         timestamp = self.safe_integer(position, 'openedTimeNs')
         lastUpdateTimestamp = self.safe_integer(position, 'updatedTimeNs', self.safe_integer_product(position, 'transactTimeNs', 0.000001))
         return self.safe_position({
@@ -4014,7 +4014,7 @@ class phemex(Exchange, ImplicitAPI):
             'marginRatio': self.parse_number(marginRatio),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'marginMode': 'cross' if (isCross is True) else 'isolated',
+            'marginMode': 'cross' if isCross else 'isolated',
             'side': side,
             'hedged': self.safe_string(position, 'posMode') == 'Hedged',
             'percentage': None,
@@ -4266,8 +4266,8 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         marketResolved = self.safe_market(None, market)
-        inverse = self.safe_bool(marketResolved, 'inverse')
-        codeCurrency = 'base' if (inverse is True) else 'quote'
+        inverse = self.safe_bool(marketResolved, 'inverse', False)
+        codeCurrency = 'base' if inverse else 'quote'
         return {
             'info': data,
             'symbol': self.safe_symbol(None, marketResolved),
@@ -4340,7 +4340,7 @@ class phemex(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        if hedged is True:
+        if hedged:
             request['targetPosMode'] = 'Hedged'
         else:
             request['targetPosMode'] = 'OneWay'

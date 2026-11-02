@@ -1750,9 +1750,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         contracts = self.safe_number(position, 'size')
         if self.is_native_deribit_credentials():
             size = self.safe_string(position, 'size')
-            if marketResolved['option'] is not True:
+            if not self.safe_bool(marketResolved, 'option', False):
                 notional = size
-                if marketResolved['linear'] is True:
+                if self.safe_bool(marketResolved, 'linear', False):
                     size = self.safe_string(position, 'size_currency')
             else:
                 notional = Precise.string_mul(size, self.safe_string(position, 'mark_price'))
@@ -2045,7 +2045,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :returns str: precision-formatted exchange order amount
         """
         exchangeAmount = self.number_to_string(amount)
-        if self.is_native_deribit_credentials() and (market['contract'] is True):
+        if self.is_native_deribit_credentials() and (self.safe_bool(market, 'contract', False)):
             exchangeAmount = Precise.string_mul(exchangeAmount, self.safe_string(market, 'contractSize'))
         return self.amount_to_precision(market['symbol'], exchangeAmount)
 
@@ -2288,7 +2288,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         lastUpdateTimestamp = self.safe_integer(order, 'last_update_timestamp')
         filled = self.safe_number(order, 'filled_amount')
         amount = self.safe_number(order, 'amount')
-        if self.is_native_deribit_credentials() and (marketResolved['contract'] is True):
+        if self.is_native_deribit_credentials() and (self.safe_bool(marketResolved, 'contract', False)):
             contractSize = self.safe_string(marketResolved, 'contractSize')
             amount = self.parse_number(self.safe_string(order, 'contracts', Precise.string_div(self.safe_string(order, 'amount'), contractSize)))
             filled = self.parse_number(Precise.string_div(self.safe_string(order, 'filled_amount'), contractSize))
@@ -2302,7 +2302,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         cost = None
         if (filledString is not None) and (averageString is not None):
             cost = self.parse_number(Precise.string_mul(filledString, averageString))
-            if self.is_native_deribit_credentials() and (marketResolved['inverse'] is True) and (marketResolved['option'] is not True):
+            if self.is_native_deribit_credentials() and (self.safe_bool(marketResolved, 'inverse', False)) and (not self.safe_bool(marketResolved, 'option', False)):
                 cost = self.parse_number(Precise.string_div(filledString, averageString))
         lastTradeTimestamp = lastUpdateTimestamp
         nativeLastUpdateTimestamp = None
@@ -2851,13 +2851,13 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         price = self.safe_number(trade, 'price')
         amount = self.safe_number(trade, 'amount')
         amountString = self.safe_string(trade, 'amount')
-        if self.is_native_deribit_credentials() and (marketResolved['contract'] is True):
+        if self.is_native_deribit_credentials() and (self.safe_bool(marketResolved, 'contract', False)):
             amount = self.parse_number(self.safe_string(trade, 'contracts', Precise.string_div(amountString, self.safe_string(marketResolved, 'contractSize'))))
         priceString = self.safe_string(trade, 'price')
         cost = None
         if (amountString is not None) and (priceString is not None):
             cost = self.parse_number(Precise.string_mul(amountString, priceString))
-            if self.is_native_deribit_credentials() and (marketResolved['inverse'] is True) and (marketResolved['option'] is not True):
+            if self.is_native_deribit_credentials() and (self.safe_bool(marketResolved, 'inverse', False)) and (not self.safe_bool(marketResolved, 'option', False)):
                 cost = self.parse_number(Precise.string_div(amountString, priceString))
         feeCurrencyId = self.safe_string(trade, 'fee_currency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)

@@ -2496,7 +2496,7 @@ class extended(Exchange, ImplicitAPI):
         market = self.market(symbol)
         uppercaseType = type.upper()
         uppercaseSide = side.upper()
-        if (market['spot'] is True) and uppercaseType != 'LIMIT':
+        if (self.safe_bool(market, 'spot', False)) and uppercaseType != 'LIMIT':
             raise BadRequest(self.id + ' createOrder() supports limit orders for spot markets only')
         if not self.in_array(uppercaseType, ['LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL']):
             raise BadRequest(self.id + ' createOrder() supports limit, market, conditional and tpsl orders only')
@@ -2513,8 +2513,8 @@ class extended(Exchange, ImplicitAPI):
         builderFeeRate = None
         builderId = None
         paramsBuilder = params
-        builderEnabled = self.safe_bool(self.options, 'builderFee')
-        if builderEnabled is True:
+        builderEnabled = self.safe_bool(self.options, 'builderFee', False)
+        if builderEnabled:
             if self.isSandboxModeEnabled:
                 builderFeeRate = self.safe_string_2(params, 'builderFeeRate', 'defaultBuilderFeeRate')
                 builderId = self.safe_string_2(params, 'builderId', 'defaultBuilderId')

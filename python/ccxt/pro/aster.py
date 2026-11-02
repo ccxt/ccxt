@@ -1281,7 +1281,7 @@ class aster(ccxt.async_support.aster):
             await self.load_markets()
         type = None
         typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params, type)
-        if type is None:
+        if (type is None) or (typeMarketType is None):
             raise ArgumentsRequired(self.id + ' watchBalance() requires a market type')
         await self.authenticate(typeMarketType, paramsMarketType)
         url = self.get_private_url(typeMarketType)
@@ -1595,7 +1595,7 @@ class aster(ccxt.async_support.aster):
         messageHash = 'orders'
         type = None
         typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, params, type)
-        if type is None:
+        if (type is None) or (typeMarketType is None):
             raise ArgumentsRequired(self.id + ' watchOrders() requires a market type')
         await self.authenticate(typeMarketType, paramsMarketType)
         if market is not None:
@@ -1633,7 +1633,7 @@ class aster(ccxt.async_support.aster):
         messageHash = 'myTrades'
         type = None
         typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params, type)
-        if type is None:
+        if (type is None) or (typeMarketType is None):
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a market type')
         await self.authenticate(typeMarketType, paramsMarketType)
         if market is not None:

@@ -1834,7 +1834,7 @@ class nado(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         tickerId = self.safe_string(market['info'], 'ticker_id')
         response = await self.archiveV2PublicGetContracts(params)
@@ -1883,7 +1883,7 @@ class nado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires walletAddress')
         await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchFundingHistory', 'subaccount', 'default')
         fundingRequest = {
@@ -1980,7 +1980,7 @@ class nado(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchOpenInterest() supports swap contracts only')
         tickerId = self.safe_string(market['info'], 'ticker_id')
         response = await self.archiveV2PublicGetContracts(params)

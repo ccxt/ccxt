@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.precise import Precise
@@ -1517,6 +1518,8 @@ class weex(ccxt.async_support.weex):
         if self.markets is None:
             await self.load_markets()
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
+        if type is None:
+            raise ArgumentsRequired(self.id + ' watchBalance() requires a market type')
         isContract = (type != 'spot')
         urlType = 'spot'
         if isContract:

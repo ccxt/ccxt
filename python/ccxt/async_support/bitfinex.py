@@ -1748,7 +1748,7 @@ class bitfinex(Exchange, ImplicitAPI):
         elif fok:
             orderType = 'FOK'
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('createOrder', params)
-        if (market['spot'] is True) and (marginMode is None):
+        if (self.safe_bool(market, 'spot', False)) and (marginMode is None):
             # The EXCHANGE prefix is only required for non margin spot markets
             orderType = 'EXCHANGE ' + orderType
         request['type'] = orderType
@@ -2631,7 +2631,7 @@ class bitfinex(Exchange, ImplicitAPI):
             if market['quote'] in fiat:
                 fee['maker'] = makerFeeFiat
                 fee['taker'] = takerFeeFiat
-            elif market['contract'] is True:
+            elif self.safe_bool(market, 'contract', False):
                 fee['maker'] = makerFeeDeriv
                 fee['taker'] = takerFeeDeriv
             else:  # TODO check if stable coin
@@ -3645,7 +3645,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' setMargin() only support swap markets')
         request = {
             'symbol': market['id'],

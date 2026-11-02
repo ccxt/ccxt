@@ -528,7 +528,7 @@ class whitebit(Exchange, ImplicitAPI):
         if (base is None) or (quote is None):
             return None
         active = self.safe_bool(market, 'tradesEnabled')
-        isCollateral = self.safe_bool(market, 'isCollateral')
+        isCollateral = self.safe_bool(market, 'isCollateral', False)
         typeId = self.safe_string(market, 'type')
         type = None
         settle = None
@@ -1491,7 +1491,7 @@ class whitebit(Exchange, ImplicitAPI):
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 market = self.market(symbol)
-                if market['contract'] is not True:
+                if not self.safe_bool(market, 'contract', False):
                     onlyContractSymbols = False
                     break
         else:
@@ -2486,9 +2486,9 @@ class whitebit(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp_2(order, 'ctime', 'timestamp')
         lastTradeTimestamp = self.safe_timestamp(order, 'ftime')
         postOnly = self.safe_bool(order, 'postOnly')
-        ioc = self.safe_bool(order, 'ioc')
+        ioc = self.safe_bool(order, 'ioc', False)
         timeInForce = None
-        if ioc is True:
+        if ioc:
             timeInForce = 'IOC'
         elif postOnly is True:
             timeInForce = 'PO'

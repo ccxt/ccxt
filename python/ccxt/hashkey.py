@@ -1688,7 +1688,7 @@ class hashkey(Exchange, ImplicitAPI):
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
         contractSizeValue = self.safe_string(marketResolved, 'contractSize')
-        if (marketResolved['contract'] is True) and (contractSizeValue is not None):
+        if (self.safe_bool(marketResolved, 'contract', False)) and (contractSizeValue is not None):
             # 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.string_mul(baseVolume, self.number_to_string(contractSizeValue))
         return self.safe_ticker({
@@ -2438,9 +2438,9 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             return self.create_spot_order(symbol, type, side, amount, price, params)
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             return self.create_swap_order(symbol, type, side, amount, price, params)
         else:
             marketTypeValue = self.safe_string(market, 'type', '')
@@ -2457,7 +2457,7 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is supported for spot markets only')
         req = {
             'cost': cost,
@@ -2496,8 +2496,8 @@ class hashkey(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createOrder() supports cost parameter for spot market buy orders only')
         request = self.create_spot_order_request(symbol, type, side, amount, price, params)
         response = {}
-        test = self.safe_bool(params, 'test')
-        if test is True:
+        test = self.safe_bool(params, 'test', False)
+        if test:
             response = self.privatePostApiV1SpotOrderTest(request)
         elif isMarketBuy and (cost is None):
             response = self.privatePostApiV11SpotOrder(request)  # the endpoint for market buy orders by amount
@@ -2588,9 +2588,9 @@ class hashkey(Exchange, ImplicitAPI):
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             return self.create_spot_order_request(symbol, type, side, amount, price, params)
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             return self.create_swap_order_request(symbol, type, side, amount, price, params)
         else:
             marketTypeValue = self.safe_string(market, 'type', '')
@@ -2773,7 +2773,7 @@ class hashkey(Exchange, ImplicitAPI):
             'orders': ordersRequests,
         }
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = self.privatePostApiV1SpotBatchOrders(self.extend(request, params))
             #
             #     {
@@ -2802,7 +2802,7 @@ class hashkey(Exchange, ImplicitAPI):
             #         "concentration": ""
             #     }
             #
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             response = self.privatePostApiV1FuturesBatchOrders(self.extend(request, params))
             #
             #     {
@@ -2899,7 +2899,7 @@ class hashkey(Exchange, ImplicitAPI):
             #
         elif marketType == 'swap':
             isTrigger, paramsTrigger = self.handle_option_bool_and_params_2(paramsMarketType, methodName, 'stop', 'trigger', False)
-            if isTrigger is True:
+            if isTrigger:
                 request['type'] = 'STOP'
             else:
                 request['type'] = 'LIMIT'
@@ -2959,12 +2959,12 @@ class hashkey(Exchange, ImplicitAPI):
         if side is not None:
             request['side'] = side
         response: dict
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = self.privateDeleteApiV1SpotOpenOrders(self.extend(request, params))
             #
             #     { "success": true }
             #
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             response = self.privateDeleteApiV1FuturesBatchOrders(self.extend(request, params))
             #
             #     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
@@ -3082,7 +3082,7 @@ class hashkey(Exchange, ImplicitAPI):
             #
         elif marketType == 'swap':
             isTrigger, paramsTrigger = self.handle_option_bool_and_params_2(paramsMarketType, methodName, 'stop', 'trigger', False)
-            if isTrigger is True:
+            if isTrigger:
                 request['type'] = 'STOP'
             response = self.privateGetApiV1FuturesOrder(self.extend(request, paramsTrigger))
             #
@@ -3246,7 +3246,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         isTrigger = False
         isTriggerTrigger, paramsTrigger = self.handle_option_bool_and_params_2(paramsMethodName, methodNameOption, 'stop', 'trigger', isTrigger)
-        if isTriggerTrigger is True:
+        if isTriggerTrigger:
             request['type'] = 'STOP'
         else:
             request['type'] = 'LIMIT'
@@ -3384,7 +3384,7 @@ class hashkey(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for swap markets')
             request['symbol'] = self.safe_string(market, 'id')
             isTrigger, paramsTrigger = self.handle_option_bool_and_params_2(paramsMarketType, methodName, 'stop', 'trigger', False)
-            if isTrigger is True:
+            if isTrigger:
                 request['type'] = 'STOP'
             else:
                 request['type'] = 'LIMIT'
@@ -3821,7 +3821,7 @@ class hashkey(Exchange, ImplicitAPI):
         methodName = 'fetchPosition'
         methodNameOption = self.safe_string(params, 'methodName', methodName)
         paramsMethodName = self.omit(params, 'methodName')
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' ' + methodNameOption + '() supports swap markets only')
         request = {
             'symbol': market['id'],
@@ -3975,7 +3975,7 @@ class hashkey(Exchange, ImplicitAPI):
         if (marginModeValue != 'CROSS') and (marginModeValue != 'ISOLATED'):
             raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be either cross or isolated')
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' setMarginMode() supports swap markets only')
         request = {
             'symbol': market['id'],
@@ -4015,7 +4015,7 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' modifyMarginHelper() supports swap markets only')
         sideParam = self.safe_string(params, 'side')
         paramsSide = self.omit(params, 'side')
@@ -4196,11 +4196,11 @@ class hashkey(Exchange, ImplicitAPI):
         market = self.market(symbol)
         methodName = 'fetchTradingFee'
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = self.fetch_trading_fees(params)
             fee = self.safe_dict(response, symbol)
             return fee
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             response = self.privateGetApiV1FuturesCommissionRate(self.extend({'symbol': market['id']}, params))
             return self.parse_trading_fee(response, market)
             #

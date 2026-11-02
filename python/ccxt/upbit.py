@@ -1185,11 +1185,11 @@ class upbit(Exchange, ImplicitAPI):
 
     def calc_order_price(self, symbol: str, amount: Num = None, price: Num = None, params: dict = {}) -> Str:
         quoteAmount = None
-        createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice')
+        createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice', False)
         cost = self.safe_string(params, 'cost')
         if cost is not None:
             quoteAmount = self.cost_to_precision(symbol, cost)
-        elif createMarketBuyOrderRequiresPrice is True:
+        elif createMarketBuyOrderRequiresPrice:
             if price is None or amount is None:
                 raise InvalidOrder(self.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend (quote quantity) in the amount argument')
             amountString = self.number_to_string(amount)

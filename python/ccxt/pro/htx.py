@@ -453,16 +453,16 @@ class htx(ccxt.async_support.htx):
             raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only')
         messageHash = ''
         marketId = self.safe_string(market, 'id', '')
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             messageHash = 'market.' + marketId + '.mbp.' + str(limitResolved)
         else:
             messageHash = 'market.' + marketId + '.depth.size_' + str(limitResolved) + '.high_freq'
         url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
         method = self.handle_order_book_subscription
         paramsExtended = params
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             paramsExtended = self.extend(params, {'data_type': 'incremental'})
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             method = None
         orderbook = await self.subscribe_public(url, symbolValue, messageHash, method, paramsExtended)
         return orderbook.limit()
@@ -488,11 +488,11 @@ class htx(ccxt.async_support.htx):
         depth = self.parse_to_int(self.safe_integer(options, 'depth', 150))
         marketId = self.safe_string(market, 'id', '')
         subMessageHash = ''
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             subMessageHash = 'market.' + marketId + '.mbp.' + str(depth)
         else:
             subMessageHash = 'market.' + marketId + '.depth.size_' + str(depth) + '.high_freq'
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             params['data_type'] = 'incremental'
         return await self.unsubscribe_public(market, subMessageHash, topic, params)
 
@@ -796,7 +796,7 @@ class htx(ccxt.async_support.htx):
             orderbook = self.orderbooks[symbol]
             orderbook['nonce'] = None
             orderbook.cache = []
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             self.spawn(self.watch_order_book_snapshot, client, message, subscription)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -824,7 +824,7 @@ class htx(ccxt.async_support.htx):
         if symbol is not None:
             market = self.market(symbol)
             type = self.safe_string(market, 'type')
-            if market['linear'] is True:
+            if self.safe_bool(market, 'linear', False):
                 subType = 'linear'
             else:
                 subType = 'inverse'
@@ -948,7 +948,7 @@ class htx(ccxt.async_support.htx):
         if symbol is not None:
             market = self.market(symbol)
             type = self.safe_string(market, 'type')
-            if market['linear'] is True:
+            if self.safe_bool(market, 'linear', False):
                 subType = 'linear'
             else:
                 subType = 'inverse'
@@ -1533,7 +1533,7 @@ class htx(ccxt.async_support.htx):
         paramsSubType = {}
         if market is not None:
             type = self.safe_string(market, 'type')
-            if market['linear'] is True:
+            if self.safe_bool(market, 'linear', False):
                 subType = 'linear'
             else:
                 subType = 'inverse'

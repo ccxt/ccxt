@@ -560,7 +560,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             if parsed is None:
                 raise ExchangeError(self.id + ' parseEvent() could not resolve parsed market')
             marketsList.append(parsed)
-            if parsed['active'] is True:
+            if self.safe_bool(parsed, 'active', False):
                 anyActive = True
             if teamOneName is None:
                 teamOneName = self.safe_string(raw, 'teamOneName')
@@ -1625,7 +1625,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(settlement, 'settleDate'))
         settlePrice = None
         if won is not None:
-            settlePrice = 1 if (won is True) else 0
+            settlePrice = 1 if won else 0
         return {
             'info': trade,
             'id': self.safe_string(trade, 'tradeId'),
@@ -2211,21 +2211,21 @@ class sxbet(PredictionExchange, ImplicitAPI):
         client = self.client(url)
         channel = 'best_odds_v3:global'
         hydrated = False
-        if self.safe_value(self.tickers, sym) is None:
+        if self.safe_dict(self.safe_dict(self.options, 'wsTickers', {}), sym) is None:
             # hydrate from the REST snapshot so the first call does not hang until the
             # market's next top-of-book change - the channel is global, so the seed must fire
             # for every newly watched market, not only on a fresh subscription
             snapshot = await self.fetch_sxbet_book_snapshot(marketHash)
             raw = self.parse_sxbet_snapshot_best_odds(snapshot)
             ticker = self.parse_prediction_ticker(raw, outcomeObj)
-            self.tickers[sym] = ticker
+            self.set_ws_option('wsTickers', sym, ticker)
             hydrated = True
         requestId = self.request_id(url)
         self.register_sxbet_ws_request(requestId, messageHash, channel)
         subscribeMsg = {'subscribe': {'channel': channel}, 'id': requestId}
         future = self.watch(url, messageHash, subscribeMsg, channel)
         if hydrated:
-            client.resolve(self.safe_value(self.tickers, sym), messageHash)
+            client.resolve(self.safe_dict(self.safe_dict(self.options, 'wsTickers', {}), sym), messageHash)
         tickerResult = await future
         return tickerResult
 
@@ -2261,7 +2261,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
                     continue
                 outcomeObj = self.outcome(sym)
                 ticker = self.parse_prediction_ticker(raw, outcomeObj)
-                self.tickers[sym] = ticker
+                self.set_ws_option('wsTickers', sym, ticker)
                 client.resolve(ticker, 'ticker::' + sym)
 
     async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:

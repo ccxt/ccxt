@@ -976,10 +976,10 @@ class latoken(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
         costString = self.safe_string(trade, 'cost')
-        makerBuyer = self.safe_bool(trade, 'makerBuyer')
+        makerBuyer = self.safe_bool(trade, 'makerBuyer', False)
         side = self.safe_string(trade, 'direction')
         if side is None:
-            side = 'sell' if (makerBuyer is True) else 'buy'
+            side = 'sell' if makerBuyer else 'buy'
         else:
             if side == 'TRADE_DIRECTION_BUY':
                 side = 'buy'

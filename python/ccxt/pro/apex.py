@@ -1034,10 +1034,10 @@ class apex(ccxt.async_support.apex):
         #        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         #    }
         #
-        success = self.safe_bool(message, 'success')
+        success = self.safe_bool(message, 'success', False)
         code = self.safe_integer(message, 'retCode')
         messageHash = 'authenticated'
-        if (success is True) or (code == 0):
+        if success or (code == 0):
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
         else:

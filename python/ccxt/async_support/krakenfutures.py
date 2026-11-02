@@ -774,9 +774,9 @@ class krakenfutures(Exchange, ImplicitAPI):
         baseVolume = None
         isIndex = self.safe_bool(marketResolved, 'index', False)
         if not isIndex:
-            if marketResolved['linear'] is True:
+            if self.safe_bool(marketResolved, 'linear', False):
                 baseVolume = volume
-            elif marketResolved['inverse'] is True:
+            elif self.safe_bool(marketResolved, 'inverse', False):
                 baseVolume = Precise.string_div(quoteVolume, vwap)
         high = self.safe_string(ticker, 'high24h')
         low = self.safe_string(ticker, 'low24h')
@@ -1199,9 +1199,9 @@ class krakenfutures(Exchange, ImplicitAPI):
         type = self.parse_order_type(rawType)  # undefined stays undefined
         marketResolved = self.safe_market(marketId, market)
         cost = None
-        linear = self.safe_bool(marketResolved, 'linear')
+        linear = self.safe_bool(marketResolved, 'linear', False)
         if (amount is not None) and (price is not None) and (marketResolved is not None):
-            if linear is True:
+            if linear:
                 cost = Precise.string_mul(amount, price)  # in quote
             else:
                 cost = Precise.string_div(amount, price)  # in base
@@ -1245,7 +1245,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': amount if (linear is True) else None,
+            'amount': amount if linear else None,
             'cost': cost,
             'fee': fee,
         })
@@ -1284,7 +1284,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         triggerSignal = self.safe_string(paramsPostOnly, 'triggerSignal', 'last')
-        reduceOnlyParam = self.safe_bool(paramsPostOnly, 'reduceOnly')
+        reduceOnlyParam = self.safe_bool(paramsPostOnly, 'reduceOnly', False)
         reduceOnly = (reduceOnlyParam is True)
         if isStopLossOrTakeProfitTrigger or isTriggerOrder:
             request['triggerSignal'] = triggerSignal
@@ -2322,7 +2322,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             if average is not None:
                 whichPrice = average
             if whichPrice is not None:
-                if marketResolved['linear'] is True:
+                if self.safe_bool(marketResolved, 'linear', False):
                     cost = Precise.string_mul(filled, whichPrice)  # in quote
                 else:
                     cost = Precise.string_div(filled, whichPrice)  # in base
@@ -3005,7 +3005,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         request = {
             'symbol': self.safe_string_upper(market, 'id'),
@@ -3433,7 +3433,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             marketId = self.safe_string(market, 'id', '')
             splitId = marketId.split('_')
             splitMarketId = self.safe_string(splitId, 1, '')
-            if market['inverse'] is True:
+            if self.safe_bool(market, 'inverse', False):
                 return 'fi_' + splitMarketId
             else:
                 return 'fv_' + splitMarketId

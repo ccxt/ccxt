@@ -585,7 +585,7 @@ class backpack(Exchange, ImplicitAPI):
         currencies = {}
         for i in range(0, len(response)):
             currency = self.parse_currency(self.safe_dict(response, i, {}))
-            if (stock is not True) or (self.safe_string(currency, 'type') == 'stock'):
+            if not stock or (self.safe_string(currency, 'type') == 'stock'):
                 currencies[currency['code']] = currency
         return currencies
 
@@ -708,7 +708,7 @@ class backpack(Exchange, ImplicitAPI):
                 if (marketId is None) or (marketId in marketIds):
                     continue
                 marketIds[marketId] = True
-                if (stock is not True) or self.safe_bool(market, 'stock', False):
+                if not stock or self.safe_bool(market, 'stock', False):
                     markets.append(market)
         if includeRfq:
             for i in range(0, len(securities)):
@@ -1587,7 +1587,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             raise BadRequest(self.id + ' fetchFundingRate() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],
@@ -1644,7 +1644,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             raise BadRequest(self.id + ' fetchOpenInterest() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],

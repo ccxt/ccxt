@@ -307,7 +307,7 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' watchTicker() is only supported for swap markets')
         request = {
             'channel': 'market_stats/' + self.safe_string(market, 'id', ''),
@@ -329,7 +329,7 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' unWatchTicker() is only supported for swap markets')
         request = {
             'channel': 'market_stats/' + self.safe_string(market, 'id', ''),
@@ -352,7 +352,7 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True)
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
-        if (firstMarket is not None) and (firstMarket['swap'] is not True):
+        if (firstMarket is not None) and (not self.safe_bool(firstMarket, 'swap', False)):
             raise NotSupported(self.id + ' watchTickers() is only supported for swap markets')
         request = {
             'channel': 'market_stats/all',
@@ -390,7 +390,7 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True)
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
-        if (firstMarket is not None) and (firstMarket['swap'] is not True):
+        if (firstMarket is not None) and (not self.safe_bool(firstMarket, 'swap', False)):
             raise NotSupported(self.id + ' unWatchTickers() is only supported for swap markets')
         request = {
             'channel': 'market_stats/all',
@@ -480,9 +480,9 @@ class lighter(ccxt.async_support.lighter):
         tradeId = self.safe_string(trade, 'trade_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
+        isMakerAsk = self.safe_bool(trade, 'is_maker_ask', False)
         side = 'sell'
-        if isMakerAsk is True:
+        if isMakerAsk:
             side = 'buy'
         return self.safe_trade({
             'info': trade,
@@ -636,7 +636,7 @@ class lighter(ccxt.async_support.lighter):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         costString = self.safe_string(trade, 'usd_amount')
-        isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
+        isMakerAsk = self.safe_bool(trade, 'is_maker_ask', False)
         accountIndex = self.safe_integer(trade, 'accountIndex')
         bidAccountId = self.safe_integer(trade, 'bid_account_id')
         askAccountId = self.safe_integer(trade, 'ask_account_id')
@@ -648,14 +648,14 @@ class lighter(ccxt.async_support.lighter):
                 # Own trades should use the account's order side
                 side = 'buy'
                 order = self.safe_string(trade, 'bid_id')
-                takerOrMaker = 'taker' if (isMakerAsk is True) else 'maker'
+                takerOrMaker = 'taker' if isMakerAsk else 'maker'
             elif askAccountId == accountIndex:
                 side = 'sell'
                 order = self.safe_string(trade, 'ask_id')
-                takerOrMaker = 'maker' if (isMakerAsk is True) else 'taker'
+                takerOrMaker = 'maker' if isMakerAsk else 'taker'
         # public trades use Lighter's taker-side convention
         if side is None:
-            side = 'buy' if (isMakerAsk is True) else 'sell'
+            side = 'buy' if isMakerAsk else 'sell'
         fee = None
         if takerOrMaker is not None:
             feeRateRaw = None
@@ -833,9 +833,9 @@ class lighter(ccxt.async_support.lighter):
         #     }
         #
         timestamp = self.safe_integer(liquidation, 'timestamp')
-        isMakerAsk = self.safe_bool(liquidation, 'is_maker_ask')
+        isMakerAsk = self.safe_bool(liquidation, 'is_maker_ask', False)
         side = 'sell'
-        if isMakerAsk is True:
+        if isMakerAsk:
             side = 'buy'
         contracts = self.safe_string(liquidation, 'size')
         contractSize = self.safe_string(market, 'contractSize')

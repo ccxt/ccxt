@@ -236,10 +236,10 @@ class onetrading(ccxt.async_support.onetrading):
             marketId = self.safe_string(ticker, 'instrument')
             symbol = self.safe_symbol(marketId)
             parsedTicker = self.parse_ws_ticker(ticker)
-            self.tickers[symbol] = parsedTicker
             timestamp = self.parse8601(datetime)
             parsedTicker['timestamp'] = timestamp
             parsedTicker['datetime'] = self.iso8601(timestamp)
+            self.tickers[symbol] = parsedTicker
             client.resolve(parsedTicker, 'ticker.' + symbol)
         client.resolve(self.tickers, 'tickers')
 

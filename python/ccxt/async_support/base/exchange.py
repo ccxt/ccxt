@@ -1296,7 +1296,7 @@ class BaseExchange(SyncExchange):
     async def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}):
         if self.has['fetchLeverageTiers'] is not None and self.has['fetchLeverageTiers'] is not False:
             market = self.market(symbol)
-            if market['contract'] is not True:
+            if not self.safe_bool(market, 'contract', False):
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
             marketTiers = self.safe_list(tiers, symbol)
@@ -1324,7 +1324,7 @@ class BaseExchange(SyncExchange):
             await self.load_markets()
             market = self.market(symbol)
             symbolResolved = market['symbol']
-            if market['contract'] is not True:
+            if not self.safe_bool(market, 'contract', False):
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = await self.fetch_funding_rates([symbolResolved], params)
             rate = self.safe_dict(rates, symbolResolved)
@@ -1340,7 +1340,7 @@ class BaseExchange(SyncExchange):
             await self.load_markets()
             market = self.market(symbol)
             symbolResolved = market['symbol']
-            if market['contract'] is not True:
+            if not self.safe_bool(market, 'contract', False):
                 raise BadSymbol(self.id + ' fetchFundingInterval() supports contract markets only')
             rates = await self.fetch_funding_intervals([symbolResolved], params)
             rate = self.safe_dict(rates, symbolResolved)

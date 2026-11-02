@@ -949,7 +949,7 @@ class btse(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports contract markets only')
         period = None
         paramsPeriod = None
@@ -1201,7 +1201,7 @@ class btse(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
         result = await self.fetch_leverage_tiers([symbol], params)
         tiers = self.safe_list(result, symbol)
@@ -1287,7 +1287,7 @@ class btse(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         last = self.safe_string(ticker, 'lastPrice')
         baseVolume = self.safe_string(ticker, 'amount')
-        if (baseVolume is not None) and (marketResolved is not None) and (marketResolved['contract'] is True):
+        if (baseVolume is not None) and (marketResolved is not None) and (self.safe_bool(marketResolved, 'contract', False)):
             # for contract markets the amount field is denominated in contracts, verified live -
             # scaling by contractSize converts it into base currency units
             contractSizeString = self.number_to_string(marketResolved['contractSize'])
@@ -1333,7 +1333,7 @@ class btse(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             raise BadRequest(self.id + ' fetchOpenInterest() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],
@@ -1393,7 +1393,7 @@ class btse(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             raise BadRequest(self.id + ' fetchFundingRate() symbol does not support spot markets')
         request = {
             'symbol': market['id'],
@@ -1810,7 +1810,7 @@ class btse(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             return await self.create_spot_order(symbol, type, side, amount, price, params)
         else:
             return await self.create_contract_order(symbol, type, side, amount, price, params)
@@ -2277,7 +2277,7 @@ class btse(Exchange, ImplicitAPI):
         if (amount is None) and (price is None) and (triggerPrice is None) and (not isSlide):
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter')
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             request['symbol'] = market['id']
             response = await self.privatePutSpotApiV4TradeOrders(self.extend(request, query))
         else:
@@ -2325,7 +2325,7 @@ class btse(Exchange, ImplicitAPI):
             request['orderId'] = id
         paramsOmitted = self.omit(params, 'clientOrderId') if (clientOrderId is not None) else params
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             request['symbol'] = market['id']
             response = await self.privateDeleteSpotApiV4TradeOrders(self.extend(request, paramsOmitted))
         else:
@@ -3013,7 +3013,7 @@ class btse(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = await self.privateGetSpotApiV4TradeFees(self.extend(request, params))
         else:
             # the futures fees stay on the legacy endpoint, the unified futures
@@ -3302,13 +3302,13 @@ class btse(Exchange, ImplicitAPI):
         positionMode = 'ONE_WAY'
         if (marginModeValue != 'cross') and (marginModeValue != 'isolated'):
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be either cross or isolated')
-        hedged = self.safe_bool(params, 'hedged')
+        hedged = self.safe_bool(params, 'hedged', False)
         if marginModeValue == 'cross':
             if not ('hedged' in params):
                 raise ArgumentsRequired(self.id + ' setMarginMode() requires a hedged parameter for cross margin mode')
-            elif hedged is True:
+            elif hedged:
                 positionMode = 'HEDGE'
-        elif ('hedged' in params) and (hedged is not True):
+        elif ('hedged' in params) and not hedged:
             raise BadRequest(self.id + ' setMarginMode() hedged parameter cannot be False for isolated margin mode')
         else:
             positionMode = 'ISOLATED'

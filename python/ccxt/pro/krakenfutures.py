@@ -778,8 +778,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 client.resolve(orders, messageHash + ':' + symbol)
                 client.resolve(orders, messageHash)
         else:
-            isCancel = self.safe_bool(message, 'is_cancel')
-            if isCancel is True:
+            isCancel = self.safe_bool(message, 'is_cancel', False)
+            if isCancel:
                 # Kraken documents is_cancel as "fully filled, cancelled, or
                 # rejected". Derive unified status from `reason` instead of
                 # mapping every removal to canceled. Preserve reason on info
@@ -1412,10 +1412,11 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 newAccount['free'] = self.safe_string(future, 'available')
                 newAccount['used'] = self.safe_string(future, 'initial_margin')
                 newAccount['total'] = self.safe_string(future, 'balance')
-                self.balance['margin'][symbol] = {}
+                symbolAccounts = {}
                 if (symbol is not None) and (code is not None):
                     futuresSymbols[symbol] = True
-                    self.balance['margin'][symbol][code] = newAccount
+                    symbolAccounts[code] = newAccount
+                self.balance['margin'][symbol] = symbolAccounts
             self.balance['margin'] = self.prune_stale_balance_keys(self.balance['margin'], futuresSymbols)
             self.balance['margin'] = self.safe_balance(self.balance['margin'])
             client.resolve(self.balance['margin'], messageHash + ':futures')
@@ -1537,7 +1538,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         timestamp = self.safe_integer(trade, 'time')
         marketId = self.safe_string(trade, 'instrument')
         marketResolved = self.safe_market(marketId, market)
-        isBuy = self.safe_bool(trade, 'buy')
+        isBuy = self.safe_bool(trade, 'buy', False)
         feeCurrencyId = self.safe_string(trade, 'fee_currency')
         return self.safe_trade({
             'info': trade,
@@ -1547,7 +1548,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'symbol': self.safe_string(marketResolved, 'symbol'),
             'order': self.safe_string(trade, 'order_id'),
             'type': self.safe_string(trade, 'type'),
-            'side': 'buy' if (isBuy is True) else 'sell',
+            'side': 'buy' if isBuy else 'sell',
             'takerOrMaker': self.safe_string(trade, 'fill_type'),
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string(trade, 'qty'),

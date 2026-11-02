@@ -968,7 +968,7 @@ class derive(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'instrument_name': market['id'],
@@ -1012,7 +1012,7 @@ class derive(Exchange, ImplicitAPI):
         value = None
         isOption = self.safe_bool(market, 'option', False)
         # for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if (market is not None) and (isOption is not True):
+        if (market is not None) and not isOption:
             value = Precise.string_mul(amount, self.safe_string(interest, 'M'))
         return self.safe_open_interest({
             'symbol': self.safe_symbol(None, market),
@@ -1036,7 +1036,7 @@ class derive(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['option'] is not True:
+        if not self.safe_bool(market, 'option', False):
             raise BadRequest(self.id + ' fetchGreeks() supports option markets only')
         request = {
             'instrument_name': market['id'],
@@ -1123,7 +1123,7 @@ class derive(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['option'] is not True:
+        if not self.safe_bool(market, 'option', False):
             raise BadRequest(self.id + ' fetchOption() supports option markets only')
         request = {
             'instrument_name': market['id'],
@@ -2677,10 +2677,10 @@ class derive(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'filled_amount')
         fee = self.safe_string(order, 'order_fee')
         orderType = self.safe_string_lower(order, 'order_type')
-        isBid = self.safe_bool(order, 'is_bid')
+        isBid = self.safe_bool(order, 'is_bid', False)
         side = self.safe_string(order, 'direction')
         if side is None:
-            if isBid is True:
+            if isBid:
                 side = 'buy'
             else:
                 side = 'sell'

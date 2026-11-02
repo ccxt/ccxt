@@ -1443,8 +1443,8 @@ class woo(ccxt.async_support.woo):
         #
         if not ('success' in message):
             return False
-        success = self.safe_bool(message, 'success')
-        if success is True:
+        success = self.safe_bool(message, 'success', False)
+        if success:
             return False
         errorMessage = self.safe_string(message, 'errorMsg')
         try:
@@ -1575,8 +1575,8 @@ class woo(ccxt.async_support.woo):
         #     }
         #
         messageHash = 'authenticated'
-        success = self.safe_bool(message, 'success')
-        if success is True:
+        success = self.safe_bool(message, 'success', False)
+        if success:
             # client.resolve (message, messageHash);
             future = self.safe_value(client.futures, 'authenticated')
             future.resolve(True)

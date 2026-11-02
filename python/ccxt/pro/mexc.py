@@ -101,7 +101,7 @@ class mexc(ccxt.async_support.mexc):
             await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
             return await self.watch_spot_public(channel, messageHash, params)
         else:
@@ -185,7 +185,7 @@ class mexc(ccxt.async_support.mexc):
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol', '')
         ticker: Ticker
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             self.handle_bid_ask(client, message)  # the bids-asks channel is spot only
             ticker = self.parse_ws_ticker(rawTicker, market)
             ticker['timestamp'] = timestamp
@@ -583,7 +583,7 @@ class mexc(ccxt.async_support.mexc):
         timeframeId = self.safe_string(timeframes, timeframe)
         messageHash = 'candles:' + symbolValue + ':' + timeframe
         ohlcv = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             channel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + timeframeId
             ohlcv = await self.watch_spot_public(channel, messageHash, params)
         else:
@@ -771,7 +771,7 @@ class mexc(ccxt.async_support.mexc):
         market = self.market(symbol)
         messageHash = 'orderbook:' + self.safe_string(market, 'symbol', '')
         orderbook = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             frequency, paramsFrequency = self.handle_option_string_and_params(params, 'watchOrderBook', 'frequency', '100ms')
             channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + self.safe_string(market, 'id', '')
             orderbook = await self.watch_spot_public(channel, messageHash, paramsFrequency)
@@ -969,7 +969,7 @@ class mexc(ccxt.async_support.mexc):
         symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trades:' + symbolValue
         trades = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
             trades = await self.watch_spot_public(channel, messageHash, params)
         else:
@@ -1050,7 +1050,7 @@ class mexc(ccxt.async_support.mexc):
             trades = self.safe_list(message, 'data', [])
         for j in range(0, len(trades)):
             parsedTrade: Trade
-            if market['spot'] is True:
+            if self.safe_bool(market, 'spot', False):
                 parsedTrade = self.parse_ws_trade(trades[j], market)
             else:
                 parsedTrade = self.parse_trade(trades[j], market)
@@ -1134,7 +1134,7 @@ class mexc(ccxt.async_support.mexc):
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol', '')
         trade: Trade
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             trade = self.parse_ws_trade(data, market)
         elif data is not None:
             trade = self.parse_trade(data, market)
@@ -1349,7 +1349,7 @@ class mexc(ccxt.async_support.mexc):
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol', '')
         parsed: Order
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             parsed = self.parse_ws_order(data, market)
             sendTime = self.safe_integer(message, 'sendTime')
             if sendTime is not None:
@@ -1669,7 +1669,7 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'unsubscribe:ticker:' + market['symbol']
         url = None
         channel = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
             url = self.urls['api']['ws']['spot']
             params['unsubscribed'] = True
@@ -1791,7 +1791,7 @@ class mexc(ccxt.async_support.mexc):
         timeframeId = self.safe_string(timeframes, timeframe)
         messageHash = 'unsubscribe:candles:' + self.safe_string(market, 'symbol', '') + ':' + timeframe
         url = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             url = self.urls['api']['ws']['spot']
             channel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + timeframeId
             params['unsubscribed'] = True
@@ -1821,7 +1821,7 @@ class mexc(ccxt.async_support.mexc):
         market = self.market(symbol)
         messageHash = 'unsubscribe:orderbook:' + self.safe_string(market, 'symbol', '')
         url = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             url = self.urls['api']['ws']['spot']
             frequency, paramsFrequency = self.handle_option_string_and_params(params, 'watchOrderBook', 'frequency', '100ms')
             channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + self.safe_string(market, 'id', '')
@@ -1851,7 +1851,7 @@ class mexc(ccxt.async_support.mexc):
         market = self.market(symbol)
         messageHash = 'unsubscribe:trades:' + self.safe_string(market, 'symbol', '')
         url = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             url = self.urls['api']['ws']['spot']
             channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
             params['unsubscribed'] = True
@@ -1961,7 +1961,7 @@ class mexc(ccxt.async_support.mexc):
             client = self.client(url)
             self.options['listenKey'] = None
             client.reject(error)
-            del self.clients[url]
+            del self.clients[client.url]
 
     def handle_pong(self, client: Client, message: dict) -> dict:
         client.lastPong = self.milliseconds()

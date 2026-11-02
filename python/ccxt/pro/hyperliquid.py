@@ -239,7 +239,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['baseName'] if (market['swap'] is True) else market['id'],
+                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -271,7 +271,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['baseName'] if (market['swap'] is True) else market['id'],
+                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -350,7 +350,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 # always 'activeAssetCtx', the server routes spot coins to the spot channel,
                 # see https://github.com/ccxt/ccxt/issues/27475
                 'type': 'activeAssetCtx',
-                'coin': market['baseName'] if (market['swap'] is True) else market['id'],
+                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
             },
         }
         await self.wait_for_pending_unsubscribe(url, messageHash)
@@ -377,7 +377,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'activeAssetCtx',
-                'coin': market['baseName'] if (market['swap'] is True) else market['id'],
+                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
             },
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
@@ -766,7 +766,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['baseName'] if (market['swap'] is True) else market['id'],
+                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -798,7 +798,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['baseName'] if (market['swap'] is True) else market['id'],
+                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -926,7 +926,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['baseName'] if (market['swap'] is True) else market['id'],
+                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
                 'interval': timeframe,
             },
         }
@@ -959,7 +959,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['baseName'] if (market['swap'] is True) else market['id'],
+                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
                 'interval': timeframe,
             },
         }
@@ -1035,7 +1035,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         paramsValue = self.safe_dict(self.handlePublicAddress('watchBalance', params), 1, params)
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, paramsValue)
         unifiedResult = await self.isUnifiedEnabled('watchBalance', userAddress, False, paramsMarketType)
-        isUnifiedEnabled = self.safe_bool(unifiedResult, 0)
+        isUnifiedEnabled = self.safe_bool(unifiedResult, 0, False)
         paramsValue2 = self.safe_dict(unifiedResult, 1, paramsMarketType)
         dex = self.safe_string(paramsValue2, 'dex')
         isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
@@ -1049,7 +1049,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'user': userAddress,
         }
         if isSpot:
-            if isUnifiedEnabled is True:
+            if isUnifiedEnabled:
                 subscription['isPortfolioMargin'] = True
         else:
             if dex is not None:
@@ -1081,7 +1081,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         paramsValue = self.safe_dict(self.handlePublicAddress('unWatchBalance', params), 1, params)
         type, paramsMarketType = self.handle_market_type_and_params('unWatchBalance', None, paramsValue)
         unifiedResult = await self.isUnifiedEnabled('unWatchBalance', userAddress, False, paramsMarketType)
-        isUnifiedEnabled = self.safe_bool(unifiedResult, 0)
+        isUnifiedEnabled = self.safe_bool(unifiedResult, 0, False)
         paramsValue2 = self.safe_dict(unifiedResult, 1, paramsMarketType)
         dex = self.safe_string(paramsValue2, 'dex')
         isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)

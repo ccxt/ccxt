@@ -1385,7 +1385,7 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise NotSupported(self.id + ' fetchMarkPrice() supports contract markets only')
         priceType, paramsPriceType = self.handle_option_string_and_params(params, 'fetchMarkPrice', 'priceType', 'MARK')  # the endpoint defaults to INDEX
         request = {
@@ -1460,7 +1460,7 @@ class weex(Exchange, ImplicitAPI):
         if (limit is not None) and (limit > 15):
             request['limit'] = 200  # default is 15, max is 200
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = self.publicGetApiV3MarketDepth(self.extend(request, params))
         else:
             response = self.contractGetCapiV3MarketDepth(self.extend(request, params))
@@ -1506,7 +1506,7 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             return self.fetch_spot_ohlcv(symbol, timeframe, since, limit, params)
         else:
             return self.fetch_contract_ohlcv(symbol, timeframe, since, limit, params)
@@ -1656,7 +1656,7 @@ class weex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 1000)
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = self.publicGetApiV3MarketTrades(self.extend(request, params))
         else:
             response = self.contractGetCapiV3MarketTrades(self.extend(request, params))
@@ -2112,7 +2112,7 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             return self.create_contract_order(symbol, type, side, amount, price, params)
         else:
             sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
@@ -2253,7 +2253,7 @@ class weex(Exchange, ImplicitAPI):
         isTakeProfit = (takeProfitPrice is not None)
         if isTrigger and (isStopLoss or isTakeProfit):
             raise BadRequest(self.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters')
-        reduceOnly = self.safe_bool(query, 'reduceOnly')
+        reduceOnly = self.safe_bool(query, 'reduceOnly', False)
         isReduceOnly = isStopLoss or isTakeProfit or (reduceOnly is True)
         positionSide = 'LONG'
         if isReduceOnly:
@@ -2768,7 +2768,7 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' fetchOrders() supports spot markets only')
         maxLimit = 1000
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
@@ -3353,7 +3353,7 @@ class weex(Exchange, ImplicitAPI):
         }
         if symbol is not None:
             market = self.market(symbol)
-            if market['swap'] is not True:
+            if not self.safe_bool(market, 'swap', False):
                 raise NotSupported(self.id + ' fetchFundingHistory() supports swap contracts only')
             request['symbol'] = market['id']
         if since is not None:
@@ -3661,7 +3661,7 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             # spot markets return 0 for fees
             raise NotSupported(self.id + ' fetchTradingFee() is not supported for spot markets')
         request = {

@@ -1191,7 +1191,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'type': 'l2Book',
-            'coin': self.safe_string(market, 'baseName') if (market['swap'] is True) else market['id'],
+            'coin': self.safe_string(market, 'baseName') if (self.safe_bool(market, 'swap', False)) else market['id'],
         }
         response = self.publicPostInfo(self.extend(request, params))
         #
@@ -1471,7 +1471,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': self.safe_string(market, 'baseName') if (market['swap'] is True) else market['id'],
+                'coin': self.safe_string(market, 'baseName') if (self.safe_bool(market, 'swap', False)) else market['id'],
                 'interval': self.safe_string(self.timeframes, timeframe, timeframe),
                 'startTime': startTime,
                 'endTime': until,
@@ -1603,7 +1603,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         significantDigits = max(5, len(integerPart))
         result = self.decimal_to_precision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, self.paddingMode)
         maxDecimals = 6
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             maxDecimals = 8
         subtractedValue = maxDecimals - self.precision_from_string(self.safe_string(market['precision'], 'amount'))
         return self.decimal_to_precision(result, ROUND, subtractedValue, DECIMAL_PLACES, self.paddingMode)
@@ -4007,7 +4007,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         self.check_required_credentials()
         if self.markets is None:
             self.load_markets()
-        isSandboxMode = self.safe_bool(self.options, 'sandboxMode')
+        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         nonce = self.incrementing_nonce()
         if self.in_array(fromAccount, ['spot', 'swap', 'perp']):
             # handle swap <> spot account transfer
@@ -4020,7 +4020,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             strAmountFinal = strAmount  # java req
             toPerp = (toAccount == 'perp') or (toAccount == 'swap')
             transferPayload = {
-                'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
+                'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
                 'amount': strAmountFinal,
                 'toPerp': toPerp,
                 'nonce': nonce,
@@ -4082,7 +4082,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             sourceDex = self.safe_string(paramsSendAsset, 'sourceDex', defaultDex)
             destinationDex = self.safe_string(paramsSendAsset, 'destinationDex', defaultDex)
             sendAssetPayload = {
-                'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
+                'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
                 'destination': subAccountAddress if (isDeposit) else masterAddress,
                 'sourceDex': sourceDex,
                 'destinationDex': destinationDex,

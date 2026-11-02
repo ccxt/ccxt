@@ -724,7 +724,7 @@ class onetrading(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            tierObject = firstSpotTier if (market['spot'] is True) else firstFuturesTier
+            tierObject = firstSpotTier if (self.safe_bool(market, 'spot', False)) else firstFuturesTier
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -789,8 +789,8 @@ class onetrading(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            makerFee = spotMakerFee if (market['spot'] is True) else futuresMakerFee
-            takerFee = spotTakerFee if (market['spot'] is True) else futuresTakerFee
+            makerFee = spotMakerFee if (self.safe_bool(market, 'spot', False)) else futuresMakerFee
+            takerFee = spotTakerFee if (self.safe_bool(market, 'spot', False)) else futuresTakerFee
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

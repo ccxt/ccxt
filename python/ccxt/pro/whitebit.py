@@ -203,7 +203,7 @@ class whitebit(ccxt.async_support.whitebit):
         #  }
         #
         params = self.safe_list(message, 'params', [])
-        isSnapshot = self.safe_bool(params, 0)
+        isSnapshot = self.safe_bool(params, 0, False)
         marketId = self.safe_string(params, 2)
         market = self.safe_market(marketId)
         symbol = market['symbol']
@@ -215,7 +215,7 @@ class whitebit(ccxt.async_support.whitebit):
         orderbook = self.orderbooks[symbol]
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
-        if isSnapshot is True:
+        if isSnapshot:
             snapshot = self.parse_order_book(data, symbol)
             orderbook.reset(snapshot)
         else:

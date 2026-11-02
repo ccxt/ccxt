@@ -1519,7 +1519,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = self.spotPublicGetDepth(self.extend(request, params))
             #
             #     {
@@ -1538,7 +1538,7 @@ class mexc(Exchange, ImplicitAPI):
             spotOrderbook = self.parse_order_book(response, symbol, spotTimestamp)
             spotOrderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
             return spotOrderbook
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             response = self.contractPublicGetDepthSymbol(self.extend(request, params))
             #
             #     {
@@ -1598,7 +1598,7 @@ class mexc(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         trades = []
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             until = self.safe_integer_2(params, 'endTime', 'until')
             if since is not None:
                 request['startTime'] = since
@@ -1649,7 +1649,7 @@ class mexc(Exchange, ImplicitAPI):
             #         },
             #     ]
             #
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             response = self.contractPublicGetDealsSymbol(self.extend(request, params))
             #
             #     {
@@ -1831,7 +1831,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        maxLimit = 500 if (market['spot'] is True) else 2000  # docs say 1000 for spot, but in practice it's 500
+        maxLimit = 500 if (self.safe_bool(market, 'spot', False)) else 2000  # docs say 1000 for spot, but in practice it's 500
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
@@ -1849,7 +1849,7 @@ class mexc(Exchange, ImplicitAPI):
         paramsUntil = paramsPaginate
         if omitUntil:
             paramsUntil = self.omit(paramsPaginate, ['until'])
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             if since is not None:
                 request['startTime'] = since
             if (since is not None) and (until is None):
@@ -1884,7 +1884,7 @@ class mexc(Exchange, ImplicitAPI):
             #     ]
             #
             candles = self.to_array(response)
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             if since is not None:
                 request['start'] = self.parse_to_int(since / 1000)
             if until is not None:
@@ -2113,9 +2113,9 @@ class mexc(Exchange, ImplicitAPI):
         changePcnt = None
         changeValue = None
         prevClose = None
-        isSwap = self.safe_bool(marketResolved, 'swap')
+        isSwap = self.safe_bool(marketResolved, 'swap', False)
         # if swap
-        if (isSwap is True) or ('timestamp' in ticker):
+        if isSwap or ('timestamp' in ticker):
             #
             #     {
             #         "symbol": "ETH_USDT",
@@ -2143,10 +2143,10 @@ class mexc(Exchange, ImplicitAPI):
             baseVolume = self.safe_string(ticker, 'volume24')
             quoteVolume = self.safe_string(ticker, 'amount24')
             contractSize = self.safe_string(marketResolved, 'contractSize')
-            if (isSwap is True) and (contractSize is not None):
+            if isSwap and (contractSize is not None):
                 # volume24 counts contracts, amount24 is in the settle currency
                 contractVolume = Precise.string_mul(baseVolume, contractSize)
-                if marketResolved['inverse'] is True:
+                if self.safe_bool(marketResolved, 'inverse', False):
                     baseVolume = quoteVolume
                     quoteVolume = contractVolume
                 else:
@@ -2273,7 +2273,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
@@ -2294,7 +2294,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
@@ -2334,7 +2334,7 @@ class mexc(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             return self.create_spot_order(market, type, side, amount, price, marginMode, query)
         else:
             return self.create_swap_order(market, type, side, amount, price, marginMode, query)
@@ -2597,7 +2597,7 @@ class mexc(Exchange, ImplicitAPI):
             rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             market = self.market(marketId)
-            if market['spot'] is not True:
+            if not self.safe_bool(market, 'spot', False):
                 raise NotSupported(self.id + ' createOrders() is only supported for spot markets')
             if symbol is None:
                 symbol = marketId
@@ -2661,7 +2661,7 @@ class mexc(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         data = {}
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             clientOrderId = self.safe_string(params, 'clientOrderId')
             if clientOrderId is not None:
                 request['origClientOrderId'] = clientOrderId
@@ -2719,7 +2719,7 @@ class mexc(Exchange, ImplicitAPI):
             #         "updateTime": 1662153107000
             #     }
             #
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             request['order_id'] = id
             response = self.contractPrivateGetOrderGetOrderId(self.extend(request, params))
             #
@@ -3749,7 +3749,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' fetchTradingFee() supports spot markets only')
         request = {
             'symbol': market['id'],
@@ -5990,7 +5990,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' setMarginMode() supports contract markets only')
         marginModeLower = marginMode.lower()
         if marginModeLower != 'isolated' and marginModeLower != 'cross':

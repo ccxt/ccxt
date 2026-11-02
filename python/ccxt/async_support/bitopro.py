@@ -685,8 +685,8 @@ class bitopro(Exchange, ImplicitAPI):
         type = self.safe_string_lower(trade, 'type')
         side = self.safe_string_lower(trade, 'action')
         if side is None:
-            isBuyer = self.safe_bool(trade, 'isBuyer')
-            if isBuyer is True:
+            isBuyer = self.safe_bool(trade, 'isBuyer', False)
+            if isBuyer:
                 side = 'buy'
             else:
                 side = 'sell'

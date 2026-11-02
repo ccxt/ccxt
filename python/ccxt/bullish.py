@@ -1146,7 +1146,7 @@ class bullish(Exchange, ImplicitAPI):
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')
         side = self.safe_string_lower(trade, 'side')
-        isTaker = self.safe_bool(trade, 'isTaker')
+        isTaker = self.safe_bool(trade, 'isTaker', False)
         currency = self.safe_string(marketResolved, 'quote')
         code = self.safe_currency_code(currency)
         feeCost = self.safe_number(trade, 'quoteFee')
@@ -1154,7 +1154,7 @@ class bullish(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         takerOrMaker = None
-        if isTaker is True:
+        if isTaker:
             takerOrMaker = 'taker'
         else:
             takerOrMaker = 'maker'
@@ -1417,7 +1417,7 @@ class bullish(Exchange, ImplicitAPI):
             paramsPagination = self.handle_pagination_params('fetchFundingRateHistory', since, paramsPaginate)
             return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPagination, maxLimit)
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap markets only')
         request = {
             'symbol': market['id'],

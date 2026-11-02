@@ -384,7 +384,7 @@ class bybit(ccxt.async_support.bybit):
         paramsValue = self.clean_params(params)
         options = self.safe_dict(self.options, 'watchTicker', {})
         topic = self.safe_string(options, 'name', 'tickers')
-        if (market['spot'] is not True) and topic != 'tickers':
+        if (not self.safe_bool(market, 'spot', False)) and topic != 'tickers':
             raise BadRequest(self.id + ' watchTicker() only supports name tickers for contract markets')
         topics = [topic + '.' + self.safe_string(market, 'id', '')]
         return await self.watch_topics(url, [messageHash], topics, paramsValue)
@@ -876,7 +876,7 @@ class bybit(ccxt.async_support.bybit):
         url = await self.get_url_by_market_type(symbolsNormalized[0], False, 'watchOrderBook', params)
         paramsValue = self.clean_params(params)
         market = self.market(symbolsNormalized[0])
-        defaultLimit = 100 if (market['option'] is True) else 50
+        defaultLimit = 100 if (self.safe_bool(market, 'option', False)) else 50
         limitResolved = defaultLimit if (limit is None) else limit
         if limit is not None:
             limits = {
@@ -919,7 +919,7 @@ class bybit(ccxt.async_support.bybit):
         defaultLimit = 500
         if limitParam is None:
             firstMarket = self.market(symbolsNormalized[0])
-            defaultLimit = 50 if (firstMarket['spot'] is True) else 500
+            defaultLimit = 50 if (self.safe_bool(firstMarket, 'spot', False)) else 500
         limit = defaultLimit if (limitParam is None) else limitParam
         channel += str(limit)
         subMessageHashes = []
@@ -2529,10 +2529,10 @@ class bybit(ccxt.async_support.bybit):
         #        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         #    }
         #
-        success = self.safe_bool(message, 'success')
+        success = self.safe_bool(message, 'success', False)
         code = self.safe_integer(message, 'retCode')
         messageHash = 'authenticated'
-        if (success is True) or (code == 0):
+        if success or (code == 0):
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
         else:

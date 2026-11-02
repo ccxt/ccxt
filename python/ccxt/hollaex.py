@@ -1780,15 +1780,15 @@ class hollaex(Exchange, ImplicitAPI):
             tagTo = tag
         currencyId = self.safe_string(transaction, 'currency')
         currencyResolved = self.safe_currency(currencyId, currency)
-        completed = self.safe_bool(transaction, 'status')
-        dismissed = self.safe_bool(transaction, 'dismissed')
-        rejected = self.safe_bool(transaction, 'rejected')
+        completed = self.safe_bool(transaction, 'status', False)
+        dismissed = self.safe_bool(transaction, 'dismissed', False)
+        rejected = self.safe_bool(transaction, 'rejected', False)
         status = None
-        if completed is True:
+        if completed:
             status = 'ok'
-        elif dismissed is True:
+        elif dismissed:
             status = 'canceled'
-        elif rejected is True:
+        elif rejected:
             status = 'failed'
         else:
             status = 'pending'
@@ -1910,8 +1910,8 @@ class hollaex(Exchange, ImplicitAPI):
             },
         }
         networks = {}
-        allowWithdrawal = self.safe_bool(fee, 'allow_withdrawal')
-        if allowWithdrawal is True:
+        allowWithdrawal = self.safe_bool(fee, 'allow_withdrawal', False)
+        if allowWithdrawal:
             result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
         withdrawalFees = self.safe_dict(fee, 'withdrawal_fees')
         if withdrawalFees is not None:

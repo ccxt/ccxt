@@ -195,8 +195,9 @@ class backpack(ccxt.async_support.backpack):
                 client.resolve(True, messageHash)
         else:
             await self.watch_public(topics, messageHashes, payload)
-        tickers = self.bidsasks if (bidAsk) else self.tickers
-        return self.filter_by_array(tickers, 'symbol', symbolsResolved)
+        if bidAsk:
+            return self.filter_by_array(self.bidsasks, 'symbol', symbolsResolved)
+        return self.filter_by_array(self.tickers, 'symbol', symbolsResolved)
 
     async def watch_public(self, topics: list[str], messageHashes: list[str], params: dict = {}, unwatch: bool = False):
         if self.markets is None:

@@ -712,7 +712,7 @@ class bitget(ccxt.async_support.bitget):
         #
         volumeIndex = 5
         isInverse = self.safe_bool(market, 'inverse', False)
-        if isInverse is True:
+        if isInverse:
             volumeIndex = 6
         timestamp = self.safe_integer_2(ohlcv, 'start', 0)
         open = self.safe_number_2(ohlcv, 'open', 1)

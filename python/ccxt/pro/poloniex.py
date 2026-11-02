@@ -1420,9 +1420,9 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         data = self.safe_dict(message, 'data')
-        success = self.safe_bool(data, 'success')
+        success = self.safe_bool(data, 'success', False)
         messageHash = 'authenticated'
-        if success is True:
+        if success:
             client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))

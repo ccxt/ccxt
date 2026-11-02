@@ -318,7 +318,7 @@ class bitrue(ccxt.async_support.bitrue):
         url = None
         channel = None
         cbId = None
-        if market['swap'] is True:
+        if self.safe_bool(market, 'swap', False):
             baseIdLower = self.safe_string_lower(market, 'baseId', '')
             quoteIdLower = self.safe_string_lower(market, 'quoteId', '')
             wsId = 'e_' + baseIdLower + quoteIdLower
@@ -437,7 +437,7 @@ class bitrue(ccxt.async_support.bitrue):
         if rawQuantity is None:
             return None
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             return rawQuantity
         contractSize = self.safe_number(market, 'contractSize', 1)
         if contractSize is None:
@@ -460,7 +460,7 @@ class bitrue(ccxt.async_support.bitrue):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' watchTrades is only supported for swap markets')
         baseIdLower = self.safe_string_lower(market, 'baseId', '')
         quoteIdLower = self.safe_string_lower(market, 'quoteId', '')
@@ -566,7 +566,7 @@ class bitrue(ccxt.async_support.bitrue):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' watchOHLCV is only supported for swap markets')
         futuresTimeframes = self.safe_dict(self.options, 'futuresTimeframes', {})
         interval = self.safe_string(futuresTimeframes, timeframe)
@@ -662,7 +662,7 @@ class bitrue(ccxt.async_support.bitrue):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' watchTicker is only supported for swap markets')
         baseIdLower = self.safe_string_lower(market, 'baseId', '')
         quoteIdLower = self.safe_string_lower(market, 'quoteId', '')

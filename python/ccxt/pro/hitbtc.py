@@ -1352,9 +1352,9 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        "result": true
         #    }
         #
-        success = self.safe_bool(message, 'result')
+        success = self.safe_bool(message, 'result', False)
         messageHash = 'authenticated'
-        if success is True:
+        if success:
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
         else:

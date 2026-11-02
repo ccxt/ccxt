@@ -1038,7 +1038,7 @@ class bigone(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         response: dict
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             request = {
                 'symbol': market['id'],
             }
@@ -1259,7 +1259,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             raise NotSupported(self.id + ' fetchTrades () can only fetch trades for spot markets')
         request = {
             'asset_pair_name': market['id'],
@@ -1326,7 +1326,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             raise NotSupported(self.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets')
         until = self.safe_integer(params, 'until')
         untilIsDefined = (until is not None)
@@ -1469,9 +1469,9 @@ class bigone(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string(order, 'stop_price')
         if Precise.string_eq(triggerPrice, '0'):
             triggerPrice = None
-        immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel')
+        immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel', False)
         timeInForce = None
-        if immediateOrCancel is True:
+        if immediateOrCancel:
             timeInForce = 'IOC'
         type = self.parse_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
@@ -1521,7 +1521,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)

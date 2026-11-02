@@ -711,10 +711,10 @@ class poloniex(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         keyStart = 'sTime'
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             keyStart = 'startTime'
         keyEnd = 'eTime'
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             keyEnd = 'endTime'
         if since is not None:
             request[keyStart] = since
@@ -729,7 +729,7 @@ class poloniex(Exchange, ImplicitAPI):
             firstCandle = self.parse_to_int(int(math.ceil(since / duration))) * duration
             endTimeByLimit = self.sum(firstCandle, duration * (limit - 1))
             requestUntil[keyEnd] = min(endTimeByLimit, self.milliseconds())
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             responseRaw = self.swapPublicGetV3MarketCandles(self.extend(requestUntil, paramsUntil))
             #
             #     {
@@ -1109,7 +1109,7 @@ class poloniex(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId)
         baseVolume = self.safe_string_2(ticker, 'quantity', 'qty')
         contractSize = self.safe_number(marketResolved, 'contractSize')
-        if (marketResolved['contract'] is True) and (contractSize is not None):
+        if (self.safe_bool(marketResolved, 'contract', False)) and (contractSize is not None):
             # 'quantity' counts contracts, and a ticker reports base volume
             baseVolume = Precise.string_mul(baseVolume, self.number_to_string(contractSize))
         relativeChange = self.safe_string_2(ticker, 'dailyChange', 'dc')
@@ -1323,7 +1323,7 @@ class poloniex(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             tickers = self.fetch_tickers([market['symbol']], params)
             contractTicker = self.safe_dict(tickers, symbol)
             return contractTicker
@@ -1504,7 +1504,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit  # max 1000, for spot & swap
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             response = self.swapPublicGetV3MarketTrades(self.extend(request, params))
             #
             #     {
@@ -2046,7 +2046,7 @@ class poloniex(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         requestValue, paramsValue = self.order_request(symbol, type, side, amount, request, price, params)
         response = {}
-        if (market['swap'] is True) or (market['future'] is True):
+        if (self.safe_bool(market, 'swap', False)) or (self.safe_bool(market, 'future', False)):
             responseInitial = self.swapPrivatePostV3TradeOrder(self.extend(requestValue, paramsValue))
             #
             # {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
@@ -2172,7 +2172,7 @@ class poloniex(Exchange, ImplicitAPI):
         isPostOnly = self.is_post_only(isMarket, upperCaseType == 'LIMIT_MAKER', query)
         queryOmitted = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice'])
         if triggerPrice is not None:
-            if market['spot'] is not True:
+            if not self.safe_bool(market, 'spot', False):
                 raise InvalidOrder(self.id + ' createOrder() does not support trigger orders for ' + self.safe_string(market, 'type', '') + ' markets')
             upperCaseType = 'STOP' if (price is None) else 'STOP_LIMIT'
             result['stopPrice'] = triggerPrice
@@ -2188,7 +2188,7 @@ class poloniex(Exchange, ImplicitAPI):
                 queryOmitted = self.omit(queryOmitted, 'cost')
                 if cost is not None:
                     quoteAmount = self.cost_to_precision(symbol, cost)
-                elif createMarketBuyOrderRequiresPrice and (market['spot'] is True):
+                elif createMarketBuyOrderRequiresPrice and (self.safe_bool(market, 'spot', False)):
                     if price is None:
                         raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend (quote quantity) in the amount argument')
                     else:
@@ -2199,28 +2199,28 @@ class poloniex(Exchange, ImplicitAPI):
                 else:
                     quoteAmount = self.cost_to_precision(symbol, amount)
                 amountKey = 'sz'
-                if market['spot'] is True:
+                if self.safe_bool(market, 'spot', False):
                     amountKey = 'amount'
                 result[amountKey] = quoteAmount
             else:
                 amountKey = 'sz'
-                if market['spot'] is True:
+                if self.safe_bool(market, 'spot', False):
                     amountKey = 'quantity'
                 result[amountKey] = self.amount_to_precision(symbol, amount)
         else:
             amountKey = 'sz'
-            if market['spot'] is True:
+            if self.safe_bool(market, 'spot', False):
                 amountKey = 'quantity'
             result[amountKey] = self.amount_to_precision(symbol, amount)
             priceKey = 'px'
-            if market['spot'] is True:
+            if self.safe_bool(market, 'spot', False):
                 priceKey = 'price'
             result[priceKey] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(queryOmitted, 'clientOrderId', 'clOrdId')
         if clientOrderId is not None:
             # the futures v3 api silently ignores the spot key and generates its own id
             clientOrderIdKey = 'clOrdId'
-            if market['spot'] is True:
+            if self.safe_bool(market, 'spot', False):
                 clientOrderIdKey = 'clientOrderId'
             result[clientOrderIdKey] = clientOrderId
             queryOmitted = self.omit(queryOmitted, ['clientOrderId', 'clOrdId'])
@@ -2247,7 +2247,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' editOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders, only spot orders are accepted')
         request = {
             'id': id,
@@ -2290,7 +2290,7 @@ class poloniex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         market = self.market(symbol)
         request = {}
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             request['symbol'] = market['id']
             request['ordId'] = id
             raw = self.swapPrivateDeleteV3TradeOrder(self.extend(request, params))
@@ -2722,9 +2722,9 @@ class poloniex(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit  # The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if market['contract'] is True:
+            if self.safe_bool(market, 'contract', False):
                 request['limit'] = self.find_nearest_ceiling([5, 10, 20, 100, 150], limit)
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             responseRaw = self.swapPublicGetV3MarketOrderBook(self.extend(request, params))
             #
             #    {
@@ -3587,7 +3587,7 @@ class poloniex(Exchange, ImplicitAPI):
         :returns dict: response from the exchange
         """
         mode = 'ONE_WAY'
-        if hedged is True:
+        if hedged:
             mode = 'HEDGE'
         request = {
             'posMode': mode,

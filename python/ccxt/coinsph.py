@@ -646,7 +646,7 @@ class coinsph(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'coin')
         code = self.safe_currency_code(id)
-        isFiat = self.safe_bool(rawCurrency, 'isLegalMoney')
+        isFiat = self.safe_bool(rawCurrency, 'isLegalMoney', False)
         networkList = self.safe_list(rawCurrency, 'networkList', [])
         networks = {}
         for j in range(0, len(networkList)):
@@ -678,7 +678,7 @@ class coinsph(Exchange, ImplicitAPI):
             'id': id,
             'name': self.safe_string(rawCurrency, 'name'),
             'code': code,
-            'type': 'fiat' if (isFiat is True) else 'crypto',
+            'type': 'fiat' if isFiat else 'crypto',
             'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': None,

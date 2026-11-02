@@ -271,7 +271,7 @@ class binance(ccxt.async_support.binance):
                 return baseUrl
             # only rewrite when the URL ends with exactly "/ws"
             # this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if baseUrl.endswith('/ws') is True:
+            if baseUrl.endswith('/ws'):
                 prefix = baseUrl[0:len(baseUrl) - 3]
                 return prefix + '/' + category + '/ws'
             return baseUrl
@@ -728,10 +728,10 @@ class binance(ccxt.async_support.binance):
         symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbolsNormalized[0])
         type = firstMarket['type']
-        if firstMarket['option'] is True:
+        if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
-        elif firstMarket['contract'] is True:
-            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
+        elif self.safe_bool(firstMarket, 'contract', False):
+            type = 'linear' if (self.safe_bool(firstMarket, 'linear', False)) else 'inverse'
         name = 'depth'
         streamHash = 'multipleOrderbook'
         if symbolsNormalized is not None:
@@ -802,10 +802,10 @@ class binance(ccxt.async_support.binance):
         symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbolsNormalized[0])
         type = firstMarket['type']
-        if firstMarket['option'] is True:
+        if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
-        elif firstMarket['contract'] is True:
-            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
+        elif self.safe_bool(firstMarket, 'contract', False):
+            type = 'linear' if (self.safe_bool(firstMarket, 'linear', False)) else 'inverse'
         name = 'depth'
         streamHash = 'multipleOrderbook'
         if symbolsNormalized is not None:
@@ -1191,8 +1191,8 @@ class binance(ccxt.async_support.binance):
         isOption = firstMarket['option']
         if isOption is True:
             type = 'option'
-        elif firstMarket['contract'] is True:
-            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
+        elif self.safe_bool(firstMarket, 'contract', False):
+            type = 'linear' if (self.safe_bool(firstMarket, 'linear', False)) else 'inverse'
         messageHashes = []
         subscribeHashes = []
         subParams = []
@@ -1271,8 +1271,8 @@ class binance(ccxt.async_support.binance):
         isOption = firstMarket['option']
         if isOption is True:
             type = 'option'
-        elif firstMarket['contract'] is True:
-            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
+        elif self.safe_bool(firstMarket, 'contract', False):
+            type = 'linear' if (self.safe_bool(firstMarket, 'linear', False)) else 'inverse'
         subMessageHashes = []
         subParams = []
         messageHashes = []
@@ -1622,11 +1622,11 @@ class binance(ccxt.async_support.binance):
         firstMarket = self.market(marketSymbols[0])
         type = firstMarket['type']
         wsUrlType = type
-        if firstMarket['option'] is True:
+        if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
             wsUrlType = 'optionMarket'  # eOptions klines are served from /market/ws
-        elif firstMarket['contract'] is True:
-            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
+        elif self.safe_bool(firstMarket, 'contract', False):
+            type = 'linear' if (self.safe_bool(firstMarket, 'linear', False)) else 'inverse'
             wsUrlType = type
         isSpot = (type == 'spot')
         timezone, paramsTimezone = self.handle_param_string(paramsChannel, 'timezone')
@@ -1696,11 +1696,11 @@ class binance(ccxt.async_support.binance):
         firstMarket = self.market(marketSymbols[0])
         type = firstMarket['type']
         wsUrlType = type
-        if firstMarket['option'] is True:
+        if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
             wsUrlType = 'optionMarket'  # eOptions klines are served from /market/ws
-        elif firstMarket['contract'] is True:
-            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
+        elif self.safe_bool(firstMarket, 'contract', False):
+            type = 'linear' if (self.safe_bool(firstMarket, 'linear', False)) else 'inverse'
             wsUrlType = type
         isSpot = (type == 'spot')
         timezone, paramsTimezone = self.handle_param_string(paramsChannel, 'timezone')
@@ -2446,7 +2446,7 @@ class binance(ccxt.async_support.binance):
         # carries `w`, so a miniTicker uses the contract size.
         baseVolume = self.safe_string(message, 'v')
         quoteVolume = self.safe_string(message, 'q')
-        if market['inverse'] is True:
+        if self.safe_bool(market, 'inverse', False):
             contracts = baseVolume
             baseVolume = quoteVolume
             weightedAverage = self.safe_string(message, 'w')
@@ -3492,7 +3492,7 @@ class binance(ccxt.async_support.binance):
         sor = self.safe_bool_2(params, 'sor', 'SOR', False)
         paramsOmitted = self.omit(params, 'sor', 'SOR')
         isConditional = self.isConditionalOrder(paramsOmitted)
-        if (market['inverse'] is True) and isConditional:
+        if (self.safe_bool(market, 'inverse', False)) and isConditional:
             raise NotSupported(self.id + ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead')
         isAlgoOrder = (market['linear'] is True) and ((market['swap'] is True) or (market['future'] is True)) and isConditional
         payload = self.create_order_request(symbol, type, side, amount, price, self.extend(paramsOmitted, {'isAlgoOrder': isAlgoOrder}))

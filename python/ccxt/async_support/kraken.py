@@ -1115,7 +1115,7 @@ class kraken(Exchange, ImplicitAPI):
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 market = self.market(symbol)
-                if market['active'] is True:
+                if self.safe_bool(market, 'active', False):
                     marketIds.append(market['id'])
             request['pair'] = ','.join(marketIds)
         response = await self.publicGetTicker(self.extend(request, params))
@@ -2216,7 +2216,7 @@ class kraken(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' editOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders, only spot orders are accepted')
         request = {
             'txid': id,

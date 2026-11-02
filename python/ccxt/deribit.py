@@ -1555,7 +1555,7 @@ class deribit(Exchange, ImplicitAPI):
         # For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         amount = self.safe_string(trade, 'amount')
         cost = Precise.string_mul(amount, priceString)
-        if marketResolved['inverse'] is True:
+        if self.safe_bool(marketResolved, 'inverse', False):
             cost = Precise.string_div(amount, priceString)
         liquidity = self.safe_string(trade, 'liquidity')
         takerOrMaker = None
@@ -1756,11 +1756,11 @@ class deribit(Exchange, ImplicitAPI):
                 'maker': market['maker'],
                 'taker': market['taker'],
             }
-            if market['swap'] is True:
+            if self.safe_bool(market, 'swap', False):
                 fee = self.extend(fee, perpetualFee)
-            elif market['future'] is True:
+            elif self.safe_bool(market, 'future', False):
                 fee = self.extend(fee, futureFee)
-            elif market['option'] is True:
+            elif self.safe_bool(market, 'option', False):
                 fee = self.extend(fee, optionFee)
             parsedFees[symbol] = fee
         return parsedFees
@@ -3271,7 +3271,7 @@ class deribit(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', None)
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' fetchLiquidations() does not support ' + self.safe_string(market, 'type', '') + ' markets')
         request = {
             'instrument_name': market['id'],
@@ -3341,7 +3341,7 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + self.safe_string(market, 'type', '') + ' markets')
         request = {
             'instrument_name': market['id'],
@@ -3706,7 +3706,7 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'instrument_name': market['id'],
@@ -3778,7 +3778,7 @@ class deribit(Exchange, ImplicitAPI):
         openInterest = self.safe_number(interest, 'open_interest')
         openInterestAmount = None
         openInterestValue = None
-        if (marketResolved['option'] is True) or ((marketResolved['future'] is True) and (marketResolved['linear'] is True)):
+        if (self.safe_bool(marketResolved, 'option', False)) or ((self.safe_bool(marketResolved, 'future', False)) and (self.safe_bool(marketResolved, 'linear', False))):
             openInterestAmount = openInterest
         else:
             openInterestValue = openInterest

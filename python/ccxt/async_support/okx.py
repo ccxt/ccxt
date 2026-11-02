@@ -2563,7 +2563,7 @@ class okx(Exchange, ImplicitAPI):
             'instId': market['id'],
         }
         response = None
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
             response = await self.publicGetPublicOptionTrades(self.extend(request, paramsPaginate))
         else:
             if limit is not None:
@@ -2898,9 +2898,9 @@ class okx(Exchange, ImplicitAPI):
             # "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
             # "category": "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         }
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             request['instId'] = market['id']
-        elif (market['swap'] is True) or (market['future'] is True) or (market['option'] is True):
+        elif (self.safe_bool(market, 'swap', False)) or (self.safe_bool(market, 'future', False)) or (self.safe_bool(market, 'option', False)):
             request['uly'] = self.safe_string(market, 'baseId', '') + '-' + self.safe_string(market, 'quoteId', '')
         else:
             raise NotSupported(self.id + ' fetchTradingFee() supports spot, swap, future or option markets only')
@@ -3067,7 +3067,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot markets only')
         req = {
             'createMarketBuyOrderRequiresPrice': False,
@@ -3089,7 +3089,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot markets only')
         req = {
             'createMarketBuyOrderRequiresPrice': False,
@@ -3137,7 +3137,7 @@ class okx(Exchange, ImplicitAPI):
         shouldOmitSize = isConditionalOrOCO and closeFraction is not None
         if not shouldOmitSize:
             request['sz'] = self.amount_to_precision(symbol, amount)
-        spot = self.safe_bool(market, 'spot')
+        spot = self.safe_bool(market, 'spot', False)
         contract = self.safe_bool(market, 'contract')
         triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
@@ -3180,7 +3180,7 @@ class okx(Exchange, ImplicitAPI):
         paramsReduceOnly = paramsHedged
         if omitReduceOnly:
             paramsReduceOnly = self.omit(paramsHedged, 'reduceOnly')
-        if spot is True:
+        if spot:
             if margin:
                 defaultCurrency = market['quote'] if (side == 'buy') else market['base']
                 currency = self.safe_string(params, 'ccy', defaultCurrency)
@@ -3188,7 +3188,7 @@ class okx(Exchange, ImplicitAPI):
             tradeMode = marginMode if (margin) else 'cash'
             request['tdMode'] = tradeMode
         elif contract is True:
-            if (market['swap'] is True) or (market['future'] is True):
+            if (self.safe_bool(market, 'swap', False)) or (self.safe_bool(market, 'future', False)):
                 if positionSide is not None:
                     request['posSide'] = positionSide
                 else:
@@ -3216,7 +3216,7 @@ class okx(Exchange, ImplicitAPI):
             request['tgtCcy'] = tgtCcy
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
-            if (spot is True) and (side == 'buy'):
+            if spot and (side == 'buy'):
                 # spot market buy: "sz" can refer either to base currency units or to quote currency units
                 # see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if tgtCcy == 'quote_ccy':
@@ -3336,7 +3336,7 @@ class okx(Exchange, ImplicitAPI):
             # tpOrdKind is 'condition' which is the default
             if twoWayCondition:
                 request['ordType'] = 'oco'
-            if (spot is True) and (not margin):
+            if spot and (not margin):
                 # for some reason tdMode = cash throws
                 # {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
                 request['tdMode'] = marginMode
@@ -6134,7 +6134,7 @@ class okx(Exchange, ImplicitAPI):
         side = self.safe_string_2(position, 'posSide', 'direction')
         hedged = side != 'net'
         contracts = self.parse_number(contractsAbs)
-        if marketResolved['margin'] is True:
+        if self.safe_bool(marketResolved, 'margin', False):
             # margin position
             if side == 'net':
                 posCcy = self.safe_string(position, 'posCcy')
@@ -6156,7 +6156,7 @@ class okx(Exchange, ImplicitAPI):
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPx')
         notionalString = self.safe_string(position, 'notionalUsd')
-        if marketResolved['inverse'] is True:
+        if self.safe_bool(marketResolved, 'inverse', False):
             notionalString = Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), markPriceString)
         notional = self.parse_number(notionalString)
         marginMode = self.safe_string(position, 'mgnMode')
@@ -6183,7 +6183,7 @@ class okx(Exchange, ImplicitAPI):
         if initialMarginPercentage is None:
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
         elif initialMarginString is None:
-            if marketResolved['linear'] is True:
+            if self.safe_bool(marketResolved, 'linear', False):
                 initialMarginPercentageString = self.number_to_string(initialMarginPercentage)
                 initialMarginString = Precise.string_mul(initialMarginPercentageString, notionalString)
             else:
@@ -6638,7 +6638,7 @@ class okx(Exchange, ImplicitAPI):
         marketInfo = self.safe_dict(market, 'info', {})
         ruleType = self.safe_string(marketInfo, 'ruleType')
         isExtendedPerpetual = (ruleType == 'xperp')  # long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-        if (market['swap'] is not True) and not isExtendedPerpetual:
+        if (not self.safe_bool(market, 'swap', False)) and not isExtendedPerpetual:
             raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets or XPERP futures')
         request = {
             'instId': market['id'],
@@ -6683,7 +6683,7 @@ class okx(Exchange, ImplicitAPI):
                 marketInfo = self.safe_dict(market, 'info', {})
                 ruleType = self.safe_string(marketInfo, 'ruleType')
                 isExtendedPerpetual = (ruleType == 'xperp')  # long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-                if (market['swap'] is not True) and not isExtendedPerpetual:
+                if (not self.safe_bool(market, 'swap', False)) and not isExtendedPerpetual:
                     raise BadRequest(self.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + self.safe_string(symbolsNormalized, i, '') + ' is not')
         request = {'instId': 'ANY'}
         response = await self.publicGetPublicFundingRate(self.extend(request, params))
@@ -6803,8 +6803,8 @@ class okx(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
-            if market['contract'] is True:
-                if market['linear'] is True:
+            if self.safe_bool(market, 'contract', False):
+                if self.safe_bool(market, 'linear', False):
                     request['ctType'] = 'linear'
                     request['ccy'] = market['quoteId']
                 else:
@@ -7334,7 +7334,7 @@ class okx(Exchange, ImplicitAPI):
         amount = Precise.string_abs(amountRaw)
         marketId = self.safe_string(data, 'instId')
         responseMarket = self.safe_market(marketId, market)
-        code = responseMarket['base'] if (responseMarket['inverse'] is True) else responseMarket['quote']
+        code = responseMarket['base'] if (self.safe_bool(responseMarket, 'inverse', False)) else responseMarket['quote']
         timestamp = self.safe_integer(data, 'ts')
         return {
             'info': data,
@@ -7390,7 +7390,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        type = 'MARGIN' if (market['spot'] is True) else self.convert_to_instrument_type(market['type'])
+        type = 'MARGIN' if (self.safe_bool(market, 'spot', False)) else self.convert_to_instrument_type(market['type'])
         instFamily = self.safe_string(market['info'], 'instFamily')
         if (instFamily is None) or (instFamily == ''):
             if type != 'MARGIN':
@@ -7664,7 +7664,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         type = self.convert_to_instrument_type(market['type'])
         uly = self.safe_string(market['info'], 'uly')
@@ -7785,7 +7785,7 @@ class okx(Exchange, ImplicitAPI):
         }
         response: dict
         type, paramsMarketType = self.handle_market_type_and_params('fetchOpenInterestHistory', market, params)
-        if (market is not None) and ((market['swap'] is True) or (market['future'] is True)):
+        if (market is not None) and ((self.safe_bool(market, 'swap', False)) or (self.safe_bool(market, 'future', False))):
             instrumentRequest = {
                 'instId': market['id'],
                 'period': timeframeValue,
@@ -9046,12 +9046,12 @@ class okx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        auto = self.safe_bool(params, 'auto')
+        auto = self.safe_bool(params, 'auto', False)
         if type is None:
             raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory () requires a type argument')
         isAdd = type == 'add'
         subType = '160' if isAdd else '161'
-        if auto is True:
+        if auto:
             if isAdd:
                 subType = '162'
             else:

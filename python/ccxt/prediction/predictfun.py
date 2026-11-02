@@ -1630,7 +1630,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         """
         # read before the flag is overwritten: only an actual switch touches the token, so calling
         # this twice with the same value is a no-op rather than a forced re-authentication
-        wasSandbox = (self.safe_bool(self.options, 'sandboxMode', False) is True)
+        wasSandbox = self.safe_bool(self.options, 'sandboxMode', False)
         super(predictfun, self).set_sandbox_mode(enable)
         # the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         # change with it - and the venue serves the testnet without an api key

@@ -3165,7 +3165,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchOpenInterest() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -3201,7 +3201,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -3268,7 +3268,7 @@ class hitbtc(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         leverage = self.safe_string(params, 'leverage')
-        if market['swap'] is True:
+        if self.safe_bool(market, 'swap', False):
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
         stringAmount = self.number_to_string(amount)
@@ -3570,12 +3570,12 @@ class hitbtc(Exchange, ImplicitAPI):
             if networkCodeUpper is not None:
                 networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper)
             withdrawFee = self.safe_number(networkEntry, 'payout_fee')
-            isDefault = self.safe_bool(networkEntry, 'default')
+            isDefault = self.safe_bool(networkEntry, 'default', False)
             withdrawResult = {
                 'fee': withdrawFee,
                 'percentage': False if (withdrawFee is not None) else None,
             }
-            if isDefault is True:
+            if isDefault:
                 result['withdraw'] = withdrawResult
             if networkCode is not None:
                 result['networks'][networkCode] = {

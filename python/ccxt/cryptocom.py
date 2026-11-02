@@ -803,8 +803,8 @@ class cryptocom(Exchange, ImplicitAPI):
             settle = None if spot else self.safe_currency_code(settleId)
             optionType = self.safe_string_lower(market, 'put_call')
             strike = self.safe_string(market, 'strike')
-            marginBuyEnabled = self.safe_bool(market, 'margin_buy_enabled')
-            marginSellEnabled = self.safe_bool(market, 'margin_sell_enabled')
+            marginBuyEnabled = self.safe_bool(market, 'margin_buy_enabled', False)
+            marginSellEnabled = self.safe_bool(market, 'margin_sell_enabled', False)
             expiryRaw = self.safe_integer(market, 'expiry_timestamp_ms')
             expiry = None if (expiryRaw == 0) else expiryRaw
             symbol = base + '/' + quote
@@ -2926,7 +2926,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'instrument_name': market['id'],
@@ -3009,7 +3009,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         request = {
             'instrument_name': market['id'],
@@ -3360,12 +3360,12 @@ class cryptocom(Exchange, ImplicitAPI):
         for i in range(0, len(self.symbols)):
             symbol = self.safe_string(self.symbols, i, '')
             market = self.market(symbol)
-            isSwap = self.safe_bool(market, 'swap')
+            isSwap = self.safe_bool(market, 'swap', False)
             takerFeeKey = 'effective_spot_taker_rate_bps'
-            if isSwap is True:
+            if isSwap:
                 takerFeeKey = 'effective_deriv_taker_rate_bps'
             makerFeeKey = 'effective_spot_maker_rate_bps'
-            if isSwap is True:
+            if isSwap:
                 makerFeeKey = 'effective_deriv_maker_rate_bps'
             tradingFee = {
                 'info': response,

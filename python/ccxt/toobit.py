@@ -1160,16 +1160,16 @@ class toobit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(trade, 't', 'time')
         priceString = self.safe_string_2(trade, 'p', 'price')
         amountString = self.safe_string_2(trade, 'q', 'qty')
-        isBuyer = self.safe_bool(trade, 'isBuyer')
+        isBuyer = self.safe_bool(trade, 'isBuyer', False)
         side = None
         isBuyerMaker = self.safe_bool(trade, 'ibm')
         isBuyerTaker = self.safe_bool(trade, 'm')
         if isBuyerMaker is not None:
-            side = 'sell' if (isBuyerMaker is True) else 'buy'
+            side = 'sell' if isBuyerMaker else 'buy'
         elif isBuyerTaker is not None:
-            side = 'buy' if (isBuyerTaker is True) else 'sell'
+            side = 'buy' if isBuyerTaker else 'sell'
         else:
-            if isBuyer is True:
+            if isBuyer:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -1396,7 +1396,7 @@ class toobit(Exchange, ImplicitAPI):
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
         contractSize = self.safe_number(marketResolved, 'contractSize')
-        if (marketResolved['contract'] is True) and (contractSize is not None):
+        if (self.safe_bool(marketResolved, 'contract', False)) and (contractSize is not None):
             # 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.string_mul(baseVolume, self.number_to_string(contractSize))
         return self.safe_ticker({
@@ -1717,7 +1717,7 @@ class toobit(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         response = {}
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             request, paramsRequest = self.create_order_request(symbol, type, side, amount, price, params)
             response = self.privatePostApiV1SpotOrder(self.extend(request, paramsRequest))
         else:
@@ -2110,7 +2110,7 @@ class toobit(Exchange, ImplicitAPI):
         }
         market = self.market(symbol)
         response = {}
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = self.privateGetApiV1SpotOrder(self.extend(request, params))
         else:
             response = self.privateGetApiV1FuturesOrder(self.extend(request, params))

@@ -1256,7 +1256,7 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         return self.create_order(symbol, 'market', 'buy', cost, 1, params)
 
@@ -1274,7 +1274,7 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         return self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
@@ -1406,7 +1406,7 @@ class woo(Exchange, ImplicitAPI):
             # for market buy it requires the amount of quote currency to spend
             cost = self.safe_string_n(paramsMarginMode, ['cost', 'order_amount', 'orderAmount'])
             isPriceProvided = price is not None
-            if (market['spot'] is True) and (isPriceProvided or (cost is not None)):
+            if (self.safe_bool(market, 'spot', False)) and (isPriceProvided or (cost is not None)):
                 quoteAmount = None
                 if cost is not None:
                     quoteAmount = self.cost_to_precision(symbol, cost)
@@ -2292,7 +2292,7 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' fetchTicker() supports swap markets only, there is no spot ticker endpoint')
         request = {
             'symbol': market['id'],
@@ -2352,7 +2352,7 @@ class woo(Exchange, ImplicitAPI):
                 # type" apart from a malformed request, marketSymbols still enforces that the
                 # rest of the list matches
                 firstMarket = self.market(symbols[0])
-                if firstMarket['swap'] is not True:
+                if not self.safe_bool(firstMarket, 'swap', False):
                     raise NotSupported(self.id + ' fetchTickers() supports swap markets only')
         symbolsNormalized = self.market_symbols(symbols, 'swap', True, True)
         paramsRequest = params
@@ -3375,9 +3375,9 @@ class woo(Exchange, ImplicitAPI):
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         #                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         #
-        success = self.safe_bool(response, 'success')
+        success = self.safe_bool(response, 'success', False)
         errorCode = self.safe_string(response, 'code')
-        if success is not True:
+        if not success:
             feedback = self.id + ' ' + self.json(response)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
@@ -3738,7 +3738,7 @@ class woo(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = self.v3PrivateGetAccountInfo(params)
             #
             #     {
@@ -3769,7 +3769,7 @@ class woo(Exchange, ImplicitAPI):
             #         "timestamp": 1752645129054
             #     }
             #
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             request = {
                 'symbol': market['id'],
             }

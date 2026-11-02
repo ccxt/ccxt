@@ -190,7 +190,7 @@ class kucoin(ccxt.async_support.kucoin):
         requestId = str(self.request_id())
         market = self.market(symbol)
         urlType = 'spot'
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             urlType = 'futures'
         tradeType = urlType.upper()
         action = 'subscribe'
@@ -1939,7 +1939,7 @@ class kucoin(ccxt.async_support.kucoin):
         timestamp = self.safe_integer_2(order, 'orderTime', 'createdAt')
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        if marketResolved['contract'] is True:
+        if self.safe_bool(marketResolved, 'contract', False):
             timestamp = self.safe_integer_product(order, 'orderTime', 0.000001)
         triggerPrice = self.safe_string(order, 'stopPrice')
         triggerSuccess = self.safe_bool(order, 'triggerSuccess')

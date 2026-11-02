@@ -1903,7 +1903,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             triggerPriceIsRequired = True
             quantityIsRequired = True
-            if (market['linear'] is True) or (market['inverse'] is True):
+            if (self.safe_bool(market, 'linear', False)) or (self.safe_bool(market, 'inverse', False)):
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True

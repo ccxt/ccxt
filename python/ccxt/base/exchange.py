@@ -4239,7 +4239,7 @@ class BaseExchange(object):
         if market is not None:
             result = self.extend(cleanStructure, market)
             # set undefined swap/future/etc
-            if self.safe_bool(result, 'spot') is True:
+            if self.safe_bool(result, 'spot', False):
                 if result['contract'] is None:
                     result['contract'] = False
                 if result['swap'] is None:
@@ -4281,9 +4281,9 @@ class BaseExchange(object):
                 'precision': self.precision,
                 'limits': self.limits,
             }, self.fees['trading'], valueDefined)
-            if self.safe_bool(market, 'linear') is True:
+            if self.safe_bool(market, 'linear', False):
                 market['subType'] = 'linear'
-            elif self.safe_bool(market, 'inverse') is True:
+            elif self.safe_bool(market, 'inverse', False):
                 market['subType'] = 'inverse'
             else:
                 market['subType'] = None
@@ -5229,7 +5229,7 @@ class BaseExchange(object):
             if type is not None and market['type'] != type:
                 raise BadRequest(self.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
             marketType = self.safe_string(market, 'type')
-            if self.safe_bool(market, 'spot') is not True:
+            if not self.safe_bool(market, 'spot', False):
                 isLinearSubType = self.safe_bool(market, 'linear')
             symbol = self.safe_string(market, 'symbol', symbols[i])
             result.append(symbol)
@@ -6159,7 +6159,7 @@ class BaseExchange(object):
                     marketTypeResolved = self.safe_string(market, 'type', '') if (marketType is None) else marketType
                     for i in range(0, len(markets)):
                         currentMarket = markets[i]
-                        if self.safe_bool(currentMarket, marketTypeResolved) is True:
+                        if self.safe_bool(currentMarket, marketTypeResolved, False):
                             return currentMarket
             elif delimiter is not None and delimiter != '':
                 parts = marketId.split(delimiter)
@@ -6413,9 +6413,9 @@ class BaseExchange(object):
         else:
             # at first, check from market object
             if market is not None:
-                if self.safe_bool(market, 'linear') is True:
+                if self.safe_bool(market, 'linear', False):
                     subType = 'linear'
-                elif self.safe_bool(market, 'inverse') is True:
+                elif self.safe_bool(market, 'inverse', False):
                     subType = 'inverse'
             # if it was not defined in market object
             if subType is None:
@@ -6715,7 +6715,7 @@ class BaseExchange(object):
             defaultType = self.safe_string_2(self.options, 'defaultType', 'defaultSubType', 'spot')
             for i in range(0, len(marketsList)):
                 market = marketsList[i]
-                if self.safe_bool(market, defaultType) is True:
+                if self.safe_bool(market, defaultType, False):
                     return market
             return marketsList[0]
         elif (symbol.endswith('-C')) or (symbol.endswith('-P')) or (symbol.startswith('C-')) or (symbol.startswith('P-')):
@@ -6871,7 +6871,7 @@ class BaseExchange(object):
     def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}):
         if self.has['fetchLeverageTiers'] is not None and self.has['fetchLeverageTiers'] is not False:
             market = self.market(symbol)
-            if market['contract'] is not True:
+            if not self.safe_bool(market, 'contract', False):
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = self.fetch_leverage_tiers([symbol])
             marketTiers = self.safe_list(tiers, symbol)
@@ -7186,7 +7186,7 @@ class BaseExchange(object):
             self.load_markets()
             market = self.market(symbol)
             symbolResolved = market['symbol']
-            if market['contract'] is not True:
+            if not self.safe_bool(market, 'contract', False):
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = self.fetch_funding_rates([symbolResolved], params)
             rate = self.safe_dict(rates, symbolResolved)
@@ -7202,7 +7202,7 @@ class BaseExchange(object):
             self.load_markets()
             market = self.market(symbol)
             symbolResolved = market['symbol']
-            if market['contract'] is not True:
+            if not self.safe_bool(market, 'contract', False):
                 raise BadSymbol(self.id + ' fetchFundingInterval() supports contract markets only')
             rates = self.fetch_funding_intervals([symbolResolved], params)
             rate = self.safe_dict(rates, symbolResolved)

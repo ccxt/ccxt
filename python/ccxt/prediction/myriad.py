@@ -3284,8 +3284,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         ts = self.safe_integer(data, 'ts')
         outcomes = self.safe_list(data, 'outcomes', [])
         outcomesLength = len(outcomes)
-        if self.tickers is None:
-            self.tickers = self.create_safe_dictionary()
+        cachedTickers = self.safe_dict(self.options, 'wsTickers', {})
         for i in range(0, outcomesLength):
             oc = outcomes[i]
             outcomeId = self.safe_string(oc, 'outcome')
@@ -3320,9 +3319,10 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'quoteVolume': None,
                 'info': oc,
             }, market)
-            self.tickers[sym] = ticker
+            cachedTickers[sym] = ticker
             client.resolve(ticker, 'ticker::' + sym)
-        client.resolve(self.tickers, 'tickers')
+        self.options['wsTickers'] = cachedTickers
+        client.resolve(cachedTickers, 'tickers')
 
     async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """

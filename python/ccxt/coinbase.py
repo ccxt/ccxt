@@ -1139,8 +1139,8 @@ class coinbase(Exchange, ImplicitAPI):
         amountStringAbs = Precise.string_abs(amountString)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         if status is None:
-            committed = self.safe_bool(transaction, 'committed')
-            status = 'ok' if (committed is True) else 'pending'
+            committed = self.safe_bool(transaction, 'committed', False)
+            status = 'ok' if committed else 'pending'
         id = self.safe_string(transaction, 'id')
         currencyId = self.safe_string(amountAndCurrencyObject, 'currency')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
@@ -1259,11 +1259,11 @@ class coinbase(Exchange, ImplicitAPI):
                 quote = self.safe_currency_code(quoteId)
                 if (base is not None) and (quote is not None):
                     symbol = base + '/' + quote
-        sizeInQuote = self.safe_bool(trade, 'size_in_quote')
+        sizeInQuote = self.safe_bool(trade, 'size_in_quote', False)
         v3Price = self.safe_string(trade, 'price')
         v3Cost = None
         v3Amount = self.safe_string(trade, 'size')
-        if sizeInQuote is True:
+        if sizeInQuote:
             # calculate base size
             v3Cost = v3Amount
             v3Amount = Precise.string_div(v3Amount, v3Price)
@@ -1592,7 +1592,7 @@ class coinbase(Exchange, ImplicitAPI):
         if (base is None) or (quote is None):
             return None
         marketType = self.safe_string_lower(market, 'product_type')
-        tradingDisabled = self.safe_bool(market, 'trading_disabled')
+        tradingDisabled = self.safe_bool(market, 'trading_disabled', False)
         stablePairs = self.safe_list(self.options, 'stablePairs', [])
         defaultTakerFee = self.safe_number(self.fees['trading'], 'taker')
         defaultMakerFee = self.safe_number(self.fees['trading'], 'maker')
@@ -1789,7 +1789,7 @@ class coinbase(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
             return None
-        isDisabled = self.safe_bool(market, 'is_disabled')
+        isDisabled = self.safe_bool(market, 'is_disabled', False)
         tradingDisabled = (isDisabled is True) or (self.safe_bool(market, 'trading_disabled') is True)
         symbol = base + '/' + quote
         type = None
@@ -2944,7 +2944,7 @@ class coinbase(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -2988,8 +2988,8 @@ class coinbase(Exchange, ImplicitAPI):
             'product_id': market['id'],
             'side': side.upper(),
         }
-        reduceOnly = self.safe_bool(params, 'reduceOnly')
-        if reduceOnly is True:
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
+        if reduceOnly:
             return self.close_position(symbol, side, self.extend(self.omit(params, 'reduceOnly'), {'amount': amount}))
         paramsMarketBuy = None
         triggerPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
@@ -3086,7 +3086,7 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             if isStop or isStopLoss or isTakeProfit:
                 raise NotSupported(self.id + ' createOrder() only stop limit orders are supported')
-            if (market['spot'] is True) and (side == 'buy'):
+            if (self.safe_bool(market, 'spot', False)) and (side == 'buy'):
                 total = None
                 createMarketBuyOrderRequiresPrice, paramsRequiresPrice = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number(paramsRequiresPrice, 'cost')
@@ -3166,8 +3166,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        success = self.safe_bool(response, 'success')
-        if success is not True:
+        success = self.safe_bool(response, 'success', False)
+        if not success:
             errorResponse = self.safe_dict(response, 'error_response')
             errorTitle = self.safe_string(errorResponse, 'error')
             errorMessage = self.safe_string(errorResponse, 'message')
@@ -3390,8 +3390,8 @@ class coinbase(Exchange, ImplicitAPI):
         #
         orders = self.safe_list(response, 'results', [])
         for i in range(0, len(orders)):
-            success = self.safe_bool(orders[i], 'success')
-            if success is not True:
+            success = self.safe_bool(orders[i], 'success', False)
+            if not success:
                 raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
 
@@ -4833,7 +4833,7 @@ class coinbase(Exchange, ImplicitAPI):
         for i in range(0, len(self.symbols)):
             symbol = self.safe_string(self.symbols, i, '')
             market = self.market(symbol)
-            if (isSpot and (market['spot'] is True)) or (not isSpot and (market['spot'] is not True)):
+            if (isSpot and (self.safe_bool(market, 'spot', False))) or (not isSpot and (not self.safe_bool(market, 'spot', False))):
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
@@ -5117,8 +5117,8 @@ class coinbase(Exchange, ImplicitAPI):
                     self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                     self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
                     raise ExchangeError(feedback)
-        advancedTrade = self.safe_bool(self.options, 'advanced')
-        if not ('data' in response) and (advancedTrade is not True):
+        advancedTrade = self.safe_bool(self.options, 'advanced', False)
+        if not ('data' in response) and not advancedTrade:
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
         return None
 

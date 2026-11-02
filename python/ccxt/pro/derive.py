@@ -801,6 +801,8 @@ class derive(ccxt.async_support.derive):
             self.balance = emptyBalances
         # the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         subaccountIdKey = self.number_to_string(subaccountId)
+        if subaccountIdKey is None:
+            raise ExchangeError(self.id + ' watchBalance() could not resolve the subaccount id')
         if fetchSnapshot and not (subaccountIdKey in self.balance):
             snapshotRequest = {
                 'subaccount_id': subaccountId,

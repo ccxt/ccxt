@@ -861,8 +861,7 @@ class polymarket(ccxt.async_support.polymarket):
         self.set_balance_cache(client)
         fetchBalanceSnapshot = self.handle_option('watchBalance', 'fetchBalanceSnapshot', True)
         awaitBalanceSnapshot = self.handle_option('watchBalance', 'awaitBalanceSnapshot', True)
-        balanceLoaded = ('info' in self.balance)
-        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True) and (not balanceLoaded):
+        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True) and not ('info' in self.balance):
             # the portfolio channel pushes one snapshot at subscribe time and
             # then only on changes, so the first call hydrates over rest
             snapshot = await client.future('fetchBalanceSnapshot')
@@ -872,8 +871,7 @@ class polymarket(ccxt.async_support.polymarket):
         return await self.watch(url, 'balance', request, 'portfolio')
 
     def set_balance_cache(self, client: Client):
-        balanceLoaded = ('info' in self.balance)
-        if balanceLoaded:
+        if 'info' in self.balance:
             return
         fetchBalanceSnapshot = self.handle_option('watchBalance', 'fetchBalanceSnapshot', True)
         if fetchBalanceSnapshot is True:

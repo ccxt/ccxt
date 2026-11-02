@@ -2245,7 +2245,7 @@ class lighter(Exchange, ImplicitAPI):
         isAskAsInteger = self.safe_integer(order, 'is_ask')
         side = None
         if isAsk is not None:
-            side = 'sell' if (isAsk is True) else 'buy'
+            side = 'sell' if isAsk else 'buy'
         elif isAskAsInteger is not None:
             side = 'sell' if (isAskAsInteger == 1) else 'buy'
         type = self.safe_string(order, 'type')

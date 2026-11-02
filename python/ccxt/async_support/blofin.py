@@ -1198,7 +1198,7 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets')
         request = {
             'instId': market['id'],
@@ -1749,13 +1749,13 @@ class blofin(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
-        elif isTpsl is True:
+        elif isTpsl:
             request['tpslId'] = id
         else:
             request['orderId'] = id
         query = self.omit(params, ['clientOrderId', 'tpsl', 'TPSL'])
         response: dict
-        if isTpsl is True:
+        if isTpsl:
             response = await self.privateGetTradeOrderTpslDetail(self.extend(request, query))
         else:
             response = await self.privateGetTradeOrderDetail(self.extend(request, query))
@@ -2832,7 +2832,7 @@ class blofin(Exchange, ImplicitAPI):
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPrice')
         notionalString = self.safe_string(position, 'notionalUsd')
-        if marketResolved['inverse'] is True:
+        if self.safe_bool(marketResolved, 'inverse', False):
             notionalString = Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), markPriceString)
         elif notionalString is None:
             notionalString = Precise.string_mul(Precise.string_mul(contractsAbs, contractSizeString), markPriceString)
@@ -3220,7 +3220,7 @@ class blofin(Exchange, ImplicitAPI):
         :returns dict: response from the exchange
         """
         request = {
-            'positionMode': 'long_short_mode' if (hedged is True) else 'net_mode',
+            'positionMode': 'long_short_mode' if hedged else 'net_mode',
         }
         #
         #     {

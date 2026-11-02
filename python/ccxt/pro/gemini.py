@@ -486,10 +486,14 @@ class gemini(ccxt.async_support.gemini):
         marketId = self.safe_string(firstBidAsk, 'symbol', '').lower()
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol', '')
-        if not (symbol in self.bidsasks):
-            self.bidsasks[symbol] = self.parse_ticker({})
-            self.bidsasks[symbol]['symbol'] = symbol
-        currentBidAsk = self.bidsasks[symbol]
+        # read-modify-write: the cached entry is copied out, updated, and stored back whole
+        currentBidAsk = {}
+        if symbol in self.bidsasks:
+            cachedBidAsk = self.bidsasks[symbol]
+            currentBidAsk = self.extend({}, cachedBidAsk)
+        else:
+            currentBidAsk = self.extend(self.parse_ticker({}))
+            currentBidAsk['symbol'] = symbol
         messageHash = 'bidsasks:' + symbol
         # last update always overwrites the previous state and is the latest state
         for i in range(0, len(rawBidAskChanges)):
@@ -521,7 +525,7 @@ class gemini(ccxt.async_support.gemini):
             raise NotSupported(self.id + ' watchMultiple requires at least one symbol')
         symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbolsNormalized[0])
-        if (firstMarket['spot'] is not True) and (firstMarket['linear'] is not True):
+        if (not self.safe_bool(firstMarket, 'spot', False)) and (not self.safe_bool(firstMarket, 'linear', False)):
             raise NotSupported(self.id + ' watchMultiple supports only spot or linear-swap symbols')
         messageHashes = []
         marketIds = []

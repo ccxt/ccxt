@@ -557,7 +557,7 @@ class bingx(ccxt.async_support.bingx):
         if marketType == 'swap':
             request['reqType'] = 'sub'
         subscriptionArgs = {}
-        if market['inverse'] is True:
+        if self.safe_bool(market, 'inverse', False):
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': False,
@@ -695,7 +695,7 @@ class bingx(ccxt.async_support.bingx):
         snapshot: OrderBook
         timestamp = self.safe_integer_2(message, 'timestamp', 'ts')
         timestamp = self.safe_integer_2(data, 'timestamp', 'ts', timestamp)
-        if market['inverse'] is True:
+        if self.safe_bool(market, 'inverse', False):
             snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'p', 'a')
         else:
             snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 0, 1)
@@ -816,7 +816,7 @@ class bingx(ccxt.async_support.bingx):
         market = self.safe_market(marketId, None, None, marketType)
         candles = None
         if isSwap:
-            if market['inverse'] is True:
+            if self.safe_bool(market, 'inverse', False):
                 candles = [self.safe_dict(message, 'data', {})]
             else:
                 candles = self.safe_list(message, 'data', [])
@@ -1107,7 +1107,7 @@ class bingx(ccxt.async_support.bingx):
                 'dataType': 'ACCOUNT_UPDATE',
             }
         userStreamKey = self.safe_string(self.options, 'listenKey')
-        if baseUrl is None or userStreamKey is None:
+        if type is None or baseUrl is None or userStreamKey is None:
             raise AuthenticationError(self.id + ' watchBalance() requires a websocket URL and a listen key')
         url = baseUrl + '?listenKey=' + userStreamKey
         client = self.client(url)

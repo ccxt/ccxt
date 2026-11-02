@@ -578,8 +578,8 @@ class woofipro(ccxt.async_support.woofipro):
         #     }
         #
         messageHash = 'authenticated'
-        success = self.safe_bool(message, 'success')
-        if success is True:
+        success = self.safe_bool(message, 'success', False)
+        if success:
             # client.resolve (message, messageHash);
             future = self.safe_value(client.futures, 'authenticated')
             future.resolve(True)
@@ -1220,8 +1220,8 @@ class woofipro(ccxt.async_support.woofipro):
         #
         if not ('success' in message):
             return False
-        success = self.safe_bool(message, 'success')
-        if success is True:
+        success = self.safe_bool(message, 'success', False)
+        if success:
             return False
         errorMessage = self.safe_string(message, 'errorMsg')
         try:

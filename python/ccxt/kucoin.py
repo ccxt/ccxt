@@ -3139,7 +3139,7 @@ class kucoin(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data', {})
             resultList = self.safe_list(data, 'list', [])
             result = self.safe_dict(resultList, 0, {})
-        elif market['contract'] is True:
+        elif self.safe_bool(market, 'contract', False):
             response = self.futuresPublicGetTicker(self.extend(request, paramsMarketType))
             #
             #    {
@@ -3207,7 +3207,7 @@ class kucoin(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response: dict
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             response = self.futuresPublicGetMarkPriceSymbolCurrent(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
             return self.parse_ticker(data, market)
@@ -3278,7 +3278,7 @@ class kucoin(Exchange, ImplicitAPI):
             uta = True  # mark, index, premiumIndex price types are only available for UTA
         if uta:
             return self.fetch_utaohlcv(symbol, timeframe, since, limit, paramsRequest)
-        elif market['contract'] is True:
+        elif self.safe_bool(market, 'contract', False):
             return self.fetch_contract_ohlcv(symbol, timeframe, since, limit, paramsRequest)
         else:
             return self.fetch_spot_ohlcv(symbol, timeframe, since, limit, paramsRequest)
@@ -3883,9 +3883,9 @@ class kucoin(Exchange, ImplicitAPI):
         utaOption, paramsUta = self.handle_option_bool_and_params(params, 'createOrder', 'uta', uta)
         if utaOption:
             return self.create_uta_order(symbol, type, side, amount, price, paramsUta)
-        elif market['spot'] is True:
+        elif self.safe_bool(market, 'spot', False):
             return self.create_spot_order(symbol, type, side, amount, price, paramsUta)
-        elif market['contract'] is True:
+        elif self.safe_bool(market, 'contract', False):
             return self.create_contract_order(symbol, type, side, amount, price, paramsUta)
         else:
             raise NotSupported(self.id + ' createOrder() does not support market ' + self.safe_string(market, 'type', ''))
@@ -4510,9 +4510,9 @@ class kucoin(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
             market = self.market(symbol)
-            if market['spot'] is True:
+            if self.safe_bool(market, 'spot', False):
                 isSpot = True
-            elif market['contract'] is True:
+            elif self.safe_bool(market, 'contract', False):
                 isContract = True
         if isSpot and isContract:
             raise BadRequest(self.id + ' createOrders() requires all orders to be either spot or contract')
@@ -4681,7 +4681,7 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             raise NotSupported(self.id + ' editOrder() supports spot markets only')
         request = {
             'symbol': market['id'],
@@ -5933,7 +5933,7 @@ class kucoin(Exchange, ImplicitAPI):
             return self.parse_uta_order(order, market)
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        if (marketResolved is not None) and (marketResolved['contract'] is True):
+        if (marketResolved is not None) and (self.safe_bool(marketResolved, 'contract', False)):
             return self.parse_contract_order(order, marketResolved)
         else:
             return self.parse_spot_order(order, marketResolved)
@@ -6017,7 +6017,7 @@ class kucoin(Exchange, ImplicitAPI):
         average = self.safe_string(order, 'avgDealPrice')
         if (average is None) and Precise.string_gt(filled, '0'):
             contractSize = self.safe_string(marketResolved, 'contractSize')
-            if marketResolved['linear'] is True:
+            if self.safe_bool(marketResolved, 'linear', False):
                 average = Precise.string_div(cost, Precise.string_mul(contractSize, filled))
             else:
                 average = Precise.string_div(Precise.string_mul(contractSize, filled), cost)
@@ -6809,7 +6809,7 @@ class kucoin(Exchange, ImplicitAPI):
             return self.parse_my_uta_trade(trade, market)
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        if (marketResolved is None) or (marketResolved['spot'] is True):
+        if (marketResolved is None) or (self.safe_bool(marketResolved, 'spot', False)):
             return self.parse_spot_or_uta_trade(trade, marketResolved)
         else:
             return self.parse_contract_trade(trade, marketResolved)
@@ -7142,7 +7142,7 @@ class kucoin(Exchange, ImplicitAPI):
         response: dict
         entry = None
         if utaOption:
-            if market['spot'] is True:
+            if self.safe_bool(market, 'spot', False):
                 request['tradeType'] = 'SPOT'
             else:
                 request['tradeType'] = 'FUTURES'
@@ -7166,7 +7166,7 @@ class kucoin(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data', {})
             dataList = self.safe_list(data, 'list', [])
             entry = self.safe_dict(dataList, 0)
-        elif market['spot'] is True:
+        elif self.safe_bool(market, 'spot', False):
             request['symbols'] = market['id']
             response = self.privateGetTradeFees(self.extend(request, paramsUta))
             #
@@ -9327,7 +9327,7 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise NotSupported(self.id + ' fetchLeverage() supports contract markets only')
         request = {
             'symbol': market['id'],
@@ -9386,7 +9386,7 @@ class kucoin(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' setLeverage requires a symbol argument for contract markets')
             market = self.market(symbol)
-            if market['contract'] is True:
+            if self.safe_bool(market, 'contract', False):
                 return self.set_contract_leverage(leverage, symbol, paramsRequest)
         request = {
             'leverage': self.number_to_string(leverage),
@@ -10591,8 +10591,8 @@ class kucoin(Exchange, ImplicitAPI):
         id = self.safe_string(info, 'id')
         marketResolved = self.safe_market(id, market)
         currencyId = self.safe_string(info, 'settleCurrency')
-        crossMode = self.safe_bool(info, 'crossMode')
-        mode = 'cross' if (crossMode is True) else 'isolated'
+        crossMode = self.safe_bool(info, 'crossMode', False)
+        mode = 'cross' if crossMode else 'isolated'
         marketId = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(info, 'currentTimestamp')
         return {
@@ -10663,7 +10663,7 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise NotSupported(self.id + ' setMarginMode() supports contract markets only')
         request = {
             'symbol': market['id'],
@@ -10696,7 +10696,7 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         posMode = '0'
-        if hedged is True:
+        if hedged:
             posMode = '1'
         request = {
             'positionMode': posMode,
@@ -10781,7 +10781,7 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
         uta = False
         utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchMarketLeverageTiers', 'uta', uta)

@@ -492,7 +492,7 @@ class zebpay(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = await self.privateSpotGetV2ExTradefee(self.extend(request, params))
             #
             # {
@@ -587,7 +587,7 @@ class zebpay(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             #
             #       {
             #         "asks": [
@@ -626,7 +626,7 @@ class zebpay(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = await self.publicSpotGetV2MarketTicker(self.extend(request, params))
             #
             #     [
@@ -716,7 +716,7 @@ class zebpay(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, ['until', 'endtime', 'endTime', 'interval', 'startTime'])
         response = None
         limitResolved = limit
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             if limit is None:
                 limitResolved = 100
             request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -792,10 +792,10 @@ class zebpay(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        if (market['spot'] is True) and limit is not None:
+        if (self.safe_bool(market, 'spot', False)) and limit is not None:
             request['limit'] = limit
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = await self.publicSpotGetV2MarketTrades(self.extend(request, params))
         else:
             response = await self.publicSwapGetV1MarketAggTrade(self.extend(request, params))
@@ -1014,7 +1014,7 @@ class zebpay(Exchange, ImplicitAPI):
             'side': side.upper(),
         }
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = await self.privateSpotPostV2ExOrders(self.spot_order_body(symbol, type, amount, request, price, query))
         else:
             marginAsset = self.safe_string(query, 'marginAsset', 'INR')
@@ -1086,7 +1086,7 @@ class zebpay(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = None
         request = {}
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             request['orderId'] = id
             response = await self.privateSpotDeleteV2ExOrder(self.extend(request, params))
         else:
@@ -1156,7 +1156,7 @@ class zebpay(Exchange, ImplicitAPI):
         }
         response = None
         orders = []
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             request['currentPage'] = 1
             if limit is not None:
                 request['pageSize'] = limit
@@ -1217,7 +1217,7 @@ class zebpay(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {}
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             request['orderId'] = id
             response = await self.privateSpotGetV2ExOrder(self.extend(request, params))
         else:

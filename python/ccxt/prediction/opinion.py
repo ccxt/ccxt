@@ -1711,7 +1711,9 @@ class opinion(PredictionExchange, ImplicitAPI):
             'last': last,
             'info': message,
         }, outcomeObj)
-        self.tickers[sym] = ticker
+        cachedTickers = self.safe_dict(self.options, 'wsTickers', {})
+        cachedTickers[sym] = ticker
+        self.options['wsTickers'] = cachedTickers
         client.resolve(ticker, 'ticker::' + sym)
 
     async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:

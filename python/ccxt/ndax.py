@@ -624,7 +624,7 @@ class ndax(Exchange, ImplicitAPI):
         if (base is None) or (quote is None):
             return None
         sessionStatus = self.safe_string(market, 'SessionStatus')
-        isDisable = self.safe_bool(market, 'IsDisable')
+        isDisable = self.safe_bool(market, 'IsDisable', False)
         sessionRunning = (sessionStatus == 'Running')
         return self.safe_market_structure({
             'id': id,

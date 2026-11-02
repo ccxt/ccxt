@@ -190,8 +190,8 @@ class kraken(ccxt.async_support.kraken):
         if isTrailingPercentOrder or isTrailingLimitPercentOrder:
             priceType = 'pct'
         if method == 'createOrderWs':
-            reduceOnly = self.safe_bool(paramsPostOnly, 'reduceOnly')
-            if reduceOnly is True:
+            reduceOnly = self.safe_bool(paramsPostOnly, 'reduceOnly', False)
+            if reduceOnly:
                 orderParams['reduce_only'] = True
             timeInForce = self.safe_string_lower(paramsPostOnly, 'timeInForce')
             if timeInForce is not None:

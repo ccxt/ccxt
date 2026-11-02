@@ -629,7 +629,7 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' watchFundingRate() supports swap contracts only')
         return await self.subscribe('fund_rate@' + self.safe_string(market, 'id', ''), 'public', 'watchFundingRate', market, None, params)
 
@@ -646,7 +646,7 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' unWatchFundingRate() supports swap contracts only')
         name = 'fund_rate@' + self.safe_string(market, 'id', '')
         messageHash = 'unsubscribe::' + name
@@ -1447,7 +1447,7 @@ class xt(ccxt.async_support.xt):
         market = self.market(tradeSymbol)
         stored.append(parsedTrade)
         tradeType = 'spot'
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             tradeType = 'contract'
         client.resolve(stored, 'trade::' + tradeType)
 

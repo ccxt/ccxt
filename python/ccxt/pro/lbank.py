@@ -73,7 +73,7 @@ class lbank(ccxt.async_support.lbank):
     def check_contract_market(self, market: Market, methodName: str):
         # the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         # see https://github.com/ccxt/ccxt/issues/26864
-        if (market is not None) and (market['contract'] is True):
+        if (market is not None) and (self.safe_bool(market, 'contract', False)):
             marketType = self.safe_string(market, 'type', '')
             raise NotSupported(self.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet')
 
@@ -1036,8 +1036,8 @@ class lbank(ccxt.async_support.lbank):
                 #
                 # {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 #
-                result = self.safe_bool(response, 'result')
-                if result is not True:
+                result = self.safe_bool(response, 'result', False)
+                if not result:
                     raise ExchangeError(self.id + ' failed to get subscribe key')
                 client.subscriptions['authenticated'] = {
                     'key': self.safe_string(response, 'data'),

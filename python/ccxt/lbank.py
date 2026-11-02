@@ -763,7 +763,7 @@ class lbank(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market)
         tickerData = self.safe_dict(ticker, 'ticker', {})
         marketResolved = self.safe_market(marketId, market)
-        data = ticker if (marketResolved['contract'] is True) else tickerData
+        data = ticker if (self.safe_bool(marketResolved, 'contract', False)) else tickerData
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -800,7 +800,7 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is True:
+        if self.safe_bool(market, 'swap', False):
             responseForSwap = self.fetch_tickers([market['symbol']], params)
             swapTicker = self.safe_dict(responseForSwap, market['symbol'])
             return swapTicker
@@ -986,7 +986,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         orderbook = self.safe_dict(response, 'data', {})
         timestamp = self.milliseconds()
-        if market['swap'] is True:
+        if self.safe_bool(market, 'swap', False):
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks')
 
@@ -1579,7 +1579,7 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -2805,8 +2805,8 @@ class lbank(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(response)):
             fee = response[i]
-            canWithdraw = self.safe_bool(fee, 'canWithDraw')
-            if canWithdraw is True:
+            canWithdraw = self.safe_bool(fee, 'canWithDraw', False)
+            if canWithdraw:
                 code = self.safe_currency_code(self.safe_string(fee, 'assetCode'))
                 if (code is not None) and (codes is None or self.in_array(code, codes)):
                     withdrawFee = self.safe_number(fee, 'fee')
@@ -2875,9 +2875,9 @@ class lbank(Exchange, ImplicitAPI):
             networkEntry = self.safe_dict(networkList, j)
             networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'), code)
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
-            isDefault = self.safe_bool(networkEntry, 'isDefault')
+            isDefault = self.safe_bool(networkEntry, 'isDefault', False)
             if withdrawFee is not None:
-                if isDefault is True:
+                if isDefault:
                     result['withdraw'] = {
                         'fee': withdrawFee,
                         'percentage': None,

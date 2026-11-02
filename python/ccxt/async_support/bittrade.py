@@ -1132,7 +1132,7 @@ class bittrade(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         depositEnabled = self.safe_bool(currency, 'deposit-enabled')
         withdrawEnabled = self.safe_bool(currency, 'withdraw-enabled')
-        countryDisabled = self.safe_bool(currency, 'country-disabled')
+        countryDisabled = self.safe_bool(currency, 'country-disabled', False)
         visible = self.safe_bool(currency, 'visible', False)
         state = self.safe_string(currency, 'state')
         active = (visible) and (depositEnabled is True) and (withdrawEnabled is True) and (state == 'online') and (countryDisabled is not True)
@@ -1454,7 +1454,7 @@ class bittrade(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
