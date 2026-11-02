@@ -1403,7 +1403,7 @@ export default class bybit extends Exchange {
                         'marketBuyRequiresPrice': true,
                     },
                     'withdraw': {
-                        'selectableFeeInclusion': true,
+                        // 'selectableFeeInclusion': true,
                         'feeIncluded': false,
                     },
                 },

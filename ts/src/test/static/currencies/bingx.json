@@ -2474,7 +2474,7 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "precision": 6,
+                "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 0.249014,

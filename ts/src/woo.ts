@@ -450,7 +450,7 @@ export default class woo extends Exchange {
                     'extends': 'default',
                     'withdraw': {
                         'feeIncluded': false,
-                        'selectableFeeInclusion': false,
+                        // 'selectableFeeInclusion': false,
                     },
                 },
                 'forSwap': {
@@ -3400,6 +3400,7 @@ export default class woo extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -3409,18 +3410,20 @@ export default class woo extends Exchange {
         }
         this.checkAddress (address, code, tagWithdrawTag);
         const currency = this.currency (code);
+        const network = this.safeString (paramsWithdrawTag, 'network');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter for ' + code);
+        }
+        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsWithdrawTag, 'withdraw', 'includeFee');
+        const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, network, includeFee);
         const request: Dict = {
-            'amount': amount,
+            'amount': this.parseNumber (amountAdjusted),
             'address': address,
         };
         if (tagWithdrawTag !== undefined) {
             request['extra'] = tagWithdrawTag;
         }
-        const network = this.safeString (paramsWithdrawTag, 'network');
-        if (network === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter for ' + code);
-        }
-        const paramsOmitted: Dict = this.omit (paramsWithdrawTag, 'network');
+        const paramsOmitted: Dict = this.omit (paramsIncludeFee, 'network');
         request['token'] = currency['id'];
         request['network'] = this.networkCodeToId (network, this.safeString (currency, 'code'));
         const response = await this.v3PrivatePostAssetWalletWithdraw (this.extend (request, paramsOmitted));

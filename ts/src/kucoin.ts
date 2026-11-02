@@ -1419,7 +1419,7 @@ export default class kucoin extends Exchange {
                         'limit': 1500,
                     },
                     'withdraw': {
-                        'selectableFeeInclusion': true,
+                        // 'selectableFeeInclusion': true,
                         'feeIncluded': false,
                     },
                 },
@@ -7694,6 +7694,8 @@ export default class kucoin extends Exchange {
         const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee', false);
         if (includeFee === true) {
             request['feeDeductType'] = 'INTERNAL';
+        } else {
+            request['feeDeductType'] = 'EXTERNAL';
         }
         const response = await this.privatePostWithdrawals (this.extend (request, paramsIncludeFee));
         //

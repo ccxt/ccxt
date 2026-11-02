@@ -817,8 +817,8 @@ export default class mexc extends Exchange {
                         'private': true,
                     },
                     'withdraw': {
-                        'includesFee': true,
-                        'selectableFeeInclusion': false,
+                        'feeIncluded': true,
+                        // 'selectableFeeInclusion': false,
                     },
                 },
                 'forDerivs': {
@@ -5870,6 +5870,7 @@ export default class mexc extends Exchange {
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {object} [params.internal] false by default, set to true for an "internal transfer"
      * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -5903,10 +5904,12 @@ export default class mexc extends Exchange {
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         network = this.networkCodeToId (network, this.safeString (currency, 'code'));
         this.checkAddress (address, code, tagResolved);
+        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsWithdrawTag, 'withdraw', 'includeFee');
+        const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, network, includeFee);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': amount,
+            'amount': amountAdjusted,
         };
         if (tagResolved !== undefined) {
             request['memo'] = tagResolved;
@@ -5914,7 +5917,7 @@ export default class mexc extends Exchange {
         if (network !== undefined) {
             request['netWork'] = network;
         }
-        const paramsOmitted: Dict = (network !== undefined) ? this.omit (paramsWithdrawTag, [ 'network', 'netWork' ]) : paramsWithdrawTag;
+        const paramsOmitted: Dict = (network !== undefined) ? this.omit (paramsIncludeFee, [ 'network', 'netWork' ]) : paramsIncludeFee;
         const response = await this.spotPrivatePostCapitalWithdraw (this.extend (request, paramsOmitted));
         //
         //     {

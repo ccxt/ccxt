@@ -974,7 +974,7 @@ export default class gate extends Exchange {
                 'spot': {
                     'extends': 'default',
                     'withdraw': {
-                        'selectableFeeInclusion': false,
+                        // 'selectableFeeInclusion': false,
                         'feeIncluded': true,
                     },
                 },
@@ -4268,6 +4268,7 @@ export default class gate extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -4277,19 +4278,21 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
+        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
+        const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, networkCode, includeFee);
         const request: Dict = {
             'currency': currency['id'], // todo: currencies have network-junctions
             'address': address,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': amountAdjusted,
         };
         if (tagWithdrawTag !== undefined) {
             request['memo'] = tagWithdrawTag;
         }
-        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, paramsNetworkCode));
+        const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, paramsIncludeFee));
         //
         //    {
         //        "id": "w13389675",

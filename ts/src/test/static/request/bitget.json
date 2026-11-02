@@ -166,7 +166,6 @@
                     "USDT",
                     10.05,
                     "0x587ef27bace760781556ba15217735b05a2edc89",
-                    null,
                     {
                         "network": "BEP20",
 						"includeFee": false
@@ -182,7 +181,6 @@
                     "USDT",
                     10.05,
                     "0x587ef27bace760781556ba15217735b05a2edc89",
-                    null,
                     {
                         "network": "BEP20",
 						"includeFee": true

@@ -334,7 +334,7 @@ export default class hyperliquid extends Exchange {
                 'spot': {
                     'extends': 'default',
                     'withdraw': {
-                        'selectableFeeInclusion': false,
+                        // 'selectableFeeInclusion': false,
                         'feeIncluded': false,
                     },
                 },
@@ -4536,6 +4536,8 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.vaultAddress] vault address withdraw from
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
+     * @param {string} [params.fee] the withdrawal fee used when adjusting the amount for includeFee, defaults to 1 (USDC)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -4561,11 +4563,14 @@ export default class hyperliquid extends Exchange {
             };
             sig = this.signL1Action (action, nonce);
         } else {
+            const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (params, 'withdraw', 'includeFee');
+            const feeOption = this.handleOptionStringAndParams (paramsIncludeFee, 'withdraw', 'fee', '1')[0]; // flat 1 USDC withdrawal fee
+            const amountString = this.withdrawAmountByFeeInclusion ('USDC', amount, undefined, includeFee, feeOption);
             const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             const payload: Dict = {
                 'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
                 'destination': address,
-                'amount': amount.toString (),
+                'amount': amountString,
                 'time': nonce,
             };
             sig = this.buildWithdrawSig (payload);
@@ -4573,7 +4578,7 @@ export default class hyperliquid extends Exchange {
                 'hyperliquidChain': payload['hyperliquidChain'],
                 'signatureChainId': '0x66eee', // check this out
                 'destination': address,
-                'amount': amount.toString (),
+                'amount': amountString,
                 'time': nonce,
                 'type': 'withdraw3',
             };

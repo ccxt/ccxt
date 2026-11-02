@@ -1957,7 +1957,7 @@ export default class bitget extends Exchange {
                         'limit': 200, // variable timespans for recent endpoint, 200 for historical
                     },
                     'withdraw': {
-                        'selectableFeeInclusion': false,
+                        // 'selectableFeeInclusion': false,
                         'feeIncluded': true,
                     },
                 },
@@ -3248,6 +3248,7 @@ export default class bitget extends Exchange {
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -3263,11 +3264,13 @@ export default class bitget extends Exchange {
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsNetworkCode, 'withdraw', false);
         const currency = this.currency (code);
         const networkId = this.networkCodeToId (networkCode, code);
+        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsUTA, 'withdraw', 'includeFee');
+        const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, networkCode, includeFee);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
             'chain': networkId,
-            'size': this.currencyToPrecision (code, amount, networkCode),
+            'size': amountAdjusted,
             'transferType': 'on_chain',
         };
         if (tag !== undefined) {
@@ -3275,9 +3278,9 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         if (uta === true) {
-            response = await this.privateUtaPostV3AccountWithdrawal (this.extend (request, paramsUTA));
+            response = await this.privateUtaPostV3AccountWithdrawal (this.extend (request, paramsIncludeFee));
         } else {
-            response = await this.privateSpotPostV2SpotWalletWithdrawal (this.extend (request, paramsUTA));
+            response = await this.privateSpotPostV2SpotWalletWithdrawal (this.extend (request, paramsIncludeFee));
         }
         //
         //     {

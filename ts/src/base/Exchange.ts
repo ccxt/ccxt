@@ -5963,6 +5963,87 @@ export class BaseExchange {
         return [ networkCodeInParams, paramsOmitted ];
     }
 
+    withdrawAmountByFeeInclusion (code: string, amount: number, networkCode: Str = undefined, includeFee: Bool = undefined, fee: Str = undefined): Str {
+        /**
+         * @ignore
+         * @method
+         * @name exchange#withdrawAmountByFeeInclusion
+         * @description returns the final withdrawal amount (precision-adjusted), and for exchanges without a native fee-inclusion parameter, adjusts it so that the user-requested fee inclusion is respected, based on the exchange's default behaviour declared in features['spot']['withdraw']['feeIncluded']
+         * @param {string} code unified currency code
+         * @param {float} amount the amount requested by user
+         * @param {string} [networkCode] unified network code (or network id) of the withdrawal
+         * @param {boolean} [includeFee] true if the amount should include the fee (the recipient gets amount - fee), false if the fee should be charged on top of the amount (the recipient gets the whole amount), undefined to leave the amount as is
+         * @param {string} [fee] withdrawal fee, if not provided it is taken from the loaded currencies
+         * @returns {string} the amount to send to the exchange, rounded to the currency (network) precision
+         */
+        const currency = this.safeDict (this.currencies, code);
+        if (currency === undefined) {
+            // currency is not loaded, so neither its precision nor its fees are known
+            if (includeFee !== undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw() could not find the ' + code + ' currency to apply the includeFee parameter, reload currencies with loadMarkets(true)');
+            }
+            return this.numberToString (amount);
+        }
+        // resolve the key of the network entry inside currency['networks'], used for both precision and fee
+        const networks = this.safeDict (currency, 'networks', {});
+        const networkKeys = Object.keys (networks);
+        const networkKeysLength = networkKeys.length;
+        let networkKey: Str = undefined;
+        if (networkCode !== undefined) {
+            const unifiedNetworkCode = this.safeString (this.networkAliases, networkCode, networkCode);
+            if (networkCode in networks) {
+                networkKey = networkCode;
+            } else if (unifiedNetworkCode in networks) {
+                networkKey = unifiedNetworkCode;
+            } else {
+                // the network might be provided as an exchange-specific network id
+                for (let i = 0; i < networkKeysLength; i++) {
+                    const entry = this.safeDict (networks, networkKeys[i], {});
+                    if (this.safeString (entry, 'id') === networkCode) {
+                        networkKey = networkKeys[i];
+                        break;
+                    }
+                }
+            }
+        } else if (networkKeysLength === 1) {
+            networkKey = networkKeys[0];
+        }
+        let resultString: Str = this.numberToString (amount);
+        if (includeFee !== undefined) {
+            const feeIncluded = this.featureValueByType ('spot', undefined, 'withdraw', 'feeIncluded');
+            if (feeIncluded === undefined) {
+                throw new NotSupported (this.id + ' withdraw() does not support the includeFee parameter');
+            }
+            // when the exchange natively behaves as requested, there is nothing to adjust
+            if (feeIncluded !== includeFee) {
+                let feeString = fee;
+                if (feeString === undefined) {
+                    if (networkKey !== undefined) {
+                        feeString = this.safeString (this.safeDict (networks, networkKey, {}), 'fee');
+                    } else if (networkKeysLength === 0) {
+                        feeString = this.safeString (currency, 'fee');
+                    }
+                    if (feeString === undefined) {
+                        const networkSuffix = (networkCode !== undefined) ? (' on ' + networkCode + ' network') : '';
+                        throw new ArgumentsRequired (this.id + ' withdraw() could not find the withdrawal fee for ' + code + networkSuffix + ' to apply the includeFee parameter, specify the "network" parameter or reload currencies with loadMarkets(true)');
+                    }
+                }
+                const amountString = resultString;
+                if (includeFee) {
+                    // the exchange charges the fee on top of the amount, so it is deducted in advance
+                    resultString = Precise.stringSub (amountString, feeString);
+                    if (Precise.stringLe (resultString, '0')) {
+                        throw new BadRequest (this.id + ' withdraw() amount ' + amountString + ' ' + code + ' must be greater than the withdrawal fee ' + feeString + ' when includeFee is true');
+                    }
+                } else {
+                    // the exchange deducts the fee from the amount, so it is added in advance
+                    resultString = Precise.stringAdd (amountString, feeString);
+                }
+            }
+        }
+        return this.currencyToPrecision (code, resultString, networkKey);
+    }
+
     selectNetworkKeyFromNetworks (currencyCode: string, networkCode: Str, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false): Str {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId: Str = undefined;

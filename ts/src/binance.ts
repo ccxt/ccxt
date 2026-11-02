@@ -1667,7 +1667,7 @@ export default class binance extends Exchange {
                         'limit': 1000,
                     },
                     'withdraw': {
-                        'selectableFeeInclusion': false,
+                        // 'selectableFeeInclusion': false,
                         'feeIncluded': true,
                     },
                 },
@@ -10738,6 +10738,7 @@ export default class binance extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -10760,8 +10761,10 @@ export default class binance extends Exchange {
         if (networkCode !== undefined) {
             request['network'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
-        request['amount'] = this.currencyToPrecision (currency['code'], amount, networkCode);
-        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, paramsNetworkCode));
+        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
+        const amountAdjusted = this.withdrawAmountByFeeInclusion (currency['code'], amount, networkCode, includeFee);
+        request['amount'] = amountAdjusted;
+        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, paramsIncludeFee));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
     }

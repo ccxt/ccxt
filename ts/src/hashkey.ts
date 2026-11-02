@@ -444,7 +444,7 @@ export default class hashkey extends Exchange {
                     'extends': 'default',
                     'withdraw': {
                         'feeIncluded': false,
-                        'selectableFeeInclusion': false,
+                        // 'selectableFeeInclusion': false,
                     },
                 },
                 'forDerivatives': {
@@ -2104,6 +2104,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.network] network for withdraw
      * @param {string} [params.clientOrderId] client order id
      * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -2113,19 +2114,21 @@ export default class hashkey extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
+        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
+        const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, networkCode, includeFee);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
-            'quantity': amount,
+            'quantity': this.parseNumber (amountAdjusted),
         };
         if (tagWithdrawTag !== undefined) {
             request['addressExt'] = tagWithdrawTag;
         }
-        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
             request['chainType'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
-        const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, paramsNetworkCode));
+        const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, paramsIncludeFee));
         //
         //     {
         //         "success": true,

@@ -1740,7 +1740,6 @@
                     "USDT",
                     8,
                     "0x63d35481cb74fa959aec61d33a5d4507a6164873",
-                    null,
                     {
                         "network": "ERC20",
                         "includeFee": false
@@ -1781,7 +1780,6 @@
                     "USDT",
                     8,
                     "0x63d35481cb74fa959aec61d33a5d4507a6164873",
-                    null,
                     {
                         "network": "ERC20",
                         "includeFee": true
