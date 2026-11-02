@@ -1739,7 +1739,7 @@ public partial class gate : ccxt.gate
         {
             this.positions = new Dictionary<string, object>() {};
         }
-        if ((((IDictionary<string,object>)this.positions) != null && type is string hx10w3Key0 && ((IDictionary<string,object>)this.positions).ContainsKey(hx10w3Key0)))
+        if ((((IDictionary<string,object>)this.positions) != null && type is string entryKey0 && ((IDictionary<string,object>)this.positions).ContainsKey(entryKey0)))
         {
             return;
         }
