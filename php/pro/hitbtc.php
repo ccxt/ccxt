@@ -1531,9 +1531,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        "result": true
         //    }
         //
-        $success = $this->safe_bool($message, 'result');
+        $success = $this->safe_bool($message, 'result', false);
         $messageHash = 'authenticated';
-        if ($success === true) {
+        if ($success) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {

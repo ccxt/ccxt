@@ -498,7 +498,7 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = $this->privateSpotGetV2ExTradefee($this->extend($request, $params));
             //
             // {
@@ -601,7 +601,7 @@ class zebpay extends Exchange {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             //
             //       {
             //         "asks": [
@@ -643,7 +643,7 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = $this->publicSpotGetV2MarketTicker($this->extend($request, $params));
             //
             //     [
@@ -739,7 +739,7 @@ class zebpay extends Exchange {
         $paramsOmitted = $this->omit($params, array( 'until', 'endtime', 'endTime', 'interval', 'startTime' ));
         $response = null;
         $limitResolved = $limit;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             if ($limit === null) {
                 $limitResolved = 100;
             }
@@ -826,11 +826,11 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if (($market['spot'] === true) && $limit !== null) {
+        if (($this->safe_bool($market, 'spot', false)) && $limit !== null) {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = $this->publicSpotGetV2MarketTrades($this->extend($request, $params));
         } else {
             $response = $this->publicSwapGetV1MarketAggTrade($this->extend($request, $params));
@@ -1063,7 +1063,7 @@ class zebpay extends Exchange {
             'side' => strtoupper($side),
         );
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = $this->privateSpotPostV2ExOrders($this->spot_order_body($symbol, $type, $amount, $request, $price, $query));
         } else {
             $marginAsset = $this->safe_string($query, 'marginAsset', 'INR');
@@ -1147,7 +1147,7 @@ class zebpay extends Exchange {
         $market = $this->market($symbol);
         $response = null;
         $request = array();
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['orderId'] = $id;
             $response = $this->privateSpotDeleteV2ExOrder($this->extend($request, $params));
         } else {
@@ -1224,7 +1224,7 @@ class zebpay extends Exchange {
         );
         $response = null;
         $orders = array();
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['currentPage'] = 1;
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
@@ -1291,7 +1291,7 @@ class zebpay extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['orderId'] = $id;
             $response = $this->privateSpotGetV2ExOrder($this->extend($request, $params));
         } else {

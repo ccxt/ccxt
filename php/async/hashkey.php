@@ -1764,7 +1764,7 @@ class hashkey extends Exchange {
         $last = $this->safe_string($ticker, 'c');
         $baseVolume = $this->safe_string($ticker, 'v');
         $contractSizeValue = $this->safe_string($marketResolved, 'contractSize');
-        if (($marketResolved['contract'] === true) && ($contractSizeValue !== null)) {
+        if (($this->safe_bool($marketResolved, 'contract', false)) && ($contractSizeValue !== null)) {
             // 'v' counts contracts, and a ticker reports base volume
             $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($contractSizeValue));
         }
@@ -2615,9 +2615,9 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             return Async\await($this->create_spot_order($symbol, $type, $side, $amount, $price, $params));
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             return Async\await($this->create_swap_order($symbol, $type, $side, $amount, $price, $params));
         } else {
             $marketTypeValue = $this->safe_string($market, 'type', '');
@@ -2641,7 +2641,7 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
         $req = array(
@@ -2689,8 +2689,8 @@ class hashkey extends Exchange {
         }
         $request = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = array();
-        $test = $this->safe_bool($params, 'test');
-        if ($test === true) {
+        $test = $this->safe_bool($params, 'test', false);
+        if ($test) {
             $response = Async\await($this->privatePostApiV1SpotOrderTest($request));
         } elseif ($isMarketBuy && ($cost === null)) {
             $response = Async\await($this->privatePostApiV11SpotOrder($request)); // the endpoint for market buy orders by amount
@@ -2785,9 +2785,9 @@ class hashkey extends Exchange {
             throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             return $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             return $this->create_swap_order_request($symbol, $type, $side, $amount, $price, $params);
         } else {
             $marketTypeValue = $this->safe_string($market, 'type', '');
@@ -3001,7 +3001,7 @@ class hashkey extends Exchange {
             'orders' => $ordersRequests,
         );
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->privatePostApiV1SpotBatchOrders($this->extend($request, $params)));
             //
             //     {
@@ -3030,7 +3030,7 @@ class hashkey extends Exchange {
             //         "concentration": ""
             //     }
             //
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->privatePostApiV1FuturesBatchOrders($this->extend($request, $params)));
             //
             //     {
@@ -3137,7 +3137,7 @@ class hashkey extends Exchange {
             //
         } elseif ($marketType === 'swap') {
             list($isTrigger, $paramsTrigger) = $this->handle_option_bool_and_params_2($paramsMarketType, $methodName, 'stop', 'trigger', false);
-            if ($isTrigger === true) {
+            if ($isTrigger) {
                 $request['type'] = 'STOP';
             } else {
                 $request['type'] = 'LIMIT';
@@ -3207,12 +3207,12 @@ class hashkey extends Exchange {
         if ($side !== null) {
             $request['side'] = $side;
         }
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->privateDeleteApiV1SpotOpenOrders($this->extend($request, $params)));
             //
             //     { "success": true }
             //
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->privateDeleteApiV1FuturesBatchOrders($this->extend($request, $params)));
             //
             //     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
@@ -3347,7 +3347,7 @@ class hashkey extends Exchange {
             //
         } elseif ($marketType === 'swap') {
             list($isTrigger, $paramsTrigger) = $this->handle_option_bool_and_params_2($paramsMarketType, $methodName, 'stop', 'trigger', false);
-            if ($isTrigger === true) {
+            if ($isTrigger) {
                 $request['type'] = 'STOP';
             }
             $response = Async\await($this->privateGetApiV1FuturesOrder($this->extend($request, $paramsTrigger)));
@@ -3536,7 +3536,7 @@ class hashkey extends Exchange {
         );
         $isTrigger = false;
         list($isTriggerTrigger, $paramsTrigger) = $this->handle_option_bool_and_params_2($paramsMethodName, $methodNameOption, 'stop', 'trigger', $isTrigger);
-        if ($isTriggerTrigger === true) {
+        if ($isTriggerTrigger) {
             $request['type'] = 'STOP';
         } else {
             $request['type'] = 'LIMIT';
@@ -3690,7 +3690,7 @@ class hashkey extends Exchange {
             }
             $request['symbol'] = $this->safe_string($market, 'id');
             list($isTrigger, $paramsTrigger) = $this->handle_option_bool_and_params_2($paramsMarketType, $methodName, 'stop', 'trigger', false);
-            if ($isTrigger === true) {
+            if ($isTrigger) {
                 $request['type'] = 'STOP';
             } else {
                 $request['type'] = 'LIMIT';
@@ -4183,7 +4183,7 @@ class hashkey extends Exchange {
         $methodName = 'fetchPosition';
         $methodNameOption = $this->safe_string($params, 'methodName', $methodName);
         $paramsMethodName = $this->omit($params, 'methodName');
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' ' . $methodNameOption . '() supports swap markets only');
         }
         $request = array(
@@ -4361,7 +4361,7 @@ class hashkey extends Exchange {
             throw new ArgumentsRequired($this->id . ' setMarginMode() marginMode must be either cross or isolated');
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap markets only');
         }
         $request = array(
@@ -4418,7 +4418,7 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' modifyMarginHelper() supports swap markets only');
         }
         $sideParam = $this->safe_string($params, 'side');
@@ -4618,11 +4618,11 @@ class hashkey extends Exchange {
         $market = $this->market($symbol);
         $methodName = 'fetchTradingFee';
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->fetch_trading_fees($params));
             $fee = $this->safe_dict($response, $symbol);
             return $fee;
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->privateGetApiV1FuturesCommissionRate($this->extend(array( 'symbol' => $market['id'] ), $params)));
             return $this->parse_trading_fee($response, $market);
             //

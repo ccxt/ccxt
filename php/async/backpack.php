@@ -584,7 +584,7 @@ class backpack extends Exchange {
         $currencies = array();
         for ($i = 0; $i < count($response); $i++) {
             $currency = $this->parse_currency($this->safe_dict($response, $i, array()));
-            if (($stock !== true) || ($this->safe_string($currency, 'type') === 'stock')) {
+            if (!$stock || ($this->safe_string($currency, 'type') === 'stock')) {
                 $currencies[$currency['code']] = $currency;
             }
         }
@@ -727,7 +727,7 @@ class backpack extends Exchange {
                     continue;
                 }
                 $marketIds[$marketId] = true;
-                if (($stock !== true) || $this->safe_bool($market, 'stock', false)) {
+                if (!$stock || $this->safe_bool($market, 'stock', false)) {
                     $markets[] = $market;
                 }
             }
@@ -1756,7 +1756,7 @@ class backpack extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             throw new BadRequest($this->id . ' fetchFundingRate() symbol does not support market ' . $symbol);
         }
         $request = array(
@@ -1821,7 +1821,7 @@ class backpack extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest() symbol does not support market ' . $symbol);
         }
         $request = array(

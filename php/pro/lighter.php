@@ -358,7 +358,7 @@ class lighter extends \ccxt\async\lighter {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' watchTicker() is only supported for swap markets');
         }
         $request = array(
@@ -387,7 +387,7 @@ class lighter extends \ccxt\async\lighter {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' unWatchTicker() is only supported for swap markets');
         }
         $request = array(
@@ -417,7 +417,7 @@ class lighter extends \ccxt\async\lighter {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        if (($firstMarket !== null) && ($firstMarket['swap'] !== true)) {
+        if (($firstMarket !== null) && (!$this->safe_bool($firstMarket, 'swap', false))) {
             throw new NotSupported($this->id . ' watchTickers() is only supported for swap markets');
         }
         $request = array(
@@ -467,7 +467,7 @@ class lighter extends \ccxt\async\lighter {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        if (($firstMarket !== null) && ($firstMarket['swap'] !== true)) {
+        if (($firstMarket !== null) && (!$this->safe_bool($firstMarket, 'swap', false))) {
             throw new NotSupported($this->id . ' unWatchTickers() is only supported for swap markets');
         }
         $request = array(
@@ -563,9 +563,9 @@ class lighter extends \ccxt\async\lighter {
         $tradeId = $this->safe_string($trade, 'trade_id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
-        $isMakerAsk = $this->safe_bool($trade, 'is_maker_ask');
+        $isMakerAsk = $this->safe_bool($trade, 'is_maker_ask', false);
         $side = 'sell';
-        if ($isMakerAsk === true) {
+        if ($isMakerAsk) {
             $side = 'buy';
         }
         return $this->safe_trade(array(
@@ -737,7 +737,7 @@ class lighter extends \ccxt\async\lighter {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
         $costString = $this->safe_string($trade, 'usd_amount');
-        $isMakerAsk = $this->safe_bool($trade, 'is_maker_ask');
+        $isMakerAsk = $this->safe_bool($trade, 'is_maker_ask', false);
         $accountIndex = $this->safe_integer($trade, 'accountIndex');
         $bidAccountId = $this->safe_integer($trade, 'bid_account_id');
         $askAccountId = $this->safe_integer($trade, 'ask_account_id');
@@ -749,16 +749,16 @@ class lighter extends \ccxt\async\lighter {
                 // Own trades should use the account's order side
                 $side = 'buy';
                 $order = $this->safe_string($trade, 'bid_id');
-                $takerOrMaker = ($isMakerAsk === true) ? 'taker' : 'maker';
+                $takerOrMaker = $isMakerAsk ? 'taker' : 'maker';
             } elseif ($askAccountId === $accountIndex) {
                 $side = 'sell';
                 $order = $this->safe_string($trade, 'ask_id');
-                $takerOrMaker = ($isMakerAsk === true) ? 'maker' : 'taker';
+                $takerOrMaker = $isMakerAsk ? 'maker' : 'taker';
             }
         }
         // public trades use Lighter's taker-side convention
         if ($side === null) {
-            $side = ($isMakerAsk === true) ? 'buy' : 'sell';
+            $side = $isMakerAsk ? 'buy' : 'sell';
         }
         $fee = null;
         if ($takerOrMaker !== null) {
@@ -960,9 +960,9 @@ class lighter extends \ccxt\async\lighter {
         //     }
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
-        $isMakerAsk = $this->safe_bool($liquidation, 'is_maker_ask');
+        $isMakerAsk = $this->safe_bool($liquidation, 'is_maker_ask', false);
         $side = 'sell';
-        if ($isMakerAsk === true) {
+        if ($isMakerAsk) {
             $side = 'buy';
         }
         $contracts = $this->safe_string($liquidation, 'size');

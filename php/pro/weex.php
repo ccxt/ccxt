@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
@@ -1739,6 +1740,9 @@ class weex extends \ccxt\async\weex {
             Async\await($this->load_markets());
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' watchBalance() requires a market type');
+        }
         $isContract = ($type !== 'spot');
         $urlType = 'spot';
         if ($isContract) {

@@ -513,7 +513,7 @@ class htx extends \ccxt\async\htx {
         }
         $messageHash = '';
         $marketId = $this->safe_string($market, 'id', '');
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $messageHash = 'market.' . $marketId . '.mbp.' . (string) $limitResolved;
         } else {
             $messageHash = 'market.' . $marketId . '.depth.size_' . (string) $limitResolved . '.high_freq';
@@ -521,10 +521,10 @@ class htx extends \ccxt\async\htx {
         $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
         $method = array($this, 'handle_order_book_subscription');
         $paramsExtended = $params;
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             $paramsExtended = $this->extend($params, array( 'data_type' => 'incremental' ));
         }
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             $method = null;
         }
         $orderbook = Async\await($this->subscribe_public($url, $symbolValue, $messageHash, $method, $paramsExtended));
@@ -557,12 +557,12 @@ class htx extends \ccxt\async\htx {
         $depth = $this->parse_to_int($this->safe_integer($options, 'depth', 150));
         $marketId = $this->safe_string($market, 'id', '');
         $subMessageHash = '';
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $subMessageHash = 'market.' . $marketId . '.mbp.' . (string) $depth;
         } else {
             $subMessageHash = 'market.' . $marketId . '.depth.size_' . (string) $depth . '.high_freq';
         }
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             $params['data_type'] = 'incremental';
         }
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
@@ -902,7 +902,7 @@ class htx extends \ccxt\async\htx {
             $orderbook['nonce'] = null;
             $orderbook->cache = array();
         }
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
         }
     }
@@ -937,7 +937,7 @@ class htx extends \ccxt\async\htx {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $type = $this->safe_string($market, 'type');
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $subType = 'linear';
             } else {
                 $subType = 'inverse';
@@ -1084,7 +1084,7 @@ class htx extends \ccxt\async\htx {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $type = $this->safe_string($market, 'type');
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $subType = 'linear';
             } else {
                 $subType = 'inverse';
@@ -1698,7 +1698,7 @@ class htx extends \ccxt\async\htx {
         $paramsSubType = array();
         if ($market !== null) {
             $type = $this->safe_string($market, 'type');
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $subType = 'linear';
             } else {
                 $subType = 'inverse';

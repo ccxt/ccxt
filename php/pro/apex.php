@@ -1197,10 +1197,10 @@ class apex extends \ccxt\async\apex {
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        $success = $this->safe_bool($message, 'success');
+        $success = $this->safe_bool($message, 'success', false);
         $code = $this->safe_integer($message, 'retCode');
         $messageHash = 'authenticated';
-        if (($success === true) || ($code === 0)) {
+        if ($success || ($code === 0)) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {

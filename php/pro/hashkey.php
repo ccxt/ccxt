@@ -507,7 +507,7 @@ class hashkey extends \ccxt\async\hashkey {
         $timeInForce = $this->safe_string($order, 'f');
         $postOnly = null;
         list($type, $timeInForce, $postOnly) = $this->parseOrderTypeTimeInForceAndPostOnly($type, $timeInForce);
-        if ($marketResolved['contract'] === true) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if ($this->safe_bool($marketResolved, 'contract', false)) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             $type = null;
         }
         return $this->safe_order(array(
@@ -963,7 +963,7 @@ class hashkey extends \ccxt\async\hashkey {
             $client = $this->client($url);
             $this->options['listenKey'] = null;
             $client->reject($error);
-            unset($this->clients[$url]);
+            unset($this->clients[$client->url]);
         }
     }
 

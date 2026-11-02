@@ -778,7 +778,7 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' watchFundingRate() supports swap contracts only');
         }
         return Async\await($this->subscribe('fund_rate@' . $this->safe_string($market, 'id', ''), 'public', 'watchFundingRate', $market, null, $params));
@@ -802,7 +802,7 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' unWatchFundingRate() supports swap contracts only');
         }
         $name = 'fund_rate@' . $this->safe_string($market, 'id', '');
@@ -1668,7 +1668,7 @@ class xt extends \ccxt\async\xt {
         $market = $this->market($tradeSymbol);
         $stored->append($parsedTrade);
         $tradeType = 'spot';
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             $tradeType = 'contract';
         }
         $client->resolve($stored, 'trade::' . $tradeType);

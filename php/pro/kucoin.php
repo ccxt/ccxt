@@ -219,7 +219,7 @@ class kucoin extends \ccxt\async\kucoin {
         $requestId = (string) $this->request_id();
         $market = $this->market($symbol);
         $urlType = 'spot';
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             $urlType = 'futures';
         }
         $tradeType = strtoupper($urlType);
@@ -2240,7 +2240,7 @@ class kucoin extends \ccxt\async\kucoin {
         $timestamp = $this->safe_integer_2($order, 'orderTime', 'createdAt');
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        if ($marketResolved['contract'] === true) {
+        if ($this->safe_bool($marketResolved, 'contract', false)) {
             $timestamp = $this->safe_integer_product($order, 'orderTime', 0.000001);
         }
         $triggerPrice = $this->safe_string($order, 'stopPrice');

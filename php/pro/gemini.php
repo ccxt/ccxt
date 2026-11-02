@@ -551,11 +551,15 @@ class gemini extends \ccxt\async\gemini {
         $marketId = strtolower($this->safe_string($firstBidAsk, 'symbol', ''));
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_string($market, 'symbol', '');
-        if (!(is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks))) {
-            $this->bidsasks[$symbol] = $this->parse_ticker(array());
-            $this->bidsasks[$symbol]['symbol'] = $symbol;
+        // read-modify-write: the cached entry is copied out, updated, and stored back whole
+        $currentBidAsk = array();
+        if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
+            $cachedBidAsk = $this->bidsasks[$symbol];
+            $currentBidAsk = $this->extend(array(), $cachedBidAsk);
+        } else {
+            $currentBidAsk = $this->extend($this->parse_ticker(array()));
+            $currentBidAsk['symbol'] = $symbol;
         }
-        $currentBidAsk = $this->bidsasks[$symbol];
         $messageHash = 'bidsasks:' . $symbol;
         // last update always overwrites the previous state and is the latest state
         for ($i = 0; $i < count($rawBidAskChanges); $i++) {
@@ -597,7 +601,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($symbolsNormalized[0]);
-        if (($firstMarket['spot'] !== true) && ($firstMarket['linear'] !== true)) {
+        if ((!$this->safe_bool($firstMarket, 'spot', false)) && (!$this->safe_bool($firstMarket, 'linear', false))) {
             throw new NotSupported($this->id . ' watchMultiple supports only spot or linear-swap symbols');
         }
         $messageHashes = array();

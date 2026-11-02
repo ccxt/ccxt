@@ -4867,7 +4867,7 @@ class BaseExchange {
         if ($market !== null) {
             $result = $this->extend($cleanStructure, $market);
             // set undefined swap/future/etc
-            if ($this->safe_bool($result, 'spot') === true) {
+            if ($this->safe_bool($result, 'spot', false)) {
                 if ($result['contract'] === null) {
                     $result['contract'] = false;
                 }
@@ -4920,9 +4920,9 @@ class BaseExchange {
                 'precision' => $this->precision,
                 'limits' => $this->limits,
             ), $this->fees['trading'], $valueDefined);
-            if ($this->safe_bool($market, 'linear') === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $market['subType'] = 'linear';
-            } elseif ($this->safe_bool($market, 'inverse') === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $market['subType'] = 'inverse';
             } else {
                 $market['subType'] = null;
@@ -6069,7 +6069,7 @@ class BaseExchange {
                 throw new BadRequest($this->id . ' symbols must be of the same type ' . $type . '. If the type is incorrect you can change it in options or the params of the request');
             }
             $marketType = $this->safe_string($market, 'type');
-            if ($this->safe_bool($market, 'spot') !== true) {
+            if (!$this->safe_bool($market, 'spot', false)) {
                 $isLinearSubType = $this->safe_bool($market, 'linear');
             }
             $symbol = $this->safe_string($market, 'symbol', $symbols[$i]);
@@ -7224,7 +7224,7 @@ class BaseExchange {
                     $marketTypeResolved = ($marketType === null) ? $this->safe_string($market, 'type', '') : $marketType;
                     for ($i = 0; $i < count($markets); $i++) {
                         $currentMarket = $markets[$i];
-                        if ($this->safe_bool($currentMarket, $marketTypeResolved) === true) {
+                        if ($this->safe_bool($currentMarket, $marketTypeResolved, false)) {
                             return $currentMarket;
                         }
                     }
@@ -7547,9 +7547,9 @@ class BaseExchange {
         } else {
             // at first, check from market object
             if ($market !== null) {
-                if ($this->safe_bool($market, 'linear') === true) {
+                if ($this->safe_bool($market, 'linear', false)) {
                     $subType = 'linear';
-                } elseif ($this->safe_bool($market, 'inverse') === true) {
+                } elseif ($this->safe_bool($market, 'inverse', false)) {
                     $subType = 'inverse';
                 }
             }
@@ -7935,7 +7935,7 @@ class BaseExchange {
             $defaultType = $this->safe_string_2($this->options, 'defaultType', 'defaultSubType', 'spot');
             for ($i = 0; $i < count($marketsList); $i++) {
                 $market = $marketsList[$i];
-                if ($this->safe_bool($market, $defaultType) === true) {
+                if ($this->safe_bool($market, $defaultType, false)) {
                     return $market;
                 }
             }
@@ -8137,7 +8137,7 @@ class BaseExchange {
     public function fetch_market_leverage_tiers(string $symbol, $params = array()) {
         if ($this->has['fetchLeverageTiers'] !== null && $this->has['fetchLeverageTiers'] !== false) {
             $market = $this->market($symbol);
-            if ($market['contract'] !== true) {
+            if (!$this->safe_bool($market, 'contract', false)) {
                 throw new BadSymbol($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
             }
             $tiers = $this->fetch_leverage_tiers(array( $symbol ));
@@ -8518,7 +8518,7 @@ class BaseExchange {
             $this->load_markets();
             $market = $this->market($symbol);
             $symbolResolved = $market['symbol'];
-            if ($market['contract'] !== true) {
+            if (!$this->safe_bool($market, 'contract', false)) {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
             }
             $rates = $this->fetch_funding_rates(array( $symbolResolved ), $params);
@@ -8538,7 +8538,7 @@ class BaseExchange {
             $this->load_markets();
             $market = $this->market($symbol);
             $symbolResolved = $market['symbol'];
-            if ($market['contract'] !== true) {
+            if (!$this->safe_bool($market, 'contract', false)) {
                 throw new BadSymbol($this->id . ' fetchFundingInterval() supports contract markets only');
             }
             $rates = $this->fetch_funding_intervals(array( $symbolResolved ), $params);

@@ -938,6 +938,9 @@ class derive extends \ccxt\async\derive {
         }
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         $subaccountIdKey = $this->number_to_string($subaccountId);
+        if ($subaccountIdKey === null) {
+            throw new ExchangeError($this->id . ' watchBalance() could not resolve the subaccount id');
+        }
         if ($fetchSnapshot && !(is_array($this->balance) && array_key_exists($subaccountIdKey ?? '', $this->balance))) {
             $snapshotRequest = array(
                 'subaccount_id' => $subaccountId,

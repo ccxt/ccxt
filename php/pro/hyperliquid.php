@@ -279,7 +279,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'method' => 'subscribe',
             'subscription' => array(
                 'type' => 'l2Book',
-                'coin' => ($market['swap'] === true) ? $market['baseName'] : $market['id'],
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $market['baseName'] : $market['id'],
             ),
         );
         $message = $this->extend($request, $params);
@@ -317,7 +317,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'method' => 'unsubscribe',
             'subscription' => array(
                 'type' => 'l2Book',
-                'coin' => ($market['swap'] === true) ? $market['baseName'] : $market['id'],
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $market['baseName'] : $market['id'],
             ),
         );
         $message = $this->extend($request, $params);
@@ -404,7 +404,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 // always 'activeAssetCtx', the server routes spot coins to the spot channel,
                 // see https://github.com/ccxt/ccxt/issues/27475
                 'type' => 'activeAssetCtx',
-                'coin' => ($market['swap'] === true) ? $market['baseName'] : $market['id'],
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $market['baseName'] : $market['id'],
             ),
         );
         Async\await($this->wait_for_pending_unsubscribe($url, $messageHash));
@@ -437,7 +437,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'method' => 'unsubscribe',
             'subscription' => array(
                 'type' => 'activeAssetCtx',
-                'coin' => ($market['swap'] === true) ? $market['baseName'] : $market['id'],
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $market['baseName'] : $market['id'],
             ),
         );
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
@@ -893,7 +893,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'method' => 'subscribe',
             'subscription' => array(
                 'type' => 'trades',
-                'coin' => ($market['swap'] === true) ? $market['baseName'] : $market['id'],
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $market['baseName'] : $market['id'],
             ),
         );
         $message = $this->extend($request, $params);
@@ -932,7 +932,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'method' => 'unsubscribe',
             'subscription' => array(
                 'type' => 'trades',
-                'coin' => ($market['swap'] === true) ? $market['baseName'] : $market['id'],
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $market['baseName'] : $market['id'],
             ),
         );
         $message = $this->extend($request, $params);
@@ -1072,7 +1072,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'method' => 'subscribe',
             'subscription' => array(
                 'type' => 'candle',
-                'coin' => ($market['swap'] === true) ? $market['baseName'] : $market['id'],
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $market['baseName'] : $market['id'],
                 'interval' => $timeframe,
             ),
         );
@@ -1112,7 +1112,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'method' => 'unsubscribe',
             'subscription' => array(
                 'type' => 'candle',
-                'coin' => ($market['swap'] === true) ? $market['baseName'] : $market['id'],
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $market['baseName'] : $market['id'],
                 'interval' => $timeframe,
             ),
         );
@@ -1198,7 +1198,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $paramsValue = $this->safe_dict($this->handlePublicAddress('watchBalance', $params), 1, $params);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $paramsValue);
         $unifiedResult = Async\await($this->isUnifiedEnabled('watchBalance', $userAddress, false, $paramsMarketType));
-        $isUnifiedEnabled = $this->safe_bool($unifiedResult, 0);
+        $isUnifiedEnabled = $this->safe_bool($unifiedResult, 0, false);
         $paramsValue2 = $this->safe_dict($unifiedResult, 1, $paramsMarketType);
         $dex = $this->safe_string($paramsValue2, 'dex');
         $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);
@@ -1213,7 +1213,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'user' => $userAddress,
         );
         if ($isSpot) {
-            if ($isUnifiedEnabled === true) {
+            if ($isUnifiedEnabled) {
                 $subscription['isPortfolioMargin'] = true;
             }
         } else {
@@ -1254,7 +1254,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $paramsValue = $this->safe_dict($this->handlePublicAddress('unWatchBalance', $params), 1, $params);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('unWatchBalance', null, $paramsValue);
         $unifiedResult = Async\await($this->isUnifiedEnabled('unWatchBalance', $userAddress, false, $paramsMarketType));
-        $isUnifiedEnabled = $this->safe_bool($unifiedResult, 0);
+        $isUnifiedEnabled = $this->safe_bool($unifiedResult, 0, false);
         $paramsValue2 = $this->safe_dict($unifiedResult, 1, $paramsMarketType);
         $dex = $this->safe_string($paramsValue2, 'dex');
         $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);

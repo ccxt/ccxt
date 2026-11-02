@@ -936,9 +936,9 @@ class bit2c extends Exchange {
             $marketId = $this->safe_string($trade, 'pair');
             $marketByPair = $this->safe_market($marketId, $market);
             $tradeMarket = $this->safe_market($reference_parts[0], $marketByPair);
-            $isMaker = $this->safe_bool($trade, 'isMaker');
-            $makerOrTaker = ($isMaker === true) ? 'maker' : 'taker';
-            $orderId = ($isMaker === true) ? $reference_parts[2] : $reference_parts[1];
+            $isMaker = $this->safe_bool($trade, 'isMaker', false);
+            $makerOrTaker = $isMaker ? 'maker' : 'taker';
+            $orderId = $isMaker ? $reference_parts[2] : $reference_parts[1];
             $action = $this->safe_integer($trade, 'action');
             if ($action === 0) {
                 $side = 'buy';

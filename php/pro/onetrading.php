@@ -259,10 +259,10 @@ class onetrading extends \ccxt\async\onetrading {
             $marketId = $this->safe_string($ticker, 'instrument');
             $symbol = $this->safe_symbol($marketId);
             $parsedTicker = $this->parse_ws_ticker($ticker);
-            $this->tickers[$symbol] = $parsedTicker;
             $timestamp = $this->parse8601($datetime);
             $parsedTicker['timestamp'] = $timestamp;
             $parsedTicker['datetime'] = $this->iso8601($timestamp);
+            $this->tickers[$symbol] = $parsedTicker;
             $client->resolve($parsedTicker, 'ticker.' . $symbol);
         }
         $client->resolve($this->tickers, 'tickers');

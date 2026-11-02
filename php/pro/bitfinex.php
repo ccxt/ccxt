@@ -76,8 +76,8 @@ class bitfinex extends \ccxt\async\bitfinex {
         $checksum = $this->safe_bool($this->options, 'checksum', true);
         if (($checksum) && ($channel === 'book')) {
             $sub = $client->subscriptions[$messageHash];
-            $subChecksum = $this->safe_bool($sub, 'checksum');
-            if (($sub !== null) && ($subChecksum !== true)) {
+            $subChecksum = $this->safe_bool($sub, 'checksum', false);
+            if (($sub !== null) && !$subChecksum) {
                 $client->subscriptions[$messageHash]['checksum'] = true;
                 Async\await($client->send(array(
                     'event' => 'conf',

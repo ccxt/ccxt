@@ -222,7 +222,7 @@ class whitebit extends \ccxt\async\whitebit {
         //  }
         //
         $params = $this->safe_list($message, 'params', array());
-        $isSnapshot = $this->safe_bool($params, 0);
+        $isSnapshot = $this->safe_bool($params, 0, false);
         $marketId = $this->safe_string($params, 2);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -235,7 +235,7 @@ class whitebit extends \ccxt\async\whitebit {
         $orderbook = $this->orderbooks[$symbol];
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
-        if ($isSnapshot === true) {
+        if ($isSnapshot) {
             $snapshot = $this->parse_order_book($data, $symbol);
             $orderbook->reset($snapshot);
         } else {

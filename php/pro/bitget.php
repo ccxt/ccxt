@@ -779,7 +779,7 @@ class bitget extends \ccxt\async\bitget {
         //
         $volumeIndex = 5;
         $isInverse = $this->safe_bool($market, 'inverse', false);
-        if ($isInverse === true) {
+        if ($isInverse) {
             $volumeIndex = 6;
         }
         $timestamp = $this->safe_integer_2($ohlcv, 'start', 0);

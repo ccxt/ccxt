@@ -1164,7 +1164,7 @@ class kraken extends Exchange {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
-                if ($market['active'] === true) {
+                if ($this->safe_bool($market, 'active', false)) {
                     $marketIds[] = $market['id'];
                 }
             }
@@ -2429,7 +2429,7 @@ class kraken extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' editOrder() does not support ' . $this->safe_string($market, 'type', '') . ' orders, only spot orders are accepted');
         }
         $request = array(

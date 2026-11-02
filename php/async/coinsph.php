@@ -643,7 +643,7 @@ class coinsph extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 'coin');
         $code = $this->safe_currency_code($id);
-        $isFiat = $this->safe_bool($rawCurrency, 'isLegalMoney');
+        $isFiat = $this->safe_bool($rawCurrency, 'isLegalMoney', false);
         $networkList = $this->safe_list($rawCurrency, 'networkList', array());
         $networks = array();
         for ($j = 0; $j < count($networkList); $j++) {
@@ -677,7 +677,7 @@ class coinsph extends Exchange {
             'id' => $id,
             'name' => $this->safe_string($rawCurrency, 'name'),
             'code' => $code,
-            'type' => ($isFiat === true) ? 'fiat' : 'crypto',
+            'type' => $isFiat ? 'fiat' : 'crypto',
             'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'transferPrecision'))),
             'info' => $rawCurrency,
             'active' => null,

@@ -792,7 +792,7 @@ class lbank extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $tickerData = $this->safe_dict($ticker, 'ticker', array());
         $marketResolved = $this->safe_market($marketId, $market);
-        $data = ($marketResolved['contract'] === true) ? $ticker : $tickerData;
+        $data = ($this->safe_bool($marketResolved, 'contract', false)) ? $ticker : $tickerData;
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -835,7 +835,7 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $responseForSwap = Async\await($this->fetch_tickers(array( $market['symbol'] ), $params));
             $swapTicker = $this->safe_dict($responseForSwap, $market['symbol']);
             return $swapTicker;
@@ -1036,7 +1036,7 @@ class lbank extends Exchange {
         //
         $orderbook = $this->safe_dict($response, 'data', array());
         $timestamp = $this->milliseconds();
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks');
@@ -1707,7 +1707,7 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -3119,8 +3119,8 @@ class lbank extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $fee = $response[$i];
-            $canWithdraw = $this->safe_bool($fee, 'canWithDraw');
-            if ($canWithdraw === true) {
+            $canWithdraw = $this->safe_bool($fee, 'canWithDraw', false);
+            if ($canWithdraw) {
                 $code = $this->safe_currency_code($this->safe_string($fee, 'assetCode'));
                 if (($code !== null) && ($codes === null || $this->in_array($code, $codes))) {
                     $withdrawFee = $this->safe_number($fee, 'fee');
@@ -3196,9 +3196,9 @@ class lbank extends Exchange {
             $networkEntry = $this->safe_dict($networkList, $j);
             $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
             $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
-            $isDefault = $this->safe_bool($networkEntry, 'isDefault');
+            $isDefault = $this->safe_bool($networkEntry, 'isDefault', false);
             if ($withdrawFee !== null) {
-                if ($isDefault === true) {
+                if ($isDefault) {
                     $result['withdraw'] = array(
                         'fee' => $withdrawFee,
                         'percentage' => null,

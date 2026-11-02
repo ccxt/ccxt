@@ -2760,7 +2760,7 @@ class extended extends Exchange {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $uppercaseSide = strtoupper($side);
-        if (($market['spot'] === true) && $uppercaseType !== 'LIMIT') {
+        if (($this->safe_bool($market, 'spot', false)) && $uppercaseType !== 'LIMIT') {
             throw new BadRequest($this->id . ' createOrder() supports limit orders for spot markets only');
         }
         if (!$this->in_array($uppercaseType, array( 'LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL' ))) {
@@ -2781,8 +2781,8 @@ class extended extends Exchange {
         $builderFeeRate = null;
         $builderId = null;
         $paramsBuilder = $params;
-        $builderEnabled = $this->safe_bool($this->options, 'builderFee');
-        if ($builderEnabled === true) {
+        $builderEnabled = $this->safe_bool($this->options, 'builderFee', false);
+        if ($builderEnabled) {
             if ($this->isSandboxModeEnabled) {
                 $builderFeeRate = $this->safe_string_2($params, 'builderFeeRate', 'defaultBuilderFeeRate');
                 $builderId = $this->safe_string_2($params, 'builderId', 'defaultBuilderId');

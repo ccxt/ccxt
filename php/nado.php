@@ -1919,7 +1919,7 @@ class nado extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $tickerId = $this->safe_string($market['info'], 'ticker_id');
@@ -1972,7 +1972,7 @@ class nado extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingHistory() supports swap contracts only');
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'fetchFundingHistory', 'subaccount', 'default');
@@ -2075,7 +2075,7 @@ class nado extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchOpenInterest() supports swap contracts only');
         }
         $tickerId = $this->safe_string($market['info'], 'ticker_id');

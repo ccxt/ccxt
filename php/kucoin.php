@@ -3200,7 +3200,7 @@ class kucoin extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $resultList = $this->safe_list($data, 'list', array());
             $result = $this->safe_dict($resultList, 0, array());
-        } elseif ($market['contract'] === true) {
+        } elseif ($this->safe_bool($market, 'contract', false)) {
             $response = $this->futuresPublicGetTicker($this->extend($request, $paramsMarketType));
             //
             //    {
@@ -3270,7 +3270,7 @@ class kucoin extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             $response = $this->futuresPublicGetMarkPriceSymbolCurrent($this->extend($request, $params));
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
@@ -3347,7 +3347,7 @@ class kucoin extends Exchange {
         }
         if ($uta) {
             return $this->fetch_utaohlcv($symbol, $timeframe, $since, $limit, $paramsRequest);
-        } elseif ($market['contract'] === true) {
+        } elseif ($this->safe_bool($market, 'contract', false)) {
             return $this->fetch_contract_ohlcv($symbol, $timeframe, $since, $limit, $paramsRequest);
         } else {
             return $this->fetch_spot_ohlcv($symbol, $timeframe, $since, $limit, $paramsRequest);
@@ -4005,9 +4005,9 @@ class kucoin extends Exchange {
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'createOrder', 'uta', $uta);
         if ($utaOption) {
             return $this->create_uta_order($symbol, $type, $side, $amount, $price, $paramsUta);
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $paramsUta);
-        } elseif ($market['contract'] === true) {
+        } elseif ($this->safe_bool($market, 'contract', false)) {
             return $this->create_contract_order($symbol, $type, $side, $amount, $price, $paramsUta);
         } else {
             throw new NotSupported($this->id . ' createOrder() does not support market ' . $this->safe_string($market, 'type', ''));
@@ -4714,9 +4714,9 @@ class kucoin extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
             }
             $market = $this->market($symbol);
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 $isSpot = true;
-            } elseif ($market['contract'] === true) {
+            } elseif ($this->safe_bool($market, 'contract', false)) {
                 $isContract = true;
             }
         }
@@ -4902,7 +4902,7 @@ class kucoin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             throw new NotSupported($this->id . ' editOrder() supports spot markets only');
         }
         $request = array(
@@ -6281,7 +6281,7 @@ class kucoin extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        if (($marketResolved !== null) && ($marketResolved['contract'] === true)) {
+        if (($marketResolved !== null) && ($this->safe_bool($marketResolved, 'contract', false))) {
             return $this->parse_contract_order($order, $marketResolved);
         } else {
             return $this->parse_spot_order($order, $marketResolved);
@@ -6367,7 +6367,7 @@ class kucoin extends Exchange {
         $average = $this->safe_string($order, 'avgDealPrice');
         if (($average === null) && Precise::string_gt($filled, '0')) {
             $contractSize = $this->safe_string($marketResolved, 'contractSize');
-            if ($marketResolved['linear'] === true) {
+            if ($this->safe_bool($marketResolved, 'linear', false)) {
                 $average = Precise::string_div($cost, Precise::string_mul($contractSize, $filled));
             } else {
                 $average = Precise::string_div(Precise::string_mul($contractSize, $filled), $cost);
@@ -7215,7 +7215,7 @@ class kucoin extends Exchange {
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        if (($marketResolved === null) || ($marketResolved['spot'] === true)) {
+        if (($marketResolved === null) || ($this->safe_bool($marketResolved, 'spot', false))) {
             return $this->parse_spot_or_uta_trade($trade, $marketResolved);
         } else {
             return $this->parse_contract_trade($trade, $marketResolved);
@@ -7564,7 +7564,7 @@ class kucoin extends Exchange {
         $request = array();
         $entry = null;
         if ($utaOption) {
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 $request['tradeType'] = 'SPOT';
             } else {
                 $request['tradeType'] = 'FUTURES';
@@ -7589,7 +7589,7 @@ class kucoin extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $dataList = $this->safe_list($data, 'list', array());
             $entry = $this->safe_dict($dataList, 0);
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $request['symbols'] = $market['id'];
             $response = $this->privateGetTradeFees($this->extend($request, $paramsUta));
             //
@@ -9923,7 +9923,7 @@ class kucoin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new NotSupported($this->id . ' fetchLeverage() supports contract markets only');
         }
         $request = array(
@@ -9986,7 +9986,7 @@ class kucoin extends Exchange {
                 throw new ArgumentsRequired($this->id . ' setLeverage requires a symbol argument for contract markets');
             }
             $market = $this->market($symbol);
-            if ($market['contract'] === true) {
+            if ($this->safe_bool($market, 'contract', false)) {
                 return $this->set_contract_leverage($leverage, $symbol, $paramsRequest);
             }
         }
@@ -11268,8 +11268,8 @@ class kucoin extends Exchange {
         $id = $this->safe_string($info, 'id');
         $marketResolved = $this->safe_market($id, $market);
         $currencyId = $this->safe_string($info, 'settleCurrency');
-        $crossMode = $this->safe_bool($info, 'crossMode');
-        $mode = ($crossMode === true) ? 'cross' : 'isolated';
+        $crossMode = $this->safe_bool($info, 'crossMode', false);
+        $mode = $crossMode ? 'cross' : 'isolated';
         $marketId = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($info, 'currentTimestamp');
         return array(
@@ -11346,7 +11346,7 @@ class kucoin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new NotSupported($this->id . ' setMarginMode() supports contract markets only');
         }
         $request = array(
@@ -11382,7 +11382,7 @@ class kucoin extends Exchange {
             $this->load_markets();
         }
         $posMode = '0';
-        if ($hedged === true) {
+        if ($hedged) {
             $posMode = '1';
         }
         $request = array(
@@ -11476,7 +11476,7 @@ class kucoin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
         }
         $uta = false;

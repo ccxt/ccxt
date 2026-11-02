@@ -690,8 +690,8 @@ class bitopro extends Exchange {
         $type = $this->safe_string_lower($trade, 'type');
         $side = $this->safe_string_lower($trade, 'action');
         if ($side === null) {
-            $isBuyer = $this->safe_bool($trade, 'isBuyer');
-            if ($isBuyer === true) {
+            $isBuyer = $this->safe_bool($trade, 'isBuyer', false);
+            if ($isBuyer) {
                 $side = 'buy';
             } else {
                 $side = 'sell';

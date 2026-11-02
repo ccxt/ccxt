@@ -424,7 +424,7 @@ class bybit extends \ccxt\async\bybit {
         $paramsValue = $this->clean_params($params);
         $options = $this->safe_dict($this->options, 'watchTicker', array());
         $topic = $this->safe_string($options, 'name', 'tickers');
-        if (($market['spot'] !== true) && $topic !== 'tickers') {
+        if ((!$this->safe_bool($market, 'spot', false)) && $topic !== 'tickers') {
             throw new BadRequest($this->id . ' watchTicker() only supports name tickers for contract markets');
         }
         $topics = array( $topic . '.' . $this->safe_string($market, 'id', '') );
@@ -988,7 +988,7 @@ class bybit extends \ccxt\async\bybit {
         $url = Async\await($this->get_url_by_market_type($symbolsNormalized[0], false, 'watchOrderBook', $params));
         $paramsValue = $this->clean_params($params);
         $market = $this->market($symbolsNormalized[0]);
-        $defaultLimit = ($market['option'] === true) ? 100 : 50;
+        $defaultLimit = ($this->safe_bool($market, 'option', false)) ? 100 : 50;
         $limitResolved = ($limit === null) ? $defaultLimit : $limit;
         if ($limit !== null) {
             $limits = array(
@@ -1040,7 +1040,7 @@ class bybit extends \ccxt\async\bybit {
         $defaultLimit = 500;
         if ($limitParam === null) {
             $firstMarket = $this->market($symbolsNormalized[0]);
-            $defaultLimit = ($firstMarket['spot'] === true) ? 50 : 500;
+            $defaultLimit = ($this->safe_bool($firstMarket, 'spot', false)) ? 50 : 500;
         }
         $limit = ($limitParam === null) ? $defaultLimit : $limitParam;
         $channel .= (string) $limit;
@@ -2866,10 +2866,10 @@ class bybit extends \ccxt\async\bybit {
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        $success = $this->safe_bool($message, 'success');
+        $success = $this->safe_bool($message, 'success', false);
         $code = $this->safe_integer($message, 'retCode');
         $messageHash = 'authenticated';
-        if (($success === true) || ($code === 0)) {
+        if ($success || ($code === 0)) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {

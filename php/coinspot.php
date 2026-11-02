@@ -487,7 +487,7 @@ class coinspot extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $market = $this->safe_market($id);
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 $symbol = $market['symbol'];
                 $ticker = $prices[$id];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);

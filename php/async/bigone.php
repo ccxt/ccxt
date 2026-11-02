@@ -1084,7 +1084,7 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -1328,7 +1328,7 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             throw new NotSupported($this->id . ' fetchTrades () can only fetch trades for spot markets');
         }
         $request = array(
@@ -1403,7 +1403,7 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             throw new NotSupported($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         $until = $this->safe_integer($params, 'until');
@@ -1563,9 +1563,9 @@ class bigone extends Exchange {
         if (Precise::string_eq($triggerPrice, '0')) {
             $triggerPrice = null;
         }
-        $immediateOrCancel = $this->safe_bool($order, 'immediate_or_cancel');
+        $immediateOrCancel = $this->safe_bool($order, 'immediate_or_cancel', false);
         $timeInForce = null;
-        if ($immediateOrCancel === true) {
+        if ($immediateOrCancel) {
             $timeInForce = 'IOC';
         }
         $type = $this->parse_type($this->safe_string($order, 'type'));
@@ -1623,7 +1623,7 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;

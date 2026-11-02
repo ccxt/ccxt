@@ -284,7 +284,7 @@ class binance extends \ccxt\async\binance {
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (str_ends_with($baseUrl, '/ws') === true) {
+            if (str_ends_with($baseUrl, '/ws')) {
                 $prefix = mb_substr($baseUrl, 0, strlen($baseUrl) - 3 - 0);
                 return $prefix . '/' . $category . '/ws';
             }
@@ -796,10 +796,10 @@ class binance extends \ccxt\async\binance {
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($symbolsNormalized[0]);
         $type = $firstMarket['type'];
-        if ($firstMarket['option'] === true) {
+        if ($this->safe_bool($firstMarket, 'option', false)) {
             $type = 'option';
-        } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } elseif ($this->safe_bool($firstMarket, 'contract', false)) {
+            $type = ($this->safe_bool($firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         $name = 'depth';
         $streamHash = 'multipleOrderbook';
@@ -882,10 +882,10 @@ class binance extends \ccxt\async\binance {
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($symbolsNormalized[0]);
         $type = $firstMarket['type'];
-        if ($firstMarket['option'] === true) {
+        if ($this->safe_bool($firstMarket, 'option', false)) {
             $type = 'option';
-        } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } elseif ($this->safe_bool($firstMarket, 'contract', false)) {
+            $type = ($this->safe_bool($firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         $name = 'depth';
         $streamHash = 'multipleOrderbook';
@@ -1341,8 +1341,8 @@ class binance extends \ccxt\async\binance {
         $isOption = $firstMarket['option'];
         if ($isOption === true) {
             $type = 'option';
-        } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } elseif ($this->safe_bool($firstMarket, 'contract', false)) {
+            $type = ($this->safe_bool($firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         $messageHashes = array();
         $subscribeHashes = array();
@@ -1435,8 +1435,8 @@ class binance extends \ccxt\async\binance {
         $isOption = $firstMarket['option'];
         if ($isOption === true) {
             $type = 'option';
-        } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } elseif ($this->safe_bool($firstMarket, 'contract', false)) {
+            $type = ($this->safe_bool($firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         $subMessageHashes = array();
         $subParams = array();
@@ -1828,11 +1828,11 @@ class binance extends \ccxt\async\binance {
         $firstMarket = $this->market($marketSymbols[0]);
         $type = $firstMarket['type'];
         $wsUrlType = $type;
-        if ($firstMarket['option'] === true) {
+        if ($this->safe_bool($firstMarket, 'option', false)) {
             $type = 'option';
             $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
-        } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } elseif ($this->safe_bool($firstMarket, 'contract', false)) {
+            $type = ($this->safe_bool($firstMarket, 'linear', false)) ? 'linear' : 'inverse';
             $wsUrlType = $type;
         }
         $isSpot = ($type === 'spot');
@@ -1914,11 +1914,11 @@ class binance extends \ccxt\async\binance {
         $firstMarket = $this->market($marketSymbols[0]);
         $type = $firstMarket['type'];
         $wsUrlType = $type;
-        if ($firstMarket['option'] === true) {
+        if ($this->safe_bool($firstMarket, 'option', false)) {
             $type = 'option';
             $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
-        } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } elseif ($this->safe_bool($firstMarket, 'contract', false)) {
+            $type = ($this->safe_bool($firstMarket, 'linear', false)) ? 'linear' : 'inverse';
             $wsUrlType = $type;
         }
         $isSpot = ($type === 'spot');
@@ -2791,7 +2791,7 @@ class binance extends \ccxt\async\binance {
         // carries `w`, so a miniTicker uses the contract size.
         $baseVolume = $this->safe_string($message, 'v');
         $quoteVolume = $this->safe_string($message, 'q');
-        if ($market['inverse'] === true) {
+        if ($this->safe_bool($market, 'inverse', false)) {
             $contracts = $baseVolume;
             $baseVolume = $quoteVolume;
             $weightedAverage = $this->safe_string($message, 'w');
@@ -4002,7 +4002,7 @@ class binance extends \ccxt\async\binance {
         $sor = $this->safe_bool_2($params, 'sor', 'SOR', false);
         $paramsOmitted = $this->omit($params, 'sor', 'SOR');
         $isConditional = $this->isConditionalOrder($paramsOmitted);
-        if (($market['inverse'] === true) && $isConditional) {
+        if (($this->safe_bool($market, 'inverse', false)) && $isConditional) {
             throw new NotSupported($this->id . ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead');
         }
         $isAlgoOrder = ($market['linear'] === true) && (($market['swap'] === true) || ($market['future'] === true)) && $isConditional;

@@ -954,7 +954,7 @@ class btse extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports contract markets only');
         }
         $period = null;
@@ -1232,7 +1232,7 @@ class btse extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
         }
         $result = $this->fetch_leverage_tiers(array( $symbol ), $params);
@@ -1322,7 +1322,7 @@ class btse extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market);
         $last = $this->safe_string($ticker, 'lastPrice');
         $baseVolume = $this->safe_string($ticker, 'amount');
-        if (($baseVolume !== null) && ($marketResolved !== null) && ($marketResolved['contract'] === true)) {
+        if (($baseVolume !== null) && ($marketResolved !== null) && ($this->safe_bool($marketResolved, 'contract', false))) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
             $contractSizeString = $this->number_to_string($marketResolved['contractSize']);
@@ -1371,7 +1371,7 @@ class btse extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest() symbol does not support market ' . $symbol);
         }
         $request = array(
@@ -1437,7 +1437,7 @@ class btse extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             throw new BadRequest($this->id . ' fetchFundingRate() symbol does not support spot markets');
         }
         $request = array(
@@ -1879,7 +1879,7 @@ class btse extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
         } else {
             return $this->create_contract_order($symbol, $type, $side, $amount, $price, $params);
@@ -2406,7 +2406,7 @@ class btse extends Exchange {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['symbol'] = $market['id'];
             $response = $this->privatePutSpotApiV4TradeOrders($this->extend($request, $query));
         } else {
@@ -2460,7 +2460,7 @@ class btse extends Exchange {
         }
         $paramsOmitted = ($clientOrderId !== null) ? $this->omit($params, 'clientOrderId') : $params;
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['symbol'] = $market['id'];
             $response = $this->privateDeleteSpotApiV4TradeOrders($this->extend($request, $paramsOmitted));
         } else {
@@ -3192,7 +3192,7 @@ class btse extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = $this->privateGetSpotApiV4TradeFees($this->extend($request, $params));
         } else {
             // the futures fees stay on the legacy endpoint, the unified futures
@@ -3499,14 +3499,14 @@ class btse extends Exchange {
         if (($marginModeValue !== 'cross') && ($marginModeValue !== 'isolated')) {
             throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be either cross or isolated');
         }
-        $hedged = $this->safe_bool($params, 'hedged');
+        $hedged = $this->safe_bool($params, 'hedged', false);
         if ($marginModeValue === 'cross') {
             if (!(is_array($params) && array_key_exists('hedged' ?? '', $params))) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires a hedged parameter for cross margin mode');
-            } elseif ($hedged === true) {
+            } elseif ($hedged) {
                 $positionMode = 'HEDGE';
             }
-        } elseif ((is_array($params) && array_key_exists('hedged' ?? '', $params)) && ($hedged !== true)) {
+        } elseif ((is_array($params) && array_key_exists('hedged' ?? '', $params)) && !$hedged) {
             throw new BadRequest($this->id . ' setMarginMode() hedged parameter cannot be false for isolated margin mode');
         } else {
             $positionMode = 'ISOLATED';

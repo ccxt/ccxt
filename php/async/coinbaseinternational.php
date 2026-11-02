@@ -1869,9 +1869,9 @@ class coinbaseinternational extends Exchange {
         $contracts = $this->safe_number($position, 'size');
         if ($this->is_native_deribit_credentials()) {
             $size = $this->safe_string($position, 'size');
-            if ($marketResolved['option'] !== true) {
+            if (!$this->safe_bool($marketResolved, 'option', false)) {
                 $notional = $size;
-                if ($marketResolved['linear'] === true) {
+                if ($this->safe_bool($marketResolved, 'linear', false)) {
                     $size = $this->safe_string($position, 'size_currency');
                 }
             } else {
@@ -2202,7 +2202,7 @@ class coinbaseinternational extends Exchange {
          * @return {string} precision-formatted exchange order $amount
          */
         $exchangeAmount = $this->number_to_string($amount);
-        if ($this->is_native_deribit_credentials() && ($market['contract'] === true)) {
+        if ($this->is_native_deribit_credentials() && ($this->safe_bool($market, 'contract', false))) {
             $exchangeAmount = Precise::string_mul($exchangeAmount, $this->safe_string($market, 'contractSize'));
         }
         return $this->amount_to_precision($market['symbol'], $exchangeAmount);
@@ -2473,7 +2473,7 @@ class coinbaseinternational extends Exchange {
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_update_timestamp');
         $filled = $this->safe_number($order, 'filled_amount');
         $amount = $this->safe_number($order, 'amount');
-        if ($this->is_native_deribit_credentials() && ($marketResolved['contract'] === true)) {
+        if ($this->is_native_deribit_credentials() && ($this->safe_bool($marketResolved, 'contract', false))) {
             $contractSize = $this->safe_string($marketResolved, 'contractSize');
             $amount = $this->parse_number($this->safe_string($order, 'contracts', Precise::string_div($this->safe_string($order, 'amount'), $contractSize)));
             $filled = $this->parse_number(Precise::string_div($this->safe_string($order, 'filled_amount'), $contractSize));
@@ -2489,7 +2489,7 @@ class coinbaseinternational extends Exchange {
         $cost = null;
         if (($filledString !== null) && ($averageString !== null)) {
             $cost = $this->parse_number(Precise::string_mul($filledString, $averageString));
-            if ($this->is_native_deribit_credentials() && ($marketResolved['inverse'] === true) && ($marketResolved['option'] !== true)) {
+            if ($this->is_native_deribit_credentials() && ($this->safe_bool($marketResolved, 'inverse', false)) && (!$this->safe_bool($marketResolved, 'option', false))) {
                 $cost = $this->parse_number(Precise::string_div($filledString, $averageString));
             }
         }
@@ -3100,14 +3100,14 @@ class coinbaseinternational extends Exchange {
         $price = $this->safe_number($trade, 'price');
         $amount = $this->safe_number($trade, 'amount');
         $amountString = $this->safe_string($trade, 'amount');
-        if ($this->is_native_deribit_credentials() && ($marketResolved['contract'] === true)) {
+        if ($this->is_native_deribit_credentials() && ($this->safe_bool($marketResolved, 'contract', false))) {
             $amount = $this->parse_number($this->safe_string($trade, 'contracts', Precise::string_div($amountString, $this->safe_string($marketResolved, 'contractSize'))));
         }
         $priceString = $this->safe_string($trade, 'price');
         $cost = null;
         if (($amountString !== null) && ($priceString !== null)) {
             $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-            if ($this->is_native_deribit_credentials() && ($marketResolved['inverse'] === true) && ($marketResolved['option'] !== true)) {
+            if ($this->is_native_deribit_credentials() && ($this->safe_bool($marketResolved, 'inverse', false)) && (!$this->safe_bool($marketResolved, 'option', false))) {
                 $cost = $this->parse_number(Precise::string_div($amountString, $priceString));
             }
         }

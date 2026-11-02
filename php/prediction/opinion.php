@@ -1954,7 +1954,9 @@ class opinion extends Exchange {
             'last' => $last,
             'info' => $message,
         ), $outcomeObj);
-        $this->tickers[$sym] = $ticker;
+        $cachedTickers = $this->safe_dict($this->options, 'wsTickers', array());
+        $cachedTickers[$sym] = $ticker;
+        $this->options['wsTickers'] = $cachedTickers;
         $client->resolve($ticker, 'ticker::' . $sym);
     }
 

@@ -3536,9 +3536,9 @@ class modetrade extends Exchange {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        $success = $this->safe_bool($response, 'success');
+        $success = $this->safe_bool($response, 'success', false);
         $errorCode = $this->safe_string($response, 'code');
-        if ($success !== true) {
+        if (!$success) {
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

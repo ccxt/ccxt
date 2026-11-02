@@ -708,11 +708,11 @@ class poloniex extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $keyStart = 'sTime';
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $keyStart = 'startTime';
         }
         $keyEnd = 'eTime';
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $keyEnd = 'endTime';
         }
         if ($since !== null) {
@@ -731,7 +731,7 @@ class poloniex extends Exchange {
             $endTimeByLimit = $this->sum($firstCandle, $duration * ($limit - 1));
             $requestUntil[$keyEnd] = min($endTimeByLimit, $this->milliseconds());
         }
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             $responseRaw = Async\await($this->swapPublicGetV3MarketCandles($this->extend($requestUntil, $paramsUntil)));
             //
             //     {
@@ -1149,7 +1149,7 @@ class poloniex extends Exchange {
         $marketResolved = $this->safe_market($marketId);
         $baseVolume = $this->safe_string_2($ticker, 'quantity', 'qty');
         $contractSize = $this->safe_number($marketResolved, 'contractSize');
-        if (($marketResolved['contract'] === true) && ($contractSize !== null)) {
+        if (($this->safe_bool($marketResolved, 'contract', false)) && ($contractSize !== null)) {
             // 'quantity' counts contracts, and a ticker reports base volume
             $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($contractSize));
         }
@@ -1386,7 +1386,7 @@ class poloniex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             $tickers = Async\await($this->fetch_tickers(array( $market['symbol'] ), $params));
             $contractTicker = $this->safe_dict($tickers, $symbol);
             return $contractTicker;
@@ -1576,7 +1576,7 @@ class poloniex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 1000, for spot & swap
         }
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             $response = Async\await($this->swapPublicGetV3MarketTrades($this->extend($request, $params)));
             //
             //     {
@@ -2166,7 +2166,7 @@ class poloniex extends Exchange {
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         list($requestValue, $paramsValue) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
         $response = array();
-        if (($market['swap'] === true) || ($market['future'] === true)) {
+        if (($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false))) {
             $responseInitial = Async\await($this->swapPrivatePostV3TradeOrder($this->extend($requestValue, $paramsValue)));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
@@ -2312,7 +2312,7 @@ class poloniex extends Exchange {
         $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $query);
         $queryOmitted = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
         if ($triggerPrice !== null) {
-            if ($market['spot'] !== true) {
+            if (!$this->safe_bool($market, 'spot', false)) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support trigger orders for ' . $this->safe_string($market, 'type', '') . ' markets');
             }
             $upperCaseType = ($price === null) ? 'STOP' : 'STOP_LIMIT';
@@ -2330,7 +2330,7 @@ class poloniex extends Exchange {
                 $queryOmitted = $this->omit($queryOmitted, 'cost');
                 if ($cost !== null) {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
-                } elseif ($createMarketBuyOrderRequiresPrice && ($market['spot'] === true)) {
+                } elseif ($createMarketBuyOrderRequiresPrice && ($this->safe_bool($market, 'spot', false))) {
                     if ($price === null) {
                         throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     } else {
@@ -2343,25 +2343,25 @@ class poloniex extends Exchange {
                     $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
                 $amountKey = 'sz';
-                if ($market['spot'] === true) {
+                if ($this->safe_bool($market, 'spot', false)) {
                     $amountKey = 'amount';
                 }
                 $result[$amountKey] = $quoteAmount;
             } else {
                 $amountKey = 'sz';
-                if ($market['spot'] === true) {
+                if ($this->safe_bool($market, 'spot', false)) {
                     $amountKey = 'quantity';
                 }
                 $result[$amountKey] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
             $amountKey = 'sz';
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 $amountKey = 'quantity';
             }
             $result[$amountKey] = $this->amount_to_precision($symbol, $amount);
             $priceKey = 'px';
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 $priceKey = 'price';
             }
             $result[$priceKey] = $this->price_to_precision($symbol, $price);
@@ -2370,7 +2370,7 @@ class poloniex extends Exchange {
         if ($clientOrderId !== null) {
             // the futures v3 api silently ignores the spot key and generates its own id
             $clientOrderIdKey = 'clOrdId';
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 $clientOrderIdKey = 'clientOrderId';
             }
             $result[$clientOrderIdKey] = $clientOrderId;
@@ -2404,7 +2404,7 @@ class poloniex extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' editOrder() does not support ' . $this->safe_string($market, 'type', '') . ' orders, only spot orders are accepted');
         }
         $request = array(
@@ -2455,7 +2455,7 @@ class poloniex extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array();
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             $request['symbol'] = $market['id'];
             $request['ordId'] = $id;
             $raw = Async\await($this->swapPrivateDeleteV3TradeOrder($this->extend($request, $params)));
@@ -2950,11 +2950,11 @@ class poloniex extends Exchange {
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if ($market['contract'] === true) {
+            if ($this->safe_bool($market, 'contract', false)) {
                 $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 100, 150 ), $limit);
             }
         }
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             $responseRaw = Async\await($this->swapPublicGetV3MarketOrderBook($this->extend($request, $params)));
             //
             //    {
@@ -3940,7 +3940,7 @@ class poloniex extends Exchange {
          * @return {array} $response from the exchange
          */
         $mode = 'ONE_WAY';
-        if ($hedged === true) {
+        if ($hedged) {
             $mode = 'HEDGE';
         }
         $request = array(

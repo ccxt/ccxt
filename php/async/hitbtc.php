@@ -3500,7 +3500,7 @@ class hitbtc extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchOpenInterest() supports swap contracts only');
         }
         $request = array(
@@ -3543,7 +3543,7 @@ class hitbtc extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -3618,7 +3618,7 @@ class hitbtc extends Exchange {
         }
         $market = $this->market($symbol);
         $leverage = $this->safe_string($params, 'leverage');
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3961,12 +3961,12 @@ class hitbtc extends Exchange {
                 $networkCode = $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper);
             }
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
-            $isDefault = $this->safe_bool($networkEntry, 'default');
+            $isDefault = $this->safe_bool($networkEntry, 'default', false);
             $withdrawResult = array(
                 'fee' => $withdrawFee,
                 'percentage' => ($withdrawFee !== null) ? false : null,
             );
-            if ($isDefault === true) {
+            if ($isDefault) {
                 $result['withdraw'] = $withdrawResult;
             }
             if ($networkCode !== null) {

@@ -1161,8 +1161,8 @@ class coinbase extends Exchange {
         $amountStringAbs = Precise::string_abs($amountString);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         if ($status === null) {
-            $committed = $this->safe_bool($transaction, 'committed');
-            $status = ($committed === true) ? 'ok' : 'pending';
+            $committed = $this->safe_bool($transaction, 'committed', false);
+            $status = $committed ? 'ok' : 'pending';
         }
         $id = $this->safe_string($transaction, 'id');
         $currencyId = $this->safe_string($amountAndCurrencyObject, 'currency');
@@ -1288,11 +1288,11 @@ class coinbase extends Exchange {
                 }
             }
         }
-        $sizeInQuote = $this->safe_bool($trade, 'size_in_quote');
+        $sizeInQuote = $this->safe_bool($trade, 'size_in_quote', false);
         $v3Price = $this->safe_string($trade, 'price');
         $v3Cost = null;
         $v3Amount = $this->safe_string($trade, 'size');
-        if ($sizeInQuote === true) {
+        if ($sizeInQuote) {
             // calculate base size
             $v3Cost = $v3Amount;
             $v3Amount = Precise::string_div($v3Amount, $v3Price);
@@ -1651,7 +1651,7 @@ class coinbase extends Exchange {
             return null;
         }
         $marketType = $this->safe_string_lower($market, 'product_type');
-        $tradingDisabled = $this->safe_bool($market, 'trading_disabled');
+        $tradingDisabled = $this->safe_bool($market, 'trading_disabled', false);
         $stablePairs = $this->safe_list($this->options, 'stablePairs', array());
         $defaultTakerFee = $this->safe_number($this->fees['trading'], 'taker');
         $defaultMakerFee = $this->safe_number($this->fees['trading'], 'maker');
@@ -1850,7 +1850,7 @@ class coinbase extends Exchange {
         if (($base === null) || ($quote === null)) {
             return null;
         }
-        $isDisabled = $this->safe_bool($market, 'is_disabled');
+        $isDisabled = $this->safe_bool($market, 'is_disabled', false);
         $tradingDisabled = ($isDisabled === true) || ($this->safe_bool($market, 'trading_disabled') === true);
         $symbol = $base . '/' . $quote;
         $type = null;
@@ -3082,7 +3082,7 @@ class coinbase extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -3129,8 +3129,8 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'side' => strtoupper($side),
         );
-        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-        if ($reduceOnly === true) {
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        if ($reduceOnly) {
             return $this->close_position($symbol, $side, $this->extend($this->omit($params, 'reduceOnly'), array( 'amount' => $amount )));
         }
         $paramsMarketBuy = null;
@@ -3239,7 +3239,7 @@ class coinbase extends Exchange {
             if ($isStop || $isStopLoss || $isTakeProfit) {
                 throw new NotSupported($this->id . ' createOrder() only stop limit orders are supported');
             }
-            if (($market['spot'] === true) && ($side === 'buy')) {
+            if (($this->safe_bool($market, 'spot', false)) && ($side === 'buy')) {
                 $total = null;
                 list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 $cost = $this->safe_number($paramsRequiresPrice, 'cost');
@@ -3326,8 +3326,8 @@ class coinbase extends Exchange {
         //         }
         //     }
         //
-        $success = $this->safe_bool($response, 'success');
-        if ($success !== true) {
+        $success = $this->safe_bool($response, 'success', false);
+        if (!$success) {
             $errorResponse = $this->safe_dict($response, 'error_response');
             $errorTitle = $this->safe_string($errorResponse, 'error');
             $errorMessage = $this->safe_string($errorResponse, 'message');
@@ -3565,8 +3565,8 @@ class coinbase extends Exchange {
         //
         $orders = $this->safe_list($response, 'results', array());
         for ($i = 0; $i < count($orders); $i++) {
-            $success = $this->safe_bool($orders[$i], 'success');
-            if ($success !== true) {
+            $success = $this->safe_bool($orders[$i], 'success', false);
+            if (!$success) {
                 throw new BadRequest($this->id . ' cancelOrders() has failed, check your arguments and parameters');
             }
         }
@@ -5123,7 +5123,7 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->safe_string($this->symbols, $i, '');
             $market = $this->market($symbol);
-            if (($isSpot && ($market['spot'] === true)) || (!$isSpot && ($market['spot'] !== true))) {
+            if (($isSpot && ($this->safe_bool($market, 'spot', false))) || (!$isSpot && (!$this->safe_bool($market, 'spot', false)))) {
                 $result[$symbol] = array(
                     'info' => $response,
                     'symbol' => $symbol,
@@ -5448,8 +5448,8 @@ class coinbase extends Exchange {
                 }
             }
         }
-        $advancedTrade = $this->safe_bool($this->options, 'advanced');
-        if (!(is_array($response) && array_key_exists('data' ?? '', $response)) && ($advancedTrade !== true)) {
+        $advancedTrade = $this->safe_bool($this->options, 'advanced', false);
+        if (!(is_array($response) && array_key_exists('data' ?? '', $response)) && !$advancedTrade) {
             throw new ExchangeError($this->id . ' failed due to a malformed response ' . $this->json($response));
         }
         return null;

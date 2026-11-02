@@ -699,7 +699,7 @@ class deepcoin extends Exchange {
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         $price = $this->safe_string($paramsPaginate, 'price');
         $maxLimit = 300;
-        if ($market['swap'] === true && $price === null) {
+        if ($this->safe_bool($market, 'swap', false) && $price === null) {
             $maxLimit = 1000;
         }
         if ($paginate) {
@@ -830,7 +830,7 @@ class deepcoin extends Exchange {
         $open = $this->safe_string($ticker, 'open24h');
         $quoteVolume = $this->safe_string($ticker, 'volCcy24h');
         $baseVolume = $this->safe_string($ticker, 'vol24h');
-        if (($marketResolved['swap'] === true) && ($marketResolved['inverse'] === true)) {
+        if (($this->safe_bool($marketResolved, 'swap', false)) && ($this->safe_bool($marketResolved, 'inverse', false))) {
             $temp = $baseVolume;
             $baseVolume = $quoteVolume;
             $quoteVolume = $temp;
@@ -1634,7 +1634,7 @@ class deepcoin extends Exchange {
         $isTriggerOrder = ($triggerPrice !== null);
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
-            if (($market['spot'] !== true) || ($triggerPrice !== null)) {
+            if ((!$this->safe_bool($market, 'spot', false)) || ($triggerPrice !== null)) {
                 throw new BadRequest($this->id . ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
             }
         }
@@ -1718,7 +1718,7 @@ class deepcoin extends Exchange {
             throw new BadRequest($this->id . ' createOrder() requires a price argument for limit orders');
         }
         $paramsRequest = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $cost = $this->safe_string($paramsOrderType, 'cost');
             if ($cost !== null) {
                 if (!$isMarketOrder) {
@@ -1823,7 +1823,7 @@ class deepcoin extends Exchange {
         $paramsOmitted = $this->omit($paramsMarginMode, 'reduceOnly');
         $request['isCrossMargin'] = $isCrossMargin;
         $request['tdMode'] = $marginModeOption;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             if ($reduceOnly) {
                 if ($side === 'buy') {
                     $request['posSide'] = 'short';
@@ -2389,7 +2389,7 @@ class deepcoin extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' cancelAllOrders() is not supported for spot markets');
         }
         $productGroup = $this->get_product_group_from_market($market);
@@ -2441,7 +2441,7 @@ class deepcoin extends Exchange {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 throw new NotSupported($this->id . ' editOrder() is not supported for spot markets');
             }
             $symbolResolved = $market['symbol'];
@@ -2501,7 +2501,7 @@ class deepcoin extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 throw new NotSupported($this->id . ' cancelOrders() is not supported for spot markets');
             }
         }
@@ -2951,7 +2951,7 @@ class deepcoin extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
         }
         $request = array(

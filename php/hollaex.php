@@ -1853,15 +1853,15 @@ class hollaex extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $completed = $this->safe_bool($transaction, 'status');
-        $dismissed = $this->safe_bool($transaction, 'dismissed');
-        $rejected = $this->safe_bool($transaction, 'rejected');
+        $completed = $this->safe_bool($transaction, 'status', false);
+        $dismissed = $this->safe_bool($transaction, 'dismissed', false);
+        $rejected = $this->safe_bool($transaction, 'rejected', false);
         $status = null;
-        if ($completed === true) {
+        if ($completed) {
             $status = 'ok';
-        } elseif ($dismissed === true) {
+        } elseif ($dismissed) {
             $status = 'canceled';
-        } elseif ($rejected === true) {
+        } elseif ($rejected) {
             $status = 'failed';
         } else {
             $status = 'pending';
@@ -1990,8 +1990,8 @@ class hollaex extends Exchange {
             ),
         );
         $networks = array();
-        $allowWithdrawal = $this->safe_bool($fee, 'allow_withdrawal');
-        if ($allowWithdrawal === true) {
+        $allowWithdrawal = $this->safe_bool($fee, 'allow_withdrawal', false);
+        if ($allowWithdrawal) {
             $result['withdraw'] = array( 'fee' => $this->safe_number($fee, 'withdrawal_fee'), 'percentage' => false );
         }
         $withdrawalFees = $this->safe_dict($fee, 'withdrawal_fees');

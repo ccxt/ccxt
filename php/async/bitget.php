@@ -2167,7 +2167,7 @@ class bitget extends Exchange {
         }
         list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'fetchMarkets', 'stock', false);
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($paramsStock, 'fetchMarkets', false));
-        if (($stock === true) || ($uta === true)) {
+        if ($stock || ($uta === true)) {
             return Async\await($this->fetch_uta_markets($paramsUTA));
         }
         return Async\await($this->fetch_default_markets($paramsUTA));
@@ -2966,7 +2966,7 @@ class bitget extends Exchange {
             $request['symbol'] = $market['id'];
             $request['category'] = $productType;
             $response = Async\await($this->publicUtaGetV3MarketPositionTier($this->extend($request, $paramsMarginMode)));
-        } elseif (($market['swap'] === true) || ($market['future'] === true)) {
+        } elseif (($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false))) {
             $request['productType'] = $productType;
             $request['symbol'] = $market['id'];
             $response = Async\await($this->publicMixGetV2MixMarketQueryPositionLever($this->extend($request, $paramsMarginMode)));
@@ -3726,7 +3726,7 @@ class bitget extends Exchange {
         } elseif ($uta === true) {
             $request['category'] = $productType;
             $response = Async\await($this->publicUtaGetV3MarketOrderbook($this->extend($request, $paramsUTA)));
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->publicSpotGetV2SpotMarketOrderbook($this->extend($request, $paramsUTA)));
         } else {
             $request['productType'] = $productType;
@@ -3945,7 +3945,7 @@ class bitget extends Exchange {
         if ($isStockOrUta) {
             $request['category'] = $productType;
             $response = Async\await($this->publicUtaGetV3MarketTickers($this->extend($request, $paramsUTA)));
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->publicSpotGetV2SpotMarketTickers($this->extend($request, $paramsUTA)));
         } else {
             $request['productType'] = $productType;
@@ -4100,7 +4100,7 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' fetchMarkPrice() is not supported for spot markets');
         } else {
             list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $params);
@@ -4511,7 +4511,7 @@ class bitget extends Exchange {
         if ($limit !== null) {
             if ($isStockOrUta) {
                 $request['limit'] = min($limit, 100);
-            } elseif ($market['contract'] === true) {
+            } elseif ($this->safe_bool($market, 'contract', false)) {
                 $request['limit'] = min($limit, 1000);
             } else {
                 $request['limit'] = $limit;
@@ -4540,7 +4540,7 @@ class bitget extends Exchange {
             }
             $request['category'] = $productType;
             $response = Async\await($this->publicUtaGetV3MarketFills($this->extend($request, $paramsPaginate)));
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $spotOptions = $this->safe_dict($options, 'spot', array());
             $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetV2SpotMarketFillsHistory');
             $spotMethod = $this->safe_string($paramsPaginate, 'method', $defaultSpotMethod);
@@ -4676,7 +4676,7 @@ class bitget extends Exchange {
         }
         $marginMode = null;
         list($marginMode, $paramsUTA) = $this->handle_margin_mode_and_params('fetchTradingFee', $paramsUTA);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             if ($marginMode !== null) {
                 $request['businessType'] = 'margin';
             } else {
@@ -4904,8 +4904,8 @@ class bitget extends Exchange {
         //         "1399132.341"
         //     ]
         //
-        $inverse = $this->safe_bool($market, 'inverse');
-        $volumeIndex = ($inverse === true) ? 6 : 5;
+        $inverse = $this->safe_bool($market, 'inverse', false);
+        $volumeIndex = $inverse ? 6 : 5;
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -4979,7 +4979,7 @@ class bitget extends Exchange {
             $timeframes = $this->safe_dict($timeframesOption, 'uta');
             $request['interval'] = $this->safe_string($timeframes, $timeframe, $timeframe);
         } else {
-            $marketType = ($market['spot'] === true) ? 'spot' : 'swap';
+            $marketType = ($this->safe_bool($market, 'spot', false)) ? 'spot' : 'swap';
             $timeframes = $this->safe_dict($timeframesOption, $marketType);
             $request['granularity'] = $this->safe_string($timeframes, $timeframe, $timeframe);
         }
@@ -4994,7 +4994,7 @@ class bitget extends Exchange {
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
         $key = 'swap';
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $key = 'spot';
         }
         $ohlcOptions = $this->safe_dict($this->options['fetchOHLCV'], $key, array());
@@ -5050,7 +5050,7 @@ class bitget extends Exchange {
             $calculatedStartTime = $calculatedEndTime - $historicalDuration;
             $request['startTime'] = $calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
-            if ($market['spot'] !== true) {
+            if (!$this->safe_bool($market, 'spot', false)) {
                 $maxDistanceForContracts = 90 * $msInDay;
                 // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
                 if (($calculatedEndTime !== null) && ($historicalDuration > $maxDistanceForContracts)) {
@@ -5082,7 +5082,7 @@ class bitget extends Exchange {
             } else {
                 $response = Async\await($this->publicUtaGetV3MarketCandles($this->extend($request, $paramsProductType)));
             }
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             // checks if we need history endpoint
             if ($historicalEndpointNeeded) {
                 $response = Async\await($this->publicSpotGetV2SpotMarketHistoryCandles($this->extend($request, $paramsProductType)));
@@ -5798,7 +5798,7 @@ class bitget extends Exchange {
         }
         $orderType = $this->safe_string($order, 'orderType');
         $isBuyMarket = ($side === 'buy') && ($orderType === 'market');
-        if (($marketResolved['spot'] === true) && $isBuyMarket) {
+        if (($this->safe_bool($marketResolved, 'spot', false)) && $isBuyMarket) {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             $size = $this->safe_string($order, 'baseVolume');
         }
@@ -5852,7 +5852,7 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $req = array(
@@ -5953,7 +5953,7 @@ class bitget extends Exchange {
             }
         } else {
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsUTA);
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 if ($isTriggerOrder) {
                     $response = Async\await($this->privateSpotPostV2SpotTradePlacePlanOrder($request));
                 } elseif ($marginMode === 'isolated') {
@@ -6494,7 +6494,7 @@ class bitget extends Exchange {
             'orderList' => $ordersRequests,
         );
         $response = null;
-        if (($market['swap'] === true) || ($market['future'] === true)) {
+        if (($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false))) {
             $marginModeRequest = 'isolated';
             if (($marginMode === null) || ($marginMode === 'cross')) {
                 $marginModeRequest = 'crossed';
@@ -6658,7 +6658,7 @@ class bitget extends Exchange {
                 }
                 $response = Async\await($this->privateUtaPostV3TradeModifyOrder($this->extend($request, $paramsOmitted)));
             }
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $cost = $this->safe_string($paramsOmitted, 'cost');
             $paramsOmitted = $this->omit($paramsOmitted, 'cost');
             $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
@@ -6695,7 +6695,7 @@ class bitget extends Exchange {
                 $response = Async\await($this->privateSpotPostV2SpotTradeCancelReplaceOrder($this->extend($request, $paramsOmitted)));
             }
         } else {
-            if (($market['swap'] !== true) && ($market['future'] !== true)) {
+            if ((!$this->safe_bool($market, 'swap', false)) && (!$this->safe_bool($market, 'future', false))) {
                 throw new NotSupported($this->id . ' editOrder() does not support ' . $this->safe_string($market, 'type', '') . ' orders');
             }
             $request['symbol'] = $market['id'];
@@ -6823,10 +6823,10 @@ class bitget extends Exchange {
         $isStockSpot = $isStock && ($market['spot'] === true);
         $paramsMarginMode = $this->omit($paramsMarginMode, 'stock');
         $request = array();
-        $trailing = $this->safe_bool($paramsMarginMode, 'trailing');
+        $trailing = $this->safe_bool($paramsMarginMode, 'trailing', false);
         $trigger = $this->safe_bool_2($paramsMarginMode, 'stop', 'trigger');
         $paramsMarginMode = $this->omit($paramsMarginMode, array( 'stop', 'trigger', 'trailing' ));
-        if (!(($market['spot'] === true) && ($trigger === true))) {
+        if (!(($this->safe_bool($market, 'spot', false)) && ($trigger === true))) {
             $request['symbol'] = $market['id'];
         }
         $uta = null;
@@ -6866,11 +6866,11 @@ class bitget extends Exchange {
             } else {
                 $response = Async\await($this->privateUtaPostV3TradeCancelOrder($this->extend($request, $paramsMarginMode)));
             }
-        } elseif (($market['swap'] === true) || ($market['future'] === true)) {
+        } elseif (($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false))) {
             $productType = null;
             list($productType, $paramsMarginMode) = $this->handle_product_type_and_params($market, $paramsMarginMode);
             $request['productType'] = $productType;
-            if ($trailing === true) {
+            if ($trailing) {
                 $planType = $this->safe_string($paramsMarginMode, 'planType', 'track_plan');
                 $request['planType'] = $planType;
                 $response = Async\await($this->privateMixPostV2MixOrderCancelPlanOrder($this->extend($request, $paramsMarginMode)));
@@ -6879,7 +6879,7 @@ class bitget extends Exchange {
             } else {
                 $response = Async\await($this->privateMixPostV2MixOrderCancelOrder($this->extend($request, $paramsMarginMode)));
             }
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             if ($marginMode !== null) {
                 if ($marginMode === 'isolated') {
                     $response = Async\await($this->privateMarginPostV2MarginIsolatedCancelOrder($this->extend($request, $paramsMarginMode)));
@@ -7053,13 +7053,13 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if (($market['spot'] === true) && ($marginMode === null)) {
+        if (($this->safe_bool($market, 'spot', false)) && ($marginMode === null)) {
             $request['orderList'] = $orderIdList;
         } else {
             $request['orderIdList'] = $orderIdList;
         }
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             if ($marginMode !== null) {
                 if ($marginMode === 'cross') {
                     $response = Async\await($this->privateMarginPostV2MarginCrossedBatchCancelOrder($this->extend($request, $paramsUTA)));
@@ -7164,7 +7164,7 @@ class bitget extends Exchange {
             //         }
             //     }
             //
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             if ($marginMode !== null) {
                 throw new NotSupported($this->id . ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead');
             } else {
@@ -7271,9 +7271,9 @@ class bitget extends Exchange {
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($paramsOmitted, 'fetchOrder', false));
         if ($uta === true) {
             $response = Async\await($this->privateUtaGetV3TradeOrderInfo($this->extend($request, $paramsUTA)));
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->privateSpotGetV2SpotTradeOrderInfo($this->extend($request, $paramsUTA)));
-        } elseif (($market['swap'] === true) || ($market['future'] === true)) {
+        } elseif (($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false))) {
             $request['symbol'] = $market['id'];
             list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $paramsUTA);
             $request['productType'] = $productType;
@@ -7486,7 +7486,7 @@ class bitget extends Exchange {
             return Async\await($this->fetch_paginated_call_cursor('fetchOpenOrders', $symbol, $since, $limit, $paramsMarginMode, $cursorReceived, $cursorSent));
         }
         $response = null;
-        $trailing = $this->safe_bool($paramsMarginMode, 'trailing');
+        $trailing = $this->safe_bool($paramsMarginMode, 'trailing', false);
         $trigger = $this->safe_bool_2($paramsMarginMode, 'stop', 'trigger');
         $planTypeValue = $this->safe_string($paramsMarginMode, 'planType');
         $planTypeDefined = ($planTypeValue !== null);
@@ -7543,7 +7543,7 @@ class bitget extends Exchange {
             }
         } else {
             $request['productType'] = $productType;
-            if ($trailing === true) {
+            if ($trailing) {
                 $planType = $this->safe_string($paramsMarginMode, 'planType', 'track_plan');
                 $request['planType'] = $planType;
                 $response = Async\await($this->privateMixGetV2MixOrderOrdersPlanPending($this->extend($request, $paramsMarginMode)));
@@ -7962,7 +7962,7 @@ class bitget extends Exchange {
             return Async\await($this->fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $paramsUTA, $cursorReceived, 'idLessThan'));
         }
         $response = null;
-        $trailing = $this->safe_bool($paramsUTA, 'trailing');
+        $trailing = $this->safe_bool($paramsUTA, 'trailing', false);
         $trigger = $this->safe_bool_2($paramsUTA, 'stop', 'trigger');
         $paramsUTA = $this->omit($paramsUTA, array( 'stop', 'trigger', 'trailing' ));
         list($request, $paramsUTA) = $this->handle_until_option('endTime', $request, $paramsUTA);
@@ -8015,7 +8015,7 @@ class bitget extends Exchange {
             $request['productType'] = $productType;
             $planTypeValue = $this->safe_string($paramsUTA, 'planType');
             $planTypeDefined = ($planTypeValue !== null);
-            if ($trailing === true) {
+            if ($trailing) {
                 $planType = $this->safe_string($paramsUTA, 'planType', 'track_plan');
                 $request['planType'] = $planType;
                 $response = Async\await($this->privateMixGetV2MixOrderOrdersPlanHistory($this->extend($request, $paramsUTA)));
@@ -8908,7 +8908,7 @@ class bitget extends Exchange {
             if ($uta === true) {
                 $cursorReceived = 'cursor';
                 $cursorSent = 'cursor';
-            } elseif ($market['spot'] === true) {
+            } elseif ($this->safe_bool($market, 'spot', false)) {
                 if ($marginMode !== null) {
                     $cursorReceived = 'minId';
                     $cursorSent = 'idLessThan';
@@ -8924,7 +8924,7 @@ class bitget extends Exchange {
             $response = Async\await($this->privateUtaGetV3TradeFills($this->extend($request, $paramsUTA)));
         } else {
             $request['symbol'] = $market['id'];
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 if ($marginMode !== null) {
                     if ($since === null) {
                         $request['startTime'] = $this->milliseconds() - 7776000000;
@@ -9079,7 +9079,7 @@ class bitget extends Exchange {
         if ($uta === true) {
             $fills = $this->safe_list($data, 'list', array());
             return $this->parse_trades($fills, $market, $since, $limit);
-        } elseif ((($market['swap'] === true) || ($market['future'] === true))) {
+        } elseif ((($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false)))) {
             $fills = $this->safe_list($data, 'fillList', array());
             return $this->parse_trades($fills, $market, $since, $limit);
         } elseif ($marginMode !== null) {
@@ -9765,7 +9765,7 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $productType = null;
@@ -10089,7 +10089,7 @@ class bitget extends Exchange {
             return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $paramsPaginate, 'endId', 'idLessThan'));
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingHistory() supports swap contracts only');
         }
         list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $paramsPaginate);
@@ -10568,7 +10568,7 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
         }
         $posMode = 'one_way_mode';
-        if ($hedged === true) {
+        if ($hedged) {
             $posMode = 'hedge_mode';
         }
         $request = array();
@@ -10628,7 +10628,7 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $params);
@@ -12528,7 +12528,7 @@ class bitget extends Exchange {
             $request['period'] = $timeframe;
         }
         $response = null;
-        if (($market['swap'] === true) || ($market['future'] === true)) {
+        if (($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false))) {
             $response = Async\await($this->publicMixGetV2MixMarketAccountLongShort($this->extend($request, $params)));
             //
             //     {

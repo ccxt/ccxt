@@ -650,7 +650,7 @@ class ndax extends Exchange {
             return null;
         }
         $sessionStatus = $this->safe_string($market, 'SessionStatus');
-        $isDisable = $this->safe_bool($market, 'IsDisable');
+        $isDisable = $this->safe_bool($market, 'IsDisable', false);
         $sessionRunning = ($sessionStatus === 'Running');
         return $this->safe_market_structure(array(
             'id' => $id,

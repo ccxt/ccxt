@@ -2006,7 +2006,7 @@ class tokocrypto extends Exchange {
         } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
             $triggerPriceIsRequired = true;
             $quantityIsRequired = true;
-            if (($market['linear'] === true) || ($market['inverse'] === true)) {
+            if (($this->safe_bool($market, 'linear', false)) || ($this->safe_bool($market, 'inverse', false))) {
                 $priceIsRequired = true;
             }
         } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {

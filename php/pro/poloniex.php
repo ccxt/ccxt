@@ -1640,9 +1640,9 @@ class poloniex extends \ccxt\async\poloniex {
         //    }
         //
         $data = $this->safe_dict($message, 'data');
-        $success = $this->safe_bool($data, 'success');
+        $success = $this->safe_bool($data, 'success', false);
         $messageHash = 'authenticated';
-        if ($success === true) {
+        if ($success) {
             $client->resolve($message, $messageHash);
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));

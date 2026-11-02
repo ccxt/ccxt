@@ -1001,8 +1001,7 @@ class polymarket extends \ccxt\async\polymarket {
         $this->set_balance_cache($client);
         $fetchBalanceSnapshot = $this->handle_option('watchBalance', 'fetchBalanceSnapshot', true);
         $awaitBalanceSnapshot = $this->handle_option('watchBalance', 'awaitBalanceSnapshot', true);
-        $balanceLoaded = (is_array($this->balance) && array_key_exists('info' ?? '', $this->balance));
-        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true) && (!$balanceLoaded)) {
+        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true) && !(is_array($this->balance) && array_key_exists('info' ?? '', $this->balance))) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             $snapshot = Async\await($client->future('fetchBalanceSnapshot'));
@@ -1014,8 +1013,7 @@ class polymarket extends \ccxt\async\polymarket {
     }
 
     public function set_balance_cache(Client $client) {
-        $balanceLoaded = (is_array($this->balance) && array_key_exists('info' ?? '', $this->balance));
-        if ($balanceLoaded) {
+        if (is_array($this->balance) && array_key_exists('info' ?? '', $this->balance)) {
             return;
         }
         $fetchBalanceSnapshot = $this->handle_option('watchBalance', 'fetchBalanceSnapshot', true);

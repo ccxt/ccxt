@@ -1220,7 +1220,7 @@ class blofin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
         }
         $request = array(
@@ -1828,13 +1828,13 @@ class blofin extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
-        } elseif ($isTpsl === true) {
+        } elseif ($isTpsl) {
             $request['tpslId'] = $id;
         } else {
             $request['orderId'] = $id;
         }
         $query = $this->omit($params, array( 'clientOrderId', 'tpsl', 'TPSL' ));
-        if ($isTpsl === true) {
+        if ($isTpsl) {
             $response = $this->privateGetTradeOrderTpslDetail($this->extend($request, $query));
         } else {
             $response = $this->privateGetTradeOrderDetail($this->extend($request, $query));
@@ -3022,7 +3022,7 @@ class blofin extends Exchange {
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPrice');
         $notionalString = $this->safe_string($position, 'notionalUsd');
-        if ($marketResolved['inverse'] === true) {
+        if ($this->safe_bool($marketResolved, 'inverse', false)) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         } elseif ($notionalString === null) {
             $notionalString = Precise::string_mul(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
@@ -3448,7 +3448,7 @@ class blofin extends Exchange {
          * @return {array} response from the exchange
          */
         $request = array(
-            'positionMode' => ($hedged === true) ? 'long_short_mode' : 'net_mode',
+            'positionMode' => $hedged ? 'long_short_mode' : 'net_mode',
         );
         //
         //     {

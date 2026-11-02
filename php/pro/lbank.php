@@ -77,7 +77,7 @@ class lbank extends \ccxt\async\lbank {
     public function check_contract_market(array $market, string $methodName) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if (($market !== null) && ($market['contract'] === true)) {
+        if (($market !== null) && ($this->safe_bool($market, 'contract', false))) {
             $marketType = $this->safe_string($market, 'type', '');
             throw new NotSupported($this->id . ' ' . $methodName . '() does not support ' . $marketType . ' markets yet');
         }
@@ -1167,8 +1167,8 @@ class lbank extends \ccxt\async\lbank {
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                $result = $this->safe_bool($response, 'result');
-                if ($result !== true) {
+                $result = $this->safe_bool($response, 'result', false);
+                if (!$result) {
                     throw new ExchangeError($this->id . ' failed to get subscribe key');
                 }
                 $client->subscriptions['authenticated'] = array(

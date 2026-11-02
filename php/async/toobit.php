@@ -1201,16 +1201,16 @@ class toobit extends Exchange {
         $timestamp = $this->safe_integer_2($trade, 't', 'time');
         $priceString = $this->safe_string_2($trade, 'p', 'price');
         $amountString = $this->safe_string_2($trade, 'q', 'qty');
-        $isBuyer = $this->safe_bool($trade, 'isBuyer');
+        $isBuyer = $this->safe_bool($trade, 'isBuyer', false);
         $side = null;
         $isBuyerMaker = $this->safe_bool($trade, 'ibm');
         $isBuyerTaker = $this->safe_bool($trade, 'm');
         if ($isBuyerMaker !== null) {
-            $side = ($isBuyerMaker === true) ? 'sell' : 'buy';
+            $side = $isBuyerMaker ? 'sell' : 'buy';
         } elseif ($isBuyerTaker !== null) {
-            $side = ($isBuyerTaker === true) ? 'buy' : 'sell';
+            $side = $isBuyerTaker ? 'buy' : 'sell';
         } else {
-            if ($isBuyer === true) {
+            if ($isBuyer) {
                 $side = 'buy';
             } else {
                 $side = 'sell';
@@ -1468,7 +1468,7 @@ class toobit extends Exchange {
         $last = $this->safe_string($ticker, 'c');
         $baseVolume = $this->safe_string($ticker, 'v');
         $contractSize = $this->safe_number($marketResolved, 'contractSize');
-        if (($marketResolved['contract'] === true) && ($contractSize !== null)) {
+        if (($this->safe_bool($marketResolved, 'contract', false)) && ($contractSize !== null)) {
             // 'v' counts contracts, and a ticker reports base volume
             $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($contractSize));
         }
@@ -1845,7 +1845,7 @@ class toobit extends Exchange {
         }
         $market = $this->market($symbol);
         $response = array();
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             list($request, $paramsRequest) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = Async\await($this->privatePostApiV1SpotOrder($this->extend($request, $paramsRequest)));
         } else {
@@ -2303,7 +2303,7 @@ class toobit extends Exchange {
         );
         $market = $this->market($symbol);
         $response = array();
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->privateGetApiV1SpotOrder($this->extend($request, $params)));
         } else {
             $response = Async\await($this->privateGetApiV1FuturesOrder($this->extend($request, $params)));

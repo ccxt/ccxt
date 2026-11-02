@@ -4192,7 +4192,7 @@ class phemex extends Exchange {
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         $apiUnrealizedPnl = $this->safe_string($position, 'unRealisedPnlRv', $unrealizedPnl);
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateral);
-        $isCross = $this->safe_bool($position, 'crossMargin');
+        $isCross = $this->safe_bool($position, 'crossMargin', false);
         $timestamp = $this->safe_integer($position, 'openedTimeNs');
         $lastUpdateTimestamp = $this->safe_integer($position, 'updatedTimeNs', $this->safe_integer_product($position, 'transactTimeNs', 0.000001));
         return $this->safe_position(array(
@@ -4219,7 +4219,7 @@ class phemex extends Exchange {
             'marginRatio' => $this->parse_number($marginRatio),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'marginMode' => ($isCross === true) ? 'cross' : 'isolated',
+            'marginMode' => $isCross ? 'cross' : 'isolated',
             'side' => $side,
             'hedged' => $this->safe_string($position, 'posMode') === 'Hedged',
             'percentage' => null,
@@ -4489,8 +4489,8 @@ class phemex extends Exchange {
         //     }
         //
         $marketResolved = $this->safe_market(null, $market);
-        $inverse = $this->safe_bool($marketResolved, 'inverse');
-        $codeCurrency = ($inverse === true) ? 'base' : 'quote';
+        $inverse = $this->safe_bool($marketResolved, 'inverse', false);
+        $codeCurrency = $inverse ? 'base' : 'quote';
         return array(
             'info' => $data,
             'symbol' => $this->safe_symbol(null, $marketResolved),
@@ -4575,7 +4575,7 @@ class phemex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($hedged === true) {
+        if ($hedged) {
             $request['targetPosMode'] = 'Hedged';
         } else {
             $request['targetPosMode'] = 'OneWay';

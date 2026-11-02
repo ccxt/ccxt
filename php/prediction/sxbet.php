@@ -606,7 +606,7 @@ class sxbet extends Exchange {
                 throw new ExchangeError($this->id . ' parseEvent() could not resolve parsed market');
             }
             $marketsList[] = $parsed;
-            if ($parsed['active'] === true) {
+            if ($this->safe_bool($parsed, 'active', false)) {
                 $anyActive = true;
             }
             if ($teamOneName === null) {
@@ -1835,7 +1835,7 @@ class sxbet extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($settlement, 'settleDate'));
         $settlePrice = null;
         if ($won !== null) {
-            $settlePrice = ($won === true) ? 1 : 0;
+            $settlePrice = $won ? 1 : 0;
         }
         return array(
             'info' => $trade,
@@ -2539,14 +2539,14 @@ class sxbet extends Exchange {
         $client = $this->client($url);
         $channel = 'best_odds_v3:global';
         $hydrated = false;
-        if ($this->safe_value($this->tickers, $sym) === null) {
+        if ($this->safe_dict($this->safe_dict($this->options, 'wsTickers', array()), $sym) === null) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             $snapshot = Async\await($this->fetch_sxbet_book_snapshot($marketHash));
             $raw = $this->parse_sxbet_snapshot_best_odds($snapshot);
             $ticker = $this->parse_prediction_ticker($raw, $outcomeObj);
-            $this->tickers[$sym] = $ticker;
+            $this->set_ws_option('wsTickers', $sym, $ticker);
             $hydrated = true;
         }
         $requestId = $this->request_id($url);
@@ -2554,7 +2554,7 @@ class sxbet extends Exchange {
         $subscribeMsg = array( 'subscribe' => array( 'channel' => $channel ), 'id' => $requestId );
         $future = $this->watch($url, $messageHash, $subscribeMsg, $channel);
         if ($hydrated) {
-            $client->resolve($this->safe_value($this->tickers, $sym), $messageHash);
+            $client->resolve($this->safe_dict($this->safe_dict($this->options, 'wsTickers', array()), $sym), $messageHash);
         }
         $tickerResult = Async\await($future);
         return $tickerResult;
@@ -2594,7 +2594,7 @@ class sxbet extends Exchange {
                 }
                 $outcomeObj = $this->outcome($sym);
                 $ticker = $this->parse_prediction_ticker($raw, $outcomeObj);
-                $this->tickers[$sym] = $ticker;
+                $this->set_ws_option('wsTickers', $sym, $ticker);
                 $client->resolve($ticker, 'ticker::' . $sym);
             }
         }

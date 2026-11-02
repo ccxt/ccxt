@@ -979,7 +979,7 @@ class derive extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -1025,7 +1025,7 @@ class derive extends Exchange {
         $value = null;
         $isOption = $this->safe_bool($market, 'option', false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if (($market !== null) && ($isOption !== true)) {
+        if (($market !== null) && !$isOption) {
             $value = Precise::string_mul($amount, $this->safe_string($interest, 'M'));
         }
         return $this->safe_open_interest(array(
@@ -1052,7 +1052,7 @@ class derive extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['option'] !== true) {
+        if (!$this->safe_bool($market, 'option', false)) {
             throw new BadRequest($this->id . ' fetchGreeks() supports option markets only');
         }
         $request = array(
@@ -1143,7 +1143,7 @@ class derive extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['option'] !== true) {
+        if (!$this->safe_bool($market, 'option', false)) {
             throw new BadRequest($this->id . ' fetchOption() supports option markets only');
         }
         $request = array(
@@ -2797,10 +2797,10 @@ class derive extends Exchange {
         $filled = $this->safe_string($order, 'filled_amount');
         $fee = $this->safe_string($order, 'order_fee');
         $orderType = $this->safe_string_lower($order, 'order_type');
-        $isBid = $this->safe_bool($order, 'is_bid');
+        $isBid = $this->safe_bool($order, 'is_bid', false);
         $side = $this->safe_string($order, 'direction');
         if ($side === null) {
-            if ($isBid === true) {
+            if ($isBid) {
                 $side = 'buy';
             } else {
                 $side = 'sell';

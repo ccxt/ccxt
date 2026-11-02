@@ -194,8 +194,8 @@ class kraken extends \ccxt\async\kraken {
             $priceType = 'pct';
         }
         if ($method === 'createOrderWs') {
-            $reduceOnly = $this->safe_bool($paramsPostOnly, 'reduceOnly');
-            if ($reduceOnly === true) {
+            $reduceOnly = $this->safe_bool($paramsPostOnly, 'reduceOnly', false);
+            if ($reduceOnly) {
                 $orderParams['reduce_only'] = true;
             }
             $timeInForce = $this->safe_string_lower($paramsPostOnly, 'timeInForce');

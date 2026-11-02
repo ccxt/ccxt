@@ -1231,7 +1231,7 @@ class bittrade extends Exchange {
         $code = $this->safe_currency_code($id);
         $depositEnabled = $this->safe_bool($currency, 'deposit-enabled');
         $withdrawEnabled = $this->safe_bool($currency, 'withdraw-enabled');
-        $countryDisabled = $this->safe_bool($currency, 'country-disabled');
+        $countryDisabled = $this->safe_bool($currency, 'country-disabled', false);
         $visible = $this->safe_bool($currency, 'visible', false);
         $state = $this->safe_string($currency, 'state');
         $active = ($visible) && ($depositEnabled === true) && ($withdrawEnabled === true) && ($state === 'online') && ($countryDisabled !== true);
@@ -1624,7 +1624,7 @@ class bittrade extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;

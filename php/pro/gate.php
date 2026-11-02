@@ -226,7 +226,7 @@ class gate extends \ccxt\async\gate {
         $request = $this->createOrdersRequest($orders, $params);
         $firstOrder = $orders[0];
         $market = $this->market($firstOrder['symbol']);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' createOrdersWs is not supported for swap markets');
         }
         // todo add swap support
@@ -446,7 +446,7 @@ class gate extends \ccxt\async\gate {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
-            if ($market['swap'] !== true) {
+            if (!$this->safe_bool($market, 'swap', false)) {
                 throw new NotSupported($this->id . ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
             }
         }
@@ -499,11 +499,11 @@ class gate extends \ccxt\async\gate {
         $messageHash = 'orderbook' . ':' . $symbolValue;
         // max 100 atm, max 50 for options
         $defaultLimit = 100;
-        if (($market['spot'] === true) || ($messageType === 'options')) {
+        if (($this->safe_bool($market, 'spot', false)) || ($messageType === 'options')) {
             $defaultLimit = 50;
         }
         $limitResolved = ($limit === null) ? $defaultLimit : $limit;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             $maxSpotLimit = $this->parse_to_int($this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000));
             $limitResolved = min($limitResolved, $maxSpotLimit);
@@ -513,7 +513,7 @@ class gate extends \ccxt\async\gate {
         if ($isEuUrl) {
             $channel = 'spot.order_book_update';
             $payload = array( $marketId, $interval );
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $channel = 'spot.obu';
             $finalInterval = $interval;
             if ($limitResolved === 400) {
@@ -563,7 +563,7 @@ class gate extends \ccxt\async\gate {
         $messageType = $this->get_type_by_market($market);
         $limit = $this->safe_integer($paramsInterval, 'limit');
         if ($limit === null) {
-            $limit = ($market['spot'] === true) ? 50 : 100; // max 100 atm
+            $limit = ($this->safe_bool($market, 'spot', false)) ? 50 : 100; // max 100 atm
             if ($messageType === 'options') {
                 $limit = 50; // max 50 for options
             }
@@ -573,7 +573,7 @@ class gate extends \ccxt\async\gate {
         if ($isEuUrl) {
             $channel = 'spot.order_book_update';
             $payload = array( $marketId, $intervalOption );
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $channel = 'spot.obu';
             $finalInterval = $intervalOption;
             if ($limit === 400) {
@@ -950,8 +950,10 @@ class gate extends \ccxt\async\gate {
             }
             return $items;
         }
-        $result = $isWatchTickers ? $this->tickers : $this->bidsasks;
-        return $this->filter_by_array($result, 'symbol', $symbolsNormalized, true);
+        if ($isWatchTickers) {
+            return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized, true);
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized, true);
     }
 
     public function handle_ticker_and_bid_ask(string $objectName, Client $client, array $message) {
@@ -2388,8 +2390,8 @@ class gate extends \ccxt\async\gate {
             $data = $this->safe_dict($message, 'data');
             // use safeValue as result may be Array or an Object
             $result = $this->safe_value($data, 'result');
-            $ack = $this->safe_bool($message, 'ack');
-            if ($ack !== true) {
+            $ack = $this->safe_bool($message, 'ack', false);
+            if (!$ack) {
                 $client->resolve($result, $requestId);
             }
         }

@@ -533,7 +533,7 @@ class whitebit extends Exchange {
             return null;
         }
         $active = $this->safe_bool($market, 'tradesEnabled');
-        $isCollateral = $this->safe_bool($market, 'isCollateral');
+        $isCollateral = $this->safe_bool($market, 'isCollateral', false);
         $typeId = $this->safe_string($market, 'type');
         $type = null;
         $settle = null;
@@ -1594,7 +1594,7 @@ class whitebit extends Exchange {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
-                if ($market['contract'] !== true) {
+                if (!$this->safe_bool($market, 'contract', false)) {
                     $onlyContractSymbols = false;
                     break;
                 }
@@ -2752,9 +2752,9 @@ class whitebit extends Exchange {
         $timestamp = $this->safe_timestamp_2($order, 'ctime', 'timestamp');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'ftime');
         $postOnly = $this->safe_bool($order, 'postOnly');
-        $ioc = $this->safe_bool($order, 'ioc');
+        $ioc = $this->safe_bool($order, 'ioc', false);
         $timeInForce = null;
-        if ($ioc === true) {
+        if ($ioc) {
             $timeInForce = 'IOC';
         } elseif ($postOnly === true) {
             $timeInForce = 'PO';

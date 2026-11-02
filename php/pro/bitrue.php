@@ -350,7 +350,7 @@ class bitrue extends \ccxt\async\bitrue {
         $url = null;
         $channel = null;
         $cbId = null;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $baseIdLower = $this->safe_string_lower($market, 'baseId', '');
             $quoteIdLower = $this->safe_string_lower($market, 'quoteId', '');
             $wsId = 'e_' . $baseIdLower . $quoteIdLower;
@@ -485,7 +485,7 @@ class bitrue extends \ccxt\async\bitrue {
             return null;
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             return $rawQuantity;
         }
         $contractSize = $this->safe_number($market, 'contractSize', 1);
@@ -516,7 +516,7 @@ class bitrue extends \ccxt\async\bitrue {
         }
         $market = $this->market($symbol);
         $symbolValue = $this->safe_string($market, 'symbol', '');
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' watchTrades is only supported for swap markets');
         }
         $baseIdLower = $this->safe_string_lower($market, 'baseId', '');
@@ -636,7 +636,7 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' watchOHLCV is only supported for swap markets');
         }
         $futuresTimeframes = $this->safe_dict($this->options, 'futuresTimeframes', array());
@@ -748,7 +748,7 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' watchTicker is only supported for swap markets');
         }
         $baseIdLower = $this->safe_string_lower($market, 'baseId', '');

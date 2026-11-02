@@ -724,7 +724,7 @@ class onetrading extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $tierObject = ($market['spot'] === true) ? $firstSpotTier : $firstFuturesTier;
+            $tierObject = ($this->safe_bool($market, 'spot', false)) ? $firstSpotTier : $firstFuturesTier;
             $result[$symbol] = array(
                 'info' => $spotFees,
                 'symbol' => $symbol,
@@ -792,8 +792,8 @@ class onetrading extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $makerFee = ($market['spot'] === true) ? $spotMakerFee : $futuresMakerFee;
-            $takerFee = ($market['spot'] === true) ? $spotTakerFee : $futuresTakerFee;
+            $makerFee = ($this->safe_bool($market, 'spot', false)) ? $spotMakerFee : $futuresMakerFee;
+            $takerFee = ($this->safe_bool($market, 'spot', false)) ? $spotTakerFee : $futuresTakerFee;
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,

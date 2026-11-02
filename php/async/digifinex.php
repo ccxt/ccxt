@@ -709,8 +709,8 @@ class digifinex extends Exchange {
                 $symbol = $base . '/' . $quote . ':' . $settle;
                 $isInverse = $this->safe_bool($market, 'is_inverse');
                 $isLinear = ($isInverse !== true) ? true : false;
-                $isTrading = $this->safe_bool($market, 'isTrading');
-                if ($isTrading === true) {
+                $isTrading = $this->safe_bool($market, 'isTrading', false);
+                if ($isTrading) {
                     $isTradingSwap = true;
                 }
             }
@@ -1177,7 +1177,7 @@ class digifinex extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         $response = null;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request['instrument_id'] = $market['id'];
             $response = Async\await($this->publicSwapGetPublicTicker($this->extend($request, $params)));
         } else {
@@ -1234,7 +1234,7 @@ class digifinex extends Exchange {
         $data = $this->safe_dict($response, 'data', array());
         $firstTicker = $this->safe_dict($tickers, 0, array());
         $result = $data;
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             $result = $this->extend(array( 'date' => $date ), $firstTicker);
         }
         return $this->parse_ticker($result, $market);
@@ -1289,12 +1289,12 @@ class digifinex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $timestamp = $this->safe_timestamp($ticker, 'date');
-        if ($marketResolved['swap'] === true) {
+        if ($this->safe_bool($marketResolved, 'swap', false)) {
             $timestamp = $this->safe_integer($ticker, 'timestamp');
         }
         $last = $this->safe_string($ticker, 'last');
         $percentage = $this->safe_string_2($ticker, 'change', 'price_change_percent');
-        if ($marketResolved['swap'] === true) {
+        if ($this->safe_bool($marketResolved, 'swap', false)) {
             // swap endpoints return a raw ratio, spot already returns a percent
             $percentage = Precise::string_mul($percentage, '100');
         }
@@ -1431,8 +1431,8 @@ class digifinex extends Exchange {
             if ($type === null) {
                 $type = 'limit';
             }
-            $isMaker = $this->safe_bool($trade, 'is_maker');
-            $takerOrMaker = ($isMaker === true) ? 'maker' : 'taker';
+            $isMaker = $this->safe_bool($trade, 'is_maker', false);
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
@@ -1544,14 +1544,14 @@ class digifinex extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         if ($limit !== null) {
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $request['limit'] = min($limit, 100);
             } else {
                 $request['limit'] = $limit;
             }
         }
         $response = null;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request['instrument_id'] = $market['id'];
             $response = Async\await($this->publicSwapGetPublicTrades($this->extend($request, $params)));
         } else {
@@ -1660,7 +1660,7 @@ class digifinex extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         $response = null;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request['instrument_id'] = $market['id'];
             $request['granularity'] = $timeframe;
             if ($limit !== null) {
@@ -1725,7 +1725,7 @@ class digifinex extends Exchange {
         //     }
         //
         $candles = null;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $data = $this->safe_dict($response, 'data', array());
             $candles = $this->safe_list($data, 'candles', array());
         } else {
@@ -1766,7 +1766,7 @@ class digifinex extends Exchange {
         $marginMode = $marginResult[0];
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->privateSwapPostTradeOrderPlace($request));
         } else {
             if ($marginMode !== null) {
@@ -1855,7 +1855,7 @@ class digifinex extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         $response = null;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->privateSwapPostTradeBatchOrder($ordersRequests));
         } else {
             $request['market'] = ($marginMode !== null) ? 'margin' : 'spot';
@@ -1885,7 +1885,7 @@ class digifinex extends Exchange {
         //     }
         //
         $data = array();
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $data = $this->safe_list($response, 'data', array());
         } else {
             $data = $this->safe_list($response, 'order_ids', array());
@@ -2036,7 +2036,7 @@ class digifinex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -3705,7 +3705,7 @@ class digifinex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -3817,7 +3817,7 @@ class digifinex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
@@ -3883,7 +3883,7 @@ class digifinex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadRequest($this->id . ' fetchTradingFee() supports swap markets only');
         }
         $request = array(
@@ -4448,7 +4448,7 @@ class digifinex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
         }
         $request = array(

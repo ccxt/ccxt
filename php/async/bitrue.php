@@ -1274,19 +1274,19 @@ class bitrue extends Exchange {
         }
         $market = $this->market($symbol);
         $response = array();
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request = array(
                 'contractName' => $market['id'],
             );
             if ($limit !== null) {
                 $request['limit'] = min($limit, 100); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiV1PublicGetDepth($this->extend($request, $params)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV1PublicGetDepth($this->extend($request, $params)));
             }
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -1419,17 +1419,17 @@ class bitrue extends Exchange {
         $market = $this->market($symbol);
         $response = null;
         $data = array();
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request = array(
                 'contractName' => $market['id'],
             );
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiV1PublicGetTicker($this->extend($request, $params)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV1PublicGetTicker($this->extend($request, $params)));
             }
             $data = $response;
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -1505,7 +1505,7 @@ class bitrue extends Exchange {
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $response = null;
         $data = array();
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $timeframesFuture = $this->safe_dict($timeframes, 'future', array());
             $request = array(
                 'contractName' => $market['id'],
@@ -1515,13 +1515,13 @@ class bitrue extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiV1PublicGetKlines($this->extend($request, $params)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV1PublicGetKlines($this->extend($request, $params)));
             }
             $data = $response;
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $timeframesSpot = $this->safe_dict($timeframes, 'spot', array());
             $request = array(
                 'symbol' => $market['id'],
@@ -1638,16 +1638,16 @@ class bitrue extends Exchange {
         $first = $this->safe_string($symbolsNormalized, 0);
         $market = $this->market($first);
         $response = null;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request = array(
                 'contractName' => $market['id'],
             );
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiV1PublicGetTicker($this->extend($request, $params)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV1PublicGetTicker($this->extend($request, $params)));
             }
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -1710,9 +1710,9 @@ class bitrue extends Exchange {
         if ($symbolsNormalized !== null) {
             $first = $this->safe_string($symbolsNormalized, 0);
             $market = $this->market($first);
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 throw new NotSupported($this->id . ' fetchTickers does not support swap markets, please use fetchTicker instead');
-            } elseif ($market['spot'] === true) {
+            } elseif ($this->safe_bool($market, 'spot', false)) {
                 $response = Async\await($this->spotV1PublicGetTicker24hr($this->extend($request, $params)));
                 $data = $this->to_array($response);
             } else {
@@ -1897,7 +1897,7 @@ class bitrue extends Exchange {
         }
         $market = $this->market($symbol);
         $response = array();
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request = array(
                 'symbol' => $market['id'],
                 // 'limit': 100, // default 100, max = 1000
@@ -2078,7 +2078,7 @@ class bitrue extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports swap orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -2136,7 +2136,7 @@ class bitrue extends Exchange {
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $isMarket = $uppercaseType === 'MARKET';
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
             $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -2179,13 +2179,13 @@ class bitrue extends Exchange {
             $leverage = $this->safe_string($paramsNoCost, 'leverage', '1');
             $request['leverage'] = $this->parse_to_numeric($leverage);
             $paramsSwap = $this->omit($paramsNoCost, array( 'leverage', 'reduceOnly', 'reduce_only', 'timeInForce' ));
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiV2PrivatePostOrder($this->extend($request, $paramsSwap)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV2PrivatePostOrder($this->extend($request, $paramsSwap)));
             }
             $data = $this->safe_dict($response, 'data', array());
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $request['symbol'] = $market['id'];
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             $validOrderTypes = $this->safe_list($market['info'], 'orderTypes', array());
@@ -2262,21 +2262,21 @@ class bitrue extends Exchange {
         if ($origClientOrderId === null) {
             $request['orderId'] = $id;
         } else {
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $request['clientOrderId'] = $origClientOrderId;
             } else {
                 $request['origClientOrderId'] = $origClientOrderId;
             }
         }
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request['contractName'] = $market['id'];
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiV2PrivateGetOrder($this->extend($request, $paramsOmitted)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV2PrivateGetOrder($this->extend($request, $paramsOmitted)));
             }
             $data = $this->safe_dict($response, 'data', array());
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $request['orderId'] = $id; // spot market id is mandatory
             $request['symbol'] = $market['id'];
             $response = Async\await($this->spotV1PrivateGetOrder($this->extend($request, $paramsOmitted)));
@@ -2353,7 +2353,7 @@ class bitrue extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' fetchClosedOrders only support spot markets');
         }
         $request = array(
@@ -2422,15 +2422,15 @@ class bitrue extends Exchange {
         $response = null;
         $data = array();
         $request = array();
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request['contractName'] = $market['id'];
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiV2PrivateGetOpenOrders($this->extend($request, $params)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV2PrivateGetOpenOrders($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $request['symbol'] = $market['id'];
             $response = Async\await($this->spotV1PrivateGetOpenOrders($this->extend($request, $params)));
             $data = $response;
@@ -2518,21 +2518,21 @@ class bitrue extends Exchange {
         if ($origClientOrderId === null) {
             $request['orderId'] = $id;
         } else {
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $request['clientOrderId'] = $origClientOrderId;
             } else {
                 $request['origClientOrderId'] = $origClientOrderId;
             }
         }
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request['contractName'] = $market['id'];
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiV2PrivatePostCancel($this->extend($request, $paramsOmitted)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV2PrivatePostCancel($this->extend($request, $paramsOmitted)));
             }
             $data = $this->safe_dict($response, 'data', array());
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $request['symbol'] = $market['id'];
             $response = Async\await($this->spotV1PrivateDeleteOrder($this->extend($request, $paramsOmitted)));
             $data = $response;
@@ -2584,13 +2584,13 @@ class bitrue extends Exchange {
         $market = $this->market($symbol);
         $response = null;
         $data = array();
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request = array(
                 'contractName' => $market['id'],
             );
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiV2PrivatePostAllOpenOrders($this->extend($request, $params)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV2PrivatePostAllOpenOrders($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
@@ -2644,15 +2644,15 @@ class bitrue extends Exchange {
             $limitResolved = ($limit > 1000) ? 1000 : $limit;
             $request['limit'] = $limitResolved;
         }
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $request['contractName'] = $market['id'];
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiV2PrivateGetMyTrades($this->extend($request, $params)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV2PrivateGetMyTrades($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $request['symbol'] = $market['id'];
             $response = Async\await($this->spotV2PrivateGetMyTrades($this->extend($request, $params)));
             $data = $response;
@@ -3296,12 +3296,12 @@ class bitrue extends Exchange {
             'contractName' => $market['id'],
             'leverage' => $leverage,
         );
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' setLeverage only support swap markets');
         }
-        if ($market['linear'] === true) {
+        if ($this->safe_bool($market, 'linear', false)) {
             $response = Async\await($this->fapiV2PrivatePostLevelEdit($this->extend($request, $params)));
-        } elseif ($market['inverse'] === true) {
+        } elseif ($this->safe_bool($market, 'inverse', false)) {
             $response = Async\await($this->dapiV2PrivatePostLevelEdit($this->extend($request, $params)));
         }
         return $response;
@@ -3351,7 +3351,7 @@ class bitrue extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' setMargin only support swap markets');
         }
         $response = null;
@@ -3359,9 +3359,9 @@ class bitrue extends Exchange {
             'contractName' => $market['id'],
             'amount' => $this->parse_to_numeric($amount),
         );
-        if ($market['linear'] === true) {
+        if ($this->safe_bool($market, 'linear', false)) {
             $response = Async\await($this->fapiV2PrivatePostPositionMargin($this->extend($request, $params)));
-        } elseif ($market['inverse'] === true) {
+        } elseif ($this->safe_bool($market, 'inverse', false)) {
             $response = Async\await($this->dapiV2PrivatePostPositionMargin($this->extend($request, $params)));
         }
         //

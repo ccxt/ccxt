@@ -811,8 +811,8 @@ class cryptocom extends Exchange {
             $settle = $spot ? null : $this->safe_currency_code($settleId);
             $optionType = $this->safe_string_lower($market, 'put_call');
             $strike = $this->safe_string($market, 'strike');
-            $marginBuyEnabled = $this->safe_bool($market, 'margin_buy_enabled');
-            $marginSellEnabled = $this->safe_bool($market, 'margin_sell_enabled');
+            $marginBuyEnabled = $this->safe_bool($market, 'margin_buy_enabled', false);
+            $marginSellEnabled = $this->safe_bool($market, 'margin_sell_enabled', false);
             $expiryRaw = $this->safe_integer($market, 'expiry_timestamp_ms');
             $expiry = ($expiryRaw === 0) ? null : $expiryRaw;
             $symbol = $base . '/' . $quote;
@@ -3226,7 +3226,7 @@ class cryptocom extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -3320,7 +3320,7 @@ class cryptocom extends Exchange {
             return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate));
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
@@ -3722,13 +3722,13 @@ class cryptocom extends Exchange {
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->safe_string($this->symbols, $i, '');
             $market = $this->market($symbol);
-            $isSwap = $this->safe_bool($market, 'swap');
+            $isSwap = $this->safe_bool($market, 'swap', false);
             $takerFeeKey = 'effective_spot_taker_rate_bps';
-            if ($isSwap === true) {
+            if ($isSwap) {
                 $takerFeeKey = 'effective_deriv_taker_rate_bps';
             }
             $makerFeeKey = 'effective_spot_maker_rate_bps';
-            if ($isSwap === true) {
+            if ($isSwap) {
                 $makerFeeKey = 'effective_deriv_maker_rate_bps';
             }
             $tradingFee = array(

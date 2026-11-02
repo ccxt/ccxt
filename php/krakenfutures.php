@@ -767,9 +767,9 @@ class krakenfutures extends Exchange {
         $baseVolume = null;
         $isIndex = $this->safe_bool($marketResolved, 'index', false);
         if (!$isIndex) {
-            if ($marketResolved['linear'] === true) {
+            if ($this->safe_bool($marketResolved, 'linear', false)) {
                 $baseVolume = $volume;
-            } elseif ($marketResolved['inverse'] === true) {
+            } elseif ($this->safe_bool($marketResolved, 'inverse', false)) {
                 $baseVolume = Precise::string_div($quoteVolume, $vwap);
             }
         }
@@ -1221,9 +1221,9 @@ class krakenfutures extends Exchange {
         $type = $this->parse_order_type($rawType); // undefined stays undefined
         $marketResolved = $this->safe_market($marketId, $market);
         $cost = null;
-        $linear = $this->safe_bool($marketResolved, 'linear');
+        $linear = $this->safe_bool($marketResolved, 'linear', false);
         if (($amount !== null) && ($price !== null) && ($marketResolved !== null)) {
-            if ($linear === true) {
+            if ($linear) {
                 $cost = Precise::string_mul($amount, $price); // in quote
             } else {
                 $cost = Precise::string_div($amount, $price); // in base
@@ -1275,7 +1275,7 @@ class krakenfutures extends Exchange {
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
-            'amount' => ($linear === true) ? $amount : null,
+            'amount' => $linear ? $amount : null,
             'cost' => $cost,
             'fee' => $fee,
         ));
@@ -1319,7 +1319,7 @@ class krakenfutures extends Exchange {
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
         $triggerSignal = $this->safe_string($paramsPostOnly, 'triggerSignal', 'last');
-        $reduceOnlyParam = $this->safe_bool($paramsPostOnly, 'reduceOnly');
+        $reduceOnlyParam = $this->safe_bool($paramsPostOnly, 'reduceOnly', false);
         $reduceOnly = ($reduceOnlyParam === true);
         if ($isStopLossOrTakeProfitTrigger || $isTriggerOrder) {
             $request['triggerSignal'] = $triggerSignal;
@@ -2439,7 +2439,7 @@ class krakenfutures extends Exchange {
                 $whichPrice = $average;
             }
             if ($whichPrice !== null) {
-                if ($marketResolved['linear'] === true) {
+                if ($this->safe_bool($marketResolved, 'linear', false)) {
                     $cost = Precise::string_mul($filled, $whichPrice); // in quote
                 } else {
                     $cost = Precise::string_div($filled, $whichPrice); // in base
@@ -3175,7 +3175,7 @@ class krakenfutures extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
@@ -3630,7 +3630,7 @@ class krakenfutures extends Exchange {
             $marketId = $this->safe_string($market, 'id', '');
             $splitId = explode('_', $marketId);
             $splitMarketId = $this->safe_string($splitId, 1, '');
-            if ($market['inverse'] === true) {
+            if ($this->safe_bool($market, 'inverse', false)) {
                 return 'fi_' . $splitMarketId;
             } else {
                 return 'fv_' . $splitMarketId;

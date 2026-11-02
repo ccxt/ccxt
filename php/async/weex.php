@@ -1449,7 +1449,7 @@ class weex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new NotSupported($this->id . ' fetchMarkPrice() supports contract markets only');
         }
         list($priceType, $paramsPriceType) = $this->handle_option_string_and_params($params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
@@ -1539,7 +1539,7 @@ class weex extends Exchange {
             $request['limit'] = 200; // default is 15, max is 200
         }
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->publicGetApiV3MarketDepth($this->extend($request, $params)));
         } else {
             $response = Async\await($this->contractGetCapiV3MarketDepth($this->extend($request, $params)));
@@ -1592,7 +1592,7 @@ class weex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             return Async\await($this->fetch_spot_ohlcv($symbol, $timeframe, $since, $limit, $params));
         } else {
             return Async\await($this->fetch_contract_ohlcv($symbol, $timeframe, $since, $limit, $params));
@@ -1774,7 +1774,7 @@ class weex extends Exchange {
             $request['limit'] = min($limit, 1000);
         }
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->publicGetApiV3MarketTrades($this->extend($request, $params)));
         } else {
             $response = Async\await($this->contractGetCapiV3MarketTrades($this->extend($request, $params)));
@@ -2298,7 +2298,7 @@ class weex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['contract'] === true) {
+        if ($this->safe_bool($market, 'contract', false)) {
             return Async\await($this->create_contract_order($symbol, $type, $side, $amount, $price, $params));
         } else {
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
@@ -2469,7 +2469,7 @@ class weex extends Exchange {
         if ($isTrigger && ($isStopLoss || $isTakeProfit)) {
             throw new BadRequest($this->id . ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
-        $reduceOnly = $this->safe_bool($query, 'reduceOnly');
+        $reduceOnly = $this->safe_bool($query, 'reduceOnly', false);
         $isReduceOnly = $isStopLoss || $isTakeProfit || ($reduceOnly === true);
         $positionSide = 'LONG';
         if ($isReduceOnly) {
@@ -3093,7 +3093,7 @@ class weex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' fetchOrders() supports spot markets only');
         }
         $maxLimit = 1000;
@@ -3755,7 +3755,7 @@ class weex extends Exchange {
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            if ($market['swap'] !== true) {
+            if (!$this->safe_bool($market, 'swap', false)) {
                 throw new NotSupported($this->id . ' fetchFundingHistory() supports swap contracts only');
             }
             $request['symbol'] = $market['id'];
@@ -4112,7 +4112,7 @@ class weex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             // spot markets return 0 for fees
             throw new NotSupported($this->id . ' fetchTradingFee() is not supported for spot markets');
         }

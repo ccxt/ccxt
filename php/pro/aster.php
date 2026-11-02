@@ -1514,7 +1514,7 @@ class aster extends \ccxt\async\aster {
         }
         $type = null;
         list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
-        if ($type === null) {
+        if (($type === null) || ($typeMarketType === null)) {
             throw new ArgumentsRequired($this->id . ' watchBalance() requires a market type');
         }
         Async\await($this->authenticate($typeMarketType, $paramsMarketType));
@@ -1882,7 +1882,7 @@ class aster extends \ccxt\async\aster {
         $messageHash = 'orders';
         $type = null;
         list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $params, $type);
-        if ($type === null) {
+        if (($type === null) || ($typeMarketType === null)) {
             throw new ArgumentsRequired($this->id . ' watchOrders() requires a market type');
         }
         Async\await($this->authenticate($typeMarketType, $paramsMarketType));
@@ -1930,7 +1930,7 @@ class aster extends \ccxt\async\aster {
         $messageHash = 'myTrades';
         $type = null;
         list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params, $type);
-        if ($type === null) {
+        if (($type === null) || ($typeMarketType === null)) {
             throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a market type');
         }
         Async\await($this->authenticate($typeMarketType, $paramsMarketType));

@@ -1030,10 +1030,10 @@ class latoken extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
         $costString = $this->safe_string($trade, 'cost');
-        $makerBuyer = $this->safe_bool($trade, 'makerBuyer');
+        $makerBuyer = $this->safe_bool($trade, 'makerBuyer', false);
         $side = $this->safe_string($trade, 'direction');
         if ($side === null) {
-            $side = ($makerBuyer === true) ? 'sell' : 'buy';
+            $side = $makerBuyer ? 'sell' : 'buy';
         } else {
             if ($side === 'TRADE_DIRECTION_BUY') {
                 $side = 'buy';

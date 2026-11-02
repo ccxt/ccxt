@@ -2382,7 +2382,7 @@ class lighter extends Exchange {
         $isAskAsInteger = $this->safe_integer($order, 'is_ask');
         $side = null;
         if ($isAsk !== null) {
-            $side = ($isAsk === true) ? 'sell' : 'buy';
+            $side = $isAsk ? 'sell' : 'buy';
         } elseif ($isAskAsInteger !== null) {
             $side = ($isAskAsInteger === 1) ? 'sell' : 'buy';
         }

@@ -1209,7 +1209,7 @@ class aster extends Exchange {
             $response = Async\await($this->fapiPublicGetV3IndexPriceKlines($this->extend($requestUntil, $paramsOmitted)));
         } else {
             $requestUntil['symbol'] = $this->safe_string($market, 'id', '');
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->fapiPublicGetV3Klines($this->extend($requestUntil, $paramsOmitted)));
             } else {
                 $response = Async\await($this->sapiPublicGetV3Klines($this->extend($requestUntil, $paramsOmitted)));
@@ -1376,7 +1376,7 @@ class aster extends Exchange {
         }
         // use historical endpoint for targeted requests
         if ($sinceDefined) {
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $response = Async\await($this->fapiPublicGetV3AggTrades($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->sapiPublicGetV3AggTrades($this->extend($request, $params)));
@@ -1397,7 +1397,7 @@ class aster extends Exchange {
             // ]
             //
         } else {
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $response = Async\await($this->fapiPublicGetV3Trades($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->sapiPublicGetV3Trades($this->extend($request, $params)));
@@ -1510,7 +1510,7 @@ class aster extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 50, 100, 500, 1000 ), $limit);
         }
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPublicGetV3Depth($this->extend($request, $params)));
         } else {
             $response = Async\await($this->sapiPublicGetV3Depth($this->extend($request, $params)));
@@ -1648,7 +1648,7 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPublicGetV3Ticker24hr($this->extend($request, $params)));
         } else {
             $response = Async\await($this->sapiPublicGetV3Ticker24hr($this->extend($request, $params)));
@@ -2243,7 +2243,7 @@ class aster extends Exchange {
          * @return {array} response from the exchange
          */
         $strValue = 'false';
-        if ($hedged === true) {
+        if ($hedged) {
             $strValue = 'true';
         }
         $request = array(
@@ -2292,7 +2292,7 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPrivateGetV3CommissionRate($this->extend($request, $params)));
         } else {
             $response = Async\await($this->sapiPrivateGetV3CommissionRate($this->extend($request, $params)));
@@ -2460,7 +2460,7 @@ class aster extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPrivateGetV3Order($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->sapiPrivateGetV3Order($this->extend($request, $paramsOmitted)));
@@ -2528,7 +2528,7 @@ class aster extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->sapiPrivateGetV3OpenOrder($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->fapiPrivateGetV3OpenOrder($this->extend($request, $paramsOmitted)));
@@ -2598,7 +2598,7 @@ class aster extends Exchange {
             $request['startTime'] = $since;
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPrivateGetV3AllOrders($this->extend($requestUntil, $paramsUntil)));
         } else {
             $response = Async\await($this->sapiPrivateGetV3AllOrders($this->extend($requestUntil, $paramsUntil)));
@@ -2742,7 +2742,7 @@ class aster extends Exchange {
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPrivatePostV3Order($request));
         } else {
             $response = Async\await($this->sapiPrivatePostV3Order($request));
@@ -2816,7 +2816,7 @@ class aster extends Exchange {
         }
         $orderSymbolsResolved = $this->market_symbols($orderSymbols, null, false, true, true);
         $market = $this->market($orderSymbolsResolved[0]);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createOrders() does not support ' . $this->safe_string($market, 'type', '') . ' orders');
         }
         $request = array(
@@ -2898,7 +2898,7 @@ class aster extends Exchange {
         $uppercaseType = $initialUppercaseType;
         $stopPrice = null;
         if ($isTrailingPercentOrder) {
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $uppercaseType = 'TRAILING_STOP_MARKET';
                 $request['callbackRate'] = $trailingPercent;
                 if ($trailingTriggerPrice !== null) {
@@ -2936,7 +2936,7 @@ class aster extends Exchange {
         $quantityIsRequired = false;
         $request['type'] = $uppercaseType;
         if ($uppercaseType === 'MARKET') {
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 $quoteOrderQty = $this->handle_option('createOrder', 'quoteOrderQty', true);
                 if ($quoteOrderQty === true) {
                     $quoteOrderQtyNew = $this->safe_string_2($params, 'quoteOrderQty', 'cost');
@@ -3014,7 +3014,7 @@ class aster extends Exchange {
         } else {
             $requestParams = $this->omit($params, $omitKeys);
         }
-        if (($this->safe_bool($this->options, 'builderFee', false)) && ($market['swap'] === true)) {
+        if (($this->safe_bool($this->options, 'builderFee', false)) && ($this->safe_bool($market, 'swap', false))) {
             $request['builder'] = $this->safe_string($this->options, 'builder');
             $request['feeRate'] = $this->safe_string($this->options, 'builderRate');
         }
@@ -3044,7 +3044,7 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPrivateDeleteV3AllOpenOrders($this->extend($request, $params)));
         } else {
             $response = Async\await($this->sapiPrivateDeleteV3AllOpenOrders($this->extend($request, $params)));
@@ -3095,7 +3095,7 @@ class aster extends Exchange {
             $request['orderId'] = $id;
         }
         $paramsOmitted = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPrivateDeleteV3Order($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->sapiPrivateDeleteV3Order($this->extend($request, $paramsOmitted)));
@@ -3137,7 +3137,7 @@ class aster extends Exchange {
         } else {
             $request['orderIdList'] = $ids;
         }
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPrivateDeleteV3BatchOrders($this->extend($request, $params)));
             //
             //    [
@@ -3990,7 +3990,7 @@ class aster extends Exchange {
             $position = $positions[$i];
             $marketId = $this->safe_string($position, 'symbol');
             $market = $this->safe_market($marketId, null, null, 'contract');
-            $code = ($market['linear'] === true) ? $market['quote'] : $market['base'];
+            $code = ($this->safe_bool($market, 'linear', false)) ? $market['quote'] : $market['base'];
             $maintenanceMargin = $this->safe_string($position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             $isPositionOpen = ($maintenanceMargin !== '0') && ($maintenanceMargin !== '0.00000000');

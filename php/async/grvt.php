@@ -650,8 +650,8 @@ class grvt extends Exchange {
                 // }
                 //
                 $authResult = $this->safe_dict($authResponse, 'result');
-                $ack = $this->safe_bool($authResult, 'ack');
-                if ($ack !== true) {
+                $ack = $this->safe_bool($authResult, 'ack', false);
+                if (!$ack) {
                     throw new ExchangeError('Builder authorization failed, ' . $this->json($authResponse));
                 }
                 $this->options['approvedBuilderFee'] = true;
@@ -2288,7 +2288,7 @@ class grvt extends Exchange {
     }
 
     public function convert_to_big_int_custom(mixed $x): int {
-        return intval($x);
+        return intval($this->number_to_string($x));
     }
 
     public function eip_message_for_order(array $order, ?string $structureType): array {
@@ -2343,7 +2343,7 @@ class grvt extends Exchange {
         );
         if ($structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && $this->safe_bool($this->options, 'builderFee', true)) {
             $returnValue['builder'] = $order['builder'];
-            $returnValue['builderFee'] = $this->parse_to_int($this->convert_to_big_int_custom($this->fee_amount_multiplier()) * floatval($order['builder_fee'])); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            $returnValue['builderFee'] = $this->parse_to_int($this->convert_to_big_int_custom($this->fee_amount_multiplier()) * floatval($this->safe_string($order, 'builder_fee'))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return $returnValue;
     }
@@ -2448,7 +2448,7 @@ class grvt extends Exchange {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
-                if ($market['contract'] !== true) {
+                if (!$this->safe_bool($market, 'contract', false)) {
                     throw new BadRequest($this->id . ' fetchPositions() supports contract markets only');
                 }
                 $baseIds[] = $market['baseId'];
@@ -3143,9 +3143,9 @@ class grvt extends Exchange {
                 'id' => null,
             ));
         }
-        $isMarket = $this->safe_bool($order, 'is_market');
+        $isMarket = $this->safe_bool($order, 'is_market', false);
         $orderType = 'limit';
-        if ($isMarket === true) {
+        if ($isMarket) {
             $orderType = 'market';
         }
         $isPostOnly = $this->safe_bool($order, 'post_only');
@@ -3367,8 +3367,8 @@ class grvt extends Exchange {
             $messageData = array(
                 'mainAccountID' => $request['main_account_id'],
                 'builderAccountID' => $request['builder_account_id'],
-                'maxFutureFeeRate' => $this->parse_to_int(floatval($request['max_futures_fee_rate']) * $amountMultiplier),
-                'maxSpotFeeRate' => $this->parse_to_int(floatval($request['max_spot_fee_rate']) * $amountMultiplier),
+                'maxFutureFeeRate' => $this->parse_to_int(floatval($this->safe_string($request, 'max_futures_fee_rate')) * $amountMultiplier),
+                'maxSpotFeeRate' => $this->parse_to_int(floatval($this->safe_string($request, 'max_spot_fee_rate')) * $amountMultiplier),
                 'nonce' => $requestSignature['nonce'],
                 'expiration' => $requestSignature['expiration'],
             );
@@ -3473,7 +3473,7 @@ class grvt extends Exchange {
             if ($queryString !== '') {
                 $requestPath = $path . '?' . $queryString;
             }
-            if ((str_ends_with($requestPath, 'auth/api_key/login') === true) || (str_ends_with($requestPath, 'auth/wallet/login') === true)) {
+            if (str_ends_with($requestPath, 'auth/api_key/login') || str_ends_with($requestPath, 'auth/wallet/login')) {
                 $requestHeaders = array(
                     'Content-Type' => 'application/json',
                     'Cookie' => 'rm=true;',

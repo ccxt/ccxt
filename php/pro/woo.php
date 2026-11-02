@@ -1683,8 +1683,8 @@ class woo extends \ccxt\async\woo {
         if (!(is_array($message) && array_key_exists('success' ?? '', $message))) {
             return false;
         }
-        $success = $this->safe_bool($message, 'success');
-        if ($success === true) {
+        $success = $this->safe_bool($message, 'success', false);
+        if ($success) {
             return false;
         }
         $errorMessage = $this->safe_string($message, 'errorMsg');
@@ -1843,8 +1843,8 @@ class woo extends \ccxt\async\woo {
         //     }
         //
         $messageHash = 'authenticated';
-        $success = $this->safe_bool($message, 'success');
-        if ($success === true) {
+        $success = $this->safe_bool($message, 'success', false);
+        if ($success) {
             // client.resolve (message, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             $future->resolve(true);

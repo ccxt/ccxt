@@ -1235,7 +1235,7 @@ class hyperliquid extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'type' => 'l2Book',
-            'coin' => ($market['swap'] === true) ? $this->safe_string($market, 'baseName') : $market['id'],
+            'coin' => ($this->safe_bool($market, 'swap', false)) ? $this->safe_string($market, 'baseName') : $market['id'],
         );
         $response = $this->publicPostInfo($this->extend($request, $params));
         //
@@ -1535,7 +1535,7 @@ class hyperliquid extends Exchange {
         $request = array(
             'type' => 'candleSnapshot',
             'req' => array(
-                'coin' => ($market['swap'] === true) ? $this->safe_string($market, 'baseName') : $market['id'],
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $this->safe_string($market, 'baseName') : $market['id'],
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'startTime' => $startTime,
                 'endTime' => $until,
@@ -1678,7 +1678,7 @@ class hyperliquid extends Exchange {
         $significantDigits = max(5, strlen($integerPart));
         $result = $this->decimal_to_precision($price, ROUND, $significantDigits, SIGNIFICANT_DIGITS, $this->paddingMode);
         $maxDecimals = 6;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $maxDecimals = 8;
         }
         $subtractedValue = $maxDecimals - $this->precision_from_string($this->safe_string($market['precision'], 'amount'));
@@ -4309,7 +4309,7 @@ class hyperliquid extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode');
+        $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $nonce = $this->incrementing_nonce();
         if ($this->in_array($fromAccount, array( 'spot', 'swap', 'perp' ))) {
             // handle swap <> spot account transfer
@@ -4324,7 +4324,7 @@ class hyperliquid extends Exchange {
             $strAmountFinal = $strAmount; // java req
             $toPerp = ($toAccount === 'perp') || ($toAccount === 'swap');
             $transferPayload = array(
-                'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
                 'amount' => $strAmountFinal,
                 'toPerp' => $toPerp,
                 'nonce' => $nonce,
@@ -4389,7 +4389,7 @@ class hyperliquid extends Exchange {
             $sourceDex = $this->safe_string($paramsSendAsset, 'sourceDex', $defaultDex);
             $destinationDex = $this->safe_string($paramsSendAsset, 'destinationDex', $defaultDex);
             $sendAssetPayload = array(
-                'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
                 'destination' => ($isDeposit) ? $subAccountAddress : $masterAddress,
                 'sourceDex' => $sourceDex,
                 'destinationDex' => $destinationDex,

@@ -1296,11 +1296,11 @@ class upbit extends Exchange {
 
     public function calc_order_price(string $symbol, ?float $amount = null, ?float $price = null, $params = array()): ?string {
         $quoteAmount = null;
-        $createMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice');
+        $createMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice', false);
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
             $quoteAmount = $this->cost_to_precision($symbol, $cost);
-        } elseif ($createMarketBuyOrderRequiresPrice === true) {
+        } elseif ($createMarketBuyOrderRequiresPrice) {
             if ($price === null || $amount === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
             }

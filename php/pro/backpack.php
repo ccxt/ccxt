@@ -125,7 +125,7 @@ class backpack extends \ccxt\async\backpack {
          * @param {array} [$params] local parameters
          * @param {boolean} [$bidAsk] whether bid and ask data is requested
          * @param {boolean} [$unwatch] whether to unsubscribe
-         * @return {array} unified $tickers
+         * @return {array} unified tickers
          */
         $query = Async\await($this->prepare_ws_stock_params($methodName, $params));
         $stock = $this->safe_bool($query, 'stock', false);
@@ -228,8 +228,10 @@ class backpack extends \ccxt\async\backpack {
         } else {
             Async\await($this->watch_public($topics, $messageHashes, $payload));
         }
-        $tickers = ($bidAsk) ? $this->bidsasks : $this->tickers;
-        return $this->filter_by_array($tickers, 'symbol', $symbolsResolved);
+        if ($bidAsk) {
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsResolved);
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsResolved);
     }
 
     public function watch_public(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {

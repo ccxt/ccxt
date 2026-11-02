@@ -620,7 +620,7 @@ class bingx extends \ccxt\async\bingx {
             $request['reqType'] = 'sub';
         }
         $subscriptionArgs = array();
-        if ($market['inverse'] === true) {
+        if ($this->safe_bool($market, 'inverse', false)) {
             $subscriptionArgs = array(
                 'id' => $uuid,
                 'unsubscribe' => false,
@@ -768,7 +768,7 @@ class bingx extends \ccxt\async\bingx {
         $orderbook = $this->orderbooks[$symbol];
         $timestamp = $this->safe_integer_2($message, 'timestamp', 'ts');
         $timestamp = $this->safe_integer_2($data, 'timestamp', 'ts', $timestamp);
-        if ($market['inverse'] === true) {
+        if ($this->safe_bool($market, 'inverse', false)) {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'p', 'a');
         } else {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 0, 1);
@@ -896,7 +896,7 @@ class bingx extends \ccxt\async\bingx {
         $market = $this->safe_market($marketId, null, null, $marketType);
         $candles = null;
         if ($isSwap) {
-            if ($market['inverse'] === true) {
+            if ($this->safe_bool($market, 'inverse', false)) {
                 $candles = array( $this->safe_dict($message, 'data', array()) );
             } else {
                 $candles = $this->safe_list($message, 'data', array());
@@ -1248,7 +1248,7 @@ class bingx extends \ccxt\async\bingx {
             );
         }
         $userStreamKey = $this->safe_string($this->options, 'listenKey');
-        if ($baseUrl === null || $userStreamKey === null) {
+        if ($type === null || $baseUrl === null || $userStreamKey === null) {
             throw new AuthenticationError($this->id . ' watchBalance() requires a websocket URL and a listen key');
         }
         $url = $baseUrl . '?listenKey=' . $userStreamKey;

@@ -3759,9 +3759,7 @@ class myriad extends Exchange {
         $ts = $this->safe_integer($data, 'ts');
         $outcomes = $this->safe_list($data, 'outcomes', array());
         $outcomesLength = count($outcomes);
-        if ($this->tickers === null) {
-            $this->tickers = $this->create_safe_dictionary();
-        }
+        $cachedTickers = $this->safe_dict($this->options, 'wsTickers', array());
         for ($i = 0; $i < $outcomesLength; $i++) {
             $oc = $outcomes[$i];
             $outcomeId = $this->safe_string($oc, 'outcome');
@@ -3797,10 +3795,11 @@ class myriad extends Exchange {
                 'quoteVolume' => null,
                 'info' => $oc,
             ), $market);
-            $this->tickers[$sym] = $ticker;
+            $cachedTickers[$sym] = $ticker;
             $client->resolve($ticker, 'ticker::' . $sym);
         }
-        $client->resolve($this->tickers, 'tickers');
+        $this->options['wsTickers'] = $cachedTickers;
+        $client->resolve($cachedTickers, 'tickers');
     }
 
     public function watch_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

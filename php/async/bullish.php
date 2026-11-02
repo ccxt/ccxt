@@ -1191,7 +1191,7 @@ class bullish extends Exchange {
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
         $side = $this->safe_string_lower($trade, 'side');
-        $isTaker = $this->safe_bool($trade, 'isTaker');
+        $isTaker = $this->safe_bool($trade, 'isTaker', false);
         $currency = $this->safe_string($marketResolved, 'quote');
         $code = $this->safe_currency_code($currency);
         $feeCost = $this->safe_number($trade, 'quoteFee');
@@ -1200,7 +1200,7 @@ class bullish extends Exchange {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
         $takerOrMaker = null;
-        if ($isTaker === true) {
+        if ($isTaker) {
             $takerOrMaker = 'taker';
         } else {
             $takerOrMaker = 'maker';
@@ -1500,7 +1500,7 @@ class bullish extends Exchange {
             return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPagination, $maxLimit));
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap markets only');
         }
         $request = array(

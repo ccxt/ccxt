@@ -1814,7 +1814,7 @@ class bitfinex extends Exchange {
             $orderType = 'FOK';
         }
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('createOrder', $params);
-        if (($market['spot'] === true) && ($marginMode === null)) {
+        if (($this->safe_bool($market, 'spot', false)) && ($marginMode === null)) {
             // The EXCHANGE prefix is only required for non margin spot markets
             $orderType = 'EXCHANGE ' . $orderType;
         }
@@ -2758,7 +2758,7 @@ class bitfinex extends Exchange {
             if (is_array($fiat) && array_key_exists($market['quote'] ?? '', $fiat)) {
                 $fee['maker'] = $makerFeeFiat;
                 $fee['taker'] = $takerFeeFiat;
-            } elseif ($market['contract'] === true) {
+            } elseif ($this->safe_bool($market, 'contract', false)) {
                 $fee['maker'] = $makerFeeDeriv;
                 $fee['taker'] = $takerFeeDeriv;
             } else { // TODO check if stable coin
@@ -3843,7 +3843,7 @@ class bitfinex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' setMargin() only support swap markets');
         }
         $request = array(

@@ -892,8 +892,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $client->resolve($orders, $messageHash);
             }
         } else {
-            $isCancel = $this->safe_bool($message, 'is_cancel');
-            if ($isCancel === true) {
+            $isCancel = $this->safe_bool($message, 'is_cancel', false);
+            if ($isCancel) {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
                 // mapping every removal to canceled. Preserve reason on info
@@ -1565,11 +1565,12 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $newAccount['free'] = $this->safe_string($future, 'available');
                 $newAccount['used'] = $this->safe_string($future, 'initial_margin');
                 $newAccount['total'] = $this->safe_string($future, 'balance');
-                $this->balance['margin'][$symbol] = array();
+                $symbolAccounts = array();
                 if (($symbol !== null) && ($code !== null)) {
                     $futuresSymbols[$symbol] = true;
-                    $this->balance['margin'][$symbol][$code] = $newAccount;
+                    $symbolAccounts[$code] = $newAccount;
                 }
+                $this->balance['margin'][$symbol] = $symbolAccounts;
             }
             $this->balance['margin'] = $this->prune_stale_balance_keys($this->balance['margin'], $futuresSymbols);
             $this->balance['margin'] = $this->safe_balance($this->balance['margin']);
@@ -1708,7 +1709,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $timestamp = $this->safe_integer($trade, 'time');
         $marketId = $this->safe_string($trade, 'instrument');
         $marketResolved = $this->safe_market($marketId, $market);
-        $isBuy = $this->safe_bool($trade, 'buy');
+        $isBuy = $this->safe_bool($trade, 'buy', false);
         $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1718,7 +1719,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => $this->safe_string($trade, 'type'),
-            'side' => ($isBuy === true) ? 'buy' : 'sell',
+            'side' => $isBuy ? 'buy' : 'sell',
             'takerOrMaker' => $this->safe_string($trade, 'fill_type'),
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'qty'),

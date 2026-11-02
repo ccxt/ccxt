@@ -1270,7 +1270,7 @@ class woo extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return $this->create_order($symbol, 'market', 'buy', $cost, 1, $params);
@@ -1291,7 +1291,7 @@ class woo extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
         }
         return $this->create_order($symbol, 'market', 'sell', $cost, 1, $params);
@@ -1439,7 +1439,7 @@ class woo extends Exchange {
             // for market buy it requires the amount of quote currency to spend
             $cost = $this->safe_string_n($paramsMarginMode, array( 'cost', 'order_amount', 'orderAmount' ));
             $isPriceProvided = $price !== null;
-            if (($market['spot'] === true) && ($isPriceProvided || ($cost !== null))) {
+            if (($this->safe_bool($market, 'spot', false)) && ($isPriceProvided || ($cost !== null))) {
                 $quoteAmount = null;
                 if ($cost !== null) {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
@@ -2399,7 +2399,7 @@ class woo extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' fetchTicker() supports swap markets only, there is no spot ticker endpoint');
         }
         $request = array(
@@ -2463,7 +2463,7 @@ class woo extends Exchange {
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
                 $firstMarket = $this->market($symbols[0]);
-                if ($firstMarket['swap'] !== true) {
+                if (!$this->safe_bool($firstMarket, 'swap', false)) {
                     throw new NotSupported($this->id . ' fetchTickers() supports swap markets only');
                 }
             }
@@ -3575,9 +3575,9 @@ class woo extends Exchange {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        $success = $this->safe_bool($response, 'success');
+        $success = $this->safe_bool($response, 'success', false);
         $errorCode = $this->safe_string($response, 'code');
-        if ($success !== true) {
+        if (!$success) {
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
@@ -3964,7 +3964,7 @@ class woo extends Exchange {
         }
         $market = $this->market($symbol);
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = $this->v3PrivateGetAccountInfo($params);
             //
             //     {
@@ -3995,7 +3995,7 @@ class woo extends Exchange {
             //         "timestamp": 1752645129054
             //     }
             //
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $request = array(
                 'symbol' => $market['id'],
             );
