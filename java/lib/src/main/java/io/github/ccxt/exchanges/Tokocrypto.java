@@ -2192,7 +2192,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 triggerPriceIsRequired = true;
                 quantityIsRequired = true;
-                if ((java.util.Objects.equals(market.get("linear"), true)) || (java.util.Objects.equals(market.get("inverse"), true)))
+                if (Boolean.TRUE.equals((this.safeBool(market, "linear", false))) || Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
                 {
                     priceIsRequired = true;
                 }

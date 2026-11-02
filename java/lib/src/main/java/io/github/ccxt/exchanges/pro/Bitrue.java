@@ -392,7 +392,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Object url = null;
             String channel = null;
             String cbId = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 String baseIdLower = this.safeStringLower(market, "baseId", "");
                 String quoteIdLower = this.safeStringLower(market, "quoteId", "");
@@ -548,7 +548,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return null;
         }
         Map<String, Object> market = this.market(symbol);
-        if (!java.util.Objects.equals(market.get("contract"), true))
+        if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
         {
             return rawQuantity;
         }
@@ -582,7 +582,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = this.safeString(market, "symbol", "");
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " watchTrades is only supported for swap markets")) ;
             }
@@ -713,7 +713,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " watchOHLCV is only supported for swap markets")) ;
             }
@@ -838,7 +838,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " watchTicker is only supported for swap markets")) ;
             }
@@ -1007,14 +1007,23 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         } else
         {
             String eventVar = this.safeString(message, "e");
-            Map<String, io.github.ccxt.Handler> handlers = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("BALANCE", Bitrue.this::handleBalance);
-                put("ORDER", Bitrue.this::handleOrder);
+            Map<String, String> handlers = new HashMap<String, String>() {{
+                put("BALANCE", "handleBalance");
+                put("ORDER", "handleOrder");
             }};
-            io.github.ccxt.Handler handler = handlers.get(eventVar);
+            String handler = handlers.get(eventVar);
             if (!java.util.Objects.equals(handler, null))
             {
-                handler.handle(client, message);
+                switch (handler) {
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + handler);
+                }
             }
         }
     }

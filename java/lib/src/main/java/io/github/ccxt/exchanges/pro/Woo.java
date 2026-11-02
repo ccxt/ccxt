@@ -1884,8 +1884,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             return false;
         }
-        Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
-        if (java.util.Objects.equals(success, true))
+        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        if (Boolean.TRUE.equals(success))
         {
             return false;
         }
@@ -1947,30 +1947,78 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             return;
         }
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("ping", Woo.this::handlePing);
-            put("pong", Woo.this::handlePong);
-            put("subscribe", Woo.this::handleSubscribe);
-            put("unsubscribe", Woo.this::handleUnSubscription);
-            put("orderbook", Woo.this::handleOrderBook);
-            put("orderbookupdate", Woo.this::handleOrderBook);
-            put("ticker", Woo.this::handleTicker);
-            put("tickers", Woo.this::handleTickers);
-            put("kline", Woo.this::handleOHLCV);
-            put("auth", Woo.this::handleAuth);
-            put("executionreport", Woo.this::handleOrderUpdate);
-            put("algoexecutionreportv2", Woo.this::handleOrderUpdate);
-            put("trade", Woo.this::handleTrade);
-            put("balance", Woo.this::handleBalance);
-            put("position", Woo.this::handlePositions);
-            put("bbos", Woo.this::handleBidAsk);
-            put("estfundingrate", Woo.this::handleFundingRate);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("ping", "handlePing");
+            put("pong", "handlePong");
+            put("subscribe", "handleSubscribe");
+            put("unsubscribe", "handleUnSubscription");
+            put("orderbook", "handleOrderBook");
+            put("orderbookupdate", "handleOrderBook");
+            put("ticker", "handleTicker");
+            put("tickers", "handleTickers");
+            put("kline", "handleOHLCV");
+            put("auth", "handleAuth");
+            put("executionreport", "handleOrderUpdate");
+            put("algoexecutionreportv2", "handleOrderUpdate");
+            put("trade", "handleTrade");
+            put("balance", "handleBalance");
+            put("position", "handlePositions");
+            put("bbos", "handleBidAsk");
+            put("estfundingrate", "handleFundingRate");
         }};
         String eventVar = this.safeString(message, "event");
-        io.github.ccxt.Handler method = methods.get(eventVar);
+        String method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handlePing":
+                    this.handlePing(client, message);
+                    break;
+                case "handlePong":
+                    this.handlePong(client, message);
+                    break;
+                case "handleSubscribe":
+                    this.handleSubscribe(client, message);
+                    break;
+                case "handleUnSubscription":
+                    this.handleUnSubscription(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleTickers":
+                    this.handleTickers(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleAuth":
+                    this.handleAuth(client, message);
+                    break;
+                case "handleOrderUpdate":
+                    this.handleOrderUpdate(client, message);
+                    break;
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handlePositions":
+                    this.handlePositions(client, message);
+                    break;
+                case "handleBidAsk":
+                    this.handleBidAsk(client, message);
+                    break;
+                case "handleFundingRate":
+                    this.handleFundingRate(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
             return;
         }
         String topic = this.safeString(message, "topic");
@@ -1979,7 +2027,55 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             method = methods.get(topic);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handlePing":
+                        this.handlePing(client, message);
+                        break;
+                    case "handlePong":
+                        this.handlePong(client, message);
+                        break;
+                    case "handleSubscribe":
+                        this.handleSubscribe(client, message);
+                        break;
+                    case "handleUnSubscription":
+                        this.handleUnSubscription(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTickers":
+                        this.handleTickers(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    case "handleAuth":
+                        this.handleAuth(client, message);
+                        break;
+                    case "handleOrderUpdate":
+                        this.handleOrderUpdate(client, message);
+                        break;
+                    case "handleTrade":
+                        this.handleTrade(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    case "handlePositions":
+                        this.handlePositions(client, message);
+                        break;
+                    case "handleBidAsk":
+                        this.handleBidAsk(client, message);
+                        break;
+                    case "handleFundingRate":
+                        this.handleFundingRate(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
                 return;
             }
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@"))));
@@ -1994,7 +2090,55 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 method = methods.get(name);
                 if (!java.util.Objects.equals(method, null))
                 {
-                    method.handle(client, message);
+                    switch (method) {
+                        case "handlePing":
+                            this.handlePing(client, message);
+                            break;
+                        case "handlePong":
+                            this.handlePong(client, message);
+                            break;
+                        case "handleSubscribe":
+                            this.handleSubscribe(client, message);
+                            break;
+                        case "handleUnSubscription":
+                            this.handleUnSubscription(client, message);
+                            break;
+                        case "handleOrderBook":
+                            this.handleOrderBook(client, message);
+                            break;
+                        case "handleTicker":
+                            this.handleTicker(client, message);
+                            break;
+                        case "handleTickers":
+                            this.handleTickers(client, message);
+                            break;
+                        case "handleOHLCV":
+                            this.handleOHLCV(client, message);
+                            break;
+                        case "handleAuth":
+                            this.handleAuth(client, message);
+                            break;
+                        case "handleOrderUpdate":
+                            this.handleOrderUpdate(client, message);
+                            break;
+                        case "handleTrade":
+                            this.handleTrade(client, message);
+                            break;
+                        case "handleBalance":
+                            this.handleBalance(client, message);
+                            break;
+                        case "handlePositions":
+                            this.handlePositions(client, message);
+                            break;
+                        case "handleBidAsk":
+                            this.handleBidAsk(client, message);
+                            break;
+                        case "handleFundingRate":
+                            this.handleFundingRate(client, message);
+                            break;
+                        default:
+                            throw new RuntimeException("Method not found: " + method);
+                    }
                     return;
                 }
                 List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_"))));
@@ -2004,7 +2148,55 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     method = methods.get(this.safeString(splitName, 0));
                     if (!java.util.Objects.equals(method, null))
                     {
-                        method.handle(client, message);
+                        switch (method) {
+                            case "handlePing":
+                                this.handlePing(client, message);
+                                break;
+                            case "handlePong":
+                                this.handlePong(client, message);
+                                break;
+                            case "handleSubscribe":
+                                this.handleSubscribe(client, message);
+                                break;
+                            case "handleUnSubscription":
+                                this.handleUnSubscription(client, message);
+                                break;
+                            case "handleOrderBook":
+                                this.handleOrderBook(client, message);
+                                break;
+                            case "handleTicker":
+                                this.handleTicker(client, message);
+                                break;
+                            case "handleTickers":
+                                this.handleTickers(client, message);
+                                break;
+                            case "handleOHLCV":
+                                this.handleOHLCV(client, message);
+                                break;
+                            case "handleAuth":
+                                this.handleAuth(client, message);
+                                break;
+                            case "handleOrderUpdate":
+                                this.handleOrderUpdate(client, message);
+                                break;
+                            case "handleTrade":
+                                this.handleTrade(client, message);
+                                break;
+                            case "handleBalance":
+                                this.handleBalance(client, message);
+                                break;
+                            case "handlePositions":
+                                this.handlePositions(client, message);
+                                break;
+                            case "handleBidAsk":
+                                this.handleBidAsk(client, message);
+                                break;
+                            case "handleFundingRate":
+                                this.handleFundingRate(client, message);
+                                break;
+                            default:
+                                throw new RuntimeException("Method not found: " + method);
+                        }
                     }
                 }
             }
@@ -2076,8 +2268,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         String messageHash = "authenticated";
-        Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
-        if (java.util.Objects.equals(success, true))
+        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        if (Boolean.TRUE.equals(success))
         {
             // client.resolve (message, messageHash);
             io.github.ccxt.ws.Future future = client.futures.get("authenticated");

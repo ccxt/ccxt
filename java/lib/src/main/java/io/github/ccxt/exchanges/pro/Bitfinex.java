@@ -95,8 +95,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             if (Boolean.TRUE.equals(checksum) && (java.util.Objects.equals(channel, "book")))
             {
                 Object sub = (client.subscriptions == null || messageHash == null ? null : client.subscriptions.get(messageHash));
-                Boolean subChecksum = (Boolean) this.safeBool(sub, "checksum", (Object) null);
-                if ((!java.util.Objects.equals(sub, null)) && (!java.util.Objects.equals(subChecksum, true)))
+                Boolean subChecksum = (Boolean) this.safeBool(sub, "checksum", false);
+                if ((!java.util.Objects.equals(sub, null)) && !Boolean.TRUE.equals(subChecksum))
                 {
                     Helpers.addElementToObject((client.subscriptions == null || messageHash == null ? null : client.subscriptions.get(messageHash)), "checksum", true);
                     (client.send(new HashMap<String, Object>() {{
@@ -1568,16 +1568,31 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String eventVar = this.safeString(message, "event");
         if (!java.util.Objects.equals(eventVar, null))
         {
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("info", Bitfinex.this::handleSystemStatus);
-                put("subscribed", Bitfinex.this::handleSubscriptionStatus);
-                put("unsubscribed", Bitfinex.this::handleUnsubscriptionStatus);
-                put("auth", Bitfinex.this::handleAuthenticationMessage);
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("info", "handleSystemStatus");
+                put("subscribed", "handleSubscriptionStatus");
+                put("unsubscribed", "handleUnsubscriptionStatus");
+                put("auth", "handleAuthenticationMessage");
             }};
-            io.github.ccxt.Handler method = methods.get(eventVar);
+            String method = methods.get(eventVar);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleSystemStatus":
+                        this.handleSystemStatus(client, message);
+                        break;
+                    case "handleSubscriptionStatus":
+                        this.handleSubscriptionStatus(client, message);
+                        break;
+                    case "handleUnsubscriptionStatus":
+                        this.handleUnsubscriptionStatus(client, message);
+                        break;
+                    case "handleAuthenticationMessage":
+                        this.handleAuthenticationMessage(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

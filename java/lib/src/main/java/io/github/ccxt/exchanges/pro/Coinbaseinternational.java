@@ -1107,7 +1107,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
         String channel = this.safeString(parameters, "channel");
         Object symbol = ticker.get("symbol");
-        this.tickers.put(((String)symbol), ticker);
+        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         client.resolve(ticker, channel);
     }
 
@@ -1457,7 +1457,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             var tradesArrayCache = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, tradesArrayCache);
         }
-        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) (this.trades == null || symbol == null ? null : this.trades.get(symbol));
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         Integer dataLength = ((List<?>)data).size();
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {

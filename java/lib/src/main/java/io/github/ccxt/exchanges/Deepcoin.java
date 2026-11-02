@@ -885,7 +885,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             String price = this.safeString(paramsPaginate, "price");
             Long maxLimit = 300L;
-            if (java.util.Objects.equals(market.get("swap"), true) && java.util.Objects.equals(price, null))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)) && java.util.Objects.equals(price, null))
             {
                 maxLimit = 1000L;
             }
@@ -1036,7 +1036,7 @@ public class Deepcoin extends DeepcoinApi
         String open = this.safeString(ticker, "open24h");
         Object quoteVolume = this.safeString(ticker, "volCcy24h");
         Object baseVolume = this.safeString(ticker, "vol24h");
-        if ((java.util.Objects.equals(marketResolved.get("swap"), true)) && (java.util.Objects.equals(marketResolved.get("inverse"), true)))
+        if (Boolean.TRUE.equals((this.safeBool(marketResolved, "swap", false))) && Boolean.TRUE.equals((this.safeBool(marketResolved, "inverse", false))))
         {
             Object temp = baseVolume;
             baseVolume = quoteVolume;
@@ -1931,7 +1931,7 @@ public class Deepcoin extends DeepcoinApi
         String cost = this.safeString(parameters, "cost");
         if (!java.util.Objects.equals(cost, null))
         {
-            if ((!java.util.Objects.equals(market.get("spot"), true)) || (!java.util.Objects.equals(triggerPrice, null)))
+            if ((!Boolean.TRUE.equals(this.safeBool(market, "spot", false))) || (!java.util.Objects.equals(triggerPrice, null)))
             {
                 throw new BadRequest((this.id + " createOrder() accepts a cost parameter for spot non-trigger market orders only")) ;
             }
@@ -2018,7 +2018,7 @@ public class Deepcoin extends DeepcoinApi
             throw new BadRequest((this.id + " createOrder() requires a price argument for limit orders")) ;
         }
         Object paramsRequest = null;
-        if (java.util.Objects.equals(market.get("spot"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             String cost = this.safeString(paramsOrderType, "cost");
             if (!java.util.Objects.equals(cost, null))
@@ -2141,7 +2141,7 @@ public class Deepcoin extends DeepcoinApi
         Map<String, Object> paramsOmitted = this.omit(paramsMarginMode, "reduceOnly");
         request.put("isCrossMargin", isCrossMargin);
         request.put("tdMode", marginModeOption);
-        if (java.util.Objects.equals(market.get("swap"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             if (Boolean.TRUE.equals(reduceOnly))
             {
@@ -2791,7 +2791,7 @@ public class Deepcoin extends DeepcoinApi
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " cancelAllOrders() is not supported for spot markets")) ;
             }
@@ -2850,7 +2850,7 @@ public class Deepcoin extends DeepcoinApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                if (java.util.Objects.equals(market.get("spot"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
                     throw new NotSupported((this.id + " editOrder() is not supported for spot markets")) ;
                 }
@@ -2928,7 +2928,7 @@ public class Deepcoin extends DeepcoinApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                if (java.util.Objects.equals(market.get("spot"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
                     throw new NotSupported((this.id + " cancelOrders() is not supported for spot markets")) ;
                 }
@@ -3419,7 +3419,7 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new ExchangeError((this.id + " fetchFundingRate() is only valid for swap markets")) ;
             }

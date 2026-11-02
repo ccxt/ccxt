@@ -911,12 +911,12 @@ public class Poloniex extends PoloniexApi
                 put( "interval", Poloniex.this.safeString(Poloniex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
             String keyStart = "sTime";
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 keyStart = "startTime";
             }
             String keyEnd = "eTime";
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 keyEnd = "endTime";
             }
@@ -941,7 +941,7 @@ public class Poloniex extends PoloniexApi
                 Long endTimeByLimit = (Long) this.sum(firstCandle, (duration * ((limit - 1L))));
                 ((Map<String, Object>)requestUntil).put(keyEnd, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(endTimeByLimit, this.milliseconds()));
             }
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 Map<String, Object> responseRaw = (this.swapPublicGetV3MarketCandles(this.extend(requestUntil, paramsUntil))).join();
                 //
@@ -1386,7 +1386,7 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String baseVolume = this.safeString2(ticker, "quantity", "qty");
         Double contractSize = this.safeNumber(marketResolved, "contractSize", (Object) null);
-        if ((java.util.Objects.equals(marketResolved.get("contract"), true)) && (!java.util.Objects.equals(contractSize, null)))
+        if (Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))) && (!java.util.Objects.equals(contractSize, null)))
         {
             // 'quantity' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
@@ -1637,7 +1637,7 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 Tickers tickers = (this.fetchTickers(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v3 -> (List<String>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v3.getClass().getName()); })), parameters)).join();
                 Map<String, Object> contractTicker = (Map<String, Object>) this.safeDict(tickers, symbol, (Object) null);
@@ -1835,7 +1835,7 @@ public class Poloniex extends PoloniexApi
             {
                 request.put("limit", limit); // max 1000, for spot & swap
             }
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 Map<String, Object> response = (this.swapPublicGetV3MarketTrades(this.extend(request, parameters))).join();
                 //
@@ -2477,7 +2477,7 @@ public class Poloniex extends PoloniexApi
             var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            if ((java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true)))
+            if (Boolean.TRUE.equals((this.safeBool(market, "swap", false))) || Boolean.TRUE.equals((this.safeBool(market, "future", false))))
             {
                 Map<String, Object> responseInitial = (this.swapPrivatePostV3TradeOrder(this.extend(requestValue, paramsValue))).join();
                 //
@@ -2653,7 +2653,7 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> queryOmitted = this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
         if (!java.util.Objects.equals(triggerPrice, null))
         {
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new InvalidOrder((((this.id + " createOrder() does not support trigger orders for ") + this.safeString(market, "type", "")) + " markets")) ;
             }
@@ -2678,7 +2678,7 @@ public class Poloniex extends PoloniexApi
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice) && (java.util.Objects.equals(market.get("spot"), true)))
+                } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice) && Boolean.TRUE.equals((this.safeBool(market, "spot", false))))
                 {
                     if (java.util.Objects.equals(price, null))
                     {
@@ -2695,7 +2695,7 @@ public class Poloniex extends PoloniexApi
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
                 String amountKey = "sz";
-                if (java.util.Objects.equals(market.get("spot"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
                     amountKey = "amount";
                 }
@@ -2703,7 +2703,7 @@ public class Poloniex extends PoloniexApi
             } else
             {
                 String amountKey = "sz";
-                if (java.util.Objects.equals(market.get("spot"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
                     amountKey = "quantity";
                 }
@@ -2712,13 +2712,13 @@ public class Poloniex extends PoloniexApi
         } else
         {
             String amountKey = "sz";
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 amountKey = "quantity";
             }
             result.put(amountKey, this.amountToPrecision(symbol, amount));
             String priceKey = "px";
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 priceKey = "price";
             }
@@ -2729,7 +2729,7 @@ public class Poloniex extends PoloniexApi
         {
             // the futures v3 api silently ignores the spot key and generates its own id
             String clientOrderIdKey = "clOrdId";
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 clientOrderIdKey = "clientOrderId";
             }
@@ -2764,7 +2764,7 @@ public class Poloniex extends PoloniexApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((((this.id + " editOrder() does not support ") + this.safeString(market, "type", "")) + " orders, only spot orders are accepted")) ;
             }
@@ -2822,7 +2822,7 @@ public class Poloniex extends PoloniexApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("symbol", market.get("id"));
                 request.put("ordId", id);
@@ -3369,12 +3369,12 @@ public class Poloniex extends PoloniexApi
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit); // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-                if (java.util.Objects.equals(market.get("contract"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                 {
                     request.put("limit", this.findNearestCeiling(new ArrayList<Object>(Arrays.asList(5, 10, 20, 100, 150)), limit));
                 }
             }
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 Map<String, Object> responseRaw = (this.swapPublicGetV3MarketOrderBook(this.extend(request, parameters))).join();
                 //
@@ -4467,7 +4467,7 @@ public class Poloniex extends PoloniexApi
         return BaseExchange.supplyAsync(() -> {
 
             String mode = "ONE_WAY";
-            if (java.util.Objects.equals(hedged, true))
+            if (Boolean.TRUE.equals(hedged))
             {
                 mode = "HEDGE";
             }

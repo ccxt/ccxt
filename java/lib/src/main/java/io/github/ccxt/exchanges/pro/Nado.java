@@ -2401,20 +2401,47 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             return;
         }
         String type = this.safeString(message, "type");
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("trade", Nado.this::handleTrade);
-            put("all_bbo", Nado.this::handleAllBidsAsks);
-            put("best_bid_offer", Nado.this::handleBidAsk);
-            put("book_depth", Nado.this::handleOrderBook);
-            put("fill", Nado.this::handleMyTrade);
-            put("latest_candlestick", Nado.this::handleOHLCV);
-            put("order_update", Nado.this::handleOrder);
-            put("position_change", Nado.this::handlePosition);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("trade", "handleTrade");
+            put("all_bbo", "handleAllBidsAsks");
+            put("best_bid_offer", "handleBidAsk");
+            put("book_depth", "handleOrderBook");
+            put("fill", "handleMyTrade");
+            put("latest_candlestick", "handleOHLCV");
+            put("order_update", "handleOrder");
+            put("position_change", "handlePosition");
         }};
-        io.github.ccxt.Handler handler = methods.get(type);
+        String handler = methods.get(type);
         if (!java.util.Objects.equals(handler, null))
         {
-            handler.handle(client, message);
+            switch (handler) {
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleAllBidsAsks":
+                    this.handleAllBidsAsks(client, message);
+                    break;
+                case "handleBidAsk":
+                    this.handleBidAsk(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleMyTrade":
+                    this.handleMyTrade(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handlePosition":
+                    this.handlePosition(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + handler);
+            }
         }
     }
 }

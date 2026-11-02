@@ -3902,7 +3902,7 @@ public class Hitbtc extends HitbtcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new BadSymbol((this.id + " fetchOpenInterest() supports swap contracts only")) ;
             }
@@ -3949,7 +3949,7 @@ public class Hitbtc extends HitbtcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -4029,7 +4029,7 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> market = this.market(symbol);
             String leverage = this.safeString(parameters, "leverage");
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 if (java.util.Objects.equals(leverage, null))
                 {
@@ -4413,11 +4413,11 @@ public class Hitbtc extends HitbtcApi
                 networkCode = this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper);
             }
             Double withdrawFee = this.safeNumber(networkEntry, "payout_fee", (Object) null);
-            Boolean isDefault = (Boolean) this.safeBool(networkEntry, "default", (Object) null);
+            Boolean isDefault = (Boolean) this.safeBool(networkEntry, "default", false);
             Map<String, Object> withdrawResult = new HashMap<String, Object>();
             withdrawResult.put("fee", withdrawFee);
             withdrawResult.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);
-            if (java.util.Objects.equals(isDefault, true))
+            if (Boolean.TRUE.equals(isDefault))
             {
                 result.put("withdraw", withdrawResult);
             }

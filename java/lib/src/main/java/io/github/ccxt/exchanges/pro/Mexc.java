@@ -126,7 +126,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("ticker:" + market.get("symbol"));
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 String channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
                 return (this.watchSpotPublic(channel, messageHash, parameters)).join();
@@ -217,7 +217,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
         Object ticker = null;
-        if (java.util.Objects.equals(market.get("spot"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             this.handleBidAsk(client, message); // the bids-asks channel is spot only
             ticker = this.parseWsTicker(rawTicker, market);
@@ -693,7 +693,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             String timeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((("candles:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object ohlcv = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 String channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
                 ohlcv = (this.watchSpotPublic((String) (channel), messageHash, parameters)).join();
@@ -901,7 +901,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
             Object orderbook = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "frequency", "100ms");
                 String frequency = frequencyparamsFrequencyVariable.first();
@@ -1153,7 +1153,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             String symbolValue = this.safeString(market, "symbol", "");
             String messageHash = ("trades:" + symbolValue);
             Object trades = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 String channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
                 trades = (this.watchSpotPublic(channel, messageHash, parameters)).join();
@@ -1248,7 +1248,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         for (var j = 0; j < ((List<?>)trades).size(); j++)
         {
             Object parsedTrade = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 parsedTrade = this.parseWsTrade((Map<String, Object>) ((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j))), market);
             } else
@@ -1358,7 +1358,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
         Object trade = null;
-        if (java.util.Objects.equals(market.get("spot"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             trade = this.parseWsTrade(data, market);
         } else if (!java.util.Objects.equals(data, null))
@@ -1607,7 +1607,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
         Object parsed = null;
-        if (java.util.Objects.equals(market.get("spot"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             parsed = this.parseWsOrder(data, market);
             Long sendTime = this.safeInteger(message, "sendTime");
@@ -2000,7 +2000,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             String messageHash = ("unsubscribe:ticker:" + market.get("symbol"));
             Object url = null;
             String channel = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
                 url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
@@ -2149,7 +2149,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             String timeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((("unsubscribe:candles:" + this.safeString(market, "symbol", "")) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object url = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
                 String channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
@@ -2193,7 +2193,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("unsubscribe:orderbook:" + this.safeString(market, "symbol", ""));
             Object url = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
                 Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "frequency", "100ms");
@@ -2239,7 +2239,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("unsubscribe:trades:" + this.safeString(market, "symbol", ""));
             Object url = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
                 String channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
@@ -2406,7 +2406,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 Client client = this.client(url);
                 this.options.remove("listenKey");
                 client.reject(error);
-                ((Map<String,Object>)this.clients).remove(url);
+                ((Map<String,Object>)this.clients).remove((String)client.url);
             }
             return null;
         });
@@ -2468,14 +2468,20 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)msg).split(java.util.regex.Pattern.quote("@"))));
             String channel = this.safeString(parts, 1);
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("public.increase.depth.v3.api", Mexc.this::handleOrderBookSubscription);
-                put("public.aggre.depth.v3.api.pb", Mexc.this::handleOrderBookSubscription);
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("public.increase.depth.v3.api", "handleOrderBookSubscription");
+                put("public.aggre.depth.v3.api.pb", "handleOrderBookSubscription");
             }};
-            io.github.ccxt.Handler method = methods.get(channel);
+            String method = methods.get(channel);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleOrderBookSubscription":
+                        this.handleOrderBookSubscription(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

@@ -113,18 +113,18 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         {
             return;
         }
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("v1.ticker.s", Grvt.this::handleTicker);
-            put("v1.ticker.d", Grvt.this::handleTicker);
-            put("v1.mini.d", Grvt.this::handleTicker);
-            put("v1.mini.s", Grvt.this::handleTicker);
-            put("v1.trade", Grvt.this::handleTrades);
-            put("v1.candle", Grvt.this::handleOHLCV);
-            put("v1.book.s", Grvt.this::handleOrderBook);
-            put("v1.book.d", Grvt.this::handleOrderBook);
-            put("v1.fill", Grvt.this::handleMyTrade);
-            put("v1.position", Grvt.this::handlePosition);
-            put("v1.order", Grvt.this::handleOrder);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("v1.ticker.s", "handleTicker");
+            put("v1.ticker.d", "handleTicker");
+            put("v1.mini.d", "handleTicker");
+            put("v1.mini.s", "handleTicker");
+            put("v1.trade", "handleTrades");
+            put("v1.candle", "handleOHLCV");
+            put("v1.book.s", "handleOrderBook");
+            put("v1.book.d", "handleOrderBook");
+            put("v1.fill", "handleMyTrade");
+            put("v1.position", "handlePosition");
+            put("v1.order", "handleOrder");
         }};
         String methodName = this.safeString(message, "method");
         if (java.util.Objects.equals(methodName, "subscribe"))
@@ -133,10 +133,34 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             return;
         }
         String channel = this.safeString(message, "stream");
-        io.github.ccxt.Handler method = methods.get(channel);
+        String method = methods.get(channel);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleMyTrade":
+                    this.handleMyTrade(client, message);
+                    break;
+                case "handlePosition":
+                    this.handlePosition(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 

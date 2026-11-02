@@ -932,7 +932,7 @@ public class Lbank extends LbankApi
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(ticker, "ticker", new HashMap<String, Object>() {{}});
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object data = (((java.util.Objects.equals(marketResolved.get("contract"), true)))) ? ticker : tickerData;
+        Object data = ((Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))) ? ticker : tickerData;
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("symbol", symbol);
         mapLiteral2.put("timestamp", timestamp);
@@ -976,7 +976,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Tickers responseForSwap = (this.fetchTickers(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
                 Map<String, Object> swapTicker = (Map<String, Object>) this.safeDict(responseForSwap, market.get("symbol"), (Object) null);
@@ -1196,7 +1196,7 @@ public class Lbank extends LbankApi
             //
             Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 return this.parseOrderBook(orderbook, market.get("symbol"), timestamp, "bids", "asks", "price", "volume", 2);
             }
@@ -1928,7 +1928,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -3467,8 +3467,8 @@ public class Lbank extends LbankApi
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Object fee = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
-            Boolean canWithdraw = (Boolean) this.safeBool(fee, "canWithDraw", (Object) null);
-            if (java.util.Objects.equals(canWithdraw, true))
+            Boolean canWithdraw = (Boolean) this.safeBool(fee, "canWithDraw", false);
+            if (Boolean.TRUE.equals(canWithdraw))
             {
                 String code = this.safeCurrencyCode(this.safeString(fee, "assetCode"), (Map<String, Object>) null);
                 if ((!java.util.Objects.equals(code, null)) && (java.util.Objects.equals(codes, null) || this.inArray(code, codes)))
@@ -3557,10 +3557,10 @@ public class Lbank extends LbankApi
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j, (Object) null);
             String networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             Double withdrawFee = this.safeNumber(networkEntry, "withdrawFee", (Object) null);
-            Boolean isDefault = (Boolean) this.safeBool(networkEntry, "isDefault", (Object) null);
+            Boolean isDefault = (Boolean) this.safeBool(networkEntry, "isDefault", false);
             if (!java.util.Objects.equals(withdrawFee, null))
             {
-                if (java.util.Objects.equals(isDefault, true))
+                if (Boolean.TRUE.equals(isDefault))
                 {
                     HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
                     mapLiteral9.put("fee", withdrawFee);

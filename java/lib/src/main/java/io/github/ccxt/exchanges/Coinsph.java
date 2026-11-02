@@ -795,7 +795,7 @@ public class Coinsph extends CoinsphApi
     {
         String id = this.safeString(rawCurrency, "coin");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
-        Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "isLegalMoney", (Object) null);
+        Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "isLegalMoney", false);
         List<Object> networkList = (List<Object>) this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
@@ -827,21 +827,21 @@ public class Coinsph extends CoinsphApi
                 networks.put(networkCode, mapLiteral1);
             }
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("name", this.safeString(rawCurrency, "name"));
-        mapLiteral2.put("code", code);
-        mapLiteral2.put("type", (((java.util.Objects.equals(isFiat, true)))) ? "fiat" : "crypto");
-        mapLiteral2.put("precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "transferPrecision"))));
-        mapLiteral2.put("info", rawCurrency);
-        mapLiteral2.put("active", null);
-        mapLiteral2.put("deposit", this.safeBool(rawCurrency, "depositAllEnable", (Object) null));
-        mapLiteral2.put("withdraw", this.safeBool(rawCurrency, "withdrawAllEnable", (Object) null));
-        mapLiteral2.put("networks", networks);
-        mapLiteral2.put("fee", null);
-        mapLiteral2.put("fees", null);
-        mapLiteral2.put("limits", new HashMap<String, Object>() {{}});
-        return this.safeCurrencyStructure(mapLiteral2);
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "name", Coinsph.this.safeString(rawCurrency, "name") );
+            put( "code", code );
+            put( "type", ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto" );
+            put( "precision", Coinsph.this.parseNumber(Coinsph.this.parsePrecision(Coinsph.this.safeString(rawCurrency, "transferPrecision"))) );
+            put( "info", rawCurrency );
+            put( "active", null );
+            put( "deposit", Coinsph.this.safeBool(rawCurrency, "depositAllEnable", (Object) null) );
+            put( "withdraw", Coinsph.this.safeBool(rawCurrency, "withdrawAllEnable", (Object) null) );
+            put( "networks", networks );
+            put( "fee", null );
+            put( "fees", null );
+            put( "limits", new HashMap<String, Object>() {{}} );
+        }});
     }
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
@@ -1232,27 +1232,27 @@ public class Coinsph extends CoinsphApi
         String changeValue = this.safeString(ticker, "priceChange");
         String changePcnt = this.safeString(ticker, "priceChangePercent");
         changePcnt = Precise.stringMul(changePcnt, "100");
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("symbol", marketResolved.get("symbol"));
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("open", open);
-        mapLiteral3.put("high", high);
-        mapLiteral3.put("low", low);
-        mapLiteral3.put("close", this.safeString2(ticker, "lastPrice", "price"));
-        mapLiteral3.put("bid", bid);
-        mapLiteral3.put("bidVolume", bidVolume);
-        mapLiteral3.put("ask", ask);
-        mapLiteral3.put("askVolume", askVolume);
-        mapLiteral3.put("vwap", vwap);
-        mapLiteral3.put("previousClose", prevClose);
-        mapLiteral3.put("change", changeValue);
-        mapLiteral3.put("percentage", changePcnt);
-        mapLiteral3.put("average", null);
-        mapLiteral3.put("baseVolume", baseVolume);
-        mapLiteral3.put("quoteVolume", quoteVolume);
-        mapLiteral3.put("info", ticker);
-        return this.safeTicker(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("open", open);
+        mapLiteral2.put("high", high);
+        mapLiteral2.put("low", low);
+        mapLiteral2.put("close", this.safeString2(ticker, "lastPrice", "price"));
+        mapLiteral2.put("bid", bid);
+        mapLiteral2.put("bidVolume", bidVolume);
+        mapLiteral2.put("ask", ask);
+        mapLiteral2.put("askVolume", askVolume);
+        mapLiteral2.put("vwap", vwap);
+        mapLiteral2.put("previousClose", prevClose);
+        mapLiteral2.put("change", changeValue);
+        mapLiteral2.put("percentage", changePcnt);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", baseVolume);
+        mapLiteral2.put("quoteVolume", quoteVolume);
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1586,21 +1586,21 @@ public class Coinsph extends CoinsphApi
         {
             costString = this.safeString(trade, "quoteQty");
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("order", orderId);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("type", type);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("takerOrMaker", takerOrMaker);
-        mapLiteral4.put("price", priceString);
-        mapLiteral4.put("amount", amountString);
-        mapLiteral4.put("cost", costString);
-        mapLiteral4.put("fee", fee);
-        mapLiteral4.put("info", trade);
-        return this.safeTrade(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", costString);
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("info", trade);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -2074,29 +2074,29 @@ public class Coinsph extends CoinsphApi
         {
             triggerPrice = null;
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("id", id);
-        mapLiteral5.put("clientOrderId", this.safeString(order, "clientOrderId"));
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("lastTradeTimestamp", null);
-        mapLiteral5.put("status", this.parseOrderStatus(this.safeString(order, "status")));
-        mapLiteral5.put("symbol", marketResolved.get("symbol"));
-        mapLiteral5.put("type", this.parseOrderType(this.safeString(order, "type")));
-        mapLiteral5.put("timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")));
-        mapLiteral5.put("side", this.parseOrderSide(this.safeString(order, "side")));
-        mapLiteral5.put("price", this.safeString(order, "price"));
-        mapLiteral5.put("triggerPrice", triggerPrice);
-        mapLiteral5.put("average", null);
-        mapLiteral5.put("amount", this.safeString(order, "origQty"));
-        mapLiteral5.put("cost", this.safeString(order, "cummulativeQuoteQty"));
-        mapLiteral5.put("filled", this.safeString(order, "executedQty"));
-        mapLiteral5.put("remaining", null);
-        mapLiteral5.put("fee", null);
-        mapLiteral5.put("fees", null);
-        mapLiteral5.put("trades", trades);
-        mapLiteral5.put("info", order);
-        return this.safeOrder(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("status", this.parseOrderStatus(this.safeString(order, "status")));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", this.parseOrderType(this.safeString(order, "type")));
+        mapLiteral4.put("timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")));
+        mapLiteral4.put("side", this.parseOrderSide(this.safeString(order, "side")));
+        mapLiteral4.put("price", this.safeString(order, "price"));
+        mapLiteral4.put("triggerPrice", triggerPrice);
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("amount", this.safeString(order, "origQty"));
+        mapLiteral4.put("cost", this.safeString(order, "cummulativeQuoteQty"));
+        mapLiteral4.put("filled", this.safeString(order, "executedQty"));
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("fee", null);
+        mapLiteral4.put("fees", null);
+        mapLiteral4.put("trades", trades);
+        mapLiteral4.put("info", order);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public String parseOrderSide(String status)

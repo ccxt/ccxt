@@ -437,7 +437,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             if (!java.util.Objects.equals(channelName, null))
             {
                 String messageHash = ((channelName + ":") + symbol);
-                client.resolve((this.tickers == null || symbol == null ? null : this.tickers.get(symbol)), messageHash);
+                client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
             }
         }
     }

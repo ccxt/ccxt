@@ -7,7 +7,6 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
-import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.ADL;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Conversion;
@@ -1462,7 +1461,7 @@ public class Phemex extends PhemexApi
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         String valueScaleString = this.safeString(rawCurrency, "valueScale");
-        Long valueScale = JsParse.parseInt(valueScaleString);
+        Long valueScale = Long.parseLong(valueScaleString);
         String minValueEv = this.safeString(rawCurrency, "minValueEv");
         String maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         Double minAmount = null;
@@ -4894,7 +4893,7 @@ public class Phemex extends PhemexApi
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         String apiUnrealizedPnl = this.safeString(position, "unRealisedPnlRv", unrealizedPnl);
         String marginRatio = Precise.stringDiv(maintenanceMarginString, collateral);
-        Boolean isCross = (Boolean) this.safeBool(position, "crossMargin", (Object) null);
+        Boolean isCross = (Boolean) this.safeBool(position, "crossMargin", false);
         Long timestamp = this.safeInteger(position, "openedTimeNs");
         Long lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
         HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
@@ -4921,7 +4920,7 @@ public class Phemex extends PhemexApi
         mapLiteral11.put("marginRatio", this.parseNumber(marginRatio));
         mapLiteral11.put("timestamp", timestamp);
         mapLiteral11.put("datetime", this.iso8601(timestamp));
-        mapLiteral11.put("marginMode", (((java.util.Objects.equals(isCross, true)))) ? "cross" : "isolated");
+        mapLiteral11.put("marginMode", ((Boolean.TRUE.equals(isCross))) ? "cross" : "isolated");
         mapLiteral11.put("side", side);
         mapLiteral11.put("hedged", java.util.Objects.equals(this.safeString(position, "posMode"), "Hedged"));
         mapLiteral11.put("percentage", null);
@@ -5228,8 +5227,8 @@ public class Phemex extends PhemexApi
         //     }
         //
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
-        Boolean inverse = (Boolean) this.safeBool(marketResolved, "inverse", (Object) null);
-        String codeCurrency = (((java.util.Objects.equals(inverse, true)))) ? "base" : "quote";
+        Boolean inverse = (Boolean) this.safeBool(marketResolved, "inverse", false);
+        String codeCurrency = ((Boolean.TRUE.equals(inverse))) ? "base" : "quote";
         return new HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", Phemex.this.safeSymbol(null, marketResolved, (String) null, (String) null) );
@@ -5334,7 +5333,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            if (java.util.Objects.equals(hedged, true))
+            if (Boolean.TRUE.equals(hedged))
             {
                 request.put("targetPosMode", "Hedged");
             } else

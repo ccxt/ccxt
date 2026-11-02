@@ -892,7 +892,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " watchFundingRate() supports swap contracts only")) ;
             }
@@ -920,7 +920,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " unWatchFundingRate() supports swap contracts only")) ;
             }
@@ -956,7 +956,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             fundingRate.put("timestamp", timestamp);
             fundingRate.put("datetime", this.iso8601(timestamp));
             Object symbol = fundingRate.get("symbol");
-            this.fundingRates.put(((String)symbol), fundingRate);
+            Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
             String eventVar = this.safeString(message, "event");
             if (!java.util.Objects.equals(eventVar, null))
             {
@@ -1850,7 +1850,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Map<String, Object> market = this.market(tradeSymbol);
         stored.append(parsedTrade);
         String tradeType = "spot";
-        if (java.util.Objects.equals(market.get("contract"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
         {
             tradeType = "contract";
         }

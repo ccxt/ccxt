@@ -283,10 +283,10 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             String marketId = this.safeString(ticker, "instrument");
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker((Map<String, Object>) (ticker), (Map<String, Object>) null);
-            this.tickers.put(symbol, parsedTicker);
             Long timestamp = this.parse8601(datetime);
             parsedTicker.put("timestamp", timestamp);
             parsedTicker.put("datetime", this.iso8601(timestamp));
+            this.tickers.put(symbol, parsedTicker);
             client.resolve(parsedTicker, ("ticker." + symbol));
         }
         client.resolve(this.tickers, "tickers");
@@ -1402,36 +1402,72 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             return;
         }
         String type = this.safeString(message, "type");
-        Map<String, io.github.ccxt.Handler> handlers = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("ORDER_BOOK_UPDATE", Onetrading.this::handleOrderBook);
-            put("ORDER_BOOK_SNAPSHOT", Onetrading.this::handleOrderBook);
-            put("ACTIVE_ORDERS_SNAPSHOT", Onetrading.this::handleOrders);
-            put("INACTIVE_ORDERS_SNAPSHOT", Onetrading.this::handleOrders);
-            put("ACCOUNT_UPDATE", Onetrading.this::handleAccountUpdate);
-            put("BALANCES_SNAPSHOT", Onetrading.this::handleBalanceSnapshot);
-            put("SUBSCRIPTIONS", Onetrading.this::handleSubscriptions);
-            put("SUBSCRIPTION_UPDATED", Onetrading.this::handleSubscriptions);
-            put("PRICE_TICK", Onetrading.this::handleTicker);
-            put("PRICE_TICK_HISTORY", Onetrading.this::handleSubscriptions);
-            put("HEARTBEAT", Onetrading.this::handleHeartbeat);
-            put("MARKET_TICKER_UPDATES", Onetrading.this::handleTicker);
-            put("PRICE_POINT_UPDATES", Onetrading.this::handlePricePointUpdates);
-            put("CANDLESTICK_SNAPSHOT", Onetrading.this::handleOHLCV);
-            put("CANDLESTICK", Onetrading.this::handleOHLCV);
-            put("AUTHENTICATED", Onetrading.this::handleAuthenticationMessage);
-            put("FILL", Onetrading.this::handleTrading);
-            put("DONE", Onetrading.this::handleTrading);
-            put("BOOKED", Onetrading.this::handleTrading);
-            put("UPDATE", Onetrading.this::handleTrading);
-            put("TRACKED", Onetrading.this::handleTrading);
-            put("TRIGGERED", Onetrading.this::handleTrading);
-            put("STOP_TRACKED", Onetrading.this::handleTrading);
-            put("STOP_TRIGGERED", Onetrading.this::handleTrading);
+        Map<String, String> handlers = new HashMap<String, String>() {{
+            put("ORDER_BOOK_UPDATE", "handleOrderBook");
+            put("ORDER_BOOK_SNAPSHOT", "handleOrderBook");
+            put("ACTIVE_ORDERS_SNAPSHOT", "handleOrders");
+            put("INACTIVE_ORDERS_SNAPSHOT", "handleOrders");
+            put("ACCOUNT_UPDATE", "handleAccountUpdate");
+            put("BALANCES_SNAPSHOT", "handleBalanceSnapshot");
+            put("SUBSCRIPTIONS", "handleSubscriptions");
+            put("SUBSCRIPTION_UPDATED", "handleSubscriptions");
+            put("PRICE_TICK", "handleTicker");
+            put("PRICE_TICK_HISTORY", "handleSubscriptions");
+            put("HEARTBEAT", "handleHeartbeat");
+            put("MARKET_TICKER_UPDATES", "handleTicker");
+            put("PRICE_POINT_UPDATES", "handlePricePointUpdates");
+            put("CANDLESTICK_SNAPSHOT", "handleOHLCV");
+            put("CANDLESTICK", "handleOHLCV");
+            put("AUTHENTICATED", "handleAuthenticationMessage");
+            put("FILL", "handleTrading");
+            put("DONE", "handleTrading");
+            put("BOOKED", "handleTrading");
+            put("UPDATE", "handleTrading");
+            put("TRACKED", "handleTrading");
+            put("TRIGGERED", "handleTrading");
+            put("STOP_TRACKED", "handleTrading");
+            put("STOP_TRIGGERED", "handleTrading");
         }};
-        io.github.ccxt.Handler handler = handlers.get(type);
+        String handler = handlers.get(type);
         if (!java.util.Objects.equals(handler, null))
         {
-            handler.handle(client, message);
+            switch (handler) {
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleOrders":
+                    this.handleOrders(client, message);
+                    break;
+                case "handleAccountUpdate":
+                    this.handleAccountUpdate(client, message);
+                    break;
+                case "handleBalanceSnapshot":
+                    this.handleBalanceSnapshot(client, message);
+                    break;
+                case "handleSubscriptions":
+                    this.handleSubscriptions(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleHeartbeat":
+                    this.handleHeartbeat(client, message);
+                    break;
+                case "handlePricePointUpdates":
+                    this.handlePricePointUpdates(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleAuthenticationMessage":
+                    this.handleAuthenticationMessage(client, message);
+                    break;
+                case "handleTrading":
+                    this.handleTrading(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + handler);
+            }
         }
     }
 

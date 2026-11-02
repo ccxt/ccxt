@@ -835,7 +835,7 @@ public class Onetrading extends OnetradingApi
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                Map<String, Object> tierObject = (((java.util.Objects.equals(market.get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
+                Map<String, Object> tierObject = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? firstSpotTier : firstFuturesTier;
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
@@ -911,8 +911,8 @@ public class Onetrading extends OnetradingApi
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                String makerFee = (((java.util.Objects.equals(market.get("spot"), true)))) ? spotMakerFee : futuresMakerFee;
-                String takerFee = (((java.util.Objects.equals(market.get("spot"), true)))) ? spotTakerFee : futuresTakerFee;
+                String makerFee = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? spotMakerFee : futuresMakerFee;
+                String takerFee = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? spotTakerFee : futuresTakerFee;
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );

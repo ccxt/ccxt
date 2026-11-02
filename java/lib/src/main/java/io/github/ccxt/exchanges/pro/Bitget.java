@@ -881,7 +881,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //
         Integer volumeIndex = 5;
         Boolean isInverse = (Boolean) this.safeBool(market, "inverse", false);
-        if (java.util.Objects.equals(isInverse, true))
+        if (Boolean.TRUE.equals(isInverse))
         {
             volumeIndex = 6;
         }
@@ -3409,30 +3409,54 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             this.handleUnSubscriptionStatus(client, message);
             return;
         }
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("ticker", Bitget.this::handleTicker);
-            put("trade", Bitget.this::handleTrades);
-            put("publicTrade", Bitget.this::handleTrades);
-            put("fill", Bitget.this::handleMyTrades);
-            put("order", Bitget.this::handleOrder);
-            put("orders", Bitget.this::handleOrder);
-            put("ordersAlgo", Bitget.this::handleOrder);
-            put("orders-algo", Bitget.this::handleOrder);
-            put("orders-crossed", Bitget.this::handleOrder);
-            put("orders-isolated", Bitget.this::handleOrder);
-            put("account", Bitget.this::handleBalance);
-            put("position", Bitget.this::handlePositions);
-            put("positions", Bitget.this::handlePositions);
-            put("account-isolated", Bitget.this::handleBalance);
-            put("account-crossed", Bitget.this::handleBalance);
-            put("kline", Bitget.this::handleOHLCV);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("ticker", "handleTicker");
+            put("trade", "handleTrades");
+            put("publicTrade", "handleTrades");
+            put("fill", "handleMyTrades");
+            put("order", "handleOrder");
+            put("orders", "handleOrder");
+            put("ordersAlgo", "handleOrder");
+            put("orders-algo", "handleOrder");
+            put("orders-crossed", "handleOrder");
+            put("orders-isolated", "handleOrder");
+            put("account", "handleBalance");
+            put("position", "handlePositions");
+            put("positions", "handlePositions");
+            put("account-isolated", "handleBalance");
+            put("account-crossed", "handleBalance");
+            put("kline", "handleOHLCV");
         }};
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String topic = this.safeString2(arg, "channel", "topic", "");
-        io.github.ccxt.Handler method = methods.get(topic);
+        String method = methods.get(topic);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleMyTrades":
+                    this.handleMyTrades(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handlePositions":
+                    this.handlePositions(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
         if (((String)topic).indexOf("candle") >= 0)
         {

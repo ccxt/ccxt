@@ -6492,7 +6492,7 @@ public Map<String, Object> describe()
         {
             Map<String, Object> result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (java.util.Objects.equals(this.safeBool(result, "spot", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(result, "spot", false)))
             {
                 if (java.util.Objects.equals(result.get("contract"), null))
                 {
@@ -6557,10 +6557,10 @@ public Map<String, Object> describe()
                 put( "precision", BaseExchange.this.precision );
                 put( "limits", BaseExchange.this.limits );
             }}, (this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), valueDefined);
-            if (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 market.put("subType", "linear");
-            } else if (java.util.Objects.equals(this.safeBool(market, "inverse", (Object) null), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
                 market.put("subType", "inverse");
             } else
@@ -7967,7 +7967,7 @@ public Map<String, Object> describe()
                 throw new BadRequest((((this.id + " symbols must be of the same type ") + type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
             marketType = this.safeString(market, "type");
-            if (!java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 isLinearSubType = this.safeBool(market, "linear", (Object) null);
             }
@@ -9412,7 +9412,7 @@ public Map<String, Object> describe()
                     for (var i = 0; i < (markets == null ? 0 : ((List<?>)markets).size()); i++)
                     {
                         Object currentMarket = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
-                        if (java.util.Objects.equals(this.safeBool(currentMarket, marketTypeResolved, (Object) null), true))
+                        if (Boolean.TRUE.equals(this.safeBool(currentMarket, marketTypeResolved, false)))
                         {
                             return (Map<String, Object>) (currentMarket);
                         }
@@ -10328,7 +10328,7 @@ public Map<String, Object> describe()
             for (var i = 0; i < (switch ((Object)(marketsList)) { case null -> 0; case List<?> j39v41 -> j39v41.size(); case String j39v42 -> j39v42.length(); case Object j39v43 -> j39v43.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v43) : 0; }); i++)
             {
                 Object market = Helpers.GetValue(marketsList, i);
-                if (java.util.Objects.equals(this.safeBool(market, defaultType, (Object) null), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, defaultType, false)))
                 {
                     return (Map<String, Object>) (market);
                 }
@@ -10588,7 +10588,7 @@ public Map<String, Object> describe()
             if (!java.util.Objects.equals(this.has.get("fetchLeverageTiers"), null) && !java.util.Objects.equals(this.has.get("fetchLeverageTiers"), false))
             {
                 Map<String, Object> market = this.market(symbol);
-                if (!java.util.Objects.equals(market.get("contract"), true))
+                if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                 {
                     throw new BadSymbol((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
                 }
@@ -11063,7 +11063,7 @@ public Map<String, Object> describe()
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
-                if (!java.util.Objects.equals(market.get("contract"), true))
+                if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                 {
                     throw new BadSymbol((this.id + " fetchFundingRate() supports contract markets only")) ;
                 }
@@ -11094,7 +11094,7 @@ public Map<String, Object> describe()
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
-                if (!java.util.Objects.equals(market.get("contract"), true))
+                if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                 {
                     throw new BadSymbol((this.id + " fetchFundingInterval() supports contract markets only")) ;
                 }

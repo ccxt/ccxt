@@ -1528,7 +1528,7 @@ public class Blofin extends BlofinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new ExchangeError((this.id + " fetchFundingRate() is only valid for swap markets")) ;
             }
@@ -2247,7 +2247,7 @@ public class Blofin extends BlofinApi
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("clientOrderId", clientOrderId);
-            } else if (java.util.Objects.equals(isTpsl, true))
+            } else if (Boolean.TRUE.equals(isTpsl))
             {
                 request.put("tpslId", id);
             } else
@@ -2256,7 +2256,7 @@ public class Blofin extends BlofinApi
             }
             Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "tpsl", "TPSL")));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(isTpsl, true))
+            if (Boolean.TRUE.equals(isTpsl))
             {
                 response = (this.privateGetTradeOrderTpslDetail(this.extend(request, query))).join();
             } else
@@ -3685,7 +3685,7 @@ public class Blofin extends BlofinApi
         String contractSizeString = this.numberToString(contractSize);
         String markPriceString = this.safeString(position, "markPrice");
         String notionalString = this.safeString(position, "notionalUsd");
-        if (java.util.Objects.equals(marketResolved.get("inverse"), true))
+        if (Boolean.TRUE.equals(this.safeBool(marketResolved, "inverse", false)))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         } else if (java.util.Objects.equals(notionalString, null))
@@ -4207,8 +4207,9 @@ public class Blofin extends BlofinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("positionMode", (((java.util.Objects.equals(hedged, true)))) ? "long_short_mode" : "net_mode");
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "positionMode", ((Boolean.TRUE.equals(hedged))) ? "long_short_mode" : "net_mode" );
+            }};
             //
             //     {
             //         "code": "0",

@@ -577,17 +577,32 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             return;
         }
         String method = this.safeString(message, "method");
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("depth.update", P2b.this::handleOrderBook);
-            put("price.update", P2b.this::handleTicker);
-            put("kline.update", P2b.this::handleOHLCV);
-            put("state.update", P2b.this::handleTicker);
-            put("deals.update", P2b.this::handleTrade);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("depth.update", "handleOrderBook");
+            put("price.update", "handleTicker");
+            put("kline.update", "handleOHLCV");
+            put("state.update", "handleTicker");
+            put("deals.update", "handleTrade");
         }};
-        io.github.ccxt.Handler endpoint = methods.get(method);
+        String endpoint = methods.get(method);
         if (!java.util.Objects.equals(endpoint, null))
         {
-            endpoint.handle(client, message);
+            switch (endpoint) {
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + endpoint);
+            }
         }
     }
 

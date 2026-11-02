@@ -565,7 +565,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             String messageHash = "";
             String marketId = this.safeString(market, "id", "");
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 messageHash = ((("market." + marketId) + ".mbp.") + String.valueOf(limitResolved));
             } else
@@ -575,13 +575,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, true, false);
             Object method = "handleOrderBookSubscription";
             Map<String, Object> paramsExtended = parameters;
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "data_type", "incremental" );
                 }});
             }
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 method = null;
             }
@@ -618,14 +618,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Long depth = this.parseToInt(this.safeInteger(options, "depth", 150));
             String marketId = this.safeString(market, "id", "");
             String subMessageHash = "";
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 subMessageHash = ((("market." + marketId) + ".mbp.") + String.valueOf(depth));
             } else
             {
                 subMessageHash = (((("market." + marketId) + ".depth.size_") + String.valueOf(depth)) + ".high_freq");
             }
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 parameters.put("data_type", "incremental");
             }
@@ -1002,7 +1002,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             orderbook.put("nonce", null);
             orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
         }
-        if (java.util.Objects.equals(market.get("spot"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             this.spawn(() -> { try { this.watchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
         }
@@ -1040,7 +1040,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 market = this.market(symbol);
                 type = this.safeString(market, "type");
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     subType = "linear";
                 } else
@@ -1217,7 +1217,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 market = this.market(symbol);
                 type = this.safeString(market, "type");
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     subType = "linear";
                 } else
@@ -1863,7 +1863,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (!java.util.Objects.equals(market, null))
             {
                 type = this.safeString(market, "type");
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     subType = "linear";
                 } else
@@ -2662,19 +2662,34 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (java.util.Objects.equals(type, "market"))
         {
             String methodName = this.safeString(parts, 2);
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("depth", Htx.this::handleOrderBook);
-                put("mbp", Htx.this::handleOrderBook);
-                put("detail", Htx.this::handleTicker);
-                put("bbo", Htx.this::handleTicker);
-                put("ticker", Htx.this::handleTicker);
-                put("trade", Htx.this::handleTrades);
-                put("kline", Htx.this::handleOHLCV);
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("depth", "handleOrderBook");
+                put("mbp", "handleOrderBook");
+                put("detail", "handleTicker");
+                put("bbo", "handleTicker");
+                put("ticker", "handleTicker");
+                put("trade", "handleTrades");
+                put("kline", "handleOHLCV");
             }};
-            io.github.ccxt.Handler method = methods.get(methodName);
+            String method = methods.get(methodName);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
                 return;
             }
         }

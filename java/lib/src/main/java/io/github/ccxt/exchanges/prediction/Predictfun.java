@@ -1898,7 +1898,7 @@ public class Predictfun extends PredictfunApi
     {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        Boolean wasSandbox = (java.util.Objects.equals(this.safeBool(this.options, "sandboxMode", false), true));
+        Boolean wasSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         super.setSandboxMode(enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key

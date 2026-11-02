@@ -849,7 +849,7 @@ public class Coinspot extends CoinspotApi
             {
                 String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
-                if (java.util.Objects.equals(market.get("spot"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
                     String symbol = (String) market.get("symbol");
                     Object ticker = (prices == null || id == null ? null : prices.get(id));

@@ -366,17 +366,32 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
     public void handleMessage(Client client, Map<String, Object> message)
     {
         String eventVar = this.safeString(message, "Event");
-        Map<String, io.github.ccxt.Handler> handlers = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("Subscriptions", Independentreserve.this::handleSubscriptions);
-            put("Heartbeat", Independentreserve.this::handleHeartbeat);
-            put("Trade", Independentreserve.this::handleTrades);
-            put("OrderBookSnapshot", Independentreserve.this::handleOrderBook);
-            put("OrderBookChange", Independentreserve.this::handleOrderBook);
+        Map<String, String> handlers = new HashMap<String, String>() {{
+            put("Subscriptions", "handleSubscriptions");
+            put("Heartbeat", "handleHeartbeat");
+            put("Trade", "handleTrades");
+            put("OrderBookSnapshot", "handleOrderBook");
+            put("OrderBookChange", "handleOrderBook");
         }};
-        io.github.ccxt.Handler handler = handlers.get(eventVar);
+        String handler = handlers.get(eventVar);
         if (!java.util.Objects.equals(handler, null))
         {
-            handler.handle(client, message);
+            switch (handler) {
+                case "handleSubscriptions":
+                    this.handleSubscriptions(client, message);
+                    break;
+                case "handleHeartbeat":
+                    this.handleHeartbeat(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + handler);
+            }
             return;
         }
         throw new NotSupported(((this.id + " received an unsupported message: ") + this.json(message))) ;

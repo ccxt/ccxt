@@ -1946,6 +1946,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+            if (java.util.Objects.equals(type, null))
+            {
+                throw new ArgumentsRequired((this.id + " watchBalance() requires a market type")) ;
+            }
             Boolean isContract = (!java.util.Objects.equals(type, "spot"));
             String urlType = "spot";
             if (Boolean.TRUE.equals(isContract))

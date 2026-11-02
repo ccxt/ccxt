@@ -1758,22 +1758,43 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             return;
         }
         String method = this.safeString(message, "method");
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("", Cryptocom.this::handlePing);
-            put("public/heartbeat", Cryptocom.this::handlePing);
-            put("public/auth", Cryptocom.this::handleAuthenticate);
-            put("private/create-order", Cryptocom.this::handleOrder);
-            put("private/amend-order", Cryptocom.this::handleOrder);
-            put("private/cancel-order", Cryptocom.this::handleOrder);
-            put("private/cancel-all-orders", Cryptocom.this::handleCancelAllOrders);
-            put("private/close-position", Cryptocom.this::handleOrder);
-            put("subscribe", Cryptocom.this::handleSubscribe);
-            put("unsubscribe", Cryptocom.this::handleUnsubscribe);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("", "handlePing");
+            put("public/heartbeat", "handlePing");
+            put("public/auth", "handleAuthenticate");
+            put("private/create-order", "handleOrder");
+            put("private/amend-order", "handleOrder");
+            put("private/cancel-order", "handleOrder");
+            put("private/cancel-all-orders", "handleCancelAllOrders");
+            put("private/close-position", "handleOrder");
+            put("subscribe", "handleSubscribe");
+            put("unsubscribe", "handleUnsubscribe");
         }};
-        io.github.ccxt.Handler callMethod = methods.get(method);
+        String callMethod = methods.get(method);
         if (!java.util.Objects.equals(callMethod, null))
         {
-            callMethod.handle(client, message);
+            switch (callMethod) {
+                case "handlePing":
+                    this.handlePing(client, message);
+                    break;
+                case "handleAuthenticate":
+                    this.handleAuthenticate(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleCancelAllOrders":
+                    this.handleCancelAllOrders(client, message);
+                    break;
+                case "handleSubscribe":
+                    this.handleSubscribe(client, message);
+                    break;
+                case "handleUnsubscribe":
+                    this.handleUnsubscribe(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + callMethod);
+            }
         }
     }
 

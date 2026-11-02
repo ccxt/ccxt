@@ -1666,7 +1666,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("contract"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new NotSupported((this.id + " fetchMarkPrice() supports contract markets only")) ;
             }
@@ -1767,7 +1767,7 @@ public class Weex extends WeexApi
                 request.put("limit", 200); // default is 15, max is 200
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.publicGetApiV3MarketDepth(this.extend(request, parameters))).join();
             } else
@@ -1825,7 +1825,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 return (this.fetchSpotOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, parameters)).join();
             } else
@@ -2035,7 +2035,7 @@ public class Weex extends WeexApi
                 request.put("limit", Math.min(limit, 1000));
             }
             List<Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.publicGetApiV3MarketTrades(this.extend(request, parameters))).join();
             } else
@@ -2628,7 +2628,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 return (this.createContractOrder((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             } else
@@ -2830,7 +2830,7 @@ public class Weex extends WeexApi
         {
             throw new BadRequest((this.id + " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(query, "reduceOnly", (Object) null);
+        Boolean reduceOnly = (Boolean) this.safeBool(query, "reduceOnly", false);
         Boolean isReduceOnly = Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit) || (java.util.Objects.equals(reduceOnly, true));
         String positionSide = "LONG";
         if (Boolean.TRUE.equals(isReduceOnly))
@@ -3580,7 +3580,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " fetchOrders() supports spot markets only")) ;
             }
@@ -4338,7 +4338,7 @@ public class Weex extends WeexApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                if (!java.util.Objects.equals(market.get("swap"), true))
+                if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
                     throw new NotSupported((this.id + " fetchFundingHistory() supports swap contracts only")) ;
                 }
@@ -4730,7 +4730,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " fetchTradingFee() is not supported for spot markets")) ;
             }

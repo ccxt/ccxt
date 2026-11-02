@@ -673,21 +673,39 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             return;
         }
         Helpers.addElementToObject(message, "o", Helpers.parseJson(payload));
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("SubscribeLevel2", Ndax.this::handleSubscriptionStatus);
-            put("SubscribeLevel1", Ndax.this::handleTicker);
-            put("Level2UpdateEvent", Ndax.this::handleOrderBook);
-            put("Level1UpdateEvent", Ndax.this::handleTicker);
-            put("SubscribeTrades", Ndax.this::handleTrades);
-            put("TradeDataUpdateEvent", Ndax.this::handleTrades);
-            put("SubscribeTicker", Ndax.this::handleOHLCV);
-            put("TickerDataUpdateEvent", Ndax.this::handleOHLCV);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("SubscribeLevel2", "handleSubscriptionStatus");
+            put("SubscribeLevel1", "handleTicker");
+            put("Level2UpdateEvent", "handleOrderBook");
+            put("Level1UpdateEvent", "handleTicker");
+            put("SubscribeTrades", "handleTrades");
+            put("TradeDataUpdateEvent", "handleTrades");
+            put("SubscribeTicker", "handleOHLCV");
+            put("TickerDataUpdateEvent", "handleOHLCV");
         }};
         String eventVar = this.safeString(message, "n");
-        io.github.ccxt.Handler method = methods.get(eventVar);
+        String method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleSubscriptionStatus":
+                    this.handleSubscriptionStatus(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 }

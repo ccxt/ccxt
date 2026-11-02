@@ -1650,25 +1650,49 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                     channel = "orderbook/top";
                 }
             }
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("candles", Hitbtc.this::handleOHLCV);
-                put("ticker", Hitbtc.this::handleTicker);
-                put("trades", Hitbtc.this::handleTrades);
-                put("orderbook", Hitbtc.this::handleOrderBook);
-                put("orderbook/top", Hitbtc.this::handleBidAsk);
-                put("spot_order", Hitbtc.this::handleOrder);
-                put("spot_orders", Hitbtc.this::handleOrder);
-                put("margin_order", Hitbtc.this::handleOrder);
-                put("margin_orders", Hitbtc.this::handleOrder);
-                put("futures_order", Hitbtc.this::handleOrder);
-                put("futures_orders", Hitbtc.this::handleOrder);
-                put("spot_balance", Hitbtc.this::handleBalance);
-                put("futures_balance", Hitbtc.this::handleBalance);
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("candles", "handleOHLCV");
+                put("ticker", "handleTicker");
+                put("trades", "handleTrades");
+                put("orderbook", "handleOrderBook");
+                put("orderbook/top", "handleBidAsk");
+                put("spot_order", "handleOrder");
+                put("spot_orders", "handleOrder");
+                put("margin_order", "handleOrder");
+                put("margin_orders", "handleOrder");
+                put("futures_order", "handleOrder");
+                put("futures_orders", "handleOrder");
+                put("spot_balance", "handleBalance");
+                put("futures_balance", "handleBalance");
             }};
-            io.github.ccxt.Handler method = methods.get(channel);
+            String method = methods.get(channel);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleBidAsk":
+                        this.handleBidAsk(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         } else
         {
@@ -1703,9 +1727,9 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        "result": true
         //    }
         //
-        Boolean success = (Boolean) this.safeBool(message, "result", (Object) null);
+        Boolean success = (Boolean) this.safeBool(message, "result", false);
         String messageHash = "authenticated";
-        if (java.util.Objects.equals(success, true))
+        if (Boolean.TRUE.equals(success))
         {
             io.github.ccxt.ws.Future future = client.futures.get(messageHash);
             future.resolve(true);

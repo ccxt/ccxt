@@ -929,10 +929,10 @@ public class Krakenfutures extends KrakenfuturesApi
         Boolean isIndex = (Boolean) this.safeBool(marketResolved, "index", false);
         if (!Boolean.TRUE.equals(isIndex))
         {
-            if (java.util.Objects.equals(marketResolved.get("linear"), true))
+            if (Boolean.TRUE.equals(this.safeBool(marketResolved, "linear", false)))
             {
                 baseVolume = volume;
-            } else if (java.util.Objects.equals(marketResolved.get("inverse"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(marketResolved, "inverse", false)))
             {
                 baseVolume = Precise.stringDiv(quoteVolume, vwap);
             }
@@ -1435,10 +1435,10 @@ public class Krakenfutures extends KrakenfuturesApi
         String type = this.parseOrderType(rawType); // undefined stays undefined
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String cost = null;
-        Boolean linear = (Boolean) this.safeBool(marketResolved, "linear", (Object) null);
+        Boolean linear = (Boolean) this.safeBool(marketResolved, "linear", false);
         if ((!java.util.Objects.equals(amount, null)) && (!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(marketResolved, null)))
         {
-            if (java.util.Objects.equals(linear, true))
+            if (Boolean.TRUE.equals(linear))
             {
                 cost = Precise.stringMul(amount, price); // in quote
             } else
@@ -1501,7 +1501,7 @@ public class Krakenfutures extends KrakenfuturesApi
         mapLiteral2.put("side", side);
         mapLiteral2.put("takerOrMaker", takerOrMaker);
         mapLiteral2.put("price", price);
-        mapLiteral2.put("amount", (((java.util.Objects.equals(linear, true)))) ? amount : null);
+        mapLiteral2.put("amount", ((Boolean.TRUE.equals(linear))) ? amount : null);
         mapLiteral2.put("cost", cost);
         mapLiteral2.put("fee", fee);
         return this.safeTrade(mapLiteral2, (Map<String, Object>) null);
@@ -1554,7 +1554,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
         Boolean isStopLossOrTakeProfitTrigger = Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder);
         String triggerSignal = this.safeString(paramsPostOnly, "triggerSignal", "last");
-        Boolean reduceOnlyParam = (Boolean) this.safeBool(paramsPostOnly, "reduceOnly", (Object) null);
+        Boolean reduceOnlyParam = (Boolean) this.safeBool(paramsPostOnly, "reduceOnly", false);
         Boolean reduceOnly = (java.util.Objects.equals(reduceOnlyParam, true));
         if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger) || Boolean.TRUE.equals(isTriggerOrder))
         {
@@ -2844,7 +2844,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             if (!java.util.Objects.equals(whichPrice, null))
             {
-                if (java.util.Objects.equals(marketResolved.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(marketResolved, "linear", false)))
                 {
                     cost = Precise.stringMul(filled, whichPrice); // in quote
                 } else
@@ -3666,7 +3666,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
             }
@@ -4171,7 +4171,7 @@ public class Krakenfutures extends KrakenfuturesApi
             String marketId = this.safeString(market, "id", "");
             List<Object> splitId = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
             String splitMarketId = this.safeString(splitId, 1, "");
-            if (java.util.Objects.equals(market.get("inverse"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
                 return ("fi_" + splitMarketId);
             } else

@@ -269,7 +269,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         if (java.util.Objects.equals(stored, null))
         {
             stored = new ArrayCache(((Number)this.safeInteger(this.options, "tradesLimit", 1000)).intValue());
-            this.trades.put(((String)symbol), stored);
+            Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
         stored.append(parsedTrade);
         client.resolve(stored, messageHash);
@@ -1907,20 +1907,47 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String channel = this.safeString(data, "channel");
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
             String name = this.safeString(parts, 0);
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("trades", Paradex.this::handleTrade);
-                put("order_book", Paradex.this::handleOrderBook);
-                put("markets_summary", Paradex.this::handleTicker);
-                put("orders", Paradex.this::handleOrder);
-                put("funding_data", Paradex.this::handleFundingRate);
-                put("fills", Paradex.this::handleMyTrade);
-                put("positions", Paradex.this::handlePositions);
-                put("account", Paradex.this::handleBalance);
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("trades", "handleTrade");
+                put("order_book", "handleOrderBook");
+                put("markets_summary", "handleTicker");
+                put("orders", "handleOrder");
+                put("funding_data", "handleFundingRate");
+                put("fills", "handleMyTrade");
+                put("positions", "handlePositions");
+                put("account", "handleBalance");
             }};
-            io.github.ccxt.Handler method = methods.get(name);
+            String method = methods.get(name);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleTrade":
+                        this.handleTrade(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    case "handleFundingRate":
+                        this.handleFundingRate(client, message);
+                        break;
+                    case "handleMyTrade":
+                        this.handleMyTrade(client, message);
+                        break;
+                    case "handlePositions":
+                        this.handlePositions(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

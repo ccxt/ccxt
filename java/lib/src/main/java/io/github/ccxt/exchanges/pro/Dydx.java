@@ -500,15 +500,27 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         if (!java.util.Objects.equals(type, null))
         {
             String topic = this.safeString(message, "channel");
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("v4_trades", Dydx.this::handleTrades);
-                put("v4_orderbook", Dydx.this::handleOrderBook);
-                put("v4_candles", Dydx.this::handleOHLCV);
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("v4_trades", "handleTrades");
+                put("v4_orderbook", "handleOrderBook");
+                put("v4_candles", "handleOHLCV");
             }};
-            io.github.ccxt.Handler method = methods.get(topic);
+            String method = methods.get(topic);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

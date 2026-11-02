@@ -1199,11 +1199,11 @@ public class Latoken extends LatokenApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "quantity");
         String costString = this.safeString(trade, "cost");
-        Boolean makerBuyer = (Boolean) this.safeBool(trade, "makerBuyer", (Object) null);
+        Boolean makerBuyer = (Boolean) this.safeBool(trade, "makerBuyer", false);
         String side = this.safeString(trade, "direction");
         if (java.util.Objects.equals(side, null))
         {
-            side = (((java.util.Objects.equals(makerBuyer, true)))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(makerBuyer))) ? "sell" : "buy";
         } else
         {
             if (java.util.Objects.equals(side, "TRADE_DIRECTION_BUY"))

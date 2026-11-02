@@ -1135,9 +1135,9 @@ public class Bit2c extends Bit2cApi
             String marketId = this.safeString(trade, "pair");
             Map<String, Object> marketByPair = this.safeMarket(marketId, market, (String) null, (String) null);
             tradeMarket = this.safeMarket(java.util.Objects.toString((reference_parts == null || 0 >= reference_parts.size() ? null : reference_parts.get(0)), null), marketByPair, (String) null, (String) null);
-            Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
-            makerOrTaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
-            orderId = (((java.util.Objects.equals(isMaker, true)))) ? (reference_parts == null || 2 >= reference_parts.size() ? null : reference_parts.get(2)) : (reference_parts == null || 1 >= reference_parts.size() ? null : reference_parts.get(1));
+            Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", false);
+            makerOrTaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
+            orderId = ((Boolean.TRUE.equals(isMaker))) ? (reference_parts == null || 2 >= reference_parts.size() ? null : reference_parts.get(2)) : (reference_parts == null || 1 >= reference_parts.size() ? null : reference_parts.get(1));
             Long action = this.safeInteger(trade, "action");
             if ((action != null && action == 0))
             {

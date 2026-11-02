@@ -3970,7 +3970,7 @@ public class Myriad extends MyriadApi
             PredictionOrderBook snapshot = (this.fetchOrderBook(outcome, limit, new HashMap<String, Object>() {{}})).join();
             io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
             orderbook.reset(snapshot);
-            this.orderbooks.put(((String)sym), orderbook);
+            Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
             return null;
         });
 
@@ -4324,10 +4324,7 @@ public class Myriad extends MyriadApi
         Long ts = this.safeInteger(data, "ts");
         List<Object> outcomes = (List<Object>) this.safeList(data, "outcomes", new ArrayList<Object>(Arrays.asList()));
         Integer outcomesLength = ((List<?>)outcomes).size();
-        if (java.util.Objects.equals(this.tickers, null))
-        {
-            this.tickers = this.createSafeDictionary();
-        }
+        Map<String, Object> cachedTickers = (Map<String, Object>) this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}});
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
             Object oc = (outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i));
@@ -4365,10 +4362,11 @@ public class Myriad extends MyriadApi
             mapLiteral17.put("quoteVolume", null);
             mapLiteral17.put("info", oc);
             Object ticker = this.safePredictionTicker(mapLiteral17, market);
-            this.tickers.put(sym, ((Object)ticker));
+            cachedTickers.put(sym, ticker);
             client.resolve(ticker, ("ticker::" + sym));
         }
-        client.resolve(this.tickers, "tickers");
+        this.options.put("wsTickers", cachedTickers);
+        client.resolve(cachedTickers, "tickers");
     }
 
     /**

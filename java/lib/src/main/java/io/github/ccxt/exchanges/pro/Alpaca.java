@@ -824,15 +824,27 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
     public void handleTradingMessage(Client client, Map<String, Object> message)
     {
         String stream = this.safeString(message, "stream");
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("authorization", Alpaca.this::handleAuthenticate);
-            put("listening", Alpaca.this::handleSubscription);
-            put("trade_updates", Alpaca.this::handleTradeUpdate);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("authorization", "handleAuthenticate");
+            put("listening", "handleSubscription");
+            put("trade_updates", "handleTradeUpdate");
         }};
-        io.github.ccxt.Handler method = methods.get(stream);
+        String method = methods.get(stream);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleAuthenticate":
+                    this.handleAuthenticate(client, message);
+                    break;
+                case "handleSubscription":
+                    this.handleSubscription(client, message);
+                    break;
+                case "handleTradeUpdate":
+                    this.handleTradeUpdate(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 

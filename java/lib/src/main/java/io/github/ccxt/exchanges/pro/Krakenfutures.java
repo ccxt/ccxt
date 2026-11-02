@@ -1008,8 +1008,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
         } else
         {
-            Boolean isCancel = (Boolean) this.safeBool(message, "is_cancel", (Object) null);
-            if (java.util.Objects.equals(isCancel, true))
+            Boolean isCancel = (Boolean) this.safeBool(message, "is_cancel", false);
+            if (Boolean.TRUE.equals(isCancel))
             {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
@@ -1722,12 +1722,13 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 newAccount.put("free", this.safeString(future, "available"));
                 newAccount.put("used", this.safeString(future, "initial_margin"));
                 newAccount.put("total", this.safeString(future, "balance"));
-                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), symbol, new HashMap<String, Object>() {{}});
+                Map<String, Object> symbolAccounts = new HashMap<String, Object>() {{}};
                 if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(code, null)))
                 {
                     futuresSymbols.put(symbol, true);
-                    Helpers.addElementToObject(Helpers.GetValue((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), symbol), code, newAccount);
+                    symbolAccounts.put(code, newAccount);
                 }
+                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), symbol, symbolAccounts);
             }
             this.balance.put("margin", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("margin")), futuresSymbols));
             this.balance.put("margin", this.safeBalance(this.balance.get("margin")));
@@ -1882,27 +1883,27 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Long timestamp = this.safeInteger(trade, "time");
         String marketId = this.safeString(trade, "instrument");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Boolean isBuy = (Boolean) this.safeBool(trade, "buy", (Object) null);
+        Boolean isBuy = (Boolean) this.safeBool(trade, "buy", false);
         String feeCurrencyId = this.safeString(trade, "fee_currency");
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", trade);
-        mapLiteral5.put("id", this.safeString(trade, "fill_id"));
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("symbol", this.safeString(marketResolved, "symbol"));
-        mapLiteral5.put("order", this.safeString(trade, "order_id"));
-        mapLiteral5.put("type", this.safeString(trade, "type"));
-        mapLiteral5.put("side", (((java.util.Objects.equals(isBuy, true)))) ? "buy" : "sell");
-        mapLiteral5.put("takerOrMaker", this.safeString(trade, "fill_type"));
-        mapLiteral5.put("price", this.safeString(trade, "price"));
-        mapLiteral5.put("amount", this.safeString(trade, "qty"));
-        mapLiteral5.put("cost", null);
-        mapLiteral5.put("fee", new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
+            put( "info", trade );
+            put( "id", Krakenfutures.this.safeString(trade, "fill_id") );
+            put( "timestamp", timestamp );
+            put( "datetime", Krakenfutures.this.iso8601(timestamp) );
+            put( "symbol", Krakenfutures.this.safeString(marketResolved, "symbol") );
+            put( "order", Krakenfutures.this.safeString(trade, "order_id") );
+            put( "type", Krakenfutures.this.safeString(trade, "type") );
+            put( "side", ((Boolean.TRUE.equals(isBuy))) ? "buy" : "sell" );
+            put( "takerOrMaker", Krakenfutures.this.safeString(trade, "fill_type") );
+            put( "price", Krakenfutures.this.safeString(trade, "price") );
+            put( "amount", Krakenfutures.this.safeString(trade, "qty") );
+            put( "cost", null );
+            put( "fee", new HashMap<String, Object>() {{
                 put( "currency", Krakenfutures.this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null) );
                 put( "cost", Krakenfutures.this.safeString(trade, "fee_paid") );
                 put( "rate", null );
-            }});
-        return this.safeTrade(mapLiteral5, (Map<String, Object>) null);
+            }} );
+        }}, (Map<String, Object>) null);
     }
 
     public CompletableFuture<Object> watchMultiHelper(String unifiedName, String channelName, Object symbols, Object subscriptionArgs, Map<String, Object> parameters)
@@ -2017,27 +2018,60 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         } else if (java.util.Objects.equals(eventVar, null))
         {
             String feed = this.safeString(message, "feed");
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("ticker", Krakenfutures.this::handleTicker);
-                put("ticker_lite", Krakenfutures.this::handleBidAsk);
-                put("trade", Krakenfutures.this::handleTrade);
-                put("trade_snapshot", Krakenfutures.this::handleTrade);
-                put("book", Krakenfutures.this::handleOrderBook);
-                put("book_snapshot", Krakenfutures.this::handleOrderBookSnapshot);
-                put("open_orders_verbose", Krakenfutures.this::handleOrder);
-                put("open_orders_verbose_snapshot", Krakenfutures.this::handleOrderSnapshot);
-                put("fills", Krakenfutures.this::handleMyTrades);
-                put("fills_snapshot", Krakenfutures.this::handleMyTrades);
-                put("open_orders", Krakenfutures.this::handleOrder);
-                put("open_orders_snapshot", Krakenfutures.this::handleOrderSnapshot);
-                put("balances", Krakenfutures.this::handleBalance);
-                put("balances_snapshot", Krakenfutures.this::handleBalance);
-                put("open_positions", Krakenfutures.this::handlePositions);
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("ticker", "handleTicker");
+                put("ticker_lite", "handleBidAsk");
+                put("trade", "handleTrade");
+                put("trade_snapshot", "handleTrade");
+                put("book", "handleOrderBook");
+                put("book_snapshot", "handleOrderBookSnapshot");
+                put("open_orders_verbose", "handleOrder");
+                put("open_orders_verbose_snapshot", "handleOrderSnapshot");
+                put("fills", "handleMyTrades");
+                put("fills_snapshot", "handleMyTrades");
+                put("open_orders", "handleOrder");
+                put("open_orders_snapshot", "handleOrderSnapshot");
+                put("balances", "handleBalance");
+                put("balances_snapshot", "handleBalance");
+                put("open_positions", "handlePositions");
             }};
-            io.github.ccxt.Handler method = methods.get(feed);
+            String method = methods.get(feed);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleBidAsk":
+                        this.handleBidAsk(client, message);
+                        break;
+                    case "handleTrade":
+                        this.handleTrade(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleOrderBookSnapshot":
+                        this.handleOrderBookSnapshot(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    case "handleOrderSnapshot":
+                        this.handleOrderSnapshot(client, message);
+                        break;
+                    case "handleMyTrades":
+                        this.handleMyTrades(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    case "handlePositions":
+                        this.handlePositions(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

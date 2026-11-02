@@ -218,8 +218,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
         if (java.util.Objects.equals(method, "createOrderWs"))
         {
-            Boolean reduceOnly = (Boolean) this.safeBool(paramsPostOnly, "reduceOnly", (Object) null);
-            if (java.util.Objects.equals(reduceOnly, true))
+            Boolean reduceOnly = (Boolean) this.safeBool(paramsPostOnly, "reduceOnly", false);
+            if (Boolean.TRUE.equals(reduceOnly))
             {
                 orderParams.put("reduce_only", true);
             }
@@ -2148,21 +2148,48 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             String eventVar = this.safeString2(message, "event", "method");
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("heartbeat", Kraken.this::handleHeartbeat);
-                put("systemStatus", Kraken.this::handleSystemStatus);
-                put("subscriptionStatus", Kraken.this::handleSubscriptionStatus);
-                put("unsubscribe", Kraken.this::handleUnsubscriptionStatus);
-                put("add_order", Kraken.this::handleCreateEditOrder);
-                put("amend_order", Kraken.this::handleCreateEditOrder);
-                put("cancel_order", Kraken.this::handleCancelOrder);
-                put("cancel_all", Kraken.this::handleCancelAllOrders);
-                put("pong", Kraken.this::handlePong);
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("heartbeat", "handleHeartbeat");
+                put("systemStatus", "handleSystemStatus");
+                put("subscriptionStatus", "handleSubscriptionStatus");
+                put("unsubscribe", "handleUnsubscriptionStatus");
+                put("add_order", "handleCreateEditOrder");
+                put("amend_order", "handleCreateEditOrder");
+                put("cancel_order", "handleCancelOrder");
+                put("cancel_all", "handleCancelAllOrders");
+                put("pong", "handlePong");
             }};
-            io.github.ccxt.Handler method = methods.get(eventVar);
+            String method = methods.get(eventVar);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleHeartbeat":
+                        this.handleHeartbeat(client, message);
+                        break;
+                    case "handleSystemStatus":
+                        this.handleSystemStatus(client, message);
+                        break;
+                    case "handleSubscriptionStatus":
+                        this.handleSubscriptionStatus(client, message);
+                        break;
+                    case "handleUnsubscriptionStatus":
+                        this.handleUnsubscriptionStatus(client, message);
+                        break;
+                    case "handleCreateEditOrder":
+                        this.handleCreateEditOrder(client, message);
+                        break;
+                    case "handleCancelOrder":
+                        this.handleCancelOrder(client, message);
+                        break;
+                    case "handleCancelAllOrders":
+                        this.handleCancelAllOrders(client, message);
+                        break;
+                    case "handlePong":
+                        this.handlePong(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

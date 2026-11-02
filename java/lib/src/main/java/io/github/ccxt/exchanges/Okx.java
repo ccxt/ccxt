@@ -3685,7 +3685,7 @@ public class Okx extends OkxApi
                 put( "instId", market.get("id") );
             }};
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("option"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
             {
                 response = (this.publicGetPublicOptionTrades(this.extend(request, paramsPaginate))).join();
             } else
@@ -4116,10 +4116,10 @@ public class Okx extends OkxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Okx.this.convertToInstrumentType((String) (market.get("type"))) );
             }};
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("instId", market.get("id"));
-            } else if ((java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true)) || (java.util.Objects.equals(market.get("option"), true)))
+            } else if (Boolean.TRUE.equals((this.safeBool(market, "swap", false))) || Boolean.TRUE.equals((this.safeBool(market, "future", false))) || Boolean.TRUE.equals((this.safeBool(market, "option", false))))
             {
                 request.put("uly", ((this.safeString(market, "baseId", "") + "-") + this.safeString(market, "quoteId", "")));
             } else
@@ -4310,7 +4310,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot markets only")) ;
             }
@@ -4343,7 +4343,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports spot markets only")) ;
             }
@@ -4381,7 +4381,7 @@ public class Okx extends OkxApi
         {
             request.put("sz", this.amountToPrecision(symbol, amount));
         }
-        Boolean spot = (Boolean) this.safeBool(market, "spot", (Object) null);
+        Boolean spot = (Boolean) this.safeBool(market, "spot", false);
         Boolean contract = (Boolean) this.safeBool(market, "contract", (Object) null);
         Object triggerPrice = this.safeValueN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerPx")));
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
@@ -4436,7 +4436,7 @@ public class Okx extends OkxApi
         {
             paramsReduceOnly = this.omit(paramsHedged, "reduceOnly");
         }
-        if (java.util.Objects.equals(spot, true))
+        if (Boolean.TRUE.equals(spot))
         {
             if (Boolean.TRUE.equals(margin))
             {
@@ -4448,7 +4448,7 @@ public class Okx extends OkxApi
             request.put("tdMode", tradeMode);
         } else if (java.util.Objects.equals(contract, true))
         {
-            if ((java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true)))
+            if (Boolean.TRUE.equals((this.safeBool(market, "swap", false))) || Boolean.TRUE.equals((this.safeBool(market, "future", false))))
             {
                 if (!java.util.Objects.equals(positionSide, null))
                 {
@@ -4492,7 +4492,7 @@ public class Okx extends OkxApi
         if (Boolean.TRUE.equals(isMarketOrder) || Boolean.TRUE.equals(marketIOC))
         {
             request.put("ordType", "market");
-            if ((java.util.Objects.equals(spot, true)) && (java.util.Objects.equals(side, "buy")))
+            if (Boolean.TRUE.equals(spot) && (java.util.Objects.equals(side, "buy")))
             {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
@@ -4684,7 +4684,7 @@ public class Okx extends OkxApi
             {
                 request.put("ordType", "oco");
             }
-            if ((java.util.Objects.equals(spot, true)) && (!Boolean.TRUE.equals(margin)))
+            if (Boolean.TRUE.equals(spot) && (!Boolean.TRUE.equals(margin)))
             {
                 // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
@@ -8039,7 +8039,7 @@ public class Okx extends OkxApi
         String side = this.safeString2(position, "posSide", "direction");
         Boolean hedged = !java.util.Objects.equals(side, "net");
         Double contracts = this.parseNumber(contractsAbs);
-        if (java.util.Objects.equals(marketResolved.get("margin"), true))
+        if (Boolean.TRUE.equals(this.safeBool(marketResolved, "margin", false)))
         {
             // margin position
             if (java.util.Objects.equals(side, "net"))
@@ -8078,7 +8078,7 @@ public class Okx extends OkxApi
         String contractSizeString = this.numberToString(contractSize);
         String markPriceString = this.safeString(position, "markPx");
         String notionalString = this.safeString(position, "notionalUsd");
-        if (java.util.Objects.equals(marketResolved.get("inverse"), true))
+        if (Boolean.TRUE.equals(this.safeBool(marketResolved, "inverse", false)))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
@@ -8114,7 +8114,7 @@ public class Okx extends OkxApi
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         } else if (java.util.Objects.equals(initialMarginString, null))
         {
-            if (java.util.Objects.equals(marketResolved.get("linear"), true))
+            if (Boolean.TRUE.equals(this.safeBool(marketResolved, "linear", false)))
             {
                 String initialMarginPercentageString = this.numberToString(initialMarginPercentage);
                 initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
@@ -8666,7 +8666,7 @@ public class Okx extends OkxApi
             Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             String ruleType = this.safeString(marketInfo, "ruleType");
             Boolean isExtendedPerpetual = (java.util.Objects.equals(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-            if ((!java.util.Objects.equals(market.get("swap"), true)) && !Boolean.TRUE.equals(isExtendedPerpetual))
+            if ((!Boolean.TRUE.equals(this.safeBool(market, "swap", false))) && !Boolean.TRUE.equals(isExtendedPerpetual))
             {
                 throw new ExchangeError((this.id + " fetchFundingRate() is only valid for swap markets or XPERP futures")) ;
             }
@@ -8724,7 +8724,7 @@ public class Okx extends OkxApi
                     Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                     String ruleType = this.safeString(marketInfo, "ruleType");
                     Boolean isExtendedPerpetual = (java.util.Objects.equals(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-                    if ((!java.util.Objects.equals(market.get("swap"), true)) && !Boolean.TRUE.equals(isExtendedPerpetual))
+                    if ((!Boolean.TRUE.equals(this.safeBool(market, "swap", false))) && !Boolean.TRUE.equals(isExtendedPerpetual))
                     {
                         throw new BadRequest((((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, ") + this.safeString(symbolsNormalized, i, "")) + " is not")) ;
                     }
@@ -8789,9 +8789,9 @@ public class Okx extends OkxApi
             {
                 market = this.market(symbol);
                 request.put("instId", market.get("id"));
-                if (java.util.Objects.equals(market.get("contract"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                 {
-                    if (java.util.Objects.equals(market.get("linear"), true))
+                    if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                     {
                         request.put("ctType", "linear");
                         request.put("ccy", market.get("quoteId"));
@@ -9461,7 +9461,7 @@ public class Okx extends OkxApi
         String amount = Precise.stringAbs(amountRaw);
         String marketId = this.safeString(data, "instId");
         Map<String, Object> responseMarket = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object code = (((java.util.Objects.equals(responseMarket.get("inverse"), true)))) ? responseMarket.get("base") : responseMarket.get("quote");
+        Object code = ((Boolean.TRUE.equals((this.safeBool(responseMarket, "inverse", false))))) ? responseMarket.get("base") : responseMarket.get("quote");
         Long timestamp = this.safeInteger(data, "ts");
         {
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
@@ -9539,7 +9539,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String type = (((java.util.Objects.equals(market.get("spot"), true)))) ? "MARGIN" : this.convertToInstrumentType((String) (market.get("type")));
+            String type = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? "MARGIN" : this.convertToInstrumentType((String) (market.get("type")));
             String instFamily = this.safeString(market.get("info"), "instFamily");
             if ((java.util.Objects.equals(instFamily, null)) || (java.util.Objects.equals(instFamily, "")))
             {
@@ -9876,7 +9876,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("contract"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
             }
@@ -10037,7 +10037,7 @@ public class Okx extends OkxApi
             Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            if ((!java.util.Objects.equals(market, null)) && ((java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true))))
+            if ((!java.util.Objects.equals(market, null)) && (Boolean.TRUE.equals((this.safeBool(market, "swap", false))) || Boolean.TRUE.equals((this.safeBool(market, "future", false)))))
             {
                 Map<String, Object> instrumentRequest = new HashMap<String, Object>();
                 instrumentRequest.put("instId", market.get("id"));
@@ -11586,14 +11586,14 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean auto = (Boolean) this.safeBool(parameters, "auto", (Object) null);
+            Boolean auto = (Boolean) this.safeBool(parameters, "auto", false);
             if (java.util.Objects.equals(type, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory () requires a type argument")) ;
             }
             Boolean isAdd = java.util.Objects.equals(type, "add");
             String subType = ((Boolean.TRUE.equals(isAdd))) ? "160" : "161";
-            if (java.util.Objects.equals(auto, true))
+            if (Boolean.TRUE.equals(auto))
             {
                 if (Boolean.TRUE.equals(isAdd))
                 {

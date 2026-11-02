@@ -712,7 +712,7 @@ public class Sxbet extends SxbetApi
                 throw new ExchangeError((this.id + " parseEvent() could not resolve parsed market")) ;
             }
             ((List<Object>)marketsList).add(parsed);
-            if (java.util.Objects.equals(parsed.get("active"), true))
+            if (Boolean.TRUE.equals(this.safeBool(parsed, "active", false)))
             {
                 anyActive = true;
             }
@@ -2159,7 +2159,7 @@ public class Sxbet extends SxbetApi
         Object settlePrice = null;
         if (!java.util.Objects.equals(won, null))
         {
-            settlePrice = (((java.util.Objects.equals(won, true)))) ? 1 : 0;
+            settlePrice = ((Boolean.TRUE.equals(won))) ? 1 : 0;
         }
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
@@ -2866,7 +2866,7 @@ public class Sxbet extends SxbetApi
                 if (java.util.Objects.equals(this.safeValue(this.orderbooks, sym), null))
                 {
                     io.github.ccxt.ws.WsOrderBook emptyBook = this.orderBook(new HashMap<String, Object>() {{}});
-                    this.orderbooks.put(sym, emptyBook);
+                    Helpers.addElementToObject(this.orderbooks, sym, emptyBook);
                 }
             }
             Long requestId = this.requestId((String) (url));
@@ -2932,7 +2932,7 @@ public class Sxbet extends SxbetApi
             if (java.util.Objects.equals(orderbook, null))
             {
                 orderbook = this.orderBook(new HashMap<String, Object>() {{}});
-                this.orderbooks.put(sym, orderbook);
+                Helpers.addElementToObject(this.orderbooks, sym, orderbook);
             }
             Map<String, Object> bookSnapshot = new HashMap<String, Object>() {{
                 put( "bids", Sxbet.this.safeList(sides, "bids", new ArrayList<Object>(Arrays.asList())) );
@@ -2995,7 +2995,7 @@ public class Sxbet extends SxbetApi
             Client client = this.client(url);
             String channel = "best_odds_v3:global";
             Boolean hydrated = false;
-            if (java.util.Objects.equals(this.safeValue(this.tickers, sym), null))
+            if (java.util.Objects.equals(this.safeDict(this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}}), sym, (Object) null), null))
             {
                 // hydrate from the REST snapshot so the first call does not hang until the
                 // market's next top-of-book change - the channel is global, so the seed must fire
@@ -3003,7 +3003,7 @@ public class Sxbet extends SxbetApi
                 Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
                 Map<String, Object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
                 Object ticker = this.parsePredictionTicker(raw, outcomeObj);
-                this.tickers.put(sym, ((Object)ticker));
+                this.setWsOption("wsTickers", (String) (sym), ((Object)ticker));
                 hydrated = true;
             }
             Long requestId = this.requestId((String) (url));
@@ -3017,7 +3017,7 @@ public class Sxbet extends SxbetApi
             Object future = this.watch(url, messageHash, subscribeMsg, channel, null);
             if (Boolean.TRUE.equals(hydrated))
             {
-                client.resolve(this.safeValue(this.tickers, sym), messageHash);
+                client.resolve(this.safeDict(this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}}), sym, (Object) null), messageHash);
             }
             Object tickerResult = ((io.github.ccxt.ws.Future)future).getFuture().join();
             return tickerResult;
@@ -3067,7 +3067,7 @@ public class Sxbet extends SxbetApi
                 }
                 Object outcomeObj = ((Object)this.outcome(sym));
                 Object ticker = this.parsePredictionTicker(raw, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-                this.tickers.put(sym, ((Object)ticker));
+                this.setWsOption("wsTickers", sym, ((Object)ticker));
                 client.resolve(ticker, ("ticker::" + sym));
             }
         }

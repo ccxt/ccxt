@@ -1665,7 +1665,7 @@ public class Woo extends WooApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -1694,7 +1694,7 @@ public class Woo extends WooApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
             }
@@ -1877,7 +1877,7 @@ public class Woo extends WooApi
                 // for market buy it requires the amount of quote currency to spend
                 String cost = this.safeStringN(paramsMarginMode, new ArrayList<Object>(Arrays.asList("cost", "order_amount", "orderAmount")));
                 Boolean isPriceProvided = !java.util.Objects.equals(price, null);
-                if ((java.util.Objects.equals(market.get("spot"), true)) && (Boolean.TRUE.equals(isPriceProvided) || (!java.util.Objects.equals(cost, null))))
+                if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) && (Boolean.TRUE.equals(isPriceProvided) || (!java.util.Objects.equals(cost, null))))
                 {
                     String quoteAmount = null;
                     if (!java.util.Objects.equals(cost, null))
@@ -2803,7 +2803,7 @@ public class Woo extends WooApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint")) ;
             }
@@ -2880,7 +2880,7 @@ public class Woo extends WooApi
                     // type" apart from a malformed request, marketSymbols still enforces that the
                     // rest of the list matches
                     Map<String, Object> firstMarket = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-                    if (!java.util.Objects.equals(firstMarket.get("swap"), true))
+                    if (!Boolean.TRUE.equals(this.safeBool(firstMarket, "swap", false)))
                     {
                         throw new NotSupported((this.id + " fetchTickers() supports swap markets only")) ;
                     }
@@ -4184,9 +4184,9 @@ public class Woo extends WooApi
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(response, "success", false);
         String errorCode = this.safeString(response, "code");
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
@@ -4642,10 +4642,10 @@ public class Woo extends WooApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.v3PrivateGetAccountInfo(parameters)).join();
-            } else if (java.util.Objects.equals(market.get("swap"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );

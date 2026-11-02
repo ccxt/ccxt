@@ -8,7 +8,6 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
-import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Liquidation;
 import io.github.ccxt.types.OHLCV;
@@ -310,7 +309,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (java.util.Objects.equals(baseUrl.endsWith(((String)"/ws")), true))
+            if ((baseUrl.endsWith(((String)"/ws"))))
             {
                 String prefix = (baseUrl == null ? null : baseUrl.substring(0, (int) Math.min(((((long) baseUrl.length()) - 3L)) < 0 ? baseUrl.length() + ((((long) baseUrl.length()) - 3L)) : ((((long) baseUrl.length()) - 3L)), baseUrl.length())));
                 return (String) ((((prefix + "/") + category) + "/ws"));
@@ -886,12 +885,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String type = (String) firstMarket.get("type");
-            if (java.util.Objects.equals(firstMarket.get("option"), true))
+            if (Boolean.TRUE.equals(this.safeBool(firstMarket, "option", false)))
             {
                 type = "option";
-            } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(firstMarket, "contract", false)))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
+                type = ((Boolean.TRUE.equals((this.safeBool(firstMarket, "linear", false))))) ? "linear" : "inverse";
             }
             String name = "depth";
             String streamHash = "multipleOrderbook";
@@ -985,12 +984,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String type = (String) firstMarket.get("type");
-            if (java.util.Objects.equals(firstMarket.get("option"), true))
+            if (Boolean.TRUE.equals(this.safeBool(firstMarket, "option", false)))
             {
                 type = "option";
-            } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(firstMarket, "contract", false)))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
+                type = ((Boolean.TRUE.equals((this.safeBool(firstMarket, "linear", false))))) ? "linear" : "inverse";
             }
             String name = "depth";
             String streamHash = "multipleOrderbook";
@@ -1524,9 +1523,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (java.util.Objects.equals(isOption, true))
             {
                 type = "option";
-            } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(firstMarket, "contract", false)))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
+                type = ((Boolean.TRUE.equals((this.safeBool(firstMarket, "linear", false))))) ? "linear" : "inverse";
             }
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
@@ -1633,9 +1632,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (java.util.Objects.equals(isOption, true))
             {
                 type = "option";
-            } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(firstMarket, "contract", false)))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
+                type = ((Boolean.TRUE.equals((this.safeBool(firstMarket, "linear", false))))) ? "linear" : "inverse";
             }
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
@@ -2075,13 +2074,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> firstMarket = this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
             String type = (String) firstMarket.get("type");
             String wsUrlType = type;
-            if (java.util.Objects.equals(firstMarket.get("option"), true))
+            if (Boolean.TRUE.equals(this.safeBool(firstMarket, "option", false)))
             {
                 type = "option";
                 wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
-            } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(firstMarket, "contract", false)))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
+                type = ((Boolean.TRUE.equals((this.safeBool(firstMarket, "linear", false))))) ? "linear" : "inverse";
                 wsUrlType = type;
             }
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
@@ -2178,13 +2177,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> firstMarket = this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
             String type = (String) firstMarket.get("type");
             String wsUrlType = type;
-            if (java.util.Objects.equals(firstMarket.get("option"), true))
+            if (Boolean.TRUE.equals(this.safeBool(firstMarket, "option", false)))
             {
                 type = "option";
                 wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
-            } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(firstMarket, "contract", false)))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
+                type = ((Boolean.TRUE.equals((this.safeBool(firstMarket, "linear", false))))) ? "linear" : "inverse";
                 wsUrlType = type;
             }
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
@@ -3200,7 +3199,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // carries `w`, so a miniTicker uses the contract size.
         String baseVolume = this.safeString(message, "v");
         String quoteVolume = this.safeString(message, "q");
-        if (java.util.Objects.equals(market.get("inverse"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
         {
             String contracts = baseVolume;
             baseVolume = quoteVolume;
@@ -4615,7 +4614,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean sor = (Boolean) this.safeBool2(parameters, "sor", "SOR", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, "sor", "SOR");
             Boolean isConditional = this.isConditionalOrder(paramsOmitted);
-            if ((java.util.Objects.equals(market.get("inverse"), true)) && Boolean.TRUE.equals(isConditional))
+            if (Boolean.TRUE.equals((this.safeBool(market, "inverse", false))) && Boolean.TRUE.equals(isConditional))
             {
                 throw new NotSupported((this.id + " createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead")) ;
             }
@@ -6691,7 +6690,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                     {
                                         feeCostString = "0";
                                     }
-                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", JsParse.parseFloat(feeCostString));
+                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", Double.parseDouble(feeCostString));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -6710,7 +6709,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                 {
                                     feeCostString = "0";
                                 }
-                                Helpers.addElementToObject(order.get("fee"), "cost", JsParse.parseFloat(feeCostString));
+                                Helpers.addElementToObject(order.get("fee"), "cost", Double.parseDouble(feeCostString));
                             } else if (java.util.Objects.equals(fee.get("currency"), null))
                             {
                                 order.put("fee", tradeFee);

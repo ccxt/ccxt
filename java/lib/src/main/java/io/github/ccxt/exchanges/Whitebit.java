@@ -839,7 +839,7 @@ public class Whitebit extends WhitebitApi
             return null;
         }
         Boolean active = (Boolean) this.safeBool(market, "tradesEnabled", (Object) null);
-        Boolean isCollateral = (Boolean) this.safeBool(market, "isCollateral", (Object) null);
+        Boolean isCollateral = (Boolean) this.safeBool(market, "isCollateral", false);
         String typeId = this.safeString(market, "type");
         String type = null;
         String settle = null;
@@ -1966,7 +1966,7 @@ public class Whitebit extends WhitebitApi
                 {
                     Object symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
-                    if (!java.util.Objects.equals(market.get("contract"), true))
+                    if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                     {
                         onlyContractSymbols = false;
                         break;
@@ -3286,9 +3286,9 @@ public class Whitebit extends WhitebitApi
         Long timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
         Long lastTradeTimestamp = this.safeTimestamp(order, "ftime");
         Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
-        Boolean ioc = (Boolean) this.safeBool(order, "ioc", (Object) null);
+        Boolean ioc = (Boolean) this.safeBool(order, "ioc", false);
         String timeInForce = null;
-        if (java.util.Objects.equals(ioc, true))
+        if (Boolean.TRUE.equals(ioc))
         {
             timeInForce = "IOC";
         } else if (java.util.Objects.equals(postOnly, true))

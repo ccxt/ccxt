@@ -1927,7 +1927,7 @@ public class Mexc extends MexcApi
             {
                 request.put("limit", limit);
             }
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 Map<String, Object> response = (this.spotPublicGetDepth(this.extend(request, parameters))).join();
                 //
@@ -1947,7 +1947,7 @@ public class Mexc extends MexcApi
                 Map<String, Object> spotOrderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, spotTimestamp, "bids", "asks", 0, 1, 2);
                 spotOrderbook.put("nonce", this.safeInteger(response, "lastUpdateId"));
                 return spotOrderbook;
-            } else if (java.util.Objects.equals(market.get("swap"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Map<String, Object> response = (this.contractPublicGetDepthSymbol(this.extend(request, parameters))).join();
                 //
@@ -2024,7 +2024,7 @@ public class Mexc extends MexcApi
                 request.put("limit", limit);
             }
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 Long until = (Long) this.safeInteger2(parameters, "endTime", "until");
                 if (!java.util.Objects.equals(since, null))
@@ -2059,7 +2059,7 @@ public class Mexc extends MexcApi
                 {
                     throw new NotSupported((this.id + " fetchTrades() not support this method")) ;
                 }
-            } else if (java.util.Objects.equals(market.get("swap"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Map<String, Object> response = (this.contractPublicGetDealsSymbol(this.extend(request, parameters))).join();
                 //
@@ -2272,7 +2272,7 @@ public class Mexc extends MexcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Integer maxLimit = (((java.util.Objects.equals(market.get("spot"), true)))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
+            Integer maxLimit = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
             Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
@@ -2296,7 +2296,7 @@ public class Mexc extends MexcApi
             {
                 paramsUntil = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             }
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
@@ -2345,7 +2345,7 @@ public class Mexc extends MexcApi
                 //     ]
                 //
                 candles = this.toArray(response);
-            } else if (java.util.Objects.equals(market.get("swap"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
@@ -2580,9 +2580,9 @@ public class Mexc extends MexcApi
         String changePcnt = null;
         String changeValue = null;
         String prevClose = null;
-        Boolean isSwap = (Boolean) this.safeBool(marketResolved, "swap", (Object) null);
+        Boolean isSwap = (Boolean) this.safeBool(marketResolved, "swap", false);
         // if swap
-        if ((java.util.Objects.equals(isSwap, true)) || (((Map<?, ?>)ticker).containsKey("timestamp")))
+        if (Boolean.TRUE.equals(isSwap) || (((Map<?, ?>)ticker).containsKey("timestamp")))
         {
             //
             //     {
@@ -2611,11 +2611,11 @@ public class Mexc extends MexcApi
             baseVolume = this.safeString(ticker, "volume24");
             quoteVolume = this.safeString(ticker, "amount24");
             String contractSize = this.safeString(marketResolved, "contractSize");
-            if ((java.util.Objects.equals(isSwap, true)) && (!java.util.Objects.equals(contractSize, null)))
+            if (Boolean.TRUE.equals(isSwap) && (!java.util.Objects.equals(contractSize, null)))
             {
                 // volume24 counts contracts, amount24 is in the settle currency
                 String contractVolume = Precise.stringMul(baseVolume, contractSize);
-                if (java.util.Objects.equals(marketResolved.get("inverse"), true))
+                if (Boolean.TRUE.equals(this.safeBool(marketResolved, "inverse", false)))
                 {
                     baseVolume = quoteVolume;
                     quoteVolume = contractVolume;
@@ -2766,7 +2766,7 @@ public class Mexc extends MexcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -2798,7 +2798,7 @@ public class Mexc extends MexcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
             }
@@ -2851,7 +2851,7 @@ public class Mexc extends MexcApi
             Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
             String marginMode = marginModequeryVariable.first();
             Map<String, Object> query = marginModequeryVariable.second();
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 return (this.createSpotOrder(market, (String) (type), (String) (side), amount, price, marginMode, query)).join();
             } else
@@ -3222,7 +3222,7 @@ public class Mexc extends MexcApi
                 Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 Map<String, Object> market = this.market(marketId);
-                if (!java.util.Objects.equals(market.get("spot"), true))
+                if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
                     throw new NotSupported((this.id + " createOrders() is only supported for spot markets")) ;
                 }
@@ -3307,7 +3307,7 @@ public class Mexc extends MexcApi
                 put( "symbol", market.get("id") );
             }};
             Object data = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 String clientOrderId = this.safeString(parameters, "clientOrderId");
                 if (!java.util.Objects.equals(clientOrderId, null))
@@ -3332,7 +3332,7 @@ public class Mexc extends MexcApi
                 {
                     data = (this.spotPrivateGetOrder(this.extend(request, query))).join();
                 }
-            } else if (java.util.Objects.equals(market.get("swap"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 request.put("order_id", id);
                 Map<String, Object> response = (this.contractPrivateGetOrderGetOrderId(this.extend(request, parameters))).join();
@@ -4561,7 +4561,7 @@ public class Mexc extends MexcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " fetchTradingFee() supports spot markets only")) ;
             }
@@ -7251,7 +7251,7 @@ public class Mexc extends MexcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " setMarginMode() supports contract markets only")) ;
             }

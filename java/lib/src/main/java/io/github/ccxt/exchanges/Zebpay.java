@@ -688,7 +688,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.privateSpotGetV2ExTradefee(this.extend(request, parameters))).join();
                 //
@@ -813,7 +813,7 @@ public class Zebpay extends ZebpayApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 //
                 //       {
@@ -864,7 +864,7 @@ public class Zebpay extends ZebpayApi
                 put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.publicSpotGetV2MarketTicker(this.extend(request, parameters))).join();
             } else
@@ -961,7 +961,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "endtime", "endTime", "interval", "startTime")));
             Map<String, Object> response = null;
             Long limitResolved = limit;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 if (java.util.Objects.equals(limit, null))
                 {
@@ -1065,12 +1065,12 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            if ((java.util.Objects.equals(market.get("spot"), true)) && !java.util.Objects.equals(limit, null))
+            if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) && !java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.publicSpotGetV2MarketTrades(this.extend(request, parameters))).join();
             } else
@@ -1346,7 +1346,7 @@ public class Zebpay extends ZebpayApi
                 put( "side", ((String)side).toUpperCase() );
             }};
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.privateSpotPostV2ExOrders(this.spotOrderBody((String) (symbol), type, amount, request, price, query))).join();
             } else
@@ -1450,7 +1450,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("orderId", id);
                 response = (this.privateSpotDeleteV2ExOrder(this.extend(request, parameters))).join();
@@ -1547,7 +1547,7 @@ public class Zebpay extends ZebpayApi
             }};
             Map<String, Object> response = null;
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("currentPage", 1);
                 if (!java.util.Objects.equals(limit, null))
@@ -1626,7 +1626,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("orderId", id);
                 response = (this.privateSpotGetV2ExOrder(this.extend(request, parameters))).join();

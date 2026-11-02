@@ -1443,19 +1443,19 @@ public class Toobit extends ToobitApi
         Long timestamp = (Long) this.safeInteger2(trade, "t", "time");
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "q", "qty");
-        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", (Object) null);
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", false);
         String side = null;
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm", (Object) null);
         Boolean isBuyerTaker = (Boolean) this.safeBool(trade, "m", (Object) null);
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
-            side = (((java.util.Objects.equals(isBuyerMaker, true)))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
         } else if (!java.util.Objects.equals(isBuyerTaker, null))
         {
-            side = (((java.util.Objects.equals(isBuyerTaker, true)))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isBuyerTaker))) ? "buy" : "sell";
         } else
         {
-            if (java.util.Objects.equals(isBuyer, true))
+            if (Boolean.TRUE.equals(isBuyer))
             {
                 side = "buy";
             } else
@@ -1682,7 +1682,7 @@ public class Toobit extends ToobitApi
         String last = this.safeString(ticker, "c");
         String baseVolume = this.safeString(ticker, "v");
         Double contractSize = this.safeNumber(marketResolved, "contractSize", (Object) null);
-        if ((java.util.Objects.equals(marketResolved.get("contract"), true)) && (!java.util.Objects.equals(contractSize, null)))
+        if (Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))) && (!java.util.Objects.equals(contractSize, null)))
         {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
@@ -2070,7 +2070,7 @@ public class Toobit extends ToobitApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 var requestparamsRequestVariable = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 var request = ((List<Object>) requestparamsRequestVariable).get(0);
@@ -2580,7 +2580,7 @@ public class Toobit extends ToobitApi
             }};
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.privateGetApiV1SpotOrder(this.extend(request, parameters))).join();
             } else

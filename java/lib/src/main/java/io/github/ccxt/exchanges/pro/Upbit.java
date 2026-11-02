@@ -888,19 +888,40 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
     public void handleMessage(Client client, Map<String, Object> message)
     {
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("ticker", Upbit.this::handleTicker);
-            put("orderbook", Upbit.this::handleOrderBook);
-            put("trade", Upbit.this::handleTrades);
-            put("myOrder", Upbit.this::handleMyOrder);
-            put("myAsset", Upbit.this::handleBalance);
-            put("candle.1s", Upbit.this::handleOHLCV);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("ticker", "handleTicker");
+            put("orderbook", "handleOrderBook");
+            put("trade", "handleTrades");
+            put("myOrder", "handleMyOrder");
+            put("myAsset", "handleBalance");
+            put("candle.1s", "handleOHLCV");
         }};
         String methodName = this.safeString(message, "type");
-        io.github.ccxt.Handler method = methods.get(methodName);
+        String method = methods.get(methodName);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleMyOrder":
+                    this.handleMyOrder(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 }

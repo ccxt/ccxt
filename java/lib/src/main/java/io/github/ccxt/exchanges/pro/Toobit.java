@@ -184,23 +184,53 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             this.handleIncomingPong(client, pongTimestamp);
             return;
         }
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("trade", Toobit.this::handleTrades);
-            put("kline", Toobit.this::handleOHLCV);
-            put("realtimes", Toobit.this::handleTickers);
-            put("depth", Toobit.this::handleOrderBookPartialSnapshot);
-            put("diffDepth", Toobit.this::handleOrderBook);
-            put("outboundAccountInfo", Toobit.this::handleBalance);
-            put("outboundContractAccountInfo", Toobit.this::handleBalance);
-            put("executionReport", Toobit.this::handleOrder);
-            put("contractExecutionReport", Toobit.this::handleOrder);
-            put("ticketInfo", Toobit.this::handleMyTrade);
-            put("outboundContractPositionInfo", Toobit.this::handlePositions);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("trade", "handleTrades");
+            put("kline", "handleOHLCV");
+            put("realtimes", "handleTickers");
+            put("depth", "handleOrderBookPartialSnapshot");
+            put("diffDepth", "handleOrderBook");
+            put("outboundAccountInfo", "handleBalance");
+            put("outboundContractAccountInfo", "handleBalance");
+            put("executionReport", "handleOrder");
+            put("contractExecutionReport", "handleOrder");
+            put("ticketInfo", "handleMyTrade");
+            put("outboundContractPositionInfo", "handlePositions");
         }};
-        io.github.ccxt.Handler method = methods.get(topic);
+        String method = methods.get(topic);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleTickers":
+                    this.handleTickers(client, message);
+                    break;
+                case "handleOrderBookPartialSnapshot":
+                    this.handleOrderBookPartialSnapshot(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleMyTrade":
+                    this.handleMyTrade(client, message);
+                    break;
+                case "handlePositions":
+                    this.handlePositions(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 

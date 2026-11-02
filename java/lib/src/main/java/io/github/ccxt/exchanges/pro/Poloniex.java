@@ -1671,33 +1671,33 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             this.handleUnsubscription(client, message);
             return;
         }
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("candles_minute_1", Poloniex.this::handleOHLCV);
-            put("candles_minute_5", Poloniex.this::handleOHLCV);
-            put("candles_minute_10", Poloniex.this::handleOHLCV);
-            put("candles_minute_15", Poloniex.this::handleOHLCV);
-            put("candles_minute_30", Poloniex.this::handleOHLCV);
-            put("candles_hour_1", Poloniex.this::handleOHLCV);
-            put("candles_hour_2", Poloniex.this::handleOHLCV);
-            put("candles_hour_4", Poloniex.this::handleOHLCV);
-            put("candles_hour_6", Poloniex.this::handleOHLCV);
-            put("candles_hour_12", Poloniex.this::handleOHLCV);
-            put("candles_day_1", Poloniex.this::handleOHLCV);
-            put("candles_day_3", Poloniex.this::handleOHLCV);
-            put("candles_week_1", Poloniex.this::handleOHLCV);
-            put("candles_month_1", Poloniex.this::handleOHLCV);
-            put("book", Poloniex.this::handleOrderBook);
-            put("book_lv2", Poloniex.this::handleOrderBook);
-            put("ticker", Poloniex.this::handleTicker);
-            put("trades", Poloniex.this::handleTrade);
-            put("orders", Poloniex.this::handleOrder);
-            put("balances", Poloniex.this::handleBalance);
-            put("createOrder", Poloniex.this::handleOrderRequest);
-            put("cancelOrder", Poloniex.this::handleOrderRequest);
-            put("cancelAllOrders", Poloniex.this::handleOrderRequest);
-            put("auth", Poloniex.this::handleAuthenticate);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("candles_minute_1", "handleOHLCV");
+            put("candles_minute_5", "handleOHLCV");
+            put("candles_minute_10", "handleOHLCV");
+            put("candles_minute_15", "handleOHLCV");
+            put("candles_minute_30", "handleOHLCV");
+            put("candles_hour_1", "handleOHLCV");
+            put("candles_hour_2", "handleOHLCV");
+            put("candles_hour_4", "handleOHLCV");
+            put("candles_hour_6", "handleOHLCV");
+            put("candles_hour_12", "handleOHLCV");
+            put("candles_day_1", "handleOHLCV");
+            put("candles_day_3", "handleOHLCV");
+            put("candles_week_1", "handleOHLCV");
+            put("candles_month_1", "handleOHLCV");
+            put("book", "handleOrderBook");
+            put("book_lv2", "handleOrderBook");
+            put("ticker", "handleTicker");
+            put("trades", "handleTrade");
+            put("orders", "handleOrder");
+            put("balances", "handleBalance");
+            put("createOrder", "handleOrderRequest");
+            put("cancelOrder", "handleOrderRequest");
+            put("cancelAllOrders", "handleOrderRequest");
+            put("auth", "handleAuthenticate");
         }};
-        io.github.ccxt.Handler method = methods.get(type);
+        String method = methods.get(type);
         if (java.util.Objects.equals(type, "auth"))
         {
             this.handleAuthenticate(client, message);
@@ -1710,7 +1710,34 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Integer dataLength = ((List<?>)data).size();
             if ((dataLength != null && dataLength > 0))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTrade":
+                        this.handleTrade(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    case "handleOrderRequest":
+                        this.handleOrderRequest(client, message);
+                        break;
+                    case "handleAuthenticate":
+                        this.handleAuthenticate(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }
@@ -1827,9 +1854,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //    }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
-        Boolean success = (Boolean) this.safeBool(data, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(data, "success", false);
         String messageHash = "authenticated";
-        if (java.util.Objects.equals(success, true))
+        if (Boolean.TRUE.equals(success))
         {
             client.resolve(message, messageHash);
         } else

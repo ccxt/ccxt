@@ -408,7 +408,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " watchTicker() is only supported for swap markets")) ;
             }
@@ -441,7 +441,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " unWatchTicker() is only supported for swap markets")) ;
             }
@@ -475,7 +475,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            if ((!java.util.Objects.equals(firstMarket, null)) && (!java.util.Objects.equals(firstMarket.get("swap"), true)))
+            if ((!java.util.Objects.equals(firstMarket, null)) && (!Boolean.TRUE.equals(this.safeBool(firstMarket, "swap", false))))
             {
                 throw new NotSupported((this.id + " watchTickers() is only supported for swap markets")) ;
             }
@@ -535,7 +535,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            if ((!java.util.Objects.equals(firstMarket, null)) && (!java.util.Objects.equals(firstMarket.get("swap"), true)))
+            if ((!java.util.Objects.equals(firstMarket, null)) && (!Boolean.TRUE.equals(this.safeBool(firstMarket, "swap", false))))
             {
                 throw new NotSupported((this.id + " unWatchTickers() is only supported for swap markets")) ;
             }
@@ -659,9 +659,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String tradeId = this.safeString(trade, "trade_id");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
-        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask", (Object) null);
+        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask", false);
         String side = "sell";
-        if (java.util.Objects.equals(isMakerAsk, true))
+        if (Boolean.TRUE.equals(isMakerAsk))
         {
             side = "buy";
         }
@@ -845,7 +845,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
         String costString = this.safeString(trade, "usd_amount");
-        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask", (Object) null);
+        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask", false);
         Long accountIndex = this.safeInteger(trade, "accountIndex");
         Long bidAccountId = this.safeInteger(trade, "bid_account_id");
         Long askAccountId = this.safeInteger(trade, "ask_account_id");
@@ -859,18 +859,18 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 // Own trades should use the account's order side
                 side = "buy";
                 order = this.safeString(trade, "bid_id");
-                takerOrMaker = (((java.util.Objects.equals(isMakerAsk, true)))) ? "taker" : "maker";
+                takerOrMaker = ((Boolean.TRUE.equals(isMakerAsk))) ? "taker" : "maker";
             } else if (java.util.Objects.equals(askAccountId, accountIndex))
             {
                 side = "sell";
                 order = this.safeString(trade, "ask_id");
-                takerOrMaker = (((java.util.Objects.equals(isMakerAsk, true)))) ? "maker" : "taker";
+                takerOrMaker = ((Boolean.TRUE.equals(isMakerAsk))) ? "maker" : "taker";
             }
         }
         // public trades use Lighter's taker-side convention
         if (java.util.Objects.equals(side, null))
         {
-            side = (((java.util.Objects.equals(isMakerAsk, true)))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isMakerAsk))) ? "buy" : "sell";
         }
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(takerOrMaker, null))
@@ -1094,9 +1094,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //     }
         //
         Long timestamp = this.safeInteger(liquidation, "timestamp");
-        Boolean isMakerAsk = (Boolean) this.safeBool(liquidation, "is_maker_ask", (Object) null);
+        Boolean isMakerAsk = (Boolean) this.safeBool(liquidation, "is_maker_ask", false);
         String side = "sell";
-        if (java.util.Objects.equals(isMakerAsk, true))
+        if (Boolean.TRUE.equals(isMakerAsk))
         {
             side = "buy";
         }

@@ -1321,7 +1321,7 @@ public class Kraken extends KrakenApi
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
-                    if (java.util.Objects.equals(market.get("active"), true))
+                    if (Boolean.TRUE.equals(this.safeBool(market, "active", false)))
                     {
                         ((List<Object>)marketIds).add(market.get("id"));
                     }
@@ -2743,7 +2743,7 @@ public class Kraken extends KrakenApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((((this.id + " editOrder() does not support ") + this.safeString(market, "type", "")) + " orders, only spot orders are accepted")) ;
             }

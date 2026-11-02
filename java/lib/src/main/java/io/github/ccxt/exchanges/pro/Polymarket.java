@@ -1116,8 +1116,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             this.setBalanceCache(client);
             Object fetchBalanceSnapshot = this.handleOption("watchBalance", "fetchBalanceSnapshot", true);
             Object awaitBalanceSnapshot = this.handleOption("watchBalance", "awaitBalanceSnapshot", true);
-            Boolean balanceLoaded = (((Map<?, ?>)this.balance).containsKey("info"));
-            if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)) && (!Boolean.TRUE.equals(balanceLoaded)))
+            if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)) && !(((Map<?, ?>)this.balance).containsKey("info")))
             {
                 // the portfolio channel pushes one snapshot at subscribe time and
                 // then only on changes, so the first call hydrates over rest
@@ -1133,8 +1132,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
 
     public void setBalanceCache(Client client)
     {
-        Boolean balanceLoaded = (((Map<?, ?>)this.balance).containsKey("info"));
-        if (Boolean.TRUE.equals(balanceLoaded))
+        if (((Map<?, ?>)this.balance).containsKey("info"))
         {
             return;
         }
@@ -1401,20 +1399,47 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("::"))));
         String family = this.safeString(parts, 0, "");
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("book", Polymarket.this::handleOrderBook);
-            put("bbo", Polymarket.this::handleBidAsk);
-            put("trades", Polymarket.this::handleTrades);
-            put("tickers", Polymarket.this::handleTicker);
-            put("klines", Polymarket.this::handleOHLCV);
-            put("orders", Polymarket.this::handleOrder);
-            put("fills", Polymarket.this::handleMyTrades);
-            put("portfolio", Polymarket.this::handlePortfolio);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("book", "handleOrderBook");
+            put("bbo", "handleBidAsk");
+            put("trades", "handleTrades");
+            put("tickers", "handleTicker");
+            put("klines", "handleOHLCV");
+            put("orders", "handleOrder");
+            put("fills", "handleMyTrades");
+            put("portfolio", "handlePortfolio");
         }};
-        io.github.ccxt.Handler method = methods.get(family);
+        String method = methods.get(family);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleBidAsk":
+                    this.handleBidAsk(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleMyTrades":
+                    this.handleMyTrades(client, message);
+                    break;
+                case "handlePortfolio":
+                    this.handlePortfolio(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 

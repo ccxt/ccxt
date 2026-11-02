@@ -4162,9 +4162,9 @@ public class Modetrade extends ModetradeApi
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(response, "success", false);
         String errorCode = this.safeString(response, "code");
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);

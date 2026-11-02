@@ -232,7 +232,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
             Object symbol = ticker.get("symbol");
-            this.tickers.put(((String)symbol), ticker);
+            Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             ((List<Object>)result).add(ticker);
             if (!java.util.Objects.equals(eventVar, null))
             {
@@ -2297,47 +2297,179 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         {
             this.handleErrorMessage(client, message);
         }
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("subscribed", Bitvavo.this::handleSubscriptionStatus);
-            put("unsubscribed", Bitvavo.this::handleUnsubscriptionStatus);
-            put("book", Bitvavo.this::handleOrderBook);
-            put("getBook", Bitvavo.this::handleOrderBookSnapshot);
-            put("trade", Bitvavo.this::handleTrade);
-            put("candle", Bitvavo.this::handleOHLCV);
-            put("ticker24h", Bitvavo.this::handleTicker);
-            put("authenticate", Bitvavo.this::handleAuthenticationMessage);
-            put("order", Bitvavo.this::handleOrder);
-            put("fill", Bitvavo.this::handleMyTrade);
-            put("privateCreateOrder", Bitvavo.this::handleSingleOrder);
-            put("privateUpdateOrder", Bitvavo.this::handleSingleOrder);
-            put("privateGetBalance", Bitvavo.this::handleFetchBalance);
-            put("privateCancelOrders", Bitvavo.this::handleMultipleOrders);
-            put("privateGetOrders", Bitvavo.this::handleMultipleOrders);
-            put("privateGetOrder", Bitvavo.this::handleSingleOrder);
-            put("privateCancelOrder", Bitvavo.this::handleSingleOrder);
-            put("privateGetOrdersOpen", Bitvavo.this::handleMultipleOrders);
-            put("privateGetAccount", Bitvavo.this::handleTradingFees);
-            put("privateGetDepositHistory", Bitvavo.this::handleDeposits);
-            put("privateGetWithdrawalHistory", Bitvavo.this::handleWithdraws);
-            put("privateWithdrawAssets", Bitvavo.this::handleWithdraw);
-            put("privateGetTrades", Bitvavo.this::handleMyTrades);
-            put("getAssets", Bitvavo.this::handleFetchCurrencies);
-            put("getCandles", Bitvavo.this::handleFetchOHLCV);
-            put("getMarkets", Bitvavo.this::handleMarkets);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("subscribed", "handleSubscriptionStatus");
+            put("unsubscribed", "handleUnsubscriptionStatus");
+            put("book", "handleOrderBook");
+            put("getBook", "handleOrderBookSnapshot");
+            put("trade", "handleTrade");
+            put("candle", "handleOHLCV");
+            put("ticker24h", "handleTicker");
+            put("authenticate", "handleAuthenticationMessage");
+            put("order", "handleOrder");
+            put("fill", "handleMyTrade");
+            put("privateCreateOrder", "handleSingleOrder");
+            put("privateUpdateOrder", "handleSingleOrder");
+            put("privateGetBalance", "handleFetchBalance");
+            put("privateCancelOrders", "handleMultipleOrders");
+            put("privateGetOrders", "handleMultipleOrders");
+            put("privateGetOrder", "handleSingleOrder");
+            put("privateCancelOrder", "handleSingleOrder");
+            put("privateGetOrdersOpen", "handleMultipleOrders");
+            put("privateGetAccount", "handleTradingFees");
+            put("privateGetDepositHistory", "handleDeposits");
+            put("privateGetWithdrawalHistory", "handleWithdraws");
+            put("privateWithdrawAssets", "handleWithdraw");
+            put("privateGetTrades", "handleMyTrades");
+            put("getAssets", "handleFetchCurrencies");
+            put("getCandles", "handleFetchOHLCV");
+            put("getMarkets", "handleMarkets");
         }};
         String eventVar = this.safeString(message, "event");
-        io.github.ccxt.Handler method = methods.get(eventVar);
+        String method = methods.get(eventVar);
         if (java.util.Objects.equals(method, null))
         {
             String action = this.safeString(message, "action");
             method = methods.get(action);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleSubscriptionStatus":
+                        this.handleSubscriptionStatus(client, message);
+                        break;
+                    case "handleUnsubscriptionStatus":
+                        this.handleUnsubscriptionStatus(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleOrderBookSnapshot":
+                        this.handleOrderBookSnapshot(client, message);
+                        break;
+                    case "handleTrade":
+                        this.handleTrade(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleAuthenticationMessage":
+                        this.handleAuthenticationMessage(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    case "handleMyTrade":
+                        this.handleMyTrade(client, message);
+                        break;
+                    case "handleSingleOrder":
+                        this.handleSingleOrder(client, message);
+                        break;
+                    case "handleFetchBalance":
+                        this.handleFetchBalance(client, message);
+                        break;
+                    case "handleMultipleOrders":
+                        this.handleMultipleOrders(client, message);
+                        break;
+                    case "handleTradingFees":
+                        this.handleTradingFees(client, message);
+                        break;
+                    case "handleDeposits":
+                        this.handleDeposits(client, message);
+                        break;
+                    case "handleWithdraws":
+                        this.handleWithdraws(client, message);
+                        break;
+                    case "handleWithdraw":
+                        this.handleWithdraw(client, message);
+                        break;
+                    case "handleMyTrades":
+                        this.handleMyTrades(client, message);
+                        break;
+                    case "handleFetchCurrencies":
+                        this.handleFetchCurrencies(client, message);
+                        break;
+                    case "handleFetchOHLCV":
+                        this.handleFetchOHLCV(client, message);
+                        break;
+                    case "handleMarkets":
+                        this.handleMarkets(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         } else
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleSubscriptionStatus":
+                    this.handleSubscriptionStatus(client, message);
+                    break;
+                case "handleUnsubscriptionStatus":
+                    this.handleUnsubscriptionStatus(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleOrderBookSnapshot":
+                    this.handleOrderBookSnapshot(client, message);
+                    break;
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleAuthenticationMessage":
+                    this.handleAuthenticationMessage(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleMyTrade":
+                    this.handleMyTrade(client, message);
+                    break;
+                case "handleSingleOrder":
+                    this.handleSingleOrder(client, message);
+                    break;
+                case "handleFetchBalance":
+                    this.handleFetchBalance(client, message);
+                    break;
+                case "handleMultipleOrders":
+                    this.handleMultipleOrders(client, message);
+                    break;
+                case "handleTradingFees":
+                    this.handleTradingFees(client, message);
+                    break;
+                case "handleDeposits":
+                    this.handleDeposits(client, message);
+                    break;
+                case "handleWithdraws":
+                    this.handleWithdraws(client, message);
+                    break;
+                case "handleWithdraw":
+                    this.handleWithdraw(client, message);
+                    break;
+                case "handleMyTrades":
+                    this.handleMyTrades(client, message);
+                    break;
+                case "handleFetchCurrencies":
+                    this.handleFetchCurrencies(client, message);
+                    break;
+                case "handleFetchOHLCV":
+                    this.handleFetchOHLCV(client, message);
+                    break;
+                case "handleMarkets":
+                    this.handleMarkets(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 }

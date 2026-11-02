@@ -1272,19 +1272,37 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         String topic = this.safeString(message, "type");
         if (!java.util.Objects.equals(topic, null))
         {
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("ticker", Bithumb.this::handleTicker);
-                put("orderbookdepth", Bithumb.this::handleOrderBook);
-                put("orderbook", Bithumb.this::handleOrderBook);
-                put("transaction", Bithumb.this::handleTrades);
-                put("trade", Bithumb.this::handleTrades);
-                put("myAsset", Bithumb.this::handleBalance);
-                put("myOrder", Bithumb.this::handleOrders);
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("ticker", "handleTicker");
+                put("orderbookdepth", "handleOrderBook");
+                put("orderbook", "handleOrderBook");
+                put("transaction", "handleTrades");
+                put("trade", "handleTrades");
+                put("myAsset", "handleBalance");
+                put("myOrder", "handleOrders");
             }};
-            io.github.ccxt.Handler method = methods.get(topic);
+            String method = methods.get(topic);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    case "handleOrders":
+                        this.handleOrders(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

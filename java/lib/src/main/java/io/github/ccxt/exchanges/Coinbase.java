@@ -1448,8 +1448,8 @@ public class Coinbase extends CoinbaseApi
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         if (java.util.Objects.equals(status, null))
         {
-            Boolean committed = (Boolean) this.safeBool(transaction, "committed", (Object) null);
-            status = (((java.util.Objects.equals(committed, true)))) ? "ok" : "pending";
+            Boolean committed = (Boolean) this.safeBool(transaction, "committed", false);
+            status = ((Boolean.TRUE.equals(committed))) ? "ok" : "pending";
         }
         String id = this.safeString(transaction, "id");
         String currencyId = this.safeString(amountAndCurrencyObject, "currency");
@@ -1585,11 +1585,11 @@ public class Coinbase extends CoinbaseApi
                 }
             }
         }
-        Boolean sizeInQuote = (Boolean) this.safeBool(trade, "size_in_quote", (Object) null);
+        Boolean sizeInQuote = (Boolean) this.safeBool(trade, "size_in_quote", false);
         String v3Price = this.safeString(trade, "price");
         String v3Cost = null;
         String v3Amount = this.safeString(trade, "size");
-        if (java.util.Objects.equals(sizeInQuote, true))
+        if (Boolean.TRUE.equals(sizeInQuote))
         {
             // calculate base size
             v3Cost = v3Amount;
@@ -2003,7 +2003,7 @@ public class Coinbase extends CoinbaseApi
             return null;
         }
         String marketType = this.safeStringLower(market, "product_type");
-        Boolean tradingDisabled = (Boolean) this.safeBool(market, "trading_disabled", (Object) null);
+        Boolean tradingDisabled = (Boolean) this.safeBool(market, "trading_disabled", false);
         List<Object> stablePairs = (List<Object>) this.safeList(this.options, "stablePairs", new ArrayList<Object>(Arrays.asList()));
         Double defaultTakerFee = this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null);
         Double defaultMakerFee = this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null);
@@ -2204,7 +2204,7 @@ public class Coinbase extends CoinbaseApi
         {
             return null;
         }
-        Boolean isDisabled = (Boolean) this.safeBool(market, "is_disabled", (Object) null);
+        Boolean isDisabled = (Boolean) this.safeBool(market, "is_disabled", false);
         Boolean tradingDisabled = (java.util.Objects.equals(isDisabled, true)) || (java.util.Objects.equals(this.safeBool(market, "trading_disabled", (Object) null), true));
         String symbol = ((base + "/") + quote);
         String type = null;
@@ -3599,7 +3599,7 @@ public class Coinbase extends CoinbaseApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -3653,8 +3653,8 @@ public class Coinbase extends CoinbaseApi
             request.put("client_order_id", ((id + "-") + this.uuid()));
             request.put("product_id", market.get("id"));
             request.put("side", ((String)((String)side)).toUpperCase());
-            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
-            if (java.util.Objects.equals(reduceOnly, true))
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+            if (Boolean.TRUE.equals(reduceOnly))
             {
                 return (this.closePosition(symbol, side, this.extend(this.omit(parameters, "reduceOnly"), new HashMap<String, Object>() {{
                     put( "amount", amount );
@@ -3787,7 +3787,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new NotSupported((this.id + " createOrder() only stop limit orders are supported")) ;
                 }
-                if ((java.util.Objects.equals(market.get("spot"), true)) && (java.util.Objects.equals(side, "buy")))
+                if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) && (java.util.Objects.equals(side, "buy")))
                 {
                     String total = null;
                     Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -3888,8 +3888,8 @@ public class Coinbase extends CoinbaseApi
             //         }
             //     }
             //
-            Boolean success = (Boolean) this.safeBool(response, "success", (Object) null);
-            if (!java.util.Objects.equals(success, true))
+            Boolean success = (Boolean) this.safeBool(response, "success", false);
+            if (!Boolean.TRUE.equals(success))
             {
                 Map<String, Object> errorResponse = (Map<String, Object>) this.safeDict(response, "error_response", (Object) null);
                 String errorTitle = this.safeString(errorResponse, "error");
@@ -4157,8 +4157,8 @@ public class Coinbase extends CoinbaseApi
             List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Boolean success = (Boolean) this.safeBool((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "success", (Object) null);
-                if (!java.util.Objects.equals(success, true))
+                Boolean success = (Boolean) this.safeBool((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "success", false);
+                if (!Boolean.TRUE.equals(success))
                 {
                     throw new BadRequest((this.id + " cancelOrders() has failed, check your arguments and parameters")) ;
                 }
@@ -5992,7 +5992,7 @@ public class Coinbase extends CoinbaseApi
             {
                 String symbol = this.safeString(this.symbols, i, "");
                 Map<String, Object> market = this.market(symbol);
-                if ((Boolean.TRUE.equals(isSpot) && (java.util.Objects.equals(market.get("spot"), true))) || (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(market.get("spot"), true))))
+                if ((Boolean.TRUE.equals(isSpot) && Boolean.TRUE.equals((this.safeBool(market, "spot", false)))) || (!Boolean.TRUE.equals(isSpot) && (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))))
                 {
                     result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
@@ -6389,8 +6389,8 @@ public class Coinbase extends CoinbaseApi
                 }
             }
         }
-        Boolean advancedTrade = (Boolean) this.safeBool(this.options, "advanced", (Object) null);
-        if (!((switch ((Object)(response)) { case List<?> j39v4 -> j39v4.contains("data"); case Map<?, ?> j39v3 -> j39v3.containsKey("data"); case null, default -> false; })) && (!java.util.Objects.equals(advancedTrade, true)))
+        Boolean advancedTrade = (Boolean) this.safeBool(this.options, "advanced", false);
+        if (!((switch ((Object)(response)) { case List<?> j39v4 -> j39v4.contains("data"); case Map<?, ?> j39v3 -> j39v3.containsKey("data"); case null, default -> false; })) && !Boolean.TRUE.equals(advancedTrade))
         {
             throw new ExchangeError(((this.id + " failed due to a malformed response ") + this.json(response))) ;
         }

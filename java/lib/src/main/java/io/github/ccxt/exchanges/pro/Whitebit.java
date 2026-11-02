@@ -248,7 +248,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //  }
         //
         List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
-        Boolean isSnapshot = (Boolean) this.safeBool(parameters, 0, (Object) null);
+        Boolean isSnapshot = (Boolean) this.safeBool(parameters, 0, false);
         String marketId = this.safeString(parameters, 2);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
@@ -262,7 +262,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
-        if (java.util.Objects.equals(isSnapshot, true))
+        if (Boolean.TRUE.equals(isSnapshot))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
             orderbook.reset(snapshot);

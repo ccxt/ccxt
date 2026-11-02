@@ -3138,7 +3138,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> market = this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
             String uppercaseSide = ((String)((String)side)).toUpperCase();
-            if ((java.util.Objects.equals(market.get("spot"), true)) && !java.util.Objects.equals(uppercaseType, "LIMIT"))
+            if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) && !java.util.Objects.equals(uppercaseType, "LIMIT"))
             {
                 throw new BadRequest((this.id + " createOrder() supports limit orders for spot markets only")) ;
             }
@@ -3163,8 +3163,8 @@ public class Extended extends ExtendedApi
             String builderFeeRate = null;
             String builderId = null;
             Map<String, Object> paramsBuilder = parameters;
-            Boolean builderEnabled = (Boolean) this.safeBool(this.options, "builderFee", (Object) null);
-            if (java.util.Objects.equals(builderEnabled, true))
+            Boolean builderEnabled = (Boolean) this.safeBool(this.options, "builderFee", false);
+            if (Boolean.TRUE.equals(builderEnabled))
             {
                 if (this.isSandboxModeEnabled)
                 {

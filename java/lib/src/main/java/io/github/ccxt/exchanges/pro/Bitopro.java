@@ -629,18 +629,36 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
     public void handleMessage(Client client, Map<String, Object> message)
     {
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("TRADE", Bitopro.this::handleTrade);
-            put("TICKER", Bitopro.this::handleTicker);
-            put("ORDER_BOOK", Bitopro.this::handleOrderBook);
-            put("ACCOUNT_BALANCE", Bitopro.this::handleBalance);
-            put("USER_TRADE", Bitopro.this::handleMyTrade);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("TRADE", "handleTrade");
+            put("TICKER", "handleTicker");
+            put("ORDER_BOOK", "handleOrderBook");
+            put("ACCOUNT_BALANCE", "handleBalance");
+            put("USER_TRADE", "handleMyTrade");
         }};
         String eventVar = this.safeString(message, "event");
-        io.github.ccxt.Handler method = methods.get(eventVar);
+        String method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handleMyTrade":
+                    this.handleMyTrade(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 }

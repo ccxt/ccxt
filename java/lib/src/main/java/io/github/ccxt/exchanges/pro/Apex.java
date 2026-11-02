@@ -568,7 +568,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         parsed.put("datetime", this.iso8601(timestamp));
         this.tickers.put(symbol, parsed);
         String messageHash = ("ticker:" + symbol);
-        client.resolve((this.tickers == null || symbol == null ? null : this.tickers.get(symbol)), messageHash);
+        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
 
     /**
@@ -1351,10 +1351,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(message, "success", false);
         Long code = this.safeInteger(message, "retCode");
         String messageHash = "authenticated";
-        if ((java.util.Objects.equals(success, true)) || ((code != null && code == 0)))
+        if (Boolean.TRUE.equals(success) || ((code != null && code == 0)))
         {
             io.github.ccxt.ws.Future future = client.futures.get(messageHash);
             future.resolve(true);

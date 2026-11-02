@@ -1509,12 +1509,12 @@ public class Upbit extends UpbitApi
     public String calcOrderPrice(String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
         String quoteAmount = null;
-        Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", (Object) null);
+        Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false);
         String cost = this.safeString(parameters, "cost");
         if (!java.util.Objects.equals(cost, null))
         {
             quoteAmount = this.costToPrecision(symbol, cost);
-        } else if (java.util.Objects.equals(createMarketBuyOrderRequiresPrice, true))
+        } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
         {
             if (java.util.Objects.equals(price, null) || java.util.Objects.equals(amount, null))
             {

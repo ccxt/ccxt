@@ -294,8 +294,11 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 (this.watchPublic(topics, messageHashes, payload, false)).join();
             }
-            Object tickers = ((Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))) ? this.bidsasks : this.tickers;
-            return this.filterByArray(tickers, "symbol", symbolsResolved, true);
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))
+            {
+                return this.filterByArray(this.bidsasks, "symbol", symbolsResolved, true);
+            }
+            return this.filterByArray(this.tickers, "symbol", symbolsResolved, true);
         });
 
     }

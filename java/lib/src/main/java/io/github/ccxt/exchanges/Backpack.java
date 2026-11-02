@@ -754,7 +754,7 @@ public class Backpack extends BackpackApi
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
                 Map<String, Object> currency = (Map<String, Object>) this.parseCurrency(this.safeDict(response, i, new HashMap<String, Object>() {{}}));
-                if ((!java.util.Objects.equals(stock, true)) || (java.util.Objects.equals(this.safeString(currency, "type"), "stock")))
+                if (!Boolean.TRUE.equals(stock) || (java.util.Objects.equals(this.safeString(currency, "type"), "stock")))
                 {
                     currencies.put((String)currency.get("code"), currency);
                 }
@@ -919,7 +919,7 @@ public class Backpack extends BackpackApi
                         continue;
                     }
                     marketIds.put(marketId, true);
-                    if ((!java.util.Objects.equals(stock, true)) || Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
+                    if (!Boolean.TRUE.equals(stock) || Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
                     {
                         ((List<Object>)markets).add(market);
                     }
@@ -2115,7 +2115,7 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new BadRequest(((this.id + " fetchFundingRate() symbol does not support market ") + symbol)) ;
             }
@@ -2185,7 +2185,7 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new BadRequest(((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
             }

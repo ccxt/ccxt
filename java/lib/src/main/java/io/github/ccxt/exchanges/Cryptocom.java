@@ -1091,8 +1091,8 @@ public class Cryptocom extends CryptocomApi
                 String settle = ((Boolean.TRUE.equals(spot))) ? null : this.safeCurrencyCode(settleId, (Map<String, Object>) null);
                 String optionType = this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
-                Boolean marginBuyEnabled = (Boolean) this.safeBool(market, "margin_buy_enabled", (Object) null);
-                Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled", (Object) null);
+                Boolean marginBuyEnabled = (Boolean) this.safeBool(market, "margin_buy_enabled", false);
+                Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled", false);
                 Long expiryRaw = this.safeInteger(market, "expiry_timestamp_ms");
                 Long expiry = ((((expiryRaw != null && expiryRaw == 0)))) ? null : expiryRaw;
                 String symbol = ((base + "/") + quote);
@@ -3798,7 +3798,7 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -3904,7 +3904,7 @@ public class Cryptocom extends CryptocomApi
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new BadSymbol((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
             }
@@ -4349,14 +4349,14 @@ public class Cryptocom extends CryptocomApi
         {
             String symbol = this.safeString(this.symbols, i, "");
             Map<String, Object> market = this.market(symbol);
-            Boolean isSwap = (Boolean) this.safeBool(market, "swap", (Object) null);
+            Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
             String takerFeeKey = "effective_spot_taker_rate_bps";
-            if (java.util.Objects.equals(isSwap, true))
+            if (Boolean.TRUE.equals(isSwap))
             {
                 takerFeeKey = "effective_deriv_taker_rate_bps";
             }
             String makerFeeKey = "effective_spot_maker_rate_bps";
-            if (java.util.Objects.equals(isSwap, true))
+            if (Boolean.TRUE.equals(isSwap))
             {
                 makerFeeKey = "effective_deriv_maker_rate_bps";
             }

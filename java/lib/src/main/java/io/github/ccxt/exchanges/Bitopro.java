@@ -793,8 +793,8 @@ public class Bitopro extends BitoproApi
         String side = this.safeStringLower(trade, "action");
         if (java.util.Objects.equals(side, null))
         {
-            Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", (Object) null);
-            if (java.util.Objects.equals(isBuyer, true))
+            Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", false);
+            if (Boolean.TRUE.equals(isBuyer))
             {
                 side = "buy";
             } else

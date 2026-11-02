@@ -700,7 +700,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 request.put("reqType", "sub");
             }
             Map<String, Object> subscriptionArgs = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(market.get("inverse"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
                 subscriptionArgs = new HashMap<String, Object>() {{
                     put( "id", uuid );
@@ -860,7 +860,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object snapshot = null;
         Long timestamp = (Long) this.safeInteger2(message, "timestamp", "ts");
         timestamp = (Long) this.safeInteger2(data, "timestamp", "ts", timestamp);
-        if (java.util.Objects.equals(market.get("inverse"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
         {
             snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a", 2);
         } else
@@ -990,7 +990,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         List<Object> candles = null;
         if (Boolean.TRUE.equals(isSwap))
         {
-            if (java.util.Objects.equals(market.get("inverse"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
                 candles = new ArrayList<Object>(Arrays.asList(this.safeDict(message, "data", new HashMap<String, Object>() {{}})));
             } else
@@ -1407,7 +1407,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 }};
             }
             String userStreamKey = this.safeString(this.options, "listenKey");
-            if (java.util.Objects.equals(baseUrl, null) || java.util.Objects.equals(userStreamKey, null))
+            if (java.util.Objects.equals(type, null) || java.util.Objects.equals(baseUrl, null) || java.util.Objects.equals(userStreamKey, null))
             {
                 throw new AuthenticationError((this.id + " watchBalance() requires a websocket URL and a listen key")) ;
             }

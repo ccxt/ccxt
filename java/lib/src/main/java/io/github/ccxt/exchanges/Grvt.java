@@ -7,7 +7,6 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
-import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRateHistory;
@@ -921,8 +920,8 @@ public class Grvt extends GrvtApi
                     // }
                     //
                     Map<String, Object> authResult = (Map<String, Object>) this.safeDict(authResponse, "result", (Object) null);
-                    Boolean ack = (Boolean) this.safeBool(authResult, "ack", (Object) null);
-                    if (!java.util.Objects.equals(ack, true))
+                    Boolean ack = (Boolean) this.safeBool(authResult, "ack", false);
+                    if (!Boolean.TRUE.equals(ack))
                     {
                         throw new ExchangeError(("Builder authorization failed, " + this.json(authResponse))) ;
                     }
@@ -2734,7 +2733,7 @@ public class Grvt extends GrvtApi
             List<Object> sizeParts = new ArrayList<Object>(Arrays.asList(((String)size).split(java.util.regex.Pattern.quote("."))));
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = (((long) sizeDec.length()) + 0L); // php tr
-            Long sizeDigits = JsParse.parseInt((size == null ? null : ((String)size).replaceFirst(java.util.regex.Pattern.quote("."), "")));
+            Long sizeDigits = Long.parseLong((size == null ? null : ((String)size).replaceFirst(java.util.regex.Pattern.quote("."), "")));
             Object denominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(sizeDecLength, null)));
             Object sizeInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(Helpers.multiply(sizeDigits, sizeMultiplier), denominator);
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
@@ -2749,7 +2748,7 @@ public class Grvt extends GrvtApi
                 List<Object> limitParts = new ArrayList<Object>(Arrays.asList(((String)price).split(java.util.regex.Pattern.quote("."))));
                 String limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = (((long) limitDec.length()) + 0L); // php tr
-                Long priceDigits = JsParse.parseInt((price == null ? null : ((String)price).replaceFirst(java.util.regex.Pattern.quote("."), "")));
+                Long priceDigits = Long.parseLong((price == null ? null : ((String)price).replaceFirst(java.util.regex.Pattern.quote("."), "")));
                 denominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(limitDecLength, null)));
                 Object priceInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((priceDigits * ((long) priceMultiplier)), denominator);
                 legOrder.put("limitPrice", this.parseToInt(priceInteger));
@@ -2890,7 +2889,7 @@ public class Grvt extends GrvtApi
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
-                    if (!java.util.Objects.equals(market.get("contract"), true))
+                    if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                     {
                         throw new BadRequest((this.id + " fetchPositions() supports contract markets only")) ;
                     }
@@ -3626,9 +3625,9 @@ public class Grvt extends GrvtApi
                 put( "id", null );
             }}, (Map<String, Object>) null);
         }
-        Boolean isMarket = (Boolean) this.safeBool(order, "is_market", (Object) null);
+        Boolean isMarket = (Boolean) this.safeBool(order, "is_market", false);
         String orderType = "limit";
-        if (java.util.Objects.equals(isMarket, true))
+        if (Boolean.TRUE.equals(isMarket))
         {
             orderType = "market";
         }
@@ -3997,7 +3996,7 @@ public class Grvt extends GrvtApi
             {
                 requestPath = ((path + "?") + queryString);
             }
-            if ((java.util.Objects.equals(((String)requestPath).endsWith("auth/api_key/login"), true)) || (java.util.Objects.equals(((String)requestPath).endsWith("auth/wallet/login"), true)))
+            if (((String)requestPath).endsWith("auth/api_key/login") || ((String)requestPath).endsWith("auth/wallet/login"))
             {
                 requestHeaders = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );

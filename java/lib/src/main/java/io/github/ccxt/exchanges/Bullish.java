@@ -1401,7 +1401,7 @@ public class Bullish extends BullishApi
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
         String side = this.safeStringLower(trade, "side");
-        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", (Object) null);
+        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", false);
         String currency = this.safeString(marketResolved, "quote");
         String code = this.safeCurrencyCode(currency, (Map<String, Object>) null);
         Double feeCost = this.safeNumber(trade, "quoteFee", (Object) null);
@@ -1416,7 +1416,7 @@ public class Bullish extends BullishApi
             }
         }
         String takerOrMaker = null;
-        if (java.util.Objects.equals(isTaker, true))
+        if (Boolean.TRUE.equals(isTaker))
         {
             takerOrMaker = "taker";
         } else
@@ -1746,7 +1746,7 @@ public class Bullish extends BullishApi
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPagination, maxLimit, true)).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports swap markets only")) ;
             }

@@ -1541,7 +1541,7 @@ public class Bittrade extends BittradeApi
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Boolean depositEnabled = (Boolean) this.safeBool(currency, "deposit-enabled", (Object) null);
         Boolean withdrawEnabled = (Boolean) this.safeBool(currency, "withdraw-enabled", (Object) null);
-        Boolean countryDisabled = (Boolean) this.safeBool(currency, "country-disabled", (Object) null);
+        Boolean countryDisabled = (Boolean) this.safeBool(currency, "country-disabled", false);
         Boolean visible = (Boolean) this.safeBool(currency, "visible", false);
         String state = this.safeString(currency, "state");
         Boolean active = Boolean.TRUE.equals(visible) && (java.util.Objects.equals(depositEnabled, true)) && (java.util.Objects.equals(withdrawEnabled, true)) && (java.util.Objects.equals(state, "online")) && (!java.util.Objects.equals(countryDisabled, true));
@@ -1992,7 +1992,7 @@ public class Bittrade extends BittradeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }

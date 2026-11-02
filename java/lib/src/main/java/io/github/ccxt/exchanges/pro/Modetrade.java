@@ -717,8 +717,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         String messageHash = "authenticated";
-        Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
-        if (java.util.Objects.equals(success, true))
+        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        if (Boolean.TRUE.equals(success))
         {
             // client.resolve (message, messageHash);
             io.github.ccxt.ws.Future future = client.futures.get("authenticated");
@@ -1541,8 +1541,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             return false;
         }
-        Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
-        if (java.util.Objects.equals(success, true))
+        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        if (Boolean.TRUE.equals(success))
         {
             return false;
         }

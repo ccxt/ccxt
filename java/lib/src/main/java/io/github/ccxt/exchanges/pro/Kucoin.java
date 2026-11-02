@@ -234,7 +234,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String requestId = String.valueOf(this.requestId());
             Map<String, Object> market = this.market(symbol);
             String urlType = "spot";
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 urlType = "futures";
             }
@@ -1549,7 +1549,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             var stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (this.trades == null || symbol == null ? null : this.trades.get(symbol));
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         cache.append(trade);
         client.resolve(cache, messageHash);
     }
@@ -1583,7 +1583,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             var stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (this.trades == null || symbol == null ? null : this.trades.get(symbol));
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         cache.append(trade);
         client.resolve(cache, messageHash);
     }
@@ -2508,7 +2508,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Long timestamp = this.safeInteger2(order, "orderTime", "createdAt");
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        if (java.util.Objects.equals(marketResolved.get("contract"), true))
+        if (Boolean.TRUE.equals(this.safeBool(marketResolved, "contract", false)))
         {
             timestamp = this.safeIntegerProduct(order, "orderTime", 0.000001);
         }
@@ -4003,69 +4003,126 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             return;
         }
         String subject = this.safeString2(message, "subject", "T");
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("level1", Kucoin.this::handleBidAsk);
-            put("level2", Kucoin.this::handleOrderBook);
-            put("trade.l2update", Kucoin.this::handleOrderBook);
-            put("trade.ticker", Kucoin.this::handleTicker);
-            put("trade.snapshot", Kucoin.this::handleTicker);
-            put("trade.l3match", Kucoin.this::handleTrade);
-            put("trade.candles.update", Kucoin.this::handleOHLCV);
-            put("account.balance", Kucoin.this::handleBalance);
-            put("orderChange", Kucoin.this::handleOrder);
-            put("stopOrder", Kucoin.this::handleOrder);
-            put("/spot/tradeFills", Kucoin.this::handleMyTrade);
-            put("ticker", Kucoin.this::handleTicker);
-            put("tickerV2", Kucoin.this::handleBidAsk);
-            put("candle.stick", Kucoin.this::handleOHLCV);
-            put("match", Kucoin.this::handleTrade);
-            put("orderUpdated", Kucoin.this::handleOrder);
-            put("symbolOrderChange", Kucoin.this::handleOrder);
-            put("availableBalance.change", Kucoin.this::handleBalance);
-            put("walletBalance.change", Kucoin.this::handleBalance);
-            put("position.change", Kucoin.this::handlePosition);
-            put("position.settlement", Kucoin.this::handlePosition);
-            put("position.adjustRiskLimit", Kucoin.this::handlePosition);
-            put("ticker.SPOT", Kucoin.this::handleUtaTicker);
-            put("ticker.FUTURES", Kucoin.this::handleUtaTicker);
-            put("trade.SPOT", Kucoin.this::handleUtaTrade);
-            put("trade.FUTURES", Kucoin.this::handleUtaTrade);
-            put("kline.SPOT", Kucoin.this::handleUtaOHLCV);
-            put("kline.FUTURES", Kucoin.this::handleUtaOHLCV);
-            put("obu.SPOT", Kucoin.this::handleUtaOrderBook);
-            put("obu.FUTURES", Kucoin.this::handleUtaOrderBook);
-            put("order.UNIFIED", Kucoin.this::handleUtaOrder);
-            put("order.SPOT", Kucoin.this::handleUtaOrder);
-            put("order.FUTURES", Kucoin.this::handleUtaOrder);
-            put("order.CROSS", Kucoin.this::handleUtaOrder);
-            put("order.ISOLATED", Kucoin.this::handleUtaOrder);
-            put("orderAll.UNIFIED", Kucoin.this::handleUtaOrder);
-            put("orderAll.SPOT", Kucoin.this::handleUtaOrder);
-            put("orderAll.FUTURES", Kucoin.this::handleUtaOrder);
-            put("orderAll.CROSS", Kucoin.this::handleUtaOrder);
-            put("orderAll.ISOLATED", Kucoin.this::handleUtaOrder);
-            put("execution.UNIFIED", Kucoin.this::handleUtaMyTrade);
-            put("execution.SPOT", Kucoin.this::handleUtaMyTrade);
-            put("execution.FUTURES", Kucoin.this::handleUtaMyTrade);
-            put("execution.CROSS", Kucoin.this::handleUtaMyTrade);
-            put("execution.ISOLATED", Kucoin.this::handleUtaMyTrade);
-            put("execution.lite.UNIFIED", Kucoin.this::handleUtaMyTrade);
-            put("execution.lite.SPOT", Kucoin.this::handleUtaMyTrade);
-            put("execution.lite.FUTURES", Kucoin.this::handleUtaMyTrade);
-            put("execution.lite.CROSS", Kucoin.this::handleUtaMyTrade);
-            put("execution.lite.ISOLATED", Kucoin.this::handleUtaMyTrade);
-            put("position.UNIFIED", Kucoin.this::handleUtaPosition);
-            put("position.FUTURES", Kucoin.this::handleUtaPosition);
-            put("positionAll.UNIFIED", Kucoin.this::handleUtaPosition);
-            put("positionAll.FUTURES", Kucoin.this::handleUtaPosition);
-            put("balance.UNIFIED", Kucoin.this::handleUtaBalance);
-            put("funding-fee", Kucoin.this::handleUtaFundingRate);
-            put("mark-price", Kucoin.this::handleUtaTicker);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("level1", "handleBidAsk");
+            put("level2", "handleOrderBook");
+            put("trade.l2update", "handleOrderBook");
+            put("trade.ticker", "handleTicker");
+            put("trade.snapshot", "handleTicker");
+            put("trade.l3match", "handleTrade");
+            put("trade.candles.update", "handleOHLCV");
+            put("account.balance", "handleBalance");
+            put("orderChange", "handleOrder");
+            put("stopOrder", "handleOrder");
+            put("/spot/tradeFills", "handleMyTrade");
+            put("ticker", "handleTicker");
+            put("tickerV2", "handleBidAsk");
+            put("candle.stick", "handleOHLCV");
+            put("match", "handleTrade");
+            put("orderUpdated", "handleOrder");
+            put("symbolOrderChange", "handleOrder");
+            put("availableBalance.change", "handleBalance");
+            put("walletBalance.change", "handleBalance");
+            put("position.change", "handlePosition");
+            put("position.settlement", "handlePosition");
+            put("position.adjustRiskLimit", "handlePosition");
+            put("ticker.SPOT", "handleUtaTicker");
+            put("ticker.FUTURES", "handleUtaTicker");
+            put("trade.SPOT", "handleUtaTrade");
+            put("trade.FUTURES", "handleUtaTrade");
+            put("kline.SPOT", "handleUtaOHLCV");
+            put("kline.FUTURES", "handleUtaOHLCV");
+            put("obu.SPOT", "handleUtaOrderBook");
+            put("obu.FUTURES", "handleUtaOrderBook");
+            put("order.UNIFIED", "handleUtaOrder");
+            put("order.SPOT", "handleUtaOrder");
+            put("order.FUTURES", "handleUtaOrder");
+            put("order.CROSS", "handleUtaOrder");
+            put("order.ISOLATED", "handleUtaOrder");
+            put("orderAll.UNIFIED", "handleUtaOrder");
+            put("orderAll.SPOT", "handleUtaOrder");
+            put("orderAll.FUTURES", "handleUtaOrder");
+            put("orderAll.CROSS", "handleUtaOrder");
+            put("orderAll.ISOLATED", "handleUtaOrder");
+            put("execution.UNIFIED", "handleUtaMyTrade");
+            put("execution.SPOT", "handleUtaMyTrade");
+            put("execution.FUTURES", "handleUtaMyTrade");
+            put("execution.CROSS", "handleUtaMyTrade");
+            put("execution.ISOLATED", "handleUtaMyTrade");
+            put("execution.lite.UNIFIED", "handleUtaMyTrade");
+            put("execution.lite.SPOT", "handleUtaMyTrade");
+            put("execution.lite.FUTURES", "handleUtaMyTrade");
+            put("execution.lite.CROSS", "handleUtaMyTrade");
+            put("execution.lite.ISOLATED", "handleUtaMyTrade");
+            put("position.UNIFIED", "handleUtaPosition");
+            put("position.FUTURES", "handleUtaPosition");
+            put("positionAll.UNIFIED", "handleUtaPosition");
+            put("positionAll.FUTURES", "handleUtaPosition");
+            put("balance.UNIFIED", "handleUtaBalance");
+            put("funding-fee", "handleUtaFundingRate");
+            put("mark-price", "handleUtaTicker");
         }};
-        io.github.ccxt.Handler method = methods.get(subject);
+        String method = methods.get(subject);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleBidAsk":
+                    this.handleBidAsk(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleMyTrade":
+                    this.handleMyTrade(client, message);
+                    break;
+                case "handlePosition":
+                    this.handlePosition(client, message);
+                    break;
+                case "handleUtaTicker":
+                    this.handleUtaTicker(client, message);
+                    break;
+                case "handleUtaTrade":
+                    this.handleUtaTrade(client, message);
+                    break;
+                case "handleUtaOHLCV":
+                    this.handleUtaOHLCV(client, message);
+                    break;
+                case "handleUtaOrderBook":
+                    this.handleUtaOrderBook(client, message);
+                    break;
+                case "handleUtaOrder":
+                    this.handleUtaOrder(client, message);
+                    break;
+                case "handleUtaMyTrade":
+                    this.handleUtaMyTrade(client, message);
+                    break;
+                case "handleUtaPosition":
+                    this.handleUtaPosition(client, message);
+                    break;
+                case "handleUtaBalance":
+                    this.handleUtaBalance(client, message);
+                    break;
+                case "handleUtaFundingRate":
+                    this.handleUtaFundingRate(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 

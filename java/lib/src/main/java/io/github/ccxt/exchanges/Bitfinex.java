@@ -2229,7 +2229,7 @@ public class Bitfinex extends BitfinexApi
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-        if ((java.util.Objects.equals(market.get("spot"), true)) && (java.util.Objects.equals(marginMode, null)))
+        if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) && (java.util.Objects.equals(marginMode, null)))
         {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = ("EXCHANGE " + orderType);
@@ -3345,7 +3345,7 @@ public class Bitfinex extends BitfinexApi
                 {
                     fee.put("maker", makerFeeFiat);
                     fee.put("taker", takerFeeFiat);
-                } else if (java.util.Objects.equals(market.get("contract"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                 {
                     fee.put("maker", makerFeeDeriv);
                     fee.put("taker", takerFeeDeriv);
@@ -4598,7 +4598,7 @@ public class Bitfinex extends BitfinexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " setMargin() only support swap markets")) ;
             }

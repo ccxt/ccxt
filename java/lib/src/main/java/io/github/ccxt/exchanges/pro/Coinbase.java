@@ -1215,14 +1215,14 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public void handleMessage(Client client, Map<String, Object> message)
     {
         String channel = this.safeString(message, "channel");
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("subscriptions", Coinbase.this::handleSubscriptionStatus);
-            put("ticker", Coinbase.this::handleTickers);
-            put("ticker_batch", Coinbase.this::handleTickers);
-            put("market_trades", Coinbase.this::handleTrade);
-            put("user", Coinbase.this::handleOrder);
-            put("l2_data", Coinbase.this::handleOrderBook);
-            put("heartbeats", Coinbase.this::handleHeartbeats);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("subscriptions", "handleSubscriptionStatus");
+            put("ticker", "handleTickers");
+            put("ticker_batch", "handleTickers");
+            put("market_trades", "handleTrade");
+            put("user", "handleOrder");
+            put("l2_data", "handleOrderBook");
+            put("heartbeats", "handleHeartbeats");
         }};
         String type = this.safeString(message, "type");
         if (java.util.Objects.equals(type, "error"))
@@ -1236,10 +1236,31 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             throw new ExchangeError(errorMessageValue) ;
         }
-        io.github.ccxt.Handler method = methods.get(channel);
+        String method = methods.get(channel);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleSubscriptionStatus":
+                    this.handleSubscriptionStatus(client, message);
+                    break;
+                case "handleTickers":
+                    this.handleTickers(client, message);
+                    break;
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleHeartbeats":
+                    this.handleHeartbeats(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 }

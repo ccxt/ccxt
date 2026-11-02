@@ -708,8 +708,8 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         String messageHash = "authenticated";
-        Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
-        if (java.util.Objects.equals(success, true))
+        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        if (Boolean.TRUE.equals(success))
         {
             // client.resolve (message, messageHash);
             io.github.ccxt.ws.Future future = client.futures.get("authenticated");
@@ -1522,8 +1522,8 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         {
             return false;
         }
-        Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
-        if (java.util.Objects.equals(success, true))
+        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        if (Boolean.TRUE.equals(success))
         {
             return false;
         }
@@ -1560,27 +1560,69 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         {
             return;
         }
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("ping", Woofipro.this::handlePing);
-            put("pong", Woofipro.this::handlePong);
-            put("subscribe", Woofipro.this::handleSubscribe);
-            put("orderbook", Woofipro.this::handleOrderBook);
-            put("ticker", Woofipro.this::handleTicker);
-            put("tickers", Woofipro.this::handleTickers);
-            put("kline", Woofipro.this::handleOHLCV);
-            put("trade", Woofipro.this::handleTrade);
-            put("auth", Woofipro.this::handleAuth);
-            put("executionreport", Woofipro.this::handleOrderUpdate);
-            put("algoexecutionreport", Woofipro.this::handleOrderUpdate);
-            put("position", Woofipro.this::handlePositions);
-            put("balance", Woofipro.this::handleBalance);
-            put("bbos", Woofipro.this::handleBidAsk);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("ping", "handlePing");
+            put("pong", "handlePong");
+            put("subscribe", "handleSubscribe");
+            put("orderbook", "handleOrderBook");
+            put("ticker", "handleTicker");
+            put("tickers", "handleTickers");
+            put("kline", "handleOHLCV");
+            put("trade", "handleTrade");
+            put("auth", "handleAuth");
+            put("executionreport", "handleOrderUpdate");
+            put("algoexecutionreport", "handleOrderUpdate");
+            put("position", "handlePositions");
+            put("balance", "handleBalance");
+            put("bbos", "handleBidAsk");
         }};
         String eventVar = this.safeString(message, "event");
-        io.github.ccxt.Handler method = methods.get(eventVar);
+        String method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handlePing":
+                    this.handlePing(client, message);
+                    break;
+                case "handlePong":
+                    this.handlePong(client, message);
+                    break;
+                case "handleSubscribe":
+                    this.handleSubscribe(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleTickers":
+                    this.handleTickers(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleAuth":
+                    this.handleAuth(client, message);
+                    break;
+                case "handleOrderUpdate":
+                    this.handleOrderUpdate(client, message);
+                    break;
+                case "handlePositions":
+                    this.handlePositions(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handleBidAsk":
+                    this.handleBidAsk(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
             return;
         }
         String topic = this.safeString(message, "topic");
@@ -1589,7 +1631,49 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             method = methods.get(topic);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handlePing":
+                        this.handlePing(client, message);
+                        break;
+                    case "handlePong":
+                        this.handlePong(client, message);
+                        break;
+                    case "handleSubscribe":
+                        this.handleSubscribe(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTickers":
+                        this.handleTickers(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    case "handleTrade":
+                        this.handleTrade(client, message);
+                        break;
+                    case "handleAuth":
+                        this.handleAuth(client, message);
+                        break;
+                    case "handleOrderUpdate":
+                        this.handleOrderUpdate(client, message);
+                        break;
+                    case "handlePositions":
+                        this.handlePositions(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    case "handleBidAsk":
+                        this.handleBidAsk(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
                 return;
             }
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@"))));
@@ -1604,7 +1688,49 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 method = methods.get(name);
                 if (!java.util.Objects.equals(method, null))
                 {
-                    method.handle(client, message);
+                    switch (method) {
+                        case "handlePing":
+                            this.handlePing(client, message);
+                            break;
+                        case "handlePong":
+                            this.handlePong(client, message);
+                            break;
+                        case "handleSubscribe":
+                            this.handleSubscribe(client, message);
+                            break;
+                        case "handleOrderBook":
+                            this.handleOrderBook(client, message);
+                            break;
+                        case "handleTicker":
+                            this.handleTicker(client, message);
+                            break;
+                        case "handleTickers":
+                            this.handleTickers(client, message);
+                            break;
+                        case "handleOHLCV":
+                            this.handleOHLCV(client, message);
+                            break;
+                        case "handleTrade":
+                            this.handleTrade(client, message);
+                            break;
+                        case "handleAuth":
+                            this.handleAuth(client, message);
+                            break;
+                        case "handleOrderUpdate":
+                            this.handleOrderUpdate(client, message);
+                            break;
+                        case "handlePositions":
+                            this.handlePositions(client, message);
+                            break;
+                        case "handleBalance":
+                            this.handleBalance(client, message);
+                            break;
+                        case "handleBidAsk":
+                            this.handleBidAsk(client, message);
+                            break;
+                        default:
+                            throw new RuntimeException("Method not found: " + method);
+                    }
                     return;
                 }
                 List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_"))));
@@ -1614,7 +1740,49 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                     method = methods.get(this.safeString(splitName, 0));
                     if (!java.util.Objects.equals(method, null))
                     {
-                        method.handle(client, message);
+                        switch (method) {
+                            case "handlePing":
+                                this.handlePing(client, message);
+                                break;
+                            case "handlePong":
+                                this.handlePong(client, message);
+                                break;
+                            case "handleSubscribe":
+                                this.handleSubscribe(client, message);
+                                break;
+                            case "handleOrderBook":
+                                this.handleOrderBook(client, message);
+                                break;
+                            case "handleTicker":
+                                this.handleTicker(client, message);
+                                break;
+                            case "handleTickers":
+                                this.handleTickers(client, message);
+                                break;
+                            case "handleOHLCV":
+                                this.handleOHLCV(client, message);
+                                break;
+                            case "handleTrade":
+                                this.handleTrade(client, message);
+                                break;
+                            case "handleAuth":
+                                this.handleAuth(client, message);
+                                break;
+                            case "handleOrderUpdate":
+                                this.handleOrderUpdate(client, message);
+                                break;
+                            case "handlePositions":
+                                this.handlePositions(client, message);
+                                break;
+                            case "handleBalance":
+                                this.handleBalance(client, message);
+                                break;
+                            case "handleBidAsk":
+                                this.handleBidAsk(client, message);
+                                break;
+                            default:
+                                throw new RuntimeException("Method not found: " + method);
+                        }
                     }
                 }
             }

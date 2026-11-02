@@ -2197,7 +2197,7 @@ public class Opinion extends OpinionApi
             PredictionOrderBook snapshot = (this.fetchOrderBook(outcome, limit, new HashMap<String, Object>() {{}})).join();
             io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
             orderbook.reset(snapshot);
-            this.orderbooks.put(((String)sym), orderbook);
+            Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
             return null;
         });
 
@@ -2293,7 +2293,9 @@ public class Opinion extends OpinionApi
         mapLiteral7.put("last", last);
         mapLiteral7.put("info", message);
         Object ticker = this.safePredictionTicker(mapLiteral7, outcomeObj);
-        this.tickers.put(sym, ((Object)ticker));
+        Map<String, Object> cachedTickers = (Map<String, Object>) this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}});
+        cachedTickers.put(sym, ticker);
+        this.options.put("wsTickers", cachedTickers);
         client.resolve(ticker, ("ticker::" + sym));
     }
 

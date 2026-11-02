@@ -1118,7 +1118,7 @@ public class Btse extends BtseApi
             }
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("contract"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports contract markets only")) ;
             }
@@ -1430,7 +1430,7 @@ public class Btse extends BtseApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("contract"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new BadRequest((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
@@ -1536,7 +1536,7 @@ public class Btse extends BtseApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String last = this.safeString(ticker, "lastPrice");
         String baseVolume = this.safeString(ticker, "amount");
-        if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(marketResolved, null)) && (java.util.Objects.equals(marketResolved.get("contract"), true)))
+        if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(marketResolved, null)) && Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))
         {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
@@ -1589,7 +1589,7 @@ public class Btse extends BtseApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new BadRequest(((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
             }
@@ -1671,7 +1671,7 @@ public class Btse extends BtseApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new BadRequest((this.id + " fetchFundingRate() symbol does not support spot markets")) ;
             }
@@ -2183,7 +2183,7 @@ public class Btse extends BtseApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 return (this.createSpotOrder((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             } else
@@ -2820,7 +2820,7 @@ public class Btse extends BtseApi
                 throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
             }
             List<Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("symbol", market.get("id"));
                 response = (this.privatePutSpotApiV4TradeOrders(this.extend(request, query))).join();
@@ -2891,7 +2891,7 @@ public class Btse extends BtseApi
             }
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
             List<Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("symbol", market.get("id"));
                 response = (this.privateDeleteSpotApiV4TradeOrders(this.extend(request, paramsOmitted))).join();
@@ -3730,7 +3730,7 @@ public class Btse extends BtseApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.privateGetSpotApiV4TradeFees(this.extend(request, parameters))).join();
             } else
@@ -4088,17 +4088,17 @@ public class Btse extends BtseApi
             {
                 throw new BadRequest((this.id + " setMarginMode() marginMode argument should be either cross or isolated")) ;
             }
-            Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", (Object) null);
+            Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
             if (java.util.Objects.equals(marginModeValue, "cross"))
             {
                 if (!(parameters.containsKey("hedged")))
                 {
                     throw new ArgumentsRequired((this.id + " setMarginMode() requires a hedged parameter for cross margin mode")) ;
-                } else if (java.util.Objects.equals(hedged, true))
+                } else if (Boolean.TRUE.equals(hedged))
                 {
                     positionMode = "HEDGE";
                 }
-            } else if ((parameters.containsKey("hedged")) && (!java.util.Objects.equals(hedged, true)))
+            } else if ((parameters.containsKey("hedged")) && !Boolean.TRUE.equals(hedged))
             {
                 throw new BadRequest((this.id + " setMarginMode() hedged parameter cannot be false for isolated margin mode")) ;
             } else

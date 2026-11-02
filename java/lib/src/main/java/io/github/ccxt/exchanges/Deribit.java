@@ -2051,7 +2051,7 @@ public class Deribit extends DeribitApi
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         String amount = this.safeString(trade, "amount");
         String cost = Precise.stringMul(amount, priceString);
-        if (java.util.Objects.equals(marketResolved.get("inverse"), true))
+        if (Boolean.TRUE.equals(this.safeBool(marketResolved, "inverse", false)))
         {
             cost = Precise.stringDiv(amount, priceString);
         }
@@ -2292,13 +2292,13 @@ public class Deribit extends DeribitApi
                     put( "maker", market.get("maker") );
                     put( "taker", market.get("taker") );
                 }};
-                if (java.util.Objects.equals(market.get("swap"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
                     fee = this.extend(fee, perpetualFee);
-                } else if (java.util.Objects.equals(market.get("future"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
                 {
                     fee = this.extend(fee, futureFee);
-                } else if (java.util.Objects.equals(market.get("option"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
                 {
                     fee = this.extend(fee, optionFee);
                 }
@@ -4151,7 +4151,7 @@ public class Deribit extends DeribitApi
                 return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, paramsPaginate, "continuation", "continuation", (Long) null, (Long) null)).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((((this.id + " fetchLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
             }
@@ -4244,7 +4244,7 @@ public class Deribit extends DeribitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
             }
@@ -4657,7 +4657,7 @@ public class Deribit extends DeribitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("contract"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
             }
@@ -4735,7 +4735,7 @@ public class Deribit extends DeribitApi
         Double openInterest = this.safeNumber(interest, "open_interest", (Object) null);
         Double openInterestAmount = null;
         Double openInterestValue = null;
-        if ((java.util.Objects.equals(marketResolved.get("option"), true)) || ((java.util.Objects.equals(marketResolved.get("future"), true)) && (java.util.Objects.equals(marketResolved.get("linear"), true))))
+        if (Boolean.TRUE.equals((this.safeBool(marketResolved, "option", false))) || (Boolean.TRUE.equals((this.safeBool(marketResolved, "future", false))) && Boolean.TRUE.equals((this.safeBool(marketResolved, "linear", false)))))
         {
             openInterestAmount = openInterest;
         } else

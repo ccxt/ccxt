@@ -2208,10 +2208,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         if (this.isNativeDeribitCredentials())
         {
             String size = this.safeString(position, "size");
-            if (!java.util.Objects.equals(marketResolved.get("option"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(marketResolved, "option", false)))
             {
                 notional = size;
-                if (java.util.Objects.equals(marketResolved.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(marketResolved, "linear", false)))
                 {
                     size = this.safeString(position, "size_currency");
                 }
@@ -2574,7 +2574,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
     public String getOrderAmount(Object market, Object amount)
     {
         String exchangeAmount = this.numberToString(amount);
-        if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)))
+        if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(market, "contract", false))))
         {
             exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
         }
@@ -2872,7 +2872,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Long lastUpdateTimestamp = this.safeInteger(order, "last_update_timestamp");
         Double filled = this.safeNumber(order, "filled_amount", (Object) null);
         Double amount = this.safeNumber(order, "amount", (Object) null);
-        if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("contract"), true)))
+        if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))
         {
             String contractSize = this.safeString(marketResolved, "contractSize");
             amount = this.parseNumber(this.safeString(order, "contracts", Precise.stringDiv(this.safeString(order, "amount"), contractSize)));
@@ -2891,7 +2891,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         if ((!java.util.Objects.equals(filledString, null)) && (!java.util.Objects.equals(averageString, null)))
         {
             cost = this.parseNumber(Precise.stringMul(filledString, averageString));
-            if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("inverse"), true)) && (!java.util.Objects.equals(marketResolved.get("option"), true)))
+            if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(marketResolved, "inverse", false))) && (!Boolean.TRUE.equals(this.safeBool(marketResolved, "option", false))))
             {
                 cost = this.parseNumber(Precise.stringDiv(filledString, averageString));
             }
@@ -3551,7 +3551,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Double price = this.safeNumber(trade, "price", (Object) null);
         Double amount = this.safeNumber(trade, "amount", (Object) null);
         String amountString = this.safeString(trade, "amount");
-        if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("contract"), true)))
+        if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))
         {
             amount = this.parseNumber(this.safeString(trade, "contracts", Precise.stringDiv(amountString, this.safeString(marketResolved, "contractSize"))));
         }
@@ -3560,7 +3560,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         if ((!java.util.Objects.equals(amountString, null)) && (!java.util.Objects.equals(priceString, null)))
         {
             cost = this.parseNumber(Precise.stringMul(amountString, priceString));
-            if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("inverse"), true)) && (!java.util.Objects.equals(marketResolved.get("option"), true)))
+            if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(marketResolved, "inverse", false))) && (!Boolean.TRUE.equals(this.safeBool(marketResolved, "option", false))))
             {
                 cost = this.parseNumber(Precise.stringDiv(amountString, priceString));
             }
@@ -3879,7 +3879,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             baseApiUrl = "https://www.deribit.com/api/v2";
         }
         String url = ((baseApiUrl + "/") + rpcMethod);
-        Map<String, Object> requestHeaders = null;
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(isNativeDeribit) && ((java.util.Objects.equals(path, "get_leverage")) || (java.util.Objects.equals(path, "set_leverage"))))
         {
             throw new NotSupported((((this.id + " ") + rpcMethod) + " is only documented on the Coinbase gateway")) ;

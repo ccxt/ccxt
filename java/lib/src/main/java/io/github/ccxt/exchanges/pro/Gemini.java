@@ -612,12 +612,17 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String marketId = this.safeString(firstBidAsk, "symbol", "").toLowerCase();
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        if (!(this.bidsasks.containsKey(symbol)))
+        // read-modify-write: the cached entry is copied out, updated, and stored back whole
+        Map<String, Object> currentBidAsk = new HashMap<String, Object>() {{}};
+        if (this.bidsasks.containsKey(symbol))
         {
-            this.bidsasks.put(symbol, this.parseTicker(new HashMap<String, Object>() {{}}, (Map<String, Object>) null));
-            Helpers.addElementToObject((symbol == null || this.bidsasks == null ? null : this.bidsasks.get(symbol)), "symbol", symbol);
+            Object cachedBidAsk = (symbol == null || this.bidsasks == null ? null : this.bidsasks.get(symbol));
+            currentBidAsk = this.extend(new HashMap<String, Object>() {{}}, cachedBidAsk);
+        } else
+        {
+            currentBidAsk = (Map<String, Object>) this.extend(this.parseTicker(new HashMap<String, Object>() {{}}, (Map<String, Object>) null));
+            currentBidAsk.put("symbol", symbol);
         }
-        Object currentBidAsk = (symbol == null || this.bidsasks == null ? null : this.bidsasks.get(symbol));
         String messageHash = ("bidsasks:" + symbol);
         // last update always overwrites the previous state and is the latest state
         for (var i = 0; i < ((List<?>)rawBidAskChanges).size(); i++)
@@ -633,17 +638,17 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Double size = this.parseNumber(sizeString);
             if (java.util.Objects.equals(rawSide, "bid"))
             {
-                Helpers.addElementToObject(currentBidAsk, "bid", price);
-                Helpers.addElementToObject(currentBidAsk, "bidVolume", size);
+                currentBidAsk.put("bid", price);
+                currentBidAsk.put("bidVolume", size);
             } else
             {
-                Helpers.addElementToObject(currentBidAsk, "ask", price);
-                Helpers.addElementToObject(currentBidAsk, "askVolume", size);
+                currentBidAsk.put("ask", price);
+                currentBidAsk.put("askVolume", size);
             }
         }
-        Helpers.addElementToObject(currentBidAsk, "timestamp", timestamp);
-        Helpers.addElementToObject(currentBidAsk, "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(currentBidAsk, "info", rawBidAskChanges);
+        currentBidAsk.put("timestamp", timestamp);
+        currentBidAsk.put("datetime", this.iso8601(timestamp));
+        currentBidAsk.put("info", rawBidAskChanges);
         Map<String, Object> bidsAsksDict = new HashMap<String, Object>() {{}};
         bidsAsksDict.put(symbol, currentBidAsk);
         this.bidsasks.put(symbol, currentBidAsk);
@@ -665,7 +670,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-            if ((!java.util.Objects.equals(firstMarket.get("spot"), true)) && (!java.util.Objects.equals(firstMarket.get("linear"), true)))
+            if ((!Boolean.TRUE.equals(this.safeBool(firstMarket, "spot", false))) && (!Boolean.TRUE.equals(this.safeBool(firstMarket, "linear", false))))
             {
                 throw new NotSupported((this.id + " watchMultiple supports only spot or linear-swap symbols")) ;
             }
@@ -1055,11 +1060,11 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         {
             this.handleError(client, message);
         }
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("l2_updates", Gemini.this::handleL2Updates);
-            put("trade", Gemini.this::handleTrade);
-            put("subscription_ack", Gemini.this::handleSubscription);
-            put("heartbeat", Gemini.this::handleHeartbeat);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("l2_updates", "handleL2Updates");
+            put("trade", "handleTrade");
+            put("subscription_ack", "handleSubscription");
+            put("heartbeat", "handleHeartbeat");
         }};
         String type = this.safeString(message, "type", "");
         if (((String)type).indexOf("candles") >= 0)
@@ -1067,10 +1072,25 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             this.handleOHLCV(client, message);
             return;
         }
-        io.github.ccxt.Handler method = methods.get(type);
+        String method = methods.get(type);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleL2Updates":
+                    this.handleL2Updates(client, message);
+                    break;
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleSubscription":
+                    this.handleSubscription(client, message);
+                    break;
+                case "handleHeartbeat":
+                    this.handleHeartbeat(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
         // handle multimarketdata
         if (java.util.Objects.equals(type, "update"))

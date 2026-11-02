@@ -248,7 +248,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> request = this.createOrdersRequest(orders, parameters);
             Object firstOrder = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
             Map<String, Object> market = this.market(((Map<String, Object>)firstOrder).get("symbol"));
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " createOrdersWs is not supported for swap markets")) ;
             }
@@ -516,7 +516,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
-                if (!java.util.Objects.equals(market.get("swap"), true))
+                if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
                     throw new NotSupported((this.id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets")) ;
                 }
@@ -578,12 +578,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String messageHash = (("orderbook" + ":") + symbolValue);
             // max 100 atm, max 50 for options
             Integer defaultLimit = 100;
-            if ((java.util.Objects.equals(market.get("spot"), true)) || (java.util.Objects.equals(messageType, "options")))
+            if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) || (java.util.Objects.equals(messageType, "options")))
             {
                 defaultLimit = 50;
             }
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
                 Long maxSpotLimit = this.parseToInt(this.handleOption("fetchOrderBook", "maxSpotLimit", 1000));
@@ -595,7 +595,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 channel = "spot.order_book_update";
                 payload = new ArrayList<Object>(Arrays.asList(marketId, interval));
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 channel = "spot.obu";
                 String finalInterval = interval;
@@ -656,7 +656,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object limit = this.safeInteger(paramsInterval, "limit");
             if (java.util.Objects.equals(limit, null))
             {
-                limit = (((java.util.Objects.equals(market.get("spot"), true)))) ? 50 : 100; // max 100 atm
+                limit = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? 50 : 100; // max 100 atm
                 if (java.util.Objects.equals(messageType, "options"))
                 {
                     limit = 50; // max 50 for options
@@ -668,7 +668,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 channel = "spot.order_book_update";
                 payload = new ArrayList<Object>(Arrays.asList(marketId, intervalOption));
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 channel = "spot.obu";
                 String finalInterval = intervalOption;
@@ -1110,8 +1110,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
                 return items;
             }
-            Object result = ((Boolean.TRUE.equals(isWatchTickers))) ? this.tickers : this.bidsasks;
-            return this.filterByArray(result, "symbol", symbolsNormalized, true);
+            if (Boolean.TRUE.equals(isWatchTickers))
+            {
+                return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
+            }
+            return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
         });
 
     }
@@ -2714,24 +2717,57 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
         List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String channelType = this.safeString(channelParts, 1);
-        Map<String, io.github.ccxt.Handler> v4Methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("usertrades", Gate.this::handleMyTrades);
-            put("candlesticks", Gate.this::handleOHLCV);
-            put("orders", Gate.this::handleOrder);
-            put("autoorders", Gate.this::handleOrder);
-            put("priceorders", Gate.this::handleOrder);
-            put("positions", Gate.this::handlePositions);
-            put("tickers", Gate.this::handleTicker);
-            put("book_ticker", Gate.this::handleBidAsk);
-            put("trades", Gate.this::handleTrades);
-            put("order_book_update", Gate.this::handleOrderBook);
-            put("balances", Gate.this::handleBalance);
-            put("liquidates", Gate.this::handleLiquidation);
+        Map<String, String> v4Methods = new HashMap<String, String>() {{
+            put("usertrades", "handleMyTrades");
+            put("candlesticks", "handleOHLCV");
+            put("orders", "handleOrder");
+            put("autoorders", "handleOrder");
+            put("priceorders", "handleOrder");
+            put("positions", "handlePositions");
+            put("tickers", "handleTicker");
+            put("book_ticker", "handleBidAsk");
+            put("trades", "handleTrades");
+            put("order_book_update", "handleOrderBook");
+            put("balances", "handleBalance");
+            put("liquidates", "handleLiquidation");
         }};
-        io.github.ccxt.Handler method = v4Methods.get(channelType);
+        String method = v4Methods.get(channelType);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleMyTrades":
+                    this.handleMyTrades(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handlePositions":
+                    this.handlePositions(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleBidAsk":
+                    this.handleBidAsk(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handleLiquidation":
+                    this.handleLiquidation(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
         String requestId = this.safeString(message, "request_id");
         if (java.util.Objects.equals(requestId, "authenticated"))
@@ -2744,8 +2780,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
             // use safeValue as result may be Array or an Object
             Object result = this.safeValue(data, "result");
-            Boolean ack = (Boolean) this.safeBool(message, "ack", (Object) null);
-            if (!java.util.Objects.equals(ack, true))
+            Boolean ack = (Boolean) this.safeBool(message, "ack", false);
+            if (!Boolean.TRUE.equals(ack))
             {
                 client.resolve(result, requestId);
             }

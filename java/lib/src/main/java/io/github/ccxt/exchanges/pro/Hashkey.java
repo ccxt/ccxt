@@ -292,7 +292,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String symbol = this.safeString(ticker, "symbol", "");
         String messageHash = ("ticker:" + symbol);
         this.tickers.put(symbol, ticker);
-        client.resolve((this.tickers == null || symbol == null ? null : this.tickers.get(symbol)), messageHash);
+        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
 
     /**
@@ -565,7 +565,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         type = ((List<Object>) typetimeInForcepostOnlyVariable).get(0);
         timeInForce = ((List<Object>) typetimeInForcepostOnlyVariable).get(1);
         postOnly = ((List<Object>) typetimeInForcepostOnlyVariable).get(2);
-        if (java.util.Objects.equals(marketResolved.get("contract"), true))
+        if (Boolean.TRUE.equals(this.safeBool(marketResolved, "contract", false)))
         {
             type = null;
         }
@@ -1069,7 +1069,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 Client client = this.client(url);
                 this.options.remove("listenKey");
                 client.reject(error);
-                ((Map<String,Object>)this.clients).remove((String)url);
+                ((Map<String,Object>)this.clients).remove((String)client.url);
             }
             return null;
         });

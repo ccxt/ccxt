@@ -1041,6 +1041,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             }
             // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
             String subaccountIdKey = this.numberToString(subaccountId);
+            if (java.util.Objects.equals(subaccountIdKey, null))
+            {
+                throw new ExchangeError((this.id + " watchBalance() could not resolve the subaccount id")) ;
+            }
             if (Boolean.TRUE.equals(fetchSnapshot) && !(((Map<?, ?>)this.balance).containsKey(subaccountIdKey)))
             {
                 Map<String, Object> snapshotRequest = new HashMap<String, Object>() {{
@@ -1319,14 +1323,14 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             return;
         }
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("orderbook", Derive.this::handleOrderBook);
-            put("ticker", Derive.this::handleTicker);
-            put("ticker_slim", Derive.this::handleTicker);
-            put("trades", Derive.this::handleTrade);
-            put("orders", Derive.this::handleOrder);
-            put("mytrades", Derive.this::handleMyTrade);
-            put("balances", Derive.this::handleBalance);
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("orderbook", "handleOrderBook");
+            put("ticker", "handleTicker");
+            put("ticker_slim", "handleTicker");
+            put("trades", "handleTrade");
+            put("orders", "handleOrder");
+            put("mytrades", "handleMyTrade");
+            put("balances", "handleBalance");
         }};
         String eventVar = null;
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
@@ -1350,10 +1354,31 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 }
             }
         }
-        io.github.ccxt.Handler method = methods.get(eventVar);
+        String method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleMyTrade":
+                    this.handleMyTrade(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
             return;
         }
         if (message.containsKey("id"))

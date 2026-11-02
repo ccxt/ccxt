@@ -1600,7 +1600,7 @@ public class Aster extends AsterApi
             } else
             {
                 ((Map<String, Object>)requestUntil).put("symbol", this.safeString(market, "id", ""));
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted))).join();
                 } else
@@ -1763,7 +1763,7 @@ public class Aster extends AsterApi
             // use historical endpoint for targeted requests
             if (Boolean.TRUE.equals(sinceDefined))
             {
-                if (java.util.Objects.equals(market.get("swap"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
                     response = (this.fapiPublicGetV3AggTrades(this.extend(request, parameters))).join();
                 } else
@@ -1772,7 +1772,7 @@ public class Aster extends AsterApi
                 }
             } else
             {
-                if (java.util.Objects.equals(market.get("swap"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
                     response = (this.fapiPublicGetV3Trades(this.extend(request, parameters))).join();
                 } else
@@ -1890,7 +1890,7 @@ public class Aster extends AsterApi
             {
                 request.put("limit", this.findNearestCeiling(new ArrayList<Object>(Arrays.asList(5, 10, 20, 50, 100, 500, 1000)), limit));
             }
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 response = (this.fapiPublicGetV3Depth(this.extend(request, parameters))).join();
             } else
@@ -2037,7 +2037,7 @@ public class Aster extends AsterApi
                 put( "symbol", market.get("id") );
             }};
             Object response = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 response = (this.fapiPublicGetV3Ticker24hr(this.extend(request, parameters))).join();
             } else
@@ -2676,7 +2676,7 @@ public class Aster extends AsterApi
         return BaseExchange.supplyAsync(() -> {
 
             String strValue = "false";
-            if (java.util.Objects.equals(hedged, true))
+            if (Boolean.TRUE.equals(hedged))
             {
                 strValue = "true";
             }
@@ -2729,7 +2729,7 @@ public class Aster extends AsterApi
                 put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 response = (this.fapiPrivateGetV3CommissionRate(this.extend(request, parameters))).join();
             } else
@@ -2909,7 +2909,7 @@ public class Aster extends AsterApi
                 request.put("orderId", id);
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 response = (this.fapiPrivateGetV3Order(this.extend(request, paramsOmitted))).join();
             } else
@@ -2985,7 +2985,7 @@ public class Aster extends AsterApi
                 request.put("orderId", id);
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.sapiPrivateGetV3OpenOrder(this.extend(request, paramsOmitted))).join();
             } else
@@ -3065,7 +3065,7 @@ public class Aster extends AsterApi
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 response = (this.fapiPrivateGetV3AllOrders(this.extend(requestUntil, paramsUntil))).join();
             } else
@@ -3226,7 +3226,7 @@ public class Aster extends AsterApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 response = (this.fapiPrivatePostV3Order(request)).join();
             } else
@@ -3306,7 +3306,7 @@ public class Aster extends AsterApi
             }
             List<String> orderSymbolsResolved = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
             Map<String, Object> market = this.market((orderSymbolsResolved == null || 0 >= ((List<?>)orderSymbolsResolved).size() ? null : ((List<?>)orderSymbolsResolved).get(0)));
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((((this.id + " createOrders() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
             }
@@ -3397,7 +3397,7 @@ public class Aster extends AsterApi
         String stopPrice = null;
         if (Boolean.TRUE.equals(isTrailingPercentOrder))
         {
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 uppercaseType = "TRAILING_STOP_MARKET";
                 request.put("callbackRate", trailingPercent);
@@ -3445,7 +3445,7 @@ public class Aster extends AsterApi
         request.put("type", uppercaseType);
         if (java.util.Objects.equals(uppercaseType, "MARKET"))
         {
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 Object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
                 if (java.util.Objects.equals(quoteOrderQty, true))
@@ -3549,7 +3549,7 @@ public class Aster extends AsterApi
         {
             requestParams = this.omit(parameters, omitKeys);
         }
-        if (Boolean.TRUE.equals((this.safeBool(this.options, "builderFee", false))) && (java.util.Objects.equals(market.get("swap"), true)))
+        if (Boolean.TRUE.equals((this.safeBool(this.options, "builderFee", false))) && Boolean.TRUE.equals((this.safeBool(market, "swap", false))))
         {
             request.put("builder", this.safeString(this.options, "builder"));
             request.put("feeRate", this.safeString(this.options, "builderRate"));
@@ -3582,7 +3582,7 @@ public class Aster extends AsterApi
                 put( "symbol", market.get("id") );
             }};
             Object response = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 response = (this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters))).join();
             } else
@@ -3639,7 +3639,7 @@ public class Aster extends AsterApi
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 response = (this.fapiPrivateDeleteV3Order(this.extend(request, paramsOmitted))).join();
             } else
@@ -3689,7 +3689,7 @@ public class Aster extends AsterApi
                 request.put("orderIdList", ids);
             }
             List<Object> response = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 response = (this.fapiPrivateDeleteV3BatchOrders(this.extend(request, parameters))).join();
             } else
@@ -4604,7 +4604,7 @@ public class Aster extends AsterApi
             Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             String marketId = this.safeString(position, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
-            Object code = (((java.util.Objects.equals(market.get("linear"), true)))) ? market.get("quote") : market.get("base");
+            Object code = ((Boolean.TRUE.equals((this.safeBool(market, "linear", false))))) ? market.get("quote") : market.get("base");
             String maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             Boolean isPositionOpen = (!java.util.Objects.equals(maintenanceMargin, "0")) && (!java.util.Objects.equals(maintenanceMargin, "0.00000000"));

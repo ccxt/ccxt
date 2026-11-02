@@ -1169,7 +1169,7 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
@@ -1453,7 +1453,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new NotSupported((this.id + " fetchTrades () can only fetch trades for spot markets")) ;
             }
@@ -1526,7 +1526,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new NotSupported((this.id + " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
             }
@@ -1707,9 +1707,9 @@ public class Bigone extends BigoneApi
         {
             triggerPrice = null;
         }
-        Boolean immediateOrCancel = (Boolean) this.safeBool(order, "immediate_or_cancel", (Object) null);
+        Boolean immediateOrCancel = (Boolean) this.safeBool(order, "immediate_or_cancel", false);
         String timeInForce = null;
-        if (java.util.Objects.equals(immediateOrCancel, true))
+        if (Boolean.TRUE.equals(immediateOrCancel))
         {
             timeInForce = "IOC";
         }
@@ -1771,7 +1771,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }

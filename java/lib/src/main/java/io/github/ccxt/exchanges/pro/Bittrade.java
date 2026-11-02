@@ -148,7 +148,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         ticker.put("timestamp", timestamp);
         ticker.put("datetime", this.iso8601(timestamp));
         Object symbol = ticker.get("symbol");
-        this.tickers.put(((String)symbol), ticker);
+        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         client.resolve(ticker, ch);
         return message;
     }
@@ -703,16 +703,31 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         if (java.util.Objects.equals(type, "market"))
         {
             String methodName = this.safeString(parts, 2);
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("mbp", Bittrade.this::handleOrderBook);
-                put("detail", Bittrade.this::handleTicker);
-                put("trade", Bittrade.this::handleTrades);
-                put("kline", Bittrade.this::handleOHLCV);
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("mbp", "handleOrderBook");
+                put("detail", "handleTicker");
+                put("trade", "handleTrades");
+                put("kline", "handleOHLCV");
             }};
-            io.github.ccxt.Handler method = methods.get(methodName);
+            String method = methods.get(methodName);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

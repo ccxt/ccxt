@@ -1335,7 +1335,7 @@ public class Derive extends DeriveApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("contract"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
             }
@@ -1385,7 +1385,7 @@ public class Derive extends DeriveApi
         String value = null;
         Boolean isOption = (Boolean) this.safeBool(market, "option", false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(isOption, true)))
+        if ((!java.util.Objects.equals(market, null)) && !Boolean.TRUE.equals(isOption))
         {
             value = Precise.stringMul(amount, this.safeString(interest, "M"));
         }
@@ -1418,7 +1418,7 @@ public class Derive extends DeriveApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("option"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "option", false)))
             {
                 throw new BadRequest((this.id + " fetchGreeks() supports option markets only")) ;
             }
@@ -1518,7 +1518,7 @@ public class Derive extends DeriveApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("option"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "option", false)))
             {
                 throw new BadRequest((this.id + " fetchOption() supports option markets only")) ;
             }
@@ -3320,11 +3320,11 @@ public class Derive extends DeriveApi
         String filled = this.safeString(order, "filled_amount");
         String fee = this.safeString(order, "order_fee");
         String orderType = this.safeStringLower(order, "order_type");
-        Boolean isBid = (Boolean) this.safeBool(order, "is_bid", (Object) null);
+        Boolean isBid = (Boolean) this.safeBool(order, "is_bid", false);
         String side = this.safeString(order, "direction");
         if (java.util.Objects.equals(side, null))
         {
-            if (java.util.Objects.equals(isBid, true))
+            if (Boolean.TRUE.equals(isBid))
             {
                 side = "buy";
             } else
