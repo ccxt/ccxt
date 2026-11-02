@@ -783,7 +783,7 @@
                         "fee": 0,
                         "fees": {},
                         "networks": {
-                            "APTOS": {
+                            "APT": {
                                 "info": {
                                     "chain": "aptusdt",
                                     "displayName": "APT",
@@ -812,7 +812,7 @@
                                     "addrDepositTag": false
                                 },
                                 "id": "aptusdt",
-                                "network": "APTOS",
+                                "network": "APT",
                                 "limits": {
                                     "deposit": {
                                         "min": 1,
