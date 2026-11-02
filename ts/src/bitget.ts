@@ -1955,6 +1955,7 @@ export default class bitget extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
+                    'fetchOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 200, // variable timespans for recent endpoint, 200 for historical
                     },
