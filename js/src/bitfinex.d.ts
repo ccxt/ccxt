@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, NullableDict, int, Status } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, int, Status } from './base/types.js';
 /**
  * @class bitfinex
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
 export default class bitfinex extends Exchange {
     describe(): any;
     isFiat(code: any): boolean;
-    getCurrencyName(code: string): any;
+    getCurrencyName(code: string): string;
     amountToPrecision(symbol: Str, amount: any): string;
     priceToPrecision(symbol: Str, price: any): string;
     /**
@@ -127,8 +127,8 @@ export default class bitfinex extends Exchange {
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    parseOrderStatus(status: Str): string | undefined;
-    parseOrderFlags(flags: Str): any[] | undefined;
+    parseOrderStatus(status: Str): Str;
+    parseOrderFlags(flags: Str): Strings;
     parseTimeInForce(orderType: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
@@ -327,11 +327,11 @@ export default class bitfinex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name bitfinex#fetchPositions
@@ -344,9 +344,9 @@ export default class bitfinex extends Exchange {
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(statusCode: int, statusText: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    parseLedgerEntryType(type: Str): string | undefined;
+    parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method

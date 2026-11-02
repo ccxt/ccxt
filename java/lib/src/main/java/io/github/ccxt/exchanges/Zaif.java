@@ -905,19 +905,19 @@ public class Zaif extends ZaifApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -979,10 +979,12 @@ public class Zaif extends ZaifApi
         Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", currencyResolved.get("code")
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", currencyResolved.get("code"));
+                fee = hx4NewMap0;
+            }
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
@@ -1017,8 +1019,9 @@ public class Zaif extends ZaifApi
         return toFixed(nonce, 8);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(baseApiUrl, null))
         {
@@ -1026,19 +1029,19 @@ public class Zaif extends ZaifApi
         }
         String baseUrl = baseApiUrl;
         String url = (baseUrl + "/");
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             url = (url + ((("api/" + this.version) + "/") + this.implodeParams(path, parameters)));
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapi"))
+        } else if (java.util.Objects.equals(apiName, "fapi"))
         {
             url = (url + ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters)));
         } else
         {
             this.checkRequiredCredentials(true);
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "ecapi"))
+            if (java.util.Objects.equals(apiName, "ecapi"))
             {
                 url = (url + "ecapi");
-            } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "tlapi"))
+            } else if (java.util.Objects.equals(apiName, "tlapi"))
             {
                 url = (url + "tlapi");
             } else
@@ -1068,8 +1071,8 @@ public class Zaif extends ZaifApi
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
             h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", body);
-            h2kMap2.put("headers", headers);
+            h2kMap2.put("body", null);
+            h2kMap2.put("headers", null);
             return h2kMap2;
         }
     }
@@ -1092,7 +1095,7 @@ public class Zaif extends ZaifApi
             throw new ExchangeError(feedback) ;
         }
         Boolean success = (Boolean) this.safeBool(response, "success", true);
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             throw new ExchangeError(feedback) ;
         }

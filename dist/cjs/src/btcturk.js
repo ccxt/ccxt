@@ -721,27 +721,36 @@ class btcturk extends btcturk$1["default"] {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
         };
         const until = this.safeInteger(params, 'until', this.milliseconds());
-        request['to'] = this.parseToInt((until / 1000));
+        const untilSeconds = this.parseToInt((until / 1000));
+        request['to'] = untilSeconds;
         if (since !== undefined) {
             request['from'] = this.parseToInt(since / 1000);
         }
-        let limitDefaulted = limit;
-        if ((since === undefined) && (limit === undefined)) {
-            limitDefaulted = 100; // default value
+        let limitResolved = undefined;
+        if (limit !== undefined) {
+            limitResolved = limit;
+            if (limit > 11000) {
+                limitResolved = 11000; // max 11000 candles diapason can be covered
+            }
         }
-        const limitResolved = (limitDefaulted !== undefined) ? Math.min(limitDefaulted, 11000) : undefined; // max 11000 candles diapason can be covered
+        else if (since === undefined) {
+            limitResolved = 100; // default value
+        }
         if (limitResolved !== undefined) {
             if (timeframe === '1y') { // difficult with leap years
                 throw new errors.BadRequest(this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe(timeframe);
-            const limitSeconds = seconds * (limitResolved - 1);
+            const limitCount = (limit === undefined) ? 100 : Math.min(limit, 11000);
+            const limitSeconds = seconds * (limitCount - 1);
             if (since !== undefined) {
                 const to = this.parseToInt(since / 1000) + limitSeconds;
-                request['to'] = Math.min(request['to'], to);
+                if (to < untilSeconds) {
+                    request['to'] = to;
+                }
             }
             else {
-                request['from'] = this.parseToInt(0 / 1000) - limitSeconds;
+                request['from'] = 0 - limitSeconds;
             }
         }
         const response = await this.graphGetKlinesHistory(this.extend(request, params));
@@ -1070,11 +1079,12 @@ class btcturk extends btcturk$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         if (this.id === 'btctrader') {
             throw new errors.ExchangeError(this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1087,13 +1097,13 @@ class btcturk extends btcturk$1["default"] {
         }
         let requestBody = undefined;
         if (isQueryMethod) {
-            requestBody = body;
+            requestBody = undefined;
         }
         else {
             requestBody = this.json(params);
         }
         let privateHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const secret = this.base64ToBinary(this.secret);
@@ -1105,7 +1115,7 @@ class btcturk extends btcturk$1["default"] {
                 'Content-Type': 'application/json',
             };
         }
-        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
+        const requestHeaders = privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

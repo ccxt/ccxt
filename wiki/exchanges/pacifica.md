@@ -36,6 +36,7 @@
 * [setLeverage](#setleverage)
 * [withdraw](#withdraw)
 * [fetchTradingFee](#fetchtradingfee)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchOpenInterests](#fetchopeninterests)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchLedger](#fetchledger)
@@ -44,6 +45,13 @@
 * [fetchFundingHistory](#fetchfundinghistory)
 * [transfer](#transfer)
 * [createSubAccount](#createsubaccount)
+* [bindAgentWallet](#bindagentwallet)
+* [createApiKey](#createapikey)
+* [revokeApiKey](#revokeapikey)
+* [fetchApiKeys](#fetchapikeys)
+* [approveBuilderCode](#approvebuildercode)
+* [fetchBuilderApprovals](#fetchbuilderapprovals)
+* [revokeBuilderCode](#revokebuildercode)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
 * [cancelOrdersWs](#cancelordersws)
@@ -768,13 +776,13 @@ make a withdrawal (only support native USDC)
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | validated but not sent, funds go to the account wallet |
-| tag | <code>string</code> | Yes | not used by withdraw () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 
 
 ```javascript
-pacifica.withdraw (code, amount, address, tag, params?)
+pacifica.withdraw (code, amount, address, params?)
 ```
 
 
@@ -797,6 +805,27 @@ fetch the trading fees for a market
 
 ```javascript
 pacifica.fetchTradingFee (symbol, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets, the account fee level applies to every market
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+
+```javascript
+pacifica.fetchTradingFees (params?)
 ```
 
 
@@ -956,8 +985,8 @@ transfer currency internally between wallets on the same account
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | amount to transfer |
-| fromAccount | <code>string</code> | Yes | account to transfer from *spot, swap* |
-| toAccount | <code>string</code> | Yes | account to transfer to *swap, spot or address* |
+| fromAccount | <code>string</code> | Yes | not used, funds are always sent from the account wallet, the origin address |
+| toAccount | <code>string</code> | Yes | the address of the subaccount or main account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 
@@ -970,7 +999,7 @@ pacifica.transfer (code, amount, fromAccount, toAccount, params?)
 <a name="createSubAccount" id="createsubaccount"></a>
 
 ### createSubAccount{docsify-ignore}
-creates a sub-account under the main account
+creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
 
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - a response object
@@ -988,6 +1017,148 @@ creates a sub-account under the main account
 
 ```javascript
 pacifica.createSubAccount (name, params?)
+```
+
+
+<a name="bindAgentWallet" id="bindagentwallet"></a>
+
+### bindAgentWallet{docsify-ignore}
+binds an agent wallet that can sign trading actions for the account
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+**See**: https://docs.pacifica.fi/api-documentation/api/signing/api-agent-keys  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| agentAddress | <code>string</code> | Yes | the public key of the agent wallet |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.bindAgentWallet (agentAddress, params?)
+```
+
+
+<a name="createApiKey" id="createapikey"></a>
+
+### createApiKey{docsify-ignore}
+creates an api key for the account
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.createApiKey (params?)
+```
+
+
+<a name="revokeApiKey" id="revokeapikey"></a>
+
+### revokeApiKey{docsify-ignore}
+revokes an api key of the account
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| apiKey | <code>string</code> | Yes | the api key to revoke |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.revokeApiKey (apiKey, params?)
+```
+
+
+<a name="fetchApiKeys" id="fetchapikeys"></a>
+
+### fetchApiKeys{docsify-ignore}
+fetches the api keys of the account
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.fetchApiKeys (params?)
+```
+
+
+<a name="approveBuilderCode" id="approvebuildercode"></a>
+
+### approveBuilderCode{docsify-ignore}
+approves a builder code to charge fees on the account orders
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+**See**: https://docs.pacifica.fi/programs/builder-program  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| builderCode | <code>string</code> | Yes | the builder code to approve |
+| maxFeeRate | <code>string</code> | Yes | the maximum fee rate the builder may charge |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.approveBuilderCode (builderCode, maxFeeRate, params?)
+```
+
+
+<a name="fetchBuilderApprovals" id="fetchbuilderapprovals"></a>
+
+### fetchBuilderApprovals{docsify-ignore}
+fetches the builder codes approved by an account
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>Array&lt;object&gt;</code> - the api result
+
+**See**: https://docs.pacifica.fi/programs/builder-program  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| address | <code>string</code> | the account address |
+
+
+```javascript
+pacifica.fetchBuilderApprovals (address)
+```
+
+
+<a name="revokeBuilderCode" id="revokebuildercode"></a>
+
+### revokeBuilderCode{docsify-ignore}
+revokes a previously approved builder code
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+**See**: https://docs.pacifica.fi/programs/builder-program  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| builderCode | <code>string</code> | Yes | the builder code to revoke |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.revokeBuilderCode (builderCode, params?)
 ```
 
 

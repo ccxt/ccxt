@@ -29,6 +29,9 @@ class poloniex extends \ccxt\async\poloniex {
                 'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
+                'unWatchOHLCV' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
                 'watchBalance' => true,
                 'watchStatus' => false,
                 'watchOrders' => true,
@@ -53,6 +56,10 @@ class poloniex extends \ccxt\async\poloniex {
             ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
+                'watchBalance' => array(
+                    'fetchBalanceSnapshot' => true, // or false
+                    'awaitBalanceSnapshot' => true, // whether to wait for the balance snapshot before providing updates
+                ),
                 'tradesLimit' => 1000,
                 'ordersLimit' => 1000,
                 'OHLCVLimit' => 1000,
@@ -182,8 +189,7 @@ class poloniex extends \ccxt\async\poloniex {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' subscribe() symbols is required');
             }
-            $ids = $this->market_ids($symbols);
-            $marketIds = ($ids === null) ? array() : $ids;
+            $marketIds = $this->market_ids($symbols);
         }
         $symbolsSuffix = ($symbols === null) ? '' : implode(',', $symbols);
         $symbolsHash = null;
@@ -197,6 +203,31 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $request = $this->extend($subscribe, $params);
         return Async\await($this->watch($url, $symbolsHash, $request, $symbolsHash));
+    }
+
+    public function un_subscribe(string $name, array $symbols, array $messageHashes, $params = array()) {
+        return Async\async(self::do_un_subscribe(...))($name, $symbols, $messageHashes, $params);
+    }
+
+    private function do_un_subscribe(string $name, array $symbols, array $messageHashes, $params = array()) {
+        /**
+         * @ignore
+         * unsubscribes from a public websocket channel
+         * @param {string} $name name of the channel
+         * @param {string[]} $symbols CCXT market $symbols
+         * @param {string[]} $messageHashes unique identifiers resolved once the exchange acknowledges the unsubscribe
+         * @param {array} [$params] extra parameters specific to the poloniex api
+         * @return {array} true once the exchange acknowledges the unsubscribe
+         */
+        $url = $this->urls['api']['ws']['public'];
+        $request = array(
+            'event' => 'unsubscribe',
+            'channel' => array(
+                $name,
+            ),
+            'symbols' => $this->market_ids($symbols),
+        );
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
     public function trade_request(string $name, $params = array()) {
@@ -429,6 +460,34 @@ class poloniex extends \ccxt\async\poloniex {
         return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+         *
+         * @param {string} $symbol unified $symbol of the $market to unwatch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
+        $channel = $this->safe_string($timeframes, $timeframe, $timeframe);
+        if ($channel === null) {
+            throw new BadRequest($this->id . ' unWatchOHLCV cannot take a timeframe of ' . $timeframe);
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'unsubscribe:' . $channel . '::' . $market['symbol'];
+        return Async\await($this->un_subscribe($channel, array( $market['symbol'] ), array( $messageHash ), $params));
+    }
+
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_ticker(...))($symbol, $params);
     }
@@ -539,6 +598,49 @@ class poloniex extends \ccxt\async\poloniex {
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unWatches the list of most recent trades for a particular $symbol
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+         *
+         * @param {string} $symbol unified $symbol of the market to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unWatches the list of most recent trades for a list of $symbols
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+         *
+         * @param {string[]} $symbols unified $symbols of the markets to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
+        $name = 'trades';
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $messageHashes[] = 'unsubscribe:' . $name . '::' . $symbolsNormalized[$i];
+        }
+        return Async\await($this->un_subscribe($name, $symbolsNormalized, $messageHashes, $params));
+    }
+
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
@@ -645,7 +747,70 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $name = 'balances';
         Async\await($this->authenticate());
+        // the balances channel only streams per-event deltas, so seed the
+        // balance from a rest snapshot once per subscription - otherwise the
+        // first resolves would only list the currencies that changed since
+        // subscribing
+        $url = $this->urls['api']['ws']['private'];
+        $client = $this->client($url);
+        $this->set_balance_cache($client, $name);
+        $options = $this->safe_dict($this->options, 'watchBalance');
+        $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
+        $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
+        if (($fetchBalanceSnapshot) && ($awaitBalanceSnapshot)) {
+            Async\await($client->future($name . ':fetchBalanceSnapshot'));
+        }
         return Async\await($this->subscribe($name, $name, true, null, $params));
+    }
+
+    public function set_balance_cache(Client $client, string $type) {
+        if (is_array($client->subscriptions) && array_key_exists($type ?? '', $client->subscriptions)) {
+            return;
+        }
+        $options = $this->safe_dict($this->options, 'watchBalance');
+        $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
+        if ($fetchBalanceSnapshot) {
+            $messageHash = $type . ':fetchBalanceSnapshot';
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
+                $client->future($messageHash);
+                $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);
+            }
+        }
+    }
+
+    public function load_balance_snapshot(Client $client, string $messageHash, string $type) {
+        return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type);
+    }
+
+    private function do_load_balance_snapshot(Client $client, string $messageHash, string $type) {
+        $response = Async\await($this->fetch_balance());
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        $reserved = array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' );
+        $keys = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->in_array($key, $reserved)) {
+                continue;
+            }
+            if (!(is_array($this->balance) && array_key_exists($key ?? '', $this->balance))) {
+                $this->balance[$key] = $response[$key];
+            }
+        }
+        if (!(is_array($this->balance) && array_key_exists('info' ?? '', $this->balance))) {
+            $this->balance['info'] = $response['info'];
+            $this->balance['timestamp'] = $response['timestamp'];
+            $this->balance['datetime'] = $response['datetime'];
+        }
+        $this->balance = $this->safe_balance($this->balance);
+        // don't remove the future from the .futures cache
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            $future = $client->futures[$messageHash];
+            $future->resolve();
+            $client->resolve($this->balance, $type);
+        }
     }
 
     public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -695,8 +860,8 @@ class poloniex extends \ccxt\async\poloniex {
         //        ]
         //    }
         //
-        $data = $this->safe_value($message, 'data');
-        $data = $this->safe_value($data, 0);
+        $dataList = $this->safe_list($message, 'data');
+        $data = $this->safe_dict($dataList, 0);
         $channel = $this->safe_string($message, 'channel');
         $marketId = $this->safe_string($data, 'symbol');
         $symbol = $this->safe_symbol($marketId);
@@ -1216,14 +1381,22 @@ class poloniex extends \ccxt\async\poloniex {
             $asks = $this->safe_list($item, 'asks');
             $bids = $this->safe_list($item, 'bids');
             if ($snapshot || $update) {
-                if ($snapshot) {
-                    $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+                $orderbook = $this->safe_value($this->orderbooks, $symbol);
+                if ($snapshot && ($orderbook === null)) {
+                    $orderbook = $this->order_book(array(), $limit);
+                    $this->orderbooks[$symbol] = $orderbook;
                 }
-                if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
-                    // a delta can arrive before the snapshot, it cannot be applied without a book
+                if ($orderbook === null) {
+                    // a delta before the snapshot (or after the book was dropped) cannot be applied
                     continue;
                 }
-                $orderbook = $this->orderbooks[$symbol];
+                if ($snapshot) {
+                    // reset the existing orderbook in place instead of
+                    // replacing it: a consumer awakened earlier keeps a
+                    // reference to the old object and would be orphaned
+                    // from later updates on a resync/reconnect otherwise
+                    $orderbook->reset(array());
+                }
                 if ($bids !== null) {
                     for ($j = 0; $j < count($bids); $j++) {
                         $bid = $this->safe_list($bids, $j);
@@ -1270,48 +1443,36 @@ class poloniex extends \ccxt\async\poloniex {
         //        ]
         //    }
         //
+        // the balances channel only sends per-event deltas for the currencies
+        // that changed, so merge them into the existing balance object instead
+        // of rebuilding it from the current message: a rebuilt object would
+        // drop every other currency, and a consumer awakened by an earlier
+        // message keeps a reference to the old object while Client.resolve is
+        // a no-op with no waiter, so updates landing in that window would
+        // never reach that consumer (same class as kraken issue #26773)
         $data = $this->safe_list($message, 'data', array());
         $messageHash = 'balances';
-        $this->balance = $this->parse_ws_balance($data);
-        $client->resolve($this->balance, $messageHash);
-    }
-
-    public function parse_ws_balance(array $response): array {
-        //
-        //    [
-        //        {
-        //            "changeTime": 1657312008411,
-        //            "accountId": "1234",
-        //            "accountType": "SPOT",
-        //            "eventType": "place_order",
-        //            "available": "9999999983.668",
-        //            "currency": "BTC",
-        //            "id": 60018450912695040,
-        //            "userId": 12345,
-        //            "hold": "16.332",
-        //            "ts": 1657312008443
-        //        }
-        //    ]
-        //
-        $firstBalance = $this->safe_dict($response, 0, array());
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $this->balance['info'] = $data;
+        $firstBalance = $this->safe_dict($data, 0, array());
         $timestamp = $this->safe_integer($firstBalance, 'ts');
-        $result = array(
-            'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-        );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_dict($response, $i);
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
+        for ($i = 0; $i < count($data); $i++) {
+            $balance = $this->safe_dict($data, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $newAccount = $this->account();
             $newAccount['free'] = $this->safe_string($balance, 'available');
             $newAccount['used'] = $this->safe_string($balance, 'hold');
             if ($code !== null) {
-                $result[$code] = $newAccount;
+                $this->balance[$code] = $newAccount;
             }
         }
-        return $this->safe_balance($result);
+        $this->balance = $this->safe_balance($this->balance);
+        $client->resolve($this->balance, $messageHash);
     }
 
     public function handle_my_trades(Client $client, array $parsedTrade) {
@@ -1341,6 +1502,10 @@ class poloniex extends \ccxt\async\poloniex {
         $event = $this->safe_string($message, 'event');
         if ($event === 'pong') {
             $client->lastPong = $this->milliseconds();
+        }
+        if ($event === 'unsubscribe') {
+            $this->handle_unsubscription($client, $message);
+            return;
         }
         $methods = array(
             'candles_minute_1' => array($this, 'handle_ohlcv'),
@@ -1378,6 +1543,31 @@ class poloniex extends \ccxt\async\poloniex {
             $dataLength = count($data);
             if ($dataLength > 0) {
                 $method($client, $message);
+            }
+        }
+    }
+
+    public function handle_unsubscription(Client $client, array $message) {
+        //
+        //    {
+        //        "event": "unsubscribe",
+        //        "channel": "trades",
+        //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
+        //    }
+        //
+        $channel = $this->safe_string($message, 'channel');
+        $marketIds = $this->safe_list($message, 'symbols', array());
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
+        $timeframe = $this->find_timeframe($channel, $timeframes);
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $symbol = $this->safe_symbol($this->safe_string($marketIds, $i));
+            $subMessageHash = $channel . '::' . $symbol;
+            if ($channel === 'trades') {
+                $this->clean_cache(array( 'topic' => 'trades', 'symbols' => array( $symbol ) ));
+                $this->clean_unsubscription($client, $subMessageHash, 'unsubscribe:' . $subMessageHash);
+            } elseif ($timeframe !== null) {
+                $this->clean_cache(array( 'topic' => 'ohlcv', 'symbolsAndTimeframes' => array( array( $symbol, $timeframe ) ) ));
+                $this->clean_unsubscription($client, $subMessageHash, 'unsubscribe:' . $subMessageHash);
             }
         }
     }

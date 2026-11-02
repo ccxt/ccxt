@@ -180,9 +180,9 @@ export default class opinion extends Exchange {
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         const seenEvents = {};
         const eventsList = [];
-        let page = 1;
-        let fetchedRawCount = 0;
-        while (true) {
+        // every raw (unflattened) row fetched so far, so its length is the raw fetched count
+        const fetchedRawRows = [];
+        for (let page = 1; page <= maxPages; page++) {
             const request = {
                 'marketType': 2, // all - both standalone binaries and categorical parents
                 'limit': pageLimit,
@@ -192,17 +192,17 @@ export default class opinion extends Exchange {
             const result = this.safeDict(response, 'result', {});
             const rawMarkets = this.safeList(result, 'list', []);
             const rawMarketsLength = rawMarkets.length;
-            fetchedRawCount = this.sum(fetchedRawCount, rawMarketsLength);
             // categorical parents expand into several flatMarkets entries each, so the raw,
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
             // flatMarkets.length - otherwise expansion makes the comparison meaningless
             const total = this.safeInteger(result, 'total');
             for (let i = 0; i < rawMarketsLength; i++) {
                 const raw = rawMarkets[i];
+                fetchedRawRows.push(raw);
                 const marketType = this.safeInteger(raw, 'marketType');
                 if (marketType === 1) {
                     const event = this.parseEvent(raw);
-                    const childMarkets = event['markets'];
+                    const childMarkets = this.safeList(event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
                         flatMarkets.push(childMarkets[ci]);
@@ -218,10 +218,10 @@ export default class opinion extends Exchange {
                 }
             }
             const collectedLength = flatMarkets.length;
+            const fetchedRawCount = fetchedRawRows.length;
             if ((rawMarketsLength < pageLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
                 break;
             }
-            page = this.sum(page, 1);
         }
         this.setEvents(eventsList);
         const flatMarketsLength = flatMarkets.length;
@@ -419,25 +419,17 @@ export default class opinion extends Exchange {
             return this.applyEventFetchParams([single], params, queries);
         }
         const rest = this.omit(params, ['query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit']);
-        const pageLimit = this.safeInteger(this.options, 'defaultFetchEventsLimit', 20);
-        const userLimit = this.safeInteger(params, 'limit');
+        const pageLimit = this.parseToInt(this.safeInteger(this.options, 'defaultFetchEventsLimit', 20));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
-        let fetchCap = this.safeInteger(this.options, 'maxFetchEventsResults', 100);
-        if (userLimit !== undefined) {
-            fetchCap = userLimit;
-        }
+        const fetchCap = this.safeInteger(params, 'limit', this.safeInteger(this.options, 'maxFetchEventsResults', 100));
         const maxPages = this.safeInteger(this.options, 'maxEventsPages', 50);
         const rawEvents = [];
-        let page = 1;
-        let fetchedRawCount = 0;
-        while (true) {
-            let reqLimit = pageLimit;
-            const remaining = fetchCap - fetchedRawCount;
-            if (remaining < reqLimit) {
-                reqLimit = remaining;
-            }
+        for (let page = 1; page <= maxPages; page++) {
+            const fetchedSoFar = rawEvents.length;
+            const remaining = this.parseToInt(fetchCap - fetchedSoFar);
+            const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
             }
@@ -450,15 +442,15 @@ export default class opinion extends Exchange {
             const result = this.safeDict(response, 'result', {});
             const pageEvents = this.safeList(result, 'list', []);
             const pageEventsLength = pageEvents.length;
-            fetchedRawCount = this.sum(fetchedRawCount, pageEventsLength);
             for (let i = 0; i < pageEventsLength; i++) {
                 rawEvents.push(pageEvents[i]);
             }
+            // rawEvents holds every row fetched so far, so its length is the raw fetched count
+            const fetchedRawCount = rawEvents.length;
             const total = this.safeInteger(result, 'total');
             if ((pageEventsLength < reqLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || (fetchedRawCount >= fetchCap)) {
                 break;
             }
-            page = this.sum(page, 1);
         }
         const rawEventsLength = rawEvents.length;
         const parsedEvents = [];
@@ -953,8 +945,11 @@ export default class opinion extends Exchange {
     }
     opinionOrderRawAmounts(isMarket, side, amount, price, decimals) {
         let decimalsStr = '1';
-        for (let i = 0; i < decimals; i++) {
-            decimalsStr = decimalsStr + '0';
+        if (decimals !== undefined) {
+            const decimalsCount = this.parseToInt(decimals);
+            for (let i = 0; i < decimalsCount; i++) {
+                decimalsStr = decimalsStr + '0';
+            }
         }
         const amountStr = this.numberToString(amount);
         if (isMarket && (side === 'BUY')) {
@@ -1108,7 +1103,7 @@ export default class opinion extends Exchange {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        const status = (canceled === true) ? 'canceled' : undefined;
+        const status = (canceled) ? 'canceled' : undefined;
         return this.safePredictionOrder({ 'id': id, 'status': status, 'info': response });
     }
     /**
@@ -1445,10 +1440,10 @@ export default class opinion extends Exchange {
         const response = await this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, params));
         const result = this.safeDict(response, 'result', {});
         const positions = this.safeList(result, 'list', []);
-        const parsed = this.parsePredictionPositions(positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions(positions);
         }
+        const parsed = this.parsePredictionPositions(positions);
         const wantedTokenIds = {};
         // copy to a plain list so the strict null checks see one shape
         const outcomesList = (outcomes === undefined) ? [] : outcomes;
@@ -2129,21 +2124,19 @@ export default class opinion extends Exchange {
      * @name opinion#sign
      * @description builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path, api = 'opinion', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof api === 'string' ? api : api[0];
-        const access = typeof api === 'string' ? 'public' : api[1];
+    sign(path, api = ['opinion'], method = 'GET', params = {}) {
+        const apiGroup = api[0];
+        const access = this.safeString(api, 1, 'public');
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['opinion']);
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         const headersExtended = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -2172,7 +2165,7 @@ export default class opinion extends Exchange {
                 headersExtended['apikey'] = apiKey;
             }
         }
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (method === 'GET') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);

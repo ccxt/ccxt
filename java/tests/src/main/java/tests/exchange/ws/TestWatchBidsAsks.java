@@ -70,7 +70,7 @@ public class TestWatchBidsAsks extends BaseTest {
             {
                 return false;
             }
-            if (java.util.Objects.equals(success, true))
+            if (Boolean.TRUE.equals(success))
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + exchange.json(argSymbols)) + " must return a dictionary. ") + exchange.json(response)));
                 Object values = Helpers.objectValues(response);

@@ -364,13 +364,13 @@ class upbit extends Exchange {
         $walletLocked = $this->safe_bool($memberInfo, 'wallet_locked');
         $locked = $this->safe_bool($memberInfo, 'locked');
         $active = true;
-        if (($canWithdraw !== null) && ($canWithdraw !== true)) {
+        if (($canWithdraw !== null) && (!$canWithdraw)) {
             $active = false;
         } elseif ($walletState !== 'working') {
             $active = false;
-        } elseif (($walletLocked !== null) && ($walletLocked === true)) {
+        } elseif (($walletLocked !== null) && ($walletLocked)) {
             $active = false;
-        } elseif (($locked !== null) && ($locked === true)) {
+        } elseif (($locked !== null) && ($locked)) {
             $active = false;
         }
         $maxOnetimeWithdrawal = $this->safe_string($withdrawLimits, 'onetime');
@@ -923,7 +923,7 @@ class upbit extends Exchange {
         return $this->parse_tickers($tickers, $symbolsNormalized);
     }
 
-    public function ids_query_strings(?array $ids, float $maxQueryLength): array {
+    public function ids_query_strings(?array $ids, int $maxQueryLength): array {
         if ($ids === null) {
             return array();
         }
@@ -1426,7 +1426,7 @@ class upbit extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a timeInForce parameter for best type orders');
         }
         $paramsRequest = $this->omit($paramsOrdType, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
-        if ($test === true) {
+        if ($test) {
             $response = Async\await($this->privatePostOrdersTest($this->extend($request, $paramsRequest)));
         } else {
             $response = Async\await($this->privatePostOrders($this->extend($request, $paramsRequest)));
@@ -1830,7 +1830,7 @@ class upbit extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'submitting' => 'pending', // 처리 중
             'submitted' => 'pending', // 처리 완료
@@ -1912,7 +1912,7 @@ class upbit extends Exchange {
         );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'wait' => 'open',
             'done' => 'closed',
@@ -2482,11 +2482,11 @@ class upbit extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          *
          * @see https://docs.upbit.com/kr/reference/withdraw
@@ -2496,11 +2496,11 @@ class upbit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagResolved, $paramsTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagResolved, $paramsTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2509,7 +2509,7 @@ class upbit extends Exchange {
             'amount' => $amount,
         );
         if ($code !== 'KRW') {
-            $this->check_address($address);
+            $this->check_address($address, $code, $tagResolved);
             // 2023-05-23 Change to required parameters for digital assets
             $network = $this->safe_string_upper_2($paramsTag, 'network', 'net_type');
             if ($network === null) {
@@ -2547,8 +2547,9 @@ class upbit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2562,13 +2563,13 @@ class upbit extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $hasBody = ($api === 'private') && ($method !== 'GET') && ($method !== 'DELETE');
-        $requestBody = $body;
+        $hasBody = ($apiName === 'private') && ($method !== 'GET') && ($method !== 'DELETE');
+        $requestBody = null;
         if ($hasBody) {
             $requestBody = $this->json($params);
         }
         $privateHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $privateHeaders = array();
             $nonce = $this->uuid();
@@ -2592,7 +2593,7 @@ class upbit extends Exchange {
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
             $privateHeaders['Authorization'] = 'Bearer ' . $token;
         }
-        $requestHeaders = ($api === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $privateHeaders : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 

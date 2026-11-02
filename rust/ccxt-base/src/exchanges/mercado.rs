@@ -30,7 +30,9 @@ impl MercadoCore {
     pub fn init(&mut self) {
         let described = MercadoCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -105,7 +107,6 @@ impl crate::exchange_generated::ExchangeBase for MercadoCore {
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -589,7 +590,7 @@ impl MercadoCore {
         //         "LINK"
         //     ]
         //
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         let mut amountLimits: Value = self.safe_dict_k(self.options.clone(), "limits", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -597,8 +598,8 @@ impl MercadoCore {
         let mut coins: Value = self.to_array(response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_935: bool = true;
-            while { if !__for_first_935 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_935 = false; i.as_f64().unwrap_or(f64::NAN) < ((coins.len() as i64) as f64) } {
+            let mut __for_first_939: bool = true;
+            while { if !__for_first_939 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_939 = false; i.as_f64().unwrap_or(f64::NAN) < ((coins.len() as i64) as f64) } {
             let mut coin: Value = coins.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut baseId: Value = coin.clone();
             let mut quoteId: Value = Value::Str("BRL".into());
@@ -608,7 +609,7 @@ impl MercadoCore {
                 continue;
             }
             let mut id: Value = Value::Str(format!("{}{}", quote, base).into());
-            append_to_array(&mut result, Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
@@ -673,7 +674,7 @@ impl MercadoCore {
             }));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -887,14 +888,14 @@ impl MercadoCore {
                 m.insert("info".to_string(), response);
             m
         });
-        let mut currencyIds: Value = object_keys(&balances);
+        let mut currencyIds: Value = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_936: bool = true;
-            while { if !__for_first_936 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_936 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
+            let mut __for_first_940: bool = true;
+            while { if !__for_first_940 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_940 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
             let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            if (in_op(&balances, &currencyId)) {
+            if (matches!((&balances, &currencyId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut balance: Value = self.safe_dict(balances.clone(), currencyId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1065,7 +1066,7 @@ impl MercadoCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("2".to_string(), Value::Str("open".into()));
@@ -1073,9 +1074,7 @@ impl MercadoCore {
                 m.insert("4".to_string(), Value::Str("closed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1111,7 +1110,7 @@ impl MercadoCore {
         if (matches!(&order, Value::Dict(__d) if __d.contains_key("order_type"))) {
             side = (if (order_type.as_deref() == Some("1")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut marketId: Value = self.safe_string_k(order.clone(), "coin_pair", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "created_timestamp", &[]);
@@ -1205,20 +1204,19 @@ impl MercadoCore {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        self.check_address(&[address.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1243,7 +1241,7 @@ impl MercadoCore {
             if (code.as_str() == Some("XRP")) {
                 if (tagWithdrawTag == Value::Null) {
                     if !(matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("destination_tag"))) {
-                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a tag argument or destination_tag parameter to withdraw ".into())).into()), code)));
+                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a tag or destination_tag parameter to withdraw ".into())).into()), code)));
                     }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("destination_tag".into(), tagWithdrawTag); }
@@ -1509,22 +1507,22 @@ impl MercadoCore {
 }
 
     pub fn orders_to_trades(&self, mut orders: Value) -> Value {
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_938: bool = true;
-            while { if !__for_first_938 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_938 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_942: bool = true;
+            while { if !__for_first_942 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_942 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut trades: Value = self.safe_list(orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("trades".into()), &[Value::from(vec![])]);
             {
                                 let mut y: Value = Value::Int(0);
-                let mut __for_first_937: bool = true;
-                while { if !__for_first_937 { y = (match (&(y), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_937 = false; y.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-                append_to_array(&mut result, trades.as_array().and_then(|__arr| match &y { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                let mut __for_first_941: bool = true;
+                while { if !__for_first_941 { if let Value::Int(n) = &mut y { *n += 1; } } __for_first_941 = false; y.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+                result.push(trades.as_array().and_then(|__arr| match &y { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -1536,27 +1534,28 @@ impl MercadoCore {
 }
 
     pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut isPublic: bool = (api.as_str() == Some("public")) || (api.as_str() == Some("v4Public")) || (api.as_str() == Some("v4PublicNet"));
+        let mut isPublic: bool = (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("v4Public")) || (apiName.as_str() == Some("v4PublicNet"));
         let mut privateBody: Value = Value::Null;
         let mut privateHeaders: Value = Value::Null;
         if isPublic {
             url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())).into());
-            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into())).into());
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -1581,11 +1580,11 @@ impl MercadoCore {
         }
         let mut requestBody: Value = privateBody;
         if isPublic {
-            requestBody = body;
+            requestBody = Value::Null;
         }
         let mut requestHeaders: Value = privateHeaders;
         if isPublic {
-            requestHeaders = headers;
+            requestHeaders = Value::Null;
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -31,6 +31,10 @@ use std::env;
 use std::panic;
 use futures::FutureExt;
 
+#[cfg(feature = "mimalloc")]
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 // ── color codes ───────────────────────────────────────────────────────────────
 const RED: &str = "\x1b[31m";
 const GREEN: &str = "\x1b[32m";

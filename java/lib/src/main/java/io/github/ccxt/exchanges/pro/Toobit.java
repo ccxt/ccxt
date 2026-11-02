@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -175,7 +176,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         } else
         {
             // check private streams
-            for (var i = 0; i < Helpers.getArrayLength(message); i++)
+            for (var i = 0; i < (switch ((Object)(message)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
             {
                 Object item = Helpers.GetValue(message, i);
                 String eventVar = this.safeString(item, "e");
@@ -299,7 +300,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object parsed = this.parseWsTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
@@ -674,7 +675,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "channel", "depth");
+            Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "channel", "depth");
             String channel = channelparamsChannelVariable.first();
             Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -724,7 +725,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //     }
         //
         Boolean isSnapshot = (Boolean) this.safeBool(message, "f", false);
-        if (java.util.Objects.equals(isSnapshot, true))
+        if (Boolean.TRUE.equals(isSnapshot))
         {
             this.setOrderBookSnapshot(client, (Map<String, Object>) (message), "diffDepth");
             return;
@@ -787,7 +788,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         this.setOrderBookSnapshot(client, (Map<String, Object>) (message), "depth");
     }
 
-    public void setOrderBookSnapshot(Client client, Map<String, Object> message, Object channel)
+    public void setOrderBookSnapshot(Client client, Map<String, Object> message, String channel)
     {
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Integer length = ((List<?>)data).size();
@@ -833,7 +834,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
@@ -1086,10 +1087,12 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", null
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", null);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("info", order);
@@ -1244,15 +1247,13 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             List<String> symbolsNormalized = symbols;
             if (!this.isEmpty(symbols))
             {
-                symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            }
-            if (!this.isEmpty(symbols))
-            {
-                if (java.util.Objects.equals(symbolsNormalized, null))
+                List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, true, false, false);
+                if (java.util.Objects.equals(marketSymbols, null))
                 {
                     throw new ArgumentsRequired((this.id + " watchPositions() symbols is required")) ;
                 }
-                messageHash = ("::" + String.join(",", (List<String>)symbolsNormalized));
+                symbolsNormalized = marketSymbols;
+                messageHash = ("::" + String.join(",", (List<String>)marketSymbols));
             }
             messageHash = ((type + ":positions") + messageHash);
             String url = this.getUserStreamUrl();
@@ -1280,7 +1281,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (Helpers.inOp(this.positions, type))
+        if ((switch ((Object)(this.positions)) { case List<?> j39v5 -> ((Object)(type)) != null && j39v5.contains(type); case Map<?, ?> j39v4 -> ((Object)(type)) instanceof String && j39v4.containsKey(type); case null, default -> false; }))
         {
             return;
         }
@@ -1304,10 +1305,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.newMap(
-                "type", type
-            );
-            List<Position> positions = (this.fetchPositions((List<String>) null, Helpers.toMapArg(parameters))).join();
+            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>(); j39v6.put("type", type); yield j39v6; } });
+            List<Position> positions = (this.fetchPositions((List<String>) null, parameters)).join();
             Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
             Object cache = Helpers.GetValue(this.positions, type);
             for (var i = 0; i < ((List<?>)positions).size(); i++)
@@ -1358,7 +1357,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!(Helpers.inOp(this.positions, accountType)))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v11 -> ((Object)(accountType)) != null && j39v11.contains(accountType); case Map<?, ?> j39v10 -> ((Object)(accountType)) instanceof String && j39v10.containsKey(accountType); case null, default -> false; })))
         {
             Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
@@ -1370,7 +1369,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             rawPositions = new ArrayList<Object>(Arrays.asList(message));
         }
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(rawPositions); i++)
+        for (var i = 0; i < (switch ((Object)(rawPositions)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
@@ -1384,10 +1383,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to
         // ':$positions::' and find_message_hashes () matches nothing in PHP
-        Object messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));
+        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (accountType + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
+            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -1439,8 +1438,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long time = this.milliseconds();
             Long lastAuthenticatedTime = this.safeInteger(this.options.get("ws"), "lastAuthenticatedTime", 0);
             Long listenKeyRefreshRate = this.safeInteger(this.options.get("ws"), "listenKeyRefreshRate", 1200000);
-            Object delay = (listenKeyRefreshRate + 10000L);
-            if (Helpers.isGreaterThan((time - lastAuthenticatedTime), delay))
+            Long delay = (Long) (listenKeyRefreshRate + 10000L);
+            if (((delay == null || (time - lastAuthenticatedTime) > delay)))
             {
                 this.checkRequiredCredentials(true);
                 // single-flight leader election on a never-dialed client, see
@@ -1511,7 +1510,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 String url = this.getUserStreamUrl();
                 Client client = this.client(url);
-                List<Object> messageHashes = Helpers.objectKeys(client.futures);
+                List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {
                     Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));

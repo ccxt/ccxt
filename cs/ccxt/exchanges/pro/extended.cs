@@ -35,7 +35,7 @@ public partial class extended : ccxt.extended
                 { "ws", new Dictionary<string, object>() {
                     { "options", new Dictionary<string, object>() {
                         { "headers", new Dictionary<string, object>() {
-                            { "User-Agent", getValue(this.userAgents, "chrome") },
+                            { "User-Agent", (this.userAgents != null && this.userAgents.ContainsKey("chrome") ? this.userAgents["chrome"] : null) },
                         } },
                     } },
                 } },
@@ -120,7 +120,7 @@ public partial class extended : ccxt.extended
             return;
         }
         Int64? previousNonce = this.safeInteger(orderbook, "nonce");
-        if (((previousNonce != null)) && (!isEqual(nonce, (previousNonce + 1))))
+        if (((previousNonce != null)) && (!(nonce == (previousNonce + 1))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
@@ -169,7 +169,7 @@ public partial class extended : ccxt.extended
             IDictionary<string, object> originalHeaders = this.safeDict(originalOptions, "headers", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)(this.options.ContainsKey("ws") ? this.options["ws"] : null))["options"] = this.extend(this.extend(new Dictionary<string, object>() {}, originalOptions), new Dictionary<string, object>() {
                 { "headers", this.extend(this.extend(new Dictionary<string, object>() {
-                    { "User-Agent", getValue(this.userAgents, "chrome") },
+                    { "User-Agent", (this.userAgents != null && this.userAgents.ContainsKey("chrome") ? this.userAgents["chrome"] : null) },
                 }, originalHeaders), new Dictionary<string, object>() {
                     { "X-Api-Key", this.apiKey },
                 }) },
@@ -857,7 +857,7 @@ public partial class extended : ccxt.extended
                 candleType = "trades";
             }
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"candleType", "price"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"candleType", "price"}));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = ((((("ohlcv:" + symbolValue) + ":") + (timeframeVar)) + ":") + candleType);
         string query = this.urlencode(this.extend(new Dictionary<string, object>() {
@@ -898,7 +898,7 @@ public partial class extended : ccxt.extended
         //         "seq": 1
         //     }
         //
-        object subscription = this.findSubscription(client, "ohlcv");
+        IDictionary<string, object> subscription = this.findSubscription(client, "ohlcv");
         if ((subscription == null))
         {
             return;
@@ -930,7 +930,7 @@ public partial class extended : ccxt.extended
         {
             return;
         }
-        ((IDictionary<string,object>)subscription)["nonce"] = nonce;
+        subscription["nonce"] = nonce;
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
@@ -940,7 +940,7 @@ public partial class extended : ccxt.extended
         client.resolve(stored, messageHash);
     }
 
-    public virtual object findSubscription(WebSocketClient client, string name)
+    public virtual IDictionary<string, object> findSubscription(WebSocketClient client, string name)
     {
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -953,7 +953,7 @@ public partial class extended : ccxt.extended
                 return subscription;
             }
         }
-        return null;
+        return ((IDictionary<string, object>)((object)(null)));
     }
 
     public virtual bool? handleErrorMessage(WebSocketClient client, object message)
@@ -976,15 +976,16 @@ public partial class extended : ccxt.extended
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
         string? type = this.safeString(message, "type");
-        object data = this.safeValue(message, "data");
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> dataList = this.safeList(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
+        if ((dataList != null))
         {
-            IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+            IDictionary<string, object> first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
             string? side = this.safeString(first, "S");
             if ((side != null))
             {
@@ -998,22 +999,22 @@ public partial class extended : ccxt.extended
             // an account frame may carry several sections at once, so these are
             // not mutually exclusive and must not fall through to the order book
             bool isAccountUpdate = false;
-            if ((type == "ORDER") || (inOp(data, "orders")))
+            if ((type == "ORDER") || (data.ContainsKey("orders")))
             {
                 this.handleOrders(client, (Dictionary<string, object>)message);
                 isAccountUpdate = true;
             }
-            if ((type == "TRADE") || (inOp(data, "trades")))
+            if ((type == "TRADE") || (data.ContainsKey("trades")))
             {
                 this.handleMyTrades(client, (Dictionary<string, object>)message);
                 isAccountUpdate = true;
             }
-            if ((type == "POSITION") || (inOp(data, "positions")))
+            if ((type == "POSITION") || (data.ContainsKey("positions")))
             {
                 this.handlePositions(client, (Dictionary<string, object>)message);
                 isAccountUpdate = true;
             }
-            if ((type == "BALANCE") || (inOp(data, "balance")) || (inOp(data, "spotBalances")))
+            if ((type == "BALANCE") || (data.ContainsKey("balance")) || (data.ContainsKey("spotBalances")))
             {
                 this.handleBalance(client, (Dictionary<string, object>)message);
                 isAccountUpdate = true;
@@ -1021,7 +1022,7 @@ public partial class extended : ccxt.extended
             if (type == "MP")
             {
                 this.handleMarkPrice(client, (Dictionary<string, object>)message);
-            } else if (inOp(data, "f"))
+            } else if (data.ContainsKey("f"))
             {
                 this.handleFundingRate(client, message);
             } else if (!isAccountUpdate)

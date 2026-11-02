@@ -13,6 +13,7 @@ import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
@@ -391,10 +392,7 @@ public class Kraken extends KrakenApi
                 put( "marketsByAltname", new HashMap<String, Object>() {{}} );
                 put( "delistedMarketsById", new HashMap<String, Object>() {{}} );
                 put( "inactiveCurrencies", new ArrayList<Object>(Arrays.asList("CAD", "USD", "JPY", "GBP")) );
-                put( "networks", new HashMap<String, Object>() {{
-                    put( "ETH", "ERC20" );
-                    put( "TRX", "TRC20" );
-                }} );
+                put( "networks", new HashMap<String, Object>() {{}} );
                 put( "depositMethods", new HashMap<String, Object>() {{
                     put( "1INCH", (("1inch" + " ") + "(1INCH)") );
                     put( "AAVE", "Aave" );
@@ -836,59 +834,59 @@ public class Kraken extends KrakenApi
                 {
                     symbol = (((base + "/") + quote));
                 }
-                ((List<Object>)result).add(Helpers.newMap(
-                    "id", id,
-                    "wsId", this.safeString(market, "wsname"),
-                    "symbol", symbol,
-                    "base", base,
-                    "quote", quote,
-                    "settle", null,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", null,
-                    "altname", Helpers.GetValue(market, "altname"),
-                    "type", "spot",
-                    "spot", spot,
-                    "margin", ((leverageBuyLength != null && leverageBuyLength > 0)),
-                    "swap", false,
-                    "future", false,
-                    "option", false,
-                    "active", isActive,
-                    "contract", false,
-                    "linear", null,
-                    "inverse", null,
-                    "taker", taker,
-                    "maker", maker,
-                    "contractSize", null,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "precision", Helpers.newMap(
-                        "amount", precisionAmount,
-                        "price", precisionPrice
-                    ),
-                    "limits", Helpers.newMap(
-                        "leverage", Helpers.newMap(
-                            "min", this.parseNumber("1"),
-                            "max", this.safeNumber(leverageBuy, (((long) leverageBuyLength) - 1L), 1)
-                        ),
-                        "amount", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                    j39v4.put("id", id);
+                    j39v4.put("wsId", this.safeString(market, "wsname"));
+                    j39v4.put("symbol", symbol);
+                    j39v4.put("base", base);
+                    j39v4.put("quote", quote);
+                    j39v4.put("settle", null);
+                    j39v4.put("baseId", baseId);
+                    j39v4.put("quoteId", quoteId);
+                    j39v4.put("settleId", null);
+                    j39v4.put("altname", Helpers.GetValue(market, "altname"));
+                    j39v4.put("type", "spot");
+                    j39v4.put("spot", spot);
+                    j39v4.put("margin", ((leverageBuyLength != null && leverageBuyLength > 0)));
+                    j39v4.put("swap", false);
+                    j39v4.put("future", false);
+                    j39v4.put("option", false);
+                    j39v4.put("active", isActive);
+                    j39v4.put("contract", false);
+                    j39v4.put("linear", null);
+                    j39v4.put("inverse", null);
+                    j39v4.put("taker", taker);
+                    j39v4.put("maker", maker);
+                    j39v4.put("contractSize", null);
+                    j39v4.put("expiry", null);
+                    j39v4.put("expiryDatetime", null);
+                    j39v4.put("strike", null);
+                    j39v4.put("optionType", null);
+                    j39v4.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                        j39v3.put("amount", precisionAmount);
+                        j39v3.put("price", precisionPrice);
+                        yield j39v3; } }));
+                    j39v4.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                        j39v2.put("leverage", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                            j39v1.put("min", this.parseNumber("1"));
+                            j39v1.put("max", this.safeNumber(leverageBuy, (((long) leverageBuyLength) - 1L), 1));
+                            yield j39v1; } }));
+                        j39v2.put("amount", new HashMap<String, Object>() {{
                             put( "min", Kraken.this.safeNumber(market, "ordermin", (Object) null) );
                             put( "max", null );
-                        }},
-                        "price", new HashMap<String, Object>() {{
+                        }});
+                        j39v2.put("price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
-                        }},
-                        "cost", new HashMap<String, Object>() {{
+                        }});
+                        j39v2.put("cost", new HashMap<String, Object>() {{
                             put( "min", Kraken.this.safeNumber(market, "costmin", (Object) null) );
                             put( "max", null );
-                        }}
-                    ),
-                    "created", null,
-                    "info", market
-                ));
+                        }});
+                        yield j39v2; } }));
+                    j39v4.put("created", null);
+                    j39v4.put("info", market);
+                    yield j39v4; } }));
             }
             Helpers.addElementToObject(this.options, "marketsByAltname", this.indexBy(result, "altname"));
             return result;
@@ -1000,7 +998,7 @@ public class Kraken extends KrakenApi
             //     }
             //
             Map<String, Object> currencies = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object enhancedArray = this.addKeyInArrayItems(currencies, "_coin_id");
+            List<Object> enhancedArray = (List<Object>) this.addKeyInArrayItems(currencies, "_coin_id");
             return this.parseCurrencies(enhancedArray);
         });
 
@@ -1229,14 +1227,14 @@ public class Kraken extends KrakenApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object orderbook = this.safeDict(result, market.get("id"), (Object) null);
+            Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(result, market.get("id"), (Object) null);
             // sometimes kraken returns wsname instead of market id
             // https://github.com/ccxt/ccxt/issues/8662
             Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             String wsName = this.safeString(marketInfo, "wsname");
             if (!java.util.Objects.equals(wsName, null))
             {
-                orderbook = this.safeDict(result, wsName, orderbook);
+                orderbook = (Map<String, Object>) this.safeDict(result, wsName, orderbook);
             }
             return this.parseOrderBook(orderbook, symbol, (Long) null, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
@@ -1414,7 +1412,7 @@ public class Kraken extends KrakenApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1763,10 +1761,12 @@ public class Kraken extends KrakenApi
                 {
                     currency = this.safeString(marketResolved, "quote");
                 }
-                fee = Helpers.newMap(
-                    "cost", this.safeString(trade, "fee"),
-                    "currency", currency
-                );
+                {
+                    HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                    hx4NewMap0.put("cost", this.safeString(trade, "fee"));
+                    hx4NewMap0.put("currency", currency);
+                    fee = hx4NewMap0;
+                }
             }
         } else
         {
@@ -1810,7 +1810,7 @@ public class Kraken extends KrakenApi
         mapLiteral3.put("amount", amount);
         mapLiteral3.put("cost", cost);
         mapLiteral3.put("fee", fee);
-        return this.safeTrade(mapLiteral3, Helpers.toMapArg(marketResolved));
+        return this.safeTrade(mapLiteral3, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
     }
 
     /**
@@ -1861,17 +1861,17 @@ public class Kraken extends KrakenApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object trades = this.safeValue(result, id);
+            List<Object> trades = (List<Object>) this.safeList(result, id, new ArrayList<Object>(Arrays.asList()));
             // trades is a sorted array: last (most recent trade) goes last
-            Integer length = Helpers.getArrayLength(trades);
+            Integer length = ((List<?>)trades).size();
             if ((length == null || length <= 0))
             {
                 return new ArrayList<Object>(Arrays.asList());
             }
-            Object lastTrade = Helpers.GetValue(trades, Helpers.subtract(length, 1));
+            Object lastTrade = (trades == null || ((int) (((long) length) - 1L)) < 0 || ((int) (((long) length) - 1L)) >= trades.size() ? null : trades.get(((int) (((long) length) - 1L))));
             String lastTradeId = this.safeString(result, "last");
             ((List<Object>)lastTrade).add(lastTradeId);
-            Helpers.addElementToObject(trades, Helpers.subtract(length, 1), lastTrade);
+            Helpers.addElementToObject(trades, (((long) length) - 1L), lastTrade);
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2032,7 +2032,7 @@ public class Kraken extends KrakenApi
                 put( "ordertype", type );
                 put( "volume", Kraken.this.amountToPrecision(symbol, amount) );
             }};
-            Object orderRequest = this.orderRequest("createOrder", (String) (symbol), (String) (type), (Map<String, Object>) (request), amount, price, parameters);
+            List<Object> orderRequest = (List<Object>) this.orderRequest("createOrder", (String) (symbol), (String) (type), (Map<String, Object>) (request), amount, price, parameters);
             String flags = this.safeString(((List<Object>)orderRequest).get(0), "oflags", "");
             Boolean isUsingCost = ((String)flags).indexOf("viqc") > -1;
             Map<String, Object> response = (this.privatePostAddOrder(this.extend(((List<Object>)orderRequest).get(0), ((List<Object>)orderRequest).get(1)))).join();
@@ -2104,10 +2104,10 @@ public class Kraken extends KrakenApi
                     put( "ordertype", type );
                     put( "volume", parsedAmount );
                 }};
-                Object orderRequest = this.orderRequest("createOrders", marketId, type, (Map<String, Object>) (req), amount, price, orderParams);
+                List<Object> orderRequest = (List<Object>) this.orderRequest("createOrders", marketId, type, (Map<String, Object>) (req), amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(((List<Object>)orderRequest).get(0));
             }
-            orderSymbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
+            this.marketSymbols(orderSymbols, (Object) null, false, true, true);
             Map<String, Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("orders", ordersRequests);
@@ -2149,7 +2149,7 @@ public class Kraken extends KrakenApi
             return (marketsByAltname == null || !(id instanceof String) ? null : marketsByAltname.get(id));
         } else
         {
-            return this.safeMarket(Helpers.toStringArg(id), (Map<String, Object>) null, (String) null, (String) null);
+            return this.safeMarket(java.util.Objects.toString(id, null), (Map<String, Object>) null, (String) null, (String) null);
         }
     }
 
@@ -2163,12 +2163,12 @@ public class Kraken extends KrakenApi
         if (!java.util.Objects.equals(marketId, null))
         {
             // delisted market ids go here
-            return this.getDelistedMarketById(marketId);
+            return this.getDelistedMarketById((String) (marketId));
         }
         return market;
     }
 
-    public Object getDelistedMarketById(Object id)
+    public Object getDelistedMarketById(String id)
     {
         if (java.util.Objects.equals(id, null))
         {
@@ -2183,12 +2183,12 @@ public class Kraken extends KrakenApi
         Integer baseIdEnd = 3;
         Integer quoteIdStart = 3;
         Integer quoteIdEnd = 6;
-        if ((Helpers.getArrayLength(id) == 8))
+        if ((((String)id).length() == 8))
         {
             baseIdEnd = 4;
             quoteIdStart = 4;
             quoteIdEnd = 8;
-        } else if ((Helpers.getArrayLength(id) == 7))
+        } else if ((((String)id).length() == 7))
         {
             baseIdEnd = 4;
             quoteIdStart = 4;
@@ -2203,13 +2203,15 @@ public class Kraken extends KrakenApi
             return null;
         }
         String symbol = ((base + "/") + quote);
-        market = Helpers.newMap(
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "baseId", baseId,
-            "quoteId", quoteId
-        );
+        {
+            HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+            hx4NewMap1.put("symbol", symbol);
+            hx4NewMap1.put("base", base);
+            hx4NewMap1.put("quote", quote);
+            hx4NewMap1.put("baseId", baseId);
+            hx4NewMap1.put("quoteId", quoteId);
+            market = hx4NewMap1;
+        }
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("delistedMarketsById")), id, market);
         return market;
     }
@@ -2346,14 +2348,7 @@ public class Kraken extends KrakenApi
         Object orderOmitted = this.omit(order, "usingCost");
         Map<String, Object> description = (Map<String, Object>) this.safeDict(orderOmitted, "descr", new HashMap<String, Object>() {{}});
         Map<String, Object> orderDescriptionObj = (Map<String, Object>) this.safeDict(orderOmitted, "descr", (Object) null); // can be null
-        String orderDescription = null;
-        if (!java.util.Objects.equals(orderDescriptionObj, null))
-        {
-            orderDescription = this.safeString(orderDescriptionObj, "order");
-        } else
-        {
-            orderDescription = this.safeString(orderOmitted, "descr");
-        }
+        String orderDescription = (((!java.util.Objects.equals(orderDescriptionObj, null)))) ? this.safeString(orderDescriptionObj, "order") : this.safeString(orderOmitted, "descr");
         String side = null;
         String rawType = null;
         String marketId = null;
@@ -2365,7 +2360,7 @@ public class Kraken extends KrakenApi
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)orderDescription).split(java.util.regex.Pattern.quote(" "))));
             side = this.safeString(parts, 0);
-            if (!java.util.Objects.equals(isUsingCost, true))
+            if (!Boolean.TRUE.equals(isUsingCost))
             {
                 amount = this.safeString(parts, 1);
             } else
@@ -2525,7 +2520,7 @@ public class Kraken extends KrakenApi
         mapLiteral5.put("reduceOnly", this.safeBool2(orderOmitted, "reduceOnly", "reduce_only", (Object) null));
         mapLiteral5.put("fee", fee);
         mapLiteral5.put("trades", trades);
-        return this.safeOrder(mapLiteral5, Helpers.toMapArg(marketResolved));
+        return this.safeOrder(mapLiteral5, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
     }
 
     public Object orderRequest(Object method, String symbol, String type, Map<String, Object> request, Object amount, Object price, Map<String, Object> parameters)
@@ -2647,20 +2642,19 @@ public class Kraken extends KrakenApi
                 request.put("reduce_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        Map<String, Object> close = (Map<String, Object>) this.safeDict(paramsOmitted2, "close", (Object) null);
-        if (!java.util.Objects.equals(close, null))
+        Map<String, Object> rawClose = (Map<String, Object>) this.safeDict(paramsOmitted2, "close", (Object) null);
+        if (!java.util.Objects.equals(rawClose, null))
         {
-            close = this.extend(new HashMap<String, Object>() {{}}, close);
-            close = (((java.util.Objects.equals(close, null)))) ? new HashMap<String, Object>() {{}} : close;
+            Map<String, Object> close = this.extend(new HashMap<String, Object>() {{}}, rawClose);
             Object closePrice = this.safeValue(close, "price");
             if (!java.util.Objects.equals(closePrice, null))
             {
-                Helpers.addElementToObject(close, "price", this.priceToPrecision(symbol, closePrice));
+                close.put("price", this.priceToPrecision(symbol, closePrice));
             }
             Object closePrice2 = this.safeValue(close, "price2"); // stopPrice
             if (!java.util.Objects.equals(closePrice2, null))
             {
-                Helpers.addElementToObject(close, "price2", this.priceToPrecision(symbol, closePrice2));
+                close.put("price2", this.priceToPrecision(symbol, closePrice2));
             }
             request.put("close", close);
         }
@@ -2673,7 +2667,7 @@ public class Kraken extends KrakenApi
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsOmitted2);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        if (java.util.Objects.equals(postOnly, true))
+        if (Boolean.TRUE.equals(postOnly))
         {
             String extendedPostFlags = "post";
             if (!java.util.Objects.equals(flags, null))
@@ -2739,20 +2733,20 @@ public class Kraken extends KrakenApi
             }
             Boolean isMarket = (java.util.Objects.equals(type, "market"));
             Boolean postOnly = null;
-            List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarket, false, Helpers.toMapArg(paramsOmitted));
+            List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarket, false, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
             postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
             paramsOmitted = ((List<Object>) postOnlyparamsOmittedVariable).get(1);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("post_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
             if (!java.util.Objects.equals(amount, null))
             {
-                Helpers.addElementToObject(request, "order_qty", this.amountToPrecision(symbol, amount));
+                request.put("order_qty", this.amountToPrecision(symbol, amount));
             }
             if (!java.util.Objects.equals(price, null))
             {
-                Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(symbol, price));
+                request.put("limit_price", this.priceToPrecision(symbol, price));
             }
             Object allTriggerPrices = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent")));
             if (!java.util.Objects.equals(allTriggerPrices, null))
@@ -2765,7 +2759,7 @@ public class Kraken extends KrakenApi
                     request.put("trigger_price", allTriggerPrices);
                 } else
                 {
-                    Helpers.addElementToObject(request, "trigger_price", this.priceToPrecision(symbol, allTriggerPrices));
+                    request.put("trigger_price", this.priceToPrecision(symbol, allTriggerPrices));
                 }
             }
             Map<String, Object> response = (this.privatePostAmendOrder(this.extend(request, paramsOmitted))).join();
@@ -2886,7 +2880,7 @@ public class Kraken extends KrakenApi
                 throw new ArgumentsRequired((this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
             } else
             {
-                for (var i = 0; i < Helpers.getArrayLength(orderTrades); i++)
+                for (var i = 0; i < (switch ((Object)(orderTrades)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
                 {
                     Object orderTrade = Helpers.GetValue(orderTrades, i);
                     if ((orderTrade instanceof String))
@@ -2906,20 +2900,23 @@ public class Kraken extends KrakenApi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOrderTrades", new HashMap<String, Object>() {{}});
             Long batchSize = this.safeInteger(options, "batchSize", 20);
             Integer numTradeIds = ((List<?>)tradeIds).size();
-            Object numBatches = this.parseToInt((((double) numTradeIds) / ((double) batchSize)));
-            numBatches = this.sum(numBatches, 1);
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var j = 0; Helpers.isLessThan(j, numBatches); j++)
+            // full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
+            List<Object> batches = new ArrayList<Object>(Arrays.asList());
+            List<Object> batch = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; (numTradeIds != null && i < numTradeIds); i++)
             {
-                Object requestIds = new ArrayList<Object>(Arrays.asList());
-                for (var k = 0; (batchSize != null && k < batchSize); k++)
+                ((List<Object>)batch).add((tradeIds == null || i < 0 || i >= tradeIds.size() ? null : tradeIds.get(i)));
+                if ((batchSize == null || ((List<?>)batch).size() >= batchSize))
                 {
-                    Object index = this.sum((((long) j) * batchSize), k);
-                    if (Helpers.isLessThan(index, numTradeIds))
-                    {
-                        ((List<Object>)requestIds).add(Helpers.GetValue(tradeIds, index));
-                    }
+                    ((List<Object>)batches).add(batch);
+                    batch = new ArrayList<Object>(Arrays.asList());
                 }
+            }
+            ((List<Object>)batches).add(batch);
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            for (var j = 0; j < ((List<?>)batches).size(); j++)
+            {
+                Object requestIds = (batches == null || j < 0 || j >= batches.size() ? null : batches.get(j));
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "txid", String.join(",", (List<String>)requestIds) );
                 }};
@@ -2946,7 +2943,7 @@ public class Kraken extends KrakenApi
                 //     }
                 //
                 Object rawTrades = this.safeValue(response, "result");
-                List<Object> ids = Helpers.objectKeys(rawTrades);
+                List<Object> ids = ((List<Object>) switch ((Object)(rawTrades)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
                     Helpers.addElementToObject(Helpers.GetValue(rawTrades, (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))), "id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
@@ -3222,7 +3219,7 @@ public class Kraken extends KrakenApi
             {
                 throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
             }
-            if (Helpers.isGreaterThan(timeout, 86400000))
+            if ((timeout != null && ((Number) timeout).doubleValue() > 86400000))
             {
                 throw new BadRequest((this.id + " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
             }
@@ -3235,7 +3232,7 @@ public class Kraken extends KrakenApi
                 throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("timeout", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) (this.parseToInt(Helpers.divide(timeout, 1000)))) : 0);
+            request.put("timeout", ((((timeout != null && ((Number) timeout).doubleValue() > 0)))) ? ((Object) (this.parseToInt((timeout == null ? null : ((Number) timeout).doubleValue() / 1000)))) : 0);
             Map<String, Object> response = (this.privatePostCancelAllOrdersAfter(this.extend(request, parameters))).join();
             //
             //     {
@@ -3390,7 +3387,7 @@ public class Kraken extends KrakenApi
                 request.put("cl_ord_id", clientOrderId);
                 paramsOmitted = this.omit(paramsOmitted, "clientOrderId");
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
             request = requestparamsOmittedVariable.first();
             paramsOmitted = requestparamsOmittedVariable.second();
             Map<String, Object> response = (this.privatePostClosedOrders(this.extend(request, paramsOmitted))).join();
@@ -3591,10 +3588,10 @@ public class Kraken extends KrakenApi
         }
     }
 
-    public Object parseTransactionsByType(Object type, Object transactions, String code, Long since, Long limit)
+    public Object parseTransactionsByType(String type, Object transactions, String code, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(transactions); i++)
+        for (var i = 0; i < (switch ((Object)(transactions)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); i++)
         {
             Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
@@ -3718,7 +3715,7 @@ public class Kraken extends KrakenApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3787,7 +3784,7 @@ public class Kraken extends KrakenApi
             Object result = this.safeValue(response, "result");
             if (!(result instanceof List))
             {
-                rawWithdrawals = this.addPaginationCursorToResult(result);
+                rawWithdrawals = this.addPaginationCursorToResult((Map<String, Object>) (result));
             } else
             {
                 rawWithdrawals = result;
@@ -3797,16 +3794,16 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object addPaginationCursorToResult(Object result)
+    public Object addPaginationCursorToResult(Map<String, Object> result)
     {
         String cursor = this.safeString(result, "next_cursor");
-        Object data = this.safeValue(result, "withdrawals");
-        Integer dataLength = Helpers.getArrayLength(data);
+        List<Object> data = (List<Object>) this.safeList(result, "withdrawals", new ArrayList<Object>(Arrays.asList()));
+        Integer dataLength = ((List<?>)data).size();
         if (!java.util.Objects.equals(cursor, null) && (dataLength != null && dataLength > 0))
         {
-            Object last = Helpers.GetValue(data, Helpers.subtract(dataLength, 1));
+            Object last = (data == null || ((int) (((long) dataLength) - 1L)) < 0 || ((int) (((long) dataLength) - 1L)) >= data.size() ? null : data.get(((int) (((long) dataLength) - 1L))));
             Helpers.addElementToObject(last, "next_cursor", cursor);
-            Helpers.addElementToObject(data, Helpers.subtract(dataLength, 1), last);
+            Helpers.addElementToObject(data, (((long) dataLength) - 1L), last);
         }
         return data;
     }
@@ -3879,7 +3876,8 @@ public class Kraken extends KrakenApi
             //         ]
             //     }
             //
-            return this.safeValue(response, "result");
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            return result;
         });
 
     }
@@ -3904,8 +3902,10 @@ public class Kraken extends KrakenApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             String network = this.safeStringUpper(parameters, "network");
-            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network);
+            }
             Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             String codeResolved = code;
             if ((java.util.Objects.equals(code, "USDT")) && (java.util.Objects.equals(network, "TRC20")))
@@ -3979,7 +3979,7 @@ public class Kraken extends KrakenApi
         String tag = this.safeString(depositAddress, "tag");
         Map<String, Object> currencyResolved = this.safeCurrency((String) (null), currency);
         String code = (String) currencyResolved.get("code");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
@@ -3997,16 +3997,17 @@ public class Kraken extends KrakenApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagAndParams = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
+            List<Object> tagAndParams = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>)tagAndParams).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>)tagAndParams).get(1);
             if (paramsWithdrawTag.containsKey("key"))
             {
@@ -4019,7 +4020,7 @@ public class Kraken extends KrakenApi
                 if (!java.util.Objects.equals(address, null) && !java.util.Objects.equals(address, ""))
                 {
                     request.put("address", address);
-                    this.checkAddress(address);
+                    this.checkAddress(address, code, tagWithdrawTag);
                 }
                 Map<String, Object> response = (this.privatePostWithdraw(this.extend(request, paramsWithdrawTag))).join();
                 //
@@ -4241,7 +4242,7 @@ public class Kraken extends KrakenApi
             //       }
             //   }
             //
-            Object transfer = this.parseTransfer(response, currency);
+            Map<String, Object> transfer = (Map<String, Object>) this.parseTransfer(response, currency);
             HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
             mapLiteral10.put("amount", amount);
             mapLiteral10.put("fromAccount", fromAccountParsed);
@@ -4279,17 +4280,18 @@ public class Kraken extends KrakenApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String url = ((((("/" + this.version) + "/") + java.util.Objects.requireNonNullElse(api, "public")) + "/") + path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String url = ((((("/" + this.version) + "/") + apiName) + "/") + path);
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = (url + ("?" + this.urlencodeNested(parameters)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             String price = this.safeString(parameters, "price");
             Boolean isTriggerPercent = false;
@@ -4333,7 +4335,7 @@ public class Kraken extends KrakenApi
             {
                 headersSigned.put("Content-Type", "application/x-www-form-urlencoded");
             }
-            String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
             if (java.util.Objects.equals(baseApiUrl, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4351,7 +4353,7 @@ public class Kraken extends KrakenApi
         {
             url = ("/" + path);
         }
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4360,8 +4362,8 @@ public class Kraken extends KrakenApi
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", (apiUrl + url));
             h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap3.put("body", body);
-            h2kMap3.put("headers", headers);
+            h2kMap3.put("body", null);
+            h2kMap3.put("headers", null);
             return h2kMap3;
         }
     }
@@ -4373,7 +4375,7 @@ public class Kraken extends KrakenApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isEqual(code, 520))
+        if ((code != null && ((Number) code).doubleValue() == 520))
         {
             throw new ExchangeNotAvailable(((((this.id + " ") + String.valueOf(code)) + " ") + reason)) ;
         }
@@ -4386,12 +4388,12 @@ public class Kraken extends KrakenApi
             if (!(response instanceof String))
             {
                 String message = ((this.id + " ") + body);
-                if (Helpers.inOp(response, "error"))
+                if ((switch ((Object)(response)) { case List<?> j39v21 -> j39v21.contains("error"); case Map<?, ?> j39v20 -> j39v20.containsKey("error"); case null, default -> false; }))
                 {
-                    Integer numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
+                    Integer numErrors = (switch ((Object)(Helpers.GetValue(response, "error"))) { case null -> 0; case List<?> j39v17 -> j39v17.size(); case String j39v18 -> j39v18.length(); case Object j39v19 -> j39v19.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v19) : 0; });
                     if ((numErrors != null && numErrors > 0))
                     {
-                        for (var i = 0; i < Helpers.getArrayLength(Helpers.GetValue(response, "error")); i++)
+                        for (var i = 0; i < (switch ((Object)(Helpers.GetValue(response, "error"))) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
                         {
                             Object error = Helpers.GetValue(Helpers.GetValue(response, "error"), i);
                             this.throwExactlyMatchedException(this.exceptions.get("exact"), error, message);
@@ -4401,7 +4403,7 @@ public class Kraken extends KrakenApi
                     }
                 }
                 // handleCreateOrdersErrors:
-                if (Helpers.inOp(response, "result"))
+                if ((switch ((Object)(response)) { case List<?> j39v13 -> j39v13.contains("result"); case Map<?, ?> j39v12 -> j39v12.containsKey("result"); case null, default -> false; }))
                 {
                     Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                     if (result.containsKey("orders"))

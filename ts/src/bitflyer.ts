@@ -745,7 +745,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',
@@ -826,11 +826,10 @@ export default class bitflyer extends Exchange {
             'count': limit,
         };
         const response = await this.privateGetGetchildorders (this.extend (request, params));
-        let orders = this.parseOrders (response, market, since, limit);
         if (symbol !== undefined) {
-            orders = this.filterBy (orders, 'symbol', symbol) as Order[];
+            return this.filterBy (this.parseOrders (response, market, since, limit), 'symbol', symbol) as Order[];
         }
-        return orders;
+        return this.parseOrders (response, market, since, limit);
     }
 
     /**
@@ -984,11 +983,11 @@ export default class bitflyer extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1250,11 +1249,12 @@ export default class bitflyer extends Exchange {
         } as FundingRate;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let bodySigned: Str = undefined;
         let headersSigned: NullableDict = undefined;
         let request = '/' + this.version + '/';
-        if (api === 'private') {
+        if (apiName === 'private') {
             request += 'me/';
         }
         request += path;
@@ -1269,15 +1269,16 @@ export default class bitflyer extends Exchange {
         }
         const baseUrl = this.implodeHostname (apiUrl);
         const url = baseUrl + request;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const content = [ nonce, method, request ];
-            let auth = content.join ('');
+            let auth: string = content.join ('');
             if (Object.keys (params).length > 0) {
                 if (method !== 'GET') {
-                    bodySigned = this.json (params);
-                    auth += bodySigned;
+                    const body = this.json (params);
+                    bodySigned = body;
+                    auth += body;
                 }
             }
             headersSigned = {
@@ -1287,8 +1288,8 @@ export default class bitflyer extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved: NullableDict = headersSigned;
+        const bodyResolved: Str = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

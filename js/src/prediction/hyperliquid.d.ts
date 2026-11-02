@@ -358,7 +358,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} raw a dict with parentSymbol and markets entries
      * @returns {object} an event structure
      */
-    parseEvent(raw: Dict): any;
+    parseEvent(raw: Dict): PredictionEvent;
     amountToPrecision(outcome: Str, amount: any): string;
     priceToPrecision(outcome: Str, price: any): string;
     hashMessage(message: any): string;
@@ -382,12 +382,12 @@ export default class hyperliquid extends Exchange {
     initializeClient(): Promise<any>;
     handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
     formatVaultAddress(address?: Str): Str;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: any;
         headers: any;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
 }

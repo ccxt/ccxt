@@ -1195,10 +1195,9 @@ export default class nado extends nadoRest {
         return await this.watch (url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
 
-    async unWatchPublicMultiple (streamType: Str, markets: Market[], messageHashes: string[], params: Dict = {}, subscriptionParams: Dict[] | undefined = undefined): Promise<any[]> {
+    async unWatchPublicMultiple (streamType: Str, markets: Market[], messageHashes: string[], params: Dict = {}, subscriptionParams: Dict[] | undefined = undefined): Promise<boolean> {
         const url = this.urls['api']['ws']['subscriptions'];
         const client = this.client (url);
-        const results: any[] = [];
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const id = this.requestId ();
@@ -1213,9 +1212,9 @@ export default class nado extends nadoRest {
                 'messageHash': messageHash,
                 'unsubscribeHash': unsubscribeHash,
             };
-            results.push (await this.watchMultiple (url, [ unsubscribeHash ], request, [ unsubscribeHash ], subscription));
+            await this.watchMultiple (url, [ unsubscribeHash ], request, [ unsubscribeHash ], subscription);
         }
-        return results;
+        return true;
     }
 
     parseWsTimestamp (message: Dict, key: string): Int {
@@ -1772,7 +1771,7 @@ export default class nado extends nadoRest {
                 this.cleanUnsubscription (client, messageHash, unsubscribeHash);
                 this.handleUnsubscriptionCache (messageHash);
             }
-            client.resolve (message, unsubscribeHash);
+            client.resolve (true, unsubscribeHash);
             return;
         }
         const subscriptions = Object.keys (client.subscriptions);
@@ -1788,7 +1787,7 @@ export default class nado extends nadoRest {
                 this.cleanUnsubscription (client, messageHash, unsubscribeHash);
                 this.handleUnsubscriptionCache (messageHash);
             }
-            client.resolve (message, unsubscribeHash);
+            client.resolve (true, unsubscribeHash);
             return;
         }
     }

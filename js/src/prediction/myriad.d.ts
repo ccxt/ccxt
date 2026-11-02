@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/myriad.js';
-import type { OrderSide, OrderType, Int, Str, Num, Dict, int, Strings, PredictionOrderRequest, Market, PredictionOrderBook, OHLCV, PredictionTradingFee, PredictionEvent, Balances, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
+import type { OrderSide, OrderType, Int, Str, Num, Dict, int, Strings, PredictionOrderRequest, Market, PredictionOrderBook, OHLCV, PredictionTradingFee, PredictionEvent, Balances, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class myriad
@@ -272,7 +272,7 @@ export default class myriad extends Exchange {
      * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
      * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
      */
-    getOrderResponseFromParams(id: Str, params?: Dict): any;
+    getOrderResponseFromParams(id: Str, params?: Dict): NullableDict;
     /**
      * @ignore
      * @method
@@ -443,7 +443,7 @@ export default class myriad extends Exchange {
      * @param {object} market the parsed ccxt market
      * @returns {object} an event structure
      */
-    parseMarketToEvent(raw: Dict, market: any): any;
+    parseMarketToEvent(raw: Dict, market: any): PredictionEvent;
     /**
      * @ignore
      * @method
@@ -583,7 +583,7 @@ export default class myriad extends Exchange {
      * @param {object} rawEvent the raw myriad question object
      * @returns {object} an event structure
      */
-    parseEvent(rawEvent: Dict): any;
+    parseEvent(rawEvent: Dict): PredictionEvent;
     requestId(url: Str): number;
     fromWei(wei: Str): Num;
     marketOutcomeToSymbol(networkId: Str, marketId: Str, outcomeId: Str): Str;
@@ -591,7 +591,7 @@ export default class myriad extends Exchange {
     pong(client: Client, message?: any): Promise<void>;
     subscribeMyriadChannel(messageHash: string, channel: string, params?: Dict): Promise<any>;
     handleMessage(client: any, message: any): void;
-    handleCentrifugoFrame(client: Client, msg: any): void;
+    handleCentrifugoFrame(client: Client, msg: Dict): void;
     /**
      * @method
      * @name myriad#watchOrderBook
@@ -604,7 +604,7 @@ export default class myriad extends Exchange {
      */
     watchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     seedOrderBook(outcome: string, sym: Str, limit?: Int): Promise<void>;
-    handleOrderBook(client: any, data: Dict): void;
+    handleOrderBook(client: Client, data: Dict): void;
     /**
      * @method
      * @name myriad#watchTrades
@@ -631,7 +631,7 @@ export default class myriad extends Exchange {
      */
     watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     walletAddressOrUndefined(): Str;
-    handleTrades(client: any, data: Dict): void;
+    handleTrades(client: Client, data: Dict): void;
     /**
      * @method
      * @name myriad#watchTicker
@@ -665,7 +665,7 @@ export default class myriad extends Exchange {
      * @returns {int[][]} a list of [timestamp, open, high, low, close, volume] candles
      */
     watchOHLCV(outcome: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    handleTicker(client: any, data: Dict): void;
+    handleTicker(client: Client, data: Dict): void;
     /**
      * @method
      * @name myriad#watchOrders
@@ -678,7 +678,7 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
-    handleOrder(client: any, data: Dict): void;
+    handleOrder(client: Client, data: Dict): void;
     /**
      * @method
      * @name myriad#watchPositions
@@ -692,7 +692,7 @@ export default class myriad extends Exchange {
      */
     watchPositions(outcomes?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<PredictionPosition[]>;
     seedPositionBalances(trader: string): Promise<void>;
-    handlePosition(client: any, data: Dict): void;
+    handlePosition(client: Client, data: Dict): void;
     walletAddressFromKeys(): string;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
@@ -704,11 +704,9 @@ export default class myriad extends Exchange {
      * @param {string|string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: any;

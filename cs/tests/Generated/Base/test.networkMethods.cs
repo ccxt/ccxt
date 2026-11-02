@@ -9,7 +9,6 @@ public partial class BaseTest
 {
         public void helperTestNetworkCodeToId(object networksMap)
         {
-            // we should conduct tests with such example configuration
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
                 { "options", new Dictionary<string, object>() {
@@ -17,53 +16,29 @@ public partial class BaseTest
                 } },
             });
             exchange.currencies = exchange.mapToSafeMap(new Dictionary<string, object>() {}); // go fix + c# uninitialized prop fix
-            //
-            //
-            // CASE #1 : with mainnet key
-            //
-            //
+            // unified code and its alias resolve to the same id, regardless of which one options.networks uses
+            Assert(isEqual(exchange.networkCodeToId("ERC20"), "Ether"));
             Assert(isEqual(exchange.networkCodeToId("ETH"), "Ether"));
-            Assert(isEqual(exchange.networkCodeToId("ERC20"), "Ether")); // inexistent secondary networkCode should match
-            // with currencyCode
-            Assert(isEqual(exchange.networkCodeToId("ETH", "USDC"), "Ether"));
-            Assert(isEqual(exchange.networkCodeToId("ETH", "ETH"), "Ether"));
-            Assert(isEqual(exchange.networkCodeToId("ERC20", "USDC"), "Ether"));
             Assert(isEqual(exchange.networkCodeToId("ERC20", "ETH"), "Ether"));
-            //
-            //
-            // CASE #2 : with mainnet key
-            //
-            //
-            Assert(isEqual(exchange.networkCodeToId("TRX"), "Tron")); // inexistent primary networkCode should match
+            Assert(isEqual(exchange.networkCodeToId("ETH", "USDC"), "Ether"));
             Assert(isEqual(exchange.networkCodeToId("TRC20"), "Tron"));
-            // with currencyCode
-            Assert(isEqual(exchange.networkCodeToId("TRX", "USDC"), "Tron"));
+            Assert(isEqual(exchange.networkCodeToId("TRX"), "Tron"));
             Assert(isEqual(exchange.networkCodeToId("TRX", "TRX"), "Tron"));
-            Assert(isEqual(exchange.networkCodeToId("TRC20", "USDC"), "Tron"));
-            Assert(isEqual(exchange.networkCodeToId("TRC20", "TRX"), "Tron"));
-            //
-            //
-            // Case #3
-            //
-            //
-            Assert(isEqual(exchange.networkCodeToId("BTC"), "Bitcoin")); // exclusive match
-            Assert(isEqual(exchange.networkCodeToId("BRC20"), "Brc_20")); // exclusive match
-            // with currencyCode
-            Assert(isEqual(exchange.networkCodeToId("BTC", "USDC"), "Brc_20"));
-            Assert(isEqual(exchange.networkCodeToId("BTC", "BTC"), "Bitcoin"));
-            Assert(isEqual(exchange.networkCodeToId("BRC20", "USDC"), "Brc_20"));
-            Assert(isEqual(exchange.networkCodeToId("BRC20", "BTC"), "Bitcoin"));
-            //
-            //
-            // Case #4: unknown networkCode
-            //
-            //
+            Assert(isEqual(exchange.networkCodeToId("BEP20"), "Bsc"));
+            Assert(isEqual(exchange.networkCodeToId("BSC"), "Bsc"));
+            // BTC and BRC20 are distinct networks, not aliases
+            Assert(isEqual(exchange.networkCodeToId("BTC"), "Bitcoin"));
+            Assert(isEqual(exchange.networkCodeToId("BRC20"), "Brc_20"));
+            Assert(isEqual(exchange.networkCodeToId("BTC", "USDC"), "Bitcoin"));
+            // backward-supported aliases
+            Assert(isEqual(exchange.networkCodeToId("ARB"), "Arb"));
+            Assert(isEqual(exchange.networkCodeToId("ARBONE"), "Arb"));
+            // unknown network code passes through
             Assert(isEqual(exchange.networkCodeToId("Xyz"), "Xyz"));
             Assert(isEqual(exchange.networkCodeToId("Xyz", "SAMPLECOIN"), "Xyz"));
         }
         public void helperTestNetworkIdToCode(object networksMap)
         {
-            // we should conduct tests with such example configuration
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
                 { "options", new Dictionary<string, object>() {
@@ -71,139 +46,76 @@ public partial class BaseTest
                 } },
             });
             exchange.currencies = exchange.mapToSafeMap(new Dictionary<string, object>() {}); // go fix + c# uninitialized prop fix
-            //
-            //
-            // CASE #1 : with mainnet key
-            //
-            //
+            // always the unified code, never an alias, regardless of currency
             Assert(isEqual(exchange.networkIdToCode("Ether"), "ERC20"));
-            // with currencyCode
             Assert(isEqual(exchange.networkIdToCode("Ether", "USDC"), "ERC20"));
-            Assert(isEqual(exchange.networkIdToCode("Ether", "ETH"), "ETH"));
-            //
-            //
-            // CASE #2 : with mainnet key
-            //
-            //
+            Assert(isEqual(exchange.networkIdToCode("Ether", "ETH"), "ERC20"));
             Assert(isEqual(exchange.networkIdToCode("Tron"), "TRC20"));
-            // with currencyCode
-            Assert(isEqual(exchange.networkIdToCode("Tron", "USDC"), "TRC20"));
-            Assert(isEqual(exchange.networkIdToCode("Tron", "TRX"), "TRX"));
-            //
-            //
-            // Case #3
-            //
-            //
-            Assert(isEqual(exchange.networkIdToCode("Bitcoin"), "BTC")); // exclusive match
-            Assert(isEqual(exchange.networkIdToCode("Brc_20"), "BRC20")); // exclusive match
-            // with currencyCode
-            Assert(isEqual(exchange.networkIdToCode("Bitcoin", "USDC"), "BRC20"));
+            Assert(isEqual(exchange.networkIdToCode("Tron", "TRX"), "TRC20"));
+            Assert(isEqual(exchange.networkIdToCode("Bsc"), "BEP20"));
+            Assert(isEqual(exchange.networkIdToCode("Bsc", "BNB"), "BEP20"));
+            Assert(isEqual(exchange.networkIdToCode("Arb"), "ARBITRUM"));
+            Assert(isEqual(exchange.networkIdToCode("Bitcoin"), "BTC"));
             Assert(isEqual(exchange.networkIdToCode("Bitcoin", "BTC"), "BTC"));
-            Assert(isEqual(exchange.networkIdToCode("Brc_20", "USDC"), "BRC20"));
-            Assert(isEqual(exchange.networkIdToCode("Brc_20", "BTC"), "BTC"));
-            //
-            //
-            // Case #4: unknown networkCode
-            //
-            //
+            Assert(isEqual(exchange.networkIdToCode("Brc_20"), "BRC20"));
+            // ids missing from options.networks still get unified when they spell an alias
+            Assert(isEqual(exchange.networkIdToCode("ETH"), "ERC20"));
+            Assert(isEqual(exchange.networkIdToCode("CRONOS"), "CRC20"));
             Assert(isEqual(exchange.networkIdToCode("Xyz"), "Xyz"));
             Assert(isEqual(exchange.networkIdToCode("Xyz", "SAMPLECOIN"), "Xyz"));
         }
-        public void helperBatchNetworkTests()
+        public void helperTestNetworkAliases()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
+                { "options", new Dictionary<string, object>() {
+                    { "networks", new Dictionary<string, object>() {} },
+                } },
             });
-            //
-            // check batch
-            //
-            object defaultNetworkCodeReplacements = getValue(exchange.options, "defaultNetworkCodeReplacements");
-            List<object> allNetworkCodes = new List<object>() {"ETH", "ERC20", "TRON", "TRX", "TRC20", "SOL", "BSC", "BEP20", "ARBITRUM", "AVAXC", "POL", "BASE", "SUI", "OPTIMISM", "OP", "NEAR", "CRO", "CRONOS", "BTC", "APT", "SCR", "KAVA", "TON", "Cardano", "ADA", "HECO", "HT", "MNT", "ALGO", "RUNE", "OSMO", "CELO", "HBAR", "FTM", "zkSync", "EraZK", "KLAY", "ACA", "STX", "XTZ", "NEO", "METIS"};
-            List<object> allCurrencyCodes = new List<object>() {"Bitcoin", "BTC", "Ethereum", "ETH", "Tether", "USDT", "BNB", "BNB", "XRP", "XRP", "USDC", "USDC", "Solana", "SOL", "TRON", "TRX", "Dogecoin", "DOGE", "Hyperliquid", "HYPE", "Bitcoin Cash", "BCH", "Cardano", "ADA", "LEO", "Chainlink", "LINK", "Ethena", "USDe", "USDe", "Monero", "XMR", "Stellar", "XLM", "Dai", "DAI", "Litecoin", "LTC", "PayPal", "USD", "PYUSD", "Hedera", "HBAR", "Avalanche", "AVAX", "Zcash", "ZEC", "Bittensor", "TAO", "Sui", "SUI", "Shiba Inu", "SHIB", "Cronos", "CRO", "Toncoin", "TON", "WLFI", "Tether", "Gold", "XAUt", "", "PAX", "Gold", "PAXG", "Mantle", "MNT", "Uniswap", "UNI", "Polkadot", "DOT", "USDG", "OKB", "OKB", "Aster", "ASTER", "Aave", "AAVE", "NEAR", "NEAR", "Ripple", "USD", "RLUSD", "Polygon", "POL"};
-            for (int i = 0; i < (allNetworkCodes?.Count ?? 0); i++)
+            exchange.currencies = exchange.mapToSafeMap(new Dictionary<string, object>() {}); // go fix + c# uninitialized prop fix
+            Dictionary<string, object> aliases = new Dictionary<string, object>() {
+                { "ETH", "ERC20" },
+                { "TRX", "TRC20" },
+                { "BSC", "BEP20" },
+                { "BSC20", "BEP20" },
+                { "CRONOS", "CRC20" },
+                { "ARB", "ARBITRUM" },
+                { "ARBONE", "ARBITRUM" },
+                { "ARBNOVA", "ARBITRUM_NOVA" },
+            };
+            List<object> keys = new List<object>(((IDictionary<string,object>)aliases).Keys);
+            for (int i = 0; i < keys.Count; i++)
             {
-                string? randomNetworkCode = ((string)allNetworkCodes[i]);
-                for (int j = 0; j < (allCurrencyCodes?.Count ?? 0); j++)
-                {
-                    string? randomCurrencyCode = ((string)allCurrencyCodes[j]);
-                    string? result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
-                    List<object> keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
-                    for (int k = 0; k < keys.Count; k++)
-                    {
-                        string? chainBaseCoin = ((string)keys[k]);
-                        object chainMapping = getValue(defaultNetworkCodeReplacements, chainBaseCoin);
-                        object primaryNetworkCode = getValue(chainMapping, "primary");
-                        object secondaryNetworkCode = getValue(chainMapping, "secondary");
-                        object msg = (((((("network protocol test failed for networkCode:" + randomNetworkCode) + " & currencyCode: ") + randomCurrencyCode) + ", result: ") + result) + ", expected: ");
-                        if (isEqual(randomNetworkCode, primaryNetworkCode))
-                        {
-                            if ((randomCurrencyCode == chainBaseCoin))
-                            {
-                                Assert(isEqual(result, primaryNetworkCode), add(msg, primaryNetworkCode));
-                            } else
-                            {
-                                Assert(isEqual(result, secondaryNetworkCode), add(msg, secondaryNetworkCode));
-                            }
-                        } else if (isEqual(randomNetworkCode, secondaryNetworkCode))
-                        {
-                            if ((randomCurrencyCode == chainBaseCoin))
-                            {
-                                Assert(isEqual(result, primaryNetworkCode), add(msg, primaryNetworkCode));
-                            } else
-                            {
-                                Assert(isEqual(result, secondaryNetworkCode), add(msg, secondaryNetworkCode));
-                            }
-                        }
-                    }
-                }
+                Assert(isEqual(exchange.safeString(exchange.networkAliases, keys[i]), getValue(aliases, keys[i])));
+                // unified codes are never aliases themselves
+                Assert(!(inOp(exchange.networkAliases, getValue(aliases, keys[i]))));
             }
+            Assert(!(inOp(exchange.networkAliases, "BTC")));
+            Assert(isEqual(exchange.networkIdToCode("ETH"), "ERC20"));
         }
-        // function helperTestNetworkProtocolCorrector () {
-        //     return;
-        //     const exchange = new ccxt.Exchange ({
-        //         'id': 'sampleexchange',
-        //     });
-        //     // for ethereum
-        //     Assert (exchange.prioritizedNetworkAliases ('ERC20', 'MYTOKEN') === 'ERC20');
-        //     Assert (exchange.prioritizedNetworkAliases ('ETH', 'MYTOKEN') === 'ERC20');
-        //     Assert (exchange.prioritizedNetworkAliases ('ERC20', 'ETH') === 'ETH');
-        //     Assert (exchange.prioritizedNetworkAliases ('ETH', 'ETH') === 'ETH');
-        //     // for tron
-        //     Assert (exchange.prioritizedNetworkAliases ('TRC20', 'MYTOKEN') === 'TRC20');
-        //     Assert (exchange.prioritizedNetworkAliases ('TRX', 'MYTOKEN') === 'TRC20');
-        //     Assert (exchange.prioritizedNetworkAliases ('TRC20', 'TRX') === 'TRX');
-        //     Assert (exchange.prioritizedNetworkAliases ('TRX', 'TRX') === 'TRX');
-        //     // for cronos
-        //     Assert (exchange.prioritizedNetworkAliases ('CRC20', 'MYTOKEN') === 'CRC20');
-        //     Assert (exchange.prioritizedNetworkAliases ('CRONOS', 'MYTOKEN') === 'CRC20');
-        //     Assert (exchange.prioritizedNetworkAliases ('CRC20', 'CRO') === 'CRONOS');
-        //     Assert (exchange.prioritizedNetworkAliases ('CRONOS', 'CRO') === 'CRONOS');
-        //     // for bitcoin
-        //     Assert (exchange.prioritizedNetworkAliases ('BRC20', 'MYTOKEN') === 'BRC20');
-        //     Assert (exchange.prioritizedNetworkAliases ('BTC', 'MYTOKEN') === 'BRC20');
-        //     Assert (exchange.prioritizedNetworkAliases ('BRC20', 'BTC') === 'BTC');
-        //     Assert (exchange.prioritizedNetworkAliases ('BTC', 'BTC') === 'BTC');
-        // }
         public void testNetworkMethods()
         {
-            // both below dicts should end with "same" results
+            // keyed by alias vs keyed by unified code: both must behave identically
             Dictionary<string, object> dict1 = new Dictionary<string, object>() {
                 { "BTC", "Bitcoin" },
                 { "BRC20", "Brc_20" },
-                { "TRC20", "Tron" },
                 { "ETH", "Ether" },
+                { "TRX", "Tron" },
+                { "BSC", "Bsc" },
+                { "ARB", "Arb" },
             };
             Dictionary<string, object> dict2 = new Dictionary<string, object>() {
                 { "BTC", "Bitcoin" },
                 { "BRC20", "Brc_20" },
-                { "TRC20", "Tron" },
                 { "ERC20", "Ether" },
+                { "TRC20", "Tron" },
+                { "BEP20", "Bsc" },
+                { "ARBITRUM", "Arb" },
             };
-            // helperTestNetworkProtocolCorrector ();
             helperTestNetworkCodeToId(dict1);
             helperTestNetworkCodeToId(dict2);
             helperTestNetworkIdToCode(dict1);
             helperTestNetworkIdToCode(dict2);
-            helperBatchNetworkTests();
+            helperTestNetworkAliases();
         }
 }

@@ -466,27 +466,27 @@ public class Delta extends DeltaApi
         String quote = "USDT";
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
+        Boolean hasSlash = ((String)symbol).indexOf("/") > -1;
         String base = null;
-        Object expiry = null;
         String optionType = null;
-        if (((String)symbol).indexOf("/") > -1)
+        if (Boolean.TRUE.equals(hasSlash))
         {
             base = this.safeString(symbolBase, 0);
-            expiry = this.safeString(optionParts, 1);
             optionType = this.safeString(optionParts, 3);
         } else
         {
             base = this.safeString(optionParts, 1);
-            expiry = this.safeString(optionParts, 3);
             optionType = this.safeString(optionParts, 0);
         }
-        if (!java.util.Objects.equals(expiry, null))
+        String rawExpiry = this.safeString(optionParts, ((Boolean.TRUE.equals(hasSlash))) ? 1 : 3);
+        Object expiry = null;
+        if (!java.util.Objects.equals(rawExpiry, null))
         {
-            expiry = Helpers.add(Helpers.add((expiry == null ? null : ((String)expiry).substring(Math.min(4, ((String)expiry).length()))), (expiry == null ? null : ((String)expiry).substring(Math.min(2, ((String)expiry).length()), Math.min(4, ((String)expiry).length())))), (expiry == null ? null : ((String)expiry).substring(0, Math.min(2, ((String)expiry).length()))));
+            expiry = Helpers.add(Helpers.add((rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(4, ((String)rawExpiry).length()))), (rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(2, ((String)rawExpiry).length()), Math.min(4, ((String)rawExpiry).length())))), (rawExpiry == null ? null : ((String)rawExpiry).substring(0, Math.min(2, ((String)rawExpiry).length()))));
         }
         String settle = quote;
         String strike = this.safeString(optionParts, 2);
-        Object datetime = this.convertExpireDate((String) (expiry));
+        String datetime = (String) this.convertExpireDate((String) (expiry));
         Long timestamp = this.parse8601(datetime);
         String optionTypeUnified = "put";
         if (java.util.Objects.equals(optionType, "C"))
@@ -1103,38 +1103,38 @@ public class Delta extends DeltaApi
                     }
                 }
                 String state = this.safeString(market, "state");
-                ((List<Object>)result).add(this.safeMarketStructure(Helpers.newMap(
-                    "id", id,
-                    "numericId", numericId,
-                    "symbol", symbol,
-                    "base", base,
-                    "quote", quote,
-                    "settle", settle,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", settleId,
-                    "type", type,
-                    "spot", spot,
-                    "margin", false,
-                    "swap", swap,
-                    "future", future,
-                    "option", option,
-                    "active", (java.util.Objects.equals(state, "live")),
-                    "contract", !Boolean.TRUE.equals(spot),
-                    "linear", ((Boolean.TRUE.equals(spot))) ? null : linear,
-                    "inverse", ((Boolean.TRUE.equals(spot))) ? null : !Boolean.TRUE.equals(linear),
-                    "taker", this.safeNumber(market, "taker_commission_rate", (Object) null),
-                    "maker", this.safeNumber(market, "maker_commission_rate", (Object) null),
-                    "contractSize", ((Boolean.TRUE.equals(spot))) ? null : contractSize,
-                    "expiry", expiry,
-                    "expiryDatetime", this.iso8601(expiry),
-                    "strike", this.parseNumber(strike),
-                    "optionType", optionType,
-                    "precision", Helpers.newMap(
-                        "amount", amountPrecision,
-                        "price", this.safeNumber(market, "tick_size", (Object) null)
-                    ),
-                    "limits", new HashMap<String, Object>() {{
+                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                    j39v2.put("id", id);
+                    j39v2.put("numericId", numericId);
+                    j39v2.put("symbol", symbol);
+                    j39v2.put("base", base);
+                    j39v2.put("quote", quote);
+                    j39v2.put("settle", settle);
+                    j39v2.put("baseId", baseId);
+                    j39v2.put("quoteId", quoteId);
+                    j39v2.put("settleId", settleId);
+                    j39v2.put("type", type);
+                    j39v2.put("spot", spot);
+                    j39v2.put("margin", false);
+                    j39v2.put("swap", swap);
+                    j39v2.put("future", future);
+                    j39v2.put("option", option);
+                    j39v2.put("active", (java.util.Objects.equals(state, "live")));
+                    j39v2.put("contract", !Boolean.TRUE.equals(spot));
+                    j39v2.put("linear", ((Boolean.TRUE.equals(spot))) ? null : linear);
+                    j39v2.put("inverse", ((Boolean.TRUE.equals(spot))) ? null : !Boolean.TRUE.equals(linear));
+                    j39v2.put("taker", this.safeNumber(market, "taker_commission_rate", (Object) null));
+                    j39v2.put("maker", this.safeNumber(market, "maker_commission_rate", (Object) null));
+                    j39v2.put("contractSize", ((Boolean.TRUE.equals(spot))) ? null : contractSize);
+                    j39v2.put("expiry", expiry);
+                    j39v2.put("expiryDatetime", this.iso8601(expiry));
+                    j39v2.put("strike", this.parseNumber(strike));
+                    j39v2.put("optionType", optionType);
+                    j39v2.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                        j39v1.put("amount", amountPrecision);
+                        j39v1.put("price", this.safeNumber(market, "tick_size", (Object) null));
+                        yield j39v1; } }));
+                    j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1151,10 +1151,10 @@ public class Delta extends DeltaApi
                             put( "min", Delta.this.safeNumber(market, "min_size", (Object) null) );
                             put( "max", null );
                         }} );
-                    }},
-                    "created", this.parse8601(this.safeString(market, "launch_time")),
-                    "info", market
-                )));
+                    }});
+                    j39v2.put("created", this.parse8601(this.safeString(market, "launch_time")));
+                    j39v2.put("info", market);
+                    yield j39v2; } })));
             }
             return result;
         });
@@ -1768,10 +1768,12 @@ public class Delta extends DeltaApi
             Map<String, Object> settlingAsset = (Map<String, Object>) this.safeDict(product, "settling_asset", new HashMap<String, Object>() {{}});
             String feeCurrencyId = this.safeString(settlingAsset, "symbol");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("id", id);
@@ -1873,30 +1875,36 @@ public class Delta extends DeltaApi
             }};
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long limitValue = 2000L;
+            Long windowSeconds = (2000L * ((long) duration));
             if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0))
             {
                 limitValue = limit; // max 2000
+                windowSeconds = (limit * ((long) duration));
             }
             Long until = this.safeIntegerProduct(parameters, "until", 0.001);
-            Boolean untilIsDefined = (!java.util.Objects.equals(until, null));
+            Boolean untilIsDefined = !java.util.Objects.equals(until, null);
             if (Boolean.TRUE.equals(untilIsDefined))
             {
                 until = this.parseToInt(until);
             }
             if (java.util.Objects.equals(since, null))
             {
-                Long end = ((Boolean.TRUE.equals(untilIsDefined))) ? until : this.seconds();
+                Long end = this.seconds();
+                if (Boolean.TRUE.equals(untilIsDefined))
+                {
+                    end = this.parseToInt(until);
+                }
                 request.put("end", end);
                 if (java.util.Objects.equals(end, null))
                 {
                     throw new ExchangeError((this.id + " fetchOHLCV() missing end")) ;
                 }
-                request.put("start", Helpers.subtract(end, Helpers.multiply(limitValue, duration)));
+                request.put("start", (end - windowSeconds));
             } else
             {
                 Long start = this.parseToInt((((double) since) / ((double) 1000)));
                 request.put("start", start);
-                request.put("end", ((Boolean.TRUE.equals(untilIsDefined))) ? until : this.sum(start, Helpers.multiply(limitValue, duration)));
+                request.put("end", ((Boolean.TRUE.equals(untilIsDefined))) ? until : this.sum(start, windowSeconds));
             }
             String price = this.safeString(parameters, "price");
             if (java.util.Objects.equals(price, "mark"))
@@ -1943,7 +1951,7 @@ public class Delta extends DeltaApi
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "balance"));
             account.put("free", this.safeString(balance, "available_balance"));
-            Helpers.addElementToObject(result, code, account);
+            ((Map<Object, Object>) (Map<?, ?>) result).put(code, account);
         }
         return this.safeBalance(result);
     }
@@ -2107,10 +2115,10 @@ public class Delta extends DeltaApi
         {
             if (Precise.stringGt(sizeString, "0"))
             {
-                side = "buy";
+                side = "long";
             } else if (Precise.stringLt(sizeString, "0"))
             {
-                side = "sell";
+                side = "short";
             }
         }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
@@ -2118,7 +2126,7 @@ public class Delta extends DeltaApi
         mapLiteral4.put("id", null);
         mapLiteral4.put("symbol", symbol);
         mapLiteral4.put("notional", null);
-        mapLiteral4.put("marginMode", null);
+        mapLiteral4.put("marginMode", this.safeString(position, "margin_mode"));
         mapLiteral4.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
         mapLiteral4.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
         mapLiteral4.put("unrealizedPnl", null);
@@ -2132,6 +2140,7 @@ public class Delta extends DeltaApi
         mapLiteral4.put("datetime", this.iso8601(timestamp));
         mapLiteral4.put("maintenanceMargin", null);
         mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("positionMargin", this.safeNumber(position, "margin", (Object) null));
         mapLiteral4.put("collateral", null);
         mapLiteral4.put("initialMargin", null);
         mapLiteral4.put("initialMarginPercentage", null);
@@ -2259,10 +2268,12 @@ public class Delta extends DeltaApi
                 String feeCurrencyId = this.safeString(settlingAsset, "symbol");
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
             }
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", feeCostString);
+                hx4NewMap1.put("currency", feeCurrencyCode);
+                fee = hx4NewMap1;
+            }
         }
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
         mapLiteral5.put("info", order);
@@ -2283,7 +2294,7 @@ public class Delta extends DeltaApi
         mapLiteral5.put("status", status);
         mapLiteral5.put("fee", fee);
         mapLiteral5.put("trades", null);
-        return this.safeOrder(mapLiteral5, Helpers.toMapArg(marketValue));
+        return this.safeOrder(mapLiteral5, ((Map<String, Object>) (switch ((Object) (marketValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
     }
 
     /**
@@ -2648,7 +2659,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersWithMethod(Object method, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersWithMethod(String method, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2846,7 +2857,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "pnl", "pnl" );
@@ -2917,7 +2928,7 @@ public class Delta extends DeltaApi
         mapLiteral6.put("timestamp", timestamp);
         mapLiteral6.put("datetime", this.iso8601(timestamp));
         mapLiteral6.put("fee", null);
-        return this.safeLedgerEntry(mapLiteral6, Helpers.toMapArg(currencyValue));
+        return this.safeLedgerEntry(mapLiteral6, ((Map<String, Object>) (switch ((Object) (currencyValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
     }
 
     /**
@@ -2989,7 +3000,7 @@ public class Delta extends DeltaApi
         String marketId = this.safeString(depositAddress, "asset_symbol");
         String networkId = this.safeString(depositAddress, "network");
         String code = this.safeCurrencyCode(marketId, currency);
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
@@ -3667,7 +3678,7 @@ public class Delta extends DeltaApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            Object settlements = this.parseSettlements(result, (Map<String, Object>) (market));
+            List<Object> settlements = (List<Object>) this.parseSettlements(result, (Map<String, Object>) (market));
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         });
@@ -4597,10 +4608,11 @@ public class Delta extends DeltaApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4609,13 +4621,13 @@ public class Delta extends DeltaApi
         Object query = this.omit(parameters, this.extractParams(path));
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.seconds());
@@ -4626,7 +4638,7 @@ public class Delta extends DeltaApi
             String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + timestamp) + requestPath);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (Helpers.objectKeys(query).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     String queryString = ("?" + this.urlencode(query));
                     auth = (auth + queryString);
@@ -4641,8 +4653,8 @@ public class Delta extends DeltaApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             requestHeaders.put("signature", signature);
         }
-        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResult = requestBody;
+        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

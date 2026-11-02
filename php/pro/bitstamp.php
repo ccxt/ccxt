@@ -825,7 +825,12 @@ class bitstamp extends \ccxt\async\bitstamp {
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 3);
         $symbol = $this->safe_symbol($marketId);
-        $this->orderbooks[$symbol] = $this->order_book();
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
+        }
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook['nonce'] = null;
+        $orderbook->cache = array();
     }
 
     public function handle_subscription_status(Client $client, array $message) {

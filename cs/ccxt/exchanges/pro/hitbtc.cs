@@ -181,7 +181,7 @@ public partial class hitbtc : ccxt.hitbtc
         object messageHash = this.safeString(splitName, 0, "");
         if ((symbol != null))
         {
-            messageHash = add(add(messageHash, "::"), symbol);
+            messageHash = ((messageHash + "::") + symbol);
         }
         Int64? requestId = this.incrementingNonce();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -244,7 +244,7 @@ public partial class hitbtc : ccxt.hitbtc
         string? name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         string? depthValue = this.safeString(parameters, "depth", "20"); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
         string? speedValue = this.safeString(parameters, "speed", "100"); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
-        object paramsOmitted = this.omit(parameters, new List<object>() {"method", "defaultMethod", "depth", "speed"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"method", "defaultMethod", "depth", "speed"}));
         if (name == "orderbook/{depth}/{speed}")
         {
             name = (((("orderbook/D" + depthValue) + "/") + speedValue) + "ms");
@@ -596,7 +596,7 @@ public partial class hitbtc : ccxt.hitbtc
         string? name = this.implodeParams(method, new Dictionary<string, object>() {
             { "speed", speedValue },
         });
-        object paramsOmitted = this.omit(parameters, new List<object>() {"method", "defaultMethod", "speed"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"method", "defaultMethod", "speed"}));
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
@@ -1456,8 +1456,30 @@ public partial class hitbtc : ccxt.hitbtc
         //
         string? messageHash = this.safeString(message, "method");
         List<object> parameters = this.safeList(message, "params", new List<object>() {});
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         Dictionary<string, object> balance = this.parseBalance(parameters);
-        this.balance = this.deepExtend(this.balance, balance);
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        List<object> reserved = new List<object>() {"free", "used", "total"};
+        List<object> keys = new List<object>(balance.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            string? key = ((string)keys[i]);
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            this.balance[(string)key] = (balance != null && key != null && balance.ContainsKey(key) ? balance[key] : null);
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
 
@@ -1654,7 +1676,7 @@ public partial class hitbtc : ccxt.hitbtc
                 for (int i = 0; i < subscriptionHashes.Count; i++)
                 {
                     string? subscriptionHash = ((string)subscriptionHashes[i]);
-                    string? subscriptionId = this.safeString(getValue(client.subscriptions, subscriptionHash), "id");
+                    string? subscriptionId = this.safeString((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null), "id");
                     if (((subscriptionId != null)) && ((subscriptionId == id)))
                     {
                         client.reject(e, subscriptionHash);

@@ -1322,7 +1322,10 @@ export default class extended extends Exchange {
         const until = this.safeInteger(paramsPaginate, 'until', this.milliseconds());
         const endTime = this.safeInteger(paramsPaginate, 'endTime', until);
         const paramsOmitted = this.omit(paramsPaginate, ['endTime', 'until']);
-        const sinceResolved = (since === undefined) ? endTime - (limitResolved * 60 * 60 * 1000) : since;
+        let sinceResolved = since;
+        if ((endTime !== undefined) && (since === undefined)) {
+            sinceResolved = endTime - (limitResolved * 60 * 60 * 1000);
+        }
         const request = {
             'market': market['id'],
             'startTime': sinceResolved,
@@ -1404,7 +1407,10 @@ export default class extended extends Exchange {
         const until = this.safeInteger(params, 'until', this.milliseconds());
         const endTime = this.safeInteger(params, 'endTime', until);
         const paramsOmitted = this.omit(params, ['endTime', 'until']);
-        const sinceResolved = (since === undefined) ? endTime - (limitResolved * this.parseTimeframe(timeframe) * 1000) : since;
+        let sinceResolved = since;
+        if ((endTime !== undefined) && (since === undefined)) {
+            sinceResolved = endTime - (limitResolved * this.parseTimeframe(timeframe) * 1000);
+        }
         const request = {
             'market': market['id'],
             'interval': interval,
@@ -1778,17 +1784,18 @@ export default class extended extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the Starknet address to withdraw to
-     * @param {string} tag unused
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chainId] only STRK is supported
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         this.checkRequiredCredentials();
         await this.loadMarkets();
         const currency = this.currency(code);
-        const chainId = this.safeStringUpper2(params, 'chainId', 'network', 'STRK');
+        const chainId = this.safeStringUpper2(paramsWithdrawTag, 'chainId', 'network', 'STRK');
         if (chainId !== 'STRK') {
             throw new BadRequest(this.id + ' withdraw() only supports Starknet withdrawals with chainId STRK');
         }
@@ -1798,7 +1805,7 @@ export default class extended extends Exchange {
         const account = await this.fetchExtendedAccount();
         const amountString = this.currencyToPrecision(code, amount);
         const accountId = this.safeString(account, 'accountId');
-        const settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, params);
+        const settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, paramsWithdrawTag);
         const request = {
             'accountId': accountId,
             'amount': amountString,
@@ -1806,7 +1813,7 @@ export default class extended extends Exchange {
             'asset': currency['id'],
             'settlement': settlement,
         };
-        const paramsOmitted = this.omit(params, ['chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution']);
+        const paramsOmitted = this.omit(paramsWithdrawTag, ['chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution']);
         const response = await this.v1PrivatePostUserWithdrawal(this.extend(request, paramsOmitted));
         //
         //     {
@@ -2048,7 +2055,7 @@ export default class extended extends Exchange {
             };
         }
         const transactionType = this.parseTransactionType(this.safeString(transaction, 'type'));
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'));
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
@@ -2448,14 +2455,13 @@ export default class extended extends Exchange {
         return result;
     }
     async fetchExtendedAccount(params = {}) {
-        let account = this.safeDict(this.options, 'account');
-        if (account !== undefined) {
-            return account;
+        const cachedAccount = this.safeDict(this.options, 'account');
+        if (cachedAccount !== undefined) {
+            return this.safeDict(this.options, 'account', {});
         }
         const accountData = await this.fetchAccount(params);
-        account = accountData['info'];
-        this.options['account'] = account;
-        return account;
+        this.options['account'] = accountData['info'];
+        return this.safeDict(this.options, 'account', {});
     }
     createOrderSettlementData(isBuy, amountString, priceString, params = {}) {
         const totalFee = this.safeString(params, 'totalFee');
@@ -2507,7 +2513,7 @@ export default class extended extends Exchange {
         const recipient = this.safeString(params, 'recipient', address);
         const currencyInfo = this.safeDict(currency, 'info', {});
         const collateralId = this.safeString(params, 'collateralId', this.safeString2(currencyInfo, 'starkexId', 'l1Id'));
-        const resolution = this.safeInteger(params, 'resolution', this.safeValue2(currencyInfo, 'starkexResolution', 'l1Resolution'));
+        const resolution = this.safeInteger(params, 'resolution', this.safeInteger2(currencyInfo, 'starkexResolution', 'l1Resolution'));
         const starkKey = this.safeString(account, 'l2Key');
         if ((positionId === undefined) || (collateralId === undefined) || (resolution === undefined) || (starkKey === undefined)) {
             throw new BadRequest(this.id + ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
@@ -2539,7 +2545,7 @@ export default class extended extends Exchange {
         const fromL2Key = this.safeString2(params, 'fromL2Key', 'senderPublicKey', this.safeString(account, 'l2Key'));
         const currencyInfo = this.safeDict(currency, 'info', {});
         const collateralId = this.safeString2(params, 'assetId', 'collateralId', this.safeString2(currencyInfo, 'starkexId', 'l1Id'));
-        const resolution = this.safeInteger(params, 'resolution', this.safeValue2(currencyInfo, 'starkexResolution', 'l1Resolution'));
+        const resolution = this.safeInteger(params, 'resolution', this.safeInteger2(currencyInfo, 'starkexResolution', 'l1Resolution'));
         if ((fromVault === undefined) || (fromL2Key === undefined) || (collateralId === undefined) || (resolution === undefined)) {
             throw new BadRequest(this.id + ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
         }
@@ -2613,7 +2619,8 @@ export default class extended extends Exchange {
         }
         const now = this.milliseconds();
         const expiryEpochMillis = this.safeInteger(paramsBuilder, 'expiryEpochMillis', now + 3600000);
-        const settlementExpiration = this.safeInteger(paramsBuilder, 'settlementExpiration', this.parseToInt((expiryEpochMillis + 999) / 1000) + 1209600);
+        const settlementDefault = (expiryEpochMillis !== undefined) ? this.parseToInt((expiryEpochMillis + 999) / 1000) + 1209600 : undefined;
+        const settlementExpiration = this.safeInteger(paramsBuilder, 'settlementExpiration', settlementDefault);
         const nonce = this.numberToString(this.nonce());
         const account = await this.fetchExtendedAccount();
         const starkKey = this.safeString(account, 'l2Key');
@@ -2918,8 +2925,10 @@ export default class extended extends Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         let market = undefined;
+        let orderSymbol = symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            orderSymbol = market['symbol'];
         }
         let response = undefined;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
@@ -2945,7 +2954,6 @@ export default class extended extends Exchange {
         //     }
         //
         const orderId = (clientOrderId === undefined) ? id : undefined;
-        const orderSymbol = (market === undefined) ? symbol : market['symbol'];
         return this.safeOrder({
             'info': response,
             'id': orderId,
@@ -3398,7 +3406,8 @@ export default class extended extends Exchange {
     }
     getExtendedDomainHash() {
         const domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName('"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'));
-        const isTestnet = this.urls['api']['rest'].indexOf('sepolia') >= 0;
+        const restUrl = this.safeString(this.urls['api'], 'rest', '');
+        const isTestnet = restUrl.indexOf('sepolia') >= 0;
         let defaultChainId = 'SN_MAIN';
         if (isTestnet) {
             defaultChainId = 'SN_SEPOLIA';
@@ -3505,9 +3514,9 @@ export default class extended extends Exchange {
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const version = this.safeString(api, 0);
         const accessibility = this.safeString(api, 1);
         const endpoint = '/' + this.implodeParams(path, params);

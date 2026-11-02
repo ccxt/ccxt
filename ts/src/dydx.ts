@@ -939,7 +939,7 @@ export default class dydx extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'UNTRIGGERED': 'open',
             'OPEN': 'open',
@@ -950,7 +950,7 @@ export default class dydx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'LIMIT',
             'STOP_LIMIT': 'LIMIT',
@@ -1255,7 +1255,7 @@ export default class dydx extends Exchange {
         return this.encodeDydxTxRaw (signDoc, signature['r'] + signature['s']);
     }
 
-    retrieveCredentials (): any {
+    retrieveCredentials (): Dict {
         let credentials = this.safeDict (this.options, 'dydxCredentials');
         if (credentials !== undefined) {
             return credentials;
@@ -1277,7 +1277,7 @@ export default class dydx extends Exchange {
         await this.loadDydxProtos ();
         const dydxAccount = this.safeDict (this.options, 'dydxAccount');
         if (dydxAccount !== undefined) {
-            return dydxAccount;
+            return this.safeDict (this.options, 'dydxAccount', {});
         }
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
@@ -1308,10 +1308,10 @@ export default class dydx extends Exchange {
             'key': account['pub_key']['key'],
         };
         this.options['dydxAccount'] = account;
-        return account;
+        return this.safeDict (this.options, 'dydxAccount', {});
     }
 
-    pow (n: string, m: Str) {
+    pow (n: string, m: Str): Str {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         // TODO: cap
@@ -1338,8 +1338,8 @@ export default class dydx extends Exchange {
         const subaccountId = 0;
         const [ subaccountIdOption, paramsSubAccountId ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'subAccountId', subaccountId);
         const triggerPrice = this.safeString2 (paramsSubAccountId, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue (paramsSubAccountId, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue (paramsSubAccountId, 'takeProfitPrice');
+        const stopLossPrice = this.safeString (paramsSubAccountId, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString (paramsSubAccountId, 'takeProfitPrice');
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper (paramsSubAccountId, 'timeInForce', 'GTT');
@@ -1468,7 +1468,7 @@ export default class dydx extends Exchange {
         return this.uuid5 (nameSp, orderInfo);
     }
 
-    async fetchLatestBlockHeight (params = {}): Promise<int> {
+    async fetchLatestBlockHeight (params: Dict = {}): Promise<int> {
         const response = await this.nodeRpcGetAbciInfo (params);
         //
         // {
@@ -1574,7 +1574,7 @@ export default class dydx extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         const paramsOmitted: Dict = this.omit (params, [ 'trigger', 'stop' ]);
-        if ((isTrigger !== true) && (symbol === undefined)) {
+        if ((!isTrigger) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1589,11 +1589,12 @@ export default class dydx extends Exchange {
         if (idString.indexOf ('-') > -1) {
             throw new NotSupported (this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
-        let goodTillBlock = this.safeInteger (paramsOmitted, 'goodTillBlock');
+        const goodTillBlockOption = this.safeInteger (paramsOmitted, 'goodTillBlock');
+        let goodTillBlock = goodTillBlockOption;
         const goodTillBlockTimeInSeconds = 2592000;
         const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime: Num = undefined;
-        const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
+        const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger (paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
         const subAccountId = 0;
         const subAccountIdOption = this.handleOptionIntegerAndParams (paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0];
@@ -1604,7 +1605,7 @@ export default class dydx extends Exchange {
             if (goodTillBlockTimeInSecondsOption === undefined) {
                 throw new ArgumentsRequired (this.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
-            if (goodTillBlock !== undefined && goodTillBlock > 0) {
+            if (goodTillBlockOption !== undefined && goodTillBlockOption > 0) {
                 throw new InvalidOrder (this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
             goodTillBlockTime = this.seconds () + goodTillBlockTimeInSecondsOption;
@@ -2138,11 +2139,12 @@ export default class dydx extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         if (code !== 'USDC') {
             throw new NotSupported (this.id + ' withdraw() only support USDC');
         }
@@ -2150,7 +2152,7 @@ export default class dydx extends Exchange {
             await this.loadMarkets ();
         }
         this.checkAddress (address);
-        const subaccountId = this.safeInteger (params, 'subaccountId');
+        const subaccountId = this.safeInteger (paramsWithdrawTag, 'subaccountId');
         if (subaccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw requires subaccountId.');
         }
@@ -2276,7 +2278,7 @@ export default class dydx extends Exchange {
         return this.parseTransactions (rows, currency, since, limit);
     }
 
-    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
+    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         const methodName = this.safeString (params, 'methodName');
         const paramsOmitted = this.omit (params, 'methodName');
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress (methodName, paramsOmitted);
@@ -2309,7 +2311,8 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        return this.safeList (response, 'transfers', []);
+        const transfers: Dict[] = this.safeList (response, 'transfers', []);
+        return transfers;
     }
 
     /**
@@ -2488,7 +2491,7 @@ export default class dydx extends Exchange {
         return this.milliseconds () - timeDifference;
     }
 
-    getWalletAddress () {
+    getWalletAddress (): string {
         if (this.walletAddress !== undefined && this.walletAddress !== '') {
             return this.walletAddress;
         }
@@ -2503,11 +2506,11 @@ export default class dydx extends Exchange {
         throw new ArgumentsRequired (this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
-    override sign (path: string, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, section: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const pathWithParams = this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], section);
+        const apiUrl = this.safeString (this.urls['api'], section[0]);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2525,8 +2528,8 @@ export default class dydx extends Exchange {
                 'Content-type': 'application/json',
             };
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
@@ -2547,7 +2550,7 @@ export default class dydx extends Exchange {
             errorCode = this.safeString (response, 'code');
         }
         if ((errorCode !== undefined) && (errorCode !== '')) {
-            const errorCodeNum = this.parseToNumeric (errorCode);
+            const errorCodeNum = this.parseToInt (errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json (response);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

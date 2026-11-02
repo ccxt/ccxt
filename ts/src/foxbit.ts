@@ -208,7 +208,7 @@ export default class foxbit extends Exchange {
                     'cardano': 'ADA',
                     'cosmos': 'ATOM',
                     'dogecoin': 'DOGE',
-                    'erc20': 'ETH',
+                    'erc20': 'ERC20',
                     'hedera': 'HBAR',
                     'litecoin': 'LTC',
                     'near': 'NEAR',
@@ -232,7 +232,7 @@ export default class foxbit extends Exchange {
                     'ADA': 'cardano',
                     'ATOM': 'cosmos',
                     'DOGE': 'dogecoin',
-                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
                     'HBAR': 'hedera',
                     'LTC': 'litecoin',
                     'NEAR': 'near',
@@ -977,7 +977,7 @@ export default class foxbit extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = true;
         }
         if (triggerPrice !== undefined) {
@@ -1049,7 +1049,7 @@ export default class foxbit extends Exchange {
                 }
                 delete orderParams['timeInForce'];
             }
-            if (postOnly === true) {
+            if (postOnly) {
                 request['post_only'] = true;
                 delete orderParams['postOnly'];
             }
@@ -1588,12 +1588,13 @@ export default class foxbit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1743,7 +1744,15 @@ export default class foxbit extends Exchange {
         const bestAsk = this.safeDict (best, 'ask');
         const bestBid = this.safeDict (best, 'bid');
         const lastTrade = this.safeDict (ticker, 'last_trade');
-        const lastPrice = this.safeString (lastTrade, 'price');
+        let lastPrice = this.safeString (lastTrade, 'price');
+        let change = this.safeString (rolling_24h, 'price_change');
+        let percentage = this.safeString (rolling_24h, 'price_change_percent');
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise.stringEq (lastPrice, '0')) {
+            lastPrice = undefined;
+            change = undefined;
+            percentage = undefined;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': this.parseDate (this.safeString (lastTrade, 'date')),
@@ -1759,8 +1768,8 @@ export default class foxbit extends Exchange {
             'close': lastPrice,
             'last': lastPrice,
             'previousClose': undefined,
-            'change': this.safeString (rolling_24h, 'price_change'),
-            'percentage': this.safeString (rolling_24h, 'price_change_percent'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString (rolling_24h, 'volume'),
             'quoteVolume': this.safeString (rolling_24h, 'quote_volume'),
@@ -1808,7 +1817,7 @@ export default class foxbit extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PARTIALLY_CANCELED': 'open',
             'ACTIVE': 'open',
@@ -1894,7 +1903,7 @@ export default class foxbit extends Exchange {
         };
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // BOTH
             'SUBMITTING': 'pending',
@@ -1948,7 +1957,7 @@ export default class foxbit extends Exchange {
             'txid': this.safeString (cryptoDetails, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString (transaction, 'network_code'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network_code'), currencyCode),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2007,18 +2016,16 @@ export default class foxbit extends Exchange {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
         }
-        if (amount < 0) {
-            direction = 'out';
-            if (amount === undefined) {
-                throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
-            }
-            realAmount = amount * -1;
-        }
         if (balance === undefined) {
             throw new ExchangeError (this.id + ' parseLedgerEntry() missing balance');
         }
-        if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
+        let before: Num = undefined;
+        if (amount !== undefined && balance !== undefined) {
+            before = balance - amount;
+            if (0 > amount) {
+                direction = 'out';
+                realAmount = -amount;
+            }
         }
         return {
             'id': id,
@@ -2032,14 +2039,14 @@ export default class foxbit extends Exchange {
             'type': type,
             'currency': currencySymbol,
             'amount': realAmount,
-            'before': balance - amount,
+            'before': before,
             'after': balance,
             'status': 'ok',
             'fee': fee,
         };
     }
 
-    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams (path, params);
@@ -2059,6 +2066,7 @@ export default class foxbit extends Exchange {
         if (method === 'GET') {
             const paramKeys = Object.keys (paramsOmitted);
             const paramKeysLength = paramKeys.length;
+            const lastKeyIndex = paramKeysLength - 1;
             if (paramKeysLength > 0) {
                 query = this.urlencode (paramsOmitted);
                 url += '?' + query;
@@ -2069,12 +2077,12 @@ export default class foxbit extends Exchange {
                 if (value !== undefined) {
                     signatureQuery += key + '=' + value;
                 }
-                if (i < paramKeysLength - 1) {
+                if (i < lastKeyIndex) {
                     signatureQuery += '&';
                 }
             }
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (method === 'POST' || method === 'PUT') {
             requestBody = this.json (paramsOmitted);
         }

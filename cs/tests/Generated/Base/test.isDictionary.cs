@@ -13,20 +13,20 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // populated dict
-            Assert(isEqual(exchange.isDictionary(new Dictionary<string, object>() {
-            { "a", 1 },
-        }), true));
+            Assert(exchange.isDictionary(new Dictionary<string, object>() {
+                { "a", 1 },
+            }));
             // populated list is not a dict
-            Assert(isEqual(exchange.isDictionary(new List<object>() {1, 2, 3}), false));
+            Assert(!isTrue(exchange.isDictionary(new List<object>() {1, 2, 3})));
             // null is not a dict, in js typeof null is object so the explicit
             // null check matters, see https://github.com/ccxt/ccxt/pull/29704
-            Assert(isEqual(exchange.isDictionary(null), false));
+            Assert(!isTrue(exchange.isDictionary(null)));
             // undefined is not a dict
-            Assert(isEqual(exchange.isDictionary(null), false));
+            Assert(!isTrue(exchange.isDictionary(null)));
             // scalars are not dicts
-            Assert(isEqual(exchange.isDictionary("str"), false));
-            Assert(isEqual(exchange.isDictionary(5), false));
-            Assert(isEqual(exchange.isDictionary(true), false));
-            Assert(isEqual(exchange.isDictionary(new Dictionary<string, object>() {}), true));
+            Assert(!isTrue(exchange.isDictionary("str")));
+            Assert(!isTrue(exchange.isDictionary(5)));
+            Assert(!isTrue(exchange.isDictionary(true)));
+            Assert(exchange.isDictionary(new Dictionary<string, object>() {}));
         }
 }

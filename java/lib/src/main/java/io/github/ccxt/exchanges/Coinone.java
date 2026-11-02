@@ -588,36 +588,36 @@ public class Coinone extends CoinoneApi
                 {
                     continue;
                 }
-                ((List<Object>)result).add(Helpers.newMap(
-                    "id", id,
-                    "symbol", ((base + "/") + quote),
-                    "base", base,
-                    "quote", quote,
-                    "settle", null,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", null,
-                    "type", "spot",
-                    "spot", true,
-                    "margin", false,
-                    "swap", false,
-                    "future", false,
-                    "option", false,
-                    "active", null,
-                    "contract", false,
-                    "linear", null,
-                    "inverse", null,
-                    "contractSize", null,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", id);
+                    j39v1.put("symbol", ((base + "/") + quote));
+                    j39v1.put("base", base);
+                    j39v1.put("quote", quote);
+                    j39v1.put("settle", null);
+                    j39v1.put("baseId", baseId);
+                    j39v1.put("quoteId", quoteId);
+                    j39v1.put("settleId", null);
+                    j39v1.put("type", "spot");
+                    j39v1.put("spot", true);
+                    j39v1.put("margin", false);
+                    j39v1.put("swap", false);
+                    j39v1.put("future", false);
+                    j39v1.put("option", false);
+                    j39v1.put("active", null);
+                    j39v1.put("contract", false);
+                    j39v1.put("linear", null);
+                    j39v1.put("inverse", null);
+                    j39v1.put("contractSize", null);
+                    j39v1.put("expiry", null);
+                    j39v1.put("expiryDatetime", null);
+                    j39v1.put("strike", null);
+                    j39v1.put("optionType", null);
+                    j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Coinone.this.parseNumber("1e-4") );
                         put( "price", Coinone.this.parseNumber("1e-4") );
                         put( "cost", Coinone.this.parseNumber("1e-8") );
-                    }},
-                    "limits", new HashMap<String, Object>() {{
+                    }});
+                    j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -634,10 +634,10 @@ public class Coinone extends CoinoneApi
                             put( "min", null );
                             put( "max", null );
                         }} );
-                    }},
-                    "created", null,
-                    "info", entry
-                ));
+                    }});
+                    j39v1.put("created", null);
+                    j39v1.put("info", entry);
+                    yield j39v1; } }));
             }
             return result;
         });
@@ -650,7 +650,7 @@ public class Coinone extends CoinoneApi
             put( "info", response );
         }};
         Object balances = this.omit(response, new ArrayList<Object>(Arrays.asList("errorCode", "result", "normalWallets")));
-        List<Object> currencyIds = Helpers.objectKeys(balances);
+        List<Object> currencyIds = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
@@ -1003,11 +1003,13 @@ public class Coinone extends CoinoneApi
             {
                 feeCurrencyCode = marketResolved.get("base");
             }
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrencyCode,
-                "rate", feeRateString
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                hx4NewMap0.put("rate", feeRateString);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("id", this.safeString(trade, "id"));
@@ -1265,7 +1267,7 @@ public class Coinone extends CoinoneApi
         {
             symbol = ((base + "/") + quote);
         }
-        Object marketResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeMarket(symbol, market, "/", (String) null) : market;
+        Map<String, Object> marketResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeMarket(symbol, market, "/", (String) null) : market;
         Long timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -1308,11 +1310,13 @@ public class Coinone extends CoinoneApi
             {
                 feeCurrencyCode = quote;
             }
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "rate", this.safeString2(order, "feeRate", "fee_rate"),
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", feeCostString);
+                hx4NewMap1.put("rate", this.safeString2(order, "feeRate", "fee_rate"));
+                hx4NewMap1.put("currency", feeCurrencyCode);
+                fee = hx4NewMap1;
+            }
         }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", order);
@@ -1336,7 +1340,7 @@ public class Coinone extends CoinoneApi
         mapLiteral4.put("status", status);
         mapLiteral4.put("fee", fee);
         mapLiteral4.put("trades", null);
-        return this.safeOrder(mapLiteral4, Helpers.toMapArg(marketResolved));
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1544,16 +1548,18 @@ public class Coinone extends CoinoneApi
                 Map<String, Object> depositAddress = (Map<String, Object>) this.safeDict(result, code, (Object) null);
                 if (java.util.Objects.equals(depositAddress, null))
                 {
-                    depositAddress = Helpers.newMap(
-                        "info", value,
-                        "currency", code,
-                        "network", null,
-                        "address", null,
-                        "tag", null
-                    );
+                    {
+                        HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                        hx4NewMap2.put("info", value);
+                        hx4NewMap2.put("currency", code);
+                        hx4NewMap2.put("network", null);
+                        hx4NewMap2.put("address", null);
+                        hx4NewMap2.put("tag", null);
+                        depositAddress = hx4NewMap2;
+                    }
                 }
                 String address = this.safeString(depositAddress, "address", value);
-                this.checkAddress(address);
+                this.checkAddress(address, (String) null, (String) null);
                 depositAddress.put("address", address);
                 depositAddress.put("info", address);
                 if ((java.util.Objects.equals(secondPart, "tag") || java.util.Objects.equals(secondPart, "memo")))
@@ -1566,13 +1572,14 @@ public class Coinone extends CoinoneApi
                     result.put(code, depositAddress);
                 }
             }
-            return result;
+            return this.toArray(result);
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1581,8 +1588,8 @@ public class Coinone extends CoinoneApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + "/");
-        Boolean isPublic = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public"));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public"))
+        Boolean isPublic = (java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "v2Public"));
+        if (java.util.Objects.equals(apiName, "v2Public"))
         {
             String apiUrl2 = this.safeString(this.urls.get("api"), "v2Public");
             if (java.util.Objects.equals(apiUrl2, null))
@@ -1590,7 +1597,7 @@ public class Coinone extends CoinoneApi
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl2 + "/");
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private"))
+        } else if (java.util.Objects.equals(apiName, "v2Private"))
         {
             String apiUrl3 = this.safeString(this.urls.get("api"), "v2Private");
             if (java.util.Objects.equals(apiUrl3, null))
@@ -1598,7 +1605,7 @@ public class Coinone extends CoinoneApi
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl3 + "/");
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2_1Private"))
+        } else if (java.util.Objects.equals(apiName, "v2_1Private"))
         {
             String apiUrl4 = this.safeString(this.urls.get("api"), "v2_1Private");
             if (java.util.Objects.equals(apiUrl4, null))
@@ -1612,7 +1619,7 @@ public class Coinone extends CoinoneApi
         if (Boolean.TRUE.equals(isPublic))
         {
             url = (url + request);
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -1622,7 +1629,7 @@ public class Coinone extends CoinoneApi
             url = (url + request);
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             String nonce = null;
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2_1Private"))
+            if (java.util.Objects.equals(apiName, "v2_1Private"))
             {
                 nonce = this.uuid();
             } else
@@ -1643,8 +1650,8 @@ public class Coinone extends CoinoneApi
                 put( "X-COINONE-SIGNATURE", signature );
             }};
         }
-        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);

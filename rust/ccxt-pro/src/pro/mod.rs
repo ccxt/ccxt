@@ -68,8 +68,6 @@ pub mod coinbaseexchange;
 pub mod coinbaseinternational;
 #[cfg(feature = "coincheck")]
 pub mod coincheck;
-#[cfg(feature = "coinex")]
-pub mod coinex;
 #[cfg(feature = "coinone")]
 pub mod coinone;
 #[cfg(feature = "cryptocom")]
@@ -146,6 +144,8 @@ pub mod paradex;
 pub mod phemex;
 #[cfg(feature = "poloniex")]
 pub mod poloniex;
+#[cfg(feature = "polymarket")]
+pub mod polymarket;
 #[cfg(feature = "toobit")]
 pub mod toobit;
 #[cfg(feature = "upbit")]

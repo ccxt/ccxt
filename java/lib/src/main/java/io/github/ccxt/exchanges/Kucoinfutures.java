@@ -43,6 +43,7 @@ public class Kucoinfutures extends KucoinfuturesApi
                 put( "swap", true );
                 put( "future", true );
                 put( "option", null );
+                put( "editOrder", false );
                 put( "fetchBidsAsks", true );
                 put( "transfer", true );
             }} );
@@ -100,7 +101,7 @@ public class Kucoinfutures extends KucoinfuturesApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Object amountToPrecision = this.currencyToPrecision((String) (code), amount, (String) null);
+            String amountToPrecision = (String) this.currencyToPrecision((String) (code), amount, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", Kucoinfutures.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
@@ -120,11 +121,11 @@ public class Kucoinfutures extends KucoinfuturesApi
                 throw new BadRequest((this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseTransfer(data, currency), Helpers.newMap(
-                "amount", this.parseNumber(amountToPrecision),
-                "fromAccount", fromAccount,
-                "toAccount", toAccount
-            ));
+            return this.extend(this.parseTransfer(data, currency), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("amount", this.parseNumber(amountToPrecision));
+                j39v1.put("fromAccount", fromAccount);
+                j39v1.put("toAccount", toAccount);
+                yield j39v1; } }));
         }).thenApply(TransferEntry::new);
 
     }

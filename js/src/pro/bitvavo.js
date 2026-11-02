@@ -742,7 +742,8 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const nonce = this.safeInteger(message, 'nonce');
-        if (nonce > orderbook['nonce']) {
+        const currentNonce = this.safeInteger(orderbook, 'nonce');
+        if ((nonce !== undefined) && (currentNonce !== undefined) && (nonce > currentNonce)) {
             this.handleDeltas(orderbook['asks'], this.safeList(message, 'asks', []));
             this.handleDeltas(orderbook['bids'], this.safeList(message, 'bids', []));
             orderbook['nonce'] = nonce;
@@ -869,10 +870,16 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSubscription(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
         const limit = this.safeInteger(subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        const limits = this.safeDict(this.options, 'orderBookLimits', {});
+        const storedLimit = this.safeInteger(limits, symbol);
+        if (!(symbol in this.orderbooks) || (storedLimit !== limit)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
+            limits[symbol] = limit;
+            this.options['orderBookLimits'] = limits;
         }
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
     }
     handleOrderBookSubscriptions(client, message, marketIds) {
         const name = 'book';
@@ -1294,13 +1301,13 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdrawWs(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdrawWs(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1753,7 +1760,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const messageHash = 'authenticated';
         const authenticated = this.safeBool(message, 'authenticated', false);
-        if (authenticated === true) {
+        if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash);
         }

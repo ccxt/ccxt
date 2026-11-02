@@ -414,7 +414,7 @@ public class Independentreserve extends IndependentreserveApi
                 }} );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "Bitcoin" );
-                    put( "ETH", "Ethereum" );
+                    put( "ERC20", "Ethereum" );
                     put( "BCH", "BitcoinCash" );
                     put( "LTC", "Litecoin" );
                     put( "XRP", "XrpLedger" );
@@ -426,7 +426,7 @@ public class Independentreserve extends IndependentreserveApi
                     put( "DOT", "Polkadot" );
                     put( "ADA", "Cardano" );
                     put( "SOL", "Solana" );
-                    put( "TRX", "Tron" );
+                    put( "TRC20", "Tron" );
                 }} );
             }} );
         }});
@@ -477,36 +477,36 @@ public class Independentreserve extends IndependentreserveApi
                     {
                         continue;
                     }
-                    Object id = Helpers.add(Helpers.add(baseId, "/"), quoteId);
-                    ((List<Object>)result).add(Helpers.newMap(
-                        "id", id,
-                        "symbol", ((base + "/") + quote),
-                        "base", base,
-                        "quote", quote,
-                        "settle", null,
-                        "baseId", baseId,
-                        "quoteId", quoteId,
-                        "settleId", null,
-                        "type", "spot",
-                        "spot", true,
-                        "margin", false,
-                        "swap", false,
-                        "future", false,
-                        "option", false,
-                        "active", null,
-                        "contract", false,
-                        "linear", null,
-                        "inverse", null,
-                        "contractSize", null,
-                        "expiry", null,
-                        "expiryDatetime", null,
-                        "strike", null,
-                        "optionType", null,
-                        "precision", new HashMap<String, Object>() {{
+                    Object id = ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(((Object) (switch ((Object) (baseId)) { case null -> (Object) ("null" + ("/")); case Double hx4J40v0 -> (Object) (hx4J40v0 + 0.0); case Object hx4J40v0 -> (Object) (String.valueOf(hx4J40v0) + ("/")); })), quoteId);
+                    ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                        j39v2.put("id", id);
+                        j39v2.put("symbol", ((base + "/") + quote));
+                        j39v2.put("base", base);
+                        j39v2.put("quote", quote);
+                        j39v2.put("settle", null);
+                        j39v2.put("baseId", baseId);
+                        j39v2.put("quoteId", quoteId);
+                        j39v2.put("settleId", null);
+                        j39v2.put("type", "spot");
+                        j39v2.put("spot", true);
+                        j39v2.put("margin", false);
+                        j39v2.put("swap", false);
+                        j39v2.put("future", false);
+                        j39v2.put("option", false);
+                        j39v2.put("active", null);
+                        j39v2.put("contract", false);
+                        j39v2.put("linear", null);
+                        j39v2.put("inverse", null);
+                        j39v2.put("contractSize", null);
+                        j39v2.put("expiry", null);
+                        j39v2.put("expiryDatetime", null);
+                        j39v2.put("strike", null);
+                        j39v2.put("optionType", null);
+                        j39v2.put("precision", new HashMap<String, Object>() {{
                             put( "amount", null );
                             put( "price", null );
-                        }},
-                        "limits", new HashMap<String, Object>() {{
+                        }});
+                        j39v2.put("limits", new HashMap<String, Object>() {{
                             put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
@@ -523,10 +523,13 @@ public class Independentreserve extends IndependentreserveApi
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                        }},
-                        "created", null,
-                        "info", id
-                    ));
+                        }});
+                        j39v2.put("created", null);
+                        j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                            j39v1.put("primaryCurrencyCode", baseId);
+                            j39v1.put("secondaryCurrencyCode", quoteId);
+                            yield j39v1; } }));
+                        yield j39v2; } }));
                 }
             }
             return result;
@@ -539,7 +542,7 @@ public class Independentreserve extends IndependentreserveApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "CurrencyCode");
@@ -908,11 +911,7 @@ public class Independentreserve extends IndependentreserveApi
                 request.put("primaryCurrencyCode", market.get("baseId"));
                 request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
-            Long limitResolved = limit;
-            if (java.util.Objects.equals(limitResolved, null))
-            {
-                limitResolved = 50L;
-            }
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50L : limit;
             request.put("pageIndex", 1);
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
@@ -949,11 +948,7 @@ public class Independentreserve extends IndependentreserveApi
                 request.put("primaryCurrencyCode", market.get("baseId"));
                 request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
-            Long limitResolved = limit;
-            if (java.util.Objects.equals(limitResolved, null))
-            {
-                limitResolved = 50L;
-            }
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50L : limit;
             request.put("pageIndex", 1);
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();
@@ -1280,7 +1275,7 @@ public class Independentreserve extends IndependentreserveApi
         //    }
         //
         String address = this.safeString(depositAddress, "DepositAddress");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", Independentreserve.this.safeString(currency, "code") );
@@ -1298,21 +1293,22 @@ public class Independentreserve extends IndependentreserveApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1417,15 +1413,16 @@ public class Independentreserve extends IndependentreserveApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((apiUrl + "/") + path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
@@ -1468,11 +1465,12 @@ public class Independentreserve extends IndependentreserveApi
                 return h2kMap0;
             }
         }
+        Map<String, Object> headers = new HashMap<String, Object>() {{}};
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
+            h2kMap1.put("body", null);
             h2kMap1.put("headers", headers);
             return h2kMap1;
         }

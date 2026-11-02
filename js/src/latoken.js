@@ -51,6 +51,7 @@ export default class latoken extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -238,6 +239,7 @@ export default class latoken extends Exchange {
                     'INTERNAL_ERROR': ExchangeError, // internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
                     'SERVICE_UNAVAILABLE': ExchangeNotAvailable, // requested information currently not available. You can contact our support to solve this problem or retry later.
                     'NOT_AUTHORIZED': AuthenticationError, // user's query not authorized. Check if you are logged in.
+                    'UNAUTHORIZED': AuthenticationError, // {"result":false,"message":"user must be authenticated","error":"UNAUTHORIZED","status":"FAILURE"}
                     'FORBIDDEN': PermissionDenied, // you don't have enough access rights.
                     'BAD_REQUEST': BadRequest, // some bad request, for example bad fields values or something else. Read response message for more information.
                     'NOT_FOUND': ExchangeError, // entity not found. Read message for more information.
@@ -260,6 +262,7 @@ export default class latoken extends Exchange {
                 },
                 'broad': {
                     'invalid API key, signature or digest': AuthenticationError, // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'Invalid API key specified': AuthenticationError, // {"result":false,"message":"Invalid API key specified","error":"NOT_FOUND","status":"FAILURE"}
                     'The API key was revoked': AuthenticationError, // {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce, // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest, // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
@@ -279,6 +282,33 @@ export default class latoken extends Exchange {
                 'accounts': {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
+                },
+                'networks': {
+                    // the venue names a token chain "<CHAIN>_TOKEN" and the native
+                    // chain by its own ticker, so only the former needs a mapping
+                    'BEP20': 'BSC_TOKEN',
+                    'TRC20': 'TRON',
+                    'ADA': 'ADA_TOKEN',
+                    'ALGO': 'ALGO_TOKEN',
+                    'ARBITRUM': 'ARB_TOKEN',
+                    'AVAXC': 'AVAXC_TOKEN',
+                    'BASE': 'BASE_TOKEN',
+                    'CELO': 'CELO_TOKEN',
+                    'EOS': 'EOS_TOKEN',
+                    'FTM': 'FTM_TOKEN',
+                    'MATIC': 'MATIC_TOKEN',
+                    'OP': 'OP_TOKEN',
+                    'QTUM': 'QTUM_TOKEN',
+                    'SOL': 'SOL_TOKEN',
+                    'TON': 'TON_TOKEN',
+                    'VET': 'VECHAIN_TOKEN',
+                    'WAVES': 'WAVES_TOKEN',
+                    'XDC': 'XDC_TOKEN',
+                    'XLM': 'XLM_TOKEN',
+                    'XRP': 'XRP_TOKEN',
+                },
+                'networksById': {
+                    'BSC': 'BEP20', // second provider id for the same chain
                 },
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
@@ -307,7 +337,7 @@ export default class latoken extends Exchange {
                         'selfTradePrevention': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'iceberg': false,
                     },
@@ -328,11 +358,19 @@ export default class latoken extends Exchange {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': true,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
@@ -493,10 +531,14 @@ export default class latoken extends Exchange {
      * @method
      * @name latoken#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+     * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         const response = await this.publicGetCurrency(params);
         //
         //     [
@@ -530,7 +572,41 @@ export default class latoken extends Exchange {
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        const bindingsResponse = await this.publicGetTransactionBindings();
+        const bindingsById = this.indexBy(bindingsResponse, 'id');
+        const rawCurrencies = this.toArray(response);
+        const merged = [];
+        for (let i = 0; i < rawCurrencies.length; i++) {
+            const rawCurrency = rawCurrencies[i];
+            const bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, 'id'));
+            const bindings = this.safeList(bindingEntry, 'bindings');
+            let mergedCurrency = rawCurrency;
+            if (bindings !== undefined) {
+                mergedCurrency = this.extend(rawCurrency, { 'bindings': bindings });
+            }
+            merged.push(mergedCurrency);
+        }
+        return this.parseCurrencies(merged);
     }
     parseCurrency(currency) {
         const id = this.safeString(currency, 'id');
@@ -538,6 +614,42 @@ export default class latoken extends Exchange {
         const code = this.safeCurrencyCode(tag);
         const currencyType = this.safeString(currency, 'type');
         const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
+        const bindings = this.safeList(currency, 'bindings', []);
+        const networks = {};
+        for (let i = 0; i < bindings.length; i++) {
+            const binding = bindings[i];
+            const networkId = this.safeString(binding, 'providerName');
+            const networkCode = this.networkIdToCode(networkId, code);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if ((networkCode !== undefined) && !(networkCode in networks)) {
+                networks[networkCode] = {
+                    'info': binding,
+                    'id': this.safeString(binding, 'id'),
+                    'network': networkCode,
+                    'active': undefined,
+                    // the public endpoint serves one entry per chain without saying
+                    // whether it is bound for deposits, withdrawals or both
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber(binding, 'fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(binding, 'minAmount'),
+                            // maxAmount is "0" on 1990 of the 1996 bindings and contradicts its
+                            // own minimum on the rest, so the venue does not keep it as a real cap
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+        }
         return this.safeCurrencyStructure({
             'id': id,
             'code': code,
@@ -547,7 +659,7 @@ export default class latoken extends Exchange {
             'active': this.safeString(currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
             'deposit': undefined,
             'withdraw': undefined,
-            'fee': this.safeNumber(currency, 'fee'),
+            'fee': undefined,
             'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
             'limits': {
                 'amount': {
@@ -559,7 +671,7 @@ export default class latoken extends Exchange {
                     'max': undefined,
                 },
             },
-            'networks': {},
+            'networks': networks,
         });
     }
     /**
@@ -574,7 +686,10 @@ export default class latoken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this.privateGetAuthAccount(params);
+        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString(params, 'type', defaultType);
+        const paramsOmitted = this.omit(params, 'type');
+        const response = await this.privateGetAuthAccount(paramsOmitted);
         //
         //     [
         //         {
@@ -603,8 +718,6 @@ export default class latoken extends Exchange {
             'datetime': undefined,
         };
         let maxTimestamp = undefined;
-        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString(params, 'type', defaultType);
         const types = this.safeDict(this.options, 'types', {});
         const accountType = this.safeString(types, type, type);
         const balancesByType = this.groupBy(response, 'type');
@@ -614,11 +727,8 @@ export default class latoken extends Exchange {
             const currencyId = this.safeString(balance, 'currency');
             const timestamp = this.safeInteger(balance, 'timestamp');
             if (timestamp !== undefined) {
-                if (maxTimestamp === undefined) {
+                if ((maxTimestamp === undefined) || (timestamp > maxTimestamp)) {
                     maxTimestamp = timestamp;
-                }
-                else {
-                    maxTimestamp = Math.max(maxTimestamp, timestamp);
                 }
             }
             const code = this.safeCurrencyCode(currencyId);
@@ -704,7 +814,7 @@ export default class latoken extends Exchange {
     parseTicker(ticker, market = undefined) {
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -719,14 +829,28 @@ export default class latoken extends Exchange {
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
-        const marketId = this.safeString(ticker, 'symbol');
+        // the "symbol" field carries the currency tags, which differ from the
+        // unified symbol whenever commonCurrencies renames a code, so resolve
+        // the market from the currency ids like parseTrade and parseOrder do
+        const baseId = this.safeString(ticker, 'baseCurrency');
+        const quoteId = this.safeString(ticker, 'quoteCurrency');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        let symbol = undefined;
+        let marketResolved = market;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
+                marketResolved = this.market(symbol);
+            }
+        }
         const last = this.safeString(ticker, 'lastPrice');
         const timestamp = this.safeIntegerOmitZero(ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
         return this.safeTicker({
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'low': undefined,
@@ -746,7 +870,7 @@ export default class latoken extends Exchange {
             'baseVolume': this.safeString(ticker, 'amount24h'),
             'quoteVolume': this.safeString(ticker, 'volume24h'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -769,7 +893,7 @@ export default class latoken extends Exchange {
         const response = await this.publicGetTickerBaseQuote(this.extend(request, params));
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -784,7 +908,7 @@ export default class latoken extends Exchange {
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
         return this.parseTicker(response, market);
@@ -806,7 +930,7 @@ export default class latoken extends Exchange {
         //
         //    [
         //        {
-        //            "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //            "symbol": "BTC/USDT",
         //            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //            "volume24h": "165723597.189022176000000000",
@@ -821,7 +945,7 @@ export default class latoken extends Exchange {
         //            "bestBidQuantity": "0.6520232",
         //            "bestAsk": "25779.17",
         //            "bestAskQuantity": "0.4956043",
-        //            "updateTimestamp": "1693965231406"
+        //            "updateTimestamp": 1693965231406
         //        }
         //    ]
         //
@@ -1241,7 +1365,7 @@ export default class latoken extends Exchange {
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        const paramsOmitted = this.omit(params, 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market(symbol);
         const request = {
@@ -1853,9 +1977,10 @@ export default class latoken extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const request = '/' + this.version + '/' + this.implodeParams(path, params);
         let requestString = request;
         const query = this.omit(params, this.extractParams(path));
@@ -1865,7 +1990,7 @@ export default class latoken extends Exchange {
                 requestString += '?' + urlencodedQuery;
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
@@ -1902,9 +2027,8 @@ export default class latoken extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
         }
-        const error = this.safeValue(response, 'error');
-        const errorMessage = this.safeString(error, 'message');
-        if ((error !== undefined) || (errorMessage !== undefined)) {
+        const error = this.safeString(response, 'error');
+        if (error !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new ExchangeError(feedback); // unknown message

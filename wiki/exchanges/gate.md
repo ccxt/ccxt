@@ -54,7 +54,7 @@
 * [fetchBorrowInterest](#fetchborrowinterest)
 * [reduceMargin](#reducemargin)
 * [addMargin](#addmargin)
-* [fetchOpenInterest](#fetchopeninterest)
+* [fetchOpenInterestHistory](#fetchopeninteresthistory)
 * [fetchSettlementHistory](#fetchsettlementhistory)
 * [fetchMySettlementHistory](#fetchmysettlementhistory)
 * [fetchLedger](#fetchledger)
@@ -88,6 +88,7 @@
 * [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [unWatchTrades](#unwatchtrades)
 * [watchOHLCV](#watchohlcv)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
 * [watchPositions](#watchpositions)
@@ -717,12 +718,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-gate.withdraw (code, amount, address, tag, params?)
+gate.withdraw (code, amount, address, params?)
 ```
 
 
@@ -1180,21 +1181,26 @@ gate.fetchPositions (symbols, params?)
 <a name="fetchLeverageTiers" id="fetchleveragetiers"></a>
 
 ### fetchLeverageTiers{docsify-ignore}
-retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, automatically paginating through all contracts
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
-- https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+- https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+- https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'swap' or 'future' |
+| params.settle | <code>string</code> | No | settlement currency, default 'usdt' for swaps and 'btc' for futures |
+| params.limit | <code>int</code> | No | number of contracts per request, between 1 and 100, default 100 |
+| params.offset | <code>int</code> | No | starting contract offset, default 0 |
+| params.contract | <code>string</code> | No | exchange-specific contract id to fetch tiers for a single contract |
 
 
 ```javascript
@@ -1406,10 +1412,10 @@ gate.addMargin (symbol, amount, params?)
 ```
 
 
-<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+<a name="fetchOpenInterestHistory" id="fetchopeninteresthistory"></a>
 
-### fetchOpenInterest{docsify-ignore}
-Retrieves the open interest of a currency
+### fetchOpenInterestHistory{docsify-ignore}
+Retrieves the open interest history of a currency
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
@@ -1427,7 +1433,7 @@ Retrieves the open interest of a currency
 
 
 ```javascript
-gate.fetchOpenInterest (symbol, timeframe, since?, limit?, params?)
+gate.fetchOpenInterestHistory (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -2282,6 +2288,33 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 gate.watchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>gate</code>](#gate)  
+**Returns**: <code>any</code> - status of the unsubscription request
+
+**See**
+
+- https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+- https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+- https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+gate.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 

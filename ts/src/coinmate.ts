@@ -666,7 +666,7 @@ export default class coinmate extends Exchange {
         return this.parseTransactions (items, undefined, since, limit);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
@@ -729,7 +729,7 @@ export default class coinmate extends Exchange {
             'txid': this.safeString (transaction, 'txid'),
             'type': this.safeStringLower (transaction, 'transferType'),
             'currency': code,
-            'network': this.safeString (transaction, 'walletType'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'walletType'), code),
             'amount': this.safeNumber (transaction, 'amount'),
             'status': this.parseTransactionStatus (this.safeString (transaction, 'transferStatus')),
             'timestamp': timestamp,
@@ -764,13 +764,13 @@ export default class coinmate extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -824,7 +824,7 @@ export default class coinmate extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const transaction = this.parseTransaction (data, currency);
         const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
@@ -1060,7 +1060,7 @@ export default class coinmate extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -1070,7 +1070,7 @@ export default class coinmate extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1281,7 +1281,8 @@ export default class coinmate extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let bodySigned: Str = undefined;
         let headersSigned: NullableDict = undefined;
         const apiUrl = this.safeString (this.urls['api'], 'rest');
@@ -1289,7 +1290,7 @@ export default class coinmate extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + path;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
@@ -1309,8 +1310,8 @@ export default class coinmate extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved: NullableDict = headersSigned;
+        const bodyResolved: Str = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

@@ -8,6 +8,8 @@
 
 - [Arbitrage Pairs](./examples/ts/arbitrage-pairs.md)
 
+- [Backpack Stocks](./examples/ts/backpack-stocks.md)
+
 - [Basic Chart](./examples/ts/basic-chart.md)
 
 - [Basic Orderbook Polling](./examples/ts/basic-orderbook-polling.md)
@@ -68,10 +70,6 @@
 
 - [Coinbase Fetch All Balances](./examples/ts/coinbase-fetch-all-balances.md)
 
-- [Coinex Fetch All Deposit Addresses Using FetchDepositAddress](./examples/ts/coinex-fetch-all-deposit-addresses-using-fetchDepositAddress.md)
-
-- [Coinex Futures](./examples/ts/coinex-futures.md)
-
 - [Coinone Fetch Tickers](./examples/ts/coinone-fetch-tickers.md)
 
 - [Coinone Markets](./examples/ts/coinone-markets.md)
@@ -119,6 +117,8 @@
 - [Extended Builder](./examples/ts/extended-builder.md)
 
 - [Fetch All Balances](./examples/ts/fetch-all-balances.md)
+
+- [Fetch All Deposit Addresses Using FetchDepositAddress](./examples/ts/fetch-all-deposit-addresses-using-fetchDepositAddress.md)
 
 - [Fetch All Tickers To Files 2](./examples/ts/fetch-all-tickers-to-files-2.md)
 

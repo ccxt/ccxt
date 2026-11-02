@@ -250,20 +250,22 @@ class coinbase(ccxt.async_support.coinbase):
         timestamp = self.number_to_string(self.seconds())
         self.check_required_credentials()
         isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
+        isV2CloudAPiKey = self.isEddsaApiKey()
         auth = timestamp + name + ','.join(productIds)
-        if not isCloudAPiKey:
+        if not isCloudAPiKey and not isV2CloudAPiKey:
             subscribe['api_key'] = self.apiKey
             subscribe['timestamp'] = timestamp
             subscribe['signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         else:
-            if self.apiKey.startswith('-----BEGIN'):
+            if isCloudAPiKey and self.apiKey.startswith('-----BEGIN'):
                 raise ArgumentsRequired(self.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key')
             currentToken = self.safe_string(self.options, 'wsToken')
             tokenTimestamp = self.safe_integer(self.options, 'wsTokenTimestamp', 0)
             seconds = self.seconds()
-            if currentToken is None or tokenTimestamp + 120 < seconds:
+            tokenExpiry = tokenTimestamp + 90
+            if currentToken is None or tokenExpiry < seconds:
                 # we should generate new token
-                token = self.create_auth_token(seconds)
+                token = self.create_auth_token(seconds, None, None, self.isEddsaApiKey())
                 self.options['wsToken'] = token
                 self.options['wsTokenTimestamp'] = seconds
             subscribe['jwt'] = self.safe_string(self.options, 'wsToken')
@@ -662,7 +664,7 @@ class coinbase(ccxt.async_support.coinbase):
         orderbook = await self.subscribe_multiple(name, False, symbols, params)
         return orderbook.limit()
 
-    def handle_trade(self, client: object, message: dict):
+    def handle_trade(self, client: Client, message: dict):
         #
         #    {
         #        "channel": "market_trades",
@@ -713,7 +715,7 @@ class coinbase(ccxt.async_support.coinbase):
         client.resolve(tradesArray, messageHash)
         self.try_resolve_usdc(client, messageHash, tradesArray)
 
-    def handle_order(self, client: object, message: dict):
+    def handle_order(self, client: Client, message: dict):
         #
         #    {
         #        "channel": "user",
@@ -821,7 +823,7 @@ class coinbase(ccxt.async_support.coinbase):
             'trades': None,
         })
 
-    def handle_order_book_helper(self, orderbook: object, updates: object):
+    def handle_order_book_helper(self, orderbook: object, updates: list[object]):
         for i in range(0, len(updates)):
             trade = self.safe_dict(updates, i)
             sideId = self.safe_string(trade, 'side')
@@ -831,7 +833,7 @@ class coinbase(ccxt.async_support.coinbase):
             orderbookSide = self.safe_value(orderbook, side)
             orderbookSide.store(price, amount)
 
-    def handle_order_book(self, client: object, message: dict):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #    {
         #        "channel": "l2_data",
@@ -876,11 +878,15 @@ class coinbase(ccxt.async_support.coinbase):
             limit = self.safe_integer(subscription, 'limit')
             type = self.safe_string(event, 'type')
             if type == 'snapshot':
-                self.orderbooks[symbol] = self.order_book({}, limit)
-            # unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if not (symbol in self.orderbooks) and self.orderbooks[symbol] is None:
+                if not (symbol in self.orderbooks):
+                    self.orderbooks[symbol] = self.order_book({}, limit)
+            elif not (symbol in self.orderbooks):
+                # an update can arrive after unWatchOrderBook deleted the orderbook (or before any snapshot)
                 continue
             orderbook = self.orderbooks[symbol]
+            if type == 'snapshot':
+                # reset in place so consumers holding a reference keep receiving updates after a resync
+                orderbook.reset({})
             self.handle_order_book_helper(orderbook, updates)
             orderbook['timestamp'] = self.parse8601(datetime)
             orderbook['datetime'] = datetime

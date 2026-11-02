@@ -498,14 +498,14 @@ class hitbtc(Exchange, ImplicitAPI):
             'options': {
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'TRC20',
                 },
                 'networks': {
                     # mainnet network ids are in lowercase for BTC & ETH
                     'BTC': 'btc',
                     'OMNI': 'BTC',
-                    'ETH': 'eth',
+                    # native ETH mainnet id is 'eth', ERC20 tokens use 'ETH'
                     'ERC20': 'ETH',
                     'ETC': 'ETC',
                     'BEP20': 'BSC',
@@ -863,8 +863,9 @@ class hitbtc(Exchange, ImplicitAPI):
             if contract:
                 contractSize = self.parse_number('1')
                 settleId = feeCurrencyId
-                settle = self.safe_currency_code(settleId)
-                linear = ((quote is not None) and (quote == settle))
+                settleCode = self.safe_currency_code(settleId)
+                settle = settleCode
+                linear = (quote == settleCode)
                 inverse = not linear
                 symbol = symbol + ':' + settle
                 if future:
@@ -994,8 +995,9 @@ class hitbtc(Exchange, ImplicitAPI):
         for j in range(0, len(rawNetworks)):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
-            networkCode = self.network_id_to_code(networkId, code)
-            networkCode = networkCode.upper() if (networkCode is not None) else code  # as hitbtc is white label, ensure we safeguard from possible bugs
+            rawNetworkCode = self.network_id_to_code(networkId, code)
+            networkCodeUpper = rawNetworkCode.upper() if (rawNetworkCode is not None) else None
+            networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper) if (networkCodeUpper is not None) else code  # as hitbtc is white label, ensure we safeguard from possible bugs
             if networkCode is not None:
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1049,7 +1051,8 @@ class hitbtc(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
         }
-        network = self.safe_string_upper(params, 'network')
+        networkInput = self.safe_string_upper(params, 'network')
+        network = self.safe_string(self.networkAliases, networkInput, networkInput) if (networkInput is not None) else None
         if (network is not None) and (code == 'USDT'):
             networks = self.safe_dict(self.options, 'networks')
             parsedNetwork = self.safe_string(networks, network)
@@ -1087,7 +1090,8 @@ class hitbtc(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
         }
-        network = self.safe_string_upper(params, 'network')
+        networkInput = self.safe_string_upper(params, 'network')
+        network = self.safe_string(self.networkAliases, networkInput, networkInput) if (networkInput is not None) else None
         if (network is not None) and (code == 'USDT'):
             networks = self.safe_dict(self.options, 'networks')
             parsedNetwork = self.safe_string(networks, network)
@@ -1429,7 +1433,7 @@ class hitbtc(Exchange, ImplicitAPI):
         taker = self.safe_bool(trade, 'taker')
         takerOrMaker = None
         if taker is not None:
-            takerOrMaker = 'taker' if (taker is True) else 'maker'
+            takerOrMaker = 'taker' if (taker) else 'maker'
         else:
             takerOrMaker = 'taker'  # the only case when `taker` field is missing, is public fetchTrades and it must be taker
         if feeCostString is not None:
@@ -1505,7 +1509,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, params)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'CREATED': 'pending',
             'PENDING': 'pending',
@@ -1620,7 +1624,8 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
+        return self.to_array(transactions)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1634,7 +1639,8 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
+        return self.to_array(transactions)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1648,7 +1654,8 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
+        return self.to_array(transactions)
 
     async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params: dict = {}) -> OrderBooks:
         """
@@ -1943,7 +1950,12 @@ class hitbtc(Exchange, ImplicitAPI):
             else:
                 raise NotSupported(self.id + ' fetchClosedOrders() not support self market type')
         parsed = self.parse_orders(response, market, since, limit)
-        return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
+        result = []
+        for i in range(0, len(parsed)):
+            status = self.safe_string(parsed[i], 'status')
+            if (status == 'closed') or (status == 'canceled'):
+                result.append(parsed[i])
+        return result
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2383,7 +2395,7 @@ class hitbtc(Exchange, ImplicitAPI):
             request['margin_mode'] = 'cross' if (marginMode is None) else marginMode
         return [request, paramsOmitted]
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'new': 'open',
             'suspended': 'open',
@@ -2642,16 +2654,18 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    async def convert_currency_network(self, code: str, amount: Num, fromNetwork: object, toNetwork: object, params: dict = {}) -> dict:
+    async def convert_currency_network(self, code: str, amount: Num, fromNetwork: str, toNetwork: str, params: dict = {}) -> dict:
         if self.markets is None:
             await self.load_markets()
         if code != 'USDT':
             raise ExchangeError(self.id + ' convertCurrencyNetwork() only supports USDT currently')
         networks = self.safe_dict(self.options, 'networks', {})
-        fromNetworkValue = fromNetwork.upper()
-        toNetworkValue = toNetwork.upper()
-        fromNetworkValue2 = self.safe_string(networks, fromNetworkValue)  # handle ETH>ERC20 alias
-        toNetworkValue2 = self.safe_string(networks, toNetworkValue)  # handle ETH>ERC20 alias
+        fromNetworkUpper = fromNetwork.upper()
+        toNetworkUpper = toNetwork.upper()
+        fromNetworkValue = self.safe_string(self.networkAliases, fromNetworkUpper, fromNetworkUpper)
+        toNetworkValue = self.safe_string(self.networkAliases, toNetworkUpper, toNetworkUpper)
+        fromNetworkValue2 = self.safe_string(networks, fromNetworkValue)  # unified code to exchange id
+        toNetworkValue2 = self.safe_string(networks, toNetworkValue)  # unified code to exchange id
         if fromNetworkValue2 == toNetworkValue2:
             raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
         if (fromNetworkValue2 is None) or (toNetworkValue2 is None):
@@ -2668,7 +2682,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2677,14 +2691,14 @@ class hitbtc(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             await self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -2694,7 +2708,8 @@ class hitbtc(Exchange, ImplicitAPI):
         if tagWithdrawTag is not None:
             request['payment_id'] = tagWithdrawTag
         networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(paramsWithdrawTag, 'network')
+        networkInput = self.safe_string_upper(paramsWithdrawTag, 'network')
+        network = self.safe_string(self.networkAliases, networkInput, networkInput) if (networkInput is not None) else None
         if (network is not None) and (code == 'USDT'):
             parsedNetwork = self.safe_string(networks, network)
             if parsedNetwork is not None:
@@ -2704,7 +2719,7 @@ class hitbtc(Exchange, ImplicitAPI):
             paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         withdrawOptions = self.safe_dict(self.options, 'withdraw', {})
         includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
-        if includeFee is True:
+        if includeFee:
             request['include_fee'] = True
         response = await self.privatePostWalletCryptoWithdraw(self.extend(request, paramsOmitted))
         #
@@ -2765,7 +2780,7 @@ class hitbtc(Exchange, ImplicitAPI):
             symbol = marketInner['symbol']
             fundingRate = self.parse_funding_rate(rawFundingRate, marketInner)
             fundingRates[symbol] = fundingRate
-        return self.filter_by_array(fundingRates, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(fundingRates, 'symbol', symbolsNormalized, False), 'symbol')
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
@@ -3060,7 +3075,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "contract_type": "perpetual",
@@ -3130,7 +3145,7 @@ class hitbtc(Exchange, ImplicitAPI):
             marketInner = self.safe_market(marketId)
             openInterest = self.safe_dict(response, marketId, {})
             results.append(self.parse_open_interest(openInterest, marketInner))
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized, False), 'symbol')
 
     async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
@@ -3243,7 +3258,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    async def modify_margin_helper(self, symbol: str, amount: object, type: Str, params: dict = {}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: float, type: Str, params: dict = {}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -3513,7 +3528,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    {
         #         "full_name": "ConnectWealth",
@@ -3543,8 +3558,9 @@ class hitbtc(Exchange, ImplicitAPI):
             networkEntry = self.safe_dict(networks, j)
             networkId = self.safe_string(networkEntry, 'network')
             code = self.safe_string(currency, 'code')
-            networkCode = self.network_id_to_code(networkId, code)
-            networkCode = networkCode.upper() if (networkCode is not None) else None
+            rawNetworkCode = self.network_id_to_code(networkId, code)
+            networkCodeUpper = rawNetworkCode.upper() if (rawNetworkCode is not None) else None
+            networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper) if (networkCodeUpper is not None) else None
             withdrawFee = self.safe_number(networkEntry, 'payout_fee')
             isDefault = self.safe_bool(networkEntry, 'default')
             withdrawResult = {
@@ -3612,7 +3628,7 @@ class hitbtc(Exchange, ImplicitAPI):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
         marginMode, paramsMarginMode = super(hitbtc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
-        if (marginMode is None) and ((defaultType == 'margin') or (isMargin is True)):
+        if (marginMode is None) and ((defaultType == 'margin') or (isMargin)):
             return ['isolated', paramsMarginMode]
         return [marginMode, paramsMarginMode]
 
@@ -3643,10 +3659,11 @@ class hitbtc(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + implodedPath
@@ -3660,8 +3677,8 @@ class hitbtc(Exchange, ImplicitAPI):
             if queryLength != 0:
                 getRequest = '?' + self.urlencode(query)
                 url = url + getRequest
-        bodyResolved = body if (method == 'GET') else self.json(params)
-        if api == 'private':
+        bodyResolved = None if (method == 'GET') else self.json(params)
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.nonce())
             payload = [method, '/api/3/' + implodedPath]

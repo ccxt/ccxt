@@ -721,7 +721,11 @@ class bitstamp(ccxt.async_support.bitstamp):
         parts = channel.split('_')
         marketId = self.safe_string(parts, 3)
         symbol = self.safe_symbol(marketId)
-        self.orderbooks[symbol] = self.order_book()
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
+        orderbook['nonce'] = None
+        orderbook.cache = []
 
     def handle_subscription_status(self, client: Client, message: dict):
         #

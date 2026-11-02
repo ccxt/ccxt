@@ -955,7 +955,7 @@ class bitvavo extends Exchange {
         $taker = $this->safe_bool($trade, 'taker');
         $takerOrMaker = null;
         if ($taker !== null) {
-            $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
+            $takerOrMaker = ($taker) ? 'taker' : 'maker';
         }
         $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
@@ -1171,12 +1171,10 @@ class bitvavo extends Exchange {
             $request['end'] = $this->sum($since, $sinceLimit * $duration * 1000);
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $params);
-        $limitResolved = $limit;
-        if (($since !== null) && ($limit === null)) {
-            $limitResolved = 1440;
-        }
-        if ($limitResolved !== null) {
-            $requestUntil['limit'] = min($limitResolved, 1440); // default 1440, max 1440
+        if ($limit !== null) {
+            $requestUntil['limit'] = min($limit, 1440); // default 1440, max 1440
+        } elseif ($since !== null) {
+            $requestUntil['limit'] = 1440;
         }
         return $this->extend($requestUntil, $paramsUntil);
     }
@@ -1868,7 +1866,7 @@ class bitvavo extends Exchange {
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {
-            throw new ArgumentsRequired($this->id . ' canceAllOrders() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires an operatorId in params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         $response = Async\await($this->privateDeleteOrders($this->extend($request, $paramsOperatorId)));
         //
@@ -2144,7 +2142,7 @@ class bitvavo extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'canceled' => 'canceled',
@@ -2398,7 +2396,7 @@ class bitvavo extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type(?string $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'buy' => 'trade',
             'sell' => 'trade',
@@ -2469,11 +2467,11 @@ class bitvavo extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          *
          * @see https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
@@ -2482,12 +2480,12 @@ class bitvavo extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2628,7 +2626,7 @@ class bitvavo extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'awaiting_processing' => 'pending',
             'awaiting_email_confirmation' => 'pending',
@@ -2724,7 +2722,7 @@ class bitvavo extends Exchange {
         );
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //   {
         //       "symbol": "1INCH",
@@ -2810,9 +2808,10 @@ class bitvavo extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'symbol');
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $requestHeaders = null;
+        $requestBody = null;
         $query = $this->omit($params, $this->extract_params($path));
         $url = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $getOrDelete = ($method === 'GET') || ($method === 'DELETE');
@@ -2821,7 +2820,7 @@ class bitvavo extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $payload = '';
             if (!$getOrDelete) {
@@ -2844,7 +2843,7 @@ class bitvavo extends Exchange {
                 $requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2872,7 +2871,7 @@ class bitvavo extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
             return $config['noMarket'];
         }

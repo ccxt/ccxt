@@ -148,7 +148,7 @@ export default class bitteam extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
-    parseValueToPricision(valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string): string | undefined;
+    parseValueToPricision(valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string): Str;
     /**
      * @method
      * @name bitteam#fetchTickers
@@ -197,7 +197,7 @@ export default class bitteam extends Exchange {
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
-     * @name betteam#fetchBalance
+     * @name bitteam#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -220,6 +220,6 @@ export default class bitteam extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

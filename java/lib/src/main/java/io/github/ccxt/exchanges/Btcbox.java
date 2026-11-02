@@ -288,7 +288,7 @@ public class Btcbox extends BtcboxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object promise1 = this.publicGetTickers();
+            Object promise1 = this.publicGetTickers(new HashMap<String, Object>() {{}});
             Object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true, (String) null, (String) null);
             var response1response2Variable = (CompletableFuture.allOf(((CompletableFuture<?>) promise1), ((CompletableFuture<?>) promise2)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) promise1).join(), ((CompletableFuture<?>) promise2).join())))).join();
             var response1 = ((List<Object>) response1response2Variable).get(0);
@@ -310,33 +310,33 @@ public class Btcbox extends BtcboxApi
                 Double fee = (((java.util.Objects.equals(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
                 Map<String, Object> details = (Map<String, Object>) this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
                 Map<String, Object> tradeDetails = (Map<String, Object>) this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
-                ((List<Object>)markets).add(this.safeMarketStructure(Helpers.newMap(
-                    "id", id,
-                    "uppercaseId", null,
-                    "symbol", symbol,
-                    "base", baseCurr,
-                    "baseId", id,
-                    "quote", quote,
-                    "quoteId", quoteId,
-                    "settle", null,
-                    "settleId", null,
-                    "type", "spot",
-                    "spot", true,
-                    "margin", false,
-                    "swap", false,
-                    "future", false,
-                    "option", false,
-                    "taker", fee,
-                    "maker", fee,
-                    "contract", false,
-                    "linear", null,
-                    "inverse", null,
-                    "contractSize", null,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "limits", new HashMap<String, Object>() {{
+                ((List<Object>)markets).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", id);
+                    j39v1.put("uppercaseId", null);
+                    j39v1.put("symbol", symbol);
+                    j39v1.put("base", baseCurr);
+                    j39v1.put("baseId", id);
+                    j39v1.put("quote", quote);
+                    j39v1.put("quoteId", quoteId);
+                    j39v1.put("settle", null);
+                    j39v1.put("settleId", null);
+                    j39v1.put("type", "spot");
+                    j39v1.put("spot", true);
+                    j39v1.put("margin", false);
+                    j39v1.put("swap", false);
+                    j39v1.put("future", false);
+                    j39v1.put("option", false);
+                    j39v1.put("taker", fee);
+                    j39v1.put("maker", fee);
+                    j39v1.put("contract", false);
+                    j39v1.put("linear", null);
+                    j39v1.put("inverse", null);
+                    j39v1.put("contractSize", null);
+                    j39v1.put("expiry", null);
+                    j39v1.put("expiryDatetime", null);
+                    j39v1.put("strike", null);
+                    j39v1.put("optionType", null);
+                    j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "amount", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -353,15 +353,15 @@ public class Btcbox extends BtcboxApi
                             put( "min", null );
                             put( "max", null );
                         }} );
-                    }},
-                    "precision", new HashMap<String, Object>() {{
+                    }});
+                    j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(tradeDetails, "pricedecimal"))) );
                         put( "amount", null );
-                    }},
-                    "active", java.util.Objects.equals(this.safeString(tradeDetails, "enable"), "1"),
-                    "created", null,
-                    "info", res
-                )));
+                    }});
+                    j39v1.put("active", java.util.Objects.equals(this.safeString(tradeDetails, "enable"), "1"));
+                    j39v1.put("created", null);
+                    j39v1.put("info", res);
+                    yield j39v1; } })));
             }
             return markets;
         });
@@ -436,14 +436,14 @@ public class Btcbox extends BtcboxApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> codes = Helpers.objectKeys(this.currencies);
+        List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = this.currency((String) (code));
             String currencyId = (String) currency.get("id");
             String free = (currencyId + "_balance");
-            if (Helpers.inOp(response, free))
+            if ((switch ((Object)(response)) { case List<?> j39v3 -> ((Object)(free)) != null && j39v3.contains(free); case Map<?, ?> j39v2 -> ((Object)(free)) instanceof String && j39v2.containsKey(free); case null, default -> false; }))
             {
                 Map<String, Object> account = this.account();
                 String used = (currencyId + "_lock");
@@ -899,17 +899,14 @@ public class Btcbox extends BtcboxApi
             //      },
             // ]
             //
-            List<Object> orders = this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
             // status (open/closed/canceled) is undefined
             // btcbox does not return status, but we know it's 'open' as we queried for open orders
+            Map<String, Object> extra = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(type, "open"))
             {
-                for (var i = 0; i < ((List<?>)orders).size(); i++)
-                {
-                    Helpers.addElementToObject((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "status", "open");
-                }
+                extra.put("status", "open");
             }
-            return orders;
+            return this.parseOrders(response, market, since, limit, extra);
         });
 
     }
@@ -961,21 +958,22 @@ public class Btcbox extends BtcboxApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((((apiUrl + "/") + this.version) + "/") + path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "webApi"))
+        } else if (java.util.Objects.equals(apiName, "webApi"))
         {
             url = ((this.urls.get("www") + "/") + path);
         } else
@@ -1006,8 +1004,8 @@ public class Btcbox extends BtcboxApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
-            h2kMap1.put("headers", headers);
+            h2kMap1.put("body", null);
+            h2kMap1.put("headers", null);
             return h2kMap1;
         }
     }
@@ -1019,12 +1017,12 @@ public class Btcbox extends BtcboxApi
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if (Helpers.isGreaterThanOrEqual(httpCode, 400))
+        if ((httpCode != null && ((Number) httpCode).doubleValue() >= 400))
         {
             return null;  // resort to defaultErrorHandler
         }
         Boolean result = (Boolean) this.safeBool(response, "result", (Object) null);
-        if (java.util.Objects.equals(result, null) || java.util.Objects.equals(result, true))
+        if (java.util.Objects.equals(result, null) || Boolean.TRUE.equals(result))
         {
             return null;  // either public API (no error codes expected) or success
         }
@@ -1034,12 +1032,12 @@ public class Btcbox extends BtcboxApi
         throw new ExchangeError(feedback) ;
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetch2(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
             if ((response instanceof String))
             {
                 // sometimes the exchange returns whitespace prepended to json

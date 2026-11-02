@@ -529,9 +529,7 @@ class weex extends Exchange {
                 ),
                 'networks' => array(
                     'BEP20' => 'BEP20(BSC)',
-                    'BSC' => 'BEP20(BSC)',
                     'ERC20' => 'ERC20',
-                    'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
                     'ARBITRUM' => 'ARBITRUM(ARB)',
@@ -1362,7 +1360,8 @@ class weex extends Exchange {
             'ask' => $this->safe_string($ticker, 'askPrice'),
             'askVolume' => $this->safe_string($ticker, 'askQty'),
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'openPrice'),
+            // openPrice comes from a different window than priceChange/priceChangePercent, so open is derived from last - change
+            'open' => null,
             'close' => $this->safe_string($ticker, 'lastPrice'),
             'last' => $this->safe_string($ticker, 'lastPrice'),
             'previousClose' => null,
@@ -1651,7 +1650,7 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] whether to automatically $paginate requests $until the required number of candles is returned
-         * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false). If false, will fetch last price klines
+         * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false, forced to true when $since or $until is set because the recent klines endpoints ignore time filters). If false, will fetch last price klines
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -1677,20 +1676,27 @@ class weex extends Exchange {
         $response = null;
         // hardcap threshold
         $limitResolved = ($limit === null) ? null : min($limit, 1000);
-        if ($historical) {
+        // the recent-klines endpoints ignore startTime and endTime and only ever return the
+        // latest candles, so a request bounded by since or until has to go through the history
+        // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
+        $useHistory = $historical || ($since !== null) || ($until !== null);
+        if ($useHistory) {
             if ($priceType !== null) {
                 $request['priceType'] = $priceType;
             }
             $startTime = $since;
             $endTime = $until;
+            $now = $this->milliseconds();
             if (($since === null) || ($until === null)) {
-                $now = $this->milliseconds();
                 $duration = $this->parse_timeframe($timeframe) * 1000;
-                $numberOfCandles = $maxHistoricalLimit;
-                if ($limitResolved !== null && $limitResolved !== null && $limitResolved !== 0) {
-                    $numberOfCandles = $limitResolved;
+                // the history endpoint returns at most maxHistoricalLimit candles and serves the
+                // newest ones inside the window, so a wider window would silently drop the candles
+                // right after since, keep the window at what one call can return
+                $historyLimit = $maxHistoricalLimit;
+                if ($limit !== null && $limit !== null && $limit !== 0) {
+                    $historyLimit = min($limit, $maxHistoricalLimit);
                 }
-                $timeDelta = $numberOfCandles * $duration;
+                $timeDelta = $historyLimit * $duration;
                 if (($since === null) && ($until === null)) {
                     $endTime = $now;
                     $startTime = $now - $timeDelta;
@@ -1700,8 +1706,13 @@ class weex extends Exchange {
                     }
                     $startTime = $until - $timeDelta;
                 } else {
-                    $endTime = $since . $timeDelta;
+                    // this.sum, a bare + is string concatenation in the php port
+                    $endTime = $this->sum($since, $timeDelta);
                 }
+            }
+            // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
+            if (($endTime !== null) && ($endTime > $now)) {
+                $endTime = $now;
             }
             $request['startTime'] = $startTime;
             $request['endTime'] = $endTime;
@@ -1917,7 +1928,7 @@ class weex extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -2098,12 +2109,12 @@ class weex extends Exchange {
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         $type = $marketType;
-        if (($sandboxMode === true) && ($requestedType === null)) {
+        if (($sandboxMode) && ($requestedType === null)) {
             $type = 'swap';
         }
         $response = null;
         if ($type === 'spot') {
-            if ($sandboxMode === true) {
+            if ($sandboxMode) {
                 throw new NotSupported($this->id . ' fetchBalance() only supports the swap account in sandbox mode, use params["type"] = "swap"');
             }
             //
@@ -2145,7 +2156,7 @@ class weex extends Exchange {
             //         }
             //     ]
             //
-            if ($sandboxMode === true) {
+            if ($sandboxMode) {
                 $response = Async\await($this->contractPrivateGetCapiV3SimBalance($paramsMarketType));
             } else {
                 $response = Async\await($this->contractPrivateGetCapiV3AccountBalance($paramsMarketType));
@@ -2163,7 +2174,7 @@ class weex extends Exchange {
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($entry, 'asset');
-            if (($sandboxMode === true) && ($currencyId === 'SUSDT')) {
+            if (($sandboxMode) && ($currencyId === 'SUSDT')) {
                 $currencyId = 'USDT'; // demo trading balances are denominated in the demo asset SUSDT
             }
             $code = $this->safe_currency_code($currencyId);
@@ -2289,7 +2300,7 @@ class weex extends Exchange {
             return Async\await($this->create_contract_order($symbol, $type, $side, $amount, $price, $params));
         } else {
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            if ($sandboxMode === true) {
+            if ($sandboxMode) {
                 throw new NotSupported($this->id . ' createOrder() only supports swap markets in sandbox mode');
             }
             return Async\await($this->create_spot_order($symbol, $type, $side, $amount, $price, $params));
@@ -2412,11 +2423,11 @@ class weex extends Exchange {
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
         if ($triggerPrice !== null) {
-            if ($sandboxMode === true) {
+            if ($sandboxMode) {
                 throw new NotSupported($this->id . ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
             }
             $response = Async\await($this->contractPrivatePostCapiV3AlgoOrder($request));
-        } elseif ($sandboxMode === true) {
+        } elseif ($sandboxMode) {
             $response = Async\await($this->contractPrivatePostCapiV3SimOrder($request));
         } else {
             $response = Async\await($this->contractPrivatePostCapiV3Order($request));
@@ -2427,7 +2438,7 @@ class weex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_contract_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
@@ -2456,10 +2467,7 @@ class weex extends Exchange {
             throw new BadRequest($this->id . ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
         $reduceOnly = $this->safe_bool($query, 'reduceOnly');
-        if ($isStopLoss || $isTakeProfit) {
-            $reduceOnly = true;
-        }
-        $isReduceOnly = ($reduceOnly === true);
+        $isReduceOnly = $isStopLoss || $isTakeProfit || ($reduceOnly === true);
         $positionSide = 'LONG';
         if ($isReduceOnly) {
             if ($side === 'buy') {
@@ -2584,7 +2592,7 @@ class weex extends Exchange {
         return $this->extend($request, $paramsOmitted);
     }
 
-    public function encode_trigger_price_type(?string $triggerPriceType) {
+    public function encode_trigger_price_type(?string $triggerPriceType): ?string {
         $types = array(
             'mark' => 'MARK_PRICE',
             'last' => 'CONTRACT_PRICE',
@@ -2620,7 +2628,7 @@ class weex extends Exchange {
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         $trigger = $this->safe_bool($paramsMarketType, 'trigger', false);
-        if (($trigger === true) && $id === null) {
+        if (($trigger) && $id === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires an id argument for trigger orders');
         }
         $request = array();
@@ -2648,7 +2656,7 @@ class weex extends Exchange {
             //     }
             //
             $response = Async\await($this->privateDeleteApiV3Order($this->extend($request, $paramsOmitted)));
-        } elseif ($trigger === true) {
+        } elseif ($trigger) {
             $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOrder($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->contractPrivateDeleteCapiV3Order($this->extend($request, $paramsOmitted)));
@@ -2697,7 +2705,7 @@ class weex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument for spot markets');
             }
             $response = Async\await($this->privateDeleteApiV3OpenOrders($this->extend($request, $paramsOmitted)));
-        } elseif ($trigger === true) {
+        } elseif ($trigger) {
             $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOpenOrders($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->contractPrivateDeleteCapiV3AllOpenOrders($this->extend($request, $paramsOmitted)));
@@ -2909,7 +2917,7 @@ class weex extends Exchange {
             }
             list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsPaginate);
             $trigger = $this->safe_bool($paramsUntil, 'trigger', false);
-            if ($trigger === true) {
+            if ($trigger) {
                 $paramsOmitted = $this->omit($paramsUntil, 'trigger');
                 //
                 //     [
@@ -3173,7 +3181,7 @@ class weex extends Exchange {
         list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsPaginate);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $response = Async\await($this->contractPrivateGetCapiV3SimOrderHistory($this->extend($requestUntil, $paramsUntil)));
         } else {
             $response = Async\await($this->contractPrivateGetCapiV3OrderHistory($this->extend($requestUntil, $paramsUntil)));
@@ -3370,7 +3378,7 @@ class weex extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'partial_fill' => 'closed',
@@ -3384,7 +3392,7 @@ class weex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -3400,7 +3408,7 @@ class weex extends Exchange {
     public function handle_order_or_position_error(?string $errorCode, ?string $errorMessage, array $order) {
         $errorCodeValue = ($errorCode === null) ? '' : $errorCode;
         $errorMessageValue = ($errorMessage === null) ? '' : $errorMessage;
-        if (($errorCodeValue === '') && ($errorMessageValue === '')) {
+        if ((($errorCode === null) || ($errorCode === '')) && (($errorMessage === null) || ($errorMessage === ''))) {
             // some endpoints could return an empty string if there is no error
             return;
         }
@@ -3697,7 +3705,7 @@ class weex extends Exchange {
         ), $currencyResolved);
     }
 
-    public function parse_ledger_type(?string $type) {
+    public function parse_ledger_type(?string $type): ?string {
         $types = array(
             'transfer_in' => 'transfer',
             'transfer_out' => 'transfer',
@@ -3757,8 +3765,9 @@ class weex extends Exchange {
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsPaginate);
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        $hasSince = (is_array($requestUntil) && array_key_exists('startTime' ?? '', $requestUntil));
-        $hasUntil = (is_array($requestUntil) && array_key_exists('endTime' ?? '', $requestUntil));
+        $hasSince = ($since !== null);
+        $until = $this->safe_integer_2($paramsPaginate, 'until', 'till');
+        $hasUntil = ($until !== null);
         if ($hasSince && !$hasUntil) {
             $requestUntil['endTime'] = $this->milliseconds();
         } elseif ($hasUntil && !$hasSince) {
@@ -3837,7 +3846,7 @@ class weex extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $response = Async\await($this->contractPrivateGetCapiV3SimPositionAllPosition($params));
         } else {
             $response = Async\await($this->contractPrivateGetCapiV3AccountPositionAllPosition($params));
@@ -3883,7 +3892,7 @@ class weex extends Exchange {
         }
         $market = $this->market($symbol);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             // the demo trading API does not provide a single-position endpoint
             return Async\await($this->fetch_positions(array( $market['symbol'] ), $params));
         }
@@ -3981,27 +3990,39 @@ class weex extends Exchange {
         $notional = $this->safe_string($position, 'openValue');
         $size = $this->safe_string($position, 'size');
         $entryPrice = Precise::string_div($notional, $size);
+        $unrealizePnl = $this->safe_string($position, 'unrealizePnl');
+        $isolatedMargin = $this->omit_zero($this->safe_string_2($position, 'isolatedMargin', 'marginSize'));
+        $collateralString = null;
+        if (($marginMode === 'isolated') && ($isolatedMargin !== null)) {
+            $collateralString = ($unrealizePnl !== null) ? Precise::string_add($isolatedMargin, $unrealizePnl) : $isolatedMargin;
+        }
+        $initialMarginString = $this->omit_zero($this->safe_string_2($position, 'marginSize', 'isolatedMargin'));
+        $marginString = null;
+        if ($marginMode === 'isolated') {
+            $marginString = $isolatedMargin;
+        }
         return $this->safe_position(array(
             'symbol' => $marketResolved['symbol'],
             'id' => $this->safe_string_2($position, 'id', 'positionId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'contracts' => $this->parse_number($size),
-            'contractSize' => null,
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'side' => $this->safe_string_lower($position, 'side'),
             'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
-            'unrealizedPnl' => $this->safe_number($position, 'unrealizePnl'),
+            'unrealizedPnl' => $this->parse_number($unrealizePnl),
             'realizedPnl' => null,
-            'collateral' => null,
+            'positionMargin' => $this->parse_number($marginString),
+            'collateral' => $this->parse_number($collateralString),
             'entryPrice' => $this->parse_number($entryPrice),
             'markPrice' => null,
-            'liquidationPrice' => $this->safe_number($position, 'liquidatePrice'),
+            'liquidationPrice' => $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidatePrice'))),
             'marginMode' => $marginMode,
             'hedged' => $hedged,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'initialMargin' => $this->safe_number($position, 'marginSize'),
+            'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => null,
             'marginRatio' => null,
             'lastUpdateTimestamp' => $this->safe_integer($position, 'updatedTime'),
@@ -4056,7 +4077,7 @@ class weex extends Exchange {
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by current exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4066,8 +4087,8 @@ class weex extends Exchange {
             'symbol' => $market['id'],
         );
         $response = Async\await($this->contractPrivatePostCapiV3ClosePositions($this->extend($request, $params)));
-        $orders = $this->parse_orders($response, $market);
-        return $this->safe_dict($orders, 0);
+        $order = $this->safe_dict($response, 0, array());
+        return $this->parse_order($order, $market);
     }
 
     public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
@@ -4196,7 +4217,7 @@ class weex extends Exchange {
         );
     }
 
-    public function parse_margin_type(?string $marginType) {
+    public function parse_margin_type(?string $marginType): ?string {
         $marginTypes = array(
             'CROSSED' => 'cross',
             'ISOLATED' => 'isolated',
@@ -4233,7 +4254,7 @@ class weex extends Exchange {
         return Async\await($this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params)));
     }
 
-    public function encode_margin_mode(?string $marginMode) {
+    public function encode_margin_mode(?string $marginMode): string {
         $marginTypes = array(
             'cross' => 'CROSSED',
             'isolated' => 'ISOLATED',
@@ -4539,7 +4560,7 @@ class weex extends Exchange {
          */
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $baseId = $this->safe_string($market, 'baseId');
-        if (($sandboxMode === true) && ($baseId !== null)) {
+        if (($sandboxMode) && ($baseId !== null)) {
             // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
             return $baseId . 'SUSDT';
         }
@@ -4554,7 +4575,7 @@ class weex extends Exchange {
          * @return {string} the live market id
          */
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if (($sandboxMode !== true) || ($marketId === null)) {
+        if ((!$sandboxMode) || ($marketId === null)) {
             return $marketId;
         }
         if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
@@ -4572,7 +4593,8 @@ class weex extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);
@@ -4581,16 +4603,16 @@ class weex extends Exchange {
                 $endpoint .= '?' . $this->urlencode($query);
             }
         }
-        $isPrivate = ($api === 'private') || ($api === 'contractPrivate');
+        $isPrivate = ($apiName === 'private') || ($apiName === 'contractPrivate');
         $hasJsonBody = $isPrivate && (($method === 'POST') || $isBatch);
-        $requestBody = $body;
+        $requestBody = null;
         if ($hasJsonBody) {
             $requestBody = $this->json($query);
         }
         $requestHeaders = null;
         if ($isPrivate) {
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            if (($sandboxMode === true) && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
+            if (($sandboxMode) && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
                 // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
                 throw new NotSupported($this->id . ' ' . $path . ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
             }
@@ -4615,7 +4637,7 @@ class weex extends Exchange {
                 'User-Agent' => 'ccxt',
             );
         }
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -4634,6 +4656,9 @@ class weex extends Exchange {
         $message = $this->safe_string($response, 'msg');
         if ($message !== null) {
             $errorCode = $this->safe_string($response, 'code');
+            if ($errorCode === '200' && strtolower($message) === 'success') {
+                return null;
+            }
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

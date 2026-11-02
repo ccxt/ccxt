@@ -572,7 +572,8 @@ export default class gemini extends Exchange {
         if (numTables < 2) {
             throw new NotSupported(error);
         }
-        const rows = tables[1].split("\n<tr>\n"); // eslint-disable-line quotes
+        const table = this.safeString(tables, 1, '');
+        const rows = table.split("\n<tr>\n"); // eslint-disable-line quotes
         const numRows = rows.length;
         if (numRows < 2) {
             throw new NotSupported(error);
@@ -593,17 +594,21 @@ export default class gemini extends Exchange {
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            let marketId = cells[0].replace('<td>', '');
-            marketId = marketId.replace('*', '');
+            const cell0 = this.safeString(cells, 0, '');
+            const marketIdRaw = cell0.replace('<td>', '');
+            const marketId = marketIdRaw.replace('*', '');
             // const base = this.safeCurrencyCode (baseId);
-            const minAmountString = cells[1].replace('<td>', '');
+            const cell1 = this.safeString(cells, 1, '');
+            const minAmountString = cell1.replace('<td>', '');
             const minAmountParts = minAmountString.split(' ');
             const minAmount = this.safeNumber(minAmountParts, 0);
-            const amountPrecisionString = cells[2].replace('<td>', '');
+            const cell2 = this.safeString(cells, 2, '');
+            const amountPrecisionString = cell2.replace('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split(' ');
-            const idLength = marketId.length - 0;
+            const idLength = marketId.length;
             const startingIndex = idLength - 3;
-            const pricePrecisionString = cells[3].replace('<td>', '');
+            const cell3 = this.safeString(cells, 3, '');
+            const pricePrecisionString = cell3.replace('<td>', '');
             const pricePrecisionParts = pricePrecisionString.split(' ');
             const quoteId = this.safeStringLower(pricePrecisionParts, 1, marketId.slice(startingIndex, idLength));
             const baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.replace(quoteId, ''));
@@ -854,16 +859,16 @@ export default class gemini extends Exchange {
             const lowerCaseId = marketIdWithoutPerp.toLowerCase();
             if (lowerCaseId in conflictingMarkets) {
                 const conflictingMarket = conflictingMarkets[lowerCaseId];
-                baseId = conflictingMarket['base'];
-                quoteId = conflictingMarket['quote'];
+                baseId = this.safeString(conflictingMarket, 'base');
+                quoteId = this.safeString(conflictingMarket, 'quote');
                 if (isPerp) {
-                    settleId = conflictingMarket['quote'];
+                    settleId = this.safeString(conflictingMarket, 'quote');
                 }
             }
             else {
                 const quoteCurrencies = this.handleOption('fetchMarketsFromAPI', 'quoteCurrencies', []);
                 for (let i = 0; i < quoteCurrencies.length; i++) {
-                    const quoteCurrency = quoteCurrencies[i];
+                    const quoteCurrency = this.safeString(quoteCurrencies, i, '');
                     if (marketIdWithoutPerp.endsWith(quoteCurrency)) {
                         const quoteLength = this.parseToInt(-1 * quoteCurrency.length);
                         baseId = marketIdWithoutPerp.slice(0, quoteLength);
@@ -1698,7 +1703,7 @@ export default class gemini extends Exchange {
                 }
             }
             const postOnly = this.safeBool(params, 'postOnly', false);
-            if (postOnly === true) {
+            if (postOnly) {
                 request['options'] = ['maker-or-cancel'];
             }
             // allowing override for auction-only and indication-of-interest order options
@@ -1816,14 +1821,13 @@ export default class gemini extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const tagAndParams = this.handleWithdrawTagAndParams(tag, params);
-        const paramsWithdrawTag = tagAndParams[1];
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1993,7 +1997,7 @@ export default class gemini extends Exchange {
         }
         const indexedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
         const networkCode = this.handleNetworkCodeAndParams(params)[0];
-        return this.safeValue(indexedByNetwork, networkCode);
+        return this.safeDict(indexedByNetwork, networkCode);
     }
     /**
      * @method
@@ -2025,11 +2029,12 @@ export default class gemini extends Exchange {
         // single network, so the last address the venue lists for it wins — same as before)
         return this.indexBy(results, 'network');
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         let headersSigned = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const apiKey = this.apiKey;
             if (apiKey.indexOf('account') < 0) {
@@ -2057,13 +2062,13 @@ export default class gemini extends Exchange {
                 url += '?' + this.urlencode(query);
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const fullUrl = apiUrl + url;
-        const headersResolved = (api === 'private') ? headersSigned : headers;
-        let bodyResolved = body;
+        const headersResolved = (apiName === 'private') ? headersSigned : undefined;
+        let bodyResolved = undefined;
         if ((method === 'POST') || (method === 'DELETE')) {
             bodyResolved = this.json(query);
         }

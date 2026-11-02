@@ -784,8 +784,8 @@
                         "close": 0.00121122,
                         "last": 0.00121122,
                         "previousClose": 0.00120506,
-                        "change": 6.16e-06,
-                        "percentage": 0.0051,
+                        "change": 8.55e-06,
+                        "percentage": 0.7109182069894484,
                         "average": 0.001206945,
                         "baseVolume": 1552.998634298482,
                         "quoteVolume": 1.8668757133632272,
@@ -836,7 +836,7 @@
                         "last": 1631,
                         "previousClose": 1624,
                         "change": 7,
-                        "percentage": 0.0043,
+                        "percentage": 0.4310344827586206,
                         "average": 1627.5,
                         "baseVolume": 19607610.31042036,
                         "quoteVolume": 31744773114.40212,
@@ -990,8 +990,8 @@
                     "close": 0.00121122,
                     "last": 0.00121122,
                     "previousClose": 0.00120506,
-                    "change": 6.16e-06,
-                    "percentage": 0.0051,
+                    "change": 8.55e-06,
+                    "percentage": 0.7109182069894484,
                     "average": 0.001206945,
                     "baseVolume": 1552.998634298482,
                     "quoteVolume": 1.8668757133632272,
@@ -1022,6 +1022,302 @@
                         "lowest_52_week_price": 0.00101,
                         "lowest_52_week_date": "2026-06-07",
                         "timestamp": 1784130963561
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "rising from open despite falling from previous close",
+                "method": "fetchTicker",
+                "input": [
+                    "SOL/BTC"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "SOL/BTC",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 100,
+                    "close": 110,
+                    "last": 110,
+                    "previousClose": 120,
+                    "change": 10,
+                    "percentage": 10,
+                    "average": 105,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "falling from open despite rising from previous close",
+                "method": "fetchTicker",
+                "input": [
+                    "SOL/BTC"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "90",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "10",
+                        "signed_change_rate": "0.125"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "SOL/BTC",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 100,
+                    "close": 90,
+                    "last": 90,
+                    "previousClose": 80,
+                    "change": -10,
+                    "percentage": -10,
+                    "average": 95,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "90",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "10",
+                        "signed_change_rate": "0.125"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "flat from open despite changing from previous close",
+                "method": "fetchTicker",
+                "input": [
+                    "SOL/BTC"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "100",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "20",
+                        "signed_change_rate": "0.25"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "SOL/BTC",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 100,
+                    "close": 100,
+                    "last": 100,
+                    "previousClose": 80,
+                    "change": 0,
+                    "percentage": 0,
+                    "average": 100,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "100",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "20",
+                        "signed_change_rate": "0.25"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "missing open does not become previous close",
+                "method": "fetchTicker",
+                "input": [
+                    "SOL/BTC"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "SOL/BTC",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 110,
+                    "last": 110,
+                    "previousClose": 120,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "zero open does not become previous close",
+                "method": "fetchTicker",
+                "input": [
+                    "SOL/BTC"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "0",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "SOL/BTC",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 110,
+                    "last": 110,
+                    "previousClose": 120,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "0",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "missing last is not reconstructed from previous-close change",
+                "method": "fetchTicker",
+                "input": [
+                    "SOL/BTC"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "SOL/BTC",
+                    "timestamp": 1789399190794,
+                    "datetime": "2026-09-14T15:19:50.794Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 100,
+                    "close": null,
+                    "last": null,
+                    "previousClose": 120,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "market": "BTC-SOL",
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333"
                     },
                     "indexPrice": null,
                     "markPrice": null

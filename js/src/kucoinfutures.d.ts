@@ -1,4 +1,4 @@
-import kucoin from './kucoin.js';
+import kucoin from './abstract/kucoinfutures.js';
 import type { Dict, Str, Strings, TransferEntry, Tickers } from './base/types.js';
 /**
  * @class kucoinfutures

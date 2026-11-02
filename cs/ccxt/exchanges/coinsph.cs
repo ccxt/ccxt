@@ -824,19 +824,21 @@ public partial class coinsph : Exchange
             for (int i = 0; i < byNumberOfSymbols.Count; i++)
             {
                 object entry = byNumberOfSymbols[i];
-                if (isGreaterThanOrEqual(symbolsAmount, getValue(entry, 0)))
+                Int64? threshold = this.safeInteger(entry, 0);
+                if (!(threshold == null) && (threshold == null || symbolsAmount >= threshold))
                 {
                     return getValue(entry, 1);
                 }
             }
         } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
-            object limit = getValue(parameters, "limit");
+            Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = byLimit[i];
-                if (isGreaterThanOrEqual(limit, getValue(entry, 0)))
+                Int64? threshold = this.safeInteger(entry, 0);
+                if ((limit != null) && !(threshold == null) && (threshold == null || limit >= threshold))
                 {
                     return getValue(entry, 1);
                 }
@@ -1272,8 +1274,7 @@ public partial class coinsph : Exchange
                 request["endTime"] = until;
             } else
             {
-                Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                object endTimeByLimit = this.sum(since, multiply(duration, ((limitResolved - 1))));
+                object endTimeByLimit = this.sum(since, ((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1))));
                 Int64 now = this.milliseconds();
                 request["endTime"] = mathMin(endTimeByLimit, now);
             }
@@ -1281,11 +1282,10 @@ public partial class coinsph : Exchange
         {
             request["endTime"] = until;
             // since work properly only when it is "younger" than last "limit" candle
-            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-            request["startTime"] = subtract(until, (multiply(duration, ((limitResolved - 1)))));
+            request["startTime"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(until, (((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1)))));
         }
         request["limit"] = limitResolved;
-        object paramsOmitted = this.omit(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         List<object> response = await this.publicGetOpenapiQuoteV1Klines(this.extend(request, paramsOmitted));
         //
         //     [
@@ -1489,7 +1489,7 @@ public partial class coinsph : Exchange
         string? side = null;
         if ((isBuyer != null))
         {
-            side = ((isBuyer == true)) ? "buy" : "sell";
+            side = isBuyer == true ? "buy" : "sell";
         }
         string? isMaker = this.safeString(trade, "isMaker");
         string? takerOrMaker = null;
@@ -1608,10 +1608,10 @@ public partial class coinsph : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? testOrder = this.safeBool(parameters, "test", false);
-        object paramsOmitted = this.omit(parameters, "test");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "test"));
         string? orderType = this.safeString(paramsOmitted, "type", type);
         orderType = this.encodeOrderType(orderType);
-        object paramsType = this.omit(paramsOmitted, "type");
+        Dictionary<string, object> paramsType = this.omit(paramsOmitted, "type");
         object paramsQuote = null;
         string? orderSide = this.encodeOrderSide(side);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1747,7 +1747,7 @@ public partial class coinsph : Exchange
         {
             request["orderId"] = id;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"}));
         Dictionary<string, object> response = await this.privateGetOpenapiV1Order(this.extend(request, paramsOmitted));
         return this.parseOrder(response);
     }
@@ -1846,7 +1846,7 @@ public partial class coinsph : Exchange
         {
             request["orderId"] = id;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"}));
         Dictionary<string, object> response = await this.privateDeleteOpenapiV1Order(this.extend(request, paramsOmitted));
         return this.parseOrder(response);
     }
@@ -2188,20 +2188,23 @@ public partial class coinsph : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address not used by withdraw ()
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tag = (string)tagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
         IDictionary<string, object> options = this.safeDict(this.options, "withdraw");
         bool? warning = this.safeBool(options, "warning", true);
         if ((warning == true))
         {
             throw new InvalidAddress ((this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
         }
-        string? networkCode = this.safeString(parameters, "network");
+        string? networkCode = this.safeString(paramsWithdrawTag, "network");
         string? networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
@@ -2222,7 +2225,7 @@ public partial class coinsph : Exchange
         {
             request["withdrawOrderId"] = tag;
         }
-        object paramsOmitted = this.omit(parameters, "network");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
         Dictionary<string, object> response = await this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, paramsOmitted));
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
@@ -2440,15 +2443,15 @@ public partial class coinsph : Exchange
                 { "cost", feeCost },
             };
         }
-        string? network = this.safeString(transaction, "network");
-        bool intern = network == "Internal";
+        string? networkId = this.safeString(transaction, "network");
+        bool intern = networkId == "Internal";
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", network },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
@@ -2509,7 +2512,7 @@ public partial class coinsph : Exchange
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "network", networkId },
         };
-        object paramsOmitted = this.omit(parameters, "network");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "network"));
         Dictionary<string, object> response = await this.privateGetOpenapiWalletV1DepositAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -2550,13 +2553,13 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (((getValue(query, key) is IList<object>) || (getValue(query, key).GetType().IsGenericType && getValue(query, key).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((((key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null) is IList<object>) || ((key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null).GetType().IsGenericType && (key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 if ((i != 0))
                 {
                     encodedArrayParams = encodedArrayParams + "&";
                 }
-                object innerArray = getValue(query, key);
+                object innerArray = (key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null);
                 remainingQuery = this.omit(remainingQuery, key);
                 string? encodedArrayParam = this.parseArrayParam(innerArray, key);
                 encodedArrayParams = encodedArrayParams + encodedArrayParam;
@@ -2581,12 +2584,13 @@ public partial class coinsph : Exchange
         return ((string?)((object)(urlEncodedParam)));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2594,7 +2598,7 @@ public partial class coinsph : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         string? endpoint = this.implodeParams(path, parameters);
         string url = ((apiUrl + "/") + endpoint);
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             ((IDictionary<string,object>)query)["timestamp"] = this.milliseconds();
@@ -2616,7 +2620,7 @@ public partial class coinsph : Exchange
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
-                { "body", body },
+                { "body", null },
                 { "headers", signedHeaders },
             };
         }
@@ -2628,8 +2632,8 @@ public partial class coinsph : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

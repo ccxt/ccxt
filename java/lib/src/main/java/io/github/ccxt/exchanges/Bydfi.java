@@ -16,6 +16,7 @@ import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.PositionModeInfo;
 import io.github.ccxt.types.Ticker;
@@ -661,10 +662,10 @@ public class Bydfi extends BydfiApi
         String limitMinQty = this.safeString(market, "limitMinQty");
         String minAmountString = Precise.stringMin(marketMinQty, limitMinQty);
         String contractSize = this.safeString(market, "contractFactor");
-        Object pricePrecision = this.parsePrecision(this.safeString(market, "priceOrderPrecision"));
-        Object rawAmountPrecision = this.parsePrecision(this.safeString(market, "volumePrecision"));
+        String pricePrecision = (String) this.parsePrecision(this.safeString(market, "priceOrderPrecision"));
+        String rawAmountPrecision = (String) this.parsePrecision(this.safeString(market, "volumePrecision"));
         String amountPrecision = Precise.stringDiv(rawAmountPrecision, contractSize);
-        Object basePrecision = this.parsePrecision(this.safeString(market, "basePrecision"));
+        String basePrecision = (String) this.parsePrecision(this.safeString(market, "basePrecision"));
         Double taker = this.safeNumber(market, "feeRateTaker", (Object) null);
         Double maker = this.safeNumber(market, "feeRateMaker", (Object) null);
         Double maxLeverage = this.safeNumber(market, "maxLeverageLevel", (Object) null);
@@ -788,21 +789,30 @@ public class Bydfi extends BydfiApi
 
     public Object getClosestLimit(Long limit)
     {
-        List<Object> limits = new ArrayList<Object>(Arrays.asList(5, 10, 20, 50, 100, 500, 1000));
-        Object result = 1000;
-        for (var i = 0; i < ((List<?>)limits).size(); i++)
+        if (java.util.Objects.equals(limit, null))
         {
-            if (java.util.Objects.equals(limit, null))
-            {
-                throw new ArgumentsRequired((this.id + " getClosestLimit() requires a limit argument")) ;
-            }
-            if (Helpers.isLessThanOrEqual(limit, (limits == null || i < 0 || i >= limits.size() ? null : limits.get(i))))
-            {
-                result = (limits == null || i < 0 || i >= limits.size() ? null : limits.get(i));
-                break;
-            }
+            throw new ArgumentsRequired((this.id + " getClosestLimit() requires a limit argument")) ;
         }
-        return result;
+        if ((limit == null || limit <= 5))
+        {
+            return 5;
+        } else if ((limit == null || limit <= 10))
+        {
+            return 10;
+        } else if ((limit == null || limit <= 20))
+        {
+            return 20;
+        } else if ((limit == null || limit <= 50))
+        {
+            return 50;
+        } else if ((limit == null || limit <= 100))
+        {
+            return 100;
+        } else if ((limit == null || limit <= 500))
+        {
+            return 500;
+        }
+        return 1000;
     }
 
     /**
@@ -883,7 +893,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
                 Long maxLimit = 500L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
@@ -892,7 +902,7 @@ public class Bydfi extends BydfiApi
                 Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> contractTypeparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "contractType", "FUTURE");
+            Pair<String, Map<String, Object>> contractTypeparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "contractType", "FUTURE");
             String contractType = contractTypeparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeparamsContractTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -904,7 +914,7 @@ public class Bydfi extends BydfiApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            Object paramsSinceUntil = this.handleSinceAndUntil("fetchMyTrades", since, paramsContractType);
+            Map<String, Object> paramsSinceUntil = (Map<String, Object>) this.handleSinceAndUntil("fetchMyTrades", since, paramsContractType);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -982,10 +992,12 @@ public class Bydfi extends BydfiApi
         String feeCost = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", marketResolved.get("settle")
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", marketResolved.get("settle"));
+                fee = hx4NewMap0;
+            }
         }
         String orderId = this.safeString(trade, "orderId");
         String side = null; // fetchMyTrades always returns side BUY
@@ -1043,13 +1055,13 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long maxLimit = 500L; // docs says max 1500, but in practice only 500 works
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Integer maxLimit = 500; // docs says max 1500, but in practice only 500 works
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit);
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, Long.valueOf(maxLimit))).join();
             }
             Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -1057,38 +1069,39 @@ public class Bydfi extends BydfiApi
                 put( "symbol", market.get("id") );
                 put( "interval", interval );
             }};
-            Object startTime = since;
-            Long numberOfCandles = maxLimit;
+            Long numberOfCandles = ((long) (maxLimit));
             if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0))
             {
-                numberOfCandles = limit;
+                numberOfCandles = this.parseToInt(limit);
             }
-            Object until = null;
-            Map<String, Object> paramsUntil = null;
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until", (Long) null);
-            until = ((List<Object>) untilparamsUntilVariable).get(0);
-            paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
+            List<Object> untilParamparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until", (Long) null);
+            Long untilParam = (Long) ((List<Object>) untilParamparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilParamparamsUntilVariable).get(1);
             Long now = this.milliseconds();
             Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-            Object timeDelta = Helpers.multiply(duration, numberOfCandles);
-            if (java.util.Objects.equals(startTime, null) && java.util.Objects.equals(until, null))
+            Long timeDelta = (duration * numberOfCandles);
+            Object startTime = since;
+            Object until = untilParam;
+            if (java.util.Objects.equals(since, null) && java.util.Objects.equals(untilParam, null))
             {
-                startTime = Helpers.subtract(now, timeDelta);
+                startTime = (now - timeDelta);
                 until = now;
-            } else if (java.util.Objects.equals(until, null))
+            } else if (!java.util.Objects.equals(untilParam, null))
             {
-                if (java.util.Objects.equals(startTime, null))
+                if (java.util.Objects.equals(since, null))
+                {
+                    Long untilInt = this.parseToInt(untilParam);
+                    startTime = (untilInt - timeDelta);
+                }
+            } else
+            {
+                if (java.util.Objects.equals(since, null))
                 {
                     throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a since or until argument")) ;
                 }
-                until = Helpers.add(startTime, timeDelta);
-                if (Helpers.isGreaterThan(until, now))
-                {
-                    until = now;
-                }
-            } else if (java.util.Objects.equals(startTime, null))
-            {
-                startTime = Helpers.subtract(until, timeDelta);
+                Long sinceInt = this.parseToInt(since);
+                Object sinceEnd = (sinceInt + timeDelta);
+                until = (((((now == null || ((Number) sinceEnd).doubleValue() > now))))) ? now : sinceEnd;
             }
             request.put("startTime", startTime);
             request.put("endTime", until);
@@ -1116,8 +1129,7 @@ public class Bydfi extends BydfiApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-            return result;
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1455,7 +1467,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String wallet = "W001";
             String walletOption = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "wallet", wallet)).get(0);
             orderRequest = this.extend(orderRequest, new HashMap<String, Object>() {{
@@ -1581,7 +1593,7 @@ public class Bydfi extends BydfiApi
         }
         request.put("type", typeValue);
         Boolean hedged = false;
-        io.github.ccxt.base.Pair<Boolean, Map<String, Object>> hedgedqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "hedged", hedged);
+        Pair<Boolean, Map<String, Object>> hedgedqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "hedged", hedged);
         hedged = hedgedqueryVariable.first();
         query = hedgedqueryVariable.second();
         Boolean reduceOnly = (Boolean) this.safeBool(query, "reduceOnly", false);
@@ -1590,14 +1602,14 @@ public class Bydfi extends BydfiApi
             query = this.omit(query, "reduceOnly");
             if (java.util.Objects.equals(side, "buy"))
             {
-                request.put("positionSide", (((java.util.Objects.equals(reduceOnly, true)))) ? "SHORT" : "LONG");
+                request.put("positionSide", ((Boolean.TRUE.equals(reduceOnly))) ? "SHORT" : "LONG");
             } else if (java.util.Objects.equals(side, "sell"))
             {
-                request.put("positionSide", (((java.util.Objects.equals(reduceOnly, true)))) ? "LONG" : "SHORT");
+                request.put("positionSide", ((Boolean.TRUE.equals(reduceOnly))) ? "LONG" : "SHORT");
             }
         }
         Boolean closePosition = (Boolean) this.safeBool(query, "closePosition", false);
-        if (!java.util.Objects.equals(closePosition, true))
+        if (!Boolean.TRUE.equals(closePosition))
         {
             query = this.omit(query, "closePosition");
             request.put("quantity", this.amountToPrecision(symbol, amount));
@@ -1605,9 +1617,9 @@ public class Bydfi extends BydfiApi
         {
             throw new NotSupported((this.id + " createOrder() closePosition is only supported for stopLoss and takeProfit market orders")) ;
         }
-        String timeInForce = this.handleTimeInForce(Helpers.toMapArg(query));
+        String timeInForce = this.handleTimeInForce(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
         Boolean postOnly = false;
-        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "POST_ONLY"), Helpers.toMapArg(query));
+        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "POST_ONLY"), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
         postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
         query = ((List<Object>) postOnlyqueryVariable).get(1);
         if (Boolean.TRUE.equals(postOnly))
@@ -1622,7 +1634,7 @@ public class Bydfi extends BydfiApi
         if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isTailingStopOrder))
         {
             String workingType = "CONTRACT_PRICE";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> workingTypequeryVariable = this.handleOptionStringAndParams((Map<String, Object>) (query), "createOrder", "triggerPriceType", workingType);
+            Pair<String, Map<String, Object>> workingTypequeryVariable = this.handleOptionStringAndParams((Map<String, Object>) (query), "createOrder", "triggerPriceType", workingType);
             workingType = workingTypequeryVariable.first();
             query = workingTypequeryVariable.second();
             request.put("workingType", this.encodeWorkingType(workingType));
@@ -1680,7 +1692,7 @@ public class Bydfi extends BydfiApi
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             String wallet = "W001";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "wallet", wallet);
+            Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1719,10 +1731,10 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object request = this.createEditOrderRequest((String) (id), (String) (symbol), "limit", (String) (side), amount, price, parameters);
+            Map<String, Object> request = (Map<String, Object>) this.createEditOrderRequest((String) (id), (String) (symbol), "limit", (String) (side), amount, price, parameters);
             String wallet = "W001";
             String walletOption = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrder", "wallet", wallet)).get(0);
-            ((Map<String, Object>)request).put("wallet", walletOption);
+            request.put("wallet", walletOption);
             Map<String, Object> response = (this.privatePostV1FapiTradeEditOrder(request)).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, (Map<String, Object>) null);
@@ -1764,11 +1776,11 @@ public class Bydfi extends BydfiApi
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createEditOrderRequest(id, symbol, "limit", side, amount, price, orderParams);
+                Map<String, Object> orderRequest = (Map<String, Object>) this.createEditOrderRequest(id, symbol, "limit", side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             String wallet = "W001";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrder", "wallet", wallet);
+            Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrder", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1835,7 +1847,7 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> market = this.market(symbol);
             String wallet = "W001";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelAllOrders", "wallet", wallet);
+            Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelAllOrders", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1910,7 +1922,7 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> market = this.market(symbol);
             String wallet = "W001";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "wallet", wallet);
+            Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1919,7 +1931,7 @@ public class Bydfi extends BydfiApi
             }};
             Map<String, Object> response = null;
             Boolean trigger = false;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> triggerOptionparamsTriggerVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsWallet), "fetchOpenOrders", "trigger", trigger);
+            Pair<Boolean, Map<String, Object>> triggerOptionparamsTriggerVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsWallet), "fetchOpenOrders", "trigger", trigger);
             Boolean triggerOption = triggerOptionparamsTriggerVariable.first();
             Map<String, Object> paramsTrigger = triggerOptionparamsTriggerVariable.second();
             if (!Boolean.TRUE.equals(triggerOption))
@@ -2007,13 +2019,13 @@ public class Bydfi extends BydfiApi
                 request.put("orderId", id);
             }
             String wallet = "W001";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOpenOrder", "wallet", wallet);
+            Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOpenOrder", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
             request.put("wallet", walletOption);
             Map<String, Object> response = null;
             Boolean trigger = false;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> triggerOptionparamsTriggerVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsWallet), "fetchOpenOrder", "trigger", trigger);
+            Pair<Boolean, Map<String, Object>> triggerOptionparamsTriggerVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsWallet), "fetchOpenOrder", "trigger", trigger);
             Boolean triggerOption = triggerOptionparamsTriggerVariable.first();
             Map<String, Object> paramsTrigger = triggerOptionparamsTriggerVariable.second();
             if (!Boolean.TRUE.equals(triggerOption))
@@ -2055,7 +2067,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
                 Long maxLimit = 500L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
@@ -2064,7 +2076,7 @@ public class Bydfi extends BydfiApi
                 Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> contractTypeparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", "contractType", "FUTURE");
+            Pair<String, Map<String, Object>> contractTypeparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", "contractType", "FUTURE");
             String contractType = contractTypeparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeparamsContractTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2076,7 +2088,7 @@ public class Bydfi extends BydfiApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            Object paramsSinceUntil = this.handleSinceAndUntil("fetchCanceledAndClosedOrders", since, paramsContractType);
+            Map<String, Object> paramsSinceUntil = (Map<String, Object>) this.handleSinceAndUntil("fetchCanceledAndClosedOrders", since, paramsContractType);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -2135,33 +2147,33 @@ public class Bydfi extends BydfiApi
 
     public Object handleSinceAndUntil(Object methodName, Long since, Map<String, Object> parameters)
     {
-        Object until = null;
-        Map<String, Object> paramsUntil = null;
-        List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, methodName, "until", "endTime", (Long) null);
-        until = ((List<Object>) untilparamsUntilVariable).get(0);
-        paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
+        List<Object> untilParamparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, methodName, "until", "endTime", (Long) null);
+        Long untilParam = (Long) ((List<Object>) untilParamparamsUntilVariable).get(0);
+        Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilParamparamsUntilVariable).get(1);
         Long now = this.milliseconds();
         Long sevenDays = ((((7L * 24L) * 60L) * 60L) * 1000L); // the maximum range is 7 days
         Object startTime = since;
-        if (java.util.Objects.equals(startTime, null))
+        Object until = untilParam;
+        if (java.util.Objects.equals(since, null))
         {
-            if (java.util.Objects.equals(until, null))
+            if (!java.util.Objects.equals(untilParam, null))
+            {
+                // since is undefined but until is defined
+                startTime = (untilParam - sevenDays);
+            } else
             {
                 // both since and until are undefined
                 startTime = (now - sevenDays);
                 until = now;
-            } else
-            {
-                // since is undefined but until is defined
-                startTime = Helpers.subtract(until, sevenDays);
             }
-        } else if (java.util.Objects.equals(until, null))
+        } else if (java.util.Objects.equals(untilParam, null))
         {
             // until is undefined but since is defined
-            Object delta = Helpers.subtract(now, startTime);
-            if (Helpers.isGreaterThan(delta, sevenDays))
+            Long sinceInt = this.parseToInt(since);
+            Long delta = (now - sinceInt);
+            if ((delta != null && (sevenDays == null || delta > sevenDays)))
             {
-                until = Helpers.add(startTime, sevenDays);
+                until = (sinceInt + sevenDays);
             } else
             {
                 until = now;
@@ -2357,7 +2369,7 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> market = this.market(symbol);
             String wallet = "W001";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "setLeverage", "wallet", wallet);
+            Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "setLeverage", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2397,7 +2409,7 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> market = this.market(symbol);
             String wallet = "W001";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchLeverage", "wallet", wallet);
+            Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchLeverage", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2456,7 +2468,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String contractType = "FUTURE";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "contractType", contractType);
+            Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "contractType", contractType);
             String contractTypeOption = contractTypeOptionparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeOptionparamsContractTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2513,7 +2525,7 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> market = this.market(symbol);
             String contractType = "FUTURE";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "contractType", contractType);
+            Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "contractType", contractType);
             String contractTypeOption = contractTypeOptionparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeOptionparamsContractTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2522,7 +2534,7 @@ public class Bydfi extends BydfiApi
             }};
             Map<String, Object> response = (this.privateGetV1FapiTradePositions(this.extend(request, paramsContractType))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), new HashMap<String, Object>() {{}});
+            return this.parsePositions(data, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -2607,6 +2619,12 @@ public class Bydfi extends BydfiApi
             contracts = Precise.stringDiv(contracts, contractSize);
         }
         Long timestamp = this.safeInteger(position, "createTime");
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        String positionMargin = this.safeString(position, "positionMargin");
+        if ((!java.util.Objects.equals(positionMargin, null)) && !Precise.stringGt(positionMargin, "0"))
+        {
+            positionMargin = null;
+        }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", position);
         mapLiteral4.put("id", this.safeString(position, "id"));
@@ -2615,6 +2633,7 @@ public class Bydfi extends BydfiApi
         mapLiteral4.put("markPrice", this.parseNumber(this.safeString(position, "markPrice")));
         mapLiteral4.put("lastPrice", this.parseNumber(this.safeString(position, "avgClosePositionPrice")));
         mapLiteral4.put("notional", this.parseNumber(this.safeString(position, "closePositionCost")));
+        mapLiteral4.put("positionMargin", this.parseNumber(positionMargin));
         mapLiteral4.put("collateral", null);
         mapLiteral4.put("unrealizedPnl", this.parseNumber(this.safeString(position, "unPnl")));
         mapLiteral4.put("realizedPnl", this.parseNumber(this.safeString(position, "positionProfits")));
@@ -2671,14 +2690,14 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> market = this.market(symbol);
             String contractType = "FUTURE";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositionHistory", "contractType", contractType);
+            Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositionHistory", "contractType", contractType);
             String contractTypeOption = contractTypeOptionparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeOptionparamsContractTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "contractType", contractTypeOption );
             }};
-            Object paramsSinceAndUntil = this.handleSinceAndUntil("fetchPositionsHistory", since, paramsContractType);
+            Map<String, Object> paramsSinceAndUntil = (Map<String, Object>) this.handleSinceAndUntil("fetchPositionsHistory", since, paramsContractType);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -2717,13 +2736,13 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String contractType = "FUTURE";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositionsHistory", "contractType", contractType);
+            Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositionsHistory", "contractType", contractType);
             String contractTypeOption = contractTypeOptionparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeOptionparamsContractTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", contractTypeOption );
             }};
-            Object paramsSinceAndUntil = this.handleSinceAndUntil("fetchPositionsHistory", since, paramsContractType);
+            Map<String, Object> paramsSinceAndUntil = (Map<String, Object>) this.handleSinceAndUntil("fetchPositionsHistory", since, paramsContractType);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -2800,11 +2819,11 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> market = this.market(symbol);
             String contractType = "FUTURE";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchMarginMode", "contractType", contractType);
+            Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchMarginMode", "contractType", contractType);
             String contractTypeOption = contractTypeOptionparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeOptionparamsContractTypeVariable.second();
             String wallet = "W001";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "fetchMarginMode", "wallet", wallet);
+            Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "fetchMarginMode", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2873,11 +2892,11 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> market = this.market(symbol);
             String contractType = "FUTURE";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "setMarginMode", "contractType", contractType);
+            Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "setMarginMode", "contractType", contractType);
             String contractTypeOption = contractTypeOptionparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeOptionparamsContractTypeVariable.second();
             String wallet = "W001";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "setMarginMode", "wallet", wallet);
+            Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "setMarginMode", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
             Map<String, Object> request = new HashMap<String, Object>();
@@ -2922,15 +2941,15 @@ public class Bydfi extends BydfiApi
                 positionType = "HEDGE";
             }
             String wallet = "W001";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "setPositionMode", "wallet", wallet);
+            Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "setPositionMode", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
             String contractType = "FUTURE";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsWallet), "setPositionMode", "contractType", contractType);
+            Pair<String, Map<String, Object>> contractTypeOptionparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsWallet), "setPositionMode", "contractType", contractType);
             String contractTypeOption = contractTypeOptionparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeOptionparamsContractTypeVariable.second();
             String settleCoin = "USDT";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> settleCoinOptionparamsSettleCoinVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "setPositionMode", "settleCoin", settleCoin);
+            Pair<String, Map<String, Object>> settleCoinOptionparamsSettleCoinVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "setPositionMode", "settleCoin", settleCoin);
             String settleCoinOption = settleCoinOptionparamsSettleCoinVariable.first();
             Map<String, Object> paramsSettleCoin = settleCoinOptionparamsSettleCoinVariable.second();
             Map<String, Object> request = new HashMap<String, Object>();
@@ -2971,17 +2990,17 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositionMode", "wallet", "W001");
+            Pair<String, Map<String, Object>> walletparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositionMode", "wallet", "W001");
             String wallet = walletparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletparamsWalletVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> contractTypeparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsWallet), "fetchPositionMode", "contractType", "FUTURE");
+            Pair<String, Map<String, Object>> contractTypeparamsContractTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsWallet), "fetchPositionMode", "contractType", "FUTURE");
             String contractType = contractTypeparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeparamsContractTypeVariable.second();
             Object settleCoin = "USDT";
             Map<String, Object> query = paramsContractType;
             if (java.util.Objects.equals(symbol, null))
             {
-                io.github.ccxt.base.Pair<String, Map<String, Object>> settleCoinqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "fetchPositionMode", "settleCoin", Helpers.toStringArg(settleCoin));
+                Pair<String, Map<String, Object>> settleCoinqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "fetchPositionMode", "settleCoin", java.util.Objects.toString(settleCoin, null));
                 settleCoin = settleCoinqueryVariable.first();
                 query = settleCoinqueryVariable.second();
             } else
@@ -3042,10 +3061,10 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> walletparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchBalance", "wallet", (String) null);
+            Pair<String, Map<String, Object>> walletparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchBalance", "wallet", (String) null);
             String wallet = walletparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletparamsWalletVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -3118,7 +3137,7 @@ public class Bydfi extends BydfiApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String symbol = this.safeString(balance, "asset");
@@ -3136,7 +3155,7 @@ public class Bydfi extends BydfiApi
 
     /**
      * @method
-     * @name budfi#transfer
+     * @name bydfi#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://developers.bydfi.com/en/account#asset-transfer-between-accounts
      * @param {string} code unified currency code
@@ -3173,15 +3192,15 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object transfer = this.parseTransfer(response, currency);
+            Map<String, Object> transfer = (Map<String, Object>) this.parseTransfer(response, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
-                ((Map<String, Object>)transfer).put("currency", code);
-                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
-                ((Map<String, Object>)transfer).put("toAccount", toAccount);
-                ((Map<String, Object>)transfer).put("amount", amount);
+                transfer.put("currency", code);
+                transfer.put("fromAccount", fromAccount);
+                transfer.put("toAccount", toAccount);
+                transfer.put("amount", amount);
             }
             return transfer;
         }).thenApply(TransferEntry::new);
@@ -3215,7 +3234,7 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
                 Long maxLimit = 50L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
@@ -3333,7 +3352,8 @@ public class Bydfi extends BydfiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("deposit", (String) (code), since, limit, parameters)).join();
+            Object transactions = (this.fetchTransactionsHelper("deposit", code, since, limit, parameters)).join();
+            return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3354,12 +3374,13 @@ public class Bydfi extends BydfiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("withdrawal", (String) (code), since, limit, parameters)).join();
+            Object transactions = (this.fetchTransactionsHelper("withdrawal", code, since, limit, parameters)).join();
+            return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(Object type, String code, Long since, Long limit, Object parameters)
+    public CompletableFuture<Object> fetchTransactionsHelper(Object type, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3379,7 +3400,7 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
                 Long maxLimit = 50L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
@@ -3391,33 +3412,33 @@ public class Bydfi extends BydfiApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", currency.get("id") );
             }};
-            Object until = null;
-            Object paramsUntil = null;
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime", (Long) null);
-            until = ((List<Object>) untilparamsUntilVariable).get(0);
-            paramsUntil = ((List<Object>) untilparamsUntilVariable).get(1);
+            List<Object> untilParamparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime", (Long) null);
+            Long untilParam = (Long) ((List<Object>) untilParamparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilParamparamsUntilVariable).get(1);
             Long now = this.milliseconds();
             Long sevenDays = ((((7L * 24L) * 60L) * 60L) * 1000L); // the maximum range is 7 days
             Object startTime = since;
-            if (java.util.Objects.equals(startTime, null))
+            Object until = untilParam;
+            if (java.util.Objects.equals(since, null))
             {
-                if (java.util.Objects.equals(until, null))
+                if (!java.util.Objects.equals(untilParam, null))
+                {
+                    // since is undefined but until is defined
+                    startTime = (untilParam - sevenDays);
+                } else
                 {
                     // both since and until are undefined
                     startTime = (now - sevenDays);
                     until = now;
-                } else
-                {
-                    // since is undefined but until is defined
-                    startTime = Helpers.subtract(until, sevenDays);
                 }
-            } else if (java.util.Objects.equals(until, null))
+            } else if (java.util.Objects.equals(untilParam, null))
             {
                 // until is undefined but since is defined
-                Object delta = Helpers.subtract(now, startTime);
-                if (Helpers.isGreaterThan(delta, sevenDays))
+                Long sinceInt = this.parseToInt(since);
+                Long delta = (now - sinceInt);
+                if ((delta != null && (sevenDays == null || delta > sevenDays)))
                 {
-                    until = Helpers.add(startTime, sevenDays);
+                    until = (sinceInt + sevenDays);
                 } else
                 {
                     until = now;
@@ -3495,10 +3516,12 @@ public class Bydfi extends BydfiApi
         Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", null
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", feeCost);
+                hx4NewMap1.put("currency", null);
+                fee = hx4NewMap1;
+            }
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
@@ -3536,9 +3559,10 @@ public class Bydfi extends BydfiApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3557,7 +3581,7 @@ public class Bydfi extends BydfiApi
         }
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());
@@ -3584,8 +3608,8 @@ public class Bydfi extends BydfiApi
             }
         }
         url = (url + endpoint);
-        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

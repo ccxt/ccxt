@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetExchangesPairTicker(params?: {}): Promise<Dict>;
     publicGetExchangesPairOrderbook(params?: {}): Promise<Dict>;
     publicGetExchangesPairOrderbookTop(params?: {}): Promise<Dict>;
@@ -27,7 +27,5 @@ interface Exchange {
     privateGetOrderAccountHistory(params?: {}): Promise<List>;
     privateGetOrderOrderHistory(params?: {}): Promise<List>;
     privateGetOrderHistoryByOrderId(params?: {}): Promise<List>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

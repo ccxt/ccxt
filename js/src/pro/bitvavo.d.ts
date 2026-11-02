@@ -172,14 +172,14 @@ export default class bitvavo extends bitvavoRest {
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
     handleOrderBook(client: Client, message: Dict): void;
     watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleOrderBookSnapshot(client: Client, message: Dict): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
     handleOrderBookSubscriptions(client: Client, message: Dict, marketIds: any[]): void;
-    unWatchChannels(topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params?: {}): Promise<any>;
+    unWatchChannels(topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params?: Dict): Promise<any>;
     handleUnsubscriptionStatus(client: Client, message: Dict): Dict;
     /**
      * @method
@@ -321,11 +321,11 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdrawWs(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     handleWithdraw(client: Client, message: Dict): void;
     /**
      * @method

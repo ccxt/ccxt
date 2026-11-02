@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import hitbtc from './hitbtc.js';
+import hitbtc from '../abstract/pro/bequant.js';
 import bequantRest from '../bequant.js';
 // ---------------------------------------------------------------------------
 export default class bequant extends hitbtc {

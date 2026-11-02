@@ -278,12 +278,10 @@ export default class hollaex extends Exchange {
             },
             'options': {
                 // how many seconds before the authenticated request expires
-                'api-expires': this.parseToInt (this.timeout / 1000),
+                'api-expires': this.parseToInt (this.parseToInt (this.timeout) / 1000),
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
@@ -952,17 +950,15 @@ export default class hollaex extends Exchange {
         if (paginateOption) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
-        let until = this.safeInteger (paramsPaginate, 'until');
-        const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
-        let start = since;
         const now = this.milliseconds ();
-        if (until === undefined) {
-            until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        const until = this.safeInteger (paramsPaginate, 'until', now);
+        const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
+        if (since === undefined) {
+            request['from'] = this.parseToInt ((until - timeDelta) / 1000); // convert to seconds
+        } else {
+            request['from'] = this.parseToInt (since / 1000); // convert to seconds
         }
-        if (start === undefined) {
-            start = until - timeDelta;
-        }
-        request['from'] = this.parseToInt (start / 1000); // convert to seconds
         request['to'] = this.parseToInt (until / 1000); // convert to seconds
         const paramsOmitted: Dict = this.omit (paramsPaginate, 'until');
         const response = await this.publicGetChart (this.extend (request, paramsOmitted));
@@ -1257,7 +1253,7 @@ export default class hollaex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'new': 'open',
             'pfilled': 'open',
@@ -1552,11 +1548,11 @@ export default class hollaex extends Exchange {
         this.checkAddress (address);
         const currencyId = this.safeString (depositAddress, 'currency');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
-        const network = this.safeString (depositAddress, 'network');
+        const networkId = this.safeString (depositAddress, 'network');
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': network,
+            'network': this.networkIdToCode (networkId, currencyResolved['code']),
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -1628,7 +1624,7 @@ export default class hollaex extends Exchange {
         if (network === undefined) {
             addresses = wallet;
         } else {
-            addresses = this.filterBy (wallet, 'network', network);
+            addresses = this.filterBy (wallet, 'network', this.networkCodeToId (network));
         }
         return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
@@ -1863,10 +1859,11 @@ export default class hollaex extends Exchange {
         }
         const currencyId = this.safeString (transaction, 'currency');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
-        let status = this.safeValue (transaction, 'status');
+        const completed = this.safeBool (transaction, 'status');
         const dismissed = this.safeBool (transaction, 'dismissed');
         const rejected = this.safeBool (transaction, 'rejected');
-        if (status === true) {
+        let status: Str = undefined;
+        if (completed === true) {
             status = 'ok';
         } else if (dismissed === true) {
             status = 'canceled';
@@ -1917,13 +1914,13 @@ export default class hollaex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1957,7 +1954,7 @@ export default class hollaex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //    "bch":{
         //        "id":4,
@@ -2078,7 +2075,7 @@ export default class hollaex extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const query = this.omit (params, this.extractParams (path));
         let requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
@@ -2093,9 +2090,10 @@ export default class hollaex extends Exchange {
         const url = apiUrl + requestPath;
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (api === 'private') {
+        if (api[0] === 'private') {
             this.checkRequiredCredentials ();
-            const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseToInt (this.timeout / 1000));
+            const timeoutMs = this.parseToInt (this.timeout);
+            const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseToInt (timeoutMs / 1000));
             const expires = this.sum (this.seconds (), defaultExpires);
             const expiresString = expires.toString ();
             let auth = method + requestPath + expiresString;
@@ -2113,8 +2111,8 @@ export default class hollaex extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             requestHeaders['api-signature'] = signature;
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
@@ -2123,7 +2121,8 @@ export default class hollaex extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if ((code >= 400) && (code <= 503)) {
+        const statusCode = this.parseToInt (code);
+        if ((statusCode >= 400) && (statusCode <= 503)) {
             //
             //  { "message": "Invalid token" }
             //

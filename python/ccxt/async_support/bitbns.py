@@ -554,7 +554,7 @@ class bitbns(Exchange, ImplicitAPI):
         # note that "Money" stands for INR - the only fiat in bitbns
         return self.parse_balance(response)
 
-    def parse_status(self, status: Str):
+    def parse_status(self, status: Str) -> Str:
         statuses = {
             '-1': 'cancelled',
             '0': 'open',
@@ -1085,7 +1085,7 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status: Str, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Str, type: Str = None) -> Str:
         statusesByType = {
             'deposit': {
                 '0': 'pending',
@@ -1207,17 +1207,18 @@ class bitbns(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='www', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['www'], method: str = 'GET', params: dict = {}) -> dict:
         urls = self.urls
-        if not (api in urls['api']):
-            raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
-        if api != 'www':
+        apiName = api[0]
+        if not (apiName in urls['api']):
+            raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
+        if apiName != 'www':
             self.check_required_credentials()
         apiKeyHeaders = {
             'X-BITBNS-APIKEY': self.apiKey,
         }
-        requestHeaders = apiKeyHeaders if (api != 'www') else headers
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        requestHeaders = apiKeyHeaders if (apiName != 'www') else None
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = self.implode_hostname(baseApiUrl)
@@ -1228,7 +1229,7 @@ class bitbns(Exchange, ImplicitAPI):
         postBody = '{}'
         if queryLength > 0:
             postBody = self.json(query)
-        requestBody = postBody if (method == 'POST') else body
+        requestBody = postBody if (method == 'POST') else None
         if method == 'GET':
             if queryLength > 0:
                 url += '?' + self.urlencode(query)

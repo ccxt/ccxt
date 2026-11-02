@@ -35,7 +35,7 @@ export default class delta extends Exchange {
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
     loadMarkets(reload?: boolean, params?: Dict): Promise<import("./base/types.js").Dictionary<Market>>;
-    indexByStringifiedNumericId(input: NullableDict): Dict | undefined;
+    indexByStringifiedNumericId(input: NullableDict): NullableDict;
     /**
      * @method
      * @name delta#fetchMarkets
@@ -319,7 +319,7 @@ export default class delta extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name delta#fetchLeverage
@@ -422,6 +422,6 @@ export default class delta extends Exchange {
      */
     fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

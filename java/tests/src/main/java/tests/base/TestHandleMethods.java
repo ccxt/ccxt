@@ -3,8 +3,8 @@ import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.types.Pair;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -18,7 +18,7 @@ public class TestHandleMethods extends BaseTest
             var exchange = new Exchange(new HashMap<String, Object>() {{
                 put( "id", "sampleexchange" );
                 put( "options", new HashMap<String, Object>() {{
-                    put( "defaultType", "valueFromOptions" );
+                    put( "defaultType", "option" );
                     put( "fetchX", new HashMap<String, Object>() {{
                         put( "defaultType", "valueFromMethodOptions" );
                     }} );
@@ -34,7 +34,7 @@ public class TestHandleMethods extends BaseTest
             //
             // case #1, should prevail: param
             //
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketType1params1Variable = exchange.handleMarketTypeAndParams("fetchX", Helpers.toMapArg(market), initialParams, "valueDefault");
+            Pair<String, Map<String, Object>> marketType1params1Variable = exchange.handleMarketTypeAndParams("fetchX", Helpers.toMapArg(market), initialParams, "valueDefault");
             String marketType1 = marketType1params1Variable.first();
             Map<String, Object> params1 = marketType1params1Variable.second();
             Assert(initialParams.containsKey("defaultType"));
@@ -43,63 +43,41 @@ public class TestHandleMethods extends BaseTest
             //
             // case #2, should prevail: market.type
             //
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketType2params2Variable = exchange.handleMarketTypeAndParams("fetchX", Helpers.toMapArg(market), new HashMap<String, Object>() {{}}, "valueDefault");
+            Pair<String, Map<String, Object>> marketType2params2Variable = exchange.handleMarketTypeAndParams("fetchX", Helpers.toMapArg(market), new HashMap<String, Object>() {{}}, "valueDefault");
             String marketType2 = marketType2params2Variable.first();
             Map<String, Object> params2 = marketType2params2Variable.second();
             Assert(java.util.Objects.equals(marketType2, "spot"));
             //
             // case #3, should prevail: valueDefault
             //
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketType3params3Variable = exchange.handleMarketTypeAndParams("fetchX", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, "valueDefault");
+            Pair<String, Map<String, Object>> marketType3params3Variable = exchange.handleMarketTypeAndParams("fetchX", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, "valueDefault");
             String marketType3 = marketType3params3Variable.first();
             Map<String, Object> params3 = marketType3params3Variable.second();
             Assert(java.util.Objects.equals(marketType3, "valueDefault"));
             //
             // case #4, should prevail: method options
             //
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketType4params4Variable = exchange.handleMarketTypeAndParams("fetchX", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (String) null);
+            Pair<String, Map<String, Object>> marketType4params4Variable = exchange.handleMarketTypeAndParams("fetchX", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (String) null);
             String marketType4 = marketType4params4Variable.first();
             Map<String, Object> params4 = marketType4params4Variable.second();
             Assert(java.util.Objects.equals(marketType4, "valueFromMethodOptions"));
             //
             // case #5, should prevail: options
             //
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketType5params5Variable = exchange.handleMarketTypeAndParams("fetchY", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (String) null);
+            Pair<String, Map<String, Object>> marketType5params5Variable = exchange.handleMarketTypeAndParams("fetchY", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (String) null);
             String marketType5 = marketType5params5Variable.first();
             Map<String, Object> params5 = marketType5params5Variable.second();
-            Assert(java.util.Objects.equals(marketType5, "valueFromOptions"));
+            Assert(java.util.Objects.equals(marketType5, "option"));
             //
             // case #6, should prevail: spot (because hardcoded in base)
             //
             Helpers.addElementToObject(exchange.options, "defaultType", null);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketType6params6Variable = exchange.handleMarketTypeAndParams("fetchY", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (String) null);
+            Pair<String, Map<String, Object>> marketType6params6Variable = exchange.handleMarketTypeAndParams("fetchY", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (String) null);
             String marketType6 = marketType6params6Variable.first();
             Map<String, Object> params6 = marketType6params6Variable.second();
             Assert(java.util.Objects.equals(marketType6, "spot"));
             // fake Assertion to avoid unused vars
             Assert(!java.util.Objects.equals(params1, null) || !java.util.Objects.equals(params2, null) || !java.util.Objects.equals(params3, null) || !java.util.Objects.equals(params4, null) || !java.util.Objects.equals(params5, null) || !java.util.Objects.equals(params6, null));
-        }
-        public void helperTestHandleNetworkRequest()
-        {
-            var exchange = new Exchange(new HashMap<String, Object>() {{
-                put( "id", "sampleexchange" );
-                put( "options", new HashMap<String, Object>() {{
-                    put( "networks", new HashMap<String, Object>() {{
-                        put( "XYZ", "Xyz" );
-                    }} );
-                }} );
-            }});
-            exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
-            String currencyCode = "ETH"; // todo: in future with complex cases
-            // no-case
-            var request1params1Variable = exchange.handleRequestNetwork(new HashMap<String, Object>() {{
-            put( "network", "XYZ" );
-        }}, new HashMap<String, Object>() {{}}, "chain_id", currencyCode, false);
-            var request1 = ((List<Object>) request1params1Variable).get(0);
-            var params1 = ((List<Object>) request1params1Variable).get(1);
-            Assert(!(((Map<?, ?>)params1).containsKey("network")));
-            Assert(((Map<?, ?>)request1).containsKey("chain_id"));
-            Assert(java.util.Objects.equals(((Map<String, Object>)request1).get("chain_id"), "Xyz"));
         }
         public void helperTestHandleTypedOptions()
         {
@@ -109,35 +87,57 @@ public class TestHandleMethods extends BaseTest
                     put( "marginMode", "isolated" );
                     put( "fetchX", new HashMap<String, Object>() {{
                         put( "uta", true );
+                        put( "boolString", "false" );
+                        put( "boolNumber", 1 );
                     }} );
                 }} );
             }});
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparams1Variable = exchange.handleMarginModeAndParams("fetchX", new HashMap<String, Object>() {{}}, "cross");
+            Pair<String, Map<String, Object>> marginModeparams1Variable = exchange.handleMarginModeAndParams("fetchX", new HashMap<String, Object>() {{}}, "cross");
             String marginMode = marginModeparams1Variable.first();
             Map<String, Object> params1 = marginModeparams1Variable.second();
             Assert(java.util.Objects.equals(marginMode, "isolated"));
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparams2Variable = exchange.handleOptionBoolAndParams(new HashMap<String, Object>() {{}}, "fetchX", "uta", false);
+            Pair<Boolean, Map<String, Object>> utaparams2Variable = exchange.handleOptionBoolAndParams(new HashMap<String, Object>() {{}}, "fetchX", "uta", false);
             Boolean uta = utaparams2Variable.first();
             Map<String, Object> params2 = utaparams2Variable.second();
-            Assert(java.util.Objects.equals(uta, true));
-            io.github.ccxt.base.Pair<String, Map<String, Object>> absentparams3Variable = exchange.handleOptionStringAndParams(new HashMap<String, Object>() {{}}, "fetchX", "absentKey", "fallback");
+            Assert(uta);
+            Pair<String, Map<String, Object>> absentparams3Variable = exchange.handleOptionStringAndParams(new HashMap<String, Object>() {{}}, "fetchX", "absentKey", "fallback");
             String absent = absentparams3Variable.first();
             Map<String, Object> params3 = absentparams3Variable.second();
             Assert(java.util.Objects.equals(absent, "fallback"));
-            io.github.ccxt.base.Pair<String, Map<String, Object>> fromParamsparams4Variable = exchange.handleOptionStringAndParams(new HashMap<String, Object>() {{
+            Pair<String, Map<String, Object>> fromParamsparams4Variable = exchange.handleOptionStringAndParams(new HashMap<String, Object>() {{
             put( "absentKey", "p" );
         }}, "fetchX", "absentKey", "fallback");
             String fromParams = fromParamsparams4Variable.first();
             Map<String, Object> params4 = fromParamsparams4Variable.second();
             Assert(java.util.Objects.equals(fromParams, "p"));
             Assert(!(((Map<?, ?>)params4).containsKey("absentKey")));
-            // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+            // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
+            Pair<Boolean, Map<String, Object>> boolStringparams5Variable = exchange.handleOptionBoolAndParams(new HashMap<String, Object>() {{}}, "fetchX", "boolString", true);
+            Boolean boolString = boolStringparams5Variable.first();
+            Map<String, Object> params5 = boolStringparams5Variable.second();
+            Assert(java.util.Objects.equals(boolString, false));
+            Pair<Boolean, Map<String, Object>> boolNumberparams6Variable = exchange.handleOptionBoolAndParams(new HashMap<String, Object>() {{
+            put( "boolNumber", 1 );
+        }}, "fetchX", "boolNumber", false);
+            Boolean boolNumber = boolNumberparams6Variable.first();
+            Map<String, Object> params6 = boolNumberparams6Variable.second();
+            Assert(java.util.Objects.equals(boolNumber, true));
+            Assert(!(((Map<?, ?>)params6).containsKey("boolNumber")));
+            Boolean caught = false;
+            try
+            {
+                exchange.checkOptionBool("fetchX", "wrongBool", "yes");
+            } catch(Exception error)
+            {
+                caught = true;
+            }
+            Assert(caught, "a non-boolean option should have thrown");
+            Assert(!java.util.Objects.equals(params5, null));
             Assert(!java.util.Objects.equals(params1, null) || !java.util.Objects.equals(params2, null) || !java.util.Objects.equals(params3, null));
         }
         public void testHandleMethods()
         {
             helperTestHandleMarketTypeAndParams();
-            helperTestHandleNetworkRequest();
             helperTestHandleTypedOptions();
         }
 }

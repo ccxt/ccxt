@@ -216,7 +216,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String messageHash = ("orderbook:" + symbol);
         if (java.util.Objects.equals(nonce, null))
         {
-            Object cacheLength = Helpers.getArrayLength(((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache"))));
+            Object cacheLength = (switch ((Object)(((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache"))))) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 6);
@@ -271,16 +271,16 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return -1;
         }
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
         {
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(deltas, i, (Object) null);
             Long deltaNonce = this.safeInteger(delta, "microtimestamp");
-            if ((deltaNonce != null && nonce != null && deltaNonce == nonce))
+            if (java.util.Objects.equals(deltaNonce, nonce))
             {
                 return (((long) i) + 1L);
             }
         }
-        return Helpers.getArrayLength(deltas);
+        return (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
     }
 
     /**
@@ -736,10 +736,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", marketResolved.get("quote")
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", marketResolved.get("quote"));
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("info", trade);
@@ -804,7 +806,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> market = this.market(symbol);
-        Helpers.addElementToObject(order, "event", this.safeString(message, "event"));
+        order.put("event", this.safeString(message, "event"));
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
         stored.append(parsed);
         client.resolve(this.orders, channel);
@@ -925,7 +927,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 3);
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        {
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+        }
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        orderbook.put("nonce", null);
+        orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
     }
 
     public void handleSubscriptionStatus(Client client, Map<String, Object> message)

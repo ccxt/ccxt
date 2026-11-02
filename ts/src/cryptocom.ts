@@ -802,8 +802,8 @@ export default class cryptocom extends Exchange {
             const strike = this.safeString (market, 'strike');
             const marginBuyEnabled = this.safeBool (market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeBool (market, 'margin_sell_enabled');
-            const expiryString = this.omitZero (this.safeString (market, 'expiry_timestamp_ms'));
-            const expiry = (expiryString !== undefined) ? parseInt (expiryString) : undefined;
+            const expiryRaw = this.safeInteger (market, 'expiry_timestamp_ms');
+            const expiry = (expiryRaw === 0) ? undefined : expiryRaw;
             let symbol = base + '/' + quote;
             let type: Str = undefined;
             let contract: Bool = undefined;
@@ -1143,8 +1143,9 @@ export default class cryptocom extends Exchange {
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (since !== undefined) {
             request['start_ts'] = since - duration * 1000;
-            if (limitResolved !== undefined) {
-                request['end_ts'] = this.sum (since, duration * limitResolved * 1000);
+            if (limit !== undefined) {
+                const countLimit: int = this.parseToInt (Math.min (limit, 300));
+                request['end_ts'] = this.sum (since, duration * countLimit * 1000);
             } else {
                 request['end_ts'] = until;
             }
@@ -1228,7 +1229,7 @@ export default class cryptocom extends Exchange {
     override parseBalance (response: any): Balances {
         const responseResult = this.safeDict (response, 'result', {});
         const data: Dict[] = this.safeList (responseResult, 'data', []);
-        const positionBalances: Dict[] = this.safeList (data[0], 'position_balances', []);
+        const positionBalances: Dict[] = this.safeList (this.safeDict (data, 0), 'position_balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = this.safeDict (positionBalances, i);
@@ -1401,7 +1402,7 @@ export default class cryptocom extends Exchange {
             }
         }
         const postOnly = this.safeBool (paramsValue, 'postOnly', false);
-        if ((postOnly === true) || (timeInForce === 'PO')) {
+        if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = [ 'POST_ONLY' ];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1621,7 +1622,7 @@ export default class cryptocom extends Exchange {
             }
         }
         const postOnly = this.safeBool (params, 'postOnly', false);
-        if ((postOnly === true) || (timeInForce === 'PO')) {
+        if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = [ 'POST_ONLY' ];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -2021,18 +2022,13 @@ export default class cryptocom extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseAddress (addressString: any) {
-        let address: Str = undefined;
-        let tag: Str = undefined;
-        let rawTag: Str = undefined;
-        if (addressString.indexOf ('?') > 0) {
-            [ address, rawTag ] = addressString.split ('?');
-            const splitted = (rawTag as string).split ('=');
-            tag = splitted[1];
-        } else {
-            address = addressString;
+    parseAddress (addressString: Str): [Str, Str] {
+        if (addressString !== undefined && addressString.indexOf ('?') > 0) {
+            const [ address, rawTag ] = addressString.split ('?');
+            const splitted = rawTag.split ('=');
+            return [ address, splitted[1] ];
         }
-        return [ address, tag ];
+        return [ addressString, undefined ];
     }
 
     /**
@@ -2043,12 +2039,13 @@ export default class cryptocom extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2163,15 +2160,18 @@ export default class cryptocom extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
-        const network = this.safeStringUpper (params, 'network');
+        const networkParam = this.safeStringUpper (params, 'network');
         const paramsOmitted: Dict = this.omit (params, [ 'network' ]);
         const depositAddressesRaw = await this.fetchDepositAddressesByNetwork (code, paramsOmitted);
         const depositAddresses: Dict = depositAddressesRaw;
-        if ((network as string) in depositAddresses) {
-            return depositAddresses[(network as string)];
+        if (networkParam !== undefined) {
+            const network = this.safeString (this.networkAliases, networkParam, networkParam);
+            if (network in depositAddresses) {
+                return this.safeDict (depositAddresses, network) as DepositAddress;
+            }
         }
         const keys = Object.keys (depositAddresses);
-        return depositAddresses[keys[0]];
+        return this.safeDict (depositAddresses, this.safeString (keys, 0)) as DepositAddress;
     }
 
     /**
@@ -2442,7 +2442,7 @@ export default class cryptocom extends Exchange {
         ];
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
@@ -2453,7 +2453,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GOOD_TILL_CANCEL': 'GTC',
             'IMMEDIATE_OR_CANCEL': 'IOC',
@@ -2691,14 +2691,14 @@ export default class cryptocom extends Exchange {
                 throw new NotSupported (this.id + ' only cross margin is supported');
             }
         } else {
-            if ((defaultType === 'margin') || (isMargin === true)) {
+            if ((defaultType === 'margin') || (isMargin)) {
                 marginMode = 'cross';
             }
         }
         return [ marginMode, paramsMarginMode ];
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //    {
         //        "full_name": "Alchemix",
@@ -3151,7 +3151,7 @@ export default class cryptocom extends Exchange {
         const timestamp = this.safeInteger (contract, 't');
         let fundingTimestamp: Int = undefined;
         if (timestamp !== undefined) {
-            fundingTimestamp = Math.ceil (timestamp / 3600000) * 3600000; // end of the next hour
+            fundingTimestamp = this.parseToInt (Math.ceil (timestamp / 3600000)) * 3600000; // end of the next hour
         }
         return {
             'info': contract,
@@ -3418,13 +3418,14 @@ export default class cryptocom extends Exchange {
 
     paramsToString (object: any, level: number): string {
         const maxLevel = 3;
-        if (level >= maxLevel) {
+        const depth: int = this.parseToInt (level);
+        if (depth >= maxLevel) {
             return object.toString ();
         }
         if (typeof object === 'string') {
             return object;
         }
-        let returnString = '';
+        let returnString: string = '';
         let paramsKeys: Strings = undefined;
         if (Array.isArray (object)) {
             paramsKeys = object;
@@ -3451,7 +3452,7 @@ export default class cryptocom extends Exchange {
 
     /**
      * @method
-     * @name cryptocom#closePositions
+     * @name cryptocom#closePosition
      * @description closes open positions for a market
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
@@ -3623,9 +3624,9 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         const apiUrl = this.safeString (this.urls['api'], type);

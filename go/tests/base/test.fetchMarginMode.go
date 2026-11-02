@@ -19,7 +19,10 @@ func testFetchMarginModeBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreE
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	marginMode := r.Value
+	var marginMode any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		marginMode = ccxt.StructBox(r.Value, ccxt.MarginModeToMap)
+	}
 	TestMarginMode(exchange, skippedProperties, method, marginMode)
 
 	ch <- ccxt.AsyncResult[any]{Value: true}

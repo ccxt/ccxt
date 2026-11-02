@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -93,15 +94,15 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public Long requestId()
     {
-        Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
-        return Helpers.toLongOrNull(requestId);
+        return requestId;
     }
 
     /**
      * @method
      * @name deribit#watchBalance
-     * @see https://docs.deribit.com/#user-portfolio-currency
+     * @see https://docs.deribit.com/subscriptions/user/userportfoliocurrency
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -197,7 +198,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     /**
      * @method
      * @name deribit#watchTicker
-     * @see https://docs.deribit.com/#ticker-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @description watches a price ticker, a statistical calculation with the information for a specific market.
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -242,7 +243,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     /**
      * @method
      * @name deribit#watchTickers
-     * @see https://docs.deribit.com/#ticker-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -345,7 +346,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     /**
      * @method
      * @name deribit#watchBidsAsks
-     * @see https://docs.deribit.com/#quote-instrument_name
+     * @see https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
      * @description watches best bid & ask for symbols
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -414,8 +415,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Object ticker = this.parseWsBidAsk((Map<String, Object>) (data), (Map<String, Object>) null);
-        Object symbol = ((Map<String, Object>)ticker).get("symbol");
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (data), (Map<String, Object>) null);
+        Object symbol = ticker.get("symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
         String messageHash = this.safeString(parameters, "channel");
         client.resolve(ticker, messageHash);
@@ -443,7 +444,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      * @method
      * @name deribit#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.deribit.com/#trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -466,7 +467,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      * @method
      * @name deribit#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://docs.deribit.com/#trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -478,7 +479,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
             var interval = ((List<Object>) intervalparamsIntervalVariable).get(0);
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             if (java.util.Objects.equals(interval, "raw"))
@@ -534,7 +535,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
@@ -543,14 +544,14 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         String messageHash = ((("trades|" + symbol) + "|") + interval);
-        client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
+        client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
     }
 
     /**
      * @method
      * @name deribit#watchMyTrades
      * @description get the list of trades associated with the user
-     * @see https://docs.deribit.com/#user-trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/user/usertradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for. Use 'any' to watch all trades
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -646,7 +647,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     /**
      * @method
      * @name deribit#watchOrderBook
-     * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -669,7 +670,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      * @method
      * @name deribit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -680,7 +681,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "interval", "100ms");
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "interval", "100ms");
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             if (java.util.Objects.equals(interval, "raw"))
@@ -688,13 +689,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
             // for more info on useDepthEndpoint, see comment in .options
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
+            Pair<Boolean, Map<String, Object>> useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
             Boolean useDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.first();
             Map<String, Object> paramsUseDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUseDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
+            Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUseDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
             String depth = depthparamsDepthVariable.first();
             Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> groupparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
+            Pair<String, Map<String, Object>> groupparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
             String group = groupparamsGroupVariable.first();
             Map<String, Object> paramsGroup = groupparamsGroupVariable.second();
             String descriptor = interval;
@@ -834,16 +835,16 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
     /**
      * @method
      * @name deribit#watchOrders
-     * @see https://docs.deribit.com/#user-orders-instrument_name-raw
+     * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameraw
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -932,7 +933,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
         Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
-        Object orders = new ArrayList<Object>(Arrays.asList());
+        List<Object> orders = new ArrayList<Object>(Arrays.asList());
         if ((data instanceof List))
         {
             orders = this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -944,7 +945,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            cachedOrders.append((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)));
+            cachedOrders.append((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)));
         }
         client.resolve(this.orders, channel);
     }
@@ -952,7 +953,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     /**
      * @method
      * @name deribit#watchOHLCV
-     * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -981,7 +982,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      * @method
      * @name deribit#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
@@ -1052,7 +1053,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe));
         Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         // data contains a single OHLCV candle
-        Object parsed = this.parseWsOHLCV(ohlcv, market);
+        List<Object> parsed = (List<Object>) this.parseWsOHLCV(ohlcv, market);
         stored.append(parsed);
         Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe), stored);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
@@ -1095,7 +1096,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 throw new ArgumentsRequired((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
             }
-            for (var i = 0; i < Helpers.getArrayLength(symbolsArray); i++)
+            for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
             {
                 if (java.util.Objects.equals(symbolsArray, null))
                 {
@@ -1127,7 +1128,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 put( "id", Deribit.this.requestId() );
             }};
             Map<String,Object> extendedRequest = this.deepExtend(request, parameters);
-            Long maxMessageByteLimit = (32768L - 1L); // 'Message Too Big: limit 32768B'
+            Integer maxMessageByteLimit = 32767; // 'Message Too Big: limit 32768B'
             String jsonedText = this.json(extendedRequest);
             if ((maxMessageByteLimit == null || jsonedText.length() >= maxMessageByteLimit))
             {

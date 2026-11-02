@@ -96,7 +96,8 @@ Set `"sandbox": true` on an account to trade fake money on the exchange testnet 
 - **Market data**: `search_markets` (resolve a symbol — there is no list-all-markets tool), `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`. Long-tail reads (funding rates, open interest, ledger, …) via `call_read_method`; raw exchange GET endpoints via `call_implicit_get`.
 - **Live data (WebSocket)**: `watch_subscribe` opens a background stream and returns a `subscriptionId` and a `streamKind`. **State** streams are snapshots — `watchTicker(s)`, `watchOrderBook(ForSymbols)`, `watchOHLCV`, `watchBalance`, `watchPositions`, `watchBidsAsks`, `watchMarkPrice(s)`: `watch_read` returns the **full current set** in `latest` (the server merges live updates, so a multi-symbol stream always shows every subscribed symbol, not just the one that last changed) — just read it whenever you need the current value (the live order book, all your positions, the recent candle window). **Event** streams are logs — `watchTrades` and the private `watchOrders`/`watchMyTrades`/`watch(My)Liquidations` (private need an account): `watch_read` returns new items oldest-first in `events` plus a `nextCursor` — thread it back as `cursor` on each poll so you don't re-receive old items. Pass `waitForChange: true` (optional `timeoutMs`) to **block until the next update** instead of polling — ideal for waiting on an order fill or position change; the response's `timedOut` says whether anything arrived. `watch_unsubscribe` when done; `watch_list` shows active streams. Prefer one-shot `get_*` tools for a single snapshot; use `watch_*` for live/continuous data.
 - **Private (read tier)**: `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`.
-- **Trading (trading tier)**: `create_order`, `edit_order`, `cancel_order`, `cancel_all_orders`, `set_leverage`, `set_margin_mode`, `call_write_method`.
+- **Best route across exchanges**: `fetch_route` (no account needed) — see below.
+- **Trading (trading tier)**: `create_order`, `edit_order`, `cancel_order`, `cancel_all_orders`, `set_leverage`, `set_margin_mode`, `call_write_method`, `execute_route`.
 - **Funds (funds tier)**: `withdraw`, `transfer`, `get_deposit_address`.
 
 Conventions to follow:
@@ -105,6 +106,16 @@ Conventions to follow:
 - `since` accepts a millisecond timestamp or an ISO8601 string; results carry both `timestamp` (ms) and `datetime` (ISO8601).
 - List results are capped to fit context; check `meta` (`count`/`returned`/`available`/`hasMore`/`truncated`) and page rather than assuming completeness.
 - **Prediction markets**: use `search_events` to find an event and its outcome handles, then pass an outcome handle (priced 0–1) as the symbol to the ordinary tools.
+
+## Best price / execution route (`fetch_route`, `execute_route`)
+
+For "where should I buy 1 BTC?" or "what's the best way to turn 5,000 USDT into ETH?", call `fetch_route` — don't compare `get_orderbook` / `get_tickers` across venues by hand. The [CCXT order router](https://docs.ccxt.com/router/) walks live L2 books on ~50 venues, accounts for fees and depth, can split across venues (`strategy: "split_optimal"` / `"split_capped"` + `maxVenues`) and bridge through USDT/USDC/BTC/ETH. Top-of-book is only right for tiny sizes; at any real size depth decides the answer.
+
+- Pass `from`, `to` (asset codes, not symbols) and **exactly one** of `amountIn` (exact spend) or `amountOut` (exact receive). Narrow with `exchanges` (e.g. only venues you have accounts on), `bridges`, `certified`.
+- **Read `fillRatio` before `effectiveRate`.** A better rate on a partial fill is not a better route; `fillRatio < 1` means the size isn't fully fillable at current depth (or set `requireFullFill`). `impactBps` / `referenceRate` show price impact versus top of book.
+- An unroutable pair returns `ok: true` with `unroutableReason` — it's an answer, not a failure. A `RATE_LIMITED` error carries `retryAfterSeconds` (the router allows 5 req/s per IP).
+- Use `get_orderbook` / `get_tickers` when you need one venue's book or price itself, not a conversion decision.
+- `fetch_route` is a quote, not an order. To act on it, pass its `routeId` to `execute_route` (trading tier). Each venue the route uses needs a trading-enabled account (matched automatically when there is one per exchange; otherwise pass `accounts`). Execution choices are yours: `strategy`, `slippageBps`, `allowMarketOrders`, `maxPlanAgeMs`, `dryRun`. Every order still goes through the account's caps, symbol lists and confirmation, and a route executes once. If it halts mid-route, the result's `unwind` is a suggestion only — nothing is reversed automatically.
 
 ## Trading safely
 

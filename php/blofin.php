@@ -92,7 +92,7 @@ class blofin extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => null,
+                'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
                 'fetchOrders' => false,
@@ -333,7 +333,12 @@ class blofin extends Exchange {
                         'untilDays' => 100000,
                         'symbolRequired' => false,
                     ),
-                    'fetchOrder' => null,
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
@@ -392,7 +397,9 @@ class blofin extends Exchange {
                     'linear' => array(
                         'extends' => 'forDerivatives',
                     ),
-                    'inverse' => null,
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
                 ),
                 'future' => array(
                     'linear' => null,
@@ -726,9 +733,7 @@ class blofin extends Exchange {
             'instId' => $market['id'],
         );
         $limitValue = ($limit === null) ? 50 : $limit;
-        if ($limitValue !== null) {
-            $request['size'] = $limitValue; // max 100
-        }
+        $request['size'] = $limitValue; // max 100
         $response = $this->publicGetMarketBooks($this->extend($request, $params));
         //
         //     {
@@ -784,7 +789,7 @@ class blofin extends Exchange {
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
         $spot = $this->safe_bool($marketResolved, 'spot', false);
-        $quoteVolume = ($spot === true) ? $this->safe_string($ticker, 'volCurrency24h') : null;
+        $quoteVolume = ($spot) ? $this->safe_string($ticker, 'volCurrency24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');
@@ -853,7 +858,7 @@ class blofin extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['id'],
+            'instId' => $market['id'],
         );
         $response = $this->publicGetMarketMarkPrice($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
@@ -1081,6 +1086,11 @@ class blofin extends Exchange {
             'bar' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limitResolved,
         );
+        if ($since !== null) {
+            $durationInMilliseconds = $this->parse_timeframe($timeframe) * 1000;
+            $request['before'] = max($since - 1, 0);
+            $request['after'] = $this->sum($since, $durationInMilliseconds * $limitResolved);
+        }
         $until = $this->safe_integer($query, 'until');
         if ($until !== null) {
             $request['after'] = $until;
@@ -1161,6 +1171,16 @@ class blofin extends Exchange {
         $marketId = $this->safe_string($contract, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
         $fundingTime = $this->safe_integer($contract, 'fundingTime');
+        $fundingInterval = $this->safe_string($contract, 'fundingInterval');
+        $intervalUnits = array(
+            'hour' => 'h',
+            'minute' => 'm',
+        );
+        $intervalUnit = $this->safe_string($intervalUnits, $this->safe_string($contract, 'fundingIntervalUnit'));
+        $intervalString = null;
+        if (($fundingInterval !== null) && ($intervalUnit !== null)) {
+            $intervalString = $fundingInterval . $intervalUnit;
+        }
         // > The current interest is 0.
         return array(
             'info' => $contract,
@@ -1180,7 +1200,7 @@ class blofin extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 
@@ -1225,7 +1245,7 @@ class blofin extends Exchange {
 
     public function parse_balance_by_type(array $response): array {
         $data = $this->safe_list($response, 'data');
-        if (($data !== null) && (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+        if ($data !== null) {
             return $this->parse_funding_balance($response);
         } else {
             return $this->parse_balance($response);
@@ -1384,7 +1404,7 @@ class blofin extends Exchange {
         $triggerPriceSlTp = $this->safe_string_2($query, 'stopLossPrice', 'takeProfitPrice');
         $timeInForce = $this->safe_string($query, 'timeInForce', 'GTC');
         $isHedged = $this->safe_bool($query, 'hedged', false);
-        if ($isHedged === true) {
+        if ($isHedged) {
             $request['positionSide'] = ($side === 'buy') ? 'long' : 'short';
         }
         $isMarketOrder = $type === 'market';
@@ -1437,7 +1457,7 @@ class blofin extends Exchange {
         return $this->extend($request, $query);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'canceled' => 'canceled',
             'order_failed' => 'canceled',
@@ -1639,7 +1659,7 @@ class blofin extends Exchange {
         $market = $this->market($symbol);
         $hedged = $this->safe_bool($params, 'hedged', false);
         $positionSide = 'net';
-        if ($hedged === true) {
+        if ($hedged) {
             $positionSide = ($side === 'buy') ? 'short' : 'long';
         }
         $request = array(
@@ -1724,20 +1744,20 @@ class blofin extends Exchange {
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         } else {
-            if (($isTrigger !== true) && ($isTpsl !== true)) {
+            if ((!$isTrigger) && (!$isTpsl)) {
                 $request['orderId'] = (string) $id;
-            } elseif ($isTpsl === true) {
+            } elseif ($isTpsl) {
                 $request['tpslId'] = (string) $id;
-            } elseif ($isTrigger === true) {
+            } elseif ($isTrigger) {
                 $request['algoId'] = (string) $id;
             }
         }
         $query = $this->omit($params, array( 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ));
-        if ($isTpsl === true) {
+        if ($isTpsl) {
             $tpslResponse = $this->cancel_orders(array( $id ), $symbol, $params);
             $first = $this->safe_dict($tpslResponse, 0);
             return $first;
-        } elseif ($isTrigger === true) {
+        } elseif ($isTrigger) {
             $triggerResponse = $this->privatePostTradeCancelAlgo($this->extend($request, $query));
             $triggerData = $this->safe_dict($triggerResponse, 'data');
             return $this->parse_order($triggerData, $market);
@@ -1767,8 +1787,8 @@ class blofin extends Exchange {
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
@@ -1777,6 +1797,52 @@ class blofin extends Exchange {
         $response = $this->privatePostTradeBatchOrders($ordersRequests);
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
+    }
+
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see https://docs.blofin.com/index.html#get-order-detail
+         * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id, used instead of the $id argument
+         * @param {boolean} [$params->tpsl] True if fetching a tpsl order
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
+        }
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+        );
+        $isTpsl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clientOrderId'] = $clientOrderId;
+        } elseif ($isTpsl === true) {
+            $request['tpslId'] = $id;
+        } else {
+            $request['orderId'] = $id;
+        }
+        $query = $this->omit($params, array( 'clientOrderId', 'tpsl', 'TPSL' ));
+        if ($isTpsl === true) {
+            $response = $this->privateGetTradeOrderTpslDetail($this->extend($request, $query));
+        } else {
+            $response = $this->privateGetTradeOrderDetail($this->extend($request, $query));
+        }
+        $data = $this->safe_dict($response, 'data');
+        if ($data === null) {
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find order ' . $id);
+        }
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1816,9 +1882,9 @@ class blofin extends Exchange {
         $isTpSl = $this->safe_bool_2($paramsPaginate, 'tpsl', 'TPSL', false);
         list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPaginate, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         $query = $this->omit($paramsMethod, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
-        if (($isTpSl === true) || ($method === 'privateGetTradeOrdersTpslPending')) {
+        if (($isTpSl) || ($method === 'privateGetTradeOrdersTpslPending')) {
             $response = $this->privateGetTradeOrdersTpslPending($this->extend($request, $query));
-        } elseif (($isTrigger === true) || ($method === 'privateGetTradeOrdersAlgoPending')) {
+        } elseif (($isTrigger) || ($method === 'privateGetTradeOrdersAlgoPending')) {
             $request['orderType'] = 'trigger';
             $response = $this->privateGetTradeOrdersAlgoPending($this->extend($request, $query));
         } else {
@@ -1857,6 +1923,9 @@ class blofin extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['begin'] = $since;
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $paramsPaginate);
         if ($limit !== null) {
@@ -1977,7 +2046,8 @@ class blofin extends Exchange {
 
     public function network_code_to_chain_id(string $networkCode, ?array $currency = null): ?string {
         $aliases = $this->safe_dict($this->options, 'networkCodeAliases', array());
-        $unifiedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        $aliasedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        $unifiedCode = $this->safe_string($this->networkAliases, $aliasedCode, $aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if ($currency !== null) {
@@ -2162,9 +2232,9 @@ class blofin extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $networkCode = null;
-        $query = null;
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        // same reads as handleNetworkCodeAndParams, kept as typed locals
+        $networkCode = $this->safe_string_2($params, 'networkCode', 'network');
+        $query = $this->omit($params, array( 'networkCode', 'network' ));
         $chain = $this->safe_string($query, 'chain');
         if ($chain === null) {
             if ($networkCode === null) {
@@ -2357,7 +2427,7 @@ class blofin extends Exchange {
         throw new ExchangeError($this->id . ' fetchWithdrawal() could not find withdrawal ' . $reference);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2366,8 +2436,8 @@ class blofin extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw, the withdrawal fee is not included and must be reserved on top
          * @param {string} $address the $address to withdraw to, or a UID / email / phone number for an internal transfer
-         * @param {string} $tag additional identifier (memo / payment id) required by certain networks
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->network] the unified network $code for on-$chain withdrawals, mapped to the exchange's $chain name
          * @param {string} [$params->dest] 'onchain' (default) or 'internal' for an internal transfer
          * @param {string} [$params->addrType] $address type, 1 => wallet $address, 2 => UID, 3 => email, 4 => mobile phone
@@ -2387,7 +2457,7 @@ class blofin extends Exchange {
         //   error table documents the message as "Parameter {} error"
         $tagValue = null;
         $query = null;
-        list($tagValue, $query) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagValue, $query) = $this->handle_param_string($params, 'tag');
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -2399,7 +2469,7 @@ class blofin extends Exchange {
         $request['dest'] = $dest;
         $query = $this->omit($query, 'dest');
         if ($dest === 'onchain') {
-            $this->check_address($address);
+            $this->check_address($address, $code, $tagValue);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
@@ -2578,7 +2648,7 @@ class blofin extends Exchange {
         );
     }
 
-    public function parse_transaction_withdrawal_status(?string $status) {
+    public function parse_transaction_withdrawal_status(?string $status): ?string {
         $statuses = array(
             '0' => 'pending',
             '2' => 'failed',
@@ -2590,7 +2660,7 @@ class blofin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_deposit_status(?string $status) {
+    public function parse_transaction_deposit_status(?string $status): ?string {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -2958,6 +3028,8 @@ class blofin extends Exchange {
         $notionalString = $this->safe_string($position, 'notionalUsd');
         if ($marketResolved['inverse'] === true) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
+        } elseif ($notionalString === null) {
+            $notionalString = Precise::string_mul(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
         $marginMode = $this->safe_string($position, 'marginMode');
@@ -2967,12 +3039,18 @@ class blofin extends Exchange {
         $leverageString = $this->safe_string($position, 'leverage');
         $initialMarginPercentage = null;
         $collateralString = null;
+        $marginString = null;
         if ($marginMode === 'cross') {
             $initialMarginString = $this->safe_string($position, 'initialMargin');
-            $collateralString = Precise::string_add($initialMarginString, $unrealizedPnlString);
+            $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($initialMarginString, $unrealizedPnlString) : $initialMarginString;
         } elseif ($marginMode === 'isolated') {
             $initialMarginPercentage = Precise::string_div('1', $leverageString);
-            $collateralString = $this->safe_string($position, 'margin');
+            $isolatedMarginString = $this->omit_zero($this->safe_string_2($position, 'margin', 'initialMargin'));
+            if ($isolatedMarginString !== null) {
+                $initialMarginString = $isolatedMarginString;
+                $marginString = $isolatedMarginString;
+                $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($isolatedMarginString, $unrealizedPnlString) : $isolatedMarginString;
+            }
         }
         $maintenanceMarginString = $this->safe_string($position, 'maintenanceMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -2984,8 +3062,20 @@ class blofin extends Exchange {
             $initialMarginString = Precise::string_mul($initialMarginPercentageString, $notionalString);
         }
         $rounder = '0.00005'; // round to closest 0.01%
-        $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4));
-        $liquidationPrice = $this->safe_number($position, 'liquidationPrice');
+        $maintenanceMarginPercentage = ($maintenanceMarginPercentageString !== null) ? $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4)) : null;
+        $liquidationPriceString = $this->omit_zero($this->safe_string($position, 'liquidationPrice'));
+        if (($liquidationPriceString === null) && ($marginMode === 'isolated') && ($initialMarginString !== null) && ($entryPriceString !== null) && ($contractsAbs !== null) && Precise::string_gt($contractsAbs, '0') && ($contractSizeString !== null) && ($maintenanceMarginPercentage !== null)) {
+            $takerFeeRate = $this->safe_string($marketResolved, 'taker', '0.0006');
+            $mmpWithFee = Precise::string_add($this->number_to_string($maintenanceMarginPercentage), $takerFeeRate);
+            $totalSize = Precise::string_mul($contractsAbs, $contractSizeString);
+            $marginPerUnit = Precise::string_div($initialMarginString, $totalSize);
+            $num = ($side === 'long') ? Precise::string_sub($entryPriceString, $marginPerUnit) : Precise::string_add($entryPriceString, $marginPerUnit);
+            $denom = ($side === 'long') ? Precise::string_sub('1', $mmpWithFee) : Precise::string_add('1', $mmpWithFee);
+            if (($denom !== null) && Precise::string_gt($denom, '0')) {
+                $liquidationPriceString = Precise::string_div($num, $denom);
+            }
+        }
+        $liquidationPrice = (($liquidationPriceString !== null) && Precise::string_gt($liquidationPriceString, '0')) ? $this->parse_number($liquidationPriceString) : null;
         $percentageString = $this->safe_string($position, 'unrealizedPnlRatio');
         $percentage = $this->parse_number(Precise::string_mul($percentageString, '100'));
         $timestamp = $this->safe_integer($position, 'updateTime');
@@ -3013,6 +3103,7 @@ class blofin extends Exchange {
             'lastUpdateTimestamp' => null,
             'maintenanceMargin' => $maintenanceMargin,
             'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
+            'positionMargin' => $this->parse_number($marginString),
             'collateral' => $this->parse_number($collateralString),
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
@@ -3209,7 +3300,8 @@ class blofin extends Exchange {
             $request['clientOrderId'] = $clientOrderId;
         }
         $response = $this->privatePostTradeClosePosition($this->extend($request, $paramsMarginMode));
-        return $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3250,7 +3342,7 @@ class blofin extends Exchange {
         $isTrigger = $this->safe_bool_n($paramsPaginate, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
         list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPaginate, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         $query = $this->omit($paramsMethod, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
-        if (($isTrigger === true) || ($method === 'privateGetTradeOrdersTpslHistory')) {
+        if (($isTrigger) || ($method === 'privateGetTradeOrdersTpslHistory')) {
             $response = $this->privateGetTradeOrdersTpslHistory($this->extend($request, $query));
         } else {
             $response = $this->privateGetTradeOrdersHistory($this->extend($request, $query));
@@ -3508,7 +3600,8 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
@@ -3517,11 +3610,11 @@ class blofin extends Exchange {
         }
         $url = $apiUrl . $request;
         // const type = this.getPathAuthenticationType (path);
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (!$this->is_empty($query)) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             $signedHeaders = array(
@@ -3548,9 +3641,9 @@ class blofin extends Exchange {
             $auth = $request . $method . $timestamp . $timestamp . $sign_body;
             $signature = base64_encode($this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'));
             $signedHeaders['ACCESS-SIGN'] = $signature;
-            $bodyResolved = ($signedBody === null) ? $body : $signedBody;
+            $bodyResolved = $signedBody;
             return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 }

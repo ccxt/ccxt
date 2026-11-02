@@ -84,7 +84,7 @@ class woo extends woo$1["default"] {
     }
     async watchPublic(messageHash, message) {
         let urlUid = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString(this.urls['api']['ws'], 'public') + urlUid;
@@ -97,7 +97,7 @@ class woo extends woo$1["default"] {
     }
     async unwatchPublic(subHash, symbol, topic, params = {}) {
         let urlUid = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString(this.urls['api']['ws'], 'public') + urlUid;
@@ -143,7 +143,7 @@ class woo extends woo$1["default"] {
         const market = this.market(symbol);
         const topic = market['id'] + '@' + method;
         let urlUid = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString(this.urls['api']['ws'], 'public') + urlUid;
@@ -268,10 +268,14 @@ class woo extends woo$1["default"] {
         if (symbol === undefined) {
             return;
         }
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        orderbook['timestamp'] = undefined;
+        orderbook['datetime'] = undefined;
+        orderbook.cache = [];
         this.spawn(this.fetchOrderBookSnapshot, client, message, subscription);
     }
     async fetchOrderBookSnapshot(client, message, subscription) {
@@ -295,7 +299,8 @@ class woo extends woo$1["default"] {
                 if (ts === undefined) {
                     continue;
                 }
-                if (ts < orderbook['timestamp']) {
+                const orderbookTimestamp = this.safeInteger(orderbook, 'timestamp');
+                if ((orderbookTimestamp !== undefined) && (ts < orderbookTimestamp)) {
                     continue;
                 }
                 else {
@@ -513,7 +518,7 @@ class woo extends woo$1["default"] {
         //     }
         //
         const topic = this.safeString(message, 'topic');
-        const data = this.safeValue(message, 'data');
+        const data = this.safeList(message, 'data', []);
         const timestamp = this.safeInteger(message, 'ts');
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -960,12 +965,12 @@ class woo extends woo$1["default"] {
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let topic = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreportv2';
         }
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let messageHash = topic;
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
         if (symbolResolved !== undefined) {
             messageHash += ':' + symbolResolved;
         }
@@ -1000,12 +1005,12 @@ class woo extends woo$1["default"] {
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let topic = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreportv2';
         }
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let messageHash = 'myTrades';
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
         if (symbolResolved !== undefined) {
             messageHash += ':' + symbolResolved;
         }
@@ -1444,7 +1449,7 @@ class woo extends woo$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'data');
-        const balances = this.safeValue(data, 'balances');
+        const balances = this.safeDict(data, 'balances', {});
         const keys = Object.keys(balances);
         const ts = this.safeInteger(message, 'ts');
         this.balance['info'] = data;

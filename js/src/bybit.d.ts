@@ -25,7 +25,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
-    isUnifiedEnabled(params?: Dict): Promise<any[]>;
+    isUnifiedEnabled(params?: Dict): Promise<[boolean, boolean]>;
     /**
      * @method
      * @name bybit#upgradeUnifiedTradeAccount
@@ -215,7 +215,7 @@ export default class bybit extends Exchange {
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: Dict): Promise<Order>;
     /**
      * @method
-     * @name bybit#createMarkeSellOrderWithCost
+     * @name bybit#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
      * @see https://bybit-exchange.github.io/docs/v5/order/create-order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -634,12 +634,12 @@ export default class bybit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name bybit#fetchPosition
@@ -742,7 +742,7 @@ export default class bybit extends Exchange {
      * @returns An array of open interest structures
      */
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OpenInterest[]>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name bybit#fetchCrossBorrowRate
@@ -874,7 +874,7 @@ export default class bybit extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: Dict): Promise<TradingFees>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name bybit#fetchDepositWithdrawFees
@@ -1128,6 +1128,6 @@ export default class bybit extends Exchange {
     fetchMarginMode(symbol: string, params?: Dict): Promise<MarginMode>;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     parseMarginModeType(marginMode: Str): Str;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

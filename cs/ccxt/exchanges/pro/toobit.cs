@@ -115,7 +115,7 @@ public partial class toobit : ccxt.toobit
         //     ]
         //
         string? topic = this.safeString(message, "topic");
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -903,7 +903,7 @@ public partial class toobit : ccxt.toobit
         }
         this.balance[type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
@@ -1167,15 +1167,13 @@ public partial class toobit : ccxt.toobit
         IList<object> symbolsNormalized = symbols;
         if (!this.isEmpty(symbols))
         {
-            symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (!this.isEmpty(symbols))
-        {
-            if ((symbolsNormalized == null))
+            IList<object> marketSymbols = this.marketSymbols(symbols);
+            if ((marketSymbols == null))
             {
                 throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;
             }
-            messageHash = ("::" + String.Join(",", symbolsNormalized.ToArray()));
+            symbolsNormalized = marketSymbols;
+            messageHash = ("::" + String.Join(",", marketSymbols.ToArray()));
         }
         messageHash = ((type + ":positions") + messageHash);
         string? url = this.getUserStreamUrl();
@@ -1209,7 +1207,7 @@ public partial class toobit : ccxt.toobit
         if ((fetchPositionsSnapshot == true))
         {
             object messageHash = add(type, ":fetchPositionsSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});
@@ -1234,7 +1232,7 @@ public partial class toobit : ccxt.toobit
             cache.append(position);
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1353,7 +1351,7 @@ public partial class toobit : ccxt.toobit
         Int64? lastAuthenticatedTime = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "lastAuthenticatedTime", 0);
         Int64? listenKeyRefreshRate = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKeyRefreshRate", 1200000);
         Int64? delay = (listenKeyRefreshRate + 10000);
-        if (isGreaterThan((time - lastAuthenticatedTime), delay))
+        if (((time - lastAuthenticatedTime) > delay))
         {
             this.checkRequiredCredentials();
             // single-flight leader election on a never-dialed client, see

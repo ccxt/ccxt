@@ -88,12 +88,12 @@ class binance(ccxt.async_support.binance):
                     'ws': {
                         'spot': 'wss://stream.testnet.binance.vision/ws',
                         'margin': 'wss://stream.testnet.binance.vision/ws',
-                        'future': 'wss://fstream.binancefuture.com/ws',
-                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'linear': 'wss://fstream.binancefuture.com/ws',
+                        'inverse': 'wss://dstream.binancefuture.com/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.testnet.binance.vision/ws-api/v3',
-                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                            'linear': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'inverse': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },
                     },
                 },
@@ -101,12 +101,12 @@ class binance(ccxt.async_support.binance):
                     'ws': {
                         'spot': 'wss://demo-stream.binance.com/ws',
                         'margin': 'wss://demo-stream.binance.com/ws',
-                        'future': 'wss://fstream.binancefuture.com/ws',
-                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'linear': 'wss://fstream.binancefuture.com/ws',
+                        'inverse': 'wss://dstream.binancefuture.com/ws',
                         'ws-api': {
                             'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
-                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                            'linear': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'inverse': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },
                     },
                 },
@@ -114,16 +114,16 @@ class binance(ccxt.async_support.binance):
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
                         'margin': 'wss://stream.binance.com:9443/ws',
-                        'future': 'wss://fstream.binance.com/ws',
-                        'delivery': 'wss://dstream.binance.com/ws',
+                        'linear': 'wss://fstream.binance.com/ws',
+                        'inverse': 'wss://dstream.binance.com/ws',
                         'stock': 'wss://nbstream.binance.com/equity/ws',
                         'option': 'wss://fstream.binance.com/public/ws',
                         'optionMarket': 'wss://fstream.binance.com/market/ws',
                         'optionPrivate': 'wss://fstream.binance.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
-                            'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
-                            'delivery': 'wss://ws-dapi.binance.com/ws-dapi/v1',
+                            'linear': 'wss://ws-fapi.binance.com/ws-fapi/v1',
+                            'inverse': 'wss://ws-dapi.binance.com/ws-dapi/v1',
                         },
                         'papi': 'wss://fstream.binance.com/pm/ws',
                     },
@@ -138,8 +138,8 @@ class binance(ccxt.async_support.binance):
                 'streamLimits': {
                     'spot': 50,  # max 1024
                     'margin': 50,  # max 1024
-                    'future': 50,  # max 200
-                    'delivery': 50,  # max 200
+                    'linear': 50,  # max 200
+                    'inverse': 50,  # max 200
                     'stock': 50,
                     'option': 50,  # max 200
                     'optionMarket': 50,  # max 200
@@ -147,8 +147,8 @@ class binance(ccxt.async_support.binance):
                 'subscriptionLimitByStream': {
                     'spot': 200,
                     'margin': 200,
-                    'future': 200,
-                    'delivery': 200,
+                    'linear': 200,
+                    'inverse': 200,
                     'stock': 200,
                     'option': 200,
                     'optionMarket': 200,
@@ -232,10 +232,10 @@ class binance(ccxt.async_support.binance):
         streamBySubscriptionsHash = self.safe_dict(self.options, 'streamBySubscriptionsHash', self.create_safe_dictionary())
         stream = self.safe_string(streamBySubscriptionsHash, subscriptionHash)
         if stream is None:
-            streamIndex = self.safe_integer(self.options, 'streamIndex', -1)
+            previousStreamIndex = self.safe_integer(self.options, 'streamIndex', -1)
             streamLimits = self.safe_dict(self.options, 'streamLimits')
             streamLimit = self.safe_integer(streamLimits, type)
-            streamIndex = streamIndex + 1
+            streamIndex = previousStreamIndex + 1
             normalizedIndex = streamIndex % streamLimit
             self.options['streamIndex'] = streamIndex
             stream = self.number_to_string(normalizedIndex)
@@ -249,16 +249,16 @@ class binance(ccxt.async_support.binance):
             subscriptionLimitByStream = self.safe_integer(self.options['subscriptionLimitByStream'], type, 200)
             if newNumSubscriptions > subscriptionLimitByStream:
                 raise BadRequest(self.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.')
-            self.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions
+            self.options['numSubscriptionsByStream'][stream] = newNumSubscriptions
         return stream
 
-    def get_ws_url(self, type: object, category: str) -> str:
+    def get_ws_url(self, type: str, category: str) -> str:
         if (type == 'option') or (type == 'optionMarket') or (type == 'optionPrivate'):
             # eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             # see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
             return self.urls['api']['ws'][type]
         baseUrl = self.urls['api']['ws'][type]
-        if type == 'future':
+        if type == 'linear':
             # skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             # const firstProtocol = baseUrl.indexOf ('://');
             # if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
@@ -276,7 +276,7 @@ class binance(ccxt.async_support.binance):
             return baseUrl
         return baseUrl
 
-    def get_future_ws_category(self, channel: Str):
+    def get_future_ws_category(self, channel: Str) -> str:
         if channel == 'depth' or channel == 'rpiDepth' or channel == 'bookTicker' or channel == 'trade':
             return 'public'
         return 'market'
@@ -284,14 +284,14 @@ class binance(ccxt.async_support.binance):
     def get_private_ws_url(self, type: Str, listenKey: Str) -> str:
         if listenKey is None:
             raise AuthenticationError(self.id + ' getPrivateWsUrl() requires a listenKey from authenticate()')
-        if type == 'future':
+        if type == 'linear':
             return self.get_ws_url(type, 'private') + '?listenKey=' + listenKey
         wsUrl = self.safe_string(self.urls['api']['ws'], type)
         if wsUrl is None:
             raise ExchangeError(self.id + ' getPrivateWsUrl() has no websocket url for self market type')
         return wsUrl + '/' + listenKey
 
-    def get_stock_ws_url(self, streamType: Str = 'market'):
+    def get_stock_ws_url(self, streamType: Str = 'market') -> str:
         baseUrl = self.urls['api']['ws']['stock']
         if streamType == 'combined':
             return baseUrl.replace('/ws', '/stream')
@@ -730,7 +730,7 @@ class binance(ccxt.async_support.binance):
         if firstMarket['option'] is True:
             type = 'option'
         elif firstMarket['contract'] is True:
-            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
+            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
         name = 'depth'
         streamHash = 'multipleOrderbook'
         if symbolsNormalized is not None:
@@ -741,7 +741,7 @@ class binance(ccxt.async_support.binance):
         watchOrderBookRateOption, paramsRate = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100')
         watchOrderBookRate = watchOrderBookRateOption
         rpi, paramsRpi = self.handle_option_bool_and_params(paramsRate, 'watchOrderBookForSymbols', 'rpi', False)
-        if rpi and type == 'future':
+        if rpi and type == 'linear':
             name = 'rpiDepth'
             watchOrderBookRate = '500'
         subParams = []
@@ -802,7 +802,7 @@ class binance(ccxt.async_support.binance):
         if firstMarket['option'] is True:
             type = 'option'
         elif firstMarket['contract'] is True:
-            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
+            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
         name = 'depth'
         streamHash = 'multipleOrderbook'
         if symbolsNormalized is not None:
@@ -880,7 +880,7 @@ class binance(ccxt.async_support.binance):
         if limit is not None:
             payload['limit'] = limit
         marketType = self.get_market_type('fetchOrderBookWs', market, params)
-        if marketType != 'future':
+        if marketType != 'linear':
             raise BadRequest(self.id + ' fetchOrderBookWs only supports swap markets')
         url = self.safe_string(self.urls['api']['ws']['ws-api'], marketType)
         if url is None:
@@ -898,8 +898,9 @@ class binance(ccxt.async_support.binance):
         subscription = {
             'method': self.handle_fetch_order_book,
         }
-        orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        orderbook['symbol'] = market['symbol']
+        snapshot = await self.watch(url, messageHash, message, messageHash, subscription)
+        snapshot['symbol'] = market['symbol']
+        orderbook = self.order_book(snapshot)
         return orderbook
 
     def handle_fetch_order_book(self, client: Client, message: dict):
@@ -960,19 +961,25 @@ class binance(ccxt.async_support.binance):
                 if (U is None) or (u is None):
                     continue
                 pu = self.safe_integer(messageItem, 'pu')
-                if type == 'future':
+                snapshotNonce = self.safe_integer(orderbook, 'nonce')
+                if snapshotNonce is None:
+                    # every comparison against an undefined nonce is false, only pu === undefined matches
+                    if (type == 'linear') and (pu is None):
+                        self.handle_order_book_message(client, messageItem, orderbook)
+                    continue
+                if type == 'linear':
                     # 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if u < orderbook['nonce']:
+                    if u < snapshotNonce:
                         continue
                     # 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if (U <= orderbook['nonce']) and (u >= orderbook['nonce']) or (pu == orderbook['nonce']):
+                    if (U <= snapshotNonce) and (u >= snapshotNonce) or (pu == snapshotNonce):
                         self.handle_order_book_message(client, messageItem, orderbook)
                 else:
                     # 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if u <= orderbook['nonce']:
+                    if u <= snapshotNonce:
                         continue
                     # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if ((U - 1) <= orderbook['nonce']) and ((u - 1) >= orderbook['nonce']):
+                    if ((U - 1) <= snapshotNonce) and ((u - 1) >= snapshotNonce):
                         self.handle_order_book_message(client, messageItem, orderbook)
             if symbol is not None:
                 self.orderbooks[symbol] = orderbook
@@ -986,7 +993,7 @@ class binance(ccxt.async_support.binance):
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -1000,7 +1007,7 @@ class binance(ccxt.async_support.binance):
         orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # initial snapshot is fetched with ccxt's fetchOrderBook
         # the feed does not include a snapshot, just the deltas
@@ -1070,7 +1077,8 @@ class binance(ccxt.async_support.binance):
                             conditional = ((U - 1) == nonce)
                         if conditional:
                             self.handle_order_book_message(client, message, orderbook)
-                            if nonce < self.safe_integer(orderbook, 'nonce', 0):
+                            newNonce = self.safe_integer(orderbook, 'nonce', 0)
+                            if nonce < newNonce:
                                 client.resolve(orderbook, messageHash)
                         else:
                             checksum = self.handle_option('watchOrderBook', 'checksum', True)
@@ -1085,7 +1093,8 @@ class binance(ccxt.async_support.binance):
                         # 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if (U <= nonce) or (pu == nonce):
                             self.handle_order_book_message(client, message, orderbook)
-                            if nonce <= self.safe_integer(orderbook, 'nonce', 0):
+                            newNonce = self.safe_integer(orderbook, 'nonce', 0)
+                            if nonce <= newNonce:
                                 client.resolve(orderbook, messageHash)
                         else:
                             checksum = self.handle_option('watchOrderBook', 'checksum', True)
@@ -1099,7 +1108,7 @@ class binance(ccxt.async_support.binance):
                     del client.subscriptions[messageHash]
                 client.reject(e, messageHash)
 
-    def handle_order_book_subscription(self, client: Client, message: object, subscription: object):
+    def handle_order_book_subscription(self, client: Client, message: object, subscription: dict):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         # const messageHash = this.safeString (subscription, 'messageHash');
         symbolOfSubscription = self.safe_string(subscription, 'symbol')  # watchOrderBook
@@ -1108,9 +1117,11 @@ class binance(ccxt.async_support.binance):
         # handle list of symbols
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            if symbol in self.orderbooks:
-                del self.orderbooks[symbol]
-            self.orderbooks[symbol] = self.order_book({}, limit)
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, limit)
+            orderbook = self.orderbooks[symbol]
+            orderbook['nonce'] = None
+            orderbook.cache = []
             symbolSubscription = self.extend(subscription, {'symbol': symbol})
             # fetch the snapshot in a separate async call
             self.spawn(self.fetch_order_book_snapshot, client, message, symbolSubscription)
@@ -1129,7 +1140,7 @@ class binance(ccxt.async_support.binance):
         if method is not None:
             method(client, message, subscription)
         isUnSubMessage = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSubMessage is True:
+        if isUnSubMessage:
             self.handle_un_subscription(client, subscription)
         return message
 
@@ -1177,7 +1188,7 @@ class binance(ccxt.async_support.binance):
         if isOption is True:
             type = 'option'
         elif firstMarket['contract'] is True:
-            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
+            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
         messageHashes = []
         subParams = []
         if isOption is True:
@@ -1254,7 +1265,7 @@ class binance(ccxt.async_support.binance):
         if isOption is True:
             type = 'option'
         elif firstMarket['contract'] is True:
-            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
+            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
         subMessageHashes = []
         subParams = []
         messageHashes = []
@@ -1408,7 +1419,7 @@ class binance(ccxt.async_support.binance):
         #         "Q": "0.00000000"
         #     }
         #
-        # private watchMyTrades future/delivery
+        # private watchMyTrades linear/inverse
         #
         #     {
         #         "s": "BTCUSDT",
@@ -1608,7 +1619,7 @@ class binance(ccxt.async_support.binance):
             type = 'option'
             wsUrlType = 'optionMarket'  # eOptions klines are served from /market/ws
         elif firstMarket['contract'] is True:
-            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
+            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
             wsUrlType = type
         isSpot = (type == 'spot')
         timezone, paramsTimezone = self.handle_param_string(paramsChannel, 'timezone')
@@ -1680,7 +1691,7 @@ class binance(ccxt.async_support.binance):
             type = 'option'
             wsUrlType = 'optionMarket'  # eOptions klines are served from /market/ws
         elif firstMarket['contract'] is True:
-            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
+            type = 'linear' if (firstMarket['linear'] is True) else 'inverse'
             wsUrlType = type
         isSpot = (type == 'spot')
         timezone, paramsTimezone = self.handle_param_string(paramsChannel, 'timezone')
@@ -1834,7 +1845,7 @@ class binance(ccxt.async_support.binance):
             'symbol': market['id'],
         }
         type = self.get_market_type('fetchTickerWs', market, params)
-        if type != 'future':
+        if type != 'linear':
             raise BadRequest(self.id + ' fetchTickerWs only supports swap markets')
         url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
         if url is None:
@@ -1877,7 +1888,7 @@ class binance(ccxt.async_support.binance):
             await self.load_markets()
         market = self.market(symbol)
         marketType = self.get_market_type('fetchOHLCVWs', market, params)
-        if marketType != 'spot' and marketType != 'future':
+        if marketType != 'spot' and marketType != 'linear':
             raise BadRequest(self.id + ' fetchOHLCVWs only supports spot or swap markets')
         url = self.safe_string(self.urls['api']['ws']['ws-api'], marketType)
         if url is None:
@@ -2194,9 +2205,9 @@ class binance(ccxt.async_support.binance):
             # eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
             rawMarketType = 'optionMarket' if (isOptionMarkPrice) else 'option'
         elif self.isLinear(marketType, subType):
-            rawMarketType = 'future'
+            rawMarketType = 'linear'
         elif self.isInverse(marketType, subType):
-            rawMarketType = 'delivery'
+            rawMarketType = 'inverse'
         elif marketType == 'spot':
             rawMarketType = marketType
         else:
@@ -2211,7 +2222,7 @@ class binance(ccxt.async_support.binance):
         unsubscribeMessageHashes = []
         suffix = ''
         if isMarkPrice and not isOptionMarkPrice:
-            suffix = '@1s' if (use1sFreq is True) else ''
+            suffix = '@1s' if (use1sFreq) else ''
         unifiedPrefix = None
         if isBidAsk:
             unifiedPrefix = 'bidask'
@@ -2325,7 +2336,7 @@ class binance(ccxt.async_support.binance):
                 newDict[resultSymbol] = result
             return newDict
 
-    def parse_ws_ticker(self, message: object, marketType: object) -> Ticker:
+    def parse_ws_ticker(self, message: dict, marketType: Str) -> Ticker:
         # markPrice
         #   {
         #       "e": "markPriceUpdate",   // Event type
@@ -2485,7 +2496,7 @@ class binance(ccxt.async_support.binance):
         #
         messageHash = self.safe_string(message, 'id')
         result = self.safe_dict(message, 'result', {})
-        ticker = self.parse_ws_ticker(result, 'future')
+        ticker = self.parse_ws_ticker(result, 'contract')
         client.resolve(ticker, messageHash)
 
     def handle_bids_asks(self, client: Client, message: object):
@@ -2645,8 +2656,6 @@ class binance(ccxt.async_support.binance):
             # another caller is already subscribing, wait for it instead of subscribing again
             await client.future(messageHash)
             return
-        client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
-        client.subscriptions[marketType] = True
         requestId = self.request_id(url)
         requestHash = str(requestId)
         message = {
@@ -2659,6 +2668,10 @@ class binance(ccxt.async_support.binance):
             'method': self.handle_user_data_stream_subscribe,
             'subscription': marketType,
         }
+        # created right before the request, after the signing above: concurrent callers find it, and in
+        # the threaded ports the ack can not arrive between this future and the request one watch () adds
+        client.future(messageHash)
+        client.subscriptions[marketType] = True
         try:
             await self.watch(url, requestHash, message, requestHash, subscription)
             client.resolve(marketType, messageHash)
@@ -2730,7 +2743,7 @@ class binance(ccxt.async_support.binance):
                 isIsolated = self.safe_bool(params, 'isIsolated', False)
                 validity = self.safe_integer(params, 'validity')
                 request = {}
-                if isIsolated is True:
+                if isIsolated:
                     if symbol is None:
                         raise ArgumentsRequired(self.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode')
                     marketId = self.market_id(symbol)
@@ -2790,7 +2803,7 @@ class binance(ccxt.async_support.binance):
         renewParams = {}
         if symbol is not None:
             renewParams['symbol'] = symbol
-        if isIsolated is True:
+        if isIsolated:
             renewParams['isIsolated'] = isIsolated
         if validity is not None:
             renewParams['validity'] = validity
@@ -2853,9 +2866,9 @@ class binance(ccxt.async_support.binance):
                     response = await self.sapiPostEquityListenKey(requestParams)
                 elif isPortfolioMargin:
                     response = await self.papiPostListenKey(paramsOmitted)
-                elif type == 'future':
+                elif type == 'linear':
                     response = await self.fapiPrivatePostListenKey(paramsOmitted)
-                elif type == 'delivery':
+                elif type == 'inverse':
                     response = await self.dapiPrivatePostListenKey(paramsOmitted)
                 elif type == 'option':
                     response = await self.eapiPrivatePostListenKey(paramsOmitted)
@@ -2900,16 +2913,16 @@ class binance(ccxt.async_support.binance):
         subType = self.handle_sub_type_and_params('keepAliveListenKey', None, paramsPortfolioMargin)[0]
         if type != 'option' and type != 'stock':
             # guard options first: isLinear returns true for linear-settled options (subType='linear')
-            # which would incorrectly convert type='option' to 'future'.
+            # which would incorrectly convert type='option' to 'linear'.
             # stock needs the same exemption: with a defaultSubType of 'linear' -
             # always on binanceusdm, common on mixed instances - isLinear keys off
-            # subType alone and would flip 'stock' to 'future' - the stock branch
+            # subType alone and would flip 'stock' to 'linear' - the stock branch
             # below would never run, and the bucket lookup would renew the
             # FUTURES listen key while the stock key silently expires
             if self.isLinear(type, subType):
-                type = 'future'
+                type = 'linear'
             elif self.isInverse(type, subType):
-                type = 'delivery'
+                type = 'inverse'
         # For margin, token renewal is handled by renewListenToken method
         if type == 'margin':
             return
@@ -2933,9 +2946,9 @@ class binance(ccxt.async_support.binance):
                 await self.sapiPostEquityListenKey(requestParams)
             elif isPortfolioMargin:
                 await self.papiPutListenKey(self.extend(request, paramsOmitted))
-            elif type == 'future':
+            elif type == 'linear':
                 await self.fapiPrivatePutListenKey(self.extend(request, paramsOmitted))
-            elif type == 'delivery':
+            elif type == 'inverse':
                 await self.dapiPrivatePutListenKey(self.extend(request, paramsOmitted))
             elif type == 'option':
                 await self.eapiPrivatePutListenKey(self.extend(request, paramsOmitted))
@@ -2997,7 +3010,7 @@ class binance(ccxt.async_support.binance):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot is True:
+        if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -3009,7 +3022,7 @@ class binance(ccxt.async_support.binance):
         params = {
             'type': type,
         }
-        if isPortfolioMargin is True:
+        if isPortfolioMargin:
             params['portfolioMargin'] = True
         response = await self.fetch_balance(params)
         self.balance[type] = self.extend(response, self.safe_dict(self.balance, type, {}))
@@ -3028,7 +3041,7 @@ class binance(ccxt.async_support.binance):
         https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str|None [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
+        :param str|None [params.type]: 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use params.subType 'inverse' for COIN-M
         :param str|None [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
         :param str|None [params.method]: method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
@@ -3037,7 +3050,7 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         type = self.get_market_type('fetchBalanceWs', None, params)
-        if type != 'spot' and type != 'future' and type != 'delivery':
+        if type != 'spot' and type != 'linear' and type != 'inverse':
             raise BadRequest(self.id + ' fetchBalanceWs only supports spot or swap markets')
         url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
         if url is None:
@@ -3165,8 +3178,8 @@ class binance(ccxt.async_support.binance):
         if symbolsNormalized is None and (type == 'spot'):
             # when symbols aren't provide
             # we shouldn't rely on the defaultType
-            type = 'future'
-        if type != 'future' and type != 'delivery':
+            type = 'linear'
+        if type != 'linear' and type != 'inverse':
             raise BadRequest(self.id + ' fetchPositionsWs only supports swap markets')
         url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
         if url is None:
@@ -3254,7 +3267,7 @@ class binance(ccxt.async_support.binance):
                 urlType = 'papi'
             elif type == 'option':
                 demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-                if (demoMode is True) or self.isSandboxModeEnabled:
+                if (demoMode) or self.isSandboxModeEnabled:
                     raise NotSupported(self.id + ' watchBalance() does not support option markets in demo/testnet mode')
                 urlType = 'optionPrivate'
             url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
@@ -3264,13 +3277,13 @@ class binance(ccxt.async_support.binance):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
+        if (fetchBalanceSnapshot) and (awaitBalanceSnapshot):
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':balance'
         message = None
         return await self.watch(url, messageHash, message, type)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         # sent upon a balance update not related to orders
         #
@@ -3297,7 +3310,7 @@ class binance(ccxt.async_support.binance):
         #         ]
         #     }
         #
-        # future/delivery
+        # linear/inverse
         #
         #     {
         #         "e": "ACCOUNT_UPDATE",            // Event Type
@@ -3386,7 +3399,7 @@ class binance(ccxt.async_support.binance):
         accountType = ''
         for i in range(0, len(subscriptions)):
             subscription = subscriptions[i]
-            if (subscription == 'spot') or (subscription == 'margin') or (subscription == 'future') or (subscription == 'delivery') or (subscription == 'option'):
+            if (subscription == 'spot') or (subscription == 'margin') or (subscription == 'linear') or (subscription == 'inverse') or (subscription == 'option'):
                 accountType = subscription
                 break
         return accountType
@@ -3404,22 +3417,22 @@ class binance(ccxt.async_support.binance):
         type = marketType
         if type != 'option' and type != 'stock':
             if self.isLinear(type, subType):
-                type = 'future'
+                type = 'linear'
             elif self.isInverse(type, subType):
-                type = 'delivery'
+                type = 'inverse'
         # sites consuming every element unpack this; the two that skip subType
         # index it positionally instead, so no receiver is declared-but-unread
         return [type, subType, paramsSubType]
 
-    def get_market_type(self, method: object, market: object, params: dict = {}) -> str:
+    def get_market_type(self, method: str, market: Market, params: dict = {}) -> str:
         type = None
         paramsMarketType = {}
         type, paramsMarketType = self.handle_market_type_and_params(method, market, params)
         subType = self.handle_sub_type_and_params(method, market, paramsMarketType)[0]
         if self.isLinear(type, subType):
-            type = 'future'
+            type = 'linear'
         elif self.isInverse(type, subType):
-            type = 'delivery'
+            type = 'inverse'
         return type
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
@@ -3445,7 +3458,7 @@ class binance(ccxt.async_support.binance):
             await self.load_markets()
         market = self.market(symbol)
         marketType = self.get_market_type('createOrderWs', market, params)
-        if marketType != 'spot' and marketType != 'future' and marketType != 'delivery':
+        if marketType != 'spot' and marketType != 'linear' and marketType != 'inverse':
             raise BadRequest(self.id + ' createOrderWs only supports spot or swap markets')
         url = self.safe_string(self.urls['api']['ws']['ws-api'], marketType)
         if url is None:
@@ -3470,8 +3483,8 @@ class binance(ccxt.async_support.binance):
             'method': 'order.place',
             'params': self.sign_params(self.extend(payload, paramsOmitted2)),
         }
-        if test is True:
-            if sor is True:
+        if test:
+            if sor:
                 message['method'] = 'sor.order.test'
             else:
                 message['method'] = 'order.test'
@@ -3599,14 +3612,14 @@ class binance(ccxt.async_support.binance):
             await self.load_markets()
         market = self.market(symbol)
         marketType = self.get_market_type('editOrderWs', market, params)
-        if marketType != 'spot' and marketType != 'future' and marketType != 'delivery':
+        if marketType != 'spot' and marketType != 'linear' and marketType != 'inverse':
             raise BadRequest(self.id + ' editOrderWs only supports spot or swap markets')
         url = self.safe_string(self.urls['api']['ws']['ws-api'], marketType)
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         requestId = self.request_id(url)
         messageHash = str(requestId)
-        isSwap = (marketType == 'future' or marketType == 'delivery')
+        isSwap = (marketType == 'linear' or marketType == 'inverse')
         payload = {}
         if marketType == 'spot':
             payload = self.editSpotOrderRequest(id, symbol, type, side, amount, price, params)
@@ -3767,14 +3780,14 @@ class binance(ccxt.async_support.binance):
         }
         isConditional = self.safe_bool_n(paramsReturnRateLimits, ['stop', 'trigger', 'conditional'])
         clientOrderId = self.safe_string_n(paramsReturnRateLimits, ['clientAlgoId', 'origClientOrderId', 'clientOrderId'])
-        shouldUseAlgoOrder = (market['linear'] is True) and (market['swap'] is True) and (isConditional is True)
+        shouldUseAlgoOrder = (market['linear'] is True) and ((market['swap'] is True) or (market['future'] is True)) and (isConditional is True)
         if clientOrderId is not None:
-            if shouldUseAlgoOrder is True:
+            if shouldUseAlgoOrder:
                 payload['clientAlgoId'] = clientOrderId
             else:
                 payload['origClientOrderId'] = clientOrderId
         else:
-            if shouldUseAlgoOrder is True:
+            if shouldUseAlgoOrder:
                 payload['algoId'] = self.number_to_string(id)
             else:
                 payload['orderId'] = self.number_to_string(id)
@@ -3784,7 +3797,7 @@ class binance(ccxt.async_support.binance):
             'method': 'order.cancel',
             'params': self.sign_params(self.extend(payload, paramsOmitted)),
         }
-        if shouldUseAlgoOrder is True:
+        if shouldUseAlgoOrder:
             message['method'] = 'algoOrder.cancel'
         subscription = {
             'method': self.handle_order_ws,
@@ -3848,7 +3861,7 @@ class binance(ccxt.async_support.binance):
             raise BadRequest(self.id + ' cancelOrderWs requires a symbol')
         market = self.market(symbol)
         type = self.get_market_type('fetchOrderWs', market, params)
-        if type != 'spot' and type != 'future' and type != 'delivery':
+        if type != 'spot' and type != 'linear' and type != 'inverse':
             raise BadRequest(self.id + ' fetchOrderWs only supports spot or swap markets')
         url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
         if url is None:
@@ -4055,7 +4068,7 @@ class binance(ccxt.async_support.binance):
                 urlType = 'papi'
             elif type == 'option':
                 demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-                if (demoMode is True) or self.isSandboxModeEnabled:
+                if (demoMode) or self.isSandboxModeEnabled:
                     raise NotSupported(self.id + ' watchOrders() does not support option markets in demo/testnet mode')
                 urlType = 'optionPrivate'
             url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
@@ -4297,6 +4310,7 @@ class binance(ccxt.async_support.binance):
         if timeInForce == 'GTX':
             # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO'
+        postOnly = (orderType == 'limit_maker') or (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -4308,7 +4322,7 @@ class binance(ccxt.async_support.binance):
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': self.parseOrderTypeByMarket(orderType, marketType),
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'reduceOnly': self.safe_bool(order, 'R'),
             'side': self.safe_string_lower(order, 'S'),
             'price': self.safe_string(order, 'p'),
@@ -4325,7 +4339,7 @@ class binance(ccxt.async_support.binance):
             'trades': None,
         })
 
-    def handle_order_update(self, client: Client, message: object):
+    def handle_order_update(self, client: Client, message: dict):
         #
         # spot
         #
@@ -4632,11 +4646,11 @@ class binance(ccxt.async_support.binance):
         # spot and margin have no positions - whatever still RESOLVES to spot
         # or margin after the helper falls through to the derivatives stream
         # matching the subType. requests a defaultSubType already rewrote
-        # arrive here as future or delivery and pass untouched, which lands on
+        # arrive here as future or inverse and pass untouched, which lands on
         # the same stream the old raw-type ordering produced in every case
         if type == 'spot' or type == 'margin':
-            type = 'delivery' if (subType == 'inverse') else 'future'
-        # 'option' stays as 'option', don't redirect to 'future' - the helper's
+            type = 'inverse' if (subType == 'inverse') else 'linear'
+        # 'option' stays as 'option', don't redirect to 'linear' - the helper's
         # guard finally makes this comment true
         marketTypeObject = {}
         marketTypeObject['type'] = type
@@ -4650,7 +4664,7 @@ class binance(ccxt.async_support.binance):
             urlType = 'papi'
         elif type == 'option':
             demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-            if (demoMode is True) or self.isSandboxModeEnabled:
+            if (demoMode) or self.isSandboxModeEnabled:
                 raise NotSupported(self.id + ' watchPositions() does not support option markets in demo/testnet mode')
             urlType = 'optionPrivate'
         url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
@@ -4688,7 +4702,7 @@ class binance(ccxt.async_support.binance):
         params = {
             'type': type,
         }
-        if isPortfolioMargin is True:
+        if isPortfolioMargin:
             params['portfolioMargin'] = True
         positions = await self.fetch_positions(None, params)
         self.positions[type] = ArrayCacheBySymbolBySide()
@@ -4815,7 +4829,7 @@ class binance(ccxt.async_support.binance):
             'marginRatio': None,
         })
 
-    def parse_ws_options_position(self, position: object, market: object = None):
+    def parse_ws_options_position(self, position: dict, market: Market = None) -> Position:
         #
         #  from BALANCE_POSITION_UPDATE event P[] array:
         #  {
@@ -4880,7 +4894,7 @@ class binance(ccxt.async_support.binance):
             raise BadRequest(self.id + ' fetchMyTradesWs requires a symbol')
         market = self.market(symbol)
         type = self.get_market_type('fetchMyTradesWs', market, params)
-        if type != 'spot' and type != 'future':
+        if type != 'spot' and type != 'linear':
             raise BadRequest(self.id + ' fetchMyTradesWs does not support ' + type + ' markets')
         url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
         if url is None:
@@ -4929,7 +4943,7 @@ class binance(ccxt.async_support.binance):
             await self.load_markets()
         market = self.market(symbol)
         type = self.get_market_type('fetchTradesWs', market, params)
-        if type != 'spot' and type != 'future':
+        if type != 'spot' and type != 'linear':
             raise BadRequest(self.id + ' fetchTradesWs does not support ' + type + ' markets')
         url = self.safe_string(self.urls['api']['ws']['ws-api'], type)
         if url is None:
@@ -5042,7 +5056,7 @@ class binance(ccxt.async_support.binance):
                 urlType = 'papi'
             elif type == 'option':
                 demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-                if (demoMode is True) or self.isSandboxModeEnabled:
+                if (demoMode) or self.isSandboxModeEnabled:
                     raise NotSupported(self.id + ' watchMyTrades() does not support option markets in demo/testnet mode')
                 urlType = 'optionPrivate'
             url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
@@ -5062,8 +5076,7 @@ class binance(ccxt.async_support.binance):
         if executionType == 'TRADE':
             trade = self.parse_ws_trade(message)
             orderId = self.safe_string(trade, 'order')
-            tradeFee = self.safe_dict(trade, 'fee', {})
-            tradeFee = self.extend({}, tradeFee)
+            tradeFee = self.extend({}, self.safe_dict(trade, 'fee', {}))
             symbol = self.safe_string(trade, 'symbol')
             if orderId is not None and tradeFee is not None and symbol is not None:
                 cachedOrders = self.orders
@@ -5072,9 +5085,9 @@ class binance(ccxt.async_support.binance):
                     order = self.safe_dict(orders, orderId)
                     if order is not None:
                         # accumulate order fees
-                        fees = self.safe_value(order, 'fees')
+                        fees = self.safe_list(order, 'fees')
                         fee = self.safe_dict(order, 'fee')
-                        if not self.is_empty(fees):
+                        if (fees is not None) and not self.is_empty(fees):
                             insertNewFeeCurrency = True
                             for i in range(0, len(fees)):
                                 orderFee = fees[i]
@@ -5153,7 +5166,7 @@ class binance(ccxt.async_support.binance):
             client.resolve(cachedOrders, messageHash)
             client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    def handle_acount_update(self, client: Client, message: object):
+    def handle_acount_update(self, client: Client, message: dict):
         self.handle_balance(client, message)
         self.handle_positions(client, message)
 

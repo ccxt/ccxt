@@ -771,7 +771,12 @@ class bitstamp extends bitstamp$1["default"] {
         const parts = channel.split('_');
         const marketId = this.safeString(parts, 3);
         const symbol = this.safeSymbol(marketId);
-        this.orderbooks[symbol] = this.orderBook();
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
+        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
     }
     handleSubscriptionStatus(client, message) {
         //

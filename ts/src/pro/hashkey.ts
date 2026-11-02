@@ -63,7 +63,7 @@ export default class hashkey extends hashkeyRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchPrivate (messageHash: any) {
+    async watchPrivate (messageHash: string) {
         const listenKey = await this.authenticate ();
         const url = this.getPrivateUrl (listenKey);
         return await this.watch (url, messageHash, undefined, messageHash);
@@ -766,7 +766,7 @@ export default class hashkey extends hashkeyRest {
         }
         const options = this.safeDict (this.options, 'watchBalance');
         const snapshot = this.safeBool (options, 'fetchBalanceSnapshot', true);
-        if (snapshot === true) {
+        if (snapshot) {
             const messageHash = type + ':' + 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);

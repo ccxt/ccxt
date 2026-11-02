@@ -54,7 +54,7 @@ func (this *Nado) GatewayV2PublicGetOrderbook(args ...any) <-chan EndpointResult
 
 // ArchivePost returns a channel that yields a JSON object.
 func (this *Nado) ArchivePost(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "", "archive", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "", []string{"archive"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ArchiveV2PublicGetTickers returns a channel that yields a JSON object.

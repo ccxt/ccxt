@@ -242,7 +242,7 @@ public partial class bitstamp : ccxt.bitstamp
             Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
             if ((deltaNonce == nonce))
             {
-                return add(i, 1);
+                return (i + 1L);
             }
         }
         return deltas?.Count ?? 0;
@@ -864,7 +864,13 @@ public partial class bitstamp : ccxt.bitstamp
         List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 3);
         string? symbol = this.safeSymbol(marketId);
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+        }
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        orderbook["nonce"] = null;
+        (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
     }
 
     public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
@@ -1043,7 +1049,7 @@ public partial class bitstamp : ccxt.bitstamp
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }

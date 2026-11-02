@@ -81,7 +81,7 @@ export function unifiedMethods (exchange: any): string[] {
     return Object.keys (exchange.has ?? {}).filter ((method) => exchange.has[method] && typeof exchange[method] === 'function');
 }
 
-// implicit method names are built by defineRestApi as <section><Verb><CamelPath>
+// implicit method names are generated into ts/src/abstract/<id>.ts as <section><Verb><CamelPath>
 // (e.g. sapiGetCapitalConfigGetall) — the FIRST camel-boundary verb token is the HTTP verb
 const VERB_PATTERN = /(Get|Post|Put|Delete|Patch)(?=[A-Z0-9]|$)/;
 
@@ -91,25 +91,35 @@ export function implicitVerb (methodName: string): string | undefined {
 }
 
 export function isImplicitMethod (exchange: any, methodName: string): boolean {
-    // implicit endpoints are OWN instance properties assigned by defineRestApi — the
-    // own-property guard keeps base prototype helpers with verb-shaped names
-    // (handlePostOnly, ethGetAddressFromPrivateKey, …) out of the callable surface
-    if (!Object.prototype.hasOwnProperty.call (exchange, methodName)) {
-        return false;
-    }
     if (typeof exchange[methodName] !== 'function') {
         return false;
     }
-    if (implicitVerb (methodName) === undefined) {
+    const match = VERB_PATTERN.exec (methodName);
+    if (match === null) {
+        return false;
+    }
+    // generated endpoints are named <api section><Verb>…, which keeps helpers with
+    // verb-shaped names (handlePostOnly, ethGetAddressFromPrivateKey, …) out
+    const section = methodName.slice (0, match.index);
+    const sections = Object.keys (exchange.api ?? {});
+    if (!sections.some ((key) => section.startsWith (key))) {
         return false;
     }
     // unified methods never carry a camel verb token, but keep them excluded explicitly
     return exchange.has?.[methodName] === undefined;
 }
 
+function allPropertyNames (exchange: any): string[] {
+    const names: string[] = [];
+    for (let o = exchange; o !== null && o !== Object.prototype; o = Object.getPrototypeOf (o)) {
+        names.push (...Object.getOwnPropertyNames (o));
+    }
+    return names;
+}
+
 export function listImplicitMethods (exchange: any, verb?: string): string[] {
     const names = new Set<string> ();
-    for (const key of Object.keys (exchange)) {
+    for (const key of allPropertyNames (exchange)) {
         if (isImplicitMethod (exchange, key) && (verb === undefined || implicitVerb (key) === verb)) {
             names.add (key);
         }

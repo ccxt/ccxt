@@ -135,6 +135,7 @@ export default class hibachi extends Exchange {
                     'private': 'https://api.hibachi.xyz',
                 },
                 'www': 'https://www.hibachi.xyz/',
+                'doc': 'https://api-doc.hibachi.xyz/',
                 'referral': {
                     'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },
@@ -279,7 +280,7 @@ export default class hibachi extends Exchange {
         });
     }
 
-    getAccountId () {
+    getAccountId (): number {
         this.checkRequiredCredentials ();
         const id = this.parseToInt (this.accountId);
         return id;
@@ -327,7 +328,7 @@ export default class hibachi extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'underlyingDecimals'))),
-                'price': this.parseNumber (this.safeValue (this.safeList (market, 'orderbookGranularities', []), 0)) / 10000.0,
+                'price': this.parseNumber (Precise.stringDiv (this.safeString (this.safeList (market, 'orderbookGranularities', []), 0), '10000')),
             },
             'limits': {
                 'leverage': {
@@ -900,7 +901,7 @@ export default class hibachi extends Exchange {
         const makerFee = this.safeNumber (market, 'maker', this.safeNumber (this.options, 'defaultMakerFee', 0.00015));
         const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
         const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = Math.max (takerFeeValue, makerFeeValue);
+        const feeRate = this.parseNumber (Precise.stringMax (this.numberToString (takerFeeValue), this.numberToString (makerFeeValue)));
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -1033,7 +1034,7 @@ export default class hibachi extends Exchange {
         const makerFee = this.safeNumber (market, 'maker', 0);
         const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
         const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = Math.max (takerFeeValue, makerFeeValue);
+        const feeRate = this.parseNumber (Precise.stringMax (this.numberToString (takerFeeValue), this.numberToString (makerFeeValue)));
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request: Dict = {
@@ -1128,7 +1129,7 @@ export default class hibachi extends Exchange {
         return ret;
     }
 
-    cancelOrderRequest (id: string) {
+    cancelOrderRequest (id: string): Dict {
         const bigid = this.convertToBigInt (id);
         const idbase16 = this.intToBase16 (bigid);
         const idPadded = idbase16.padStart (16, '0');
@@ -1277,11 +1278,11 @@ export default class hibachi extends Exchange {
      * @param {string} code unified currency code, only support USDT
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         const withdrawAddress = address.slice (-40);
         // Get the withdraw fees
         const exchangeInfo = await this.publicGetMarketExchangeInfo (params);
@@ -1813,9 +1814,10 @@ export default class hibachi extends Exchange {
         });
     }
 
-    override sign (path: string, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const endpoint = '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1832,11 +1834,11 @@ export default class hibachi extends Exchange {
         if (hasJsonBody) {
             headersValue['Content-Type'] = 'application/json';
         }
-        let bodyResult = body;
+        let bodyResult = undefined;
         if (hasJsonBody) {
             bodyResult = this.json (params);
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             headersValue['Authorization'] = this.apiKey;
         }
@@ -1875,7 +1877,7 @@ export default class hibachi extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'pending': 'pending',
             'claimable': 'pending',

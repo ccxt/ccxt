@@ -204,7 +204,7 @@ export default class coincheck extends coincheckRest {
         }, market);
     }
     handleMessage(client, message) {
-        const data = this.safeValue(message, 0);
+        const data = this.safeList(message, 0);
         if (!Array.isArray(data)) {
             this.handleOrderBook(client, message);
         }

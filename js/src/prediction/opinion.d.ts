@@ -1,5 +1,6 @@
 import Exchange from '../abstract/prediction/opinion.js';
-import type { OrderSide, OrderType, Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
+import type { OrderSide, OrderType, Balances, Dict, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 /**
  * @class opinion
  * @augments Exchange
@@ -67,7 +68,7 @@ export default class opinion extends Exchange {
      * @param {object} rawEvent the raw opinion categorical market object
      * @returns {object} an event structure
      */
-    parseEvent(rawEvent: Dict): any;
+    parseEvent(rawEvent: Dict): PredictionEvent;
     /**
      * @method
      * @name opinion#fetchTicker
@@ -149,7 +150,7 @@ export default class opinion extends Exchange {
      */
     loadMultiSignAddress(): Promise<string>;
     signOpinionOrder(order: Dict, exchangeAddress: string): string;
-    opinionOrderRawAmounts(isMarket: boolean, side: string, amount: Num, price: Num, decimals: number): Dict;
+    opinionOrderRawAmounts(isMarket: boolean, side: string, amount: Num, price: Num, decimals: Int): Dict;
     /**
      * @method
      * @name opinion#createOrder
@@ -386,7 +387,7 @@ export default class opinion extends Exchange {
      * @param {int} outcomeSide 1 for the yes token, 2 for the no token
      * @returns {object} the outcome object, or undefined
      */
-    opinionOutcomeByMarketIdSide(marketId: Int, outcomeSide: Int): any;
+    opinionOutcomeByMarketIdSide(marketId: Int, outcomeSide: Int): NullableDict;
     /**
      * @method
      * @name opinion#watchOrderBook
@@ -399,7 +400,7 @@ export default class opinion extends Exchange {
      */
     watchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     seedOrderBook(outcome: string, sym: Str, limit?: Int): Promise<void>;
-    handleOrderBook(client: any, message: Dict): void;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name opinion#watchTicker
@@ -410,7 +411,7 @@ export default class opinion extends Exchange {
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     watchTicker(outcome: string, params?: Dict): Promise<PredictionTicker>;
-    handleTicker(client: any, message: Dict): void;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name opinion#watchTrades
@@ -423,7 +424,7 @@ export default class opinion extends Exchange {
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     watchTrades(outcome: string, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
-    handleTrades(client: any, message: Dict): void;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name opinion#watchOrders
@@ -445,7 +446,7 @@ export default class opinion extends Exchange {
      * @returns {string} a unified order status, or undefined
      */
     parseWsOrderStatus(status: Int): Str;
-    handleOrder(client: any, message: Dict): void;
+    handleOrder(client: Client, message: Dict): void;
     /**
      * @method
      * @name opinion#watchMyTrades
@@ -458,7 +459,7 @@ export default class opinion extends Exchange {
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
-    handleMyTrade(client: any, message: Dict): void;
+    handleMyTrade(client: Client, message: Dict): void;
     handleErrors(code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @ignore
@@ -466,14 +467,12 @@ export default class opinion extends Exchange {
      * @name opinion#sign
      * @description builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: any;

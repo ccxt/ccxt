@@ -35,7 +35,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSpotMarkets(params?: Dict): Promise<Market[]>;
     fetchSwapAndFutureMarkets(params?: Dict): Promise<Market[]>;
     parseMarkets(markets: any): List;
     parseMarket(market: Dict): Market;
@@ -182,7 +182,7 @@ export default class xt extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: Num, params?: Dict): Promise<Order>;
-    createContractOrder(symbol: string, type: OrderType, side: any, amount: any, price?: Num, params?: Dict): Promise<Order>;
+    createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name xt#fetchOrder
@@ -382,11 +382,10 @@ export default class xt extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     /**
@@ -469,6 +468,7 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingInterval(symbol: string, params?: Dict): Promise<FundingRate>;
@@ -493,7 +493,7 @@ export default class xt extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name xt#fetchTradingFee
@@ -631,10 +631,10 @@ export default class xt extends Exchange {
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: {}): {
         url: string;
         method: string;
-        body: any;
+        body: Str;
         headers: Dict;
     };
 }

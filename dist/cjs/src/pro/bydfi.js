@@ -100,8 +100,8 @@ class bydfi extends bydfi$1["default"] {
         };
         const unsubscribe = this.safeBool(params, 'unsubscribe', false);
         let method = 'SUBSCRIBE';
-        const paramsOmitted = (unsubscribe === true) ? this.omit(params, 'unsubscribe') : params;
-        if (unsubscribe === true) {
+        const paramsOmitted = (unsubscribe) ? this.omit(params, 'unsubscribe') : params;
+        if (unsubscribe) {
             method = 'UNSUBSCRIBE';
             subscriptionParams['unsubscribe'] = true;
             subscriptionParams['messageHashes'] = messageHashes;
@@ -882,7 +882,7 @@ class bydfi extends bydfi$1["default"] {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future('fetchBalanceSnapshot');
         }
         const messageHash = 'balance';
@@ -891,7 +891,7 @@ class bydfi extends bydfi$1["default"] {
     fetchBalanceSnapshot(client) {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -904,7 +904,30 @@ class bydfi extends bydfi$1["default"] {
             'type': 'swap',
         };
         const response = await this.fetchBalance(params);
-        this.balance = this.extend(response, this.balance);
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = ['info', 'timestamp', 'datetime', 'free', 'used', 'total'];
+        const keys = Object.keys(response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            if (!(key in this.balance)) {
+                this.balance[key] = response[key];
+            }
+        }
+        if (!('info' in this.balance)) {
+            this.balance['info'] = response['info'];
+            this.balance['timestamp'] = response['timestamp'];
+            this.balance['datetime'] = response['datetime'];
+        }
+        this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
         future.resolve();
@@ -951,31 +974,34 @@ class bydfi extends bydfi$1["default"] {
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        const messageHash = 'balance';
-        if (messageHash in client.futures) {
-            const data = this.safeDict(message, 'a', {});
-            const balances = this.safeList(data, 'B', []);
-            const timestamp = this.safeInteger(message, 'T');
-            const result = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-            };
-            for (let i = 0; i < balances.length; i++) {
-                const balance = this.safeDict(balances, i);
-                const currencyId = this.safeString(balance, 'a');
-                const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['total'] = this.safeString(balance, 'wb');
-                account['used'] = this.safeString(balance, 'tfm');
-                if (code !== undefined) {
-                    result[code] = account;
-                }
-            }
-            const parsedBalance = this.safeBalance(result);
-            this.balance = this.extend(this.balance, parsedBalance);
-            client.resolve(this.balance, messageHash);
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
         }
+        const data = this.safeDict(message, 'a', {});
+        const balances = this.safeList(data, 'B', []);
+        const timestamp = this.safeInteger(message, 'T');
+        this.balance['info'] = message;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601(timestamp);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = this.safeDict(balances, i);
+            const currencyId = this.safeString(balance, 'a');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['total'] = this.safeString(balance, 'wb');
+            account['used'] = this.safeString(balance, 'tfm');
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
+        }
+        this.balance = this.safeBalance(this.balance);
+        const messageHash = 'balance';
+        client.resolve(this.balance, messageHash);
     }
     handleSubscriptionStatus(client, message) {
         //
@@ -988,7 +1014,7 @@ class bydfi extends bydfi$1["default"] {
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool(subscription, 'unsubscribe', false);
-        if (isUnSubMessage === true) {
+        if (isUnSubMessage) {
             this.handleUnSubscription(client, subscription);
         }
         return message;

@@ -68,14 +68,20 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 		}
 
 		// Convert headers to map[string]string
-		headersMap, ok := headers.(map[string]any)
-		if !ok {
-			panic("headers must be a map[string]any")
-		}
-
+		// unsigned requests carry no headers (sign returns undefined)
 		headersStrMap := make(map[string]string)
-		for k, v := range headersMap {
-			headersStrMap[k] = fmt.Sprintf("%v", v)
+		switch h := headers.(type) {
+		case nil:
+		case map[string]any:
+			for k, v := range h {
+				headersStrMap[k] = fmt.Sprintf("%v", v)
+			}
+		case map[string]string:
+			for k, v := range h {
+				headersStrMap[k] = v
+			}
+		default:
+			panic("headers must be a map[string]any")
 		}
 
 		headersOptions, ok := this.Options.Load("headers")

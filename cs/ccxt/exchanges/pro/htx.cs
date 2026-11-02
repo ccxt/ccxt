@@ -630,27 +630,27 @@ public partial class htx : ccxt.htx
             client.resolve(snapshotOrderBook, id);
             if (((sequence == null)) || ((nonce < sequence)))
             {
-                object maxAttempts = this.handleOption("watchOrderBook", "maxRetries", 3);
-                object numAttempts = this.safeInteger(subscription, "numAttempts", 0);
+                Int64? maxAttempts = this.parseToInt(this.handleOption("watchOrderBook", "maxRetries", 3));
+                Int64? numAttempts = this.safeInteger(subscription, "numAttempts", 0);
                 // retry to synchronize if we have not reached maxAttempts yet
-                if (isLessThan(numAttempts, maxAttempts))
+                if ((maxAttempts != null && (numAttempts == null || numAttempts < maxAttempts)))
                 {
                     // safety guard
                     if ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))
                     {
-                        numAttempts = this.sum(numAttempts, 1);
+                        Int64 nextAttempts = this.sum(numAttempts, 1);
                         object delayTime = 1000;
                         if (((lastTimestamp != null)) && ((snapshotTimestamp != null)))
                         {
                             delayTime = this.sum(1000, (lastTimestamp - snapshotTimestamp));
                         }
-                        ((IDictionary<string,object>)subscription)["numAttempts"] = numAttempts;
+                        ((IDictionary<string,object>)subscription)["numAttempts"] = nextAttempts;
                         ((IDictionary<string,object>)client.subscriptions)[(string)messageHash] = subscription;
                         this.delay(delayTime,  this.watchOrderBookSnapshot, new object[] { client, message, subscription});
                     }
                 } else
                 {
-                    throw new InvalidNonce ((((((this.id + " failed to synchronize WebSocket feed with the snapshot for symbol ") + symbol) + " in ") + maxAttempts.ToString()) + " attempts")) ;
+                    throw new InvalidNonce ((((((this.id + " failed to synchronize WebSocket feed with the snapshot for symbol ") + symbol) + " in ") + ((object)maxAttempts).ToString()) + " attempts")) ;
                 }
             } else
             {
@@ -806,8 +806,8 @@ public partial class htx : ccxt.htx
         //         "ts":1645023376098
         //     }
         //
-        object ch = this.safeValue(message, "ch");
-        List<object> parts = ((string)ch).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string? ch = this.safeString(message, "ch", "");
+        List<object> parts = ch.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -824,7 +824,8 @@ public partial class htx : ccxt.htx
             (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
             orderbook["nonce"] = version;
         }
-        if (((prevSeqNum != null)) && isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))
+        Int64? orderbookNonce = this.safeInteger(orderbook, "nonce", 0);
+        if (((prevSeqNum != null)) && (prevSeqNum != null && (orderbookNonce == null || prevSeqNum > orderbookNonce)))
         {
             bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
             if ((checksum == true))
@@ -832,15 +833,15 @@ public partial class htx : ccxt.htx
                 throw new ChecksumError (((this.id + " ") + this.orderbookChecksumMessage(symbol))) ;
             }
         }
-        bool spotConditon = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && (isEqual(prevSeqNum, getValue(orderbook, "nonce")));
-        bool nonSpotCondition = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((version != null)) && (isEqual((version - 1), getValue(orderbook, "nonce")));
-        if (((spotConditon == true)) || ((nonSpotCondition == true)))
+        bool spotConditon = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && (isEqual(prevSeqNum, (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null)));
+        bool nonSpotCondition = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((version != null)) && (isEqual((version - 1), (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null)));
+        if ((spotConditon) || (nonSpotCondition))
         {
             List<object> asks = this.safeList(tick, "asks", new List<object>() {});
             List<object> bids = this.safeList(tick, "bids", new List<object>() {});
             this.handleDeltas(orderbook?.asks, asks);
             this.handleDeltas(orderbook?.bids, bids);
-            orderbook["nonce"] = ((spotConditon == true)) ? seqNum : version;
+            orderbook["nonce"] = spotConditon ? seqNum : version;
             orderbook["timestamp"] = timestamp;
             orderbook["datetime"] = this.iso8601(timestamp);
         }
@@ -916,7 +917,7 @@ public partial class htx : ccxt.htx
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        if (((eventVar == null)) && (isEqual(getValue(orderbook, "nonce"), null)))
+        if (((eventVar == null)) && ((((object)((orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))) == null)))
         {
             (orderbook as ccxt.pro.OrderBook).cache.Add(message);
         } else
@@ -933,7 +934,13 @@ public partial class htx : ccxt.htx
         Int64? limit = this.safeInteger(subscription, "limit");
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            }
+            ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+            orderbook["nonce"] = null;
+            (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
         }
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
@@ -1039,9 +1046,9 @@ public partial class htx : ccxt.htx
         object channel = null;
         string? orderType = this.safeString(this.options, "orderType", "orders"); // orders or matchOrders
         orderType = this.safeString(parameters, "orderType", orderType);
-        object paramsOmitted = this.omit(parameters, "orderType");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "orderType"));
         string? marketCode = null;
-        if (((market != null)) && (!isEqual((market != null && market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null), null)))
+        if (((market != null)) && (!((market != null && market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null) == null)))
         {
             marketCode = ((string)(market != null && market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null)).ToLower();
         }
@@ -1113,7 +1120,7 @@ public partial class htx : ccxt.htx
         {
             messageHash = ((topic + ".") + ((string)contractCode).ToLower());
         }
-        object paramsOmitted = this.omit(parameters, "contract_code");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "contract_code"));
         Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {
             { "contract_code", contractCode },
         }, paramsOmitted);
@@ -1637,7 +1644,7 @@ public partial class htx : ccxt.htx
             };
         }
         string? avgPrice = this.safeString(order, "trade_avg_price");
-        object rawTrades = this.safeValue(order, "trade");
+        List<object> rawTrades = this.safeList(order, "trade");
         List<object> typeSideParts = new List<object>() {};
         string? type = null;
         if ((typeSide != null))
@@ -1732,7 +1739,7 @@ public partial class htx : ccxt.htx
         string? takerOrMaker = null;
         if ((aggressor != null))
         {
-            takerOrMaker = ((aggressor == true)) ? "taker" : "maker";
+            takerOrMaker = aggressor == true ? "taker" : "maker";
         }
         return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -2077,7 +2084,7 @@ public partial class htx : ccxt.htx
                         // cross margin
                         if ((currencyCode != null))
                         {
-                            channel = ((prefix + ".") + (GetValue(currencyCode, "id")));
+                            channel = ((prefix + ".") + ((currencyCode != null && currencyCode.ContainsKey("id") ? currencyCode["id"] : null)));
                             messageHash = channel;
                         } else
                         {
@@ -2091,7 +2098,7 @@ public partial class htx : ccxt.htx
                 // inverse futures account
                 if ((currencyCode != null))
                 {
-                    messageHash = add(messageHash, ("." + (GetValue(currencyCode, "id"))));
+                    messageHash = add(messageHash, ("." + ((currencyCode != null && currencyCode.ContainsKey("id") ? currencyCode["id"] : null))));
                     channel = messageHash;
                 } else
                 {
@@ -2796,7 +2803,7 @@ public partial class htx : ccxt.htx
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
@@ -3003,9 +3010,10 @@ public partial class htx : ccxt.htx
                 Dictionary<string, object> market = ((contractCode != null)) ? this.safeMarket(contractCode) : null;
                 if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
-                    for (int i = 0; i < getArrayLength(data); i++)
+                    List<object> dataList = this.safeList(message, "data", new List<object>() {});
+                    for (int i = 0; i < dataList.Count; i++)
                     {
-                        ccxt.Trade parsed = this.parseWsTrade(getValue(data, i), market);
+                        ccxt.Trade parsed = this.parseWsTrade(dataList[i], market);
                         string? symbol = parsed.symbol;
                         if ((symbol != null))
                         {
@@ -3119,7 +3127,7 @@ public partial class htx : ccxt.htx
         string? takerOrMaker = null;
         if ((aggressor != null))
         {
-            takerOrMaker = ((aggressor == true)) ? "taker" : "maker";
+            takerOrMaker = aggressor == true ? "taker" : "maker";
         } else
         {
             takerOrMaker = this.safeStringLower(trade, "role");

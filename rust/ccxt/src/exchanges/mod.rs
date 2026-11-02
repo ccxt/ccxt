@@ -89,8 +89,6 @@ pub mod coinbaseexchange_typed;
 pub mod coinbaseinternational_typed;
 #[cfg(feature = "coincheck")]
 pub mod coincheck_typed;
-#[cfg(feature = "coinex")]
-pub mod coinex_typed;
 #[cfg(feature = "coinmate")]
 pub mod coinmate_typed;
 #[cfg(feature = "coinone")]
@@ -193,6 +191,8 @@ pub mod paymium_typed;
 pub mod phemex_typed;
 #[cfg(feature = "poloniex")]
 pub mod poloniex_typed;
+#[cfg(feature = "polymarket")]
+pub mod polymarket_typed;
 #[cfg(feature = "revolutx")]
 pub mod revolutx_typed;
 #[cfg(feature = "tokocrypto")]

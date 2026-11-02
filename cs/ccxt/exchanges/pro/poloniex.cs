@@ -18,6 +18,9 @@ public partial class poloniex : ccxt.poloniex
                 { "watchTickers", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
+                { "unWatchOHLCV", true },
+                { "unWatchTrades", true },
+                { "unWatchTradesForSymbols", true },
                 { "watchBalance", true },
                 { "watchStatus", false },
                 { "watchOrders", true },
@@ -42,6 +45,10 @@ public partial class poloniex : ccxt.poloniex
             } },
             { "options", new Dictionary<string, object>() {
                 { "createMarketBuyOrderRequiresPrice", true },
+                { "watchBalance", new Dictionary<string, object>() {
+                    { "fetchBalanceSnapshot", true },
+                    { "awaitBalanceSnapshot", true },
+                } },
                 { "tradesLimit", 1000 },
                 { "ordersLimit", 1000 },
                 { "OHLCVLimit", 1000 },
@@ -171,8 +178,7 @@ public partial class poloniex : ccxt.poloniex
             {
                 throw new ArgumentsRequired ((this.id + " subscribe() symbols is required")) ;
             }
-            IList<object> ids = this.marketIds(symbols);
-            marketIds = ((ids == null)) ? new List<object>() {} : ids;
+            marketIds = this.marketIds(symbols);
         }
         string symbolsSuffix = ((symbols == null)) ? "" : String.Join(",", ((IList<object>)symbols).ToArray());
         object symbolsHash = null;
@@ -189,6 +195,28 @@ public partial class poloniex : ccxt.poloniex
         }
         Dictionary<string, object> request = this.extend(subscribe, parameters);
         return await this.watch(url, symbolsHash, request, symbolsHash);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name name of the channel
+     * @param {string[]} symbols CCXT market symbols
+     * @param {string[]} messageHashes unique identifiers resolved once the exchange acknowledges the unsubscribe
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} true once the exchange acknowledges the unsubscribe
+     */
+    public async virtual Task<object> unSubscribe(object name, object symbols, object messageHashes, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "event", "unsubscribe" },
+            { "channel", new List<object>() {name} },
+            { "symbols", this.marketIds(symbols) },
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
     /**
@@ -435,6 +463,36 @@ public partial class poloniex : ccxt.poloniex
 
     /**
      * @method
+     * @name poloniex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    {
+        string timeframeVar = timeframe;
+        timeframeVar ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
+        string? channel = this.safeString(timeframes, timeframeVar, timeframeVar);
+        if ((channel == null))
+        {
+            throw new BadRequest ((string)((this.id + " unWatchOHLCV cannot take a timeframe of ") + (timeframeVar))) ;
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        string messageHash = ((("unsubscribe:" + channel) + "::") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        return await this.unSubscribe(channel, new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, new List<object>() {messageHash}, parameters);
+    }
+
+    /**
+     * @method
      * @name poloniex#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
@@ -546,6 +604,47 @@ public partial class poloniex : ccxt.poloniex
 
     /**
      * @method
+     * @name poloniex#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+    }
+
+    /**
+     * @method
+     * @name poloniex#unWatchTradesForSymbols
+     * @description unWatches the list of most recent trades for a list of symbols
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        string name = "trades";
+        List<object> messageHashes = new List<object>() {};
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
+        {
+            messageHashes.Add(((("unsubscribe:" + name) + "::") + (symbolsNormalized[i])));
+        }
+        return await this.unSubscribe(name, symbolsNormalized, messageHashes, parameters);
+    }
+
+    /**
+     * @method
      * @name poloniex#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
@@ -650,7 +749,77 @@ public partial class poloniex : ccxt.poloniex
         }
         string name = "balances";
         await this.authenticate();
+        // the balances channel only streams per-event deltas, so seed the
+        // balance from a rest snapshot once per subscription - otherwise the
+        // first resolves would only list the currencies that changed since
+        // subscribing
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
+        var client = this.client(url);
+        this.setBalanceCache(client, name);
+        IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
+        {
+            await client.future((name + ":fetchBalanceSnapshot"));
+        }
         return ccxt.BaseExchange.ToBalances(await this.subscribe(name, name, true, null, parameters));
+    }
+
+    public virtual void setBalanceCache(WebSocketClient client, object type)
+    {
+        if ((client.subscriptions != null && type is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        {
+            return;
+        }
+        IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        if ((fetchBalanceSnapshot == true))
+        {
+            object messageHash = add(type, ":fetchBalanceSnapshot");
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
+            {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
+            }
+        }
+    }
+
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    {
+        Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance());
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        List<object> reserved = new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"};
+        List<object> keys = new List<object>(response.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            string? key = ((string)keys[i]);
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            if (!((this.balance != null && key != null && this.balance.ContainsKey(key))))
+            {
+                this.balance[(string)key] = (response != null && key != null && response.ContainsKey(key) ? response[key] : null);
+            }
+        }
+        if (!((this.balance != null && this.balance.ContainsKey("info"))))
+        {
+            this.balance["info"] = (response != null && response.ContainsKey("info") ? response["info"] : null);
+            this.balance["timestamp"] = (response != null && response.ContainsKey("timestamp") ? response["timestamp"] : null);
+            this.balance["datetime"] = (response != null && response.ContainsKey("datetime") ? response["datetime"] : null);
+        }
+        this.balance = this.safeBalance(this.balance);
+        // don't remove the future from the .futures cache
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        {
+            Future future = ((Future)getValue(client.futures, messageHash));
+            (future as Future).resolve();
+            client.resolve(this.balance, type);
+        }
     }
 
     public override List<object> parseWsOHLCV(object ohlcv, object market = null)
@@ -695,8 +864,8 @@ public partial class poloniex : ccxt.poloniex
         //        ]
         //    }
         //
-        object data = this.safeValue(message, "data");
-        data = this.safeValue(data, 0);
+        List<object> dataList = this.safeList(message, "data");
+        IDictionary<string, object> data = this.safeDict(dataList, 0);
         string? channel = this.safeString(message, "channel");
         string? marketId = this.safeString(data, "symbol");
         string? symbol = this.safeSymbol(marketId);
@@ -983,15 +1152,15 @@ public partial class poloniex : ccxt.poloniex
                         marketIds.Add(marketId);
                         continue;
                     }
-                    if (isEqual(GetValue(previousOrder, "trades"), null))
+                    if (((previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null) == null))
                     {
                         previousOrder["trades"] = new List<object>() {};
                     }
-                    ((IList<object>)GetValue(previousOrder, "trades")).Add(ccxt.BaseExchange.FromTrade(trade));
+                    ((IList<object>)(previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null)).Add(ccxt.BaseExchange.FromTrade(trade));
                     previousOrder["lastTradeTimestamp"] = (((object)trade.timestamp));
                     string? totalCost = "0";
                     string? totalAmount = "0";
-                    object previousOrderTrades = GetValue(previousOrder, "trades");
+                    object previousOrderTrades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
                     for (int j = 0; j < getArrayLength(previousOrderTrades); j++)
                     {
                         object previousOrderTrade = getValue(previousOrderTrades, j);
@@ -1005,19 +1174,19 @@ public partial class poloniex : ccxt.poloniex
                         previousOrder["average"] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
                     }
                     previousOrder["cost"] = this.parseNumber(totalCost);
-                    if (!isEqual(GetValue(previousOrder, "filled"), null))
+                    if (!((previousOrder != null && previousOrder.ContainsKey("filled") ? previousOrder["filled"] : null) == null))
                     {
                         string? tradeAmount = this.numberToString((((object)trade.amount)));
-                        string? previousOrderFilled = this.numberToString(GetValue(previousOrder, "filled"));
+                        string? previousOrderFilled = this.numberToString((previousOrder != null && previousOrder.ContainsKey("filled") ? previousOrder["filled"] : null));
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
                         previousOrder["filled"] = previousOrderFilled;
-                        if (!isEqual(GetValue(previousOrder, "amount"), null))
+                        if (!((previousOrder != null && previousOrder.ContainsKey("amount") ? previousOrder["amount"] : null) == null))
                         {
-                            string? previousOrderAmount = this.numberToString(GetValue(previousOrder, "amount"));
+                            string? previousOrderAmount = this.numberToString((previousOrder != null && previousOrder.ContainsKey("amount") ? previousOrder["amount"] : null));
                             previousOrder["remaining"] = this.parseNumber(Precise.stringSub(previousOrderAmount, previousOrderFilled));
                         }
                     }
-                    if (isEqual(GetValue(previousOrder, "fee"), null))
+                    if (((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null) == null))
                     {
                         previousOrder["fee"] = new Dictionary<string, object>() {
                             { "rate", null },
@@ -1025,11 +1194,11 @@ public partial class poloniex : ccxt.poloniex
                             { "currency", this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "currency") },
                         };
                     }
-                    if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"), null)))
+                    if ((!(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost") == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
                     {
-                        string? stringOrderCost = this.numberToString(getValue(GetValue(previousOrder, "fee"), "cost"));
+                        string? stringOrderCost = this.numberToString(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"));
                         string? stringTradeCost = this.numberToString(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
-                        ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                        ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }
                     string? rawState = this.safeString(order, "state");
                     string? state = this.parseStatus(rawState);
@@ -1254,15 +1423,24 @@ public partial class poloniex : ccxt.poloniex
             List<object> bids = this.safeList(item, "bids");
             if (snapshot || update)
             {
-                if (snapshot)
+                ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
+                if (snapshot && ((orderbook == null)))
                 {
-                    ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+                    orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
+                    ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
                 }
-                if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+                if ((orderbook == null))
                 {
                     continue;
                 }
-                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+                if (snapshot)
+                {
+                    // reset the existing orderbook in place instead of
+                    // replacing it: a consumer awakened earlier keeps a
+                    // reference to the old object and would be orphaned
+                    // from later updates on a resync/reconnect otherwise
+                    (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
+                }
                 if ((bids != null))
                 {
                     for (int j = 0; j < bids.Count; j++)
@@ -1314,40 +1492,27 @@ public partial class poloniex : ccxt.poloniex
         //        ]
         //    }
         //
+        // the balances channel only sends per-event deltas for the currencies
+        // that changed, so merge them into the existing balance object instead
+        // of rebuilding it from the current message: a rebuilt object would
+        // drop every other currency, and a consumer awakened by an earlier
+        // message keeps a reference to the old object while Client.resolve is
+        // a no-op with no waiter, so updates landing in that window would
+        // never reach that consumer (same class as kraken issue #26773)
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string messageHash = "balances";
-        this.balance = this.parseWsBalance(data);
-        client.resolve(this.balance, messageHash);
-    }
-
-    public virtual Dictionary<string, object> parseWsBalance(object response)
-    {
-        //
-        //    [
-        //        {
-        //            "changeTime": 1657312008411,
-        //            "accountId": "1234",
-        //            "accountType": "SPOT",
-        //            "eventType": "place_order",
-        //            "available": "9999999983.668",
-        //            "currency": "BTC",
-        //            "id": 60018450912695040,
-        //            "userId": 12345,
-        //            "hold": "16.332",
-        //            "ts": 1657312008443
-        //        }
-        //    ]
-        //
-        IDictionary<string, object> firstBalance = this.safeDict(response, 0, new Dictionary<string, object>() {});
-        Int64? timestamp = this.safeInteger(firstBalance, "ts");
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-        };
-        for (int i = 0; i < getArrayLength(response); i++)
+        if ((this.balance == null))
         {
-            IDictionary<string, object> balance = this.safeDict(response, i);
+            this.balance = new Dictionary<string, object>() {};
+        }
+        this.balance["info"] = data;
+        IDictionary<string, object> firstBalance = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        Int64? timestamp = this.safeInteger(firstBalance, "ts");
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = this.iso8601(timestamp);
+        for (int i = 0; i < data.Count; i++)
+        {
+            IDictionary<string, object> balance = this.safeDict(data, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> newAccount = this.account();
@@ -1355,10 +1520,11 @@ public partial class poloniex : ccxt.poloniex
             newAccount["used"] = this.safeString(balance, "hold");
             if ((code != null))
             {
-                result[(string)code] = newAccount;
+                this.balance[(string)code] = newAccount;
             }
         }
-        return this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
+        client.resolve(this.balance, messageHash);
     }
 
     public virtual void handleMyTrades(WebSocketClient client, IDictionary<string, object> parsedTrade)
@@ -1385,7 +1551,7 @@ public partial class poloniex : ccxt.poloniex
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -1394,6 +1560,11 @@ public partial class poloniex : ccxt.poloniex
         if (eventVar == "pong")
         {
             client.lastPong = this.milliseconds();
+        }
+        if (eventVar == "unsubscribe")
+        {
+            this.handleUnsubscription(client, message);
+            return;
         }
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "candles_minute_1", this.handleOHLCV },
@@ -1435,6 +1606,41 @@ public partial class poloniex : ccxt.poloniex
             if (dataLength > 0)
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+            }
+        }
+    }
+
+    public virtual void handleUnsubscription(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "event": "unsubscribe",
+        //        "channel": "trades",
+        //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
+        //    }
+        //
+        object channel = this.safeString(message, "channel");
+        List<object> marketIds = this.safeList(message, "symbols", new List<object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
+        string? timeframe = this.findTimeframe(channel, timeframes);
+        for (int i = 0; i < marketIds.Count; i++)
+        {
+            string? symbol = this.safeSymbol(this.safeString(marketIds, i));
+            string? subMessageHash = ((string)add(add(channel, "::"), symbol));
+            if ((channel is "trades"))
+            {
+                this.cleanCache(new Dictionary<string, object>() {
+                    { "topic", "trades" },
+                    { "symbols", new List<object>() {symbol} },
+                });
+                this.cleanUnsubscription(client, subMessageHash, ("unsubscribe:" + subMessageHash));
+            } else if ((timeframe != null))
+            {
+                this.cleanCache(new Dictionary<string, object>() {
+                    { "topic", "ohlcv" },
+                    { "symbolsAndTimeframes", new List<object>() {new List<object>() {symbol, timeframe}} },
+                });
+                this.cleanUnsubscription(client, subMessageHash, ("unsubscribe:" + subMessageHash));
             }
         }
     }

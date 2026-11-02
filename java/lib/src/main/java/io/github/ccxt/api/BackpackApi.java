@@ -177,6 +177,39 @@ public class BackpackApi extends Exchange
     }
 
     /**
+     * Calls the publicGetApiV1StockSessions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public CompletableFuture<List<Object>>  publicGetApiV1StockSessions (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetApiV1StockSessions", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetApiV1StockHolidays endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public CompletableFuture<List<Object>>  publicGetApiV1StockHolidays (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetApiV1StockHolidays", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetApiV1StockIndicativeQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicGetApiV1StockIndicativeQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetApiV1StockIndicativeQuote", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetApiV1Securities endpoint.
      *
      * @param optionalArgs the request parameters
@@ -713,17 +746,6 @@ public class BackpackApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privatePostApiV1RfqAccept (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1RfqAccept", optionalArgs);
-    }
-
-    /**
-     * Calls the privatePostApiV1RfqRefresh endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostApiV1RfqRefresh (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostApiV1RfqRefresh", optionalArgs);
     }
 
     /**

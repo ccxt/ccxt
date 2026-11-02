@@ -179,7 +179,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         client.resolve(this.balance, messageHash);
     }
 
-    public void parseWSBalances(Object balances)
+    public void parseWSBalances(List<Object> balances)
     {
         //
         //    [{
@@ -475,10 +475,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             List<Object> rawAsks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> rawBuys = (List<Object>) this.safeList(tick, "buys", new ArrayList<Object>(Arrays.asList()));
-            parseable = Helpers.newMap(
-                "asks", this.parseContractBidsAsks(rawAsks, symbol),
-                "buys", this.parseContractBidsAsks(rawBuys, symbol)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("asks", this.parseContractBidsAsks(rawAsks, symbol));
+                hx4NewMap0.put("buys", this.parseContractBidsAsks(rawBuys, symbol));
+                parseable = hx4NewMap0;
+            }
         }
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -546,6 +548,10 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return rawQuantity;
         }
         Double contractSize = this.safeNumber(market, "contractSize", 1);
+        if (java.util.Objects.equals(contractSize, null))
+        {
+            return rawQuantity;
+        }
         return Helpers.multiply(rawQuantity, contractSize);
     }
 
@@ -643,7 +649,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), Helpers.toMapArg(market));
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
             stored.append(trade);
             appended = true;
         }
@@ -774,7 +780,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return;
         }
-        Object parsed = this.parseWsOHLCV(tick, Helpers.toMapArg(market));
+        List<Object> parsed = (List<Object>) this.parseWsOHLCV(tick, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
         if (!((symbol != null && ((Map<?, ?>)this.ohlcvs).containsKey(symbol))))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
@@ -917,7 +923,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-        }}, Helpers.toMapArg(market));
+        }}, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
     }
 
     public String parseWsOrderType(String typeId)

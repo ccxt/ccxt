@@ -624,10 +624,8 @@ class xt extends Exchange {
                 'networks' => array(
                     'ERC20' => 'Ethereum',
                     'TRC20' => 'Tron',
-                    'TRX' => 'Tron',
                     'BEP20' => 'BNB Smart Chain',
                     'BEP2' => 'BNB-BEP2',
-                    'ETH' => 'Ethereum',
                     'AVAX' => 'AVAX C-Chain',
                     'GAL' => 'GAL(FT)',
                     'ALEO' => 'ALEO(IOU)',
@@ -1535,7 +1533,7 @@ class xt extends Exchange {
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
             $duration = $this->parse_timeframe($timeframe) * 1000;
-            $request['startTime'] = (int) ceil($since / $duration) * $duration;
+            $request['startTime'] = $this->parse_to_int((int) ceil($since / $duration)) * $duration;
         }
         $limitResolved = $limit;
         if ($limit !== null) {
@@ -1919,7 +1917,7 @@ class xt extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array($result, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -2014,7 +2012,7 @@ class xt extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array($result, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -2064,7 +2062,7 @@ class xt extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
-        $marketType = ($market !== null) ? $this->safe_string($market, 'type') : null;
+        $marketType = $this->safe_string($market, 'type');
         $hasSpotKeys = (is_array($ticker) && array_key_exists('cv' ?? '', $ticker)) || (is_array($ticker) && array_key_exists('aq' ?? '', $ticker));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
@@ -2072,9 +2070,27 @@ class xt extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, '_', $marketType);
         $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer($ticker, 't');
-        $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        $open = $this->safe_string($ticker, 'o');
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        $percentage = $this->safe_string($ticker, 'r');
+        if ($open === null) {
+            $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        }
         if ($percentage !== null) {
             $percentage = Precise::string_mul($percentage, '100');
+        }
+        $baseVolume = $this->safe_string_2($ticker, 'a', 'q');
+        $quoteVolume = $this->safe_string($ticker, 'v');
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
+        if (($marketResolved['contract'] === true) && ($contractSize !== null)) {
+            // 'a' counts contracts, 'v' is in the settle currency
+            $contractVolume = Precise::string_mul($baseVolume, $contractSize);
+            if ($marketResolved['inverse'] === true) {
+                $baseVolume = $quoteVolume;
+                $quoteVolume = $contractVolume;
+            } else {
+                $baseVolume = $contractVolume;
+            }
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -2087,15 +2103,15 @@ class xt extends Exchange {
             'ask' => $this->safe_number($ticker, 'ap'),
             'askVolume' => $this->safe_number($ticker, 'aq'),
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'o'),
+            'open' => $open,
             'close' => $this->safe_string($ticker, 'c'),
             'last' => $this->safe_string($ticker, 'c'),
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, 'cv'),
+            'change' => null,
             'percentage' => $this->parse_number($percentage),
             'average' => null,
-            'baseVolume' => $this->safe_number_2($ticker, 'a', 'q'),
-            'quoteVolume' => $this->safe_number($ticker, 'v'),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $marketResolved);
     }
@@ -2405,7 +2421,7 @@ class xt extends Exchange {
         //    }
         //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
-        $marketType = ($market !== null) ? $this->safe_string($market, 'type') : null;
+        $marketType = $this->safe_string($market, 'type');
         $hasSpotKeys = (is_array($trade) && array_key_exists('b' ?? '', $trade)) || (is_array($trade) && array_key_exists('bizType' ?? '', $trade)) || (is_array($trade) && array_key_exists('oi' ?? '', $trade));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
@@ -2706,7 +2722,7 @@ class xt extends Exchange {
             if ($side === 'buy') {
                 $cost = $this->safe_string($paramsMarginMode, 'cost');
                 $createMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice === true) {
+                if ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null && ($cost === null)) {
                         throw new InvalidOrder($this->id . ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                     } else {
@@ -2735,7 +2751,7 @@ class xt extends Exchange {
             $paramsWithoutCost = $this->omit($paramsMarginMode, 'cost');
         }
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $timeInForce === 'GTX', $paramsWithoutCost);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $timeInForce = 'GTX';
         }
         $paramsOmitted = $this->omit($paramsPostOnly, array( 'timeInForce', 'postOnly' ));
@@ -2758,11 +2774,11 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_contract_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_contract_order(string $symbol, string $type, string $side, mixed $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_contract_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_contract_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
+    private function do_create_contract_order(string $symbol, string $type, string $side, mixed $amount, ?float $price = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2773,7 +2789,7 @@ class xt extends Exchange {
         );
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $timeInForce === 'GTX', $params);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $timeInForce = 'GTX';
         }
         $paramsOmitted4 = $this->omit($paramsPostOnly, array( 'timeInForce', 'postOnly' ));
@@ -2783,13 +2799,13 @@ class xt extends Exchange {
         $reduceOnly = $this->safe_bool($paramsOmitted4, 'reduceOnly', false);
         if ($side === 'buy') {
             $requestType = 'LONG';
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 $requestType = 'SHORT';
             }
             $request['positionSide'] = $requestType;
         } else {
             $requestType = 'SHORT';
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 $requestType = 'LONG';
             }
             $request['positionSide'] = $requestType;
@@ -4110,7 +4126,7 @@ class xt extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -4242,7 +4258,7 @@ class xt extends Exchange {
         ), $currencyResolved);
     }
 
-    public function parse_ledger_entry_type(?string $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'EXCHANGE' => 'transfer',
             'CLOSE_POSITION' => 'trade',
@@ -4442,11 +4458,11 @@ class xt extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -4455,16 +4471,15 @@ class xt extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} [$tag]
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
-        $this->check_address($address);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         $networkIdsByCodes = $this->safe_dict($this->options, 'networks', array());
         $networkId = $this->safe_string_2($networkIdsByCodes, $networkCode, $code, $code);
@@ -4568,7 +4583,7 @@ class xt extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'SUBMIT' => 'pending',
             'REVIEW' => 'pending',
@@ -4892,7 +4907,7 @@ class xt extends Exchange {
             $tier = $this->safe_dict($brackets, $i);
             $marketId = $this->safe_string($info, 'symbol');
             $marketResolved = $this->safe_market($marketId, $market, '_', 'contract');
-            $minNotional = $this->safe_number($brackets[$i - 1], 'maxNominalValue', 0);
+            $minNotional = $this->safe_number($this->safe_dict($brackets, $i - 1), 'maxNominalValue', 0);
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'bracket'),
                 'symbol' => $this->safe_symbol($marketId, $marketResolved, '_', 'contract'),
@@ -5005,6 +5020,7 @@ class xt extends Exchange {
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         return Async\await($this->fetch_funding_rate($symbol, $params));
@@ -5070,10 +5086,8 @@ class xt extends Exchange {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_', 'swap');
         $timestamp = $this->safe_integer($contract, 'nextCollectionTime');
-        $interval = $this->safe_string($contract, 'collectionInternal');
-        if ($interval !== null) {
-            $interval = $interval . 'h';
-        }
+        $collectionInterval = $this->safe_string($contract, 'collectionInternal');
+        $interval = ($collectionInterval !== null) ? ($collectionInterval . 'h') : null;
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -5142,7 +5156,7 @@ class xt extends Exchange {
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -6045,7 +6059,7 @@ class xt extends Exchange {
         return null;
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array(), string $method = 'GET', $params = array()) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $request = '/' . $this->implode_params($path, $params);
@@ -6077,14 +6091,8 @@ class xt extends Exchange {
             $timestamp = $this->number_to_string($this->nonce());
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
                 $id = 'CCXT';
-                if ($query === null) {
-                    throw new NullResponse($this->id . ' sign() returned empty body');
-                }
                 if (mb_strpos($payload, 'future') > -1) {
                     $query['clientMedia'] = $id;
-                    if ($query === null) {
-                        throw new NullResponse($this->id . ' sign() returned empty body');
-                    }
                 } else {
                     $query['media'] = $id;
                 }
@@ -6131,7 +6139,7 @@ class xt extends Exchange {
                 $url .= '?' . $urlencoded;
             }
         }
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($signed) {
             $bodyValue = $signedBody;
         }

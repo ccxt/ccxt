@@ -347,9 +347,10 @@ class bithumb extends \ccxt\async\bithumb {
         $time = $this->safe_string($ticker, 'time', '');
         $kstDatetime = mb_substr($date, 0, 4 - 0) . '-' . mb_substr($date, 4, 6 - 4) . '-' . mb_substr($date, 6, 8 - 6) . 'T' . mb_substr($time, 0, 2 - 0) . ':' . mb_substr($time, 2, 4 - 2) . ':' . mb_substr($time, 4, 6 - 4);
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        $timestamp = $this->parse8601($kstDatetime);
-        if ($timestamp !== null) {
-            $timestamp = ($timestamp - 32400000);
+        $timestamp = null;
+        $kstTimestamp = $this->parse8601($kstDatetime);
+        if ($kstTimestamp !== null) {
+            $timestamp = $kstTimestamp - 32400000;
         }
         $marketId = $this->safe_string($ticker, 'symbol');
         return $this->safe_ticker(array(
@@ -367,8 +368,9 @@ class bithumb extends \ccxt\async\bithumb {
             'close' => $this->safe_string($ticker, 'closePrice'),
             'last' => null,
             'previousClose' => $this->safe_string($ticker, 'prevClosePrice'),
-            'change' => $this->safe_string($ticker, 'chgAmt'),
-            'percentage' => $this->safe_string($ticker, 'chgRate'),
+            // safeTicker derives change/percentage from open, matching the REST parser
+            'change' => null,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'value'),
@@ -500,31 +502,13 @@ class bithumb extends \ccxt\async\bithumb {
         if ($symbol === null) {
             return;
         }
-        $streamType = $this->safe_string($message, 'stream_type');
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
         $obLimit = $this->safe_integer($options, 'limit', 1000);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) || ($streamType === 'SNAPSHOT')) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array(), $obLimit);
         }
         $orderbook = $this->orderbooks[$symbol];
-        $orderbook->reset(array());
-        $orderbook['symbol'] = $symbol;
-        $bids = $orderbook['bids'];
-        $asks = $orderbook['asks'];
         $units = $this->safe_list($message, 'orderbook_units', array());
-        for ($i = 0; $i < count($units); $i++) {
-            $entry = $this->safe_dict($units, $i);
-            $bidPrice = $this->safe_number($entry, 'bid_price');
-            $bidSize = $this->safe_number($entry, 'bid_size');
-            $askPrice = $this->safe_number($entry, 'ask_price');
-            $askSize = $this->safe_number($entry, 'ask_size');
-            if (($bidPrice !== null) && ($bidSize !== null)) {
-                $bids->store($bidPrice, $bidSize);
-            }
-            if (($askPrice !== null) && ($askSize !== null)) {
-                $asks->store($askPrice, $askSize);
-            }
-        }
         $gen2TimestampStr = $this->safe_string_2($message, 'timestamp', 'datetime');
         $timestamp = null;
         if ($gen2TimestampStr !== null) {
@@ -533,8 +517,23 @@ class bithumb extends \ccxt\async\bithumb {
         if ($timestamp === null) {
             $timestamp = $this->milliseconds();
         }
-        $orderbook['timestamp'] = $timestamp;
-        $orderbook['datetime'] = $this->iso8601($timestamp);
+        $bidsSnapshot = array();
+        $asksSnapshot = array();
+        for ($i = 0; $i < count($units); $i++) {
+            $entry = $this->safe_dict($units, $i);
+            $bidPrice = $this->safe_number($entry, 'bid_price');
+            $bidSize = $this->safe_number($entry, 'bid_size');
+            $askPrice = $this->safe_number($entry, 'ask_price');
+            $askSize = $this->safe_number($entry, 'ask_size');
+            if (($bidPrice !== null) && ($bidSize !== null)) {
+                $bidsSnapshot[] = array( $bidPrice, $bidSize );
+            }
+            if (($askPrice !== null) && ($askSize !== null)) {
+                $asksSnapshot[] = array( $askPrice, $askSize );
+            }
+        }
+        $snapshot = $this->parse_order_book(array( 'bids' => $bidsSnapshot, 'asks' => $asksSnapshot ), $symbol, $timestamp);
+        $orderbook->reset($snapshot);
         $messageHash = 'orderbook' . ':' . $symbol;
         $client->resolve($orderbook, $messageHash);
     }
@@ -734,7 +733,11 @@ class bithumb extends \ccxt\async\bithumb {
         $marketId = $this->safe_string($trade, 'symbol');
         $datetime = $this->safe_string($trade, 'contDtm');
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        $timestamp = $this->parse_to_int($this->parse8601($datetime)) - 32400000;
+        $timestamp = null;
+        $kstTimestamp = $this->parse8601($datetime);
+        if ($kstTimestamp !== null) {
+            $timestamp = $kstTimestamp - 32400000;
+        }
         $sideId = $this->safe_string($trade, 'buySellGb');
         return $this->safe_trade(array(
             'id' => null,
