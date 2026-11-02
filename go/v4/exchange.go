@@ -169,13 +169,13 @@ type BaseExchange struct {
 	// Ohlcvs holds one book per symbol, and a book is the plain map of its timeframes.
 	Ohlcvs         map[string]map[string]any
 	Trades         map[string]WsArrayCache
-	Tickers        map[string]any
+	Tickers        map[string]Ticker
 	Orders         WsArrayCache // cache object, not a map
 	MyTrades       WsArrayCache // cache object, not a map
 	Orderbooks     map[string]OrderBookInterface
 	Liquidations   WsArrayCache // *ArrayCache, nil until first use
 	FundingRates   map[string]any
-	Bidsasks       map[string]any
+	Bidsasks       map[string]Ticker
 	TriggerOrders  WsArrayCache // *ArrayCache
 	MyLiquidations WsArrayCache // *ArrayCache, nil until first use
 
@@ -266,7 +266,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	limit := 10000
 	// Initialize WebSocket data structures: plain maps, mutated by the exchange's own ws loop
 	this.Trades = map[string]WsArrayCache{}
-	this.Tickers = map[string]any{}
+	this.Tickers = map[string]Ticker{}
 	this.Orderbooks = map[string]OrderBookInterface{}
 	this.Ohlcvs = map[string]map[string]any{}
 	this.Orders = NewArrayCache(limit)
@@ -286,7 +286,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 
 	this.Currencies = map[string]any{}
 	this.FundingRates = map[string]any{}
-	this.Bidsasks = map[string]any{}
+	this.Bidsasks = map[string]Ticker{}
 	this.ProxyDictionaries = make(map[string]any)
 	this.AccountsById = make(map[string]any)
 	this.Accounts = make([]any, 0)

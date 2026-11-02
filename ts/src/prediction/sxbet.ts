@@ -2450,14 +2450,14 @@ export default class sxbet extends Exchange {
         const client = this.client (url);
         const channel = 'best_odds_v3:global';
         let hydrated = false;
-        if (this.safeValue (this.tickers, sym) === undefined) {
+        if (this.safeDict (this.safeDict (this.options, 'wsTickers', {}), sym) === undefined) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
             const raw = this.parseSxbetSnapshotBestOdds (snapshot);
             const ticker = this.parsePredictionTicker (raw, outcomeObj as any);
-            this.tickers[sym as string] = ticker as any;
+            this.setWsOption ('wsTickers', sym, ticker as any);
             hydrated = true;
         }
         const requestId = this.requestId (url);
@@ -2465,7 +2465,7 @@ export default class sxbet extends Exchange {
         const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
         const future = this.watch (url, messageHash, subscribeMsg, channel);
         if (hydrated) {
-            client.resolve (this.safeValue (this.tickers, sym), messageHash);
+            client.resolve (this.safeDict (this.safeDict (this.options, 'wsTickers', {}), sym), messageHash);
         }
         const tickerResult = await future;
         return tickerResult as PredictionTicker;
@@ -2505,7 +2505,7 @@ export default class sxbet extends Exchange {
                 }
                 const outcomeObj = this.outcome (sym) as any;
                 const ticker = this.parsePredictionTicker (raw, outcomeObj);
-                this.tickers[sym] = ticker as any;
+                this.setWsOption ('wsTickers', sym, ticker as any);
                 client.resolve (ticker, 'ticker::' + sym);
             }
         }

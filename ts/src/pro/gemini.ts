@@ -4,7 +4,7 @@ import { sha384 } from '@noble/hashes/sha2.js';
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.js';
-import type { List, Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict, Market } from '../base/types.js';
+import type { List, Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Ticker, Tickers, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -525,11 +525,13 @@ export default class gemini extends geminiRest {
         const marketId = this.safeString (firstBidAsk, 'symbol', '').toLowerCase ();
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol', '');
-        if (!(symbol in this.bidsasks)) {
-            this.bidsasks[symbol] = this.parseTicker ({});
-            this.bidsasks[symbol]['symbol'] = symbol;
+        // read-modify-write: the cached entry is copied out, updated, and stored back whole
+        let currentBidAsk: Dict = {};
+        if (symbol in this.bidsasks) {
+            currentBidAsk = this.extend ({}, this.bidsasks[symbol]);
+        } else {
+            currentBidAsk = this.extend (this.parseTicker ({}), { 'symbol': symbol });
         }
-        const currentBidAsk = this.bidsasks[symbol];
         const messageHash = 'bidsasks:' + symbol;
         // last update always overwrites the previous state and is the latest state
         for (let i = 0; i < rawBidAskChanges.length; i++) {
@@ -554,7 +556,7 @@ export default class gemini extends geminiRest {
         currentBidAsk['info'] = rawBidAskChanges;
         const bidsAsksDict: Dict = {};
         bidsAsksDict[symbol] = currentBidAsk;
-        this.bidsasks[symbol] = currentBidAsk;
+        this.bidsasks[symbol] = currentBidAsk as Ticker;
         client.resolve (bidsAsksDict, messageHash);
     }
 

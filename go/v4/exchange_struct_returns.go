@@ -297,6 +297,20 @@ func StructDictToMap[T any](d map[string]T, to func(T) map[string]any) map[strin
 	return out
 }
 
+// FilterTickersBySymbol is filterByArray (tickers, 'symbol', symbols) over a typed ticker cache
+// (Tickers / Bidsasks): the rows whose symbol is listed, keyed by that symbol, or every row when no
+// symbols are given. A row without a symbol has no index key and is left out, as indexBy leaves it.
+func (this *BaseExchange) FilterTickersBySymbol(tickers map[string]Ticker, symbols any) map[string]Ticker {
+	all := IsEqual(symbols, nil) || (symbols == false) || IsEqual(symbols, 0) || (symbols == "")
+	out := make(map[string]Ticker, len(tickers))
+	for _, t := range tickers {
+		if (t.Symbol != nil) && (all || this.InArray(*t.Symbol, symbols)) {
+			out[*t.Symbol] = t
+		}
+	}
+	return out
+}
+
 func TickerMapFromMap(data any) map[string]Ticker       { return StructDictFromMap(data, TickerFromMap) }
 func TickerMapToMap(d map[string]Ticker) map[string]any { return StructDictToMap(d, TickerToMap) }
 func FundingRateMapFromMap(data any) map[string]FundingRate {

@@ -901,8 +901,10 @@ export default class gate extends gateRest {
             }
             return items;
         }
-        const result = isWatchTickers ? this.tickers : this.bidsasks;
-        return this.filterByArray (result, 'symbol', symbolsNormalized, true);
+        if (isWatchTickers) {
+            return this.filterByArray (this.tickers, 'symbol', symbolsNormalized, true);
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized, true);
     }
 
     handleTickerAndBidAsk (objectName: string, client: Client, message: Dict) {
