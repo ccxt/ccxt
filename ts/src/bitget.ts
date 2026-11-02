@@ -114,7 +114,7 @@ export default class bitget extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': true,
                 'fetchPositionHistory': 'emulated',
@@ -1945,7 +1945,6 @@ export default class bitget extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 100,
@@ -2260,12 +2259,16 @@ export default class bitget extends Exchange {
             linear = true;
             inverse = false;
             const expiryDate = this.safeString (instrument, 'expiryDate');
-            if ((expiryDate === undefined) || (expiryDate.length !== 8)) {
-                throw new ExchangeError (this.id + ' Stock+ option expiryDate must use YYYYMMDD');
+            if ((expiryDate === undefined) || ((expiryDate.length !== 6) && (expiryDate.length !== 8))) {
+                throw new ExchangeError (this.id + ' Stock+ option expiryDate must use YYMMDD or YYYYMMDD');
             }
-            const year = expiryDate.slice (0, 4);
-            const month = expiryDate.slice (4, 6);
-            const day = expiryDate.slice (6, 8);
+            let normalizedExpiryDate = expiryDate;
+            if (expiryDate.length === 6) {
+                normalizedExpiryDate = '20' + expiryDate;
+            }
+            const year = normalizedExpiryDate.slice (0, 4);
+            const month = normalizedExpiryDate.slice (4, 6);
+            const day = normalizedExpiryDate.slice (6, 8);
             expiry = this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
             const direction = this.safeString (instrument, 'direction');
             if (direction === 'C') {
@@ -2285,7 +2288,7 @@ export default class bitget extends Exchange {
             if ((contractSize === undefined) || (contractSize <= 0)) {
                 throw new ExchangeError (this.id + ' Stock+ option contractSize must be positive');
             }
-            symbol += ':' + quote + '-' + expiryDate.slice (2) + '-' + strikeString + '-' + direction;
+            symbol += ':' + quote + '-' + normalizedExpiryDate.slice (2) + '-' + strikeString + '-' + direction;
         }
         const status = this.safeString (instrument, 'tradeStatus');
         let active: Bool = undefined;
@@ -2704,8 +2707,9 @@ export default class bitget extends Exchange {
      * @param {int} [since] earliest timestamp in milliseconds
      * @param {int} [limit] client-side result limit
      * @param {object} [params] exchange parameters
-     * @param {boolean} [params.equity] required without an equity symbol
+     * @param {boolean} [params.equity] select Stock+ orders when symbol is omitted; otherwise inferred from the symbol
      * @param {boolean} [params.history] select history instead of today's orders
+     * @remarks This Stock+ path is not included in the general `fetchOrders` capability; crypto callers should use `fetchOpenOrders` and `fetchClosedOrders`.
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
@@ -6474,7 +6478,7 @@ export default class bitget extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.outsideRth] Stock+ session policy, defaults to RTHOnly
-     * @param {string} [params.expireDate] Stock+ YYYYMMDD expiry, required for GoodTilDate validity
+     * @param {string} [params.expireDate] Stock+ expiry in YYYY-MM-DD format, required for GoodTilDate validity
      * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
