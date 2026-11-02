@@ -1445,6 +1445,7 @@ export default class bybit extends Exchange {
                 'CLP': this.safeCurrencyStructure ({ 'id': 'CLP', 'code': 'CLP', 'precision': this.parseNumber ('0.01'), 'type': 'fiat' }),
                 'PEN': this.safeCurrencyStructure ({ 'id': 'PEN', 'code': 'PEN', 'precision': this.parseNumber ('0.01'), 'type': 'fiat' }),
                 'BOB': this.safeCurrencyStructure ({ 'id': 'BOB', 'code': 'BOB', 'precision': this.parseNumber ('0.01'), 'type': 'fiat' }),
+                'BRL': this.safeCurrencyStructure ({ 'id': 'BRL', 'code': 'BRL', 'precision': this.parseNumber ('0.01'), 'type': 'fiat' }),
             },
             'rollingWindowSize': 5000.0, // According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         });
