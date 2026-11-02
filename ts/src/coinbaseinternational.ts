@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Endpoint, Leverage } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, Endpoint, Leverage } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -3287,7 +3287,7 @@ export default class coinbaseinternational extends Exchange {
             baseApiUrl = 'https://www.deribit.com/api/v2';
         }
         const url = baseApiUrl + '/' + rpcMethod;
-        let requestHeaders: NullableDict = undefined;
+        let requestHeaders: Dict = {};
         if (isNativeDeribit && ((path === 'get_leverage') || (path === 'set_leverage'))) {
             throw new NotSupported (this.id + ' ' + rpcMethod + ' is only documented on the Coinbase gateway');
         }
