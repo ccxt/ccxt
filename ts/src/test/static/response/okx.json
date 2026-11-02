@@ -11367,6 +11367,215 @@
                 }
             }
         ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "paginate walks back from until over the returned fundingTime values, so a swap with 4h funding gets all 6 settlements of the day; with a fixed 8h step the 24h window starting at 1792368000000 gets only its first 3 rows and 12:00-20:00 are dropped",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "TIA/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792454400000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "after=1792454400000": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792440000000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792425600000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.0000391268434787",
+                                "fundingTime": "1792411200000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.0000391268434787"
+                            }
+                        ],
+                        "msg": ""
+                    },
+                    "after=1792411199999": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792396800000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792382400000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "-0.0000273277828473",
+                                "fundingTime": "1792368000000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "-0.0000273277828473"
+                            }
+                        ],
+                        "msg": ""
+                    },
+                    "before=1792367999999": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792396800000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792382400000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "-0.0000273277828473",
+                                "fundingTime": "1792368000000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "-0.0000273277828473"
+                            }
+                        ],
+                        "msg": ""
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "-0.0000273277828473",
+                            "fundingTime": "1792368000000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "-0.0000273277828473"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": -0.0000273277828473,
+                        "timestamp": 1792368000000,
+                        "datetime": "2026-10-19T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.00005",
+                            "fundingTime": "1792382400000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "0.00005"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792382400000,
+                        "datetime": "2026-10-19T04:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.00005",
+                            "fundingTime": "1792396800000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "0.00005"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792396800000,
+                        "datetime": "2026-10-19T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0000391268434787",
+                            "fundingTime": "1792411200000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "0.0000391268434787"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": 0.0000391268434787,
+                        "timestamp": 1792411200000,
+                        "datetime": "2026-10-19T12:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.00005",
+                            "fundingTime": "1792425600000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "0.00005"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792425600000,
+                        "datetime": "2026-10-19T16:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.00005",
+                            "fundingTime": "1792440000000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "0.00005"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792440000000,
+                        "datetime": "2026-10-19T20:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "fetchFundingHistory linear swap",
