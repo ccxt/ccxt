@@ -142,6 +142,7 @@ import polymarket from  './src/polymarket.js'
 import revolutx from  './src/revolutx.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
+import truefinance from  './src/truefinance.js'
 import upbit from  './src/upbit.js'
 import weex from  './src/weex.js'
 import whitebit from  './src/whitebit.js'
@@ -337,6 +338,7 @@ const exchanges = {
     'revolutx':               revolutx,
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
+    'truefinance':            truefinance,
     'upbit':                  upbit,
     'weex':                   weex,
     'whitebit':               whitebit,
@@ -712,6 +714,7 @@ export {
     revolutx,
     tokocrypto,
     toobit,
+    truefinance,
     upbit,
     weex,
     whitebit,
