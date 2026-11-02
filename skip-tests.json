@@ -1097,9 +1097,6 @@
                 "cost": "same",
                 "amount": "sometimes not present, only cost present sometimes",
                 "sideSequence": "second-precision timestamps served newest-first, intra-second order is not execution order"
-            },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
             }
         }
     },
