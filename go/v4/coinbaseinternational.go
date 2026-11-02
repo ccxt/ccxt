@@ -4330,7 +4330,7 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 		baseApiUrl = SafeStringPtr("https://www.deribit.com/api/v2")
 	}
 	var url any = Add(*baseApiUrl+"/", rpcMethod)
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = map[string]any{}
 	if isNativeDeribit && ((path == "get_leverage") || (path == "set_leverage")) {
 		panic(NotSupported(Add(Add(this.Id+" ", rpcMethod), " is only documented on the Coinbase gateway")))
 	}

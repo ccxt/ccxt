@@ -2803,13 +2803,22 @@ func (this *Bybit) ParseWsLiquidation(liquidation map[string]any, optionalArgs .
 	var marketId *string = this.SafeString2(liquidation, "symbol", "s")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "", "contract")
 	var timestamp *int64 = this.SafeInteger2(liquidation, "updatedTime", "T")
+	// bybit sends the side of the liquidated position (Buy - a long was liquidated),
+	// the unified side is the side of the liquidation order, as on binance and okx
+	var positionSide *string = this.SafeStringLower2(liquidation, "side", "S")
+	var side *string = nil
+	if positionSide != nil && *positionSide == "buy" {
+		side = ccxt.SafeStringPtr("sell")
+	} else if positionSide != nil && *positionSide == "sell" {
+		side = ccxt.SafeStringPtr("buy")
+	}
 	return this.SafeLiquidation(map[string]any{
 		"info":         liquidation,
 		"symbol":       marketResolved["symbol"],
 		"contracts":    this.SafeNumber2(liquidation, "size", "v"),
 		"contractSize": this.SafeNumber(marketResolved, "contractSize"),
 		"price":        this.SafeNumber2(liquidation, "price", "p"),
-		"side":         this.SafeStringLower2(liquidation, "side", "S"),
+		"side":         side,
 		"baseValue":    nil,
 		"quoteValue":   nil,
 		"timestamp":    timestamp,
