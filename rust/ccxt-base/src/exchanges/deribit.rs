@@ -2628,7 +2628,7 @@ impl DeribitCore {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
         let mut cost: Value = crate::precise::Precise::stringMul(&amount.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null));
-        if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             cost = crate::precise::Precise::stringDiv(&amount.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut liquidity: Option<String> = self.safe_string_k(trade.clone(), "liquidity", &[]).as_str().map(str::to_owned);
@@ -2900,11 +2900,11 @@ impl DeribitCore {
                     m.insert("taker".to_string(), market.as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null));
                 m
             });
-            if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 fee = self.extend(fee.clone(), &[Value::Map(perpetualFee.clone())]);
-            }  else if (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)]), Value::Bool(true)) {
                 fee = self.extend(fee.clone(), &[Value::Map(futureFee.clone())]);
-            }  else if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market, "option", &[Value::Bool(false)]), Value::Bool(true)) {
                 fee = self.extend(fee.clone(), &[Value::Map(optionFee.clone())]);
             }
             if let Value::Dict(__d) = &mut parsedFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fee); }
@@ -4832,7 +4832,7 @@ impl DeribitCore {
             return self.fetch_paginated_call_cursor(Value::Str("fetchLiquidations".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("continuation".into()), Value::Str("continuation".into()), Value::Null]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLiquidations() does not support ".into())).into()), self.safe_string_k(market.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4934,7 +4934,7 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyLiquidations() does not support ".into())).into()), self.safe_string_k(market.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5377,7 +5377,7 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports contract markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5460,7 +5460,7 @@ impl DeribitCore {
         let mut openInterest: Value = self.safe_number_k(interest.clone(), "open_interest", &[]);
         let mut openInterestAmount: Value = Value::Null;
         let mut openInterestValue: Value = Value::Null;
-        if (marketResolved.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || ((marketResolved.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (marketResolved.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
+        if matches!((self.safe_bool_k(marketResolved.clone(), "option", &[Value::Bool(false)])), Value::Bool(true)) || (matches!((self.safe_bool_k(marketResolved.clone(), "future", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k(marketResolved.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true))) {
             openInterestAmount = openInterest.clone();
         }  else {
             openInterestValue = openInterest;

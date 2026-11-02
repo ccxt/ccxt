@@ -570,8 +570,10 @@ impl BackpackCore {
         }  else {
             self.watch_public(topics, Value::from(messageHashes), &[payload]).await;
         }
-        let mut tickers: Value = (if (bidAsk).as_bool() == Some(true) { self.bidsasks.clone() } else { self.tickers.clone() });
-        return self.filter_by_array(tickers, Value::Str("symbol".into()), &[Value::from(symbolsResolved)]);
+        if bidAsk.as_bool() == Some(true) {
+            return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::from(symbolsResolved)]);
+        }
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::from(symbolsResolved)]);
 
     Value::Null
 }

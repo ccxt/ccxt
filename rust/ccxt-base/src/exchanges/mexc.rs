@@ -2744,7 +2744,7 @@ impl MexcCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit);
         }
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             let mut response: Value = self.spot_public_get_depth(&[__ws_arg_0]).await;
             //
@@ -2764,7 +2764,7 @@ impl MexcCore {
             let mut spotOrderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), symbol.clone(), &[spotTimestamp]).as_map().cloned().unwrap_or_default();
             spotOrderbook.insert("nonce".into(), self.safe_integer_k(response.clone(), "lastUpdateId", &[]));
             return Value::Map(spotOrderbook);
-        }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
             let mut response: Value = self.contract_public_get_depth_symbol(&[__ws_arg_1]).await;
             //
@@ -2846,7 +2846,7 @@ impl MexcCore {
             request.insert("limit".into(), limit.clone());
         }
         let mut trades: Value = Value::from(vec![]);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut until: Value = self.safe_integer2(params.clone(), Value::Str("endTime".into()), Value::Str("until".into()), &[]);
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
@@ -2875,7 +2875,7 @@ impl MexcCore {
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() not support this method".into()))));
             }
-        }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
             let mut response: Value = self.contract_public_get_deals_symbol(&[__ws_arg_5]).await;
             //
@@ -3087,7 +3087,7 @@ impl MexcCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut maxLimit: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Int(500) } else { Value::Int(2000) }); // docs say 1000 for spot, but in practice it's 500
+        let mut maxLimit: Value = (if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(500) } else { Value::Int(2000) }); // docs say 1000 for spot, but in practice it's 500
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -3117,7 +3117,7 @@ impl MexcCore {
         if omitUntil {
             paramsUntil = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
         }
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
             }
@@ -3161,7 +3161,7 @@ impl MexcCore {
             //     ]
             //
             candles = self.to_array(response.clone());
-        }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             if (since != Value::Null) {
                 request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
             }
@@ -3398,9 +3398,9 @@ impl MexcCore {
         let mut changePcnt: Value = Value::Null;
         let mut changeValue: Value = Value::Null;
         let mut prevClose: Value = Value::Null;
-        let mut isSwap: Option<bool> = self.safe_bool_k_opt(marketResolved.clone(), "swap", &[]);
+        let mut isSwap: bool = self.safe_bool_k_opt(marketResolved.clone(), "swap", &[Value::Bool(false)]).unwrap_or(false);
         // if swap
-        if (isSwap == Some(true)) || (matches!(&ticker, Value::Dict(__d) if __d.contains_key("timestamp"))) {
+        if isSwap || (matches!(&ticker, Value::Dict(__d) if __d.contains_key("timestamp"))) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -3428,10 +3428,10 @@ impl MexcCore {
             baseVolume = self.safe_string_k(ticker.clone(), "volume24", &[]);
             quoteVolume = self.safe_string_k(ticker.clone(), "amount24", &[]);
             let mut contractSize: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
-            if (isSwap == Some(true)) && (contractSize.is_some()) {
+            if isSwap && (contractSize.is_some()) {
                 // volume24 counts contracts, amount24 is in the settle currency
                 let mut contractVolume: Value = crate::precise::Precise::stringMul(&baseVolume, &contractSize.clone().map(Value::from).unwrap_or(Value::Null));
-                if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                if matches!(self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                     baseVolume = quoteVolume.clone();
                     quoteVolume = contractVolume.clone();
                 }  else {
@@ -3576,7 +3576,7 @@ impl MexcCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -3609,7 +3609,7 @@ impl MexcCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() supports spot orders only".into()))));
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -3664,7 +3664,7 @@ impl MexcCore {
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.create_spot_order(market.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), marginMode.clone(), query.clone()]).await;
         }  else {
             return self.create_swap_order(market, type_var, side, amount, &[price, marginMode, query]).await;
@@ -4006,7 +4006,7 @@ impl MexcCore {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut market: Value = self.market(marketId.clone().map(Value::from).unwrap_or(Value::Null));
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() is only supported for spot markets".into()))));
             }
             if (symbol == Value::Null) {
@@ -4075,7 +4075,7 @@ impl MexcCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
             if (clientOrderId.is_some()) {
                 request.insert("origClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4096,7 +4096,7 @@ impl MexcCore {
                 let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[query]);
                 data = self.spot_private_get_order(&[__ws_arg_19]).await;
             }
-        }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("order_id".into(), id);
             let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
             let mut response: Value = self.contract_private_get_order_get_order_id(&[__ws_arg_20]).await;
@@ -5189,7 +5189,7 @@ impl MexcCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() supports spot markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -7806,7 +7806,7 @@ impl MexcCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports contract markets only".into()))));
         }
         let mut marginModeLower: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });

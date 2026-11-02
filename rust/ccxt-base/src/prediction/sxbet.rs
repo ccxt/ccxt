@@ -973,7 +973,7 @@ impl SxbetCore {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseEvent() could not resolve parsed market".into()))));
             }
             marketsList.push(parsed.clone());
-            if (parsed.as_map().and_then(|__m| __m.get("active")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
                 anyActive = Value::Bool(true);
             }
             if (teamOneName == Value::Null) {
@@ -2596,7 +2596,7 @@ impl SxbetCore {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(settlement, "settleDate", &[]));
         let mut settlePrice: Value = Value::Null;
         if (won != Value::Null) {
-            settlePrice = (if (won.as_bool() == Some(true)) { Value::Int(1) } else { Value::Int(0) });
+            settlePrice = (if won.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3512,14 +3512,17 @@ impl SxbetCore {
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut channel: String = "best_odds_v3:global".to_string();
         let mut hydrated: bool = false;
-        if (self.safe_value(self.tickers.clone(), sym.clone(), &[]) == Value::Null) {
+        if (self.safe_dict(self.safe_dict_k(self.options.clone(), "wsTickers", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), sym.clone(), &[]) == Value::Null) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             let mut snapshot: Value = self.fetch_sxbet_book_snapshot(marketHash.map(Value::from).unwrap_or(Value::Null)).await;
             let mut raw: Value = self.parse_sxbet_snapshot_best_odds(snapshot);
             let mut ticker: Value = self.parse_prediction_ticker(raw, &[outcomeObj]);
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ticker); }
+            self.set_ws_option(Value::Str("wsTickers".into()), sym.clone(), ticker);
             hydrated = true;
         }
         let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3536,7 +3539,11 @@ impl SxbetCore {
         });
         let mut future: Value = self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
         if hydrated {
-            client.resolve(&[self.safe_value(self.tickers.clone(), sym, &[]), messageHash]);
+            let __ws_arg_20 = self.safe_dict_k(self.options.clone(), "wsTickers", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            client.resolve(&[self.safe_dict(__ws_arg_20, sym, &[]), messageHash]);
         }
         let mut tickerResult: Value = crate::exchange_stubs::ws_await_flight(&future).await;
         return tickerResult;
@@ -3603,7 +3610,7 @@ impl SxbetCore {
                 }
                 let mut outcomeObj: Value = self.outcome(sym.clone());
                 let mut ticker: Value = self.parse_prediction_ticker(Value::Map(raw.clone()), &[outcomeObj]);
-                if let Value::Dict(__d) = &mut self.tickers.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ticker.clone()); }
+                self.set_ws_option(Value::Str("wsTickers".into()), sym.clone(), ticker.clone());
                 client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym).into())]);
             }
             }

@@ -4388,7 +4388,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports swap contracts only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4421,7 +4421,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports swap contracts only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4491,7 +4491,7 @@ impl HitbtcCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut leverage: Option<String> = self.safe_string_k_opt(params.clone(), "leverage", &[]);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             if (leverage.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" modifyMarginHelper() requires a leverage parameter for swap markets".into()))));
             }
@@ -4833,14 +4833,14 @@ impl HitbtcCore {
                 networkCode = self.safe_string(self.networkAliases.clone(), networkCodeUpper.clone(), &[networkCodeUpper.clone()]);
             }
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "payout_fee", &[]);
-            let mut isDefault: Option<bool> = self.safe_bool_k_opt(networkEntry, "default", &[]);
+            let mut isDefault: bool = self.safe_bool_k_opt(networkEntry, "default", &[Value::Bool(false)]).unwrap_or(false);
             let mut withdrawResult: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("fee".to_string(), withdrawFee.clone());
                     m.insert("percentage".to_string(), (if (withdrawFee != Value::Null) { Value::Bool(false) } else { Value::Null }));
                 m
             });
-            if (isDefault == Some(true)) {
+            if isDefault {
                 result.insert("withdraw".into(), Value::Map(withdrawResult.clone()));
             }
             if (networkCode != Value::Null) {

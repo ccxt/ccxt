@@ -2003,10 +2003,10 @@ impl BittradeCore {
         let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut depositEnabled: Option<bool> = self.safe_bool_k_opt(currency.clone(), "deposit-enabled", &[]);
         let mut withdrawEnabled: Option<bool> = self.safe_bool_k_opt(currency.clone(), "withdraw-enabled", &[]);
-        let mut countryDisabled: Option<bool> = self.safe_bool_k_opt(currency.clone(), "country-disabled", &[]);
+        let mut countryDisabled: bool = self.safe_bool_k_opt(currency.clone(), "country-disabled", &[Value::Bool(false)]).unwrap_or(false);
         let mut visible: bool = self.safe_bool_k_opt(currency.clone(), "visible", &[Value::Bool(false)]).unwrap_or(false);
         let mut state: Option<String> = self.safe_string_k(currency.clone(), "state", &[]).as_str().map(str::to_owned);
-        let mut active: Value = Value::Bool(visible && (depositEnabled == Some(true)) && (withdrawEnabled == Some(true)) && (state.as_deref() == Some("online")) && (countryDisabled != Some(true)));
+        let mut active: Value = Value::Bool(visible && (depositEnabled == Some(true)) && (withdrawEnabled == Some(true)) && (state.as_deref() == Some("online")) && (!countryDisabled));
         let mut name: Option<String> = self.safe_string_k_opt(currency.clone(), "display-name", &[]);
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "withdraw-precision", &[])]), &[]);
         return self.safe_currency_structure(Value::Map({
@@ -2481,7 +2481,7 @@ impl BittradeCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }

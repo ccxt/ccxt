@@ -715,7 +715,7 @@ impl LighterCore {
         }
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() is only supported for swap markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -749,7 +749,7 @@ impl LighterCore {
         }
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTicker() is only supported for swap markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -785,7 +785,7 @@ impl LighterCore {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        if (firstMarket != Value::Null) && (firstMarket.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if (firstMarket != Value::Null) && (!matches!(self.safe_bool_k(firstMarket, "swap", &[Value::Bool(false)]), Value::Bool(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() is only supported for swap markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -848,7 +848,7 @@ impl LighterCore {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized]);
-        if (firstMarket != Value::Null) && (firstMarket.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if (firstMarket != Value::Null) && (!matches!(self.safe_bool_k(firstMarket, "swap", &[Value::Bool(false)]), Value::Bool(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTickers() is only supported for swap markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -976,9 +976,9 @@ impl LighterCore {
         let mut tradeId: Option<String> = self.safe_string_k_opt(trade.clone(), "trade_id", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "size", &[]);
-        let mut isMakerAsk: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[]);
+        let mut isMakerAsk: bool = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[Value::Bool(false)]).unwrap_or(false);
         let mut side: String = "sell".to_string();
-        if (isMakerAsk == Some(true)) {
+        if isMakerAsk {
             side = "buy".to_string();
         }
         return self.safe_trade(Value::Map({
@@ -1174,7 +1174,7 @@ impl LighterCore {
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "size", &[]);
         let mut costString: Option<String> = self.safe_string_k_opt(trade.clone(), "usd_amount", &[]);
-        let mut isMakerAsk: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[]);
+        let mut isMakerAsk: bool = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[Value::Bool(false)]).unwrap_or(false);
         let mut accountIndex: Value = self.safe_integer_k(trade.clone(), "accountIndex", &[]);
         let mut bidAccountId: Value = self.safe_integer_k(trade.clone(), "bid_account_id", &[]);
         let mut askAccountId: Value = self.safe_integer_k(trade.clone(), "ask_account_id", &[]);
@@ -1186,16 +1186,16 @@ impl LighterCore {
                 // Own trades should use the account's order side
                 side = Value::Str("buy".into());
                 order = self.safe_string_k(trade.clone(), "bid_id", &[]);
-                takerOrMaker = (if (isMakerAsk == Some(true)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+                takerOrMaker = (if isMakerAsk { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
             }  else if (askAccountId.as_f64() == accountIndex.as_f64()) {
                 side = Value::Str("sell".into());
                 order = self.safe_string_k(trade.clone(), "ask_id", &[]);
-                takerOrMaker = (if (isMakerAsk == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+                takerOrMaker = (if isMakerAsk { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
             }
         }
         // public trades use Lighter's taker-side convention
         if (side == Value::Null) {
-            side = (if (isMakerAsk == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if isMakerAsk { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut fee: Value = Value::Null;
         if (takerOrMaker != Value::Null) {
@@ -1441,9 +1441,9 @@ impl LighterCore {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(liquidation.clone(), "timestamp", &[]).as_i64();
-        let mut isMakerAsk: Option<bool> = self.safe_bool_k_opt(liquidation.clone(), "is_maker_ask", &[]);
+        let mut isMakerAsk: bool = self.safe_bool_k_opt(liquidation.clone(), "is_maker_ask", &[Value::Bool(false)]).unwrap_or(false);
         let mut side: String = "sell".to_string();
-        if (isMakerAsk == Some(true)) {
+        if isMakerAsk {
             side = "buy".to_string();
         }
         let mut contracts: Option<String> = self.safe_string_k_opt(liquidation.clone(), "size", &[]);

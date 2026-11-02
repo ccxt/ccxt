@@ -1899,16 +1899,16 @@ impl ToobitCore {
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("t".into()), Value::Str("time".into()), &[]).as_i64();
         let mut priceString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]);
         let mut amountString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("q".into()), Value::Str("qty".into()), &[]);
-        let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
+        let mut isBuyer: bool = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[Value::Bool(false)]).unwrap_or(false);
         let mut side: Value = Value::Null;
         let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "ibm", &[]);
         let mut isBuyerTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
         if (isBuyerMaker.is_some()) {
-            side = (if (isBuyerMaker == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if isBuyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         }  else if (isBuyerTaker.is_some()) {
-            side = (if (isBuyerTaker == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if isBuyerTaker == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }  else {
-            if (isBuyer == Some(true)) {
+            if isBuyer {
                 side = Value::Str("buy".into());
             }  else {
                 side = Value::Str("sell".into());
@@ -2138,7 +2138,7 @@ impl ToobitCore {
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "c", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "v", &[]);
         let mut contractSize: Value = self.safe_number_k(marketResolved.clone(), "contractSize", &[]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (contractSize != Value::Null) {
+        if matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) && (contractSize != Value::Null) {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = crate::precise::Precise::stringMul(&baseVolume, &self.number_to_string(contractSize));
         }
@@ -2530,7 +2530,7 @@ impl ToobitCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let requestparamsRequestVariable: Vec<Value> = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).as_array().cloned().unwrap_or_default();
             let mut request: Value = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsRequest: Value = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -3023,7 +3023,7 @@ impl ToobitCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_get_api_v1_spot_order(&[__ws_arg_19]).await;
         }  else {

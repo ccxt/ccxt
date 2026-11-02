@@ -1159,7 +1159,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchFundingRate() supports swap contracts only".into()))));
         }
         return self.subscribe(Value::Str(format!("{}{}", Value::Str("fund_rate@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into()), Value::Str("public".into()), Value::Str("watchFundingRate".into()), &[market, Value::Null, params]).await;
@@ -1185,7 +1185,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchFundingRate() supports swap contracts only".into()))));
         }
         let mut name: Value = Value::Str(format!("{}{}", Value::Str("fund_rate@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into());
@@ -2157,7 +2157,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.market(tradeSymbol);
         stored.append(parsedTrade);
         let mut tradeType: String = "spot".to_string();
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             tradeType = "contract".to_string();
         }
         client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trade::".into()), tradeType).into())]);

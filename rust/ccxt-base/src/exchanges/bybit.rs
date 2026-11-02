@@ -5072,7 +5072,7 @@ impl BybitCore {
                 }  else if (self.safe_string_k(market.clone(), "type", &[]).as_str() != currentType.as_str()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers can only accept a list of symbols of the same type".into()))));
                 }
-                if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
                     let mut marketBase: Option<String> = self.safe_string_k_opt(market.clone(), "base", &[]);
                     if (code != Value::Null) && (code.as_str() != marketBase.as_deref()) {
                         panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers".into()))));
@@ -5192,8 +5192,8 @@ impl BybitCore {
         //         "2.4343353100000003"
         //     ]
         //
-        let mut isInverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
-        let mut volumeIndex: Value = (if (isInverse.as_bool() == Some(true)) { Value::Int(6) } else { Value::Int(5) });
+        let mut isInverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
+        let mut volumeIndex: Value = (if isInverse.as_bool() == Some(true) { Value::Int(6) } else { Value::Int(5) });
         return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, volumeIndex, &[])]);
 
     Value::Null
@@ -5263,16 +5263,16 @@ impl BybitCore {
         { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end".into()), request.clone(), paramsPaginate, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("spot".into())); }
             let __ws_arg_8 = self.extend(request.clone(), &[paramsUntil.clone()]);
             response = self.public_get_v5_market_kline(&[__ws_arg_8]).await;
         }  else {
             let mut price: Option<String> = self.safe_string_k(paramsUntil.clone(), "price", &[]).as_str().map(str::to_owned);
             let mut paramsOmitted: Value = self.omit(paramsUntil, Value::Str("price".into()), &[]);
-            if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("linear".into())); }
-            }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("inverse".into())); }
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() is not supported for option markets".into()))));
@@ -5830,7 +5830,7 @@ impl BybitCore {
         if (feeCostString.is_some()) {
             let mut feeRateString: Option<String> = self.safe_string_k_opt(trade.clone(), "feeRate", &[]);
             let mut feeCurrencyCode: Value = Value::Null;
-            if (marketResolved.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(marketResolved.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 if crate::precise::Precise::stringGt(&feeCostString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                     if (side.as_str() == Some("buy")) {
                         feeCurrencyCode = marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
@@ -5845,7 +5845,7 @@ impl BybitCore {
                     }
                 }
             }  else {
-                feeCurrencyCode = (if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) } else { marketResolved.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null) });
+                feeCurrencyCode = (if matches!((self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) { marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) } else { marketResolved.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null) });
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -5980,18 +5980,18 @@ impl BybitCore {
             m
         });
         let mut defaultLimit: Value = Value::Int(25);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             // limit: [1, 50]. Default: 1
             defaultLimit = Value::Int(50);
             request.insert("category".into(), Value::Str("spot".into()));
         }  else {
-            if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
                 // limit: [1, 25]. Default: 1
                 request.insert("category".into(), Value::Str("option".into()));
-            }  else if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 // limit: [1, 500]. Default: 25
                 request.insert("category".into(), Value::Str("linear".into()));
-            }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 // limit: [1, 500]. Default: 25
                 request.insert("category".into(), Value::Str("inverse".into()));
             }
@@ -6607,7 +6607,7 @@ impl BybitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -6645,7 +6645,7 @@ impl BybitCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() supports UTA accounts only".into()))));
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() supports spot orders only".into()))));
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -6713,7 +6713,7 @@ impl BybitCore {
         let mut orderRequest: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params.clone(), enableUnifiedAccount]);
         let mut switchToOco: bool = (isStopLossOrder && isTakeProfitOrder) || self.safe_bool_k(params.clone(), "tradingStopEndpoint", &[Value::Bool(false)]).as_bool() == Some(true);
         let mut defaultMethod: Value = Value::Null;
-        if (isTrailingOrder || (switchToOco)) && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if (isTrailingOrder || (switchToOco)) && (!matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true))) {
             defaultMethod = Value::Str("privatePostV5PositionTradingStop".into());
         }  else {
             defaultMethod = Value::Str("privatePostV5OrderCreate".into());
@@ -6768,7 +6768,7 @@ impl BybitCore {
             m
         });
         let mut hedged: Value = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]);
-        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[]);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossTriggerPrice: Option<String> = self.safe_string_k_opt(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k_opt(params.clone(), "takeProfitPrice", &[]);
@@ -6807,7 +6807,7 @@ impl BybitCore {
         let mut amountString: Value = (if (amountValue != Value::Null) { self.get_amount(symbolValue.clone(), amountValue.clone()).map(Value::from).unwrap_or(Value::Null) } else { Value::Null });
         let mut priceString: Value = (if (price != Value::Null) { self.get_price(symbolValue.clone(), self.number_to_string(price.clone())) } else { Value::Null });
         if endpointIsTradingStop {
-            if hasStopLoss || hasTakeProfit || isTriggerOrder || (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if hasStopLoss || hasTakeProfit || isTriggerOrder || matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders".into()))));
             }
             if isStopLossOrder || isTakeProfitOrder {
@@ -6874,7 +6874,7 @@ impl BybitCore {
             }  else if (timeInForce.as_deref() == Some("ioc")) {
                 request.insert("timeInForce".into(), Value::Str("IOC".into()));
             }
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 // only works for spot market
                 if (triggerPrice != Value::Null) {
                     request.insert("orderFilter".into(), Value::Str("StopOrder".into()));
@@ -6885,7 +6885,7 @@ impl BybitCore {
             let mut clientOrderId: Option<String> = self.safe_string_k_opt(query.clone(), "clientOrderId", &[]);
             if (clientOrderId.is_some()) {
                 request.insert("orderLinkId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            }  else if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
                 // mandatory field for options
                 request.insert("orderLinkId".into(), self.uuid16(&[]));
             }
@@ -6901,7 +6901,7 @@ impl BybitCore {
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         let mut isMarketBuyAndCostInferable: bool = (lowerCaseType.as_str() == Some("market")) && (side.as_str() == Some("buy")) && ((price != Value::Null) || (cost.is_some()));
         let mut isMarketOrder: bool = lowerCaseType.as_str() == Some("market");
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && isMarketOrder && isUTA.as_bool() == Some(true) && !isMarketBuyAndCostInferable {
+        if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && isMarketOrder && isUTA.as_bool() == Some(true) && !isMarketBuyAndCostInferable {
             // UTA account can specify the cost of the order on both sides
             if (cost.is_some()) || (price != Value::Null) {
                 request.insert("marketUnit".into(), Value::Str("quoteCoin".into()));
@@ -6917,7 +6917,7 @@ impl BybitCore {
                 request.insert("marketUnit".into(), Value::Str("baseCoin".into()));
                 request.insert("qty".into(), amountString.clone());
             }
-        }  else if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && isMarketOrder && (side.as_str() == Some("buy")) {
+        }  else if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && isMarketOrder && (side.as_str() == Some("buy")) {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
@@ -6955,7 +6955,7 @@ impl BybitCore {
         }  else if isTriggerOrder && !endpointIsTradingStop {
             let mut triggerDirection: Option<String> = self.safe_string_k(query.clone(), "triggerDirection", &[]).as_str().map(str::to_owned);
             query = self.omit(query.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerDirection".into())]), &[]);
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (triggerDirection.is_some()) {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : trigger order does not support triggerDirection for spot markets yet".into()))));
                 }
@@ -6992,12 +6992,12 @@ impl BybitCore {
                     request.insert("slLimitPrice".into(), self.get_price(symbolValue.clone(), slLimitPrice.map(Value::from).unwrap_or(Value::Null)));
                 }  else {
                     // for spot market, we need to add this
-                    if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                    if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                         request.insert("slOrderType".into(), Value::Str("Market".into()));
                     }
                 }
                 // for spot market, we need to add this
-                if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && isMarketOrder {
+                if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && isMarketOrder {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder(): attached stopLoss is not supported for spot market orders".into()))));
                 }
             }
@@ -7011,23 +7011,23 @@ impl BybitCore {
                     request.insert("tpLimitPrice".into(), self.get_price(symbolValue, tpLimitPrice.map(Value::from).unwrap_or(Value::Null)));
                 }  else {
                     // for spot market, we need to add this
-                    if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                    if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                         request.insert("tpOrderType".into(), Value::Str("Market".into()));
                     }
                 }
                 // for spot market, we need to add this
-                if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && isMarketOrder {
+                if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && isMarketOrder {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder(): attached takeProfit is not supported for spot market orders".into()))));
                 }
             }
         }
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && hedged.as_bool() == Some(true) {
-            if (reduceOnly == Some(true)) {
+        if (!matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true))) && hedged.as_bool() == Some(true) {
+            if reduceOnly {
                 query = self.omit(query.clone(), Value::Str("reduceOnly".into()), &[]);
             }
             // a reduce-only order closes the position on the opposite side
             let mut isBuyPosition: Value = Value::Bool(false);
-            if (reduceOnly == Some(true)) {
+            if reduceOnly {
                 isBuyPosition = Value::Bool(side.as_str() == Some("sell"));
             }  else {
                 isBuyPosition = Value::Bool(side.as_str() == Some("buy"));
@@ -7367,7 +7367,7 @@ impl BybitCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             // only works for spot market
             let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
             request.insert("orderFilter".into(), (if isTrigger { Value::Str("StopOrder".into()) } else { Value::Str("Order".into()) }));
@@ -7375,7 +7375,7 @@ impl BybitCore {
         if (id != Value::Null) {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { self.omit(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]) } else { params });
+        let mut paramsOmitted: Value = (if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { self.omit(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]) } else { params });
         let categoryparamsCategoryVariable: Vec<Value> = self.get_bybit_type(Value::Str("cancelOrderRequest".into()), &[market, paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut category: Value = categoryparamsCategoryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsCategory: Value = categoryparamsCategoryVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -7831,7 +7831,7 @@ impl BybitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() is not supported for spot markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -9152,7 +9152,7 @@ impl BybitCore {
         let mut enableUnified: bool = self.safe_bool_opt(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
         let mut currency: Value = Value::Null;
         let mut currencyKey: String = "coin".to_string();
-        if (enableUnified) {
+        if enableUnified {
             currencyKey = "currency".to_string();
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
@@ -9173,7 +9173,7 @@ impl BybitCore {
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (enableUnified) {
+        if enableUnified {
             let mut unifiedMarginStatus: Value = self.safe_integer_k(self.options.clone(), "unifiedMarginStatus", &[Value::Int(5)]); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType.as_str() == Some("inverse")) && (unifiedMarginStatus.as_f64().unwrap_or(f64::NAN) < ((5i64) as f64)) {
                 let __ws_arg_43 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
@@ -9875,7 +9875,7 @@ impl BybitCore {
         let mut notional: Value = Value::Null;
         let mut contractSize: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
         let mut markPrice: Option<String> = self.safe_string_k_opt(position.clone(), "markPrice", &[]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             notional = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size, &contractSize.clone().map(Value::from).unwrap_or(Value::Null)), &markPrice.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
             notional = self.safe_string2(position.clone(), Value::Str("positionValue".into()), Value::Str("cumExitValue".into()), &[]);
@@ -9915,7 +9915,7 @@ impl BybitCore {
             }  else {
                 let mut bustPrice: Value = self.omit_zero(self.safe_string_k(position.clone(), "bustPrice", &[]));
                 let mut closingFee: Value = self.omit_zero(self.safe_string_k(position.clone(), "occClosingFee", &[]));
-                if (marketResolved.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                if matches!(self.safe_bool_k(marketResolved.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                     // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
@@ -10186,9 +10186,9 @@ impl BybitCore {
         });
         request.insert("buyLeverage".into(), leverageString.clone());
         request.insert("sellLeverage".into(), leverageString);
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("category".into(), Value::Str("linear".into()));
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("category".into(), Value::Str("inverse".into()));
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() only support linear and inverse market".into()))));
@@ -10269,7 +10269,7 @@ impl BybitCore {
         }
         let mut market: Value = self.market(symbol);
         let mut subType: String = "inverse".to_string();
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             subType = "linear".to_string();
         }
         let mut category: Value = self.safe_string_k(params.clone(), "category", &[Value::from(subType)]);
@@ -10363,7 +10363,7 @@ impl BybitCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports contract markets only".into()))));
         }
         let mut timeframe: Value = self.safe_string_k(params.clone(), "interval", &[Value::Str("1h".into())]);
@@ -10373,7 +10373,7 @@ impl BybitCore {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() cannot use the ".into())).into()), timeframe).into()), Value::Str(" timeframe".into()))));
         }
         let mut subType: String = "inverse".to_string();
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             subType = "linear".to_string();
         }
         let mut category: Value = self.safe_string_k(params.clone(), "category", &[Value::from(subType)]);
@@ -10449,14 +10449,14 @@ impl BybitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut paginate: Option<bool> = self.safe_bool_k_opt(params.clone(), "paginate", &[]);
-        if (paginate == Some(true)) {
+        let mut paginate: bool = self.safe_bool_k_opt(params.clone(), "paginate", &[Value::Bool(false)]).unwrap_or(false);
+        if paginate {
             let mut paramsPaginate: indexmap::IndexMap<String, Value> = self.omit(params.clone(), Value::Str("paginate".into()), &[]).as_map().cloned().unwrap_or_default();
             paramsPaginate.insert("timeframe".into(), timeframe.clone());
             return self.fetch_paginated_call_cursor(Value::Str("fetchOpenInterestHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Map(paramsPaginate), Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(200)]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)])), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterestHistory() symbol does not support market ".into())).into()), symbol)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -11124,9 +11124,9 @@ impl BybitCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("category".into(), Value::Str("linear".into()));
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("category".into(), Value::Str("inverse".into()));
         }
         let __ws_arg_66 = self.extend(Value::Map(request), &[params]);
@@ -11183,7 +11183,7 @@ impl BybitCore {
             m
         });
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)])), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() symbol does not support market ".into())).into()), symbol)));
         }
         request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -12268,7 +12268,7 @@ impl BybitCore {
         let mut symbol: Value = Value::Null;
         if (symbols != Value::Null) {
             let mut market: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverageTiers() is not supported for spot market".into()))));
             }
             symbol = self.safe_string_k(market, "symbol", &[]);
@@ -12487,7 +12487,7 @@ impl BybitCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(income.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("contract".into())]);
         let mut code: Value = Value::Str("USDT".into());
-        if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             code = marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(income.clone(), "execTime", &[]).as_i64();
@@ -12906,9 +12906,9 @@ impl BybitCore {
             while { if !__for_first_524 { i += 1; } __for_first_524 = false; i < (coins.len() as i64) } {
             let mut entry: Value = coins.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
-            let mut disableFrom: Option<bool> = self.safe_bool_k_opt(entry.clone(), "disableFrom", &[]);
-            let mut disableTo: Option<bool> = self.safe_bool_k_opt(entry.clone(), "disableTo", &[]);
-            let mut inactive: bool = (disableFrom == Some(true)) || (disableTo == Some(true));
+            let mut disableFrom: bool = self.safe_bool_k_opt(entry.clone(), "disableFrom", &[Value::Bool(false)]).unwrap_or(false);
+            let mut disableTo: bool = self.safe_bool_k_opt(entry.clone(), "disableTo", &[Value::Bool(false)]).unwrap_or(false);
+            let mut inactive: bool = (disableFrom) || (disableTo);
             let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map({

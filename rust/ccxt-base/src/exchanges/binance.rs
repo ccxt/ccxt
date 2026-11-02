@@ -6967,8 +6967,8 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut fetchCurrenciesEnabled: Option<bool> = self.safe_bool_k_opt(self.options.clone(), "fetchCurrencies", &[]);
-        if (fetchCurrenciesEnabled != Some(true)) {
+        let mut fetchCurrenciesEnabled: bool = self.safe_bool_k_opt(self.options.clone(), "fetchCurrencies", &[Value::Bool(false)]).unwrap_or(false);
+        if !(fetchCurrenciesEnabled) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7183,8 +7183,8 @@ impl BinanceCore {
             if (networkCode != Value::Null) {
                 fees.insert(crate::runtime::stringify_param(&networkCode), withdrawFee.clone());
             }
-            let mut isDefault: Option<bool> = self.safe_bool_k_opt(networkItem.clone(), "isDefault", &[]);
-            if (isDefault == Some(true)) || (fee == Value::Null) {
+            let mut isDefault: bool = self.safe_bool_k_opt(networkItem.clone(), "isDefault", &[Value::Bool(false)]).unwrap_or(false);
+            if isDefault || (fee == Value::Null) {
                 fee = withdrawFee.clone();
             }
             // todo: default networks in "setMarkets" overload
@@ -8212,10 +8212,10 @@ impl BinanceCore {
             request.insert("limit".into(), limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.eapi_public_get_depth(&[__ws_arg_11]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut rpi: bool = self.safe_bool_k_opt(params.clone(), "rpi", &[Value::Bool(false)]).unwrap_or(false);
             let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("rpi".into()), &[]);
             if rpi {
@@ -8227,7 +8227,7 @@ impl BinanceCore {
                 let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[paramsOmitted]);
                 response = self.fapi_public_get_depth(&[__ws_arg_13]).await;
             }
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.dapi_public_get_depth(&[__ws_arg_14]).await;
         }  else {
@@ -8550,13 +8550,13 @@ impl BinanceCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.eapi_public_get_ticker(&[__ws_arg_16]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_public_get_ticker24hr(&[__ws_arg_17]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.dapi_public_get_ticker24hr(&[__ws_arg_18]).await;
         }  else {
@@ -8893,7 +8893,7 @@ impl BinanceCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
             response = self.eapi_public_get_mark(&[__ws_arg_27]).await;
         }  else if self.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
@@ -9018,8 +9018,8 @@ impl BinanceCore {
         //         "closeTime": 1677097200000
         //     }
         //
-        let mut inverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
-        let mut volumeIndex: Value = (if (inverse.as_bool() == Some(true)) { Value::Int(7) } else { Value::Int(5) });
+        let mut inverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
+        let mut volumeIndex: Value = (if inverse.as_bool() == Some(true) { Value::Int(7) } else { Value::Int(5) });
         return Value::from(vec![self.safe_integer2(ohlcv.clone(), Value::Int(0), Value::Str("openTime".into()), &[]), self.safe_number2(ohlcv.clone(), Value::Int(1), Value::Str("open".into()), &[]), self.safe_number2(ohlcv.clone(), Value::Int(2), Value::Str("high".into()), &[]), self.safe_number2(ohlcv.clone(), Value::Int(3), Value::Str("low".into()), &[]),
             self.safe_number2(ohlcv.clone(), Value::Int(4), Value::Str("close".into()), &[]), self.safe_number2(ohlcv, volumeIndex, Value::Str("volume".into()), &[])]);
 
@@ -9104,7 +9104,7 @@ impl BinanceCore {
             // It didn't work before without the endTime
             // https://github.com/ccxt/ccxt/issues/8454
             //
-            if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if since.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                     let mut duration: Value = self.parse_timeframe(timeframe.clone());
                     let mut endTime: Value = self.sum(&[since.clone(), (match (&((match (&((match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
@@ -9119,11 +9119,11 @@ impl BinanceCore {
             request.insert("endTime".into(), until);
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.eapi_public_get_klines(&[__ws_arg_30]).await;
         }  else if (price.as_deref() == Some("mark")) {
-            if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.dapi_public_get_mark_price_klines(&[__ws_arg_31]).await;
             }  else {
@@ -9131,7 +9131,7 @@ impl BinanceCore {
                 response = self.fapi_public_get_mark_price_klines(&[__ws_arg_32]).await;
             }
         }  else if (price.as_deref() == Some("index")) {
-            if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.dapi_public_get_index_price_klines(&[__ws_arg_33]).await;
             }  else {
@@ -9139,17 +9139,17 @@ impl BinanceCore {
                 response = self.fapi_public_get_index_price_klines(&[__ws_arg_34]).await;
             }
         }  else if (price.as_deref() == Some("premiumIndex")) {
-            if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.dapi_public_get_premium_index_klines(&[__ws_arg_35]).await;
             }  else {
                 let __ws_arg_36 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.fapi_public_get_premium_index_klines(&[__ws_arg_36]).await;
             }
-        }  else if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.fapi_public_get_klines(&[__ws_arg_37]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.dapi_public_get_klines(&[__ws_arg_38]).await;
         }  else {
@@ -9416,7 +9416,7 @@ impl BinanceCore {
         if (matches!(&trade, Value::Dict(__d) if __d.contains_key("maker"))) {
             takerOrMaker = (if matches!((self.safe_bool_k(trade.clone(), "maker", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("optionSide"))) || (marketResolved.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("optionSide"))) || matches!((self.safe_bool_k(marketResolved.clone(), "option", &[Value::Bool(false)])), Value::Bool(true)) {
             let mut settle: Value = self.safe_currency_code(self.safe_string_k(trade.clone(), "quoteAsset", &[Value::Str("USDT".into())]), &[]);
             takerOrMaker = self.safe_string_lower_k(trade.clone(), "liquidity", &[]);
             if (matches!(&trade, Value::Dict(__d) if __d.contains_key("fee"))) {
@@ -9438,7 +9438,7 @@ impl BinanceCore {
         }
         // linear and spot trades carry the cost in quoteQty, inverse trades in baseQty, the futures endpoints return both fields with the unused one as "0" (see the note in parseOrder)
         let mut cost: Value = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("quoteQty".into()), Value::Str("baseQty".into()), Value::Str("total".into())]), &[]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             cost = self.safe_string_k(trade.clone(), "baseQty", &[cost.clone()]);
         }
         return self.safe_trade(Value::Map({
@@ -9512,7 +9512,7 @@ impl BinanceCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
                 // https://github.com/ccxt/ccxt/issues/6400
@@ -9534,11 +9534,11 @@ impl BinanceCore {
         }
         let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into()), Value::Str("fetchTradesMethod".into())]), &[]);
         if (method == Value::Null) {
-            if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
                 method = Value::Str("eapiPublicGetTrades".into());
-            }  else if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 method = Value::Str("fapiPublicGetAggTrades".into());
-            }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 method = Value::Str("dapiPublicGetAggTrades".into());
             }  else {
                 method = Value::Str("publicGetAggTrades".into());
@@ -9679,7 +9679,7 @@ impl BinanceCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editSpotOrder() does not support ".into())).into()), self.safe_string_k(market.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));
         }
         let mut payload: Value = self.edit_spot_order_request(id, symbol, type_var, side, amount, &[price, params]);
@@ -9890,7 +9890,7 @@ impl BinanceCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() and editOrderWs() require a price argument for swap orders".into()))));
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editContractOrder() does not support ".into())).into()), self.safe_string_k(market.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));
         }
         if (side == Value::Null) {
@@ -9949,7 +9949,7 @@ impl BinanceCore {
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: Value = self.edit_contract_order_request(id.clone(), symbol, type_var, side, amount, &[price, paramsPapi.clone()]);
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             if isPortfolioMargin.as_bool() == Some(true) {
                 let __ws_arg_50 = self.extend(request.clone(), &[paramsPapi.clone()]);
                 response = self.papi_put_um_order(&[__ws_arg_50]).await;
@@ -9957,7 +9957,7 @@ impl BinanceCore {
                 let __ws_arg_51 = self.extend(request.clone(), &[paramsPapi.clone()]);
                 response = self.fapi_private_put_order(&[__ws_arg_51]).await;
             }
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             if isPortfolioMargin.as_bool() == Some(true) {
                 let __ws_arg_52 = self.extend(request.clone(), &[paramsPapi.clone()]);
                 response = self.papi_put_cm_order(&[__ws_arg_52]).await;
@@ -10028,10 +10028,10 @@ impl BinanceCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".into())).into()), self.safe_string_k(market.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));
         }
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.edit_spot_order(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }  else {
             return self.edit_contract_order(id, symbol, type_var, side, amount, &[price, params]).await;
@@ -10088,7 +10088,7 @@ impl BinanceCore {
         }
         let mut symbols: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)])), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrders() does not support ".into())).into()), self.safe_string_k(market.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));
         }
         let mut response: Value = Value::Null;
@@ -10098,9 +10098,9 @@ impl BinanceCore {
             m
         });
         request = self.extend(request.clone(), &[params]);
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.fapi_private_put_batch_orders(&[request.clone()]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.dapi_private_put_batch_orders(&[request]).await;
         }
         return self.parse_orders(response, &[]);
@@ -10801,7 +10801,7 @@ impl BinanceCore {
         //   so the field must be picked by the market side, see the coin-m migration changelog.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         let mut cost: Value = self.safe_string2(order.clone(), Value::Str("cummulativeQuoteQty".into()), Value::Str("cumQuote".into()), &[]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             cost = self.safe_string_k(order.clone(), "cumBase", &[cost.clone()]);
         }
         let mut type_var: Value = self.safe_string_lower2(order.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]);
@@ -10898,7 +10898,7 @@ impl BinanceCore {
     m
 })]);
             let mut orderMarket: Value = self.market(marketId.clone().map(Value::from).unwrap_or(Value::Null));
-            if (orderMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (orderMarket.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && self.is_conditional_order(&[orderParams.clone()]).as_bool() == Some(true) {
+            if matches!((self.safe_bool_k(orderMarket.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) && (!matches!(self.safe_bool_k(orderMarket, "option", &[Value::Bool(false)]), Value::Bool(true))) && self.is_conditional_order(&[orderParams.clone()]).as_bool() == Some(true) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support conditional order types for linear markets, use createOrder() instead".into()))));
             }
             // the inverse batch endpoint still accepts conditional order types in the regular (non-algo) format,
@@ -10915,7 +10915,7 @@ impl BinanceCore {
         }
         let mut symbols: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".into())).into()), self.safe_string_k(market.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));
         }
         let mut response: Value = Value::Null;
@@ -10925,9 +10925,9 @@ impl BinanceCore {
             m
         });
         request = self.extend(request.clone(), &[params]);
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.fapi_private_post_batch_orders(&[request.clone()]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market, "option", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.eapi_private_post_batch_orders(&[request.clone()]).await;
         }  else {
             response = self.dapi_private_post_batch_orders(&[request]).await;
@@ -11018,7 +11018,7 @@ impl BinanceCore {
 })]);
         let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(symbol, type_var, side, amount, &[price, __ws_arg_55]).as_map().cloned().unwrap_or_default();
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.eapi_private_post_order(&[Value::Map(request.clone())]).await;
         }  else if sor {
             if test {
@@ -11096,11 +11096,11 @@ impl BinanceCore {
         let mut path = get_arg(optional_args, 2, Value::Null);
         let mut idMarketType: Value = Value::Null;
         if (market != Value::Null) {
-            if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
                 idMarketType = Value::Str("option".into());
-            }  else if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                idMarketType = (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("swap".into()) } else { Value::Str("future".into()) });
-            }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
+                idMarketType = (if matches!((self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("swap".into()) } else { Value::Str("future".into()) });
+            }  else if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 idMarketType = Value::Str("inverse".into());
             }  else {
                 idMarketType = Value::Str("spot".into());
@@ -11309,7 +11309,7 @@ impl BinanceCore {
             Value::Str("activationPrice".into()), Value::Str("trailingPercent".into()), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), Value::Str("test".into()), Value::Str("hedged".into()), Value::Str("icebergAmount".into())];
         let mut reduceOnly: bool = self.safe_bool_k_opt(paramsPapi.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         if reduceOnly {
-            if (marketType.as_deref() == Some("margin")) || ((market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (marginMode != Value::Null)) {
+            if (marketType.as_deref() == Some("margin")) || ((!matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true))) && (marginMode != Value::Null)) {
                 omitKeys.push(Value::Str("reduceOnly".into()));
                 request.insert("sideEffectType".into(), Value::Str("AUTO_REPAY".into()));
             }
@@ -11332,7 +11332,7 @@ impl BinanceCore {
         let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut stopPrice: Value = Value::Null;
         if isTrailingPercentOrder {
-            if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!((self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)])), Value::Bool(true)) {
                 uppercaseType = Value::Str("TRAILING_STOP_MARKET".into());
                 request.insert("callbackRate".into(), trailingPercent.clone().map(Value::from).unwrap_or(Value::Null));
                 if (trailingTriggerPrice.is_some()) {
@@ -11373,20 +11373,20 @@ impl BinanceCore {
             stopPrice = stopLossPrice;
             if matches!(&isMarketOrder, Value::Bool(true)) {
                 // spot STOP_LOSS market orders are not a valid order type
-                uppercaseType = (if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("STOP_MARKET".into()) } else { Value::Str("STOP_LOSS".into()) });
+                uppercaseType = (if matches!((self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("STOP_MARKET".into()) } else { Value::Str("STOP_LOSS".into()) });
             }  else if isLimitOrder {
-                uppercaseType = (if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("STOP".into()) } else { Value::Str("STOP_LOSS_LIMIT".into()) });
+                uppercaseType = (if matches!((self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("STOP".into()) } else { Value::Str("STOP_LOSS_LIMIT".into()) });
             }
         }  else if isTakeProfit {
             stopPrice = takeProfitPrice.map(Value::from).unwrap_or(Value::Null);
             if matches!(&isMarketOrder, Value::Bool(true)) {
                 // spot TAKE_PROFIT market orders are not a valid order type
-                uppercaseType = (if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("TAKE_PROFIT_MARKET".into()) } else { Value::Str("TAKE_PROFIT".into()) });
+                uppercaseType = (if matches!((self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("TAKE_PROFIT_MARKET".into()) } else { Value::Str("TAKE_PROFIT".into()) });
             }  else if isLimitOrder {
-                uppercaseType = (if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("TAKE_PROFIT".into()) } else { Value::Str("TAKE_PROFIT_LIMIT".into()) });
+                uppercaseType = (if matches!((self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("TAKE_PROFIT".into()) } else { Value::Str("TAKE_PROFIT_LIMIT".into()) });
             }
         }
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             if (type_var.as_str() == Some("market")) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type for the ".into())).into()),
                     self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(" market".into()))));
@@ -11414,7 +11414,7 @@ impl BinanceCore {
             clientOrderIdRequest = "clientAlgoId".to_string();
         }  else if stock {
             clientOrderIdRequest = "clientOrderId".to_string();
-        }  else if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             // the option api takes clientOrderId instead of newClientOrderId
             clientOrderIdRequest = "clientOrderId".to_string();
         }
@@ -11426,7 +11426,7 @@ impl BinanceCore {
         let mut postOnly: Value = Value::Null;
         if !(isPortfolioMargin.as_bool() == Some(true)) {
             postOnly = self.is_post_only(isMarketOrder.clone(), Value::Bool(initialUppercaseType.as_str() == Some("LIMIT_MAKER")), &[paramsPapi.clone()]);
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (marketType.as_deref() == Some("margin")) {
+            if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) || (marketType.as_deref() == Some("margin")) {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if postOnly.as_bool() == Some(true) {
                     uppercaseType = Value::Str("LIMIT_MAKER".into());
@@ -11438,7 +11438,7 @@ impl BinanceCore {
         }  else {
             postOnly = self.is_post_only(isMarketOrder, Value::Bool(initialUppercaseType.as_str() == Some("LIMIT_MAKER")), &[paramsPapi.clone()]);
             if postOnly.as_bool() == Some(true) {
-                if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+                if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                     uppercaseType = Value::Str("LIMIT_MAKER".into());
                 }  else {
                     request.insert("timeInForce".into(), Value::Str("GTX".into()));
@@ -11517,7 +11517,7 @@ impl BinanceCore {
                         request.insert("quantity".into(), self.parse_to_numeric(amount.clone()));
                     }
                 }
-            }  else if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 let mut quoteOrderQty: Value = self.handle_option(Value::Str("createOrder".into()), Value::Str("quoteOrderQty".into()), &[Value::Bool(true)]);
                 if (quoteOrderQty.as_bool() == Some(true)) {
                     let mut quoteOrderQtyNew: Option<String> = self.safe_string2_opt(paramsPapi.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[]);
@@ -11549,7 +11549,7 @@ impl BinanceCore {
         }  else if (uppercaseType.as_str() == Some("STOP_LOSS")) || (uppercaseType.as_str() == Some("TAKE_PROFIT")) {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if ((market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && priceRequiredForTrailing {
+            if (matches!((self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true))) && priceRequiredForTrailing {
                 priceIsRequired = true;
             }
         }  else if (uppercaseType.as_str() == Some("STOP_LOSS_LIMIT")) || (uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
@@ -11599,7 +11599,7 @@ impl BinanceCore {
             }
         }
         if triggerPriceIsRequired {
-            if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (stopPrice == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice extra param for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
                 }
@@ -11620,7 +11620,7 @@ impl BinanceCore {
         if timeInForceIsRequired && (self.safe_string_k(paramsPapi.clone(), "timeInForce", &[]) == Value::Null) && (self.safe_string(Value::Map(request.clone()), Value::Str("timeInForce".into()), &[]) == Value::Null) {
             request.insert("timeInForce".into(), self.handle_option(Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[])); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if !(isPortfolioMargin.as_bool() == Some(true)) && (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && postOnly.as_bool() == Some(true) {
+        if !(isPortfolioMargin.as_bool() == Some(true)) && matches!((self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) && postOnly.as_bool() == Some(true) {
             request.insert("timeInForce".into(), Value::Str("GTX".into()));
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
@@ -11628,7 +11628,7 @@ impl BinanceCore {
             omitKeys.push(Value::Str("timeInForce".into()));
         }
         let mut hedged: Value = self.safe_bool_k(paramsPapi.clone(), "hedged", &[Value::Bool(false)]);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && hedged.as_bool() == Some(true) {
+        if (!matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true))) && (!matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true))) && hedged.as_bool() == Some(true) {
             let mut positionSide: Value = side.clone();
             if reduceOnly {
                 omitKeys.push(Value::Str("reduceOnly".into()));
@@ -11642,7 +11642,7 @@ impl BinanceCore {
         let mut paramsStp: Value = selfTradePreventionparamsStpVariable.get(1).cloned().unwrap_or(Value::Null);
         if (selfTradePrevention != Value::Null) {
             let mut warnOnStpForInverse: Value = self.handle_option(Value::Str("createOrder".into()), Value::Str("warnOnSTPForInverse".into()), &[]);
-            if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && ((match &(warnOnStpForInverse) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
+            if matches!((self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) && ((match &(warnOnStpForInverse) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
                 Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options[\"createOrder\"][\"warnOnSTPForInverse\"] to false.".into()))));
             }
@@ -11651,7 +11651,7 @@ impl BinanceCore {
         // unified iceberg
         let mut icebergAmount: Value = self.safe_number_k(paramsPapi, "icebergAmount", &[]);
         if (icebergAmount != Value::Null) {
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 request.insert("icebergQty".into(), self.amount_to_precision(symbol, icebergAmount));
             }
         }
@@ -11681,7 +11681,7 @@ impl BinanceCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketOrderWithCost() supports spot orders only".into()))));
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -11714,7 +11714,7 @@ impl BinanceCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -11747,7 +11747,7 @@ impl BinanceCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() supports spot orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".into(), cost.clone()); }
@@ -12461,16 +12461,16 @@ impl BinanceCore {
         let mut isConditional: Value = self.safe_bool_n(paramsPapi.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]);
         let mut paramsOmitted: Value = self.omit(paramsPapi, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]);
         let mut isPortfolioMarginConditional: bool = isPortfolioMargin.as_bool() == Some(true) && isConditional.as_bool() == Some(true);
-        if (isConditional.as_bool() == Some(true)) && !(isPortfolioMargin.as_bool() == Some(true)) && ((market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
+        if (isConditional.as_bool() == Some(true)) && !(isPortfolioMargin.as_bool() == Some(true)) && (matches!((self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)])), Value::Bool(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() does not support conditional orders, use fetchOrder() or fetchOpenOrders() with the trigger param instead".into()))));
         }
         let mut orderIdRequest: Value = Value::Str("orderId".into());
         if (isPortfolioMarginConditional) {
-            orderIdRequest = (if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("algoId".into()) } else { Value::Str("strategyId".into()) });
+            orderIdRequest = (if matches!((self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("algoId".into()) } else { Value::Str("strategyId".into()) });
         }
         request.insert(crate::runtime::stringify_param(&orderIdRequest), id.clone());
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             if isPortfolioMargin.as_bool() == Some(true) {
                 if (isConditional.as_bool() == Some(true)) {
                     let __ws_arg_95 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
@@ -12483,7 +12483,7 @@ impl BinanceCore {
                 let __ws_arg_97 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.fapi_private_get_open_order(&[__ws_arg_97]).await;
             }
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             if isPortfolioMargin.as_bool() == Some(true) {
                 if (isConditional.as_bool() == Some(true)) {
                     let __ws_arg_98 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
@@ -12497,9 +12497,9 @@ impl BinanceCore {
                 response = self.dapi_private_get_open_order(&[__ws_arg_100]).await;
             }
         }  else {
-            if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() does not support option markets".into()))));
-            }  else if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() does not support spot markets".into()))));
             }
         }
@@ -13158,7 +13158,7 @@ impl BinanceCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders is only supported for swap markets.".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -13174,10 +13174,10 @@ impl BinanceCore {
             request.insert("orderidlist".into(), ids);
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_127 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.fapi_private_delete_batch_orders(&[__ws_arg_127]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_128 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.dapi_private_delete_batch_orders(&[__ws_arg_128]).await;
         }
@@ -14407,11 +14407,11 @@ impl BinanceCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut internal: Option<bool> = self.safe_bool_k_opt(params.clone(), "internal", &[]);
+        let mut internal: bool = self.safe_bool_k_opt(params.clone(), "internal", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("internal".into()), &[]);
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsOmitted.clone(), Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if paginate.as_bool() == Some(true) && (internal != Some(true)) {
+        if paginate.as_bool() == Some(true) && !(internal) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), paramsOmitted.clone()]).await;
         }
         let mut currency: Value = Value::Null;
@@ -14423,7 +14423,7 @@ impl BinanceCore {
             m
         });
         let mut limitKey: String = "limit".to_string();
-        if (internal != Some(true)) {
+        if !(internal) {
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchTransfers".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]);
             let mut fromAccount: Value = self.safe_string_k(paramsOmitted.clone(), "fromAccount", &[defaultType]);
             let mut defaultTo: String = "swap".to_string();
@@ -14464,7 +14464,7 @@ impl BinanceCore {
             request.insert("endTime".into(), until);
         }
         let mut response: Value = Value::Null;
-        if (internal == Some(true)) {
+        if internal {
             let __ws_arg_145 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.sapi_get_pay_transactions(&[__ws_arg_145]).await;
         }  else {
@@ -14775,8 +14775,8 @@ impl BinanceCore {
             let mut networkId: Option<String> = self.safe_string_k_opt(networkEntry.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
-            let mut isDefault: Option<bool> = self.safe_bool_k_opt(networkEntry, "isDefault", &[]);
-            if (isDefault == Some(true)) {
+            let mut isDefault: bool = self.safe_bool_k_opt(networkEntry, "isDefault", &[Value::Bool(false)]).unwrap_or(false);
+            if isDefault {
                 result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), withdrawFee.clone());
@@ -15277,10 +15277,10 @@ impl BinanceCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_155 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_public_get_premium_index(&[__ws_arg_155]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_156 = self.extend(Value::Map(request), &[params]);
             response = self.dapi_public_get_premium_index(&[__ws_arg_156]).await;
         }  else {
@@ -15289,7 +15289,7 @@ impl BinanceCore {
         if (response == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() returned empty response".into()))));
         }
-        if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.safe_value(response.clone(), Value::Int(0), &[]);
         }
         return self.parse_funding_rate(response, &[market]);
@@ -15538,7 +15538,7 @@ impl BinanceCore {
             let mut position: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("contract".into())]);
-            let mut code: Value = (if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
+            let mut code: Value = (if matches!((self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
             let mut maintenanceMargin: Option<String> = self.safe_string_k(position.clone(), "maintMargin", &[]).as_str().map(str::to_owned);
             // check for maintenance margin so empty positions are not returned
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
@@ -16279,7 +16279,7 @@ impl BinanceCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() supports option markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -16772,7 +16772,7 @@ impl BinanceCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() supports swap contracts only".into()))));
             }
         }
@@ -16861,7 +16861,7 @@ impl BinanceCore {
         let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             if isPortfolioMargin.as_bool() == Some(true) {
                 let __ws_arg_169 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
                 response = self.papi_post_um_leverage(&[__ws_arg_169]).await;
@@ -16869,7 +16869,7 @@ impl BinanceCore {
                 let __ws_arg_170 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
                 response = self.fapi_private_post_leverage(&[__ws_arg_170]).await;
             }
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             if isPortfolioMargin.as_bool() == Some(true) {
                 let __ws_arg_171 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
                 response = self.papi_post_cm_leverage(&[__ws_arg_171]).await;
@@ -16934,10 +16934,10 @@ impl BinanceCore {
         });
         let mut response: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_173 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.fapi_private_post_margin_type(&[__ws_arg_173]).await;
-            }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_174 = self.extend(Value::Map(request), &[params]);
                 response = self.dapi_private_post_margin_type(&[__ws_arg_174]).await;
             }  else {
@@ -18029,7 +18029,7 @@ if _try_result.is_err() {
         });
         let mut response: Value = Value::Null;
         let mut code: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             code = self.safe_string_k(market.clone(), "quote", &[]);
             let __ws_arg_188 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_private_post_position_margin(&[__ws_arg_188]).await;
@@ -18859,12 +18859,12 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
             request.insert("pair".into(), self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("pair".into()), &[]));
-            request.insert("contractType".into(), (if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("PERPETUAL".into()) } else { self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("contractType".into()), &[]) }));
+            request.insert("contractType".into(), (if matches!((self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("PERPETUAL".into()) } else { self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("contractType".into()), &[]) }));
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterestHistory() supports linear and inverse contracts only".into()))));
         }
@@ -18884,7 +18884,7 @@ if _try_result.is_err() {
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_207 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.dapi_data_get_open_interest_hist(&[__ws_arg_207]).await;
         }  else {
@@ -18920,7 +18920,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("underlyingAsset".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             if (self.safe_integer_k(market.clone(), "expiry", &[]) == Value::Null) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest does not support ".into())).into()), symbol)));
@@ -18930,10 +18930,10 @@ if _try_result.is_err() {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_209 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.eapi_public_get_open_interest(&[__ws_arg_209]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_210 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.dapi_public_get_open_interest(&[__ws_arg_210]).await;
         }  else {
@@ -18970,7 +18970,7 @@ if _try_result.is_err() {
         //         }
         //     ]
         //
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut result: Value = self.parse_open_interests_history(response.clone(), &[market.clone()]);
             {
@@ -19077,7 +19077,7 @@ if _try_result.is_err() {
         }
         if (market != Value::Null) {
             let mut symbolKey: String = "symbol".to_string();
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 symbolKey = "isolatedSymbol".to_string();
             }
             if !(isPortfolioMargin.as_bool() == Some(true)) {
@@ -19779,10 +19779,10 @@ if _try_result.is_err() {
             request.insert("endTime".into(), until);
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_222 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.fapi_private_get_position_margin_history(&[__ws_arg_222]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_223 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.dapi_private_get_position_margin_history(&[__ws_arg_223]).await;
         }  else {

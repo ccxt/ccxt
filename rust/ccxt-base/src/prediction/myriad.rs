@@ -4900,7 +4900,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_ticker(&mut self, mut client: Value, mut data: Value) {
+    pub fn handle_ticker(&self, mut client: Value, mut data: Value) {
         let __data_empty = indexmap::IndexMap::new();
         let data = data.as_map().unwrap_or(&__data_empty);
         let mut networkId: Value = (match data.get("networkId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
@@ -4908,9 +4908,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ts: Value = (match data.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut outcomes: Vec<Value> = (match data.get("outcomes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut outcomesLength: f64 = ((outcomes.len() as i64) as f64);
-        if (self.tickers.clone() == Value::Null) {
-            { let __t = self.create_safe_dictionary(&[]); self.tickers = __t; }
-        }
+        let mut cachedTickers: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "wsTickers", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1375: bool = true;
@@ -4951,11 +4952,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("info".to_string(), oc);
     m
 }), &[market]);
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ticker.clone()); }
+            cachedTickers.insert(crate::runtime::stringify_param(&sym), ticker.clone());
             client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym).into())]);
         }
         }
-        client.resolve(&[self.tickers.clone(), Value::Str("tickers".into())]);
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers.clone())); }
+        client.resolve(&[Value::Map(cachedTickers), Value::Str("tickers".into())]);
 }
 
 /*

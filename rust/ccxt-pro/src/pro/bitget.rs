@@ -1213,7 +1213,7 @@ impl BitgetCore {
         //
         let mut volumeIndex: Value = Value::Int(5);
         let mut isInverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
-        if (isInverse.as_bool() == Some(true)) {
+        if isInverse.as_bool() == Some(true) {
             volumeIndex = Value::Int(6);
         }
         let mut timestamp: Value = self.safe_integer2(ohlcv.clone(), Value::Str("start".into()), Value::Int(0), &[]);

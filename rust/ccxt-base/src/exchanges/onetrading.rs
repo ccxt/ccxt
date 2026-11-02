@@ -1080,7 +1080,7 @@ impl OnetradingCore {
             while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            let mut tierObject: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
+            let mut tierObject: Value = (if matches!((self.safe_bool_k(market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), spotFees.clone());
@@ -1169,8 +1169,8 @@ impl OnetradingCore {
             while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            let mut makerFee: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { spotMakerFee.clone() } else { futuresMakerFee.clone() });
-            let mut takerFee: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { spotTakerFee.clone() } else { futuresTakerFee.clone() });
+            let mut makerFee: Value = (if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotMakerFee.clone() } else { futuresMakerFee.clone() });
+            let mut takerFee: Value = (if matches!((self.safe_bool_k(market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotTakerFee.clone() } else { futuresTakerFee.clone() });
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());

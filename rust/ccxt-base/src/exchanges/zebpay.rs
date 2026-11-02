@@ -993,7 +993,7 @@ impl ZebpayCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_spot_get_v2_ex_tradefee(&[__ws_arg_0]).await;
             //
@@ -1128,7 +1128,7 @@ impl ZebpayCore {
             request.insert("limit".into(), limit);
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             //
             //       {
             //         "asks": [
@@ -1183,7 +1183,7 @@ impl ZebpayCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_spot_get_v2_market_ticker(&[__ws_arg_4]).await;
         }  else {
@@ -1286,7 +1286,7 @@ impl ZebpayCore {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("endtime".into()), Value::Str("endTime".into()), Value::Str("interval".into()), Value::Str("startTime".into())]), &[]);
         let mut response: Value = Value::Null;
         let mut limitResolved: Value = limit.clone();
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             if (limit == Value::Null) {
                 limitResolved = Value::Int(100);
             }
@@ -1385,11 +1385,11 @@ impl ZebpayCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (limit != Value::Null) {
+        if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_spot_get_v2_market_trades(&[__ws_arg_8]).await;
         }  else {
@@ -1659,7 +1659,7 @@ impl ZebpayCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.private_spot_post_v2_ex_orders(&[self.spot_order_body(symbol.clone(), type_var.clone(), amount.clone(), &mut request, &[price.clone(), query.clone()])]).await;
         }  else {
             let mut marginAsset: Value = self.safe_string_k(query.clone(), "marginAsset", &[Value::Str("INR".into())]);
@@ -1765,7 +1765,7 @@ impl ZebpayCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("orderId".into(), id.clone());
             let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_spot_delete_v2_ex_order(&[__ws_arg_13]).await;
@@ -1862,7 +1862,7 @@ impl ZebpayCore {
         });
         let mut response: Value = Value::Null;
         let mut orders: Value = Value::from(vec![]);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("currentPage".into(), Value::Int(1));
             if (limit != Value::Null) {
                 request.insert("pageSize".into(), limit.clone());
@@ -1922,7 +1922,7 @@ impl ZebpayCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("orderId".into(), id.clone());
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_spot_get_v2_ex_order(&[__ws_arg_17]).await;

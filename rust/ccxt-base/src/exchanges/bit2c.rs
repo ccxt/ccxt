@@ -1334,9 +1334,9 @@ impl Bit2cCore {
             let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "pair", &[]);
             let mut marketByPair: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]);
             tradeMarket = self.safe_market(&[reference_parts.get(0).cloned().unwrap_or(Value::Null), marketByPair]);
-            let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
-            makerOrTaker = (if (isMaker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
-            orderId = (if (isMaker == Some(true)) { reference_parts.get(2).cloned().unwrap_or(Value::Null) } else { reference_parts.get(1).cloned().unwrap_or(Value::Null) });
+            let mut isMaker: bool = self.safe_bool_k_opt(trade.clone(), "isMaker", &[Value::Bool(false)]).unwrap_or(false);
+            makerOrTaker = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            orderId = (if isMaker { reference_parts.get(2).cloned().unwrap_or(Value::Null) } else { reference_parts.get(1).cloned().unwrap_or(Value::Null) });
             let mut action: Option<i64> = self.safe_integer_k(trade.clone(), "action", &[]).as_i64();
             if (action == Some(0)) {
                 side = Value::Str("buy".into());

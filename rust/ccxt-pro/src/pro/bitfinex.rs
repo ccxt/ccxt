@@ -344,8 +344,8 @@ impl BitfinexCore {
         let mut checksum: bool = self.safe_bool_k_opt(self.options.clone(), "checksum", &[Value::Bool(true)]).unwrap_or(true);
         if checksum && (channel.as_str() == Some("book")) {
             let mut sub: Value = __ch.get_subscription(&messageHash);
-            let mut subChecksum: Option<bool> = self.safe_bool_k_opt(sub.clone(), "checksum", &[]);
-            if (sub != Value::Null) && (subChecksum != Some(true)) {
+            let mut subChecksum: bool = self.safe_bool_k_opt(sub.clone(), "checksum", &[Value::Bool(false)]).unwrap_or(false);
+            if (sub != Value::Null) && !(subChecksum) {
                 add_element_to_object(get_value_mut(&mut __ch.subscriptions, &messageHash), &Value::Str("checksum".into()), Value::Bool(true));
                 client.send(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();

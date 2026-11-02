@@ -1828,11 +1828,11 @@ impl UpbitCore {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut quoteAmount: Value = Value::Null;
-        let mut createMarketBuyOrderRequiresPrice: Option<bool> = self.safe_bool_k_opt(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[]);
+        let mut createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k_opt(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]).unwrap_or(false);
         let mut cost: Value = (match params.get("cost") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (cost != Value::Null) {
             quoteAmount = self.cost_to_precision(symbol.clone(), cost);
-        }  else if (createMarketBuyOrderRequiresPrice == Some(true)) {
+        }  else if createMarketBuyOrderRequiresPrice {
             if (price == Value::Null) || (amount == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(),
                     Value::Str(" createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));

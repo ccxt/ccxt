@@ -1388,6 +1388,9 @@ impl DeriveCore {
         }
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         let mut subaccountIdKey: Value = self.number_to_string(subaccountId.clone());
+        if (subaccountIdKey == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() could not resolve the subaccount id".into()))));
+        }
         if fetchSnapshot.as_bool() == Some(true) && !(matches!((&self.balance, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

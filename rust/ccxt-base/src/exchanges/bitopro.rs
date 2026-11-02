@@ -994,8 +994,8 @@ impl BitoproCore {
         let mut type_var: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "type", &[]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "action", &[]);
         if (side == Value::Null) {
-            let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
-            if (isBuyer == Some(true)) {
+            let mut isBuyer: bool = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[Value::Bool(false)]).unwrap_or(false);
+            if isBuyer {
                 side = Value::Str("buy".into());
             }  else {
                 side = Value::Str("sell".into());

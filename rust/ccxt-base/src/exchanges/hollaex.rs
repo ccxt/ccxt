@@ -2378,15 +2378,15 @@ impl HollaexCore {
         }
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
         let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut completed: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "status", &[]);
-        let mut dismissed: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "dismissed", &[]);
-        let mut rejected: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "rejected", &[]);
+        let mut completed: bool = self.safe_bool_k_opt(transaction.clone(), "status", &[Value::Bool(false)]).unwrap_or(false);
+        let mut dismissed: bool = self.safe_bool_k_opt(transaction.clone(), "dismissed", &[Value::Bool(false)]).unwrap_or(false);
+        let mut rejected: bool = self.safe_bool_k_opt(transaction.clone(), "rejected", &[Value::Bool(false)]).unwrap_or(false);
         let mut status: Value = Value::Null;
-        if (completed == Some(true)) {
+        if completed {
             status = Value::Str("ok".into());
-        }  else if (dismissed == Some(true)) {
+        }  else if dismissed {
             status = Value::Str("canceled".into());
-        }  else if (rejected == Some(true)) {
+        }  else if rejected {
             status = Value::Str("failed".into());
         }  else {
             status = Value::Str("pending".into());
@@ -2532,8 +2532,8 @@ impl HollaexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut allowWithdrawal: Option<bool> = self.safe_bool_k_opt(fee.clone(), "allow_withdrawal", &[]);
-        if (allowWithdrawal == Some(true)) {
+        let mut allowWithdrawal: bool = self.safe_bool_k_opt(fee.clone(), "allow_withdrawal", &[Value::Bool(false)]).unwrap_or(false);
+        if allowWithdrawal {
             result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(fee.clone(), "withdrawal_fee", &[]));

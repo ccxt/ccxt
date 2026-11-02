@@ -1421,8 +1421,8 @@ impl GrvtCore {
                 // }
                 //
                 let mut authResult: Value = self.safe_dict_k(authResponse.clone(), "result", &[]);
-                let mut ack: Option<bool> = self.safe_bool_k_opt(authResult, "ack", &[]);
-                if (ack != Some(true)) {
+                let mut ack: bool = self.safe_bool_k_opt(authResult, "ack", &[Value::Bool(false)]).unwrap_or(false);
+                if !(ack) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str("Builder authorization failed, ".into()), json_stringify(&authResponse))));
                 }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
@@ -3271,7 +3271,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn convert_to_big_int_custom(&self, mut x: Value) -> Value {
-        return crate::runtime::parse_int(&x);
+        return crate::runtime::parse_int(&self.number_to_string(x));
 
     Value::Null
 }
@@ -3343,8 +3343,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         if (structureType.as_str() == Some("EIP712_ORDER_WITH_BUILDER_TYPE")) && matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
             returnValue.insert("builder".into(), order.get("builder").cloned().unwrap_or(Value::Null));
-            returnValue.insert("builderFee".into(), self.parse_to_int((match (&(self.convert_to_big_int_custom(self.fee_amount_multiplier())), &(crate::runtime::parse_float(&order.get("builder_fee").cloned().unwrap_or(Value::Null)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
-                (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue.insert("builderFee".into(), self.parse_to_int((match (&(self.convert_to_big_int_custom(self.fee_amount_multiplier())), &(crate::runtime::parse_float(&(match order.get("builder_fee") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
+                Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
+                _ => Value::Null }))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return Value::Map(returnValue);
 
@@ -3469,7 +3470,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 while { if !__for_first_726 { i += 1; } __for_first_726 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol);
-                if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+                if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() supports contract markets only".into()))));
                 }
                 baseIds.push(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
@@ -4243,9 +4244,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 }), &[]);
         }
-        let mut isMarket: Option<bool> = self.safe_bool_k_opt(order.clone(), "is_market", &[]);
+        let mut isMarket: bool = self.safe_bool_k_opt(order.clone(), "is_market", &[Value::Bool(false)]).unwrap_or(false);
         let mut orderType: String = "limit".to_string();
-        if (isMarket == Some(true)) {
+        if isMarket {
             orderType = "market".to_string();
         }
         let mut isPostOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "post_only", &[]);
@@ -4515,10 +4516,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut m = indexmap::IndexMap::new();
                     m.insert("mainAccountID".to_string(), request.get("main_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("builderAccountID".to_string(), request.get("builder_account_id").cloned().unwrap_or(Value::Null));
-                    m.insert("maxFutureFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&request.get("max_futures_fee_rate").cloned().unwrap_or(Value::Null))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                        Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
-                    m.insert("maxSpotFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&request.get("max_spot_fee_rate").cloned().unwrap_or(Value::Null))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                        Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+                    m.insert("maxFutureFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&self.safe_string(Value::Map(request.clone()), Value::Str("max_futures_fee_rate".into()), &[]))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
+                        (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+                    m.insert("maxSpotFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&self.safe_string(Value::Map(request.clone()), Value::Str("max_spot_fee_rate".into()), &[]))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
+                        (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
                     m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
                     m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
                 m
@@ -4659,7 +4660,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if (queryString.as_str() != Some("")) {
                 requestPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, Value::Str("?".into())).into()), queryString).into());
             }
-            if (Value::Bool(requestPath.as_str().unwrap_or("").ends_with("auth/api_key/login")).as_bool() == Some(true)) || (Value::Bool(requestPath.as_str().unwrap_or("").ends_with("auth/wallet/login")).as_bool() == Some(true)) {
+            if (requestPath.as_str().unwrap_or("").ends_with("auth/api_key/login")) || (requestPath.as_str().unwrap_or("").ends_with("auth/wallet/login")) {
                 requestHeaders = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));

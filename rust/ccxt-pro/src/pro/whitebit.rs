@@ -505,7 +505,7 @@ impl WhitebitCore {
         //  }
         //
         let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut isSnapshot: Option<bool> = self.safe_bool_opt(params.clone(), Value::Int(0), &[]);
+        let mut isSnapshot: bool = self.safe_bool_opt(params.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut marketId: Option<String> = self.safe_string_opt(params.clone(), Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -518,7 +518,7 @@ impl WhitebitCore {
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         orderbook.set_book_meta("timestamp", timestamp.clone());
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
-        if (isSnapshot == Some(true)) {
+        if isSnapshot {
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[]);
             orderbook.reset(snapshot);
         }  else {

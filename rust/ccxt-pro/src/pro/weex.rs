@@ -2357,6 +2357,9 @@ impl WeexCore {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        if (type_var == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a market type".into()))));
+        }
         let mut isContract: Value = (Value::Bool(type_var.as_str() != Some("spot")));
         let mut urlType: String = "spot".to_string();
         if matches!(&isContract, Value::Bool(true)) {

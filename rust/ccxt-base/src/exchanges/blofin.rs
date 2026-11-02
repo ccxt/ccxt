@@ -2050,7 +2050,7 @@ impl BlofinCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() is only valid for swap markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2781,14 +2781,14 @@ impl BlofinCore {
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
             request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        }  else if (isTpsl) {
+        }  else if isTpsl {
             request.insert("tpslId".into(), id.clone());
         }  else {
             request.insert("orderId".into(), id.clone());
         }
         let mut query: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]);
         let mut response: Value = Value::Null;
-        if (isTpsl) {
+        if isTpsl {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_get_trade_order_tpsl_detail(&[__ws_arg_12]).await;
         }  else {
@@ -4285,7 +4285,7 @@ impl BlofinCore {
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
         let mut markPriceString: Option<String> = self.safe_string_k_opt(position.clone(), "markPrice", &[]);
         let mut notionalString: Value = self.safe_string_k(position.clone(), "notionalUsd", &[]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             notionalString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString), &markPriceString.clone().map(Value::from).unwrap_or(Value::Null));
         }  else if (notionalString == Value::Null) {
             notionalString = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString), &markPriceString.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4823,7 +4823,7 @@ impl BlofinCore {
 }));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("positionMode".to_string(), (if (hedged.as_bool() == Some(true)) { Value::Str("long_short_mode".into()) } else { Value::Str("net_mode".into()) }));
+                m.insert("positionMode".to_string(), (if hedged.as_bool() == Some(true) { Value::Str("long_short_mode".into()) } else { Value::Str("net_mode".into()) }));
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);

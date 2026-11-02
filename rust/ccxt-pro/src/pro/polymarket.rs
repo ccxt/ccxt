@@ -1488,9 +1488,9 @@ impl PolymarketCore {
         self.set_balance_cache(client.clone());
         let mut fetchBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
         let mut awaitBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(true)]);
-        let mut balanceLoaded: bool = matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"));
         if ((match &(fetchBalanceSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) && ((match &(awaitBalanceSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (!balanceLoaded) {
+            Some(__y) if __y == 1.0) })) && ((match &(awaitBalanceSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
+            Some(__y) if __y == 1.0) })) && !(matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"))) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchBalanceSnapshot".into())])).await;
@@ -1508,8 +1508,7 @@ impl PolymarketCore {
 
     pub fn set_balance_cache(&mut self, mut client: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut balanceLoaded: bool = matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"));
-        if balanceLoaded {
+        if (matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"))) {
             return;
         }
         let mut fetchBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);

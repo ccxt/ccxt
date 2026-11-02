@@ -1241,7 +1241,7 @@ impl NdaxCore {
             return Value::Null;
         }
         let mut sessionStatus: Option<String> = self.safe_string_k(market.clone(), "SessionStatus", &[]).as_str().map(str::to_owned);
-        let mut isDisable: Option<bool> = self.safe_bool_k_opt(market.clone(), "IsDisable", &[]);
+        let mut isDisable: bool = self.safe_bool_k_opt(market.clone(), "IsDisable", &[Value::Bool(false)]).unwrap_or(false);
         let mut sessionRunning: bool = sessionStatus.as_deref() == Some("Running");
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1259,7 +1259,7 @@ impl NdaxCore {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), (Value::Bool(sessionRunning && (isDisable != Some(true)))));
+        m.insert("active".to_string(), (Value::Bool(sessionRunning && (!isDisable))));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);

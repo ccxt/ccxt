@@ -984,7 +984,7 @@ impl BingxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             subscriptionArgs = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), uuid.clone());
@@ -1154,7 +1154,7 @@ impl BingxCore {
         let mut snapshot: Value = Value::Null;
         let mut timestamp: Value = self.safe_integer2(message, Value::Str("timestamp".into()), Value::Str("ts".into()), &[]);
         timestamp = self.safe_integer2(data.clone(), Value::Str("timestamp".into()), Value::Str("ts".into()), &[timestamp.clone()]);
-        if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
         }  else {
             snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
@@ -1283,7 +1283,7 @@ impl BingxCore {
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::from(marketType.clone())]);
         let mut candles: Value = Value::Null;
         if isSwap {
-            if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 candles = Value::from(vec![(match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1713,7 +1713,7 @@ impl BingxCore {
             });
         }
         let mut userStreamKey: Option<String> = self.safe_string_k_opt(self.options.clone(), "listenKey", &[]);
-        if (baseUrl == Value::Null) || (userStreamKey.is_none()) {
+        if (type_var == Value::Null) || (baseUrl == Value::Null) || (userStreamKey.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a websocket URL and a listen key".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey.map(Value::from).unwrap_or(Value::Null)).into());

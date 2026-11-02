@@ -1666,7 +1666,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        let mut success: Value = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null });
+        let mut success: Value = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
         let mut code: Value = (match __pro_message.get("retCode").cloned() {
             Some(Value::Int(__n)) => Value::Int(__n),
             Some(Value::Float(__f)) => Value::Int(__f as i64),
@@ -1674,7 +1674,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             _ => Value::Null
         });
         let mut messageHash: Value = Value::Str("authenticated".into());
-        if (success.as_bool() == Some(true)) || (code.as_f64() == Some(0.0)) {
+        if success.as_bool() == Some(true) || (code.as_f64() == Some(0.0)) {
             let mut future: Value = self.safe_value(__ch.futures.clone(), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {

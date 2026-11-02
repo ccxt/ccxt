@@ -2288,7 +2288,7 @@ impl PredictfunCore {
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        let mut wasSandbox: Value = (Value::Bool(self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool() == Some(true)));
+        let mut wasSandbox: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         self.super_set_sandbox_mode(enable.clone());
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key

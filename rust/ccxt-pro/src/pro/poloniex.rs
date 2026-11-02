@@ -2158,9 +2158,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut success: Option<bool> = self.safe_bool_k_opt(data, "success", &[]);
+        let mut success: bool = self.safe_bool_k_opt(data, "success", &[Value::Bool(false)]).unwrap_or(false);
         let mut messageHash: Value = Value::Str("authenticated".into());
-        if (success == Some(true)) {
+        if success {
             client.resolve(&[message.clone(), messageHash.clone()]);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));

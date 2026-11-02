@@ -1168,7 +1168,7 @@ impl CoinspotCore {
             while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < (ids.len() as i64) } {
             let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[id.clone()]);
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut ticker: Value = prices.get(id.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market]));

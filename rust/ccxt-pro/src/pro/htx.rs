@@ -899,7 +899,7 @@ impl HtxCore {
         }
         let mut messageHash: Value = Value::Str("".into());
         let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".mbp.".into())).into()), Value::Str(format!("{}", limitResolved).into())).into());
         }  else {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".depth.size_".into())).into()), Value::Str(format!("{}", limitResolved).into())).into()), Value::Str(".high_freq".into())).into());
@@ -907,14 +907,14 @@ impl HtxCore {
         let mut url: Value = self.get_url_by_market_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null), Value::Bool(false), Value::Bool(true)]).map(Value::from).unwrap_or(Value::Null);
         let mut method: Value = Value::Str("handle_order_book_subscription".into()).clone();
         let mut paramsExtended: Value = params.clone();
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             paramsExtended = self.extend(params, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("data_type".to_string(), Value::Str("incremental".into()));
                 m
             })]);
         }
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             method = Value::Null;
         }
         let mut orderbook: Value = self.subscribe_public(url, symbolValue, messageHash, &[method, paramsExtended]).await;
@@ -952,12 +952,12 @@ impl HtxCore {
         let mut depth: Value = self.parse_to_int(self.safe_integer_k(options, "depth", &[Value::Int(150)]));
         let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut subMessageHash: Value = Value::Str("".into());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             subMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".mbp.".into())).into()), Value::Str(format!("{}", depth).into())).into());
         }  else {
             subMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".depth.size_".into())).into()), Value::Str(format!("{}", depth).into())).into()), Value::Str(".high_freq".into())).into());
         }
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("data_type".into(), Value::Str("incremental".into())); }
         }
         return self.unsubscribe_public(market, subMessageHash, Value::from(topic), &[params]).await;
@@ -1340,7 +1340,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             orderbook.set_book_meta("nonce", Value::Null);
             crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
         }
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             self.spawn(&[Value::Str("watch_order_book_snapshot".into()).clone(), client, message, subscription]);
         }
 }
@@ -1378,7 +1378,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             type_var = self.safe_string_k(market.clone(), "type", &[]);
-            if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 subType = Value::Str("linear".into());
             }  else {
                 subType = Value::Str("inverse".into());
@@ -1551,7 +1551,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             type_var = self.safe_string_k(market.clone(), "type", &[]);
-            if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 subType = Value::Str("linear".into());
             }  else {
                 subType = Value::Str("inverse".into());
@@ -2198,7 +2198,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         if (market != Value::Null) {
             type_var = self.safe_string_k(market.clone(), "type", &[]);
-            if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 subType = Value::Str("linear".into());
             }  else {
                 subType = Value::Str("inverse".into());

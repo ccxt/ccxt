@@ -3791,7 +3791,7 @@ impl ExtendedCore {
         let mut market: Value = self.market(symbol.clone());
         let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut uppercaseSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (uppercaseType.as_str() != Some("LIMIT")) {
+        if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && (uppercaseType.as_str() != Some("LIMIT")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports limit orders for spot markets only".into()))));
         }
         if !(self.in_array(uppercaseType.clone(), Value::from(vec![Value::Str("LIMIT".into()), Value::Str("MARKET".into()), Value::Str("CONDITIONAL".into()), Value::Str("TPSL".into())])).as_bool() == Some(true)) {
@@ -3812,8 +3812,8 @@ impl ExtendedCore {
         let mut builderFeeRate: Value = Value::Null;
         let mut builderId: Value = Value::Null;
         let mut paramsBuilder: Value = params.clone();
-        let mut builderEnabled: Option<bool> = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[]);
-        if (builderEnabled == Some(true)) {
+        let mut builderEnabled: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(false)]).unwrap_or(false);
+        if builderEnabled {
             if self.isSandboxModeEnabled.as_bool() == Some(true) {
                 builderFeeRate = self.safe_string2(params.clone(), Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), &[]);
                 builderId = self.safe_string2(params.clone(), Value::Str("builderId".into()), Value::Str("defaultBuilderId".into()), &[]);

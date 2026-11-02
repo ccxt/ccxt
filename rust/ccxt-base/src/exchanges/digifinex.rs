@@ -1384,8 +1384,8 @@ impl DigifinexCore {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
                 isInverse = self.safe_bool_k(market.clone(), "is_inverse", &[]);
                 isLinear = (if (isInverse.as_bool() != Some(true)) { Value::Bool(true) } else { Value::Bool(false) });
-                let mut isTrading: Option<bool> = self.safe_bool_k_opt(market.clone(), "isTrading", &[]);
-                if (isTrading == Some(true)) {
+                let mut isTrading: bool = self.safe_bool_k_opt(market.clone(), "isTrading", &[Value::Bool(false)]).unwrap_or(false);
+                if isTrading {
                     isTradingSwap = true;
                 }
             }
@@ -1939,7 +1939,7 @@ impl DigifinexCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_swap_get_public_ticker(&[__ws_arg_5]).await;
@@ -2004,7 +2004,7 @@ impl DigifinexCore {
     m
 })]);
         let mut result: Value = data;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             result = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("date".to_string(), Value::from(date));
@@ -2066,12 +2066,12 @@ impl DigifinexCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::from(marketType.clone())]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, Value::from(marketType)]);
         let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "date", &[]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             timestamp = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
         }
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         let mut percentage: Value = self.safe_string2(ticker.clone(), Value::Str("change".into()), Value::Str("price_change_percent".into()), &[]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             // swap endpoints return a raw ratio, spot already returns a percent
             percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into()));
         }
@@ -2213,8 +2213,8 @@ impl DigifinexCore {
             if (type_var == Value::Null) {
                 type_var = Value::Str("limit".into());
             }
-            let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker", &[]);
-            takerOrMaker = (if (isMaker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            let mut isMaker: bool = self.safe_bool_k_opt(trade.clone(), "is_maker", &[Value::Bool(false)]).unwrap_or(false);
+            takerOrMaker = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut fee: Value = Value::Null;
         let mut feeCostString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
@@ -2337,14 +2337,14 @@ impl DigifinexCore {
             m
         });
         if (limit != Value::Null) {
-            if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
             }  else {
                 request.insert("limit".into(), limit.clone());
             }
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_swap_get_public_trades(&[__ws_arg_7]).await;
@@ -2454,7 +2454,7 @@ impl DigifinexCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             request.insert("granularity".into(), timeframe.clone());
             if (limit != Value::Null) {
@@ -2525,7 +2525,7 @@ impl DigifinexCore {
         //     }
         //
         let mut candles: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2572,7 +2572,7 @@ impl DigifinexCore {
         let mut marginMode: Value = marginResult.get(0).cloned().unwrap_or(Value::Null);
         let mut request: Value = self.create_order_request(symbol, type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params]);
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.private_swap_post_trade_order_place(&[request.clone()]).await;
         }  else {
             if (marginMode != Value::Null) {
@@ -2673,7 +2673,7 @@ impl DigifinexCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.private_swap_post_trade_batch_order(&[Value::from(ordersRequests.clone())]).await;
         }  else {
             request.insert("market".into(), (if (marginMode != Value::Null) { Value::Str("margin".into()) } else { Value::Str("spot".into()) }));
@@ -2703,7 +2703,7 @@ impl DigifinexCore {
         //     }
         //
         let mut data: Value = Value::from(vec![]);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             data = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else {
             data = self.safe_list_k(response, "order_ids", &[Value::from(vec![])]);
@@ -2881,7 +2881,7 @@ impl DigifinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }
@@ -4787,7 +4787,7 @@ impl DigifinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports swap contracts only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4919,7 +4919,7 @@ impl DigifinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() supports swap contracts only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4999,7 +4999,7 @@ impl DigifinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() supports swap markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5612,7 +5612,7 @@ impl DigifinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() supports swap markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

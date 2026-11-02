@@ -2098,7 +2098,7 @@ impl WeexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkPrice() supports contract markets only".into()))));
         }
         let priceTypeparamsPriceTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchMarkPrice".into()), Value::Str("priceType".into()), &[Value::Str("MARK".into())]).as_array().cloned().unwrap_or_default();
@@ -2189,7 +2189,7 @@ impl WeexCore {
             request.insert("limit".into(), Value::Int(200)); // default is 15, max is 200
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_get_api_v3_market_depth(&[__ws_arg_3]).await;
         }  else {
@@ -2249,7 +2249,7 @@ impl WeexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.fetch_spot_ohlcv(symbol.clone(), &[timeframe.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }  else {
             return self.fetch_contract_ohlcv(symbol, &[timeframe, since, limit, params]).await;
@@ -2466,7 +2466,7 @@ impl WeexCore {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_get_api_v3_market_trades(&[__ws_arg_10]).await;
         }  else {
@@ -3042,7 +3042,7 @@ impl WeexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.create_contract_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }  else {
             let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
@@ -3240,8 +3240,8 @@ impl WeexCore {
         if isTrigger && (isStopLoss || isTakeProfit) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters".into()))));
         }
-        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(query, "reduceOnly", &[]);
-        let mut isReduceOnly: bool = isStopLoss || isTakeProfit || (reduceOnly == Some(true));
+        let mut reduceOnly: bool = self.safe_bool_k_opt(query, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
+        let mut isReduceOnly: bool = isStopLoss || isTakeProfit || (reduceOnly);
         let mut positionSide: String = "LONG".to_string();
         if isReduceOnly {
             if (side.as_str() == Some("buy")) {
@@ -3951,7 +3951,7 @@ impl WeexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() supports spot markets only".into()))));
         }
         let mut maxLimit: Value = Value::Int(1000);
@@ -4666,7 +4666,7 @@ impl WeexCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() supports swap contracts only".into()))));
             }
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -5048,7 +5048,7 @@ impl WeexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() is not supported for spot markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

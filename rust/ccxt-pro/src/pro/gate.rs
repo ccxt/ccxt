@@ -584,7 +584,7 @@ impl GateCore {
         let mut request: Value = self.parent.create_orders_request(orders.clone(), &[params]);
         let mut firstOrder: Value = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(firstOrder.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrdersWs is not supported for swap markets".into()))));
         }
         // todo add swap support
@@ -855,7 +855,7 @@ impl GateCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
             symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
-            if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets".into()))));
             }
         }
@@ -916,11 +916,11 @@ impl GateCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbolValue).into());
         // max 100 atm, max 50 for options
         let mut defaultLimit: Value = Value::Int(100);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (messageType.as_str() == Some("options")) {
+        if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) || (messageType.as_str() == Some("options")) {
             defaultLimit = Value::Int(50);
         }
         let mut limitResolved: Value = (if (limit == Value::Null) { defaultLimit } else { limit.clone() });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             let mut maxSpotLimit: Value = self.parse_to_int(self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("maxSpotLimit".into()), &[Value::Int(1000)]));
             limitResolved = crate::runtime::Math::min(&limitResolved, &maxSpotLimit);
@@ -930,7 +930,7 @@ impl GateCore {
         if isEuUrl {
             channel = Value::Str("spot.order_book_update".into());
             payload = Value::from(vec![marketId.clone(), interval.clone()]);
-        }  else if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             channel = Value::Str("spot.obu".into());
             let mut finalInterval: Value = interval.clone();
             if (limitResolved.as_f64() == Some(400.0)) {
@@ -988,7 +988,7 @@ impl GateCore {
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut limit: Value = self.safe_integer_k(paramsInterval.clone(), "limit", &[]);
         if (limit == Value::Null) {
-            limit = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Int(50) } else { Value::Int(100) }); // max 100 atm
+            limit = (if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(50) } else { Value::Int(100) }); // max 100 atm
             if (messageType.as_str() == Some("options")) {
                 limit = Value::Int(50); // max 50 for options
             }
@@ -998,7 +998,7 @@ impl GateCore {
         if isEuUrl {
             channel = Value::Str("spot.order_book_update".into());
             payload = Value::from(vec![marketId.clone(), intervalOption.clone()]);
-        }  else if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             channel = Value::Str("spot.obu".into());
             let mut finalInterval: Value = intervalOption.clone();
             if (limit.as_f64() == Some(400.0)) {
@@ -1451,8 +1451,10 @@ impl GateCore {
             }
             return Value::Map(items);
         }
-        let mut result: Value = (if isWatchTickers { self.tickers.clone() } else { self.bidsasks.clone() });
-        return self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(true)]);
+        if isWatchTickers {
+            return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.clone(), Value::Bool(true)]);
+        }
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(true)]);
 
     Value::Null
 }
@@ -3113,8 +3115,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
             // use safeValue as result may be Array or an Object
             let mut result: Value = self.safe_value_k(data, "result", &[]);
-            let mut ack: Value = (match __pro_message.get("ack").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null });
-            if (ack.as_bool() != Some(true)) {
+            let mut ack: Value = (match __pro_message.get("ack").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
+            if !(ack.as_bool() == Some(true)) {
                 client.resolve(&[result, requestId.map(Value::from).unwrap_or(Value::Null)]);
             }
         }

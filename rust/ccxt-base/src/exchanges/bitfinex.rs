@@ -2814,7 +2814,7 @@ impl BitfinexCore {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (marginMode == Value::Null) {
+        if matches!((self.safe_bool_k(market, "spot", &[Value::Bool(false)])), Value::Bool(true)) && (marginMode == Value::Null) {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = Value::Str(format!("{}{}", Value::Str("EXCHANGE ".into()), orderType).into());
         }
@@ -4011,7 +4011,7 @@ impl BitfinexCore {
             if (matches!(&market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null), Value::Str(__k) if fiat.contains_key(__k.as_ref()))) {
                 fee.insert("maker".into(), makerFeeFiat.clone());
                 fee.insert("taker".into(), takerFeeFiat.clone());
-            }  else if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 fee.insert("maker".into(), makerFeeDeriv.clone());
                 fee.insert("taker".into(), takerFeeDeriv.clone());
             }  else {
@@ -5183,7 +5183,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMargin() only support swap markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

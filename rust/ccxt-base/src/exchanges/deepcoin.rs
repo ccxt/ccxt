@@ -1299,7 +1299,7 @@ impl DeepcoinCore {
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut price: Option<String> = self.safe_string_k(paramsPaginate.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut maxLimit: Value = Value::Int(300);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (price.is_none()) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) && (price.is_none()) {
             maxLimit = Value::Int(1000);
         }
         if paginate.as_bool() == Some(true) {
@@ -1452,7 +1452,7 @@ impl DeepcoinCore {
         let mut open: Option<String> = self.safe_string_k_opt(ticker.clone(), "open24h", &[]);
         let mut quoteVolume: Value = self.safe_string_k(ticker.clone(), "volCcy24h", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "vol24h", &[]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!((self.safe_bool_k(marketResolved.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) {
             let mut temp: Value = baseVolume.clone();
             baseVolume = quoteVolume.clone();
             quoteVolume = temp;
@@ -2417,7 +2417,7 @@ impl DeepcoinCore {
         let mut isTriggerOrder: bool = triggerPrice.is_some();
         let mut cost: Option<String> = self.safe_string_k(params.clone(), "cost", &[]).as_str().map(str::to_owned);
         if (cost.is_some()) {
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) || (triggerPrice.is_some()) {
+            if (!matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true))) || (triggerPrice.is_some()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() accepts a cost parameter for spot non-trigger market orders only".into()))));
             }
         }
@@ -2508,7 +2508,7 @@ impl DeepcoinCore {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit orders".into()))));
         }
         let mut paramsRequest: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut cost: Option<String> = self.safe_string_k_opt(paramsOrderType.clone(), "cost", &[]);
             if (cost.is_some()) {
                 if !isMarketOrder {
@@ -2624,7 +2624,7 @@ impl DeepcoinCore {
         let mut paramsOmitted: Value = self.omit(paramsMarginMode, Value::Str("reduceOnly".into()), &[]);
         request.insert("isCrossMargin".into(), isCrossMargin);
         request.insert("tdMode".into(), marginModeOption);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             if reduceOnly {
                 if (side.as_str() == Some("buy")) {
                     request.insert("posSide".into(), Value::Str("short".into()));
@@ -3304,7 +3304,7 @@ impl DeepcoinCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".into()))));
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() is not supported for spot markets".into()))));
         }
         let mut productGroup: Value = self.get_product_group_from_market(market.clone()).map(Value::from).unwrap_or(Value::Null);
@@ -3367,7 +3367,7 @@ impl DeepcoinCore {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is not supported for spot markets".into()))));
             }
             symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -3437,7 +3437,7 @@ impl DeepcoinCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() is not supported for spot markets".into()))));
             }
         }
@@ -3930,7 +3930,7 @@ impl DeepcoinCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() is only valid for swap markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

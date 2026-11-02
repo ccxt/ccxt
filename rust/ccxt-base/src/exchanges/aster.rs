@@ -2239,7 +2239,7 @@ impl AsterCore {
             response = self.fapi_public_get_v3_index_price_klines(&[__ws_arg_1]).await;
         }  else {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])); }
-            if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_2 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
                 response = self.fapi_public_get_v3_klines(&[__ws_arg_2]).await;
             }  else {
@@ -2402,7 +2402,7 @@ impl AsterCore {
         }
         // use historical endpoint for targeted requests
         if sinceDefined {
-            if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_public_get_v3_agg_trades(&[__ws_arg_4]).await;
             }  else {
@@ -2410,7 +2410,7 @@ impl AsterCore {
                 response = self.sapi_public_get_v3_agg_trades(&[__ws_arg_5]).await;
             }
         }  else {
-            if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_public_get_v3_trades(&[__ws_arg_6]).await;
             }  else {
@@ -2509,7 +2509,7 @@ impl AsterCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), self.find_nearest_ceiling(Value::from(vec![Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(500), Value::Int(1000)]), limit));
         }
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_public_get_v3_depth(&[__ws_arg_10]).await;
         }  else {
@@ -2659,7 +2659,7 @@ impl AsterCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_public_get_v3_ticker24hr(&[__ws_arg_12]).await;
         }  else {
@@ -3194,7 +3194,7 @@ impl AsterCore {
     m
 }));
         let mut strValue: String = "false".to_string();
-        if (hedged.as_bool() == Some(true)) {
+        if hedged.as_bool() == Some(true) {
             strValue = "true".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3250,7 +3250,7 @@ impl AsterCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_private_get_v3_commission_rate(&[__ws_arg_20]).await;
         }  else {
@@ -3426,7 +3426,7 @@ impl AsterCore {
             request.insert("orderId".into(), id);
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.fapi_private_get_v3_order(&[__ws_arg_22]).await;
         }  else {
@@ -3473,7 +3473,7 @@ impl AsterCore {
             request.insert("orderId".into(), id);
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.sapi_private_get_v3_open_order(&[__ws_arg_24]).await;
         }  else {
@@ -3526,7 +3526,7 @@ impl AsterCore {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_26 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
             response = self.fapi_private_get_v3_all_orders(&[__ws_arg_26]).await;
         }  else {
@@ -3630,7 +3630,7 @@ impl AsterCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params]);
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.fapi_private_post_v3_order(&[request.clone()]).await;
         }  else {
             response = self.sapi_private_post_v3_order(&[request]).await;
@@ -3683,7 +3683,7 @@ impl AsterCore {
         }
         let mut orderSymbolsResolved: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = self.market(orderSymbolsResolved.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".into())).into()), self.safe_string_k(market, "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3749,7 +3749,7 @@ impl AsterCore {
         let mut uppercaseType: Value = initialUppercaseType;
         let mut stopPrice: Value = Value::Null;
         if isTrailingPercentOrder {
-            if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 uppercaseType = Value::Str("TRAILING_STOP_MARKET".into());
                 request.insert("callbackRate".into(), trailingPercent.clone().map(Value::from).unwrap_or(Value::Null));
                 if (trailingTriggerPrice.is_some()) {
@@ -3787,7 +3787,7 @@ impl AsterCore {
         let mut quantityIsRequired: bool = false;
         request.insert("type".into(), uppercaseType.clone());
         if (uppercaseType.as_str() == Some("MARKET")) {
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 let mut quoteOrderQty: Value = self.handle_option(Value::Str("createOrder".into()), Value::Str("quoteOrderQty".into()), &[Value::Bool(true)]);
                 if (match &(quoteOrderQty) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                     let mut quoteOrderQtyNew: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[]);
@@ -3871,7 +3871,7 @@ impl AsterCore {
         }  else {
             requestParams = self.omit(params, omitKeys, &[]);
         }
-        if matches!((self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)])), Value::Bool(true)) && (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!((self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k(market, "swap", &[Value::Bool(false)])), Value::Bool(true)) {
             request.insert("builder".into(), self.safe_string_k(self.options.clone(), "builder", &[]));
             request.insert("feeRate".into(), self.safe_string_k(self.options.clone(), "builderRate", &[]));
         }
@@ -3907,7 +3907,7 @@ impl AsterCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_private_delete_v3_all_open_orders(&[__ws_arg_31]).await;
         }  else {
@@ -3958,7 +3958,7 @@ impl AsterCore {
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]);
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.fapi_private_delete_v3_order(&[__ws_arg_33]).await;
         }  else {
@@ -4008,7 +4008,7 @@ impl AsterCore {
             request.insert("orderIdList".into(), ids);
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_private_delete_v3_batch_orders(&[__ws_arg_35]).await;
         }  else {
@@ -4885,7 +4885,7 @@ impl AsterCore {
             let mut position: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("contract".into())]);
-            let mut code: Value = (if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
+            let mut code: Value = (if matches!((self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
             let mut maintenanceMargin: Option<String> = self.safe_string_k(position.clone(), "maintMargin", &[]).as_str().map(str::to_owned);
             // check for maintenance margin so empty positions are not returned
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));

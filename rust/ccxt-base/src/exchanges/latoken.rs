@@ -1491,10 +1491,10 @@ impl LatokenCore {
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "quantity", &[]);
         let mut costString: Option<String> = self.safe_string_k_opt(trade.clone(), "cost", &[]);
-        let mut makerBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "makerBuyer", &[]);
+        let mut makerBuyer: bool = self.safe_bool_k_opt(trade.clone(), "makerBuyer", &[Value::Bool(false)]).unwrap_or(false);
         let mut side: Value = self.safe_string_k(trade.clone(), "direction", &[]);
         if (side == Value::Null) {
-            side = (if (makerBuyer == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if makerBuyer { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         }  else {
             if (side.as_str() == Some("TRADE_DIRECTION_BUY")) {
                 side = Value::Str("buy".into());
@@ -1503,7 +1503,7 @@ impl LatokenCore {
             }
         }
         let mut isBuy: bool = side.as_str() == Some("buy");
-        let mut isMaker: bool = (makerBuyer == Some(true)) && isBuy;
+        let mut isMaker: bool = (makerBuyer) && isBuy;
         let mut takerOrMaker: Value = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         let mut baseId: Option<String> = self.safe_string_k_opt(trade.clone(), "baseCurrency", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(trade.clone(), "quoteCurrency", &[]);

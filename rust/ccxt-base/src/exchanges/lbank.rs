@@ -1312,7 +1312,7 @@ impl LbankCore {
     m
 })]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut data: Value = (if (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { ticker.clone() } else { tickerData });
+        let mut data: Value = (if matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) { ticker.clone() } else { tickerData });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -1359,7 +1359,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut responseForSwap: Value = self.fetch_tickers(&[Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]), params.clone()]).await;
             let mut swapTicker: Value = self.safe_dict(responseForSwap, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[]);
             return swapTicker;
@@ -1590,7 +1590,7 @@ impl LbankCore {
     m
 })]);
         let mut timestamp: Value = self.milliseconds();
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.parse_order_book(orderbook.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]);
         }
         return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
@@ -2329,7 +2329,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }
@@ -3972,8 +3972,8 @@ impl LbankCore {
             let mut __for_first_926: bool = true;
             while { if !__for_first_926 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_926 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut fee: Value = response.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut canWithdraw: Option<bool> = self.safe_bool_k_opt(fee.clone(), "canWithDraw", &[]);
-            if (canWithdraw == Some(true)) {
+            let mut canWithdraw: bool = self.safe_bool_k_opt(fee.clone(), "canWithDraw", &[Value::Bool(false)]).unwrap_or(false);
+            if canWithdraw {
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(fee.clone(), "assetCode", &[]), &[]);
                 if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                     let mut withdrawFee: Value = self.safe_number_k(fee.clone(), "fee", &[]);
@@ -4094,9 +4094,9 @@ impl LbankCore {
             let mut networkEntry: Value = self.safe_dict(networkList.clone(), Value::Int(j), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone()]);
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
-            let mut isDefault: Option<bool> = self.safe_bool_k_opt(networkEntry, "isDefault", &[]);
+            let mut isDefault: bool = self.safe_bool_k_opt(networkEntry, "isDefault", &[Value::Bool(false)]).unwrap_or(false);
             if (withdrawFee != Value::Null) {
-                if (isDefault == Some(true)) {
+                if isDefault {
                     result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), withdrawFee.clone());

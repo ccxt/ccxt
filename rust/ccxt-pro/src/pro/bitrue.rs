@@ -658,7 +658,7 @@ impl BitrueCore {
         let mut url: Value = Value::Null;
         let mut channel: Value = Value::Null;
         let mut cbId: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let baseIdLower: String = self.safe_string_lower_k_opt(market.clone(), "baseId", &[Value::Str("".into())]).unwrap_or_default();
             let quoteIdLower: String = self.safe_string_lower_k_opt(market.clone(), "quoteId", &[Value::Str("".into())]).unwrap_or_default();
             let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower).into());
@@ -818,7 +818,7 @@ impl BitrueCore {
             return Value::Null;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             return rawQuantity;
         }
         let mut contractSize: Value = self.safe_number_k(market, "contractSize", &[Value::Int(1)]);
@@ -853,7 +853,7 @@ impl BitrueCore {
         }
         let mut market: Value = self.market(symbol);
         let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTrades is only supported for swap markets".into()))));
         }
         let baseIdLower: String = self.safe_string_lower_k_opt(market.clone(), "baseId", &[Value::Str("".into())]).unwrap_or_default();
@@ -999,7 +999,7 @@ impl BitrueCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV is only supported for swap markets".into()))));
         }
         let mut futuresTimeframes: Value = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
@@ -1134,7 +1134,7 @@ impl BitrueCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTicker is only supported for swap markets".into()))));
         }
         let baseIdLower: String = self.safe_string_lower_k_opt(market.clone(), "baseId", &[Value::Str("".into())]).unwrap_or_default();

@@ -556,10 +556,10 @@ impl OnetradingCore {
             let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "instrument", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut parsedTicker: Value = self.parse_ws_ticker(ticker, &[]);
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
             let mut timestamp: Value = self.parse8601(datetime.clone());
             if let Value::Dict(__rda) = &mut parsedTicker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
             if let Value::Dict(__rda) = &mut parsedTicker { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
             client.resolve(&[parsedTicker, Value::Str(format!("{}{}", Value::Str("ticker.".into()), symbol).into())]);
         }
         }

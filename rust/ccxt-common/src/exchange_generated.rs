@@ -2676,7 +2676,7 @@ pub trait ExchangeBase:
         if (market != Value::Null) {
             let mut result: Value = self.extend(Value::Map(cleanStructure.clone()), &[market]);
             // set undefined swap/future/etc
-            if (self.safe_bool_k(result.clone(), "spot", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(result.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (result.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("contract".into(), Value::Bool(false)); }
                 }
@@ -2750,9 +2750,9 @@ pub trait ExchangeBase:
                     m.insert("limits".to_string(), self.limits.clone());
                 m
             }), self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Map(valueDefined)]);
-            if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 add_element_to_object(&mut market, &Value::Str("subType".into()), Value::Str("linear".into()));
-            }  else if (self.safe_bool_k(market.clone(), "inverse", &[]).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 add_element_to_object(&mut market, &Value::Str("subType".into()), Value::Str("inverse".into()));
             }  else {
                 add_element_to_object(&mut market, &Value::Str("subType".into()), Value::Null);
@@ -4276,7 +4276,7 @@ pub trait ExchangeBase:
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbols must be of the same type ".into())).into()), type_var).into()), Value::Str(". If the type is incorrect you can change it in options or the params of the request".into()))));
             }
             marketType = self.safe_string_k(market.clone(), "type", &[]);
-            if (self.safe_bool_k(market.clone(), "spot", &[]).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 isLinearSubType = self.safe_bool_k(market.clone(), "linear", &[]);
             }
             let mut symbol: Value = self.safe_string_k(market, "symbol", &[symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]);
@@ -5889,7 +5889,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut __for_first_136: bool = true;
                         while { if !__for_first_136 { i += 1; } __for_first_136 = false; i < (markets.len() as i64) } {
                         let mut currentMarket: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
-                        if (self.safe_bool(currentMarket.clone(), marketTypeResolved.clone(), &[]).as_bool() == Some(true)) {
+                        if matches!(self.safe_bool(currentMarket.clone(), marketTypeResolved.clone(), &[Value::Bool(false)]), Value::Bool(true)) {
                             return currentMarket;
                         }
                     }
@@ -6433,9 +6433,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             // at first, check from market object
             if (market != Value::Null) {
-                if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
+                if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                     subType = Value::Str("linear".into());
-                }  else if (self.safe_bool_k(market, "inverse", &[]).as_bool() == Some(true)) {
+                }  else if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                     subType = Value::Str("inverse".into());
                 }
             }
@@ -7188,7 +7188,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut __for_first_140: bool = true;
                 while { if !__for_first_140 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_140 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketsList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut market: Value = get_value(&marketsList, &i);
-                if (self.safe_bool(market.clone(), defaultType.clone(), &[]).as_bool() == Some(true)) {
+                if matches!(self.safe_bool(market.clone(), defaultType.clone(), &[Value::Bool(false)]), Value::Bool(true)) {
                     return market;
                 }
             }
@@ -7475,7 +7475,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone());
-            if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() supports contract markets only".into()))));
             }
             let mut tiers: Value = self.fetch_leverage_tiers(&[Value::from(vec![symbol.clone()])]).await;
@@ -8086,7 +8086,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.load_markets(&[]).await;
             let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports contract markets only".into()))));
             }
             let mut rates: Value = self.fetch_funding_rates(&[Value::from(vec![symbolResolved.clone()]), params]).await;
@@ -8117,7 +8117,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.load_markets(&[]).await;
             let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingInterval() supports contract markets only".into()))));
             }
             let mut rates: Value = self.fetch_funding_intervals(&[Value::from(vec![symbolResolved.clone()]), params]).await;

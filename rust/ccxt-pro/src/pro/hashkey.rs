@@ -803,7 +803,7 @@ impl HashkeyCore {
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "f", &[]);
         let mut postOnly: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.parent.parse_order_type_time_in_force_and_post_only(type_var.clone(), timeInForce.clone()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).cloned().unwrap_or(Value::Null); }
-        if (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             type_var = Value::Null;
         }
         return self.safe_order(Value::Map({
@@ -1315,10 +1315,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: Value = self.get_private_url(listenKey).map(Value::from).unwrap_or(Value::Null);
-            let mut client: Value = self.client(&[url.clone()]);
+            let mut client: Value = self.client(&[url]);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
             client.reject(&[Value::from(error)]);
-            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &url) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
 
     Value::Null

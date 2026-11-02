@@ -5178,7 +5178,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        }  else if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.futures_public_get_ticker(&[__ws_arg_8]).await;
             //
@@ -5265,7 +5265,7 @@ impl KucoinCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.futures_public_get_mark_price_symbol_current(&[__ws_arg_10]).await;
             let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -5346,7 +5346,7 @@ impl KucoinCore {
         }
         if uta.as_bool() == Some(true) {
             return self.fetch_utaohlcv(symbol.clone(), &[timeframe.clone(), since.clone(), limit.clone(), paramsRequest.clone()]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.fetch_contract_ohlcv(symbol.clone(), &[timeframe.clone(), since.clone(), limit.clone(), paramsRequest.clone()]).await;
         }  else {
             return self.fetch_spot_ohlcv(symbol, &[timeframe, since, limit, paramsRequest]).await;
@@ -6150,9 +6150,9 @@ impl KucoinCore {
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         if utaOption.as_bool() == Some(true) {
             return self.create_uta_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsUta.clone()]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.create_spot_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsUta.clone()]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.create_contract_order(symbol, type_var, side, amount, &[price, paramsUta]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support market ".into())).into()), self.safe_string_k(market, "type", &[Value::Str("".into())]))));
@@ -6947,9 +6947,9 @@ impl KucoinCore {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a symbol for each order".into()))));
             }
             let mut market: Value = self.market(symbol.map(Value::from).unwrap_or(Value::Null));
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 isSpot = true;
-            }  else if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 isContract = true;
             }
         }
@@ -7183,7 +7183,7 @@ impl KucoinCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" editOrder() supports spot markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -8833,7 +8833,7 @@ impl KucoinCore {
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        if (marketResolved != Value::Null) && (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if (marketResolved != Value::Null) && matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
             return self.parse_contract_order(order.clone(), &[marketResolved.clone()]);
         }  else {
             return self.parse_spot_order(order, &[marketResolved]);
@@ -8922,7 +8922,7 @@ impl KucoinCore {
         let mut average: Value = self.safe_string_k(order.clone(), "avgDealPrice", &[]);
         if (average == Value::Null) && crate::precise::Precise::stringGt(&filled.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             let mut contractSize: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
-            if (marketResolved.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(marketResolved.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 average = crate::precise::Precise::stringDiv(&cost.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&contractSize.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)));
             }  else {
                 average = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractSize.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)), &cost.clone().map(Value::from).unwrap_or(Value::Null));
@@ -9891,7 +9891,7 @@ impl KucoinCore {
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        if (marketResolved == Value::Null) || (marketResolved.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if (marketResolved == Value::Null) || matches!((self.safe_bool_k(marketResolved.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) {
             return self.parse_spot_or_uta_trade(trade.clone(), &[marketResolved.clone()]);
         }  else {
             return self.parse_contract_trade(trade, &[marketResolved]);
@@ -10273,7 +10273,7 @@ impl KucoinCore {
         let mut response: Value = Value::Null;
         let mut entry: Value = Value::Null;
         if utaOption.as_bool() == Some(true) {
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 request.insert("tradeType".into(), Value::Str("SPOT".into()));
             }  else {
                 request.insert("tradeType".into(), Value::Str("FUTURES".into()));
@@ -10302,7 +10302,7 @@ impl KucoinCore {
 })]);
             let mut dataList: Value = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);
             entry = self.safe_dict(dataList, Value::Int(0), &[]);
-        }  else if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("symbols".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let __ws_arg_91 = self.extend(Value::Map(request.clone()), &[paramsUta.clone()]);
             response = self.private_get_trade_fees(&[__ws_arg_91]).await;
@@ -13124,7 +13124,7 @@ if _try_result.is_err() {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() supports contract markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -13208,7 +13208,7 @@ if _try_result.is_err() {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage requires a symbol argument for contract markets".into()))));
             }
             market = self.market(symbol.clone());
-            if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 return self.set_contract_leverage(leverage.clone(), &[symbol.clone(), paramsRequest.clone()]).await;
             }
         }
@@ -14667,8 +14667,8 @@ if _try_result.is_err() {
         let mut id: Option<String> = self.safe_string_k_opt(info.clone(), "id", &[]);
         let mut marketResolved: Value = self.safe_market(&[id.map(Value::from).unwrap_or(Value::Null), market]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(info.clone(), "settleCurrency", &[]);
-        let mut crossMode: Option<bool> = self.safe_bool_k_opt(info.clone(), "crossMode", &[]);
-        let mut mode: Value = (if (crossMode == Some(true)) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+        let mut crossMode: bool = self.safe_bool_k_opt(info.clone(), "crossMode", &[Value::Bool(false)]).unwrap_or(false);
+        let mut mode: Value = (if crossMode { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         let mut marketId: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "symbol", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(info.clone(), "currentTimestamp", &[]).as_i64();
         return Value::Map({
@@ -14771,7 +14771,7 @@ if _try_result.is_err() {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports contract markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -14820,7 +14820,7 @@ if _try_result.is_err() {
             self.load_markets(&[]).await;
         }
         let mut posMode: String = "0".to_string();
-        if (hedged.as_bool() == Some(true)) {
+        if hedged.as_bool() == Some(true) {
             posMode = "1".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -14938,7 +14938,7 @@ if _try_result.is_err() {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() supports contract markets only".into()))));
         }
         let mut uta: Value = Value::Bool(false);

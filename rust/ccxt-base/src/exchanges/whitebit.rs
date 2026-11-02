@@ -1353,14 +1353,14 @@ impl WhitebitCore {
             return Value::Null;
         }
         let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "tradesEnabled", &[]);
-        let mut isCollateral: Option<bool> = self.safe_bool_k_opt(market.clone(), "isCollateral", &[]);
+        let mut isCollateral: bool = self.safe_bool_k_opt(market.clone(), "isCollateral", &[Value::Bool(false)]).unwrap_or(false);
         let mut typeId: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
         let mut settle: Value = Value::Null;
         let mut settleId: Value = Value::Null;
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut swap: Value = Value::Bool((typeId.as_deref() == Some("futures")) || (typeId.as_deref() == Some("tradfiFutures")));
-        let mut margin: Value = Value::Bool((isCollateral == Some(true)) && !(matches!(&swap, Value::Bool(true))));
+        let mut margin: Value = Value::Bool((isCollateral) && !(matches!(&swap, Value::Bool(true))));
         let mut contract: Value = Value::Bool(false);
         let mut amountPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "stockPrec", &[])]), &[]);
         let mut linear: Value = Value::Null;
@@ -2601,7 +2601,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 while { if !__for_first_1152 { i += 1; } __for_first_1152 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
-                if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+                if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                     onlyContractSymbols = false;
                     break;
                 }
@@ -3831,9 +3831,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut timestamp: Value = self.safe_timestamp2(order.clone(), Value::Str("ctime".into()), Value::Str("timestamp".into()), &[]);
         let mut lastTradeTimestamp: Value = self.safe_timestamp_k(order.clone(), "ftime", &[]);
         let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "postOnly", &[]);
-        let mut ioc: Option<bool> = self.safe_bool_k_opt(order.clone(), "ioc", &[]);
+        let mut ioc: bool = self.safe_bool_k_opt(order.clone(), "ioc", &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForce: Value = Value::Null;
-        if (ioc == Some(true)) {
+        if ioc {
             timeInForce = Value::Str("IOC".into());
         }  else if (postOnly == Some(true)) {
             timeInForce = Value::Str("PO".into());

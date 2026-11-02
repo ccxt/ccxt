@@ -1846,7 +1846,7 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports contract markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1904,7 +1904,7 @@ impl DeriveCore {
         let mut value: Value = Value::Null;
         let mut isOption: bool = self.safe_bool_k_opt(market.clone(), "option", &[Value::Bool(false)]).unwrap_or(false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if (market != Value::Null) && (!isOption) {
+        if (market != Value::Null) && !(isOption) {
             value = crate::precise::Precise::stringMul(&amount.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(interest.clone(), "M", &[]));
         }
         return self.safe_open_interest(Value::Map({
@@ -1939,7 +1939,7 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchGreeks() supports option markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2050,7 +2050,7 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOption() supports option markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3947,10 +3947,10 @@ impl DeriveCore {
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "filled_amount", &[]);
         let mut fee: Option<String> = self.safe_string_k_opt(order.clone(), "order_fee", &[]);
         let mut orderType: Option<String> = self.safe_string_lower_k_opt(order.clone(), "order_type", &[]);
-        let mut isBid: Option<bool> = self.safe_bool_k_opt(order.clone(), "is_bid", &[]);
+        let mut isBid: bool = self.safe_bool_k_opt(order.clone(), "is_bid", &[Value::Bool(false)]).unwrap_or(false);
         let mut side: Value = self.safe_string_k(order.clone(), "direction", &[]);
         if (side == Value::Null) {
-            if (isBid == Some(true)) {
+            if isBid {
                 side = Value::Str("buy".into());
             }  else {
                 side = Value::Str("sell".into());

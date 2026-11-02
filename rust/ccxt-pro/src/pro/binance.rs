@@ -714,7 +714,7 @@ impl BinanceCore {
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (Value::Bool(baseUrl.as_str().unwrap_or("").ends_with("/ws")).as_bool() == Some(true)) {
+            if (baseUrl.as_str().unwrap_or("").ends_with("/ws")) {
                 let mut prefix: Value = (match (&(baseUrl), 0i64, (match &((match (&(Value::Int(baseUrl.len() as i64)), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
                     __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
@@ -1319,10 +1319,10 @@ impl BinanceCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
         let mut type_var: Value = firstMarket.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
-        if (firstMarket.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(firstMarket.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             type_var = Value::Str("option".into());
-        }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
+        }  else if matches!(self.safe_bool_k(firstMarket.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            type_var = (if matches!((self.safe_bool_k(firstMarket, "linear", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
         }
         let mut name: Value = Value::Str("depth".into());
         let mut streamHash: Value = Value::Str("multipleOrderbook".into());
@@ -1420,10 +1420,10 @@ impl BinanceCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
         let mut type_var: Value = firstMarket.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
-        if (firstMarket.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(firstMarket.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             type_var = Value::Str("option".into());
-        }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
+        }  else if matches!(self.safe_bool_k(firstMarket.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            type_var = (if matches!((self.safe_bool_k(firstMarket, "linear", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
         }
         let mut name: String = "depth".to_string();
         let mut streamHash: Value = Value::Str("multipleOrderbook".into());
@@ -1966,8 +1966,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut isOption: Value = firstMarket.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null);
         if (isOption.as_bool() == Some(true)) {
             type_var = Value::Str("option".into());
-        }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
+        }  else if matches!(self.safe_bool_k(firstMarket.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            type_var = (if matches!((self.safe_bool_k(firstMarket, "linear", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
         }
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subscribeHashes: Vec<Value> = Vec::new();
@@ -2080,8 +2080,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut isOption: Value = firstMarket.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null);
         if (isOption.as_bool() == Some(true)) {
             type_var = Value::Str("option".into());
-        }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
+        }  else if matches!(self.safe_bool_k(firstMarket.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            type_var = (if matches!((self.safe_bool_k(firstMarket, "linear", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
         }
         let mut subMessageHashes: Vec<Value> = Vec::new();
         let mut subParams: Vec<Value> = Vec::new();
@@ -2530,11 +2530,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut firstMarket: Value = self.market(marketSymbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
         let mut type_var: Value = firstMarket.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
         let mut wsUrlType: Value = type_var.clone();
-        if (firstMarket.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(firstMarket.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             type_var = Value::Str("option".into());
             wsUrlType = Value::Str("optionMarket".into()); // eOptions klines are served from /market/ws
-        }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
+        }  else if matches!(self.safe_bool_k(firstMarket.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            type_var = (if matches!((self.safe_bool_k(firstMarket, "linear", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
             wsUrlType = type_var.clone();
         }
         let mut isSpot: bool = type_var.as_str() == Some("spot");
@@ -2634,11 +2634,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut firstMarket: Value = self.market(marketSymbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
         let mut type_var: Value = firstMarket.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
         let mut wsUrlType: Value = type_var.clone();
-        if (firstMarket.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(firstMarket.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
             type_var = Value::Str("option".into());
             wsUrlType = Value::Str("optionMarket".into()); // eOptions klines are served from /market/ws
-        }  else if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            type_var = (if (firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
+        }  else if matches!(self.safe_bool_k(firstMarket.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            type_var = (if matches!((self.safe_bool_k(firstMarket, "linear", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
             wsUrlType = type_var.clone();
         }
         let mut isSpot: bool = type_var.as_str() == Some("spot");
@@ -3664,7 +3664,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         // carries `w`, so a miniTicker uses the contract size.
         let mut baseVolume: Value = self.safe_string_k(message.clone(), "v", &[]);
         let mut quoteVolume: Value = self.safe_string_k(message.clone(), "q", &[]);
-        if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut contracts: Value = baseVolume.clone();
             baseVolume = quoteVolume.clone();
             let mut weightedAverage: Option<String> = self.safe_string_k_opt(message.clone(), "w", &[]);
@@ -5172,7 +5172,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut sor: bool = self.safe_bool2_opt(params.clone(), Value::Str("sor".into()), Value::Str("SOR".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("sor".into()), &[Value::Str("SOR".into())]);
         let mut isConditional: Value = self.parent.is_conditional_order(&[paramsOmitted.clone()]);
-        if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && isConditional.as_bool() == Some(true) {
+        if matches!((self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) && isConditional.as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead".into()))));
         }
         let mut isAlgoOrder: bool = (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && ((market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&isConditional);

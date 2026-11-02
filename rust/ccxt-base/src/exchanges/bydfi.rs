@@ -3353,7 +3353,7 @@ impl BydfiCore {
             self.load_markets(&[]).await;
         }
         let mut positionType: String = "ONEWAY".to_string();
-        if (hedged.as_bool() == Some(true)) {
+        if hedged.as_bool() == Some(true) {
             positionType = "HEDGE".to_string();
         }
         let mut wallet: String = "W001".to_string();

@@ -580,7 +580,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut requestId: Value = Value::Str(format!("{}", self.request_id()).into());
         let mut market: Value = self.market(symbol);
         let mut urlType: String = "spot".to_string();
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             urlType = "futures".to_string();
         }
         let mut tradeType: String = Some(urlType.as_str()).map(str::to_uppercase).unwrap_or_default();
@@ -2936,7 +2936,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("orderTime".into()), Value::Str("createdAt".into()), &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             timestamp = self.safe_integer_product_k(order.clone(), "orderTime", Value::Float(0.000001), &[]);
         }
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(order.clone(), "stopPrice", &[]);

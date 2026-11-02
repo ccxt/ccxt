@@ -2330,7 +2330,7 @@ impl HashkeyCore {
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "c", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "v", &[]);
         let mut contractSizeValue: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (contractSizeValue.is_some()) {
+        if matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) && (contractSizeValue.is_some()) {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = crate::precise::Precise::stringMul(&baseVolume, &self.number_to_string(contractSizeValue.map(Value::from).unwrap_or(Value::Null)));
         }
@@ -3227,9 +3227,9 @@ impl HashkeyCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.create_spot_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.create_swap_order(symbol, type_var, side, amount, &[price, params]).await;
         }  else {
             let marketTypeValue: String = self.safe_string_k_opt(market, "type", &[Value::Str("".into())]).unwrap_or_default();
@@ -3257,7 +3257,7 @@ impl HashkeyCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() is supported for spot markets only".into()))));
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -3314,8 +3314,8 @@ impl HashkeyCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut test: Option<bool> = self.safe_bool_k_opt(params, "test", &[]);
-        if (test == Some(true)) {
+        let mut test: bool = self.safe_bool_k_opt(params, "test", &[Value::Bool(false)]).unwrap_or(false);
+        if test {
             response = self.private_post_api_v1_spot_order_test(&[request.clone()]).await;
         }  else if isMarketBuy && (cost.is_none()) {
             response = self.private_post_api_v11_spot_order(&[request.clone()]).await; // the endpoint for market buy orders by amount
@@ -3340,9 +3340,9 @@ impl HashkeyCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.create_spot_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
-        }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.create_swap_order_request(symbol, type_var, side, amount, &[price, params]);
         }  else {
             let marketTypeValue: String = self.safe_string_k_opt(market, "type", &[Value::Str("".into())]).unwrap_or_default();
@@ -3585,10 +3585,10 @@ impl HashkeyCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_post_api_v1_spot_batch_orders(&[__ws_arg_18]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_api_v1_futures_batch_orders(&[__ws_arg_19]).await;
         }  else {
@@ -3666,7 +3666,7 @@ impl HashkeyCore {
             let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
-            if (isTrigger.as_bool() == Some(true)) {
+            if isTrigger.as_bool() == Some(true) {
                 request.insert("type".into(), Value::Str("STOP".into()));
             }  else {
                 request.insert("type".into(), Value::Str("LIMIT".into()));
@@ -3720,10 +3720,10 @@ impl HashkeyCore {
             request.insert("side".into(), side.map(Value::from).unwrap_or(Value::Null));
         }
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_delete_api_v1_spot_open_orders(&[__ws_arg_22]).await;
-        }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
             response = self.private_delete_api_v1_futures_batch_orders(&[__ws_arg_23]).await;
         }  else {
@@ -3842,7 +3842,7 @@ impl HashkeyCore {
             let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
-            if (isTrigger.as_bool() == Some(true)) {
+            if isTrigger.as_bool() == Some(true) {
                 request.insert("type".into(), Value::Str("STOP".into()));
             }
             let __ws_arg_25 = self.extend(Value::Map(request), &[paramsTrigger]);
@@ -4013,7 +4013,7 @@ impl HashkeyCore {
         let isTriggerTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMethodName, methodNameOption.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[isTrigger]).as_array().cloned().unwrap_or_default();
         let mut isTriggerTrigger: Value = isTriggerTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTrigger: Value = isTriggerTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (isTriggerTrigger.as_bool() == Some(true)) {
+        if isTriggerTrigger.as_bool() == Some(true) {
             request.insert("type".into(), Value::Str("STOP".into()));
         }  else {
             request.insert("type".into(), Value::Str("LIMIT".into()));
@@ -4116,7 +4116,7 @@ impl HashkeyCore {
             let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
-            if (isTrigger.as_bool() == Some(true)) {
+            if isTrigger.as_bool() == Some(true) {
                 request.insert("type".into(), Value::Str("STOP".into()));
             }  else {
                 request.insert("type".into(), Value::Str("LIMIT".into()));
@@ -4646,7 +4646,7 @@ impl HashkeyCore {
         let mut methodName: String = "fetchPosition".to_string();
         let mut methodNameOption: Value = self.safe_string_k(params.clone(), "methodName", &[Value::from(methodName)]);
         let mut paramsMethodName: Value = self.omit(params, Value::Str("methodName".into()), &[]);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodNameOption).into()), Value::Str("() supports swap markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4826,7 +4826,7 @@ impl HashkeyCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".into()))));
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4892,7 +4892,7 @@ impl HashkeyCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" modifyMarginHelper() supports swap markets only".into()))));
         }
         let mut sideParam: Option<String> = self.safe_string_k_opt(params.clone(), "side", &[]);
@@ -5109,11 +5109,11 @@ impl HashkeyCore {
         let mut market: Value = self.market(symbol.clone());
         let mut methodName: String = "fetchTradingFee".to_string();
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.fetch_trading_fees(&[params.clone()]).await;
             let mut fee: Value = self.safe_dict(response.clone(), symbol, &[]);
             return fee;
-        }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_43 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));

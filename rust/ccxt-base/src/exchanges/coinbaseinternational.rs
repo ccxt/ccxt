@@ -2765,9 +2765,9 @@ impl CoinbaseinternationalCore {
         let mut contracts: Value = self.safe_number_k(position.clone(), "size", &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let mut size: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
-            if (marketResolved.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(marketResolved.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
                 notional = size.clone().map(Value::from).unwrap_or(Value::Null);
-                if (marketResolved.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                if matches!(self.safe_bool_k(marketResolved.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                     size = self.safe_string_k_opt(position.clone(), "size_currency", &[]);
                 }
             }  else {
@@ -3156,7 +3156,7 @@ impl CoinbaseinternationalCore {
  */
     pub fn get_order_amount(&self, mut market: Value, mut amount: Value) -> Option<String> {
         let mut exchangeAmount: Value = self.number_to_string(amount);
-        if self.is_native_deribit_credentials().as_bool() == Some(true) && (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
             exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount, &self.safe_string_k(market.clone(), "contractSize", &[]));
         }
         return self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), exchangeAmount).as_str().map(str::to_owned);
@@ -3443,7 +3443,7 @@ impl CoinbaseinternationalCore {
         let mut lastUpdateTimestamp: Value = self.safe_integer_k(order.clone(), "last_update_timestamp", &[]);
         let mut filled: Value = self.safe_number_k(order.clone(), "filled_amount", &[]);
         let mut amount: Value = self.safe_number_k(order.clone(), "amount", &[]);
-        if self.is_native_deribit_credentials().as_bool() == Some(true) && (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
             let mut contractSize: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
             amount = self.parse_number(self.safe_string_k(order.clone(), "contracts", &[crate::precise::Precise::stringDiv(&self.safe_string(order.clone(), Value::Str("amount".into()), &[]), &contractSize.clone().map(Value::from).unwrap_or(Value::Null))]), &[]);
             filled = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(order.clone(), "filled_amount", &[]), &contractSize.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
@@ -3459,7 +3459,7 @@ impl CoinbaseinternationalCore {
         let mut cost: Value = Value::Null;
         if (filledString.is_some()) && (averageString.is_some()) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&filledString.clone().map(Value::from).unwrap_or(Value::Null), &averageString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
-            if self.is_native_deribit_credentials().as_bool() == Some(true) && (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (marketResolved.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) && (!matches!(self.safe_bool_k(marketResolved.clone(), "option", &[Value::Bool(false)]), Value::Bool(true))) {
                 cost = self.parse_number(crate::precise::Precise::stringDiv(&filledString.clone().map(Value::from).unwrap_or(Value::Null), &averageString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
             }
         }
@@ -4151,14 +4151,14 @@ impl CoinbaseinternationalCore {
         let mut price: Value = self.safe_number_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_number_k(trade.clone(), "amount", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
-        if self.is_native_deribit_credentials().as_bool() == Some(true) && (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
             amount = self.parse_number(self.safe_string_k(trade.clone(), "contracts", &[crate::precise::Precise::stringDiv(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string(marketResolved.clone(), Value::Str("contractSize".into()), &[]))]), &[]);
         }
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut cost: Value = Value::Null;
         if (amountString.is_some()) && (priceString.is_some()) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
-            if self.is_native_deribit_credentials().as_bool() == Some(true) && (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (marketResolved.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) && (!matches!(self.safe_bool_k(marketResolved.clone(), "option", &[Value::Bool(false)]), Value::Bool(true))) {
                 cost = self.parse_number(crate::precise::Precise::stringDiv(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
             }
         }

@@ -1548,7 +1548,7 @@ impl BigoneCore {
         }
         let mut market: Value = self.market(symbol);
         let mut response: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1819,7 +1819,7 @@ impl BigoneCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades () can only fetch trades for spot markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1888,7 +1888,7 @@ impl BigoneCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV () can only fetch ohlcvs for spot markets".into()))));
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
@@ -2059,9 +2059,9 @@ impl BigoneCore {
         if crate::precise::Precise::stringEq(&triggerPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             triggerPrice = None;
         }
-        let mut immediateOrCancel: Option<bool> = self.safe_bool_k_opt(order.clone(), "immediate_or_cancel", &[]);
+        let mut immediateOrCancel: bool = self.safe_bool_k_opt(order.clone(), "immediate_or_cancel", &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForce: Value = Value::Null;
-        if (immediateOrCancel == Some(true)) {
+        if immediateOrCancel {
             timeInForce = Value::Str("IOC".into());
         }
         let mut type_var: Value = self.parse_type(self.safe_string_k(order.clone(), "type", &[])).map(Value::from).unwrap_or(Value::Null);
@@ -2123,7 +2123,7 @@ impl BigoneCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }

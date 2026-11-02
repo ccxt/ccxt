@@ -1090,7 +1090,7 @@ impl CoinsphCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut isFiat: Option<bool> = self.safe_bool_k_opt(rawCurrency.clone(), "isLegalMoney", &[]);
+        let mut isFiat: bool = self.safe_bool_k_opt(rawCurrency.clone(), "isLegalMoney", &[Value::Bool(false)]).unwrap_or(false);
         let mut networkList: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1140,7 +1140,7 @@ impl CoinsphCore {
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "name", &[]));
         m.insert("code".to_string(), code);
-        m.insert("type".to_string(), (if (isFiat == Some(true)) { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
+        m.insert("type".to_string(), (if isFiat { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "transferPrecision", &[])]), &[]));
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("active".to_string(), Value::Null);

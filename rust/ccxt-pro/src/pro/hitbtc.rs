@@ -2085,9 +2085,9 @@ impl HitbtcCore {
         //        "result": true
         //    }
         //
-        let mut success: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null });
+        let mut success: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
         let mut messageHash: Value = Value::Str("authenticated".into());
-        if (success.as_bool() == Some(true)) {
+        if success.as_bool() == Some(true) {
             let mut future: Value = self.safe_value(__ch.futures.clone(), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {

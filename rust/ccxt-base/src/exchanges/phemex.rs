@@ -5455,7 +5455,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         let mut apiUnrealizedPnl: Value = self.safe_string_k(position.clone(), "unRealisedPnlRv", &[unrealizedPnl]);
         let mut marginRatio: Value = crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateral.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut isCross: Option<bool> = self.safe_bool_k_opt(position.clone(), "crossMargin", &[]);
+        let mut isCross: bool = self.safe_bool_k_opt(position.clone(), "crossMargin", &[Value::Bool(false)]).unwrap_or(false);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "openedTimeNs", &[]).as_i64();
         let mut lastUpdateTimestamp: Value = self.safe_integer_k(position.clone(), "updatedTimeNs", &[self.safe_integer_product_k(position.clone(), "transactTimeNs", Value::Float(0.000001), &[])]);
         return self.safe_position(Value::Map({
@@ -5483,7 +5483,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("marginRatio".to_string(), self.parse_number(marginRatio, &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("marginMode".to_string(), (if (isCross == Some(true)) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) }));
+        m.insert("marginMode".to_string(), (if isCross { Value::Str("cross".into()) } else { Value::Str("isolated".into()) }));
         m.insert("side".to_string(), side);
         m.insert("hedged".to_string(), Value::Bool(self.safe_string_k(position, "posMode", &[]).as_str() == Some("Hedged")));
         m.insert("percentage".to_string(), Value::Null);
@@ -5812,8 +5812,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
-        let mut inverse: Option<bool> = self.safe_bool_k_opt(marketResolved.clone(), "inverse", &[]);
-        let mut codeCurrency: Value = (if (inverse == Some(true)) { Value::Str("base".into()) } else { Value::Str("quote".into()) });
+        let mut inverse: bool = self.safe_bool_k_opt(marketResolved.clone(), "inverse", &[Value::Bool(false)]).unwrap_or(false);
+        let mut codeCurrency: Value = (if inverse { Value::Str("base".into()) } else { Value::Str("quote".into()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
@@ -5920,7 +5920,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if (hedged.as_bool() == Some(true)) {
+        if hedged.as_bool() == Some(true) {
             request.insert("targetPosMode".into(), Value::Str("Hedged".into()));
         }  else {
             request.insert("targetPosMode".into(), Value::Str("OneWay".into()));

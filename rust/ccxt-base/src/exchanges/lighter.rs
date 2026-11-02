@@ -3347,7 +3347,7 @@ if _try_result.is_err() {
         let mut isAskAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "is_ask", &[]).as_i64();
         let mut side: Value = Value::Null;
         if (isAsk.is_some()) {
-            side = (if (isAsk == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if isAsk == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         }  else if (isAskAsInteger.is_some()) {
             side = (if (isAskAsInteger == Some(1)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         }

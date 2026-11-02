@@ -1954,8 +1954,8 @@ impl CoinbaseCore {
         let mut amountStringAbs: Value = crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null));
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         if (status == Value::Null) {
-            let mut committed: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "committed", &[]);
-            status = (if (committed == Some(true)) { Value::Str("ok".into()) } else { Value::Str("pending".into()) });
+            let mut committed: bool = self.safe_bool_k_opt(transaction.clone(), "committed", &[Value::Bool(false)]).unwrap_or(false);
+            status = (if committed { Value::Str("ok".into()) } else { Value::Str("pending".into()) });
         }
         let mut id: Option<String> = self.safe_string_k_opt(transaction.clone(), "id", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(amountAndCurrencyObject, "currency", &[]);
@@ -2100,11 +2100,11 @@ impl CoinbaseCore {
                 }
             }
         }
-        let mut sizeInQuote: Option<bool> = self.safe_bool_k_opt(trade.clone(), "size_in_quote", &[]);
+        let mut sizeInQuote: bool = self.safe_bool_k_opt(trade.clone(), "size_in_quote", &[Value::Bool(false)]).unwrap_or(false);
         let mut v3Price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut v3Cost: Value = Value::Null;
         let mut v3Amount: Value = self.safe_string_k(trade.clone(), "size", &[]);
-        if (sizeInQuote == Some(true)) {
+        if sizeInQuote {
             // calculate base size
             v3Cost = v3Amount.clone();
             v3Amount = crate::precise::Precise::stringDiv(&v3Amount, &v3Price.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2582,7 +2582,7 @@ if _try_result.is_err() {
             return Value::Null;
         }
         let mut marketType: Option<String> = self.safe_string_lower_k_opt(market.clone(), "product_type", &[]);
-        let mut tradingDisabled: Option<bool> = self.safe_bool_k_opt(market.clone(), "trading_disabled", &[]);
+        let mut tradingDisabled: bool = self.safe_bool_k_opt(market.clone(), "trading_disabled", &[Value::Bool(false)]).unwrap_or(false);
         let mut stablePairs: Value = self.safe_list_k(self.options.clone(), "stablePairs", &[Value::from(vec![])]);
         let mut defaultTakerFee: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]);
         let mut defaultMakerFee: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]);
@@ -2606,7 +2606,7 @@ if _try_result.is_err() {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(tradingDisabled != Some(true)));
+        m.insert("active".to_string(), Value::Bool(!tradingDisabled));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -2804,8 +2804,8 @@ if _try_result.is_err() {
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
-        let mut isDisabled: Option<bool> = self.safe_bool_k_opt(market.clone(), "is_disabled", &[]);
-        let mut tradingDisabled: bool = (isDisabled == Some(true)) || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true));
+        let mut isDisabled: bool = self.safe_bool_k_opt(market.clone(), "is_disabled", &[Value::Bool(false)]).unwrap_or(false);
+        let mut tradingDisabled: bool = (isDisabled) || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true));
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut type_var: Value = Value::Null;
         if matches!(&isSwap, Value::Bool(true)) {
@@ -4301,7 +4301,7 @@ if _try_result.is_err() {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }
@@ -4357,8 +4357,8 @@ if _try_result.is_err() {
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
-        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[]);
-        if (reduceOnly == Some(true)) {
+        let mut reduceOnly: bool = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
+        if reduceOnly {
             let __ws_arg_34 = self.extend(self.omit(params.clone(), Value::Str("reduceOnly".into()), &[]), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount.clone());
@@ -4500,7 +4500,7 @@ if _try_result.is_err() {
             if isStop || isStopLoss || isTakeProfit {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() only stop limit orders are supported".into()))));
             }
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (side.as_str() == Some("buy")) {
+            if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && (side.as_str() == Some("buy")) {
                 let mut total: Value = Value::Null;
                 let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
                 let mut createMarketBuyOrderRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -4600,8 +4600,8 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut success: Option<bool> = self.safe_bool_k_opt(response.clone(), "success", &[]);
-        if (success != Some(true)) {
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
+        if !(success) {
             let mut errorResponse: Value = self.safe_dict_k(response.clone(), "error_response", &[]);
             let mut errorTitle: Option<String> = self.safe_string_k_opt(errorResponse.clone(), "error", &[]);
             let mut errorMessage: Option<String> = self.safe_string_k_opt(errorResponse.clone(), "message", &[]);
@@ -4881,8 +4881,8 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_547: bool = true;
             while { if !__for_first_547 { i += 1; } __for_first_547 = false; i < (orders.len() as i64) } {
-            let mut success: Option<bool> = self.safe_bool_k_opt(orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "success", &[]);
-            if (success != Some(true)) {
+            let mut success: bool = self.safe_bool_k_opt(orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "success", &[Value::Bool(false)]).unwrap_or(false);
+            if !(success) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() has failed, check your arguments and parameters".into()))));
             }
         }
@@ -6806,7 +6806,7 @@ if _try_result.is_err() {
             while { if !__for_first_549 { i += 1; } __for_first_549 = false; i < (self.symbols.len() as i64) } {
             let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut market: Value = self.market(symbol.clone());
-            if (isSpot && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) || (!isSpot && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true))) {
+            if (isSpot && matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true))) || (!isSpot && (!matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)))) {
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -7210,8 +7210,8 @@ if _try_result.is_err() {
                 }
             }
         }
-        let mut advancedTrade: Option<bool> = self.safe_bool_k_opt(self.options.clone(), "advanced", &[]);
-        if !(in_op(&response, &Value::Str("data".into()))) && (advancedTrade != Some(true)) {
+        let mut advancedTrade: bool = self.safe_bool_k_opt(self.options.clone(), "advanced", &[Value::Bool(false)]).unwrap_or(false);
+        if !(in_op(&response, &Value::Str("data".into()))) && !(advancedTrade) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed due to a malformed response ".into())).into()), json_stringify(&response))));
         }
         return Value::Null;

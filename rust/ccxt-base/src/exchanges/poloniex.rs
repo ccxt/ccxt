@@ -1396,11 +1396,11 @@ impl PoloniexCore {
             m
         });
         let mut keyStart: String = "sTime".to_string();
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             keyStart = "startTime".to_string();
         }
         let mut keyEnd: String = "eTime".to_string();
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             keyEnd = "endTime".to_string();
         }
         if (since != Value::Null) {
@@ -1423,7 +1423,7 @@ impl PoloniexCore {
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert(keyEnd.clone(), crate::runtime::Math::min(&endTimeByLimit, &self.milliseconds())); }
         }
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_0 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
             let mut responseRaw: Value = self.swap_public_get_v3_market_candles(&[__ws_arg_0]).await;
             //
@@ -1865,7 +1865,7 @@ impl PoloniexCore {
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut baseVolume: Value = self.safe_string2(ticker.clone(), Value::Str("quantity".into()), Value::Str("qty".into()), &[]);
         let mut contractSize: Value = self.safe_number_k(marketResolved.clone(), "contractSize", &[]);
-        if (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (contractSize != Value::Null) {
+        if matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) && (contractSize != Value::Null) {
             // 'quantity' counts contracts, and a ticker reports base volume
             baseVolume = crate::precise::Precise::stringMul(&baseVolume, &self.number_to_string(contractSize));
         }
@@ -2085,7 +2085,7 @@ impl PoloniexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]), params.clone()]).await;
             let mut contractTicker: Value = self.safe_dict(tickers, symbol, &[]);
             return contractTicker;
@@ -2267,7 +2267,7 @@ impl PoloniexCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // max 1000, for spot & swap
         }
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             let mut response: Value = self.swap_public_get_v3_market_trades(&[__ws_arg_4]).await;
             //
@@ -2897,7 +2897,7 @@ impl PoloniexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!((self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)])), Value::Bool(true)) {
             let __ws_arg_12 = self.extend(requestValue.clone(), &[paramsValue.clone()]);
             let mut responseInitial: Value = self.swap_private_post_v3_trade_order(&[__ws_arg_12]).await;
             //
@@ -3077,7 +3077,7 @@ impl PoloniexCore {
         let mut isPostOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Bool(upperCaseType.as_str() == Some("LIMIT_MAKER")), &[query.clone()]);
         let mut queryOmitted: Value = self.omit(query, Value::from(vec![Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
         if (triggerPrice != Value::Null) {
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support trigger orders for ".into())).into()), self.safe_string_k(market.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" markets".into()))));
             }
             upperCaseType = (if (price == Value::Null) { Value::Str("STOP".into()) } else { Value::Str("STOP_LIMIT".into()) });
@@ -3096,7 +3096,7 @@ impl PoloniexCore {
                 queryOmitted = self.omit(queryOmitted.clone(), Value::Str("cost".into()), &[]);
                 if (cost != Value::Null) {
                     quoteAmount = self.cost_to_precision(symbol.clone(), cost);
-                }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) && matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
                     }  else {
@@ -3109,25 +3109,25 @@ impl PoloniexCore {
                     quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone());
                 }
                 let mut amountKey: String = "sz".to_string();
-                if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                     amountKey = "amount".to_string();
                 }
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey.clone(), quoteAmount); }
             }  else {
                 let mut amountKey: String = "sz".to_string();
-                if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                     amountKey = "quantity".to_string();
                 }
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey.clone(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }
         }  else {
             let mut amountKey: String = "sz".to_string();
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 amountKey = "quantity".to_string();
             }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey.clone(), self.amount_to_precision(symbol.clone(), amount)); }
             let mut priceKey: String = "px".to_string();
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 priceKey = "price".to_string();
             }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(priceKey.clone(), self.price_to_precision(symbol, price)); }
@@ -3136,7 +3136,7 @@ impl PoloniexCore {
         if (clientOrderId.is_some()) {
             // the futures v3 api silently ignores the spot key and generates its own id
             let mut clientOrderIdKey: String = "clOrdId".to_string();
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 clientOrderIdKey = "clientOrderId".to_string();
             }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(clientOrderIdKey.clone(), clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
@@ -3173,7 +3173,7 @@ impl PoloniexCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".into())).into()), self.safe_string_k(market.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders, only spot orders are accepted".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3240,7 +3240,7 @@ impl PoloniexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             request.insert("ordId".into(), id.clone());
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
@@ -3755,11 +3755,11 @@ impl PoloniexCore {
         });
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 request.insert("limit".into(), self.find_nearest_ceiling(Value::from(vec![Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(100), Value::Int(150)]), limit));
             }
         }
-        if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_29 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             let mut responseRaw: Value = self.swap_public_get_v3_market_order_book(&[__ws_arg_29]).await;
             //
@@ -4832,7 +4832,7 @@ impl PoloniexCore {
     m
 }));
         let mut mode: String = "ONE_WAY".to_string();
-        if (hedged.as_bool() == Some(true)) {
+        if hedged.as_bool() == Some(true) {
             mode = "HEDGE".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

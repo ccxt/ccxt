@@ -2807,7 +2807,12 @@ if _try_result.is_err() {
         m.insert("info".to_string(), message);
     m
 }), &[outcomeObj]);
-        if let Value::Dict(__d) = &mut self.tickers.clone() { std::sync::Arc::make_mut(__d).insert(sym.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
+        let mut cachedTickers: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "wsTickers", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+        cachedTickers.insert(sym.as_deref().unwrap_or("null").to_string(), ticker.clone());
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers)); }
         client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())]);
 }
 

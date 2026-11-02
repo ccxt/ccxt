@@ -1202,7 +1202,7 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 })])).as_map().cloned().unwrap_or_default();
-            if (!stock) || (self.safe_string(Value::Map(currency.clone()), Value::Str("type".into()), &[]).as_str() == Some("stock")) {
+            if !(stock) || (self.safe_string(Value::Map(currency.clone()), Value::Str("type".into()), &[]).as_str() == Some("stock")) {
                 currencies.insert(crate::runtime::stringify_param(&(currency.get("code").cloned().unwrap_or(Value::Null))), Value::Map(currency));
             }
         }
@@ -1400,7 +1400,7 @@ impl BackpackCore {
                     continue;
                 }
                 if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
-                if (!stock) || matches!(self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]), Value::Bool(true)) {
+                if !(stock) || matches!(self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]), Value::Bool(true)) {
                     markets.push(market.clone());
                 }
             }
@@ -2625,7 +2625,7 @@ impl BackpackCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() symbol does not support market ".into())).into()), symbol)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2703,7 +2703,7 @@ impl BackpackCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() symbol does not support market ".into())).into()), symbol)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

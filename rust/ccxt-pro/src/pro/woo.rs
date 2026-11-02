@@ -2252,8 +2252,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if !(matches!(&message, Value::Dict(__d) if __d.contains_key("success"))) {
             return Value::Bool(false);
         }
-        let mut success: Value = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null });
-        if (success.as_bool() == Some(true)) {
+        let mut success: Value = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
+        if success.as_bool() == Some(true) {
             return Value::Bool(false);
         }
         let mut errorMessage: Option<String> = match __pro_message.get("errorMsg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
@@ -2450,8 +2450,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut success: Value = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null });
-        if (success.as_bool() == Some(true)) {
+        let mut success: Value = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
+        if success.as_bool() == Some(true) {
             // client.resolve (message, messageHash);
             let mut future: Value = self.safe_value(__ch.futures.clone(), Value::Str("authenticated".into()), &[]);
             future.resolve(&[Value::Bool(true)]);

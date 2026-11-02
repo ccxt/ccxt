@@ -1734,7 +1734,7 @@ impl BullishCore {
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "quantity", &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "side", &[]);
-        let mut isTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isTaker", &[]);
+        let mut isTaker: bool = self.safe_bool_k_opt(trade.clone(), "isTaker", &[Value::Bool(false)]).unwrap_or(false);
         let mut currency: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "quote", &[]);
         let mut code: Value = self.safe_currency_code(currency.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut feeCost: Value = self.safe_number_k(trade.clone(), "quoteFee", &[]);
@@ -1748,7 +1748,7 @@ impl BullishCore {
             });
         }
         let mut takerOrMaker: Value = Value::Null;
-        if (isTaker == Some(true)) {
+        if isTaker {
             takerOrMaker = Value::Str("taker".into());
         }  else {
             takerOrMaker = Value::Str("maker".into());
@@ -2031,7 +2031,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPagination, maxLimit]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() supports swap markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

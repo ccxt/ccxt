@@ -403,7 +403,7 @@ impl MexcCore {
         }
         let mut market: Value = self.market(symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into());
             return self.watch_spot_public(channel.clone(), messageHash.clone(), &[params.clone()]).await;
         }  else {
@@ -493,7 +493,7 @@ impl MexcCore {
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut ticker: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             self.handle_bid_ask(client.clone(), message); // the bids-asks channel is spot only
             ticker = self.parse_ws_ticker(rawTicker.clone(), &[market.clone()]);
             if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
@@ -1000,7 +1000,7 @@ impl MexcCore {
         let mut timeframeId: Option<String> = self.safe_string_opt(timeframes, timeframe.clone(), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), symbolValue).into()), Value::Str(":".into())).into()), timeframe).into());
         let mut ohlcv: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into()), Value::Str("@".into())).into()), timeframeId.clone().map(Value::from).unwrap_or(Value::Null)).into());
             ohlcv = self.watch_spot_public(channel.clone(), messageHash.clone(), &[params.clone()]).await;
         }  else {
@@ -1218,7 +1218,7 @@ impl MexcCore {
         let mut market: Value = self.market(symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into());
         let mut orderbook: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let frequencyparamsFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("frequency".into()), &[Value::Str("100ms".into())]).as_array().cloned().unwrap_or_default();
             let mut frequency: Value = frequencyparamsFrequencyVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsFrequency: Value = frequencyparamsFrequencyVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1465,7 +1465,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbolValue).into());
         let mut trades: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into());
             trades = self.watch_spot_public(channel.clone(), messageHash.clone(), &[params.clone()]).await;
         }  else {
@@ -1560,7 +1560,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_497: bool = true;
             while { if !__for_first_497 { j += 1; } __for_first_497 = false; j < (trades.len() as i64) } {
             let mut parsedTrade: Value = Value::Null;
-            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 parsedTrade = self.parse_ws_trade(trades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             }  else {
                 parsedTrade = self.parse_trade(trades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
@@ -1666,7 +1666,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.safe_market(&[marketId]);
         let symbol: String = self.safe_string_k_opt(market.clone(), "symbol", &[Value::Str("".into())]).unwrap_or_default();
         let mut trade: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             trade = self.parse_ws_trade(data.clone(), &[market.clone()]);
         }  else if (data != Value::Null) {
             trade = self.parse_trade(data.clone(), &[market]);
@@ -1913,7 +1913,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.safe_market(&[marketId]);
         let symbol: String = self.safe_string_k_opt(market.clone(), "symbol", &[Value::Str("".into())]).unwrap_or_default();
         let mut parsed: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             parsed = self.parse_ws_order(data.clone(), &[market.clone()]);
             let mut sendTime: Value = (match __pro_message.get("sendTime").cloned() {
                 Some(Value::Int(__n)) => Value::Int(__n),
@@ -2315,7 +2315,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut url: Value = Value::Null;
         let mut channel: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             channel = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into());
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
@@ -2475,7 +2475,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timeframeId: Option<String> = self.safe_string_opt(timeframes, timeframe.clone(), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), timeframe).into());
         let mut url: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into()), Value::Str("@".into())).into()), timeframeId.clone().map(Value::from).unwrap_or(Value::Null)).into());
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
@@ -2518,7 +2518,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.market(symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into());
         let mut url: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
             let frequencyparamsFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("frequency".into()), &[Value::Str("100ms".into())]).as_array().cloned().unwrap_or_default();
             let mut frequency: Value = frequencyparamsFrequencyVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2563,7 +2563,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.market(symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:trades:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into());
         let mut url: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into());
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
@@ -2717,10 +2717,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" keepAliveListenKey() has no spot websocket url".into()))));
             }
             let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("?listenKey=".into())).into()), listenKey).into());
-            let mut client: Value = self.client(&[url.clone()]);
+            let mut client: Value = self.client(&[url]);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
             client.reject(&[Value::from(error)]);
-            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &url) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
 
     Value::Null
