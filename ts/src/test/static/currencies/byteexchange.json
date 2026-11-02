@@ -1,0 +1,564 @@
+{
+    "BTC": {
+        "info": {
+            "id": "btc",
+            "code": "BTC",
+            "name": "Bitcoin",
+            "active": true,
+            "fee": "0.00050000",
+            "precision": "8",
+            "deposit": true,
+            "withdraw": true,
+            "limits": {
+                "withdraw": {
+                    "min": "0.00080000",
+                    "max": "10.00000000"
+                },
+                "deposit": {
+                    "min": null,
+                    "max": null
+                }
+            },
+            "networks": [
+                {
+                    "id": "arbitrum",
+                    "network": "arbitrum",
+                    "name": "Arbitrum One",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "0.00050000"
+                },
+                {
+                    "id": "bsc",
+                    "network": "bsc",
+                    "name": "BNB Smart Chain",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "0.00050000"
+                },
+                {
+                    "id": "ethereum",
+                    "network": "ethereum",
+                    "name": "Ethereum",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "0.00050000"
+                },
+                {
+                    "id": "bitcoin",
+                    "network": "bitcoin",
+                    "name": "Bitcoin",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "0.00050000"
+                }
+            ]
+        },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 8,
+        "type": null,
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0005,
+        "fees": {},
+        "networks": {
+            "arbitrum": {
+                "id": "arbitrum",
+                "network": "arbitrum",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0005,
+                "info": {
+                    "id": "arbitrum",
+                    "network": "arbitrum",
+                    "name": "Arbitrum One",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "0.00050000"
+                }
+            },
+            "bsc": {
+                "id": "bsc",
+                "network": "bsc",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0005,
+                "info": {
+                    "id": "bsc",
+                    "network": "bsc",
+                    "name": "BNB Smart Chain",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "0.00050000"
+                }
+            },
+            "ethereum": {
+                "id": "ethereum",
+                "network": "ethereum",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0005,
+                "info": {
+                    "id": "ethereum",
+                    "network": "ethereum",
+                    "name": "Ethereum",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "0.00050000"
+                }
+            },
+            "bitcoin": {
+                "id": "bitcoin",
+                "network": "bitcoin",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0005,
+                "info": {
+                    "id": "bitcoin",
+                    "network": "bitcoin",
+                    "name": "Bitcoin",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "0.00050000"
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "id": "usdt",
+            "code": "USDT",
+            "name": "Tether",
+            "active": true,
+            "fee": "5.00000000",
+            "precision": "6",
+            "deposit": true,
+            "withdraw": true,
+            "limits": {
+                "withdraw": {
+                    "min": "10.00000000",
+                    "max": "1000000.00000000"
+                },
+                "deposit": {
+                    "min": null,
+                    "max": null
+                }
+            },
+            "networks": [
+                {
+                    "id": "base",
+                    "network": "base",
+                    "name": "Base",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "polygon",
+                    "network": "polygon",
+                    "name": "Polygon",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "ton",
+                    "network": "ton",
+                    "name": "TON",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "mantle",
+                    "network": "mantle",
+                    "name": "Mantle",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "bsc",
+                    "network": "bsc",
+                    "name": "BNB Smart Chain",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "arbitrum",
+                    "network": "arbitrum",
+                    "name": "Arbitrum One",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "sui",
+                    "network": "sui",
+                    "name": "Sui",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "scroll",
+                    "network": "scroll",
+                    "name": "Scroll",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "tron",
+                    "network": "tron",
+                    "name": "Tron",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "aptos",
+                    "network": "aptos",
+                    "name": "Aptos",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "optimism",
+                    "network": "optimism",
+                    "name": "Optimism",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "ethereum",
+                    "network": "ethereum",
+                    "name": "Ethereum",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "avalanche",
+                    "network": "avalanche",
+                    "name": "Avalanche C-Chain",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                },
+                {
+                    "id": "solana",
+                    "network": "solana",
+                    "name": "Solana",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            ]
+        },
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 6,
+        "type": null,
+        "name": "Tether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 5,
+        "fees": {},
+        "networks": {
+            "base": {
+                "id": "base",
+                "network": "base",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "base",
+                    "network": "base",
+                    "name": "Base",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "polygon": {
+                "id": "polygon",
+                "network": "polygon",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "polygon",
+                    "network": "polygon",
+                    "name": "Polygon",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "ton": {
+                "id": "ton",
+                "network": "ton",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "ton",
+                    "network": "ton",
+                    "name": "TON",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "mantle": {
+                "id": "mantle",
+                "network": "mantle",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "mantle",
+                    "network": "mantle",
+                    "name": "Mantle",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "bsc": {
+                "id": "bsc",
+                "network": "bsc",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "bsc",
+                    "network": "bsc",
+                    "name": "BNB Smart Chain",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "arbitrum": {
+                "id": "arbitrum",
+                "network": "arbitrum",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "arbitrum",
+                    "network": "arbitrum",
+                    "name": "Arbitrum One",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "sui": {
+                "id": "sui",
+                "network": "sui",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "sui",
+                    "network": "sui",
+                    "name": "Sui",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "scroll": {
+                "id": "scroll",
+                "network": "scroll",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "scroll",
+                    "network": "scroll",
+                    "name": "Scroll",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "tron": {
+                "id": "tron",
+                "network": "tron",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "tron",
+                    "network": "tron",
+                    "name": "Tron",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "aptos": {
+                "id": "aptos",
+                "network": "aptos",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "aptos",
+                    "network": "aptos",
+                    "name": "Aptos",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "optimism": {
+                "id": "optimism",
+                "network": "optimism",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "optimism",
+                    "network": "optimism",
+                    "name": "Optimism",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "ethereum": {
+                "id": "ethereum",
+                "network": "ethereum",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "ethereum",
+                    "network": "ethereum",
+                    "name": "Ethereum",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "avalanche": {
+                "id": "avalanche",
+                "network": "avalanche",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "avalanche",
+                    "network": "avalanche",
+                    "name": "Avalanche C-Chain",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            },
+            "solana": {
+                "id": "solana",
+                "network": "solana",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "info": {
+                    "id": "solana",
+                    "network": "solana",
+                    "name": "Solana",
+                    "active": true,
+                    "deposit": true,
+                    "withdraw": true,
+                    "fee": "5.00000000"
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}
