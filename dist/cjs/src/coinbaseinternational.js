@@ -3250,7 +3250,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             baseApiUrl = 'https://www.deribit.com/api/v2';
         }
         const url = baseApiUrl + '/' + rpcMethod;
-        let requestHeaders = undefined;
+        let requestHeaders = {};
         if (isNativeDeribit && ((path === 'get_leverage') || (path === 'set_leverage'))) {
             throw new errors.NotSupported(this.id + ' ' + rpcMethod + ' is only documented on the Coinbase gateway');
         }

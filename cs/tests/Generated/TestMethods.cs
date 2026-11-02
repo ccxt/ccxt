@@ -2265,12 +2265,7 @@ public partial class testMainClass
         {
             if (!(e is InvalidProxySettings))
             {
-                // if it's not a BadRequest, it means our request was not created succesfully
-                // so we might have an error in the request creation
-                this.requestTestsFailed = true;
-                string creationErrorMessage = (((((((((((("[" + (this.lang)) + "][STATIC_REQUEST]") + "[") + (exchange.id)) + "]") + "[") + (method)) + "]") + "[") + (getValue(data, "description"))) + "]") + (exceptionMessage(e)));
-                dump(("[TEST_FAILURE]" + creationErrorMessage));
-                return true;
+                throw e;
             }
             output = exchange.last_request_body;
             requestUrl = exchange.last_request_url;

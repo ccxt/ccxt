@@ -4493,7 +4493,10 @@ impl CoinbaseinternationalCore {
             baseApiUrl = Value::Str("https://www.deribit.com/api/v2".into());
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseApiUrl, Value::Str("/".into())).into()), rpcMethod).into());
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         if isNativeDeribit.as_bool() == Some(true) && ((path.as_str() == Some("get_leverage")) || (path.as_str() == Some("set_leverage"))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), rpcMethod).into()), Value::Str(" is only documented on the Coinbase gateway".into()))));
         }

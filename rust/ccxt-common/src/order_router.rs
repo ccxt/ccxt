@@ -222,6 +222,9 @@ pub type OnStepHook = Arc<dyn Fn(&Value) -> String + Send + Sync>;
 /// A client for the CCXT order-router service.
 pub struct OrderRouter {
     api_key: String,
+    /// Sent as the `User-Agent` header when non-empty, so the router service can
+    /// attribute traffic to the integration that made it.
+    user_agent: String,
     base_url: String,
     timeout_ms: f64,
     max_notional_usd: f64,
@@ -570,16 +573,19 @@ impl OrderRouter {
 impl OrderRouter {
     /// Creates a client for the CCXT order-router service.
     ///
-    /// `config` keys: `apiKey` (required), `baseUrl`, `timeoutMs`,
+    /// `config` keys: `apiKey` (optional; the service rate-limits by IP), `baseUrl`, `timeoutMs`,
     /// `maxNotionalUsd` (an OPT-IN per-trade USD cap, honoured exactly at
     /// whatever value is given; 0 — the default — means NO CAP, and a negative
-    /// value is refused).
+    /// value is refused), `userAgent` (optional `User-Agent` header sent with every
+    /// router request so the service can attribute traffic, e.g.
+    /// `ccxt-mcp/1.2.3 (ccxt 4.5.6)`; empty — the default — keeps reqwest's default).
     pub fn new(config: &Value) -> RouterResult<Self> {
         // Constructed through a temporary so the accessors — which are methods,
         // exactly as in the other five ports — are available while reading the
         // config that builds the real one.
         let reader = OrderRouter {
             api_key: String::new(),
+            user_agent: String::new(),
             base_url: String::new(),
             timeout_ms: DEFAULT_TIMEOUT_MS,
             max_notional_usd: NO_CAP,
@@ -593,6 +599,7 @@ impl OrderRouter {
         // the normal case and must not error. A key supplied anyway is CARRIED rather than
         // ignored, so the same client works against both servers.
         let api_key = reader.string_at(config, "apiKey", "");
+        let user_agent = reader.string_at(config, "userAgent", "");
         let mut base_url = reader.string_at(config, "baseUrl", DEFAULT_BASE_URL);
         while base_url.ends_with('/') {
             base_url.pop();
@@ -611,6 +618,7 @@ impl OrderRouter {
         // trade.
         Ok(OrderRouter {
             api_key,
+            user_agent,
             base_url,
             timeout_ms,
             max_notional_usd,
@@ -722,6 +730,11 @@ impl OrderRouter {
     /// deployment fronting the router with its own authentication still works.
     pub fn api_key(&self) -> &str {
         &self.api_key
+    }
+
+    /// The User-Agent this client sends, empty when it keeps the http client's default.
+    pub fn user_agent(&self) -> &str {
+        &self.user_agent
     }
 
     /// The router base url, with any trailing slashes removed.
@@ -1855,6 +1868,12 @@ impl OrderRouter {
                     headers.insert("x-request-id", value);
                 }
             }
+            // a userAgent that is not a valid header value is skipped, like x-request-id
+            if !self.user_agent.is_empty() {
+                if let Ok(value) = self.user_agent.parse() {
+                    headers.insert("user-agent", value);
+                }
+            }
         }
         let (socket, _response) = match tokio_tungstenite::connect_async(request).await {
             Ok(pair) => pair,
@@ -2179,6 +2198,12 @@ impl OrderRouter {
             // the service caps this at 200 characters and mints its own when absent, so a
             // longer one is dropped rather than sent and rejected
             builder = builder.header("x-request-id", request_id);
+        }
+        if !self.user_agent.is_empty() {
+            // only when configured: an empty value keeps reqwest's own default rather than
+            // sending a blank one. (Browsers forbid setting User-Agent, so the TS port silently
+            // drops it there; no such restriction applies here.)
+            builder = builder.header("User-Agent", &self.user_agent);
         }
         let response = builder.send().await;
         let response = match response {
