@@ -31,6 +31,8 @@ export default class hitbtc extends hitbtcRest {
                 'watchOrders': true,
                 'watchOHLCV': true,
                 'watchMyTrades': false,
+                'unWatchTrades': true,
+                'unWatchOHLCV': true,
                 'createOrderWs': true,
                 'cancelOrderWs': true,
                 'fetchOpenOrdersWs': true,
@@ -171,6 +173,44 @@ export default class hitbtc extends hitbtcRest {
             'id': requestId,
         };
         return await this.watchMultiple (url, messageHashes, request, messageHashes, subscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name websocket endpoint name
+     * @param {string} messageHashPrefix prefix of the message hashes the matching watch method subscribed with
+     * @param {string[]} symbols unified CCXT symbols
+     * @param {object} subscription the topic and symbols of the caches to clean once the unsubscribe is acknowledged
+     * @param {object} [params] extra parameters specific to the hitbtc api
+     * @returns {boolean} true once the exchange acknowledges the unsubscribe
+     */
+    async unSubscribePublic (name: string, messageHashPrefix: string, symbols: string[], subscription: Dict, params: Dict = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const subMessageHashes: string[] = [];
+        const messageHashes: string[] = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const subMessageHash = messageHashPrefix + '::' + symbols[i];
+            subMessageHashes.push (subMessageHash);
+            messageHashes.push ('unsubscribe:' + subMessageHash);
+        }
+        const requestId = this.incrementingNonce ();
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'id': requestId,
+            'ch': name,
+            'params': {
+                'symbols': this.marketIds (symbols),
+            },
+        };
+        const unsubscription = this.extend (subscription, {
+            'id': requestId,
+            'unsubscribe': true,
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+        });
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, unsubscription);
     }
 
     /**
@@ -665,6 +705,25 @@ export default class hitbtc extends hitbtcRest {
         return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp');
     }
 
+    /**
+     * @method
+     * @name hitbtc#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api.hitbtc.com/#subscribe-to-trades
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} true once hitbtc acknowledges the unsubscribe
+     */
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const subscription: Dict = {
+            'topic': 'trades',
+            'symbols': [ market['symbol'] ],
+        };
+        return await this.unSubscribePublic ('trades', 'trades', [ market['symbol'] ], subscription, params);
+    }
+
     handleTrades (client: Client, message: Dict): Dict {
         //
         //    {
@@ -791,10 +850,32 @@ export default class hitbtc extends hitbtcRest {
         if (limit !== undefined) {
             request['params']['limit'] = limit;
         }
-        const ohlcv = await this.subscribePublic (name, 'candles', [ symbol ], this.deepExtend (request, params));
+        const ohlcv = await this.subscribePublic (name, name, [ symbol ], this.deepExtend (request, params));
         const cacheRead = this.getCacheRead (ohlcv, symbol, limit);
         const limitResolved = this.safeInteger (cacheRead, 'limit');
         return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0);
+    }
+
+    /**
+     * @method
+     * @name hitbtc#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.hitbtc.com/#subscribe-to-candles
+     * @param {string} symbol unified symbol of the market to unwatch the OHLCV data for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} true once hitbtc acknowledges the unsubscribe
+     */
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const period = this.safeString (this.timeframes, timeframe, timeframe);
+        const name = 'candles/' + period;
+        const subscription: Dict = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [ [ market['symbol'], timeframe ] ],
+        };
+        return await this.unSubscribePublic (name, name, [ market['symbol'] ], subscription, params);
     }
 
     handleOHLCV (client: Client, message: Dict): Dict {
@@ -851,11 +932,13 @@ export default class hitbtc extends hitbtcRest {
                 stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
-            const ohlcvs = this.parseWsOHLCVs (data[marketId], market);
-            for (let j = 0; j < ohlcvs.length; j++) {
-                stored.append (ohlcvs[j]);
+            // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
+            const rawOhlcvs = this.safeList (data, marketId, []);
+            for (let j = 0; j < rawOhlcvs.length; j++) {
+                const parsed = this.parseWsOHLCV (rawOhlcvs[j], market);
+                stored.append (parsed);
             }
-            const messageHash = 'candles::' + symbol;
+            const messageHash = channel + '::' + symbol;
             client.resolve (stored, messageHash);
         }
         return message;
@@ -1433,6 +1516,11 @@ export default class hitbtc extends hitbtcRest {
             }
         } else {
             const result = this.safeValue (message, 'result');
+            const resultChannel = this.safeString (result, 'ch');
+            if (resultChannel !== undefined) {
+                this.handleUnSubscription (client, message);
+                return;
+            }
             const clientOrderId = this.safeString (result, 'client_order_id');
             if (clientOrderId !== undefined) {
                 this.handleOrderRequest (client, message);
@@ -1447,6 +1535,38 @@ export default class hitbtc extends hitbtcRest {
                 if ((arrayLength === 0) || ('client_order_id' in first)) {
                     this.handleOrderRequest (client, message);
                 }
+            }
+        }
+    }
+
+    handleUnSubscription (client: Client, message: Dict) {
+        //
+        // hitbtc answers subscribe and unsubscribe requests alike, listing the symbols still subscribed on the channel
+        //
+        //    {
+        //        "result": {
+        //            "ch": "trades",
+        //            "subscriptions": [ "ETHUSDT" ]
+        //        },
+        //        "id": 1793679985268
+        //    }
+        //
+        // the answers can arrive in a different order than the requests, so they are matched by id
+        //
+        const id = this.safeString (message, 'id');
+        const subscriptionHashes = Object.keys (client.subscriptions);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscription = client.subscriptions[subscriptionHashes[i]];
+            const isUnSubscription = this.safeBool (subscription, 'unsubscribe', false);
+            const subscriptionId = this.safeString (subscription, 'id');
+            if (isUnSubscription && (subscriptionId !== undefined) && (subscriptionId === id)) {
+                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                const messageHashes = this.safeList (subscription, 'messageHashes', []);
+                for (let j = 0; j < subMessageHashes.length; j++) {
+                    this.cleanUnsubscription (client, subMessageHashes[j], messageHashes[j]);
+                }
+                this.cleanCache (subscription);
+                return;
             }
         }
     }

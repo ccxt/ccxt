@@ -2927,6 +2927,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
      * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
@@ -2957,6 +2958,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
@@ -3095,11 +3097,13 @@ public class Hyperliquid extends HyperliquidApi
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params]
+         * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, (default is false)
          * @returns {object} the raw request object to be sent to the exchange
          */
         Map<String, Object> market = this.market(symbol);
         Object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
-        Map<String, Object> params2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+        Boolean fast = (Boolean) this.safeBool(parameters, "fast", false);
+        Map<String, Object> params2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "fast")));
         Object nonce = this.incrementingNonce();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "nonce", nonce );
@@ -3137,6 +3141,11 @@ public class Hyperliquid extends HyperliquidApi
             }
         }
         cancelAction.put("cancels", cancelReq);
+        if (Boolean.TRUE.equals(fast))
+        {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            cancelAction.put("f", true);
+        }
         String vaultAddress = null;
         Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams2((Map<String, Object>) (params2), "cancelOrders", "vaultAddress", "subAccountAddress", (String) null);
         vaultAddress = vaultAddressparams2Variable.first();
@@ -3163,6 +3172,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Map<String, Object> parameters)
@@ -3214,6 +3224,12 @@ public class Hyperliquid extends HyperliquidApi
             }
             cancelAction.put("type", ((Boolean.TRUE.equals(cancelByCloid))) ? "cancelByCloid" : "cancel");
             cancelAction.put("cancels", cancelReq);
+            Boolean fast = (Boolean) this.safeBool(parameters, "fast", false);
+            if (Boolean.TRUE.equals(fast))
+            {
+                // "f" must be omitted when false, actions hashed with "f": false are rejected
+                cancelAction.put("f", true);
+            }
             String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress", (String) null)).get(0);
             String vaultAddress = this.formatVaultAddress(vaultAddressOption);
             Map<String, Object> signature = (Map<String, Object>) this.signL1Action(cancelAction, nonce, vaultAddress, (Long) null);

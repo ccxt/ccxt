@@ -2192,7 +2192,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut data: Value = self.safe_list_k(responseResult, "data", &[Value::from(vec![])]);
-        let mut positionBalances: Value = self.safe_list(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("position_balances".into()), &[Value::from(vec![])]);
+        let mut positionBalances: Value = self.safe_list(self.safe_dict(data, Value::Int(0), &[]), Value::Str("position_balances".into()), &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);

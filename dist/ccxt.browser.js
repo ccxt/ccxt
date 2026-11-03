@@ -185487,7 +185487,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
 }
 // this is updated by vss.js when building
-_define_property(BaseExchange, "ccxtVersion", '4.5.90');
+_define_property(BaseExchange, "ccxtVersion", '4.5.91');
 class Exchange extends BaseExchange {
     async closePosition(symbol, side = undefined, params = {}) {
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' closePosition() is not supported yet');
@@ -186498,7 +186498,7 @@ function _define_property(obj, key, value) {
 //      php/OrderRouter.php
 //      cs/ccxt/base/OrderRouter.cs
 //      go/v4/exchange_order_router.go
-//      rust/ccxt-base/src/order_router.rs
+//      rust/ccxt-common/src/order_router.rs
 //
 //  Every construct below is deliberately one that Python, PHP, C#, Go and Rust
 //  can express the same way. The rules that keep the six ports honest:
@@ -187289,6 +187289,12 @@ const ROUTE_QUERY_KEYS = [
                 headers['x-request-id'] = requestId;
             }
         }
+        //  only when configured: an empty value keeps the runtime's own default User-Agent
+        //  rather than sending a blank one. Browsers treat User-Agent as a forbidden header
+        //  name, so there fetch silently drops it and the browser's own value goes out.
+        if (this.userAgent !== '') {
+            headers['User-Agent'] = this.userAgent;
+        }
         const options = {
             'method': method,
             'headers': headers
@@ -187491,6 +187497,9 @@ const ROUTE_QUERY_KEYS = [
         }
         if (requestId !== '' && requestId.length <= 200) {
             headers['x-request-id'] = requestId;
+        }
+        if (this.userAgent !== '') {
+            headers['User-Agent'] = this.userAgent;
         }
         const socket = new WebSocketImpl(url, {
             'headers': headers
@@ -190151,9 +190160,13 @@ const ROUTE_QUERY_KEYS = [
      * @param {bool} [config.trackBalances] read those venues' wallets and route on what you can actually fund, default false. Off, fetchRoute never touches a venue and stays a single HTTP request
      * @param {int} [config.timeoutMs] request timeout in milliseconds, defaults to 30000
      * @param {float} [config.maxNotionalUsd] optional per-trade USD notional guardrail. Omitted or 0 means NO cap and no notional check at all; any positive value is honoured exactly, never clamped
+     * @param {string} [config.userAgent] optional User-Agent header sent with every router request, so the service can attribute traffic, e.g. 'ccxt-mcp/1.2.3 (ccxt 4.5.6)'. Omitted or '' keeps the runtime's default User-Agent. Browsers forbid setting it, so there it is silently dropped
      * @returns {OrderRouter} a router client
      */ constructor(config = {}){
         _define_property(this, "apiKey", void 0);
+        //  sent as the User-Agent header when non-empty, so the router service can attribute
+        //  traffic to the integration that made it (e.g. 'ccxt-mcp/1.2.3 (ccxt 4.5.6)')
+        _define_property(this, "userAgent", void 0);
         _define_property(this, "baseUrl", void 0);
         //  exchangeId -> ccxt exchange instance, optional. See the constructor.
         _define_property(this, "venues", void 0);
@@ -190191,6 +190204,7 @@ const ROUTE_QUERY_KEYS = [
         //  ignored: the keyless server drops the header, a server still expecting one is
         //  satisfied by it, and the same client works against both across the deploy.
         this.apiKey = this.stringAt(config, 'apiKey', '');
+        this.userAgent = this.stringAt(config, 'userAgent', '');
         let baseUrl = this.stringAt(config, 'baseUrl', OrderRouter.DEFAULT_BASE_URL);
         while(baseUrl.length > 0 && baseUrl[baseUrl.length - 1] === '/'){
             baseUrl = baseUrl.slice(0, baseUrl.length - 1);
@@ -291154,6 +291168,68 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                     'deposit': {}
                 }
             },
+            'currencies': {
+                'EUR': this.safeCurrencyStructure({
+                    'id': 'EUR',
+                    'code': 'EUR',
+                    'precision': this.parseNumber('0.01'),
+                    'type': 'fiat'
+                }),
+                'CHF': this.safeCurrencyStructure({
+                    'id': 'CHF',
+                    'code': 'CHF',
+                    'precision': this.parseNumber('0.01'),
+                    'type': 'fiat'
+                }),
+                'PLN': this.safeCurrencyStructure({
+                    'id': 'PLN',
+                    'code': 'PLN',
+                    'precision': this.parseNumber('0.01'),
+                    'type': 'fiat'
+                }),
+                'ARS': this.safeCurrencyStructure({
+                    'id': 'ARS',
+                    'code': 'ARS',
+                    'precision': this.parseNumber('0.01'),
+                    'type': 'fiat'
+                }),
+                'COP': this.safeCurrencyStructure({
+                    'id': 'COP',
+                    'code': 'COP',
+                    'precision': this.parseNumber('0.01'),
+                    'type': 'fiat'
+                }),
+                'USD': this.safeCurrencyStructure({
+                    'id': 'USD',
+                    'code': 'USD',
+                    'precision': this.parseNumber('0.01'),
+                    'type': 'fiat'
+                }),
+                'CLP': this.safeCurrencyStructure({
+                    'id': 'CLP',
+                    'code': 'CLP',
+                    'precision': this.parseNumber('0.01'),
+                    'type': 'fiat'
+                }),
+                'PEN': this.safeCurrencyStructure({
+                    'id': 'PEN',
+                    'code': 'PEN',
+                    'precision': this.parseNumber('0.01'),
+                    'type': 'fiat'
+                }),
+                'BOB': this.safeCurrencyStructure({
+                    'id': 'BOB',
+                    'code': 'BOB',
+                    'precision': this.parseNumber('0.01'),
+                    'type': 'fiat'
+                }),
+                'BRL': this.safeCurrencyStructure({
+                    'id': 'BRL',
+                    'code': 'BRL',
+                    'precision': this.parseNumber('0.01'),
+                    'type': 'fiat'
+                })
+            },
             'rollingWindowSize': 5000.0
         });
     }
@@ -316704,7 +316780,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
             baseApiUrl = 'https://www.deribit.com/api/v2';
         }
         const url = baseApiUrl + '/' + rpcMethod;
-        let requestHeaders = undefined;
+        let requestHeaders = {};
         if (isNativeDeribit && (path === 'get_leverage' || path === 'set_leverage')) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' ' + rpcMethod + ' is only documented on the Coinbase gateway');
         }
@@ -326233,7 +326309,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
     parseBalance(response) {
         const responseResult = this.safeDict(response, 'result', {});
         const data = this.safeList(responseResult, 'data', []);
-        const positionBalances = this.safeList(data[0], 'position_balances', []);
+        const positionBalances = this.safeList(this.safeDict(data, 0), 'position_balances', []);
         const result = {
             'info': response
         };
@@ -403195,6 +403271,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
      * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrder(id, symbol = undefined, params = {}) {
         if (this.safeBool(params, 'twap', false)) {
@@ -403218,6 +403295,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrders(ids, symbol = undefined, params = {}) {
         this.checkRequiredCredentials();
@@ -403330,12 +403408,15 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params]
+         * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, (default is false)
          * @returns {object} the raw request object to be sent to the exchange
          */ const market = this.market(symbol);
         let clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
+        const fast = this.safeBool(params, 'fast', false);
         let params2 = this.omit(params, [
             'clientOrderId',
-            'client_id'
+            'client_id',
+            'fast'
         ]);
         const nonce = this.incrementingNonce();
         const request = {
@@ -403371,6 +403452,10 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             }
         }
         cancelAction['cancels'] = cancelReq;
+        if (fast) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            cancelAction['f'] = true;
+        }
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -403393,6 +403478,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrdersForSymbols(orders, params = {}) {
         this.checkRequiredCredentials();
@@ -403434,6 +403520,11 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         }
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
+        const fast = this.safeBool(params, 'fast', false);
+        if (fast) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            cancelAction['f'] = true;
+        }
         const vaultAddressOption = this.handleOptionStringAndParams2(params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress')[0];
         const vaultAddress = this.formatVaultAddress(vaultAddressOption);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
@@ -542357,7 +542448,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         //                   #### in case order had a partial fill: ####
         //         fillPrice: '35123',
         //         tradeId: '1171775539946528779',
-        //         baseVolume: '7', // field present in market order
+        //         baseVolume: '7', // amount filled by this incoming update/trade only, not cumulative (see accBaseVolume)
         //         fillTime: '1715098979937',
         //         fillFee: '-0.0069987',
         //         fillFeeCoin: 'BTC',
@@ -542394,7 +542485,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         //         uTime: '1715065875539'
         //                   #### when filled order is incoming, these additional fields are present too: ###
         //         baseVolume: '9', // amount filled for the incoming update/trade
-        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
+        //         accBaseVolume: '13', // cumulative amount filled during the order's lifetime; equals 'size' only once fully filled
         //         fillFee: '-0.0062712',
         //         fillFeeCoin: 'SUSDT',
         //         fillNotionalUsd: '10.452',
@@ -542539,12 +542630,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
                 totalFilled = this.safeString2(order, 'baseVolume', 'cumExecQty');
                 cost = this.safeString2(order, 'fillTotalAmount', 'cumExecValue');
             } else {
-                const partialFillAmount = this.safeString(order, 'baseVolume');
-                if (partialFillAmount !== undefined) {
-                    filledAmount = partialFillAmount;
-                } else {
-                    filledAmount = totalFilled;
-                }
+                filledAmount = totalFilled;
                 if (isMarketOrder) {
                     if (isBuy) {
                         totalAmount = accBaseVolume;
@@ -542559,10 +542645,18 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         } else {
-            // baseVolume should not be used for "amount" for contracts !
-            filledAmount = this.safeString2(order, 'baseVolume', 'cumExecQty');
+            // baseVolume and fillNotionalUsd describe the incoming fill only, so filled is the cumulative accBaseVolume
+            // and cost is priceAvg * cumulative filled, quote-denominated for linear and inverse alike (same as quoteVolume in REST parseOrder);
+            // the channel has no cumulative notional field, so without a priceAvg no cost is set (cumExecValue stays the first read)
+            filledAmount = totalFilled;
             totalAmount = this.safeString2(order, 'size', 'qty');
-            cost = this.safeString2(order, 'fillNotionalUsd', 'cumExecValue');
+            cost = this.safeString(order, 'cumExecValue');
+            if (cost === undefined) {
+                const priceAvgString = this.omitZero(this.safeString(order, 'priceAvg'));
+                if (priceAvgString !== undefined && totalFilled !== undefined) {
+                    cost = _base_Precise_js__rspack_import_2/* .Precise.stringMul */.Y.stringMul(totalFilled, priceAvgString);
+                }
+            }
         }
         remaining = _base_Precise_js__rspack_import_2/* .Precise.stringSub */.Y.stringSub(totalAmount, totalFilled);
         return this.safeOrder({
@@ -554313,13 +554407,22 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString2(liquidation, 'symbol', 's');
         const marketResolved = this.safeMarket(marketId, market, '', 'contract');
         const timestamp = this.safeInteger2(liquidation, 'updatedTime', 'T');
+        // bybit sends the side of the liquidated position (Buy - a long was liquidated),
+        // the unified side is the side of the liquidation order, as on binance and okx
+        const positionSide = this.safeStringLower2(liquidation, 'side', 'S');
+        let side = undefined;
+        if (positionSide === 'buy') {
+            side = 'sell';
+        } else if (positionSide === 'sell') {
+            side = 'buy';
+        }
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': marketResolved['symbol'],
             'contracts': this.safeNumber2(liquidation, 'size', 'v'),
             'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'price': this.safeNumber2(liquidation, 'price', 'p'),
-            'side': this.safeStringLower2(liquidation, 'side', 'S'),
+            'side': side,
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -574862,6 +574965,8 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
                 'watchOrders': true,
                 'watchOHLCV': true,
                 'watchMyTrades': false,
+                'unWatchTrades': true,
+                'unWatchOHLCV': true,
                 'createOrderWs': true,
                 'cancelOrderWs': true,
                 'fetchOpenOrdersWs': true,
@@ -574998,6 +575103,42 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
             'id': requestId
         };
         return await this.watchMultiple(url, messageHashes, request, messageHashes, subscription);
+    }
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name websocket endpoint name
+     * @param {string} messageHashPrefix prefix of the message hashes the matching watch method subscribed with
+     * @param {string[]} symbols unified CCXT symbols
+     * @param {object} subscription the topic and symbols of the caches to clean once the unsubscribe is acknowledged
+     * @param {object} [params] extra parameters specific to the hitbtc api
+     * @returns {boolean} true once the exchange acknowledges the unsubscribe
+     */ async unSubscribePublic(name, messageHashPrefix, symbols, subscription, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        for(let i = 0; i < symbols.length; i++){
+            const subMessageHash = messageHashPrefix + '::' + symbols[i];
+            subMessageHashes.push(subMessageHash);
+            messageHashes.push('unsubscribe:' + subMessageHash);
+        }
+        const requestId = this.incrementingNonce();
+        const request = {
+            'method': 'unsubscribe',
+            'id': requestId,
+            'ch': name,
+            'params': {
+                'symbols': this.marketIds(symbols)
+            }
+        };
+        const unsubscription = this.extend(subscription, {
+            'id': requestId,
+            'unsubscribe': true,
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes
+        });
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes, unsubscription);
     }
     /**
      * @ignore
@@ -575501,6 +575642,27 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
         }
         return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp');
     }
+    /**
+     * @method
+     * @name hitbtc#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api.hitbtc.com/#subscribe-to-trades
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} true once hitbtc acknowledges the unsubscribe
+     */ async unWatchTrades(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const subscription = {
+            'topic': 'trades',
+            'symbols': [
+                market['symbol']
+            ]
+        };
+        return await this.unSubscribePublic('trades', 'trades', [
+            market['symbol']
+        ], subscription, params);
+    }
     handleTrades(client, message) {
         //
         //    {
@@ -575625,7 +575787,7 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['params']['limit'] = limit;
         }
-        const ohlcv = await this.subscribePublic(name, 'candles', [
+        const ohlcv = await this.subscribePublic(name, name, [
             symbol
         ], this.deepExtend(request, params));
         let limitResolved = limit;
@@ -575633,6 +575795,33 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
             limitResolved = ohlcv.getLimit(symbol, limit);
         }
         return this.filterBySinceLimit(ohlcv, since, limitResolved, 0);
+    }
+    /**
+     * @method
+     * @name hitbtc#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.hitbtc.com/#subscribe-to-candles
+     * @param {string} symbol unified symbol of the market to unwatch the OHLCV data for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} true once hitbtc acknowledges the unsubscribe
+     */ async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const period = this.safeString(this.timeframes, timeframe, timeframe);
+        const name = 'candles/' + period;
+        const subscription = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [
+                [
+                    market['symbol'],
+                    timeframe
+                ]
+            ]
+        };
+        return await this.unSubscribePublic(name, name, [
+            market['symbol']
+        ], subscription, params);
     }
     handleOHLCV(client, message) {
         //
@@ -575688,11 +575877,13 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
                 stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
-            const ohlcvs = this.parseWsOHLCVs(data[marketId], market);
-            for(let j = 0; j < ohlcvs.length; j++){
-                stored.append(ohlcvs[j]);
+            // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
+            const rawOhlcvs = this.safeList(data, marketId, []);
+            for(let j = 0; j < rawOhlcvs.length; j++){
+                const parsed = this.parseWsOHLCV(rawOhlcvs[j], market);
+                stored.append(parsed);
             }
-            const messageHash = 'candles::' + symbol;
+            const messageHash = channel + '::' + symbol;
             client.resolve(stored, messageHash);
         }
         return message;
@@ -576257,6 +576448,11 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
             }
         } else {
             const result = this.safeValue(message, 'result');
+            const resultChannel = this.safeString(result, 'ch');
+            if (resultChannel !== undefined) {
+                this.handleUnSubscription(client, message);
+                return;
+            }
             const clientOrderId = this.safeString(result, 'client_order_id');
             if (clientOrderId !== undefined) {
                 this.handleOrderRequest(client, message);
@@ -576271,6 +576467,37 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
                 if (arrayLength === 0 || 'client_order_id' in first) {
                     this.handleOrderRequest(client, message);
                 }
+            }
+        }
+    }
+    handleUnSubscription(client, message) {
+        //
+        // hitbtc answers subscribe and unsubscribe requests alike, listing the symbols still subscribed on the channel
+        //
+        //    {
+        //        "result": {
+        //            "ch": "trades",
+        //            "subscriptions": [ "ETHUSDT" ]
+        //        },
+        //        "id": 1793679985268
+        //    }
+        //
+        // the answers can arrive in a different order than the requests, so they are matched by id
+        //
+        const id = this.safeString(message, 'id');
+        const subscriptionHashes = Object.keys(client.subscriptions);
+        for(let i = 0; i < subscriptionHashes.length; i++){
+            const subscription = client.subscriptions[subscriptionHashes[i]];
+            const isUnSubscription = this.safeBool(subscription, 'unsubscribe', false);
+            const subscriptionId = this.safeString(subscription, 'id');
+            if (isUnSubscription && subscriptionId !== undefined && subscriptionId === id) {
+                const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
+                const messageHashes = this.safeList(subscription, 'messageHashes', []);
+                for(let j = 0; j < subMessageHashes.length; j++){
+                    this.cleanUnsubscription(client, subMessageHashes[j], messageHashes[j]);
+                }
+                this.cleanCache(subscription);
+                return;
             }
         }
     }
@@ -690835,7 +691062,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.90';
+const version = '4.5.91';
 //-----------------------------------------------------------------------------
 
 

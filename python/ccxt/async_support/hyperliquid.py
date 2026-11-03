@@ -2353,6 +2353,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.vaultAddress]: the vault address for order
         :param str [params.subAccountAddress]: sub account user address
         :param boolean [params.twap]: whether the order to cancel is a twap order,(default is False)
+        :param boolean [params.fast]: whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade,(default is False)
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.safe_bool(params, 'twap', False):
@@ -2374,6 +2375,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param string|str[] [params.clientOrderId]: client order ids,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :param str [params.vaultAddress]: the vault address
         :param str [params.subAccountAddress]: sub account user address
+        :param boolean [params.fast]: whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade,(default is False)
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.check_required_credentials()
@@ -2476,11 +2478,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str symbol: unified market symbol
         :param dict [params]:
+        :param boolean [params.fast]: whether to send the cancel with the fast flag, rejected for trigger orders,(default is False)
         :returns dict: the raw request object to be sent to the exchange
         """
         market = self.market(symbol)
         clientOrderId = self.safe_value_2(params, 'clientOrderId', 'client_id')
-        params2 = self.omit(params, ['clientOrderId', 'client_id'])
+        fast = self.safe_bool(params, 'fast', False)
+        params2 = self.omit(params, ['clientOrderId', 'client_id', 'fast'])
         nonce = self.incrementing_nonce()
         request = {
             'nonce': nonce,
@@ -2510,6 +2514,9 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'o': o,
                 })
         cancelAction['cancels'] = cancelReq
+        if fast:
+            # "f" must be omitted when false, actions hashed with "f": false are rejected
+            cancelAction['f'] = True
         vaultAddress = None
         vaultAddress, params2 = self.handle_option_string_and_params_2(params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress')
         vaultAddress = self.format_vault_address(vaultAddress)
@@ -2532,6 +2539,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: the vault address
         :param str [params.subAccountAddress]: sub account user address
+        :param boolean [params.fast]: whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade,(default is False)
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.check_required_credentials()
@@ -2569,6 +2577,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             cancelReq.append(cancelObj)
         cancelAction['type'] = 'cancelByCloid' if cancelByCloid else 'cancel'
         cancelAction['cancels'] = cancelReq
+        fast = self.safe_bool(params, 'fast', False)
+        if fast:
+            # "f" must be omitted when false, actions hashed with "f": false are rejected
+            cancelAction['f'] = True
         vaultAddressOption = self.handle_option_string_and_params_2(params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress')[0]
         vaultAddress = self.format_vault_address(vaultAddressOption)
         signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)

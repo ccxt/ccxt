@@ -2964,9 +2964,10 @@ public class BaseExchange {
         schemas.put("order", new MsgpackSchema("type", "orders", "grouping", "builder")
             .with("orders", orderHyperliquid)
             .with("builder", builder));
-        schemas.put("cancel", new MsgpackSchema("type", "cancels")
+        // "f" is the optional fast flag, only present when true (absent keys are skipped)
+        schemas.put("cancel", new MsgpackSchema("type", "cancels", "f")
             .with("cancels", cancel));
-        schemas.put("cancelByCloid", new MsgpackSchema("type", "cancels")
+        schemas.put("cancelByCloid", new MsgpackSchema("type", "cancels", "f")
             .with("cancels", cancelByCloidItem));
         schemas.put("batchModify", new MsgpackSchema("type", "modifies")
             .with("modifies", modify));

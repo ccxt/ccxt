@@ -2646,7 +2646,7 @@ impl BitgetCore {
         //                   #### in case order had a partial fill: ####
         //         fillPrice: '35123',
         //         tradeId: '1171775539946528779',
-        //         baseVolume: '7', // field present in market order
+        //         baseVolume: '7', // amount filled by this incoming update/trade only, not cumulative (see accBaseVolume)
         //         fillTime: '1715098979937',
         //         fillFee: '-0.0069987',
         //         fillFeeCoin: 'BTC',
@@ -2683,7 +2683,7 @@ impl BitgetCore {
         //         uTime: '1715065875539'
         //                   #### when filled order is incoming, these additional fields are present too: ###
         //         baseVolume: '9', // amount filled for the incoming update/trade
-        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
+        //         accBaseVolume: '13', // cumulative amount filled during the order's lifetime; equals 'size' only once fully filled
         //         fillFee: '-0.0062712',
         //         fillFeeCoin: 'SUSDT',
         //         fillNotionalUsd: '10.452',
@@ -2826,12 +2826,7 @@ impl BitgetCore {
                 totalFilled = self.safe_string2(order.clone(), Value::Str("baseVolume".into()), Value::Str("cumExecQty".into()), &[]);
                 cost = self.safe_string2(order.clone(), Value::Str("fillTotalAmount".into()), Value::Str("cumExecValue".into()), &[]);
             }  else {
-                let mut partialFillAmount: Value = self.safe_string_k(order.clone(), "baseVolume", &[]);
-                if (partialFillAmount != Value::Null) {
-                    filledAmount = partialFillAmount;
-                }  else {
-                    filledAmount = totalFilled.clone();
-                }
+                filledAmount = totalFilled.clone();
                 if isMarketOrder {
                     if isBuy {
                         totalAmount = accBaseVolume;
@@ -2844,10 +2839,18 @@ impl BitgetCore {
                 }
             }
         }  else {
-            // baseVolume should not be used for "amount" for contracts !
-            filledAmount = self.safe_string2(order.clone(), Value::Str("baseVolume".into()), Value::Str("cumExecQty".into()), &[]);
+            // baseVolume and fillNotionalUsd describe the incoming fill only, so filled is the cumulative accBaseVolume
+            // and cost is priceAvg * cumulative filled, quote-denominated for linear and inverse alike (same as quoteVolume in REST parseOrder);
+            // the channel has no cumulative notional field, so without a priceAvg no cost is set (cumExecValue stays the first read)
+            filledAmount = totalFilled.clone();
             totalAmount = self.safe_string2(order.clone(), Value::Str("size".into()), Value::Str("qty".into()), &[]);
-            cost = self.safe_string2(order.clone(), Value::Str("fillNotionalUsd".into()), Value::Str("cumExecValue".into()), &[]);
+            cost = self.safe_string_k(order.clone(), "cumExecValue", &[]);
+            if (cost == Value::Null) {
+                let mut priceAvgString: Value = self.omit_zero(self.safe_string_k(order.clone(), "priceAvg", &[]));
+                if (priceAvgString != Value::Null) && (totalFilled != Value::Null) {
+                    cost = crate::precise::Precise::stringMul(&totalFilled, &priceAvgString);
+                }
+            }
         }
         remaining = crate::precise::Precise::stringSub(&totalAmount, &totalFilled);
         return self.safe_order(Value::Map({

@@ -3492,6 +3492,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+ * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
@@ -3522,6 +3523,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
@@ -3675,11 +3677,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params]
+         * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, (default is false)
          * @returns {object} the raw request object to be sent to the exchange
          */
         let mut market: Value = self.market(symbol.clone());
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
-        let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
+        let mut fast: Value = self.safe_bool_k(params.clone(), "fast", &[Value::Bool(false)]);
+        let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("fast".into())]), &[]);
         let mut nonce: Value = self.incrementing_nonce();
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3728,6 +3732,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("cancels".into(), cancelReq); }
+        if fast.as_bool() == Some(true) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("f".into(), Value::Bool(true)); }
+        }
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params2(params2.clone(), Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
@@ -3753,6 +3761,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders_for_symbols(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
@@ -3810,6 +3819,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".into(), (if cancelByCloid { Value::Str("cancelByCloid".into()) } else { Value::Str("cancel".into()) })); }
         if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("cancels".into(), cancelReq); }
+        let mut fast: Value = self.safe_bool_k(params.clone(), "fast", &[Value::Bool(false)]);
+        if fast.as_bool() == Some(true) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("f".into(), Value::Bool(true)); }
+        }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("cancelOrdersForSymbols".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce, &[vaultAddress.clone()]);
