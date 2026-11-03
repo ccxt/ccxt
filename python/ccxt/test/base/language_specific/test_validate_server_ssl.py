@@ -51,8 +51,12 @@ async def async_rest(url, config):
         await exchange.close()
 
 
-async def async_ws(url, config):
+async def async_ws(url, config, flip_after_open=False):
     exchange = ccxt_async.Exchange(config)
+    if flip_after_open:
+        # the session connector is built strict here, so only the per-connection ssl=False can let it through
+        exchange.open()
+        exchange.validateServerSsl = False
     received = asyncio.get_running_loop().create_future()
 
     def handle_message(client, message):
@@ -98,6 +102,7 @@ async def test_validate_server_ssl():
         except ccxt.NetworkError:
             pass
         assert await async_ws(ws_url, lax) == {'ok': True}
+        assert await async_ws(ws_url, strict, flip_after_open=True) == {'ok': True}, 'WS must honor validateServerSsl set after open()'
     finally:
         stop_ssl_server(process)
     print('validateServerSsl tests passed')
