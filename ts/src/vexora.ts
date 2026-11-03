@@ -40,11 +40,11 @@ export default class vexora extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelOrder': false,
+                'createLimitOrder': false,
+                'createMarketOrder': false,
                 'createOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
-                'createLimitOrder': false,
-                'createMarketOrder': false,
                 'editOrder': false,
                 'fetchBalance': false,
                 'fetchCurrencies': false,
@@ -55,8 +55,8 @@ export default class vexora extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchTickers': false,
                 'fetchTicker': true,
+                'fetchTickers': false,
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchWithdrawals': false,
@@ -104,9 +104,13 @@ export default class vexora extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for ' + apiName);
         }
-        let url = baseApiUrl + '/' + path;
-        if ((method.toUpperCase () !== 'POST') && (Object.keys (params).length > 0)) {
-            url += '?' + this.urlencode (params);
+        // substitute {id} (and any other path params) into the path and keep
+        // them out of the query string, per the standard ccxt sign contract
+        const implodePath = this.implodeParams (path, params);
+        const queryParams = this.omit (params, this.extractParams (path));
+        let url = baseApiUrl + '/' + implodePath;
+        if ((method.toUpperCase () !== 'POST') && (Object.keys (queryParams).length > 0)) {
+            url += '?' + this.urlencode (queryParams);
         }
         return {
             'url': url,
@@ -198,7 +202,7 @@ export default class vexora extends Exchange {
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetProductsIdBook (market['id'] as string, params);
+        const response = await this.publicGetProductsIdBook (this.extend ({ 'id': market['id'] }, params));
         return this.parseOrderBook (response, market['symbol'], this.safeInteger (response, 'time'), 'bids', 'asks', 0, 1, 2);
     }
 
@@ -215,7 +219,7 @@ export default class vexora extends Exchange {
     override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetProductsIdTrades (market['id'] as string, params);
+        const response = await this.publicGetProductsIdTrades (this.extend ({ 'id': market['id'] }, params));
         // the exchange returns at most the 50 most recent trades, newest first
         const trades = this.parseTrades (response as any, market, since, limit);
         return this.sortBy (trades, 'timestamp');
@@ -263,7 +267,7 @@ export default class vexora extends Exchange {
         const request: Dict = {
             'granularity': this.safeInteger (this.timeframes, timeframe, 3600),
         };
-        const response = await this.publicGetProductsIdCandles (market['id'] as string, this.extend (request, params));
+        const response = await this.publicGetProductsIdCandles (this.extend ({ 'id': market['id'] }, this.extend (request, params)));
         // returned newest-first, bars exist only for buckets that contain trades
         const ohlcvs = this.parseOHLCVs (response as any, market, timeframe, since, limit);
         return this.sortBy (ohlcvs, 0);
@@ -292,8 +296,8 @@ export default class vexora extends Exchange {
     override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const bookRequest = await this.publicGetProductsIdBook (market['id'] as string, params);
-        const tradesResponse = await this.publicGetProductsIdTrades (market['id'] as string, params);
+        const bookRequest = await this.publicGetProductsIdBook (this.extend ({ 'id': market['id'] }, params));
+        const tradesResponse = await this.publicGetProductsIdTrades (this.extend ({ 'id': market['id'] }, params)) as any;
         const timestamp = this.safeInteger (bookRequest, 'time');
         // the public API only exposes the most recent ~50 trades, with no
         // 24h stats endpoint, so OHLCV-style aggregates (open/high/low/
@@ -306,7 +310,7 @@ export default class vexora extends Exchange {
         let windowLow: number | undefined = undefined;
         let windowBaseVolume = 0;
         let windowQuoteVolume = 0;
-        for (let i = 0; i < tradesResponse['length']; i++) {
+        for (let i = 0; i < tradesResponse.length; i++) {
             const trade = tradesResponse[i];
             const price = this.safeNumber (trade, 'price');
             const amount = this.safeNumber (trade, 'size');
@@ -323,8 +327,8 @@ export default class vexora extends Exchange {
             windowBaseVolume = this.sum (windowBaseVolume, amount);
             windowQuoteVolume = this.sum (windowQuoteVolume, price * amount);
         }
-        const bidsArray = this.safeValue (bookRequest, 'bids', []) as number[][];
-        const asksArray = this.safeValue (bookRequest, 'asks', []) as number[][];
+        const bidsArray: number[][] = this.safeValue (bookRequest, 'bids', []);
+        const asksArray: number[][] = this.safeValue (bookRequest, 'asks', []);
         const bestBid = (bidsArray.length > 0) ? bidsArray[0] : undefined;
         const bestAsk = (asksArray.length > 0) ? asksArray[0] : undefined;
         const ticker: Dict = {
@@ -348,15 +352,19 @@ export default class vexora extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'lastTradeTimestamp': lastTimestamp,
-            'info': { 'book': bookRequest, 'window': { 'high': windowHigh, 'low': windowLow, 'baseVolume': windowBaseVolume, 'quoteVolume': windowQuoteVolume, 'tradesCount': tradesResponse['length'] } },
+            'info': { 'book': bookRequest, 'window': { 'high': windowHigh, 'low': windowLow, 'baseVolume': windowBaseVolume, 'quoteVolume': windowQuoteVolume, 'tradesCount': tradesResponse.length } },
         };
         return this.safeTicker (ticker, market);
     }
 
-    override handleErrors (statusCode: number, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined {
+    override handleErrors (statusCode: number, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
         const message = this.safeString (response, 'message');
         if (statusCode === 429) {
-            throw new RateLimitExceeded (this.id + ' rate limit exceeded' + ((message !== undefined) ? (': ' + message) : ''));
+            let suffix = '';
+            if (message !== undefined) {
+                suffix = ': ' + message;
+            }
+            throw new RateLimitExceeded (this.id + ' rate limit exceeded' + suffix);
         }
         if (message !== undefined) {
             if (statusCode >= 400 && statusCode < 500) {
