@@ -373,10 +373,14 @@ export default class interactivebrokers extends Exchange {
                 'gatewayKeepAlive': true, // POST /tickle in the background every gatewayKeepAliveInterval ms, the session ends after a few idle minutes, set to false to stop the loop (it keeps the js/php event loop running)
                 'gatewayKeepAliveInterval': 60000,
                 'gatewayAuthCheckInterval': 120000, // ms, re-check iserver/auth/status before private calls at most this often (the keep-alive tickles refresh it too)
-                'gatewayReauthenticate': true, // POST iserver/auth/ssodh/init when the brokerage session is not authenticated
+                'autoRegainSession': 0, // seconds, when the brokerage session is lost (e.g. taken over by a login with the same username on another device) take it back with POST iserver/auth/ssodh/init (which disconnects the other device) this many seconds later, retried every autoRegainSession seconds until it succeeds, 0 to never take it back, private calls throw AuthenticationError while the session is lost
+                'gatewayReauthenticate': true, // on the first sign in of the instance, POST iserver/auth/ssodh/init when the brokerage session is not authenticated, a session lost later is handled by autoRegainSession
                 'gatewayReauthenticateRetries': 5, // iserver/auth/status polls after ssodh/init
                 'gatewayReauthenticateDelay': 1000,
                 'gatewayAuthenticatedTimestamp': undefined, // filled by signIn () and the keep-alive tickles
+                'gatewaySessionLostTimestamp': undefined, // filled when the brokerage session is found not authenticated, see autoRegainSession
+                'gatewayRegainScheduled': false,
+                'gatewaySessionEstablished': false, // set after the first successful sign in, the brokerage session found not authenticated afterwards is handled by autoRegainSession
                 'gatewayKeepAliveStarted': false,
                 'fetchPortfolioAccounts': {
                     'method': 'privateGetPortfolioAccounts', // or 'privateGetPortfolioSubaccounts'
@@ -727,7 +731,7 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#ibkrGatewaySignIn
-     * @description checks that the client portal gateway session is authenticated (re-opening the brokerage session via ssodh/init when it is not), loads the trading accounts and starts the keep-alive loop
+     * @description checks that the client portal gateway session is authenticated (taking the brokerage session back via ssodh/init options.autoRegainSession seconds after it was lost), loads the trading accounts and starts the keep-alive loop
      * @ignore
      * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#auth-status
      * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#ssodh-init
@@ -750,32 +754,161 @@ export default class interactivebrokers extends Exchange {
         //     }
         //
         let authenticated = this.safeBool (response, 'authenticated', false);
-        const reauthenticate = this.safeBool (this.options, 'gatewayReauthenticate', true);
-        if (!authenticated && reauthenticate) {
-            // the sso login is alive but the brokerage session is not (e.g. after the daily reset or a competing session)
-            const initRequest = this.safeDict (this.options, 'signInInitRequest', {});
-            await this.webapiPostV1ApiIserverAuthSsodhInit (initRequest);
-            const retries = this.safeInteger (this.options, 'gatewayReauthenticateRetries', 5);
-            const retryDelay = this.safeInteger (this.options, 'gatewayReauthenticateDelay', 1000);
-            for (let i = 0; i < retries; i++) {
-                await this.sleep (retryDelay);
-                response = await this.webapiPostV1ApiIserverAuthStatus (params);
-                authenticated = this.safeBool (response, 'authenticated', false);
-                if (authenticated) {
-                    break;
-                }
+        const established = this.safeBool (this.options, 'gatewaySessionEstablished', false);
+        const openOnStart = this.safeBool (this.options, 'gatewayReauthenticate', true);
+        if (!authenticated && !established && openOnStart) {
+            // the first sign in of this instance opens the brokerage session right away
+            response = await this.ibkrGatewayRegainSession (params);
+            authenticated = this.safeBool (response, 'authenticated', false);
+            if (!authenticated) {
+                const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
+                throw new AuthenticationError (this.id + ' the client portal gateway session is not authenticated, log in at ' + gatewayUrl + ' in a browser, ' + this.json (response));
             }
         }
         if (!authenticated) {
-            this.options['gatewayAuthenticatedTimestamp'] = undefined;
-            const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
-            throw new AuthenticationError (this.id + ' the client portal gateway session is not authenticated, log in at ' + gatewayUrl + ' in a browser, ' + this.json (response));
+            // the sso login is alive but the brokerage session is not (e.g. taken over by a login with the same username elsewhere, or after the daily reset)
+            const lostTimestamp = this.ibkrGatewayOnSessionLost ();
+            const regainDelay = this.ibkrGatewayRegainDelay ();
+            if (regainDelay <= 0) {
+                const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
+                throw new AuthenticationError (this.id + ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), log in again at ' + gatewayUrl + ' in a browser or set options.autoRegainSession to take it back automatically, ' + this.json (response));
+            }
+            const regainTimestamp = this.sum (lostTimestamp, regainDelay);
+            if (this.milliseconds () < regainTimestamp) {
+                throw new AuthenticationError (this.id + ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' + this.iso8601 (regainTimestamp) + ' (options.autoRegainSession), ' + this.json (response));
+            }
+            response = await this.ibkrGatewayRegainSession (params);
+            authenticated = this.safeBool (response, 'authenticated', false);
+            if (!authenticated) {
+                // try again options.autoRegainSession seconds later
+                this.options['gatewaySessionLostTimestamp'] = this.milliseconds ();
+                this.ibkrGatewayScheduleRegain ();
+                throw new AuthenticationError (this.id + ' failed to take back the brokerage session of the client portal gateway, retrying at ' + this.iso8601 (this.sum (this.milliseconds (), regainDelay)) + ' (options.autoRegainSession), ' + this.json (response));
+            }
         }
+        this.options['gatewaySessionLostTimestamp'] = undefined;
         this.options['serviceAccountsLoaded'] = false;
         await this.fetchServiceAccounts ();
+        this.options['gatewaySessionEstablished'] = true;
         this.options['gatewayAuthenticatedTimestamp'] = this.milliseconds ();
         this.ibkrGatewayStartKeepAlive ();
         return response;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrGatewayRegainSession
+     * @description opens the brokerage session of the client portal gateway with POST iserver/auth/ssodh/init (taking it over from any other login with the same username) and polls iserver/auth/status until it is authenticated
+     * @ignore
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#ssodh-init
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the last iserver/auth/status response
+     */
+    async ibkrGatewayRegainSession (params: Dict = {}): Promise<Dict> {
+        const initRequest = this.safeDict (this.options, 'signInInitRequest', {});
+        await this.webapiPostV1ApiIserverAuthSsodhInit (initRequest);
+        const retries = this.safeInteger (this.options, 'gatewayReauthenticateRetries', 5);
+        const retryDelay = this.safeInteger (this.options, 'gatewayReauthenticateDelay', 1000);
+        let response: Dict = {};
+        for (let i = 0; i < retries; i++) {
+            await this.sleep (retryDelay);
+            response = await this.webapiPostV1ApiIserverAuthStatus (params);
+            if (this.safeBool (response, 'authenticated', false)) {
+                break;
+            }
+        }
+        return response;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrGatewayRegainDelay
+     * @description options.autoRegainSession in milliseconds, 0 when the lost brokerage session must not be taken back
+     * @ignore
+     * @returns {int} the delay in milliseconds
+     */
+    ibkrGatewayRegainDelay (): int {
+        const seconds = this.safeNumber (this.options, 'autoRegainSession', 0);
+        if ((seconds === undefined) || (seconds <= 0)) {
+            return 0;
+        }
+        return this.parseToInt (seconds * 1000);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrGatewayOnSessionLost
+     * @description marks the brokerage session as lost and schedules taking it back, see options.autoRegainSession
+     * @ignore
+     * @returns {int} the timestamp when the session was found lost
+     */
+    ibkrGatewayOnSessionLost (): int {
+        this.options['gatewayAuthenticatedTimestamp'] = undefined;
+        let lostTimestamp = this.safeInteger (this.options, 'gatewaySessionLostTimestamp');
+        if (lostTimestamp === undefined) {
+            lostTimestamp = this.milliseconds ();
+            this.options['gatewaySessionLostTimestamp'] = lostTimestamp;
+            this.ibkrGatewayScheduleRegain ();
+        }
+        return lostTimestamp;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrGatewayScheduleRegain
+     * @description schedules taking the lost brokerage session back options.autoRegainSession seconds after it was lost, so it is regained even when no private calls are made, the synchronous python and php versions take it back on the next private call instead
+     * @ignore
+     * @returns {boolean} true if it was scheduled
+     */
+    ibkrGatewayScheduleRegain (): boolean {
+        const regainDelay = this.ibkrGatewayRegainDelay ();
+        if ((regainDelay <= 0) || this.safeBool (this.options, 'gatewayRegainScheduled', false)) {
+            return false;
+        }
+        const lostTimestamp = this.safeInteger (this.options, 'gatewaySessionLostTimestamp', this.milliseconds ());
+        let wait = this.sum (lostTimestamp, regainDelay) - this.milliseconds ();
+        if (wait <= 0) {
+            wait = regainDelay;
+        }
+        try {
+            this.delay (wait, this.ibkrGatewayRegainLoop);
+            this.options['gatewayRegainScheduled'] = true;
+        } catch (e) {
+            this.options['gatewayRegainScheduled'] = false;
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrGatewayRegainLoop
+     * @description takes the lost brokerage session back, rescheduled every options.autoRegainSession seconds until it succeeds, stops when it is set to 0 or the instance is closed
+     * @ignore
+     * @returns {undefined}
+     */
+    async ibkrGatewayRegainLoop (): Promise<any> {
+        this.options['gatewayRegainScheduled'] = false;
+        const useGateway = this.safeBool (this.options, 'useGateway', false);
+        const lostTimestamp = this.safeInteger (this.options, 'gatewaySessionLostTimestamp');
+        if (!useGateway || (lostTimestamp === undefined) || (this.ibkrGatewayRegainDelay () <= 0)) {
+            return undefined; // already regained, or disabled
+        }
+        try {
+            await this.authenticate ();
+        } catch (e) {
+            if (e instanceof ExchangeClosedByUser) {
+                return undefined;
+            }
+            if (this.verbose) {
+                this.log ('ibkrGatewayRegainLoop failed ' + this.exceptionMessage (e));
+            }
+            // e.g. the sso login is lost too (http 401), retry until it is logged in again at options.gatewayUrl
+            if (this.safeInteger (this.options, 'gatewaySessionLostTimestamp') !== undefined) {
+                this.ibkrGatewayScheduleRegain ();
+            }
+        }
+        return undefined;
     }
 
     /**
@@ -833,10 +966,13 @@ export default class interactivebrokers extends Exchange {
             const iserver = this.safeDict (response, 'iserver', {});
             const authStatus = this.safeDict (iserver, 'authStatus', {});
             if (this.safeBool (authStatus, 'authenticated', false)) {
-                this.options['gatewayAuthenticatedTimestamp'] = this.milliseconds ();
+                if (this.safeInteger (this.options, 'gatewaySessionLostTimestamp') === undefined) {
+                    this.options['gatewayAuthenticatedTimestamp'] = this.milliseconds ();
+                }
+                // otherwise it was regained outside of this instance (e.g. a new login at options.gatewayUrl), the next private call re-loads the accounts
             } else {
-                // the next private call re-checks the status and re-opens the brokerage session
-                this.options['gatewayAuthenticatedTimestamp'] = undefined;
+                // e.g. taken over by a login with the same username elsewhere, see options.autoRegainSession
+                this.ibkrGatewayOnSessionLost ();
             }
         } catch (e) {
             if (e instanceof ExchangeClosedByUser) {

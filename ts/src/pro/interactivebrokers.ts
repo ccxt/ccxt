@@ -1304,6 +1304,10 @@ export default class interactivebrokers extends interactivebrokersRest {
             client.resolve (true, 'authenticated');
         } else {
             client.subscriptions['ibkrAuthenticated'] = false;
+            if (this.safeBool (this.options, 'useGateway', false)) {
+                // e.g. taken over by a login with the same username elsewhere, see options.autoRegainSession
+                this.ibkrGatewayOnSessionLost ();
+            }
             const error = new AuthenticationError (this.id + ' the brokerage session is not authenticated ' + this.json (message));
             client.reject (error);
         }
