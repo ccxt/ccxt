@@ -1,4 +1,5 @@
 const MATCHING_PROFILE = 'ccxt-http-v1';
+const DESCRIPTOR_FIELDS = [ 'instanceId', 'method', 'api', 'path', 'params' ];
 interface RequestDescriptor {
     method: string;
     api: string;
@@ -96,6 +97,17 @@ function firstDifference (expected: any, actual: any, prefix: string = ''): stri
     return undefined;
 }
 
+function descriptorDifference (expected: any, actual: any): string {
+    for (let i = 0; i < DESCRIPTOR_FIELDS.length; i++) {
+        const key = DESCRIPTOR_FIELDS[i];
+        const diff = firstDifference (expected[key], actual[key], key);
+        if (diff !== undefined) {
+            return diff;
+        }
+    }
+    return '(root)';
+}
+
 function descriptorFromUrl (method: string, url: string): RequestDescriptor {
     let path = url;
     const params: any = {};
@@ -115,4 +127,4 @@ function stripQuery (url: string): string {
     return (queryIndex === -1) ? url : url.slice (0, queryIndex);
 }
 
-export { MATCHING_PROFILE, RequestDescriptor, apiToString, canonicalize, canonicalDescriptor, requestKey, firstDifference, descriptorFromUrl, stripQuery };
+export { MATCHING_PROFILE, RequestDescriptor, apiToString, canonicalize, canonicalDescriptor, requestKey, firstDifference, descriptorDifference, descriptorFromUrl, stripQuery };

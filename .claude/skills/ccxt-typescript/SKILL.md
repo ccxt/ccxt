@@ -1255,6 +1255,7 @@ await replay.close ();
 - Random client order ids need `ignoreParams: ['newClientOrderId']` on `attach`, or pass the id explicitly.
 - Use `enableRateLimit: false` for replay tests; the limiter is not virtualized.
 - `ccxt.Replay.inspect (file)` / `ccxt.Replay.validate (file)` summarize and check a session.
+- `Replay.open ({ file, faults: [ { id, select, action } ] })` or `replay.inject (rule)` injects faults on replay without changing the recording: `replaceHttpResponse` (status, headers, bodyText, run through the real error handler), `transportError` (`errorKind: 'timeout' | 'network'`), `delayResponse` (`delayMs` on the replay clock); `actions: [...]` instead of `action` applies a different outcome to each successive call. Select by the unified method your code calls, `{ unifiedMethod: 'fetchOrderBook', occurrence: 2 }`, or by the lower-level `path`, `method`, `api`, `instanceId`, `requestId`; a faulted call consumes the recorded interaction unless the rule sets `consume: false`, which keeps it for the retry so the first call fails and the second succeeds; applied rules show up in `report ().faults`.
 - Full guide: `wiki/Replay.md`.
 
 ## Learn More

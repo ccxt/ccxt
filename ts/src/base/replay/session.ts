@@ -46,7 +46,7 @@ interface SessionEvent {
     atUs: number;
     instanceId: string;
     requestId: string;
-    request?: { method: string, api: string, path: string, params: any, url: string };
+    request?: { method: string, api: string, path: string, params: any, url: string, unifiedMethod?: string, unifiedCalls?: string[] };
     status?: number;
     statusText?: string;
     headers?: { [key: string]: string };
@@ -333,11 +333,16 @@ function inspectSession (session: Session): any {
     let sanitized = 0;
     let lastAtUs = 0;
     const byInstance: { [instanceId: string]: number } = {};
+    const byMethod: { [method: string]: number } = {};
     for (let i = 0; i < session.events.length; i++) {
         const event = session.events[i];
         if (event.type === 'http.request') {
             requests += 1;
             byInstance[event.instanceId] = (byInstance[event.instanceId] || 0) + 1;
+            const unified = (event.request !== undefined) ? event.request.unifiedMethod : undefined;
+            if (unified !== undefined) {
+                byMethod[unified] = (byMethod[unified] || 0) + 1;
+            }
         } else if (event.type === 'http.response') {
             responses += 1;
         } else if (event.type === 'http.error') {
@@ -363,6 +368,7 @@ function inspectSession (session: Session): any {
         'events': session.events.length,
         'requests': requests,
         'requestsByInstance': byInstance,
+        'requestsByUnifiedMethod': byMethod,
         'responses': responses,
         'transportErrors': transportErrors,
         'redactedRequests': redacted,

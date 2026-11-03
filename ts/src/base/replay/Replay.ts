@@ -1,8 +1,10 @@
 import { RequestTimeout, NetworkError } from '../errors.js';
 import { ReplayError, ReplayMismatch, ReplayExhausted, ReplayDeadlock, ReplayIncomplete, ReplayUnsupported } from './errors.js';
-import { MATCHING_PROFILE, RequestDescriptor, apiToString, canonicalize, canonicalDescriptor, requestKey, firstDifference, descriptorFromUrl } from './canonical.js';
+import { MATCHING_PROFILE, RequestDescriptor, apiToString, canonicalize, canonicalDescriptor, requestKey, descriptorDifference, descriptorFromUrl } from './canonical.js';
 import { Session, SessionEvent, readSession, validateSession, inspectSession } from './session.js';
-import { restore, installedCcxtVersion } from './Recorder.js';
+import { restore, installedCcxtVersion, loadAsyncLocalStorage } from './Recorder.js';
+import { CallTracker, UnifiedCall, wrapUnifiedMethods, currentCall } from './unified.js';
+import { FaultRule, FaultState, FaultSummary, ReplaceHttpResponseFault, TransportErrorFault, validateFaultRule, planFaults, summarizeFaults } from './faults.js';
 
 type ClockMode = 'virtual' | 'realtime';
 interface ReplayOptions {
@@ -13,6 +15,7 @@ interface ReplayOptions {
     deadlockTimeoutMs?: number;
     allowIncomplete?: boolean;
     ignoreParams?: string[];
+    faults?: FaultRule[];
 }
 interface ReplayAttachOptions {
     instanceId: string;
@@ -45,11 +48,12 @@ interface ReplayReport {
     installedCcxtVersion: string;
     versionMismatch: boolean;
     networkBlocked: boolean;
+    faults: FaultSummary[];
     warnings: string[];
 }
 
-function describe (instanceId: string, descriptor: RequestDescriptor): string {
-    return instanceId + ' ' + descriptor.method + ' ' + descriptor.api + ' ' + descriptor.path + ' ' + JSON.stringify (descriptor.params);
+function describe (instanceId: string, descriptor: RequestDescriptor, unifiedMethod: string | undefined = undefined): string {
+    return instanceId + ' ' + ((unifiedMethod !== undefined) ? (unifiedMethod + ' ') : '') + descriptor.method + ' ' + descriptor.api + ' ' + descriptor.path + ' ' + JSON.stringify (descriptor.params);
 }
 class Replay {
     options: ReplayOptions;
@@ -68,13 +72,16 @@ class Replay {
     mismatches: string[] = [];
     matchedKeys: { [key: string]: number } = {};
     instances: ReplayInstance[] = [];
+    faults: FaultState[] = [];
+    calls: CallTracker;
     watchdog: any = undefined;
     pumping: boolean = false;
     pumpRequested: boolean = false;
     closed: boolean = false;
 
-    constructor (options: ReplayOptions, session: Session, warnings: string[]) {
+    constructor (options: ReplayOptions, session: Session, warnings: string[], callStorage: any) {
         this.options = options;
+        this.calls = { 'storage': callStorage, 'counter': 0 };
         this.session = session;
         this.clock = options.clock || 'virtual';
         this.speed = (options.speed !== undefined && options.speed > 0) ? options.speed : 1;
@@ -112,11 +119,20 @@ class Replay {
         if (session.header.matchingProfile !== MATCHING_PROFILE) {
             throw new ReplayUnsupported ('replay session uses matching profile ' + session.header.matchingProfile + ', this build supports ' + MATCHING_PROFILE);
         }
-        const replay = new Replay (options, session, warnings);
+        const AsyncLocalStorage = await loadAsyncLocalStorage ();
+        const replay = new Replay (options, session, warnings, new AsyncLocalStorage ());
         replay.installedVersion = await installedCcxtVersion ();
         const recorded = session.header.runtime ? session.header.runtime.ccxtVersion : undefined;
         if (recorded !== replay.installedVersion) {
             replay.warnings.push ('recorded with ccxt ' + recorded + ', replaying with ' + replay.installedVersion);
+        }
+        if (options.faults !== undefined) {
+            if (!Array.isArray (options.faults)) {
+                throw new ReplayError ('faults must be an array of fault rules');
+            }
+            for (let i = 0; i < options.faults.length; i++) {
+                replay.inject (options.faults[i]);
+            }
         }
         return replay;
     }
@@ -127,6 +143,19 @@ class Replay {
 
     static async validate (file: string): Promise<any> {
         return validateSession (await readSession (file));
+    }
+
+    inject (rule: FaultRule): void {
+        if (this.closed) {
+            throw new ReplayError ('replay is closed');
+        }
+        validateFaultRule (rule);
+        for (let i = 0; i < this.faults.length; i++) {
+            if (this.faults[i].rule.id === rule.id) {
+                throw new ReplayError ('fault rule id ' + rule.id + ' is already registered');
+            }
+        }
+        this.faults.push ({ rule, 'seen': 0, 'lastCallId': -1, 'applied': 0, 'requestIds': [] });
     }
 
     attach (exchange: any, options: ReplayAttachOptions): void {
@@ -164,6 +193,7 @@ class Replay {
             state.own[names[i]] = Object.prototype.hasOwnProperty.call (exchange, names[i]);
         }
         this.instances.push (state);
+        wrapUnifiedMethods (exchange, this.calls, state.originals, state.own);
         const replay = this;
         exchange.sign = function sign (path: string, api: any = [ 'public' ], method: string = 'GET', params: any = {}) {
             state.slot = { method, 'api': apiToString (api), path, 'params': canonicalize (JSON.parse (JSON.stringify (params === undefined ? {} : params))) };
@@ -172,7 +202,7 @@ class Replay {
         exchange.fetch = async function replayedFetch (url: string, method: string = 'GET', headers: any = undefined, body: any = undefined) {
             const descriptor = (state.slot !== undefined) ? state.slot : descriptorFromUrl (method, url);
             state.slot = undefined;
-            return await replay.handleFetch (state, descriptor);
+            return await replay.handleFetch (state, descriptor, currentCall (replay.calls));
         };
         if (this.clock === 'virtual') {
             exchange.sleep = async function sleep (milliseconds: number) {
@@ -204,12 +234,27 @@ class Replay {
         }
     }
 
-    async handleFetch (state: ReplayInstance, descriptor: RequestDescriptor): Promise<any> {
-        const event = this.matchRequest (state, descriptor);
+    async handleFetch (state: ReplayInstance, descriptor: RequestDescriptor, call: UnifiedCall | undefined): Promise<any> {
+        const event = this.matchRequest (state, descriptor, call, false);
+        const request = event.request as { url: string, method: string };
+        const plan = planFaults (this.faults, state.instanceId, event.requestId, descriptor, request.url, call);
+        if (plan.terminal !== undefined && !plan.consume) {
+            if (plan.delayMs > 0) {
+                await this.delay (plan.delayMs);
+            }
+            return await this.applyFault (state, request, plan.terminal, plan.terminalRuleId as string);
+        }
+        this.matchRequest (state, descriptor, call, true);
         const terminal = await new Promise<SessionEvent> ((resolve, reject) => {
             this.pending.push ({ 'requestId': event.requestId, 'instanceId': state.instanceId, descriptor, resolve, reject });
             this.pump ();
         });
+        if (plan.delayMs > 0) {
+            await this.delay (plan.delayMs);
+        }
+        if (plan.terminal !== undefined) {
+            return await this.applyFault (state, request, plan.terminal, plan.terminalRuleId as string);
+        }
         if (terminal.type === 'http.error') {
             const message = terminal.message || '';
             if (terminal.kind === 'timeout') {
@@ -229,12 +274,41 @@ class Replay {
             'headers': terminal.headers || {},
             'text': async () => terminal.bodyText,
         };
-        const request = event.request as { url: string, method: string };
         return await state.exchange.handleRestResponse (response, request.url, request.method, {}, undefined);
     }
 
-    matchRequest (state: ReplayInstance, descriptor: RequestDescriptor): SessionEvent {
+    async applyFault (state: ReplayInstance, request: { url: string, method: string }, action: ReplaceHttpResponseFault | TransportErrorFault, ruleId: string): Promise<any> {
+        if (action.kind === 'transportError') {
+            const message = action.message || ('simulated ' + action.errorKind + ' error injected by fault rule ' + ruleId);
+            if (action.errorKind === 'timeout') {
+                throw new RequestTimeout (message);
+            }
+            throw new NetworkError (message);
+        }
+        const headers: { [key: string]: string } = {};
+        const names = Object.keys (action.headers || {});
+        for (let i = 0; i < names.length; i++) {
+            headers[names[i].toLowerCase ()] = (action.headers as any)[names[i]];
+        }
+        const response = {
+            'status': action.status,
+            'statusText': action.statusText || '',
+            headers,
+            'text': async () => action.bodyText,
+        };
+        return await state.exchange.handleRestResponse (response, request.url, request.method, {}, undefined);
+    }
+
+    async delay (milliseconds: number): Promise<void> {
+        if (this.clock === 'realtime') {
+            await new Promise<void> ((resolve) => setTimeout (resolve, milliseconds / this.speed));
+        }
+        this.virtualNowUs += Math.round (milliseconds * 1000);
+    }
+
+    matchRequest (state: ReplayInstance, descriptor: RequestDescriptor, call: UnifiedCall | undefined, consume: boolean = true): SessionEvent {
         const events = this.session.events;
+        const unified = (call !== undefined) ? call.method : undefined;
         while (this.nextRequestIndex < events.length && events[this.nextRequestIndex].type !== 'http.request' && events[this.nextRequestIndex].type !== 'http.redacted') {
             this.nextRequestIndex += 1;
         }
@@ -242,7 +316,7 @@ class Replay {
         const actual = { 'instanceId': state.instanceId, ...canonicalDescriptor (descriptor, state.ignoreParams) };
         if (this.nextRequestIndex >= events.length) {
             const matched = this.matchedKeys[key] || 0;
-            const message = 'ReplayExhausted: no unused request matches\n' + 'request: ' + describe (state.instanceId, descriptor) + '\nmatched occurrences: ' + matched + '\nreceived occurrences: ' + (matched + 1);
+            const message = 'ReplayExhausted: no unused request matches\n' + 'request: ' + describe (state.instanceId, descriptor, unified) + '\nmatched occurrences: ' + matched + '\nreceived occurrences: ' + (matched + 1);
             this.mismatches.push (message);
             throw new ReplayExhausted (message);
         }
@@ -252,20 +326,22 @@ class Replay {
             this.mismatches.push (message);
             throw new ReplayUnsupported (message);
         }
-        const recorded = expectedEvent.request as { method: string, api: string, path: string, params: any };
+        const recorded = expectedEvent.request as { method: string, api: string, path: string, params: any, unifiedMethod?: string };
         const expectedDescriptor: RequestDescriptor = { 'method': recorded.method, 'api': recorded.api, 'path': recorded.path, 'params': recorded.params };
         const expectedKey = requestKey (expectedEvent.instanceId, expectedDescriptor, state.ignoreParams);
         if (expectedKey !== key) {
             const expected = { 'instanceId': expectedEvent.instanceId, ...canonicalDescriptor (expectedDescriptor, state.ignoreParams) };
-            const field = firstDifference (expected, actual) || '(root)';
-            const message = 'ReplayMismatch: request does not match the next recorded request ' + expectedEvent.requestId + '\nexpected: ' + describe (expectedEvent.instanceId, expectedDescriptor) + '\nactual:   ' + describe (state.instanceId, descriptor) + '\nfirst difference: ' + field;
+            const field = descriptorDifference (expected, actual);
+            const message = 'ReplayMismatch: request does not match the next recorded request ' + expectedEvent.requestId + '\nexpected: ' + describe (expectedEvent.instanceId, expectedDescriptor, recorded.unifiedMethod) + '\nactual:   ' + describe (state.instanceId, descriptor, unified) + '\nfirst difference: ' + field;
             this.mismatches.push (message);
             throw new ReplayMismatch (message, expected, actual, field);
         }
-        this.matchedKeys[key] = (this.matchedKeys[key] || 0) + 1;
-        this.nextRequestIndex += 1;
-        this.consumedRequests += 1;
-        this.virtualNowUs = Math.max (this.virtualNowUs, expectedEvent.atUs);
+        if (consume) {
+            this.matchedKeys[key] = (this.matchedKeys[key] || 0) + 1;
+            this.nextRequestIndex += 1;
+            this.consumedRequests += 1;
+            this.virtualNowUs = Math.max (this.virtualNowUs, expectedEvent.atUs);
+        }
         return expectedEvent;
     }
 
@@ -343,7 +419,7 @@ class Replay {
             if (awaited !== undefined) {
                 awaitedText = awaited.type + ' ' + awaited.requestId;
                 if (awaited.request !== undefined) {
-                    awaitedText += ' ' + describe (awaited.instanceId, awaited.request);
+                    awaitedText += ' ' + describe (awaited.instanceId, awaited.request, awaited.request.unifiedMethod);
                 }
             }
             const pendingText = this.pending.map ((item) => item.requestId + ' ' + describe (item.instanceId, item.descriptor)).join ('\n  ');
@@ -390,7 +466,7 @@ class Replay {
     async assertConsumed (): Promise<void> {
         const remaining = this.remaining ();
         if (remaining.length > 0) {
-            const lines = remaining.map ((event) => event.requestId + ((event.request !== undefined) ? (' ' + describe (event.instanceId, event.request)) : ' (redacted)'));
+            const lines = remaining.map ((event) => event.requestId + ((event.request !== undefined) ? (' ' + describe (event.instanceId, event.request, event.request.unifiedMethod)) : ' (redacted)'));
             throw new ReplayError ('replay has ' + remaining.length + ' unconsumed request(s):\n  ' + lines.join ('\n  '));
         }
         if (this.pending.length > 0) {
@@ -412,6 +488,7 @@ class Replay {
             'installedCcxtVersion': this.installedVersion,
             'versionMismatch': recorded !== this.installedVersion,
             'networkBlocked': true,
+            'faults': summarizeFaults (this.faults),
             'warnings': this.warnings.slice (),
         };
     }

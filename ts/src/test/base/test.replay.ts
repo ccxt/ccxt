@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 import { test } from 'node:test';
 import ccxt from '../../../ccxt.js';
 
-const { Recorder, Replay, ReplayMismatch, ReplayExhausted, ReplayDeadlock, ReplayIncomplete, ReplayUnsupported, RecorderError, RequestTimeout, OperationFailed } = ccxt as any;
+const { Recorder, Replay, ReplayError, ReplayMismatch, ReplayExhausted, ReplayDeadlock, ReplayIncomplete, ReplayUnsupported, RecorderError, RequestTimeout, OperationFailed, DDoSProtection } = ccxt as any;
 
 const API_KEY = 'canary-api-key-ABCDEF123456';
 const SECRET = 'canary-secret-0123456789abcdef';
@@ -391,6 +391,7 @@ test ('exhaustion, unconsumed interactions and mismatches are explicit', async (
         const mismatch = await outcome (() => offline2.fetchOrderBook ('BTC/USDT', 10));
         assert.ok (mismatch.error instanceof ReplayMismatch);
         assert.strictEqual (mismatch.error.field, 'params.limit');
+        assert.ok (mismatch.error.message.indexOf ('expected: ex1 fetchOrderBook GET') !== -1, mismatch.error.message);
         assert.strictEqual (mismatch.error.expected['params']['limit'], 5);
         assert.strictEqual (mismatch.error.actual['params']['limit'], 10);
         assert.strictEqual (second.report ().mismatches.length, 1);
@@ -638,6 +639,126 @@ test ('unattached instances are untouched and detaching restores the originals',
         await plain.close ();
         await live.close ();
         await offline.close ();
+    } finally {
+        await server.close ();
+        fs.rmSync (dir, { 'recursive': true, 'force': true });
+    }
+});
+
+test ('fault injection replaces outcomes on replay without touching the recording', async () => {
+    const server = await startServer ();
+    const dir = tempDir ();
+    const file = path.join (dir, 'session.jsonl');
+    try {
+        const recorder = await Recorder.open ({ file });
+        const live = newBinance (server.url, false);
+        recorder.attach (live, { 'instanceId': 'ex1' });
+        await live.loadMarkets ();
+        await live.fetchOrderBook ('BTC/USDT', 5);
+        await live.fetchOrderBook ('BTC/USDT', 5);
+        await live.fetchTime ();
+        await recorder.close ();
+        const original = fs.readFileSync (file, 'utf8');
+        const recordedRequests = readLines (file).filter ((line) => line.type === 'http.request');
+        assert.strictEqual (recordedRequests[0].request.unifiedMethod, 'loadMarkets');
+        assert.deepStrictEqual (recordedRequests[0].request.unifiedCalls, [ 'loadMarkets', 'fetchMarkets' ]);
+        assert.strictEqual (recordedRequests[1].request.unifiedMethod, 'fetchOrderBook');
+        assert.strictEqual (recordedRequests[3].request.unifiedMethod, 'fetchTime');
+        assert.deepStrictEqual ((await Replay.inspect (file)).requestsByUnifiedMethod, { 'loadMarkets': 1, 'fetchOrderBook': 2, 'fetchTime': 1 });
+        const faults = [
+            { 'id': 'rate-limit-second-book', 'select': { 'unifiedMethod': 'fetchOrderBook', 'occurrence': 2 }, 'action': { 'kind': 'replaceHttpResponse', 'status': 429, 'statusText': 'Too Many Requests', 'headers': { 'Retry-After': '2', 'content-type': 'application/json' }, 'bodyText': '{"code":-1003,"msg":"Too many requests."}' } },
+            { 'id': 'slow-time', 'select': { 'instanceId': 'ex1', 'unifiedMethod': 'fetchTime' }, 'action': { 'kind': 'delayResponse', 'delayMs': 1500 } },
+            { 'id': 'time-timeout', 'select': { 'unifiedMethod': 'fetchTime', 'method': 'GET', 'api': 'public' }, 'action': { 'kind': 'transportError', 'errorKind': 'timeout' } },
+        ];
+        const replay = await Replay.open ({ file, faults });
+        const offline = newBinance ('http://blocked.invalid', false);
+        replay.attach (offline, { 'instanceId': 'ex1' });
+        await offline.loadMarkets ();
+        const first = await offline.fetchOrderBook ('BTC/USDT', 5);
+        assert.strictEqual (first['bids'][0][0], 65000);
+        const limited = await outcome (() => offline.fetchOrderBook ('BTC/USDT', 5));
+        assert.ok (limited.error instanceof DDoSProtection, String (limited.error));
+        assert.ok (limited.error.message.indexOf ('-1003') !== -1);
+        const before = replay.now ();
+        const started = Date.now ();
+        const timedOut = await outcome (() => offline.fetchTime ());
+        assert.ok (timedOut.error instanceof RequestTimeout, String (timedOut.error));
+        assert.ok (timedOut.error.message.indexOf ('time-timeout') !== -1);
+        assert.ok (replay.now () - before >= 1500000, 'delay should advance the virtual clock');
+        assert.ok (Date.now () - started < 500, 'delay should not take real time on the virtual clock');
+        await replay.assertConsumed ();
+        const report = replay.report ();
+        assert.strictEqual (report.faults.length, 3);
+        for (let i = 0; i < report.faults.length; i++) {
+            assert.strictEqual (report.faults[i].applied, 1, report.faults[i].id);
+        }
+        assert.deepStrictEqual (report.faults[0].requestIds, [ 'ex1-r3' ]);
+        assert.strictEqual (report.mismatches.length, 0);
+        assert.strictEqual (fs.readFileSync (file, 'utf8'), original);
+        await replay.close ();
+        const invalid = await outcome (() => Replay.open ({ file, 'faults': [ { 'id': 'bad', 'select': {}, 'action': { 'kind': 'explode' } } ] }));
+        assert.ok (invalid.error instanceof ReplayError);
+        const duplicate = await outcome (() => Replay.open ({ file, 'faults': [ faults[1], faults[1] ] }));
+        assert.ok (duplicate.error instanceof ReplayError);
+        const conflicting = await Replay.open ({ file, 'faults': [
+            { 'id': 'a', 'select': { 'unifiedMethod': 'fetchOrderBook' }, 'action': { 'kind': 'transportError', 'errorKind': 'network' } },
+            { 'id': 'b', 'select': { 'path': 'depth' }, 'action': { 'kind': 'replaceHttpResponse', 'status': 500, 'bodyText': '{}' } },
+        ] });
+        const offline2 = newBinance ('http://blocked.invalid', false);
+        conflicting.attach (offline2, { 'instanceId': 'ex1' });
+        await offline2.loadMarkets ();
+        const conflict = await outcome (() => offline2.fetchOrderBook ('BTC/USDT', 5));
+        assert.ok (conflict.error instanceof ReplayError);
+        assert.ok (conflict.error.message.indexOf ('both replace') !== -1);
+        await conflicting.close ();
+        const retryable = await Replay.open ({ file, 'faults': [
+            { 'id': 'first-book-fails', 'select': { 'unifiedMethod': 'fetchOrderBook' }, 'action': { 'kind': 'transportError', 'errorKind': 'network' }, 'consume': false },
+        ] });
+        const offline3 = newBinance ('http://blocked.invalid', false);
+        retryable.attach (offline3, { 'instanceId': 'ex1' });
+        await offline3.loadMarkets ();
+        const wrongRetry = await outcome (() => offline3.fetchOrderBook ('BTC/USDT', 10));
+        assert.ok (wrongRetry.error instanceof ReplayMismatch, 'a non-consuming fault still matches strictly');
+        const failedOnce = await outcome (() => offline3.fetchOrderBook ('BTC/USDT', 5));
+        assert.ok (failedOnce.error instanceof ccxt.NetworkError, String (failedOnce.error));
+        assert.strictEqual (retryable.report ().consumed, 1, 'the recorded interaction is kept for the retry');
+        const retried = await offline3.fetchOrderBook ('BTC/USDT', 5);
+        assert.strictEqual (retried['bids'][0][0], 65000);
+        await offline3.fetchOrderBook ('BTC/USDT', 5);
+        const retryReport = retryable.report ();
+        assert.strictEqual (retryReport.consumed, 3);
+        assert.strictEqual (retryReport.faults[0].applied, 1);
+        assert.strictEqual (retryReport.faults[0].consume, false);
+        const noDelayKeep = await outcome (() => Replay.open ({ file, 'faults': [ { 'id': 'd', 'select': {}, 'action': { 'kind': 'delayResponse', 'delayMs': 1 }, 'consume': false } ] }));
+        assert.ok (noDelayKeep.error instanceof ReplayError);
+        await retryable.close ();
+        await offline3.close ();
+        const sequence = await Replay.open ({ file, 'faults': [
+            { 'id': 'book-sequence', 'select': { 'unifiedMethod': 'fetchOrderBook' }, 'consume': false, 'actions': [
+                { 'kind': 'replaceHttpResponse', 'status': 429, 'headers': { 'content-type': 'application/json' }, 'bodyText': '{"code":-1003,"msg":"Too many requests."}' },
+                { 'kind': 'transportError', 'errorKind': 'timeout' },
+            ] },
+        ] });
+        const offline4 = newBinance ('http://blocked.invalid', false);
+        sequence.attach (offline4, { 'instanceId': 'ex1' });
+        await offline4.loadMarkets ();
+        const seqFirst = await outcome (() => offline4.fetchOrderBook ('BTC/USDT', 5));
+        assert.ok (seqFirst.error instanceof DDoSProtection, String (seqFirst.error));
+        const seqSecond = await outcome (() => offline4.fetchOrderBook ('BTC/USDT', 5));
+        assert.ok (seqSecond.error instanceof RequestTimeout, String (seqSecond.error));
+        const seqThird = await offline4.fetchOrderBook ('BTC/USDT', 5);
+        assert.strictEqual (seqThird['bids'][0][0], 65000);
+        const seqReport = sequence.report ().faults[0];
+        assert.strictEqual (seqReport.kind, 'replaceHttpResponse > transportError');
+        assert.strictEqual (seqReport.times, 2);
+        assert.strictEqual (seqReport.applied, 2);
+        const bothForms = await outcome (() => Replay.open ({ file, 'faults': [ { 'id': 'x', 'select': {}, 'action': { 'kind': 'transportError', 'errorKind': 'network' }, 'actions': [] } ] }));
+        assert.ok (bothForms.error instanceof ReplayError);
+        await sequence.close ();
+        await offline4.close ();
+        await live.close ();
+        await offline.close ();
+        await offline2.close ();
     } finally {
         await server.close ();
         fs.rmSync (dir, { 'recursive': true, 'force': true });

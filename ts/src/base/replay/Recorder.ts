@@ -2,6 +2,7 @@ import { RequestTimeout, NetworkError } from '../errors.js';
 import { RecorderError, ReplayUnsupported } from './errors.js';
 import { MATCHING_PROFILE, RequestDescriptor, apiToString, canonicalize, descriptorFromUrl, stripQuery } from './canonical.js';
 import { SCHEMA_VERSION, PRODUCER_NAME, PRODUCER_VERSION, InstanceInfo, SessionHeader, SessionFooter, SessionEvent, SessionWriter } from './session.js';
+import { CallTracker, wrapUnifiedMethods, currentCall } from './unified.js';
 
 type PrivacyProfile = 'local' | 'shareable';
 interface RecorderOptions {
@@ -28,7 +29,7 @@ interface AttachedInstance {
     instanceId: string;
     exchange: any;
     slot: RequestDescriptor | undefined;
-    originals: { sign: any, fetch: any, handleRestResponse: any };
+    originals: { [name: string]: any };
     own: { [name: string]: boolean };
 }
 
@@ -91,6 +92,7 @@ class Recorder {
     privacy: PrivacyProfile;
     writer: SessionWriter;
     storage: any;
+    calls: CallTracker;
     startedAt: string;
     t0: number;
     seq: number = 0;
@@ -104,8 +106,9 @@ class Recorder {
     attached: AttachedInstance[] = [];
     ccxtVersion: string = 'unknown';
 
-    constructor (options: RecorderOptions, writer: SessionWriter, storage: any) {
+    constructor (options: RecorderOptions, writer: SessionWriter, storage: any, callStorage: any) {
         this.options = options;
+        this.calls = { 'storage': callStorage, 'counter': 0 };
         this.privacy = options.privacy || 'local';
         this.writer = writer;
         this.storage = storage;
@@ -127,7 +130,7 @@ class Recorder {
             'maxBodyBytes': options.maxBodyBytes || 64 * 1024 * 1024,
             'maxQueueBytes': options.maxQueueBytes || 256 * 1024 * 1024,
         }, options.onError);
-        const recorder = new Recorder (options, writer, new AsyncLocalStorage ());
+        const recorder = new Recorder (options, writer, new AsyncLocalStorage (), new AsyncLocalStorage ());
         recorder.ccxtVersion = await installedCcxtVersion ();
         await writer.open ();
         return recorder;
@@ -259,10 +262,11 @@ class Recorder {
             },
         };
         this.attached.push (state);
+        wrapUnifiedMethods (exchange, this.calls, state.originals, state.own);
         const recorder = this;
         exchange.sign = function sign (path: string, api: any = [ 'public' ], method: string = 'GET', params: any = {}) {
             const snapshot = canonicalize (JSON.parse (JSON.stringify (params === undefined ? {} : params)));
-            const request = state.originals.sign.call (exchange, path, api, method, params);
+            const request = state.originals['sign'].call (exchange, path, api, method, params);
             state.slot = { method, 'api': apiToString (api), path, 'params': snapshot };
             return request;
         };
@@ -276,7 +280,7 @@ class Recorder {
                 redacted.reason = 'non-public route under the shareable privacy profile';
                 recorder.redactedRequests += 1;
                 recorder.write (redacted);
-                return await state.originals.fetch.call (exchange, url, method, headers, body);
+                return await state.originals['fetch'].call (exchange, url, method, headers, body);
             }
             const event = recorder.nextEvent ('http.request', state.instanceId, requestId);
             event.request = {
@@ -286,10 +290,15 @@ class Recorder {
                 'params': descriptor.params,
                 'url': stripQuery (url),
             };
+            const call = currentCall (recorder.calls);
+            if (call !== undefined) {
+                event.request.unifiedMethod = call.method;
+                event.request.unifiedCalls = call.chain;
+            }
             recorder.write (event);
             const context: RequestContext = { requestId, 'instanceId': state.instanceId, 'terminal': false };
             try {
-                return await recorder.storage.run (context, () => state.originals.fetch.call (exchange, url, method, headers, body));
+                return await recorder.storage.run (context, () => state.originals['fetch'].call (exchange, url, method, headers, body));
             } catch (error: any) {
                 if (!context.terminal) {
                     context.terminal = true;
@@ -310,7 +319,7 @@ class Recorder {
         exchange.handleRestResponse = function handleRestResponse (response: any, url: string, method: string = 'GET', requestHeaders: any = undefined, requestBody: any = undefined) {
             const context: RequestContext | undefined = recorder.storage.getStore ();
             if (context === undefined || context.terminal) {
-                return state.originals.handleRestResponse.call (exchange, response, url, method, requestHeaders, requestBody);
+                return state.originals['handleRestResponse'].call (exchange, response, url, method, requestHeaders, requestBody);
             }
             const responseHeaders = headersToObject (response.headers);
             if (exchange.handleContentTypeApplicationZip && responseHeaders['content-type'] === 'application/zip') {
@@ -321,7 +330,7 @@ class Recorder {
                 event.headers = responseHeaders;
                 event.bodyUnsupported = 'binary';
                 recorder.write (event);
-                return state.originals.handleRestResponse.call (exchange, response, url, method, requestHeaders, requestBody);
+                return state.originals['handleRestResponse'].call (exchange, response, url, method, requestHeaders, requestBody);
             }
             return response.text ().then ((text: string) => {
                 context.terminal = true;
@@ -337,7 +346,7 @@ class Recorder {
                     'headers': response.headers,
                     'text': async () => text,
                 };
-                return state.originals.handleRestResponse.call (exchange, replayable, url, method, requestHeaders, requestBody);
+                return state.originals['handleRestResponse'].call (exchange, replayable, url, method, requestHeaders, requestBody);
             });
         };
     }
@@ -346,9 +355,10 @@ class Recorder {
         for (let i = 0; i < this.attached.length; i++) {
             const state = this.attached[i];
             if (state.exchange === exchange) {
-                restore (exchange, 'sign', state.originals.sign, state.own['sign']);
-                restore (exchange, 'fetch', state.originals.fetch, state.own['fetch']);
-                restore (exchange, 'handleRestResponse', state.originals.handleRestResponse, state.own['handleRestResponse']);
+                const names = Object.keys (state.originals);
+                for (let j = 0; j < names.length; j++) {
+                    restore (exchange, names[j], state.originals[names[j]], state.own[names[j]]);
+                }
                 this.attached.splice (i, 1);
                 return;
             }
@@ -382,4 +392,4 @@ class Recorder {
     }
 }
 
-export { Recorder, RecorderOptions, RecorderAttachOptions, RecorderStatus, PrivacyProfile, headersToObject, restore, installedCcxtVersion };
+export { Recorder, RecorderOptions, RecorderAttachOptions, RecorderStatus, PrivacyProfile, headersToObject, restore, installedCcxtVersion, loadAsyncLocalStorage };
