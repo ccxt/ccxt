@@ -102,6 +102,27 @@
                 "output": "{\"orders\":[{\"conid\":495759171,\"side\":\"BUY\",\"cashQty\":50,\"orderType\":\"MKT\",\"tif\":\"IOC\",\"cOID\":\"ccxt260c09d70ed54208aa36f3\",\"acctId\":\"U3448646\"}]}"
             },
             {
+                "description": "gateway spot crypto buy market",
+                "method": "createOrder",
+                "options": {
+                    "useGateway": true,
+                    "gatewayAuthenticatedTimestamp": 9999999999999,
+                    "gatewayKeepAlive": false
+                },
+                "url": "https://localhost:5000/v1/api/iserver/account/U3448646/orders",
+                "input": [
+                    "ETH/USD",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "cost": 50
+                    }
+                ],
+                "output": "{\"orders\":[{\"conid\":495759171,\"side\":\"BUY\",\"cashQty\":50,\"orderType\":\"MKT\",\"tif\":\"IOC\",\"cOID\":\"ccxt260c09d70ed54208aa36f3\",\"acctId\":\"U3448646\"}]}"
+            },
+            {
                 "disabled": true,
                 "description": "spot crypto sell limit",
                 "method": "createOrder",
@@ -121,6 +142,20 @@
                 "description": "crypto spot",
                 "method": "fetchTicker",
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=495759171&fields=31%2C55%2C70%2C71%2C82%2C83%2C84%2C85%2C86%2C88%2C6457%2C6509%2C7058%2C7295%2C7296%2C7635%2C7741%2C7762",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "gateway crypto spot",
+                "method": "fetchTicker",
+                "options": {
+                    "useGateway": true,
+                    "gatewayAuthenticatedTimestamp": 9999999999999,
+                    "gatewayKeepAlive": false
+                },
+                "url": "https://localhost:5000/v1/api/iserver/marketdata/snapshot?conids=495759171&fields=31%2C55%2C70%2C71%2C82%2C83%2C84%2C85%2C86%2C88%2C6457%2C6509%2C7058%2C7295%2C7296%2C7635%2C7741%2C7762",
                 "input": [
                     "ETH/USD"
                 ],
@@ -224,6 +259,20 @@
                 "description": "spot without symbol",
                 "method": "cancelOrder",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/order/468370477",
+                "input": [
+                    468370477
+                ],
+                "output": null
+            },
+            {
+                "description": "gateway spot without symbol",
+                "method": "cancelOrder",
+                "options": {
+                    "useGateway": true,
+                    "gatewayAuthenticatedTimestamp": 9999999999999,
+                    "gatewayKeepAlive": false
+                },
+                "url": "https://localhost:5000/v1/api/iserver/account/U3448646/order/468370477",
                 "input": [
                     468370477
                 ],

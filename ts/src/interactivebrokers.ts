@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/interactivebrokers.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidOrder, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import type { Account, Balances, Dict, Endpoint, Greeks, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
@@ -133,9 +133,8 @@ export default class interactivebrokers extends Exchange {
                 'referral': '',
                 'doc': [
                     'https://www.interactivebrokers.com/docs/web-api/introduction',
-                    'https://github.com/Voyz/ibind/blob/master/docs/oauth/oauth_1a.md#enabling_oauth1a',
                     'https://ndcdyn.interactivebrokers.com/oauth/?loginType=1&action=OAUTH&clt=0&RL=1&ip2loc=US#/configuration',
-                    'https://ndcdyn.interactivebrokers.com/sso/Login?action=OAUTH&RL=1&ip2loc=US',
+                    'https://github.com/Voyz/ibind/blob/master/docs/oauth/oauth_1a.md#enabling_oauth1a',
                 ],
                 'fees': 'https://www.interactivebrokers.com/en/index.php?f=1590&p=crypto',
             },
@@ -366,6 +365,19 @@ export default class interactivebrokers extends Exchange {
             'options': {
                 'accountId': undefined, // default account used by private methods, filled by fetchAccounts
                 'accounts': [],
+                // client portal gateway, a self-hosted (e.g. docker) gateway that is already logged in, replaces oauth
+                // https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#gw-step-one
+                // the gateway serves a self-signed certificate, disable its validation with validateServerSsl = false (python async: verify = False)
+                'useGateway': false,
+                'gatewayUrl': 'https://localhost:5000/',
+                'gatewayKeepAlive': true, // POST /tickle in the background every gatewayKeepAliveInterval ms, the session ends after a few idle minutes, set to false to stop the loop (it keeps the js/php event loop running)
+                'gatewayKeepAliveInterval': 60000,
+                'gatewayAuthCheckInterval': 120000, // ms, re-check iserver/auth/status before private calls at most this often (the keep-alive tickles refresh it too)
+                'gatewayReauthenticate': true, // POST iserver/auth/ssodh/init when the brokerage session is not authenticated
+                'gatewayReauthenticateRetries': 5, // iserver/auth/status polls after ssodh/init
+                'gatewayReauthenticateDelay': 1000,
+                'gatewayAuthenticatedTimestamp': undefined, // filled by signIn () and the keep-alive tickles
+                'gatewayKeepAliveStarted': false,
                 'fetchPortfolioAccounts': {
                     'method': 'privateGetPortfolioAccounts', // or 'privateGetPortfolioSubaccounts'
                 },
@@ -613,6 +625,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} response from the exchange
      */
     override async signIn (params: Dict = {}): Promise<Dict> {
+        if (this.safeBool (this.options, 'useGateway', false)) {
+            return await this.ibkrGatewaySignIn (params);
+        }
         this.checkRequiredCredentials ();
         await this.initFileSystem ();
         const encryptionKey = this.readFile (this.options['encryptionPemPath']) as string;
@@ -660,7 +675,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {string} the live session token
      */
     async authenticate (params: Dict = {}): Promise<Str> {
-        if (this.ibkrHasFreshSessionToken ()) {
+        if (this.ibkrIsAuthenticated ()) {
             return this.safeString (this.options, 'liveSessionToken');
         }
         // single-flight, see https://github.com/ccxt/ccxt/issues/29393
@@ -675,7 +690,7 @@ export default class interactivebrokers extends Exchange {
                 await this.sleep (pollInterval);
                 waited = this.sum (waited, pollInterval);
             }
-            if (this.ibkrHasFreshSessionToken ()) {
+            if (this.ibkrIsAuthenticated ()) {
                 return this.safeString (this.options, 'liveSessionToken');
             }
         }
@@ -688,6 +703,155 @@ export default class interactivebrokers extends Exchange {
         }
         this.options['signInInProgress'] = false;
         return this.safeString (this.options, 'liveSessionToken');
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrIsAuthenticated
+     * @description true when the current session can be used without signing in again, with options.useGateway the gateway session was confirmed authenticated within options.gatewayAuthCheckInterval ms, otherwise the oauth live session token is fresh
+     * @ignore
+     * @returns {boolean} whether the current session can be used
+     */
+    ibkrIsAuthenticated (): boolean {
+        if (!this.safeBool (this.options, 'useGateway', false)) {
+            return this.ibkrHasFreshSessionToken ();
+        }
+        const authenticatedTimestamp = this.safeInteger (this.options, 'gatewayAuthenticatedTimestamp');
+        if (authenticatedTimestamp === undefined) {
+            return false;
+        }
+        const checkInterval = this.safeInteger (this.options, 'gatewayAuthCheckInterval', 120000);
+        return this.milliseconds () < this.sum (authenticatedTimestamp, checkInterval);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrGatewaySignIn
+     * @description checks that the client portal gateway session is authenticated (re-opening the brokerage session via ssodh/init when it is not), loads the trading accounts and starts the keep-alive loop
+     * @ignore
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#auth-status
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#ssodh-init
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the iserver/auth/status response
+     */
+    async ibkrGatewaySignIn (params: Dict = {}): Promise<Dict> {
+        let response = await this.webapiPostV1ApiIserverAuthStatus (params);
+        //
+        //     {
+        //         "authenticated": true,
+        //         "established": true,
+        //         "competing": false,
+        //         "connected": true,
+        //         "message": "",
+        //         "MAC": "06:A5:C8:3D:7F:EC",
+        //         "serverInfo": { "serverName": "JifZ18024", "serverVersion": "Build 10.50.1e, Oct 26, 2026 5:04:19 PM" },
+        //         "hardware_info": "6b0d051e|06:A5:C8:3D:7F:EC",
+        //         "fail": ""
+        //     }
+        //
+        let authenticated = this.safeBool (response, 'authenticated', false);
+        const reauthenticate = this.safeBool (this.options, 'gatewayReauthenticate', true);
+        if (!authenticated && reauthenticate) {
+            // the sso login is alive but the brokerage session is not (e.g. after the daily reset or a competing session)
+            const initRequest = this.safeDict (this.options, 'signInInitRequest', {});
+            await this.webapiPostV1ApiIserverAuthSsodhInit (initRequest);
+            const retries = this.safeInteger (this.options, 'gatewayReauthenticateRetries', 5);
+            const retryDelay = this.safeInteger (this.options, 'gatewayReauthenticateDelay', 1000);
+            for (let i = 0; i < retries; i++) {
+                await this.sleep (retryDelay);
+                response = await this.webapiPostV1ApiIserverAuthStatus (params);
+                authenticated = this.safeBool (response, 'authenticated', false);
+                if (authenticated) {
+                    break;
+                }
+            }
+        }
+        if (!authenticated) {
+            this.options['gatewayAuthenticatedTimestamp'] = undefined;
+            const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
+            throw new AuthenticationError (this.id + ' the client portal gateway session is not authenticated, log in at ' + gatewayUrl + ' in a browser, ' + this.json (response));
+        }
+        this.options['serviceAccountsLoaded'] = false;
+        await this.fetchServiceAccounts ();
+        this.options['gatewayAuthenticatedTimestamp'] = this.milliseconds ();
+        this.ibkrGatewayStartKeepAlive ();
+        return response;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrGatewayStartKeepAlive
+     * @description schedules the keep-alive loop once, see options.gatewayKeepAlive
+     * @ignore
+     * @returns {boolean} true if the loop is running
+     */
+    ibkrGatewayStartKeepAlive (): boolean {
+        const keepAlive = this.safeBool (this.options, 'gatewayKeepAlive', true);
+        if (!keepAlive || this.safeBool (this.options, 'gatewayKeepAliveStarted', false)) {
+            return keepAlive;
+        }
+        const interval = this.safeInteger (this.options, 'gatewayKeepAliveInterval', 60000);
+        try {
+            this.delay (interval, this.ibkrGatewayKeepAlive);
+            this.options['gatewayKeepAliveStarted'] = true;
+        } catch (e) {
+            // the synchronous python and php versions have no event loop to schedule on, the session is
+            // then kept alive by the private calls, which re-check iserver/auth/status every gatewayAuthCheckInterval ms
+            this.options['gatewayKeepAliveStarted'] = false;
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrGatewayKeepAlive
+     * @description keeps the client portal gateway session alive with POST /tickle every options.gatewayKeepAliveInterval ms and tracks its authentication status, stops when options.gatewayKeepAlive is set to false or the instance is closed
+     * @ignore
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#tickle
+     * @returns {undefined}
+     */
+    async ibkrGatewayKeepAlive (): Promise<any> {
+        const useGateway = this.safeBool (this.options, 'useGateway', false);
+        const keepAlive = this.safeBool (this.options, 'gatewayKeepAlive', true);
+        if (!useGateway || !keepAlive) {
+            this.options['gatewayKeepAliveStarted'] = false;
+            return undefined;
+        }
+        try {
+            const response = await this.webapiPostV1ApiTickle ();
+            //
+            //     {
+            //         "session": "dcbd01d969bfd9434139f372edc338b2",
+            //         "ssoExpires": 237821,
+            //         "collission": false,
+            //         "userId": 46130428,
+            //         "hmds": { "error": "no bridge" },
+            //         "iserver": { "authStatus": { "authenticated": true, "established": true, "competing": false, "connected": true, ... } }
+            //     }
+            //
+            const iserver = this.safeDict (response, 'iserver', {});
+            const authStatus = this.safeDict (iserver, 'authStatus', {});
+            if (this.safeBool (authStatus, 'authenticated', false)) {
+                this.options['gatewayAuthenticatedTimestamp'] = this.milliseconds ();
+            } else {
+                // the next private call re-checks the status and re-opens the brokerage session
+                this.options['gatewayAuthenticatedTimestamp'] = undefined;
+            }
+        } catch (e) {
+            if (e instanceof ExchangeClosedByUser) {
+                this.options['gatewayKeepAliveStarted'] = false;
+                return undefined;
+            }
+            // a failing tickle (e.g. the gateway container restarts) is retried on the next interval
+            this.options['gatewayAuthenticatedTimestamp'] = undefined;
+            if (this.verbose) {
+                this.log ('ibkrGatewayKeepAlive tickle failed ' + this.exceptionMessage (e));
+            }
+        }
+        const interval = this.safeInteger (this.options, 'gatewayKeepAliveInterval', 60000);
+        this.delay (interval, this.ibkrGatewayKeepAlive);
+        return undefined;
     }
 
     /**
@@ -3355,6 +3519,28 @@ export default class interactivebrokers extends Exchange {
         return [ segments.join ('/'), pathParams ];
     }
 
+    /**
+     * @method
+     * @name interactivebrokers#ibkrGatewayBaseUrl
+     * @description maps an api.ibkr.com base url to the client portal gateway url, e.g. 'https://api.ibkr.com/v1/api/' -> 'https://localhost:5000/v1/api/'
+     * @ignore
+     * @param {string} baseUrl the configured api url
+     * @param {string} gatewayUrl options.gatewayUrl
+     * @returns {string} the gateway base url
+     */
+    ibkrGatewayBaseUrl (baseUrl: string, gatewayUrl: string): string {
+        let gateway = gatewayUrl;
+        if (!gateway.endsWith ('/')) {
+            gateway = gateway + '/';
+        }
+        const prefix = 'https://api.ibkr.com/';
+        if (baseUrl.startsWith (prefix)) {
+            const path = baseUrl.replace (prefix, '');
+            return gateway + path;
+        }
+        return baseUrl;
+    }
+
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const [ implodedPath, pathParams ] = this.ibkrImplodePath (path, params);
         const apiBase = api[0];
@@ -3365,6 +3551,24 @@ export default class interactivebrokers extends Exchange {
         const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
+        if (this.safeBool (this.options, 'useGateway', false)) {
+            // the client portal gateway holds the authenticated session, requests are sent unsigned
+            const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
+            url = this.ibkrGatewayBaseUrl (this.urls['api'][apiBase], gatewayUrl) + implodedPath;
+            if (isGetOrDelete) {
+                if (hasQuery) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
+                // the gateway rejects bodiless POST/PUT requests with http 411 (Length Required)
+                requestBody = hasQuery ? this.json (query) : '{}';
+            }
+            requestHeaders = {
+                'Content-Type': 'application/json',
+                'User-Agent': 'ccxt',
+            };
+            return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        }
         this.checkRequiredCredentials ();
         const oauthParams = this.ibkrOauthBase (this.options['consumer_key'], this.apiKey);
         if (path.endsWith ('v1/api/oauth/live_session_token')) {
@@ -3437,6 +3641,12 @@ export default class interactivebrokers extends Exchange {
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if ((code === 401) && this.safeBool (this.options, 'useGateway', false)) {
+            // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
+            this.options['gatewayAuthenticatedTimestamp'] = undefined;
+            const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
+            throw new AuthenticationError (this.id + ' the client portal gateway is not logged in, log in again at ' + gatewayUrl + ' in a browser, ' + method + ' ' + url + ' ' + body);
+        }
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

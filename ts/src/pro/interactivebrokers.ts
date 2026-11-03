@@ -96,7 +96,14 @@ export default class interactivebrokers extends interactivebrokersRest {
      */
     async ibkrConnect (): Promise<string> {
         await this.authenticate ();
-        const url = this.urls['api']['ws'] + '?oauth_token=' + this.apiKey;
+        const useGateway = this.safeBool (this.options, 'useGateway', false);
+        let url = this.urls['api']['ws'] + '?oauth_token=' + this.apiKey;
+        if (useGateway) {
+            // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
+            const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
+            const restUrl = this.ibkrGatewayBaseUrl (this.urls['api']['ws'].replace ('wss://', 'https://'), gatewayUrl);
+            url = restUrl.replace ('https://', 'wss://').replace ('http://', 'ws://');
+        }
         if (!(url in this.clients)) {
             const response = await this.webapiPostV1ApiTickle ();
             //
@@ -118,8 +125,12 @@ export default class interactivebrokers extends interactivebrokersRest {
             // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
             // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
             const userAgent = this.safeString (this.options, 'wsUserAgent', 'ClientPortalGW/1');
+            let cookie = 'api=' + session;
+            if (useGateway) {
+                cookie = 'api=' + this.json ({ 'session': session });
+            }
             const headers: Dict = this.extend (originalHeaders, {
-                'Cookie': 'api=' + session,
+                'Cookie': cookie,
                 'User-Agent': userAgent,
             });
             this.options['ws']['options']['headers'] = headers;
