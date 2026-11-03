@@ -3531,6 +3531,90 @@ impl BybitCore {
 }));
     m
 }));
+        m.insert("currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("EUR".to_string(), self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("EUR".into()));
+        m.insert("code".to_string(), Value::Str("EUR".into()));
+        m.insert("precision".to_string(), self.parse_number(Value::Str("0.01".into()), &[]));
+        m.insert("type".to_string(), Value::Str("fiat".into()));
+    m
+})));
+        m.insert("CHF".to_string(), self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("CHF".into()));
+        m.insert("code".to_string(), Value::Str("CHF".into()));
+        m.insert("precision".to_string(), self.parse_number(Value::Str("0.01".into()), &[]));
+        m.insert("type".to_string(), Value::Str("fiat".into()));
+    m
+})));
+        m.insert("PLN".to_string(), self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("PLN".into()));
+        m.insert("code".to_string(), Value::Str("PLN".into()));
+        m.insert("precision".to_string(), self.parse_number(Value::Str("0.01".into()), &[]));
+        m.insert("type".to_string(), Value::Str("fiat".into()));
+    m
+})));
+        m.insert("ARS".to_string(), self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("ARS".into()));
+        m.insert("code".to_string(), Value::Str("ARS".into()));
+        m.insert("precision".to_string(), self.parse_number(Value::Str("0.01".into()), &[]));
+        m.insert("type".to_string(), Value::Str("fiat".into()));
+    m
+})));
+        m.insert("COP".to_string(), self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("COP".into()));
+        m.insert("code".to_string(), Value::Str("COP".into()));
+        m.insert("precision".to_string(), self.parse_number(Value::Str("0.01".into()), &[]));
+        m.insert("type".to_string(), Value::Str("fiat".into()));
+    m
+})));
+        m.insert("USD".to_string(), self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("USD".into()));
+        m.insert("code".to_string(), Value::Str("USD".into()));
+        m.insert("precision".to_string(), self.parse_number(Value::Str("0.01".into()), &[]));
+        m.insert("type".to_string(), Value::Str("fiat".into()));
+    m
+})));
+        m.insert("CLP".to_string(), self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("CLP".into()));
+        m.insert("code".to_string(), Value::Str("CLP".into()));
+        m.insert("precision".to_string(), self.parse_number(Value::Str("0.01".into()), &[]));
+        m.insert("type".to_string(), Value::Str("fiat".into()));
+    m
+})));
+        m.insert("PEN".to_string(), self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("PEN".into()));
+        m.insert("code".to_string(), Value::Str("PEN".into()));
+        m.insert("precision".to_string(), self.parse_number(Value::Str("0.01".into()), &[]));
+        m.insert("type".to_string(), Value::Str("fiat".into()));
+    m
+})));
+        m.insert("BOB".to_string(), self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("BOB".into()));
+        m.insert("code".to_string(), Value::Str("BOB".into()));
+        m.insert("precision".to_string(), self.parse_number(Value::Str("0.01".into()), &[]));
+        m.insert("type".to_string(), Value::Str("fiat".into()));
+    m
+})));
+        m.insert("BRL".to_string(), self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("BRL".into()));
+        m.insert("code".to_string(), Value::Str("BRL".into()));
+        m.insert("precision".to_string(), self.parse_number(Value::Str("0.01".into()), &[]));
+        m.insert("type".to_string(), Value::Str("fiat".into()));
+    m
+})));
+    m
+}));
         m.insert("rollingWindowSize".to_string(), Value::Int(5000));
     m
 })]);
