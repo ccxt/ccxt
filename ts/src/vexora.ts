@@ -104,8 +104,6 @@ export default class vexora extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for ' + apiName);
         }
-        // substitute {id} (and any other path params) into the path and keep
-        // them out of the query string, per the standard ccxt sign contract
         const implodePath = this.implodeParams (path, params);
         const queryParams = this.omit (params, this.extractParams (path));
         let url = baseApiUrl + '/' + implodePath;
@@ -132,19 +130,17 @@ export default class vexora extends Exchange {
         const result: Market[] = [];
         for (let i = 0; i < products.length; i++) {
             const product = products[i];
-            result.push (this.marketFromProduct (product));
+            result.push (this.parseMarket (product));
         }
         return result;
     }
 
     override parseMarket (product: Dict): Market {
-        return this.marketFromProduct (product) as Market;
-    }
-
-    marketFromProduct (product: Dict): Market {
         const baseScale = this.safeInteger (product, 'baseScale', 8);
         const quoteScale = this.safeInteger (product, 'quoteScale', 8);
-        const market: Dict = {
+        // the Java transpiler only accepts a provable Market shape, i.e. a direct
+        // safeMarketStructure call here — do not wrap it into a helper method
+        return this.safeMarketStructure ({
             'id': this.safeString (product, 'id'),
             'symbol': this.safeSymbol (this.safeString (product, 'id'), undefined, '-'),
             'base': this.safeCurrencyCode (this.safeString (product, 'baseCurrency')),
@@ -186,8 +182,7 @@ export default class vexora extends Exchange {
             },
             'created': undefined,
             'info': product,
-        };
-        return market as Market;
+        });
     }
 
     /**
