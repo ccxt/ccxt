@@ -511,10 +511,69 @@ fn upgrade_request(
     Ok(request)
 }
 
+/// Accepts any server certificate for any hostname, `validateServerSsl = false`.
+/// Handshake signatures are still checked so the session keys are real.
+#[derive(Debug)]
+struct AcceptAnyServerCert(Arc<rustls::crypto::CryptoProvider>);
+
+impl rustls::client::danger::ServerCertVerifier for AcceptAnyServerCert {
+    fn verify_server_cert(
+        &self,
+        _end_entity: &rustls::pki_types::CertificateDer<'_>,
+        _intermediates: &[rustls::pki_types::CertificateDer<'_>],
+        _server_name: &rustls::pki_types::ServerName<'_>,
+        _ocsp_response: &[u8],
+        _now: rustls::pki_types::UnixTime,
+    ) -> Result<rustls::client::danger::ServerCertVerified, rustls::Error> {
+        Ok(rustls::client::danger::ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        message: &[u8],
+        cert: &rustls::pki_types::CertificateDer<'_>,
+        dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        rustls::crypto::verify_tls12_signature(message, cert, dss, &self.0.signature_verification_algorithms)
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        message: &[u8],
+        cert: &rustls::pki_types::CertificateDer<'_>,
+        dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        rustls::crypto::verify_tls13_signature(message, cert, dss, &self.0.signature_verification_algorithms)
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
+        self.0.signature_verification_algorithms.supported_schemes()
+    }
+}
+
+/// `None` keeps tungstenite's default (webpki roots, full verification).
+fn tls_connector(validate_server_ssl: bool) -> Result<Option<tokio_tungstenite::Connector>, String> {
+    if validate_server_ssl {
+        return Ok(None);
+    }
+    static INSECURE: Lazy<Result<Arc<rustls::ClientConfig>, String>> = Lazy::new(|| {
+        let provider = Arc::new(rustls::crypto::ring::default_provider());
+        let config = rustls::ClientConfig::builder_with_provider(provider.clone())
+            .with_safe_default_protocol_versions()
+            .map_err(|e| format!("[NetworkError] ws tls config: {e}"))?
+            .dangerous()
+            .with_custom_certificate_verifier(Arc::new(AcceptAnyServerCert(provider)))
+            .with_no_client_auth();
+        Ok(Arc::new(config))
+    });
+    INSECURE.clone().map(|config| Some(tokio_tungstenite::Connector::Rustls(config)))
+}
+
 async fn connect_via_proxy(
     url: &str,
     headers: &[(String, String)],
     proxy: &str,
+    connector: Option<tokio_tungstenite::Connector>,
 ) -> Result<tokio_tungstenite::WebSocketStream<
         tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, String> {
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -554,7 +613,7 @@ async fn connect_via_proxy(
     if !first.contains(" 200") {
         return Err(format!("[NetworkError] ws proxy {proxy} refused CONNECT: {first}"));
     }
-    let (ws, _resp) = tokio_tungstenite::client_async_tls(upgrade_request(url, headers)?, stream)
+    let (ws, _resp) = tokio_tungstenite::client_async_tls_with_config(upgrade_request(url, headers)?, stream, None, connector)
         .await
         .map_err(|e| format!("[NetworkError] ws connect {url} via {proxy}: {e}"))?;
     Ok(ws)
@@ -571,6 +630,18 @@ pub async fn ensure_client_with_headers(
     proxy: Option<String>,
     decompress_binary: bool,
 ) -> Result<Arc<ClientState>, String> {
+    ensure_client_with_options(url, headers, proxy, decompress_binary, true).await
+}
+
+/// `ensure_client_with_headers` plus `validateServerSsl`. Clients are shared per
+/// url, so the flag applies when this call is the one that opens the socket.
+pub async fn ensure_client_with_options(
+    url: &str,
+    headers: &[(String, String)],
+    proxy: Option<String>,
+    decompress_binary: bool,
+    validate_server_ssl: bool,
+) -> Result<Arc<ClientState>, String> {
     let state = ensure_slot(url);
     if *state.connected.lock().unwrap() {
         return Ok(state);
@@ -582,10 +653,11 @@ pub async fn ensure_client_with_headers(
     if *state.connected.lock().unwrap() {
         return Ok(state);
     }
+    let connector = tls_connector(validate_server_ssl)?;
     let ws = match proxy.as_deref().filter(|p| !p.is_empty()) {
-        Some(p) => connect_via_proxy(url, headers, p).await?,
+        Some(p) => connect_via_proxy(url, headers, p, connector).await?,
         None => {
-            let (ws, _resp) = tokio_tungstenite::connect_async(upgrade_request(url, headers)?)
+            let (ws, _resp) = tokio_tungstenite::connect_async_tls_with_config(upgrade_request(url, headers)?, None, false, connector)
                 .await
                 .map_err(|e| format!("[NetworkError] ws connect {url}: {e}"))?;
             ws
