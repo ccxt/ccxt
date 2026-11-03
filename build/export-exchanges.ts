@@ -910,17 +910,17 @@ async function exportEverything () {
         },
         {
             file: './go/v4/exchange_metadata.go',
-            regex: /var Exchanges \[\]string = \[\]string\{\s+?.+$/gm,
+            regex: /var Exchanges \[\]string = \[\]string\{[^}]*\}/g,
             replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${i}"`).join(', ')} }`,
         },
         {
             file: './go/v4/pro/exchange_metadata.go',
-            regex: /var Exchanges \[\]string = \[\]string\{\s+?.+$/gm,
+            regex: /var Exchanges \[\]string = \[\]string\{[^}]*\}/g,
             replacement: `var Exchanges []string = []string{ ${wsIds.map(i=>`"${i}"`).join(', ')} }`,
         },
         {
             file: './go/v4/prediction/exchange_metadata.go',
-            regex: /var Exchanges \[\]string = \[\]string\{\s+?.+$/gm,
+            regex: /var Exchanges \[\]string = \[\]string\{[^}]*\}/g,
             replacement: `var Exchanges []string = []string{ ${predictionIds.map(i=>`"${i}"`).join(', ')} }`,
         },
         {
