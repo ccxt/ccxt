@@ -487,6 +487,8 @@ public class BaseExchange {
         // and tests received "any" ticker instead of the requested symbol.
         Boolean newUpdatesTmp = (Boolean) SafeMethods.SafeValue(extendedProperties, "newUpdates", true);
         this.newUpdates = (newUpdatesTmp != null) ? newUpdatesTmp : true;
+        Object validateServerSslTmp = SafeMethods.SafeValue(extendedProperties, "validateServerSsl", true);
+        this.validateServerSsl = !(validateServerSslTmp instanceof Boolean) || (Boolean) validateServerSslTmp;
 
         this.accounts = (List<Object>) this.safeValue(extendedProperties, "accounts");
         this.features = (Map<String, Object>) this.safeValue(extendedProperties, "features", this.features);
@@ -2161,7 +2163,27 @@ public class BaseExchange {
         String h = (this.httpProxy == null) ? "" : this.httpProxy.toString();
         String hs = (this.httpsProxy == null) ? "" : this.httpsProxy.toString();
         String s = (this.socksProxy == null) ? "" : this.socksProxy.toString();
-        return h + "|" + hs + "|" + s;
+        return h + "|" + hs + "|" + s + "|" + this.validateServerSsl;
+    }
+
+    // accepts any certificate, the X509ExtendedTrustManager form also skips the hostname check
+    private static javax.net.ssl.SSLContext insecureSslContext() {
+        try {
+            var trustAll = new javax.net.ssl.X509ExtendedTrustManager() {
+                @Override public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+                @Override public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+                @Override public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType, java.net.Socket socket) {}
+                @Override public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType, java.net.Socket socket) {}
+                @Override public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType, javax.net.ssl.SSLEngine engine) {}
+                @Override public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType, javax.net.ssl.SSLEngine engine) {}
+                @Override public java.security.cert.X509Certificate[] getAcceptedIssuers() { return new java.security.cert.X509Certificate[0]; }
+            };
+            var context = javax.net.ssl.SSLContext.getInstance("TLS");
+            context.init(null, new javax.net.ssl.TrustManager[] { trustAll }, new SecureRandom());
+            return context;
+        } catch (java.security.GeneralSecurityException e) {
+            throw new RuntimeException("could not create an ssl context for validateServerSsl = false", e);
+        }
     }
 
     private void ensureHttpClientUpToDate() {
@@ -2188,6 +2210,9 @@ public class BaseExchange {
         // parsers (fetchCurrenciesFromWeb populating options['tradingPairs'])
         // empty-handed and silently degrading market metadata.
         builder.followRedirects(HttpClient.Redirect.NORMAL);
+        if (!this.validateServerSsl) {
+            builder.sslContext(insecureSslContext());
+        }
 
         boolean httpsProxySet = this.httpsProxy != null && !this.httpsProxy.toString().isEmpty();
         boolean httpProxySet = this.httpProxy != null && !this.httpProxy.toString().isEmpty();

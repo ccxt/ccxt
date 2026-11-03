@@ -58,6 +58,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public $tokenBucket;
     public Throttler $throttler;
     public $default_connector = null;
+    private $default_connector_validates_server_ssl = null;
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -72,8 +73,31 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->default_connector = $this->create_connector();
+        $this->ensure_default_connector();
         $this->set_request_browser($this->default_connector);
+    }
+
+    public function ensure_default_connector() {
+        // rebuilt when validateServerSsl is flipped after construction
+        if ($this->default_connector === null || $this->default_connector_validates_server_ssl !== (bool) $this->validateServerSsl) {
+            $this->default_connector = $this->create_connector();
+            $this->default_connector_validates_server_ssl = (bool) $this->validateServerSsl;
+        }
+        return $this->default_connector;
+    }
+
+    public function get_tls_connector_options() {
+        // empty array keeps the react/socket defaults (peer and hostname verification)
+        if ($this->validateServerSsl) {
+            return array();
+        }
+        return array(
+            'tls' => array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true,
+            ),
+        );
     }
 
     public function set_request_browser($connector) {
@@ -88,7 +112,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             // explicitly use happy eyeballs for dual-stack IPv4/IPv6 connections
             // (supported since react/socket 1.12, enabled by default, composer.json pins 1.17)
             'happy_eyeballs' => true,
-        ), $connector_options), Loop::get());
+        ), $this->get_tls_connector_options(), $connector_options), Loop::get());
         return $connector;
     }
 
@@ -179,7 +203,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         if ($connector) {
             $this->set_request_browser($connector);
         } else {
-            $this->set_request_browser($this->default_connector);
+            $this->set_request_browser($this->ensure_default_connector());
         }
         // user-agent
         $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;

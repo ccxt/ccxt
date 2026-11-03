@@ -2,6 +2,7 @@ package ccxt
 
 import (
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	j "encoding/json"
@@ -71,6 +72,7 @@ type BaseExchange struct {
 	Verbose                bool
 	UserAgent              string
 	EnableRateLimit        bool
+	ValidateServerSsl      bool // false disables tls certificate and hostname verification for REST and WS
 	Url                    string
 	Hostname               string
 	BaseCurrencies         *sync.Map
@@ -131,6 +133,8 @@ type BaseExchange struct {
 
 	httpClient   *http.Client
 	lastProxyURL string
+	// ValidateServerSsl value the current httpClient transport was built for
+	transportValidatesServerSsl bool
 
 	HttpProxy            interface{}
 	Http_proxy           interface{}
@@ -295,11 +299,22 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)
 	transport := newDualStackTransport()
+	transport.TLSClientConfig = this.tlsClientConfig()
+	this.transportValidatesServerSsl = this.ValidateServerSsl
 
 	this.httpClient = &http.Client{
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
+}
+
+// tlsClientConfig returns the tls config every REST transport and WS dialer
+// uses, nil keeps the Go defaults (full certificate and hostname verification)
+func (this *BaseExchange) tlsClientConfig() *tls.Config {
+	if this.ValidateServerSsl {
+		return nil
+	}
+	return &tls.Config{InsecureSkipVerify: true} //nolint:gosec // opt-in via ValidateServerSsl = false
 }
 
 func (this *BaseExchange) Init(userConfig map[string]any) {
@@ -1616,7 +1631,7 @@ func (this *BaseExchange) UpdateProxySettings() {
 		}
 		// rebuild the transport only when the proxy URL changes, otherwise a
 		// fresh transport (and connection pool) is created on every request
-		if proxyUrlStr != this.lastProxyURL || this.httpClient.Transport == nil {
+		if proxyUrlStr != this.lastProxyURL || this.httpClient.Transport == nil || this.transportValidatesServerSsl != this.ValidateServerSsl {
 			proxyURLParsed, _ := url.Parse(proxyUrlStr)
 			this.httpClient.Transport = &http.Transport{
 				Proxy:               http.ProxyURL(proxyURLParsed),
@@ -1624,9 +1639,18 @@ func (this *BaseExchange) UpdateProxySettings() {
 				MaxConnsPerHost:     8,                                // hard ceiling per target host
 				MaxIdleConnsPerHost: 4,                                // reuse pool
 				IdleConnTimeout:     90 * time.Second,
+				TLSClientConfig:     this.tlsClientConfig(),
 			}
 			this.lastProxyURL = proxyUrlStr
+			this.transportValidatesServerSsl = this.ValidateServerSsl
 		}
+	} else if this.transportValidatesServerSsl != this.ValidateServerSsl {
+		// no proxy: ValidateServerSsl was flipped after construction, rebuild the direct transport
+		transport := newDualStackTransport()
+		transport.TLSClientConfig = this.tlsClientConfig()
+		this.httpClient.Transport = transport
+		this.lastProxyURL = ""
+		this.transportValidatesServerSsl = this.ValidateServerSsl
 	}
 }
 
@@ -1837,6 +1861,9 @@ func (this *BaseExchange) SetProxyAgents(httpProxy any, httpsProxy any, socksPro
 			Dial: dialer.Dial,
 		}
 	}
+	if transport != nil {
+		transport.TLSClientConfig = this.tlsClientConfig()
+	}
 
 	return transport, nil
 }
@@ -1930,7 +1957,8 @@ func (this *BaseExchange) Client(url any) *WSClient {
 			"Verbose":  this.Verbose,
 			"Throttle": NewThrottler(this.TokenBucket),
 			"Options": map[string]any{
-				"Agent": finalAgent,
+				"Agent":             finalAgent,
+				"ValidateServerSsl": this.ValidateServerSsl,
 			},
 			"DecompressBinary": this.SafeBool(this.Options, "decompressBinary", true),
 		},

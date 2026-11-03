@@ -11,6 +11,7 @@ package ccxt
 // dependency is present in go.mod (go get if needed).
 
 import (
+	"crypto/tls"
 	"net/http"
 	"net/url"
 	"strings"
@@ -74,6 +75,23 @@ func NewWSClient(url string, onMessageCallback func(client any, err any), onErro
 	return wsClient
 }
 
+// validatesServerSsl reads ValidateServerSsl from the client options, Exchange.Client
+// nests it under "Options" while NewWSClient keeps the whole config map
+func (this *WSClient) validatesServerSsl() bool {
+	if this.Options == nil {
+		return true
+	}
+	if validate, ok := derefScalar(this.Options["ValidateServerSsl"]).(bool); ok {
+		return validate
+	}
+	if nested, ok := this.Options["Options"].(map[string]any); ok {
+		if validate, ok := derefScalar(nested["ValidateServerSsl"]).(bool); ok {
+			return validate
+		}
+	}
+	return true
+}
+
 func (this *WSClient) CreateConnection() error {
 	if this.Verbose {
 		this.Log(time.Now(), "connecting to", this.Url)
@@ -91,6 +109,9 @@ func (this *WSClient) CreateConnection() error {
 	// Create WebSocket dialer (dual-stack: NetDialContext dials network "tcp"
 	// via Happy Eyeballs, so IPv4 and IPv6 are both attempted)
 	dialer := newWSDialer(proxy)
+	if !this.validatesServerSsl() {
+		dialer.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} //nolint:gosec // opt-in via ValidateServerSsl = false
+	}
 
 	// Set up headers for protocols
 	headers := http.Header{}

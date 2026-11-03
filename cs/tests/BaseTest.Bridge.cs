@@ -284,5 +284,8 @@ public partial class BaseTest
 
         // hand-written C#-only: a wrong-typed option throws BadRequest (offline)
         testOptionTypes();
+
+        // hand-written C#-only: validateServerSsl = false for REST and WS against a local invalid-certificate server
+        await testValidateServerSsl();
     }
 }

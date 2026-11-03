@@ -36,6 +36,10 @@ public partial class BaseExchange
     private void initHttpClient()
     {
         var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
+        if (!this.validateServerSsl)
+        {
+            handler.ServerCertificateCustomValidationCallback = (request, certificate, chain, errors) => true;
+        }
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
