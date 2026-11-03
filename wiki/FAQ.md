@@ -413,7 +413,7 @@ exchange.options['builderFee'] = False
 
 ### How to use the InteractiveBrokers in CCXT?
 
-InteractiveBrokers has a different API infrastructure, as opposed to typical exchanges. Its access to the Web-API might depend on account-type or jurisdiction. However, most PRO users should be able to access it - visit https://ndcdyn.interactivebrokers.com/oauth/ and if you are able to generate credentials, then you will be able to use web-api. Then set these credentials for exchange instance:
+InteractiveBrokers has a different API infrastructure, as opposed to typical exchanges. Its access to the Web-API might depend on account-type or jurisdiction. You should visit https://ndcdyn.interactivebrokers.com/oauth/ where you can generate credenials. If you see a message that says you do not have a permission to generate credentials, then you might need at first to go through [this process](https://www.interactivebrokers.com/docs/web-api/authentication/oauth-1a/first-party-oauth/registration-process) and tell them that you want to use programmatic access. Once approved then you will be able to generate api-keys (after generation it might up to 24 hours to become activated by IBKR system). Then set these credentials for exchange instance:
 ```
 instance = new ccxt.interactivebrokers ({
   "apiKey":"______ACCESS_TOKEN______",
@@ -426,7 +426,6 @@ instance = new ccxt.interactivebrokers ({
   }
 })
 ```
-
 Note, that due to the IBKR limitations, user can only have one active session - if you login the ibkr website, your running ibkr instance will switch off.
 
 
