@@ -1825,7 +1825,7 @@ class bitget(ccxt.async_support.bitget):
         #                   #### in case order had a partial fill: ####
         #         fillPrice: '35123',
         #         tradeId: '1171775539946528779',
-        #         baseVolume: '7', // field present in market order
+        #         baseVolume: '7', // amount filled by this incoming update/trade only, not cumulative (see accBaseVolume)
         #         fillTime: '1715098979937',
         #         fillFee: '-0.0069987',
         #         fillFeeCoin: 'BTC',
@@ -1862,7 +1862,7 @@ class bitget(ccxt.async_support.bitget):
         #         uTime: '1715065875539'
         #                   #### when filled order is incoming, these additional fields are present too: ###
         #         baseVolume: '9', // amount filled for the incoming update/trade
-        #         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
+        #         accBaseVolume: '13', // cumulative amount filled during the order's lifetime; equals 'size' only once fully filled
         #         fillFee: '-0.0062712',
         #         fillFeeCoin: 'SUSDT',
         #         fillNotionalUsd: '10.452',
@@ -1999,11 +1999,7 @@ class bitget(ccxt.async_support.bitget):
                 totalFilled = self.safe_string_2(order, 'baseVolume', 'cumExecQty')
                 cost = self.safe_string_2(order, 'fillTotalAmount', 'cumExecValue')
             else:
-                partialFillAmount = self.safe_string(order, 'baseVolume')
-                if partialFillAmount is not None:
-                    filledAmount = partialFillAmount
-                else:
-                    filledAmount = totalFilled
+                filledAmount = totalFilled
                 if isMarketOrder:
                     if isBuy:
                         totalAmount = accBaseVolume
@@ -2015,10 +2011,16 @@ class bitget(ccxt.async_support.bitget):
                     totalAmount = self.safe_string_2(order, 'newSize', 'qty')
                     # we don't have cost for limit order
         else:
-            # baseVolume should not be used for "amount" for contracts !
-            filledAmount = self.safe_string_2(order, 'baseVolume', 'cumExecQty')
+            # baseVolume and fillNotionalUsd describe the incoming fill only, so filled is the cumulative accBaseVolume
+            # and cost is priceAvg * cumulative filled, quote-denominated for linear and inverse alike (same as quoteVolume in REST parseOrder);
+            # the channel has no cumulative notional field, so without a priceAvg no cost is set (cumExecValue stays the first read)
+            filledAmount = totalFilled
             totalAmount = self.safe_string_2(order, 'size', 'qty')
-            cost = self.safe_string_2(order, 'fillNotionalUsd', 'cumExecValue')
+            cost = self.safe_string(order, 'cumExecValue')
+            if cost is None:
+                priceAvgString = self.omit_zero(self.safe_string(order, 'priceAvg'))
+                if (priceAvgString is not None) and (totalFilled is not None):
+                    cost = Precise.string_mul(totalFilled, priceAvgString)
         remaining = Precise.string_sub(totalAmount, totalFilled)
         return self.safe_order({
             'info': order,
