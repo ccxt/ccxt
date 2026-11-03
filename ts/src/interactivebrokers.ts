@@ -3781,7 +3781,7 @@ export default class interactivebrokers extends Exchange {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             this.options['gatewayAuthenticatedTimestamp'] = undefined;
             const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
-            throw new AuthenticationError (this.id + ' the client portal gateway is not logged in, log in again at ' + gatewayUrl + ' in a browser, ' + method + ' ' + url + ' ' + body);
+            throw new AuthenticationError (this.id + ' the client portal gateway is not logged in, log in again at ' + gatewayUrl + ' in a browser. Current action: ' + method + ' ' + url + ' ' + body);
         }
         if (response === undefined) {
             return undefined; // fallback to default error handler
