@@ -936,9 +936,11 @@ export default class hitbtc extends hitbtcRest {
                 stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
-            const ohlcvs = this.parseWsOHLCVs (data[marketId], market);
-            for (let j = 0; j < ohlcvs.length; j++) {
-                stored.append (ohlcvs[j]);
+            // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
+            const rawOhlcvs = this.safeList (data, marketId, []);
+            for (let j = 0; j < rawOhlcvs.length; j++) {
+                const parsed = this.parseWsOHLCV (rawOhlcvs[j], market);
+                stored.append (parsed);
             }
             const messageHash = channel + '::' + symbol;
             client.resolve (stored, messageHash);

@@ -789,7 +789,6 @@
         "watchOHLCV": [
             {
                 "description": "5m candles snapshot resolves the per-timeframe hash (candles/M5::BTC/USDT); options.lastNonce makes the request id deterministic so the subscribe ack matches it; frames captured live",
-                "disabledRS": "hitbtc's rust port defines parse_ws_ohlcv as an inherent method, not as the ExchangeBase override, so the base parse_ws_ohlc_vs called by handle_ohlcv dispatches to the default parse_ws_ohlcv (array-indexed parse_ohlcv) and every {t,o,h,l,c,v} candle parses to nulls - pre-existing on master and independent of the message hash, the other lanes cover this entry",
                 "input": [
                     "BTC/USDT",
                     "5m",
