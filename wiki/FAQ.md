@@ -414,7 +414,7 @@ instance = new ccxt.interactivebrokers ({
   "options": {
     "useGateway": true,
   },
-  "validateServerSsl": false, // because it needs to connct gateway running at https://localhost:5000
+  "validateServerSsl": false, // because the IBRK CP gateway runs at self-signed https://localhost:5000
 })
 ```
 
