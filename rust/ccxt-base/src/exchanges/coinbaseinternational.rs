@@ -997,7 +997,7 @@ impl CoinbaseinternationalCore {
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("route".to_string(), Value::Str("auto".into()));
-        m.insert("brokerId".to_string(), Value::Str("nfqkvdjp".into()));
+        m.insert("brokerId".to_string(), Value::Str("ccxt".into()));
         m.insert("portfolio".to_string(), Value::Str("".into()));
         m.insert("accessTokenRefreshRatio".to_string(), Value::Float(0.8));
         m.insert("networksById".to_string(), Value::Map({

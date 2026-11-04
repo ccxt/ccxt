@@ -4609,7 +4609,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut tokenExpires: Value = (match (&(exchange.milliseconds()), &(Value::Int(100000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("v2TokenExpires".into()), tokenExpires.clone());
         add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("portfolio".into()), Value::Str("random".into()));
-        let mut id: Value = Value::Str("nfqkvdjp".into());
+        let mut id: Value = Value::Str("ccxt".into());
         assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str("id not in options".into())]);
         let mut clientOrderId: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -4623,7 +4623,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut query: Value = self.urlencoded_to_dict(urlParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null));
             clientOrderId = query.as_map().and_then(|__m| __m.get("label")).cloned().unwrap_or(Value::Null);
         }
-        assert(((clientOrderId != Value::Null) && (starts_with(&clientOrderId, &Value::Str(format!("{}", id).into())))), &[Value::Str("clientOrderId does not start with id".into())]);
+        // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+        assert(((clientOrderId != Value::Null) && (Value::Bool(clientOrderId.as_str().zip((Value::Str(format!("{}{}", id, Value::Str("-".into())).into())).as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))).as_bool() == Some(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("clientOrderId ".into()), clientOrderId).into()), Value::Str(" does not start with the brokerId prefix ".into())).into()), id).into()), Value::Str("-".into())).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
