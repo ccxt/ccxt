@@ -34,7 +34,8 @@
                     1.85,
                     "0x63d35481cb74fa959aec61d33a5d4507a6164873",
                     {
-                        "network": "ERC20"
+                        "network": "ERC20",
+                        "includeFee": false
                     }
                 ],
                 "output": "{\"address\":\"0x63d35481cb74fa959aec61d33a5d4507a6164873\",\"currency\":\"usdt\",\"chain\":\"usdterc20\",\"amount\":1.85}"
