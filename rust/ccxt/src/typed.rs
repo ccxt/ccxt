@@ -1356,7 +1356,6 @@ pub use crate::exchanges::bybit_typed::Bybit;
 pub use crate::exchanges::bybiteu_typed::Bybiteu;
 #[cfg(feature = "bybitid")]
 pub use crate::exchanges::bybitid_typed::Bybitid;
-#[cfg(feature = "bydfi")]
 #[cfg(feature = "cex")]
 pub use crate::exchanges::cex_typed::Cex;
 #[cfg(feature = "coinbase")]
@@ -1570,7 +1569,6 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "bybiteu" => Some(Box::new(Bybiteu::new(config))),
         #[cfg(feature = "bybitid")]
         "bybitid" => Some(Box::new(Bybitid::new(config))),
-        #[cfg(feature = "bydfi")]
         #[cfg(feature = "cex")]
         "cex" => Some(Box::new(Cex::new(config))),
         #[cfg(feature = "coinbase")]

@@ -77,7 +77,6 @@ pub mod bybit_typed;
 pub mod bybiteu_typed;
 #[cfg(feature = "bybitid")]
 pub mod bybitid_typed;
-#[cfg(feature = "bydfi")]
 #[cfg(feature = "cex")]
 pub mod cex_typed;
 #[cfg(feature = "coinbase")]
