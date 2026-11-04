@@ -156,11 +156,11 @@ func (this *Revolutx) Describe() any {
 				"sandbox": false,
 				"createOrder": map[string]any{
 					"marginMode":                 false,
-					"triggerPrice":               false,
+					"triggerPrice":               true,
 					"triggerPriceType":           nil,
 					"triggerDirection":           false,
-					"stopLossPrice":              false,
-					"takeProfitPrice":            false,
+					"stopLossPrice":              true,
+					"takeProfitPrice":            true,
 					"attachedStopLossTakeProfit": nil,
 					"timeInForce": map[string]any{
 						"GTC": true,
@@ -194,7 +194,7 @@ func (this *Revolutx) Describe() any {
 				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          300,
-					"trigger":        false,
+					"trigger":        true,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
@@ -203,7 +203,7 @@ func (this *Revolutx) Describe() any {
 					"limit":          1900,
 					"daysBack":       30,
 					"untilDays":      nil,
-					"trigger":        false,
+					"trigger":        true,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
@@ -213,7 +213,7 @@ func (this *Revolutx) Describe() any {
 					"daysBack":         30,
 					"daysBackCanceled": nil,
 					"untilDays":        nil,
-					"trigger":          false,
+					"trigger":          true,
 					"trailing":         false,
 					"symbolRequired":   false,
 				},
@@ -1189,6 +1189,39 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
 	var leavesQuantity *string = this.SafeString(order, "leaves_quantity")
 	var price *string = this.SafeString(order, "price")
 	var averageFillPrice *string = this.SafeString(order, "average_fill_price")
+	//
+	// conditional and TP/SL orders carry their triggers, e.g.
+	//
+	//     "conditional": { "trigger_price": "118000.00", "type": "limit", "trigger_direction": "le", "limit_price": "117900.00", ... }
+	//     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
+	//     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
+	//
+	var conditional map[string]any = SafeMapTyped(order, "conditional")
+	var takeProfit any = this.SafeDict(order, "take_profit")
+	var stopLoss any = this.SafeDict(order, "stop_loss")
+	var triggerPrice *string = nil
+	if orderType != nil && *orderType == "conditional" {
+		triggerPrice = this.SafeString(conditional, "trigger_price")
+		orderType = this.SafeStringLower(conditional, "type")
+		if price == nil {
+			price = this.SafeString(conditional, "limit_price")
+		}
+	} else if orderType != nil && *orderType == "tpsl" {
+		// a single leg tells us the order type and limit price, with both legs they can differ
+		var leg any = nil
+		if (takeProfit != nil) && (stopLoss == nil) {
+			leg = takeProfit
+		} else if (stopLoss != nil) && (takeProfit == nil) {
+			leg = stopLoss
+		}
+		orderType = nil
+		if leg != nil {
+			orderType = this.SafeStringLower(leg, "type")
+			if price == nil {
+				price = this.SafeString(leg, "limit_price")
+			}
+		}
+	}
 	var amount *string = this.SafeString(order, "amount")
 	var filledAmount *string = this.SafeString(order, "filled_amount")
 	var totalFee *string = this.SafeString(order, "total_fee")
@@ -1233,6 +1266,9 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
 		"remaining":           this.ParseNumber(remainingValue),
 		"status":              status,
 		"timeInForce":         timeInForce,
+		"triggerPrice":        this.ParseNumber(triggerPrice),
+		"stopLossPrice":       this.ParseNumber(this.SafeString(stopLoss, "trigger_price")),
+		"takeProfitPrice":     this.ParseNumber(this.SafeString(takeProfit, "trigger_price")),
 		"timestamp":           createdDate,
 		"datetime":            this.Iso8601(createdDate),
 		"lastUpdateTimestamp": updatedDate,
@@ -1256,6 +1292,11 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {float} [params.cost] the order cost in units of the quote currency (alternative to amount)
  * @param {string} [params.timeInForce] 'gtc' or 'ioc' for limit orders
  * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
+ * @param {float} [params.triggerPrice] place a conditional order that is submitted once the market reaches this price, as a limit order at `price` for type 'limit' or as a market order for type 'market'
+ * @param {float} [params.stopLossPrice] place a Take Profit/Stop Loss order with a stop loss leg that triggers at this price
+ * @param {float} [params.takeProfitPrice] place a Take Profit/Stop Loss order with a take profit leg that triggers at this price
+ * @param {object} [params.stopLoss] stop loss leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg
+ * @param {object} [params.takeProfit] take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Revolutx) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
@@ -1266,7 +1307,7 @@ func (this *Revolutx) CreateOrderAsync(symbol string, typeVar string, side strin
 func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1282,8 +1323,56 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	var cost *string = this.SafeString2(params, "cost", "quote_size")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var executionInstructions any = this.SafeList(params, "executionInstructions", this.SafeList(params, "execution_instructions"))
+	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
+	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
+	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var hasStopLoss bool = (stopLossPrice != nil) || (stopLoss != nil)
+	var hasTakeProfit bool = (takeProfitPrice != nil) || (takeProfit != nil)
+	var isTpsl bool = hasStopLoss || hasTakeProfit
+	if (triggerPrice != nil) || isTpsl {
+		if (typeVar != "limit") && (typeVar != "market") {
+			panic(InvalidOrder(this.Id + " createOrder() does not support order type " + typeVar))
+		}
+		if (timeInForce != nil) || (executionInstructions != nil) {
+			panic(InvalidOrder(this.Id + " createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders"))
+		}
+	}
 	var orderConfiguration map[string]any = map[string]any{}
-	if typeVar == "limit" {
+	if (triggerPrice != nil) && isTpsl {
+		panic(InvalidOrder(this.Id + " createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice"))
+	} else if triggerPrice != nil {
+		var conditionalConfig map[string]any = map[string]any{}
+		if cost != nil {
+			conditionalConfig["quote_size"] = this.CostToPrecision(symbol, cost)
+		} else {
+			conditionalConfig["base_size"] = this.AmountToPrecision(symbol, amount)
+		}
+		if typeVar == "limit" {
+			if price == nil {
+				panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit trigger orders"))
+			}
+			conditionalConfig["limit_price"] = this.PriceToPrecision(symbol, price)
+		}
+		conditionalConfig["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		orderConfiguration["conditional"] = conditionalConfig
+	} else if isTpsl {
+		if cost != nil {
+			panic(InvalidOrder(this.Id + " createOrder() TP/SL orders are sized in the base currency only, cost is not supported"))
+		}
+		var singleLeg bool = !(hasStopLoss && hasTakeProfit)
+		var tpslConfig map[string]any = map[string]any{
+			"base_size": this.AmountToPrecision(symbol, amount),
+		}
+		if hasTakeProfit {
+			tpslConfig["take_profit"] = this.CreateTriggerLegRequest(symbol, typeVar, price, takeProfitPrice, takeProfit, singleLeg)
+		}
+		if hasStopLoss {
+			tpslConfig["stop_loss"] = this.CreateTriggerLegRequest(symbol, typeVar, price, stopLossPrice, stopLoss, singleLeg)
+		}
+		orderConfiguration["tpsl"] = tpslConfig
+	} else if typeVar == "limit" {
 		var limitConfig map[string]any = map[string]any{}
 		if cost != nil {
 			limitConfig["quote_size"] = this.CostToPrecision(symbol, cost)
@@ -1322,7 +1411,7 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		"order_configuration": orderConfiguration,
 	}
 
-	r1 := <-this.PrivatePost10Orders(this.Extend(request, this.Omit(params, []any{"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})))
+	r1 := <-this.PrivatePost10Orders(this.Extend(request, this.Omit(params, []any{"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"})))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1353,6 +1442,40 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
+}
+
+/**
+ * @method
+ * @name revolutx#createTriggerLegRequest
+ * @description builds the take profit or stop loss leg of a TP/SL order request
+ * @ignore
+ * @param {string} symbol unified market symbol
+ * @param {string} type 'limit' or 'market'
+ * @param {float} [price] the createOrder price, used as the limit price of a single limit leg
+ * @param {string} [triggerPrice] the stopLossPrice or takeProfitPrice param
+ * @param {object} [leg] the stopLoss or takeProfit param, *{ triggerPrice, price }*
+ * @param {boolean} singleLeg whether the order has only this leg
+ * @returns {object} the leg request
+ */
+func (this *Revolutx) CreateTriggerLegRequest(symbol string, typeVar string, price any, triggerPrice *string, leg map[string]any, singleLeg any) map[string]any {
+	var legTriggerPrice *string = this.SafeString2(leg, "triggerPrice", "stopPrice", triggerPrice)
+	if legTriggerPrice == nil {
+		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice for each stopLoss and takeProfit leg"))
+	}
+	var result map[string]any = map[string]any{
+		"trigger_price": this.PriceToPrecision(symbol, legTriggerPrice),
+	}
+	var legPrice *string = this.SafeString(leg, "price")
+	if (legPrice == nil) && (typeVar == "limit") {
+		if !EvalTruthy(singleLeg) || (IsEqual(price, nil)) {
+			panic(ArgumentsRequired(this.Id + " createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set"))
+		}
+		legPrice = this.NumberToString(price)
+	}
+	if legPrice != nil {
+		result["limit_price"] = this.PriceToPrecision(symbol, legPrice)
+	}
+	return result
 }
 
 /**
@@ -1513,6 +1636,7 @@ func (this *Revolutx) fetchOrderBody(ch chan AsyncResult[Order], id any, optiona
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @param {string[]} [params.orderStates] filter by order states, e.g. ['new', 'partially_filled']
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+ * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
  * @param {string} [params.side] filter by side, 'buy' or 'sell'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1555,7 +1679,11 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if orderStates != nil {
 		request["order_states"] = Join(orderStates, ",")
 	}
+	var trigger *bool = this.SafeBool(params, "trigger", false)
 	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
+	if (orderTypes == nil) && (trigger != nil && *trigger) {
+		orderTypes = []any{"conditional", "tpsl"}
+	}
 	if orderTypes != nil {
 		request["order_types"] = Join(orderTypes, ",")
 	}
@@ -1564,7 +1692,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["side"] = side
 	}
 
-	r1 := <-this.PrivateGet10OrdersActive(this.Extend(request, this.Omit(params, []any{"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side"})))
+	r1 := <-this.PrivateGet10OrdersActive(this.Extend(request, this.Omit(params, []any{"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side", "trigger"})))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1599,6 +1727,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @param {string[]} [params.orderStates] filter by order states, e.g. ['filled', 'cancelled', 'rejected']
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+ * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Revolutx) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
@@ -1659,12 +1788,16 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if orderStates != nil {
 		request["order_states"] = Join(orderStates, ",")
 	}
+	var trigger *bool = this.SafeBool(params, "trigger", false)
 	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
+	if (orderTypes == nil) && (trigger != nil && *trigger) {
+		orderTypes = []any{"conditional", "tpsl"}
+	}
 	if orderTypes != nil {
 		request["order_types"] = Join(orderTypes, ",")
 	}
 
-	r1 := <-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})))
+	r1 := <-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types", "trigger"})))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1716,11 +1849,11 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes128015 []any = OrdersToList(r.Value)
-	if retRes128015 == nil {
+	var retRes141315 []any = OrdersToList(r.Value)
+	if retRes141315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes128015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes141315)}
 	}
 	return nil
 }
@@ -2211,6 +2344,11 @@ func (this *Revolutx) FetchBalance(params ...any) (Balances, error) {
  * @param {float} [params.cost] the order cost in units of the quote currency (alternative to amount)
  * @param {string} [params.timeInForce] 'gtc' or 'ioc' for limit orders
  * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
+ * @param {float} [params.triggerPrice] place a conditional order that is submitted once the market reaches this price, as a limit order at `price` for type 'limit' or as a market order for type 'market'
+ * @param {float} [params.stopLossPrice] place a Take Profit/Stop Loss order with a stop loss leg that triggers at this price
+ * @param {float} [params.takeProfitPrice] place a Take Profit/Stop Loss order with a take profit leg that triggers at this price
+ * @param {object} [params.stopLoss] stop loss leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg
+ * @param {object} [params.takeProfit] take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Revolutx) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -2314,6 +2452,7 @@ func (this *Revolutx) FetchOrder(id string, options ...FetchOrderOptions) (Order
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @param {string[]} [params.orderStates] filter by order states, e.g. ['new', 'partially_filled']
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+ * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
  * @param {string} [params.side] filter by side, 'buy' or 'sell'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2345,6 +2484,7 @@ func (this *Revolutx) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @param {string[]} [params.orderStates] filter by order states, e.g. ['filled', 'cancelled', 'rejected']
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+ * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Revolutx) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
