@@ -129,9 +129,25 @@ function formatCppSource (filePath: string, content: string): string {
 // std::any_cast to the port's SBO value type (ccxt::any) at the write
 // chokepoint. Idempotent.
 function useSboAnyType (content: string): string {
-    return content
+    content = content
         .replace (/\bstd::any_cast\b/g, 'ccxt::any_cast')
         .replace (/\bstd::any\b/g, 'ccxt::any');
+    // `let x = true` locals stay ccxt::any (they can be reassigned with any
+    // value later), so a bare `while (x)` fails to compile. Coerce the
+    // condition: while/if on a var DECLARED with a boolean literal gets
+    // any_cast<bool> — the var is guaranteed to hold a bool at that point.
+    const boolDeclNames = new Set<string> ();
+    const declRe = /\bccxt::any (\w+) = (?:true|false);/g;
+    let m: RegExpExecArray | null;
+    while ((m = declRe.exec (content)) !== null) { boolDeclNames.add (m[1]); }
+    for (const name of boolDeclNames) {
+        content = content
+            .replace (new RegExp ('\\bwhile \\(' + name + '\\)', 'g'),
+                      'while (ccxt::any_cast<bool>(' + name + '))')
+            .replace (new RegExp ('\\bif \\(' + name + '\\)', 'g'),
+                      'if (ccxt::any_cast<bool>(' + name + '))');
+    }
+    return content;
 }
 
 function overwriteFileAndFolder (filePath: string, content: string) {
