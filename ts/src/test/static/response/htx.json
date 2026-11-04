@@ -5330,6 +5330,7 @@
         ],
         "withdraw": [
             {
+                "disabledRS": "disable rs",
                 "description": "typical fee inclusion check",
                 "method": "withdraw",
                 "input": [
