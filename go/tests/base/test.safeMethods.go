@@ -437,13 +437,18 @@ func TestCacheSafeCalls() {
 		"id":     "order1",
 		"price":  50000,
 	})
-	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(arrayCache), 0))
+	Assert((ccxt.GetArrayLength(arrayCache) > 0))
 	// Test cache types - ccxt.ArrayCacheByTimestamp
 	arrayCacheByTimestamp := ccxt.NewArrayCacheByTimestamp(100)
 	arrayCacheByTimestamp.Append([]any{1000, 50000, 1, 2, 3})
 	var arrayCacheByTimestampData any = exchange.SafeValue(arrayCacheByTimestamp, "Data")
-	var cacheByTimestampData any = ccxt.Ternary(!ccxt.IsEqual(arrayCacheByTimestampData, nil), arrayCacheByTimestampData, arrayCacheByTimestamp)
-	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheByTimestampData), 0))
+	var cacheByTimestampData any = func() any {
+		if !ccxt.IsEqual(arrayCacheByTimestampData, nil) {
+			return arrayCacheByTimestampData
+		}
+		return arrayCacheByTimestamp
+	}()
+	Assert((ccxt.GetArrayLength(cacheByTimestampData) > 0))
 	// Test cache types - ccxt.ArrayCacheBySymbolById
 	arrayCacheBySymbolById := ccxt.NewArrayCacheBySymbolById(100)
 	arrayCacheBySymbolById.Append(map[string]any{
@@ -456,8 +461,13 @@ func TestCacheSafeCalls() {
 	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), nil))
 	Assert(!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), nil))
 	var arrayCacheBySymbolByIdData any = exchange.SafeValue(arrayCacheBySymbolById, "Data")
-	var cacheBySymbolByIdData any = ccxt.Ternary(!ccxt.IsEqual(arrayCacheBySymbolByIdData, nil), arrayCacheBySymbolByIdData, arrayCacheBySymbolById)
-	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheBySymbolByIdData), 0))
+	var cacheBySymbolByIdData any = func() any {
+		if !ccxt.IsEqual(arrayCacheBySymbolByIdData, nil) {
+			return arrayCacheBySymbolByIdData
+		}
+		return arrayCacheBySymbolById
+	}()
+	Assert((ccxt.GetArrayLength(cacheBySymbolByIdData) > 0))
 	// Test cache types - ccxt.ArrayCacheBySymbolBySide
 	arrayCacheBySymbolBySide := ccxt.NewArrayCacheBySymbolBySide()
 	arrayCacheBySymbolBySide.Append(map[string]any{
@@ -469,8 +479,13 @@ func TestCacheSafeCalls() {
 	var arrayCacheBySymbolBySideHashmap any = arrayCacheBySymbolBySide.Hashmap
 	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), nil))
 	var arrayCacheBySymbolBySideData any = exchange.SafeValue(arrayCacheBySymbolBySide, "Data")
-	var cacheBySymbolBySideData any = ccxt.Ternary(!ccxt.IsEqual(arrayCacheBySymbolBySideData, nil), arrayCacheBySymbolBySideData, arrayCacheBySymbolBySide)
-	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheBySymbolBySideData), 0))
+	var cacheBySymbolBySideData any = func() any {
+		if !ccxt.IsEqual(arrayCacheBySymbolBySideData, nil) {
+			return arrayCacheBySymbolBySideData
+		}
+		return arrayCacheBySymbolBySide
+	}()
+	Assert((ccxt.GetArrayLength(cacheBySymbolBySideData) > 0))
 	// Test map[string]map[string]interface{} (ccxt.ArrayCache.hashmap)
 	// Use direct property access for object attributes
 	var arrayCacheHashmapDirect any = arrayCache.Hashmap

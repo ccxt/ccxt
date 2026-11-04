@@ -28,7 +28,7 @@ public class TestWatchBalance extends BaseTest {
             Boolean success = true;
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchBalance", new Object[]{})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchBalance", new Object[]{new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -39,7 +39,7 @@ public class TestWatchBalance extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isEqual(success, false)))
+            if (!Boolean.TRUE.equals(success))
             {
                 continue;
             }

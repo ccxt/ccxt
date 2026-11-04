@@ -17,6 +17,7 @@
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
 * [fetchMyTrades](#fetchmytrades)
+* [fetchOrderTrades](#fetchordertrades)
 * [fetchBalance](#fetchbalance)
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
@@ -186,7 +187,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return. |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -260,9 +261,11 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000 |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since |
 | params.endtime | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.priceType | <code>string</code> | No | *swap only* LTP (default) or MARK_PRICE |
 
 
 ```javascript
@@ -317,6 +320,30 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 zebpay.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOrderTrades" id="fetchordertrades"></a>
+
+### fetchOrderTrades{docsify-ignore}
+fetch all the trades made from a single order
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 

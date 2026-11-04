@@ -3,6 +3,7 @@ package ccxt
 import (
 	"fmt"
 	"math"
+	"reflect"
 	"strings"
 )
 
@@ -11,12 +12,14 @@ import (
 // }
 
 type OrderBookInterface interface {
-	Limit() any
+	Limit() OrderBookInterface
 	Update(snapshot any) any
 	Reset(optionalArgs ...any) any
 	GetCache() *any
 	SetCache(cache any)
 	GetNonce() any
+	GetAsks() IOrderBookSide
+	GetBids() IOrderBookSide
 	GetValue(key string, defaultValue any) any
 	ToMap() map[string]any
 	Copy() OrderBookInterface
@@ -124,7 +127,7 @@ func NewWsOrderBook(snapshot any, depth any) *WsOrderBook {
 	}
 }
 
-func (this *WsOrderBook) Limit() any {
+func (this *WsOrderBook) Limit() OrderBookInterface {
 	// Ensure child sides are depth-limited in-place and return the same pointer
 	this.Asks.Limit()
 	this.Bids.Limit()
@@ -161,7 +164,7 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	if snapshot == nil {
 		snapshot = make(map[string]any)
 	}
-	asks, bids := getAsksBids(snapshot)
+	asks, bids := resetRows(this.Asks, snapshot)
 	snapshotMap := snapshot.(map[string]any)
 
 	for i := range *this.Asks.GetIndex() {
@@ -282,6 +285,76 @@ func getAsksBids(snapshot any) ([][]float64, [][]float64) {
 	asks := normalizeToFloat64SliceSlice(SafeValue(snapshot, "asks", nil))
 	bids := normalizeToFloat64SliceSlice(SafeValue(snapshot, "bids", nil))
 	return asks, bids
+}
+
+// resetRows shapes the snapshot rows for the side's StoreArray: every row keeps its
+// trailing columns (count, id or timestamp) the price/amount normalisation would drop.
+func resetRows(side IOrderBookSide, snapshot any) ([]any, []any) {
+	toAny := func(rows any) []any {
+		v := reflect.ValueOf(rows)
+		out := make([]any, v.Len())
+		for i := range out {
+			out[i] = v.Index(i).Interface()
+		}
+		return out
+	}
+	wide := func(rows [][]float64, raw any) []any {
+		source := toAnyRows(raw)
+		out := make([]any, 0, len(rows))
+		for i := range rows {
+			row := rows[i]
+			if len(row) < 2 {
+				continue
+			}
+			cells := []any{row[0], row[1]}
+			if (i < len(source)) && (len(source[i]) > 2) {
+				cells = append(cells, source[i][2:]...)
+			}
+			out = append(out, cells)
+		}
+		return out
+	}
+	switch side.(type) {
+	case *IndexedOrderBookSide:
+		asks, bids := getIndexedAsksBids(snapshot)
+		return toAny(asks), toAny(bids)
+	case *CountedOrderBookSide:
+		asks, bids := getAsksBids(snapshot)
+		conv := func(rows [][]float64) []any {
+			out := make([]any, len(rows))
+			for i, row := range rows {
+				r := make([]any, len(row))
+				for j, x := range row {
+					r[j] = x
+				}
+				out[i] = r
+			}
+			return out
+		}
+		return conv(asks), conv(bids)
+	}
+	asks, bids := getAsksBids(snapshot)
+	return wide(asks, SafeValue(snapshot, "asks", nil)), wide(bids, SafeValue(snapshot, "bids", nil))
+}
+
+func toAnyRows(rows any) [][]any {
+	value := reflect.ValueOf(derefScalar(rows))
+	if !value.IsValid() || ((value.Kind() != reflect.Slice) && (value.Kind() != reflect.Array)) {
+		return [][]any{}
+	}
+	out := make([][]any, value.Len())
+	for i := range out {
+		row := reflect.ValueOf(derefScalar(value.Index(i).Interface()))
+		if !row.IsValid() || ((row.Kind() != reflect.Slice) && (row.Kind() != reflect.Array)) {
+			continue
+		}
+		cells := make([]any, row.Len())
+		for j := range cells {
+			cells[j] = row.Index(j).Interface()
+		}
+		out[i] = cells
+	}
+	return out
 }
 
 func getIndexedAsksBids(snapshot any) ([][]any, [][]any) {
@@ -451,7 +524,23 @@ func (this *WsOrderBook) Copy() OrderBookInterface {
 func (this *WsOrderBook) GetNonce() any {
 	return this.Nonce
 }
-func (this *CountedOrderBook) Limit() any {
+
+// GetAsks / GetBids answer the same side GetValue(book, "asks"|"bids") reads
+func (this *WsOrderBook) GetAsks() IOrderBookSide {
+	return this.Asks
+}
+func (this *WsOrderBook) GetBids() IOrderBookSide {
+	return this.Bids
+}
+
+// OrderBookTyped unboxes a stored ws order book; anything else reads as nil
+func OrderBookTyped(v any) OrderBookInterface {
+	if ob, ok := v.(OrderBookInterface); ok {
+		return ob
+	}
+	return nil
+}
+func (this *CountedOrderBook) Limit() OrderBookInterface {
 	return this.WsOrderBook.Limit()
 }
 func (this *CountedOrderBook) Update(snapshot any) any {
@@ -469,7 +558,7 @@ func (this *CountedOrderBook) SetCache(cache any) {
 func (this *CountedOrderBook) GetValue(key string, defaultValue any) any {
 	return this.WsOrderBook.GetValue(key, defaultValue)
 }
-func (this *IndexedOrderBook) Limit() any {
+func (this *IndexedOrderBook) Limit() OrderBookInterface {
 	return this.WsOrderBook.Limit()
 }
 func (this *IndexedOrderBook) Update(snapshot any) any {

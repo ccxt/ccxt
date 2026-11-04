@@ -18,9 +18,9 @@ public class TestStringToBase16 extends BaseTest
             }});
             Object result1 = exchange.stringToBase16("hello");
             String expected1 = "0x68656c6c6f";
-            Assert(Helpers.isEqual(result1, expected1), Helpers.add(Helpers.add(Helpers.add("stringToBase16 failed for \"hello\", expected: ", expected1), ", got: "), result1));
+            Assert(java.util.Objects.equals(result1, expected1), ((("stringToBase16 failed for \"hello\", expected: " + expected1) + ", got: ") + result1));
             Object result2 = exchange.stringToBase16("world 1!@#$%^&*()");
             String expected2 = "0x776f726c64203121402324255e262a2829";
-            Assert(Helpers.isEqual(result2, expected2), Helpers.add(Helpers.add(Helpers.add("stringToBase16 failed for \"world 1!@#$%^&*()\", expected: ", expected2), ", got: "), result2));
+            Assert(java.util.Objects.equals(result2, expected2), ((("stringToBase16 failed for \"world 1!@#$%^&*()\", expected: " + expected2) + ", got: ") + result2));
         }
 }

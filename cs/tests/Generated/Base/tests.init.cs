@@ -10,7 +10,6 @@ public partial class BaseTest
         async public Task<object> baseTestsInit()
         {
             await testLanguageSpecific();
-            testConstants();
             testAfterConstructor();
             testAggregate();
             testExtend();
@@ -24,11 +23,13 @@ public partial class BaseTest
             testNumberToBE();
             testDecimalToPrecision();
             testCapitalize();
+            testIncrementingNonce();
             testIsDictionary();
             testNumberToString();
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testSafePosition();
             testMergeBalanceAccount();
             testBase58ToBinary();
             testToArray();
@@ -47,6 +48,7 @@ public partial class BaseTest
             testFilterBy();
             testHandleMethods();
             testHandleHttpStatusCode();
+            testCheckAddress();
             testNetworkMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();
@@ -68,7 +70,6 @@ public partial class BaseTest
             testImplodeParams();
             testUnique();
             testUrlencodeNested();
-            await testSleep();
             await testFetchHistory();
             testIo();
             testIsJsonEncodedObject();

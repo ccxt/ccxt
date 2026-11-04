@@ -8,49 +8,170 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetPing (params?: {}): Promise<Dict>;
-    publicGetAssetPairs (params?: {}): Promise<Dict>;
-    publicGetAssetPairsAssetPairNameDepth (params?: {}): Promise<Dict>;
-    publicGetAssetPairsAssetPairNameTrades (params?: {}): Promise<Dict>;
-    publicGetAssetPairsAssetPairNameTicker (params?: {}): Promise<Dict>;
-    publicGetAssetPairsAssetPairNameCandles (params?: {}): Promise<Dict>;
-    publicGetAssetPairsTickers (params?: {}): Promise<Dict>;
-    privateGetAccounts (params?: {}): Promise<Dict>;
-    privateGetFundAccounts (params?: {}): Promise<Dict>;
-    privateGetAssetsAssetSymbolAddress (params?: {}): Promise<Dict>;
-    privateGetOrders (params?: {}): Promise<Dict>;
-    privateGetOrdersId (params?: {}): Promise<Dict>;
-    privateGetOrdersMulti (params?: {}): Promise<Dict>;
-    privateGetTrades (params?: {}): Promise<Dict>;
-    privateGetWithdrawals (params?: {}): Promise<Dict>;
-    privateGetDeposits (params?: {}): Promise<Dict>;
-    privatePostOrders (params?: {}): Promise<Dict>;
-    privatePostOrdersIdCancel (params?: {}): Promise<Dict>;
-    privatePostOrdersCancel (params?: {}): Promise<Dict>;
-    privatePostWithdrawals (params?: {}): Promise<Dict>;
-    privatePostTransfer (params?: {}): Promise<Dict>;
-    contractPublicGetSymbols (params?: {}): Promise<List>;
-    contractPublicGetInstruments (params?: {}): Promise<List>;
-    contractPublicGetDepthSymbolSnapshot (params?: {}): Promise<Dict>;
-    contractPublicGetInstrumentsDifference (params?: {}): Promise<Dict>;
-    contractPublicGetInstrumentsPrices (params?: {}): Promise<Dict>;
-    contractPrivateGetAccounts (params?: {}): Promise<List>;
-    contractPrivateGetOrdersId (params?: {}): Promise<Dict>;
-    contractPrivateGetOrders (params?: {}): Promise<List>;
-    contractPrivateGetOrdersOpening (params?: {}): Promise<List>;
-    contractPrivateGetOrdersCount (params?: {}): Promise<Dict>;
-    contractPrivateGetOrdersOpeningCount (params?: {}): Promise<Dict>;
-    contractPrivateGetTrades (params?: {}): Promise<List>;
-    contractPrivateGetTradesCount (params?: {}): Promise<Dict>;
-    contractPrivatePostOrders (params?: {}): Promise<Dict>;
-    contractPrivatePostOrdersBatch (params?: {}): Promise<Dict>;
-    contractPrivatePutPositionsSymbolMargin (params?: {}): Promise<Dict>;
-    contractPrivatePutPositionsSymbolRiskLimit (params?: {}): Promise<Dict>;
-    contractPrivateDeleteOrdersId (params?: {}): Promise<Dict>;
-    contractPrivateDeleteOrdersBatch (params?: {}): Promise<Dict>;
-    webExchangeGetV3Assets (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetPing (params = {}): Promise<Dict> {
+        return this.request ('ping', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetAssetPairs (params = {}): Promise<Dict> {
+        return this.request ('asset_pairs', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetAssetPairsAssetPairNameDepth (params = {}): Promise<Dict> {
+        return this.request ('asset_pairs/{asset_pair_name}/depth', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetAssetPairsAssetPairNameTrades (params = {}): Promise<Dict> {
+        return this.request ('asset_pairs/{asset_pair_name}/trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetAssetPairsAssetPairNameTicker (params = {}): Promise<Dict> {
+        return this.request ('asset_pairs/{asset_pair_name}/ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetAssetPairsAssetPairNameCandles (params = {}): Promise<Dict> {
+        return this.request ('asset_pairs/{asset_pair_name}/candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetAssetPairsTickers (params = {}): Promise<Dict> {
+        return this.request ('asset_pairs/tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccounts (params = {}): Promise<Dict> {
+        return this.request ('accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFundAccounts (params = {}): Promise<Dict> {
+        return this.request ('fund/accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAssetsAssetSymbolAddress (params = {}): Promise<Dict> {
+        return this.request ('assets/{asset_symbol}/address', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersId (params = {}): Promise<Dict> {
+        return this.request ('orders/{id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersMulti (params = {}): Promise<Dict> {
+        return this.request ('orders/multi', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetTrades (params = {}): Promise<Dict> {
+        return this.request ('trades', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWithdrawals (params = {}): Promise<Dict> {
+        return this.request ('withdrawals', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetDeposits (params = {}): Promise<Dict> {
+        return this.request ('deposits', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrdersIdCancel (params = {}): Promise<Dict> {
+        return this.request ('orders/{id}/cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrdersCancel (params = {}): Promise<Dict> {
+        return this.request ('orders/cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWithdrawals (params = {}): Promise<Dict> {
+        return this.request ('withdrawals', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTransfer (params = {}): Promise<Dict> {
+        return this.request ('transfer', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    contractPublicGetSymbols (params = {}): Promise<List> {
+        return this.request ('symbols', [ 'contractPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPublicGetInstruments (params = {}): Promise<List> {
+        return this.request ('instruments', [ 'contractPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPublicGetDepthSymbolSnapshot (params = {}): Promise<Dict> {
+        return this.request ('depth@{symbol}/snapshot', [ 'contractPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPublicGetInstrumentsDifference (params = {}): Promise<Dict> {
+        return this.request ('instruments/difference', [ 'contractPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPublicGetInstrumentsPrices (params = {}): Promise<Dict> {
+        return this.request ('instruments/prices', [ 'contractPublic' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPrivateGetAccounts (params = {}): Promise<List> {
+        return this.request ('accounts', [ 'contractPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPrivateGetOrdersId (params = {}): Promise<Dict> {
+        return this.request ('orders/{id}', [ 'contractPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPrivateGetOrders (params = {}): Promise<List> {
+        return this.request ('orders', [ 'contractPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPrivateGetOrdersOpening (params = {}): Promise<List> {
+        return this.request ('orders/opening', [ 'contractPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPrivateGetOrdersCount (params = {}): Promise<Dict> {
+        return this.request ('orders/count', [ 'contractPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPrivateGetOrdersOpeningCount (params = {}): Promise<Dict> {
+        return this.request ('orders/opening/count', [ 'contractPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPrivateGetTrades (params = {}): Promise<List> {
+        return this.request ('trades', [ 'contractPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPrivateGetTradesCount (params = {}): Promise<Dict> {
+        return this.request ('trades/count', [ 'contractPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    contractPrivatePostOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'contractPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    contractPrivatePostOrdersBatch (params = {}): Promise<Dict> {
+        return this.request ('orders/batch', [ 'contractPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    contractPrivatePutPositionsSymbolMargin (params = {}): Promise<Dict> {
+        return this.request ('positions/{symbol}/margin', [ 'contractPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    contractPrivatePutPositionsSymbolRiskLimit (params = {}): Promise<Dict> {
+        return this.request ('positions/{symbol}/risk-limit', [ 'contractPrivate' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    contractPrivateDeleteOrdersId (params = {}): Promise<Dict> {
+        return this.request ('orders/{id}', [ 'contractPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    contractPrivateDeleteOrdersBatch (params = {}): Promise<Dict> {
+        return this.request ('orders/batch', [ 'contractPrivate' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    webExchangeGetV3Assets (params = {}): Promise<Dict> {
+        return this.request ('v3/assets', [ 'webExchange' ], 'GET', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

@@ -55,16 +55,13 @@ def test_cryptography():
 
     # ---------------------------------------------------------------------------------------------------------------------
 
-
     privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a'
-
 
     assert(equals(ecdsa('1a', privateKey, 'secp256k1', 'sha256'), {
         'r': '23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f',
         's': '317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667',
         'v': 0,
     }))
-
 
     assert(equals(ecdsa(privateKey, privateKey, 'secp256k1', None), {
         'r': 'b84a36a6fbabd5277ede578448b93d48e70b38efb5b15b1d4e2a298accf938b1',
@@ -120,7 +117,6 @@ def test_cryptography():
         'Wem3eBT7I4VtFYoaTE3/bX1SKfgBdTzIRqWKSDpgBNZg/P2Tc+s11g==',
         '-----END RSA PRIVATE KEY-----',
     ]
-
 
     pemKey = "\n".join(pemKeyArray)
     assert rsa('hello', pemKey, 'sha256') == 'PqHotvSEBvM/AejnMOWBXUcOf3uHtcGu2zAYdlYdnlNSSQ80Uq4lcyAEstnZ2AnQJ9l5TCC53uoRZ26GQ47zlACgqtYglmPhQKLvQ5fldRzeBauYhGgM2C0mUuUGxh074fNGbK+bgmwEmDMIrnSPtXwiCqTAHh+8VEnC7us3t09D61y298dPBJYEBNN3dFZT0w0pCIQg3j3DSiFJOCfywmOKyXqS1pvmk6A38DVclQZORQ5WZXp2yvSKRLjxpzjxDl76h1GfbBl7sMLEFMyzk0wyIhIz8ZELMibYn036G4X1IcSlDcimthEkIbn2QjM0ntyYDZIS4QnsMBjvkV2UHw=='

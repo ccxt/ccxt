@@ -593,6 +593,9 @@ class woofipro extends woofipro$1["default"] {
         const quoteId = this.safeString(parts, 2);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString(parts, 2);
         const settle = this.safeCurrencyCode(settleId);
         const symbol = base + '/' + quote + ':' + settle;
@@ -849,16 +852,12 @@ class woofipro extends woofipro$1["default"] {
         const isFromFetchOrder = ('id' in trade);
         const timestamp = this.safeInteger(trade, 'executed_timestamp');
         const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString(trade, 'executed_price');
         const amount = this.safeString(trade, 'executed_quantity');
         const order_id = this.safeString(trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
-        const feeCost = this.safeString(fee, 'cost');
-        if ((fee !== undefined) && (feeCost !== undefined)) {
-            fee['cost'] = feeCost;
-        }
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const id = this.safeString(trade, 'id');
@@ -881,7 +880,7 @@ class woofipro extends woofipro$1["default"] {
             'type': undefined,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -938,7 +937,7 @@ class woofipro extends woofipro$1["default"] {
         //         }
         //
         const symbol = this.safeString(fundingRate, 'symbol');
-        market = this.market(symbol);
+        const marketResolved = this.market(symbol);
         const nextFundingTimestamp = this.safeInteger(fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger(fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger(fundingRate, 'last_funding_rate_timestamp');
@@ -947,7 +946,7 @@ class woofipro extends woofipro$1["default"] {
         const millisecondsInterval = Precise["default"].stringSub(nextFundingTimeString, fundingTimeString);
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': this.parseNumber('0'),
@@ -1037,7 +1036,7 @@ class woofipro extends woofipro$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v1PublicGetPublicFundingRates(params);
         //
         // {
@@ -1058,7 +1057,7 @@ class woofipro extends woofipro$1["default"] {
         //
         const data = this.safeDict(response, 'data', {});
         const rows = this.safeList(data, 'rows', []);
-        return this.parseFundingRates(rows, symbols);
+        return this.parseFundingRates(rows, symbolsNormalized);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1080,10 +1079,10 @@ class woofipro extends woofipro$1["default"] {
         //     }
         //
         const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(ticker, 'timestamp');
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, '24h_high'),
@@ -1105,7 +1104,7 @@ class woofipro extends woofipro$1["default"] {
             'indexPrice': this.safeString(ticker, 'index_price'),
             'markPrice': this.safeString(ticker, 'mark_price'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1164,7 +1163,7 @@ class woofipro extends woofipro$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v1PublicGetPublicFutures(params);
         //
         // {
@@ -1203,7 +1202,7 @@ class woofipro extends woofipro$1["default"] {
             const ticker = this.extend({ 'timestamp': timestamp }, row);
             result.push(this.parseTicker(ticker));
         }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     parseOpenInterest(interest, market = undefined) {
         //
@@ -1221,17 +1220,17 @@ class woofipro extends woofipro$1["default"] {
         //     }
         //
         const marketId = this.safeString(interest, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(interest, 'timestamp');
         const amount = this.safeNumber2(interest, 'open_interest', 'openInterest');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'openInterestAmount': amount,
             'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1282,7 +1281,7 @@ class woofipro extends woofipro$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v1PublicGetPublicFutures(params);
         //
         // {
@@ -1313,7 +1312,7 @@ class woofipro extends woofipro$1["default"] {
             const interest = this.extend({ 'timestamp': timestamp }, row);
             result.push(this.parseOpenInterest(interest));
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.indexBy(this.filterByArray(result, 'symbol', symbolsNormalized, false), 'symbol');
     }
     /**
      * @method
@@ -1332,22 +1331,22 @@ class woofipro extends woofipro$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25);
+            return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'page', 25);
         }
-        let request = {};
+        const request = {};
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        [request, params] = this.handleUntilOption('end_t', request, params, 0.001);
-        const response = await this.v1PublicGetPublicFundingRateHistory(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_t', request, paramsPaginate, 0.001);
+        const response = await this.v1PublicGetPublicFundingRateHistory(this.extend(requestUntil, paramsUntil));
         //
         // {
         //     "success": true,
@@ -1383,7 +1382,7 @@ class woofipro extends woofipro$1["default"] {
             });
         }
         const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
     parseIncome(income, market = undefined) {
         //
@@ -1433,10 +1432,9 @@ class woofipro extends woofipro$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500);
+            return await this.fetchPaginatedCallIncremental('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500);
         }
         const request = {};
         let market = undefined;
@@ -1447,15 +1445,15 @@ class woofipro extends woofipro$1["default"] {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const until = this.safeInteger(params, 'until'); // unified in milliseconds
-        params = this.omit(params, ['until']);
+        const until = this.safeInteger(paramsPaginate, 'until'); // unified in milliseconds
+        const paramsOmitted = this.omit(paramsPaginate, ['until']);
         if (until !== undefined) {
             request['end_t'] = until;
         }
         if (limit !== undefined) {
             request['size'] = Math.min(limit, 500);
         }
-        const response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, params));
+        const response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, paramsOmitted));
         //
         // {
         //     "success": true,
@@ -1560,8 +1558,7 @@ class woofipro extends woofipro$1["default"] {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            limit = Math.min(limit, 1000);
-            request['max_level'] = limit;
+            request['max_level'] = Math.min(limit, 1000);
         }
         const response = await this.v1PrivateGetOrderbookSymbol(this.extend(request, params));
         //
@@ -1694,13 +1691,13 @@ class woofipro extends woofipro$1["default"] {
         const orderId = this.safeStringN(order, ['order_id', 'orderId', 'algoOrderId']);
         const clientOrderId = this.omitZero(this.safeString2(order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString2(order, 'order_price', 'price');
         const amount = this.safeString2(order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2(order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2(order, 'order_type', 'type');
-        let status = this.safeValue2(order, 'status', 'algoStatus');
+        let status = this.safeString2(order, 'status', 'algoStatus');
         const success = this.safeBool(order, 'success');
         if (success !== undefined) {
             status = (success) ? 'NEW' : 'REJECTED';
@@ -1711,18 +1708,18 @@ class woofipro extends woofipro$1["default"] {
         const remaining = Precise["default"].stringSub(amount, filled);
         const fee = this.safeValue2(order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2(order, 'fee_asset', 'feeAsset');
-        const transactions = this.safeValue(order, 'Transactions');
+        const transactions = this.safeList(order, 'Transactions');
         const triggerPrice = this.safeNumber(order, 'triggerPrice');
         let takeProfitPrice = undefined;
         let stopLossPrice = undefined;
-        const childOrders = this.safeValue(order, 'childOrders');
+        const childOrders = this.safeList(order, 'childOrders');
         if (childOrders !== undefined) {
-            const first = this.safeValue(childOrders, 0);
+            const first = this.safeDict(childOrders, 0);
             const innerChildOrders = this.safeList(first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
-                const takeProfitOrder = this.safeValue(innerChildOrders, 0);
-                const stopLossOrder = this.safeValue(innerChildOrders, 1);
+                const takeProfitOrder = this.safeDict(innerChildOrders, 0);
+                const stopLossOrder = this.safeDict(innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber(takeProfitOrder, 'triggerPrice');
                 stopLossPrice = this.safeNumber(stopLossOrder, 'triggerPrice');
             }
@@ -1757,7 +1754,7 @@ class woofipro extends woofipro$1["default"] {
                 'currency': feeCurrency,
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
@@ -1824,8 +1821,8 @@ class woofipro extends woofipro$1["default"] {
             'side': orderSide,
         };
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue(params, 'stopLoss');
-        const takeProfit = this.safeValue(params, 'takeProfit');
+        const stopLoss = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString(params, 'algoType');
@@ -1902,8 +1899,8 @@ class woofipro extends woofipro$1["default"] {
             };
             request['child_orders'] = [outterOrder];
         }
-        params = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
-        return this.extend(request, params);
+        const paramsOmitted = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
+        return this.extend(request, paramsOmitted);
     }
     /**
      * @method
@@ -1934,9 +1931,9 @@ class woofipro extends woofipro$1["default"] {
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue(params, 'stopLoss');
-        const takeProfit = this.safeValue(params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const stopLoss = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList(params, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder(request);
@@ -1992,7 +1989,7 @@ class woofipro extends woofipro$1["default"] {
         }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
@@ -2000,9 +1997,9 @@ class woofipro extends woofipro$1["default"] {
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
-            const stopLoss = this.safeValue(orderParams, 'stopLoss');
-            const takeProfit = this.safeValue(orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(orderParams, 'childOrders') !== undefined);
+            const stopLoss = this.safeDict(orderParams, 'stopLoss');
+            const takeProfit = this.safeDict(orderParams, 'takeProfit');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList(orderParams, 'childOrders') !== undefined);
             if (isConditional) {
                 throw new errors.NotSupported(this.id + ' createOrders() only support non-stop order');
             }
@@ -2073,21 +2070,19 @@ class woofipro extends woofipro$1["default"] {
         if (amount !== undefined) {
             request[orderQtyKey] = this.amountToPrecision(symbol, amount);
         }
-        params = this.omit(params, ['stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent']);
+        const paramsOmitted = this.omit(params, ['stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent']);
         let response = undefined;
-        if (side === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a side argument');
-        }
+        this.checkRequiredArgument('editOrder', side, 'side');
         if (isConditional) {
-            response = await this.v1PrivatePutAlgoOrder(this.extend(request, params));
+            response = await this.v1PrivatePutAlgoOrder(this.extend(request, paramsOmitted));
         }
         else {
             request['symbol'] = market['id'];
             request['side'] = side.toUpperCase();
             const orderType = type.toUpperCase();
-            const timeInForce = this.safeStringLower(params, 'timeInForce');
+            const timeInForce = this.safeStringLower(paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly(isMarket, undefined, params);
+            const postOnly = this.isPostOnly(isMarket, undefined, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             }
@@ -2100,14 +2095,14 @@ class woofipro extends woofipro$1["default"] {
             else {
                 request['order_type'] = orderType;
             }
-            const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-            params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce']);
+            const clientOrderId = this.safeStringN(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id']);
+            const paramsOmitted2 = this.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce']);
             if (clientOrderId !== undefined) {
                 request['client_order_id'] = clientOrderId;
             }
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
-            response = await this.v1PrivatePutOrder(this.extend(request, params));
+            response = await this.v1PrivatePutOrder(this.extend(request, paramsOmitted2));
         }
         //
         // {
@@ -2139,8 +2134,8 @@ class woofipro extends woofipro$1["default"] {
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
-        params = this.omit(params, ['stop', 'trigger']);
-        if ((trigger !== true) && (symbol === undefined)) {
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
+        if ((!trigger) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -2153,30 +2148,30 @@ class woofipro extends woofipro$1["default"] {
         const request = {
             'symbol': this.safeString(market, 'id'),
         };
-        const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
+        const clientOrderIdUnified = this.safeString2(paramsOmitted, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
-                params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-                response = await this.v1PrivateDeleteAlgoClientOrder(this.extend(request, params));
+                const paramsOmitted2 = this.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id']);
+                response = await this.v1PrivateDeleteAlgoClientOrder(this.extend(request, paramsOmitted2));
             }
             else {
                 request['order_id'] = id;
-                response = await this.v1PrivateDeleteAlgoOrder(this.extend(request, params));
+                response = await this.v1PrivateDeleteAlgoOrder(this.extend(request, paramsOmitted));
             }
         }
         else {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
-                params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-                response = await this.v1PrivateDeleteClientOrder(this.extend(request, params));
+                const paramsOmitted3 = this.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id']);
+                response = await this.v1PrivateDeleteClientOrder(this.extend(request, paramsOmitted3));
             }
             else {
                 request['order_id'] = id;
-                response = await this.v1PrivateDeleteOrder(this.extend(request, params));
+                response = await this.v1PrivateDeleteOrder(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -2201,7 +2196,7 @@ class woofipro extends woofipro$1["default"] {
         else {
             extendParams['id'] = id;
         }
-        if (trigger === true) {
+        if (trigger) {
             const parsedResponse = (response === undefined) ? {} : response;
             return this.extend(this.parseOrder(parsedResponse), extendParams);
         }
@@ -2225,16 +2220,16 @@ class woofipro extends woofipro$1["default"] {
             await this.loadMarkets();
         }
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
-        params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
+        const paramsOmitted = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const request = {};
         let response = undefined;
         if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join(',');
-            response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, params));
+            response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, paramsOmitted));
         }
         else {
             request['order_ids'] = ids.join(',');
-            response = await this.v1PrivateDeleteBatchOrder(this.extend(request, params));
+            response = await this.v1PrivateDeleteBatchOrder(this.extend(request, paramsOmitted));
         }
         //
         // {
@@ -2265,7 +2260,7 @@ class woofipro extends woofipro$1["default"] {
             await this.loadMarkets();
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        params = this.omit(params, ['stop', 'trigger']);
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         const request = {};
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -2273,10 +2268,10 @@ class woofipro extends woofipro$1["default"] {
         }
         let response = undefined;
         if (trigger === true) {
-            response = await this.v1PrivateDeleteAlgoOrders(this.extend(request, params));
+            response = await this.v1PrivateDeleteAlgoOrders(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.v1PrivateDeleteOrders(this.extend(request, params));
+            response = await this.v1PrivateDeleteOrders(this.extend(request, paramsOmitted));
         }
         // trigger
         // {
@@ -2325,26 +2320,26 @@ class woofipro extends woofipro$1["default"] {
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        params = this.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id']);
+        const paramsOmitted = this.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id']);
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
-                response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, params));
+                response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, paramsOmitted));
             }
             else {
                 request['oid'] = id;
-                response = await this.v1PrivateGetAlgoOrderOid(this.extend(request, params));
+                response = await this.v1PrivateGetAlgoOrderOid(this.extend(request, paramsOmitted));
             }
         }
         else {
             if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
-                response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, params));
+                response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, paramsOmitted));
             }
             else {
                 request['oid'] = id;
-                response = await this.v1PrivateGetOrderOid(this.extend(request, params));
+                response = await this.v1PrivateGetOrderOid(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -2399,16 +2394,15 @@ class woofipro extends woofipro$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger === true) ? 100 : 500;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        const maxLimit = (isTrigger) ? 100 : 500;
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit);
+            return await this.fetchPaginatedCallIncremental('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit);
         }
-        let request = {};
+        const request = {};
         let market = undefined;
-        params = this.omit(params, ['stop', 'trigger']);
+        const paramsOmitted = this.omit(paramsPaginate, ['stop', 'trigger']);
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
@@ -2422,16 +2416,16 @@ class woofipro extends woofipro$1["default"] {
         else {
             request['size'] = maxLimit;
         }
-        if (isTrigger === true) {
+        if (isTrigger) {
             request['algo_type'] = 'STOP';
         }
-        [request, params] = this.handleUntilOption('end_t', request, params);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_t', request, paramsOmitted);
         let response = undefined;
-        if (isTrigger === true) {
-            response = await this.v1PrivateGetAlgoOrders(this.extend(request, params));
+        if (isTrigger) {
+            response = await this.v1PrivateGetAlgoOrders(this.extend(requestUntil, paramsUntil));
         }
         else {
-            response = await this.v1PrivateGetOrders(this.extend(request, params));
+            response = await this.v1PrivateGetOrders(this.extend(requestUntil, paramsUntil));
         }
         //
         //     {
@@ -2467,7 +2461,7 @@ class woofipro extends woofipro$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', response);
+        const data = this.safeDict(response, 'data', response);
         const orders = this.safeList(data, 'rows');
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2585,12 +2579,11 @@ class woofipro extends woofipro$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchMyTrades', symbol, since, limit, params, 'page', 500);
+            return await this.fetchPaginatedCallIncremental('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500);
         }
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2605,8 +2598,8 @@ class woofipro extends woofipro$1["default"] {
         else {
             request['size'] = 500;
         }
-        [request, params] = this.handleUntilOption('end_t', request, params);
-        const response = await this.v1PrivateGetTrades(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_t', request, paramsPaginate);
+        const response = await this.v1PrivateGetTrades(this.extend(requestUntil, paramsUntil));
         //
         // {
         //     "success": true,
@@ -2635,7 +2628,7 @@ class woofipro extends woofipro$1["default"] {
         //
         const data = this.safeDict(response, 'data', {});
         const trades = this.safeList(data, 'rows', []);
-        return this.parseTrades(trades, market, since, limit, params);
+        return this.parseTrades(trades, market, since, limit, paramsUntil);
     }
     parseBalance(response) {
         const result = {
@@ -2643,7 +2636,7 @@ class woofipro extends woofipro$1["default"] {
         };
         const balances = this.safeList(response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const code = this.safeCurrencyCode(this.safeString(balance, 'token'));
             const account = this.account();
             account['total'] = this.safeString(balance, 'holding');
@@ -2702,11 +2695,11 @@ class woofipro extends woofipro$1["default"] {
             request['pageSize'] = limit;
         }
         const transactionType = this.safeString(params, 'type');
-        params = this.omit(params, 'type');
+        const paramsOmitted = this.omit(params, 'type');
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        const response = await this.v1PrivateGetAssetHistory(this.extend(request, params));
+        const response = await this.v1PrivateGetAssetHistory(this.extend(request, paramsOmitted));
         //
         // {
         //     "success": true,
@@ -2738,7 +2731,7 @@ class woofipro extends woofipro$1["default"] {
     parseLedgerEntry(item, currency = undefined) {
         const currencyId = this.safeString(item, 'token');
         const code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
         const amount = this.safeNumber(item, 'amount');
         const side = this.safeString(item, 'token_side');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';
@@ -2760,7 +2753,7 @@ class woofipro extends woofipro$1["default"] {
             'datetime': this.iso8601(timestamp),
             'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
             'info': item,
-        }, currency);
+        }, currencyResolved);
     }
     parseLedgerEntryType(type) {
         const types = {
@@ -2912,7 +2905,8 @@ class woofipro extends woofipro$1["default"] {
         return this.safeNumber(data, 'withdraw_nonce');
     }
     hashMessage(message) {
-        return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
+        const hashed = this.hash(message, sha3_js.keccak_256, 'hex');
+        return '0x' + hashed;
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
@@ -2932,22 +2926,20 @@ class woofipro extends woofipro$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         this.checkAddress(address);
-        if (code !== undefined) {
-            code = code.toUpperCase();
-            if (code !== 'USDC') {
-                throw new errors.NotSupported(this.id + ' withdraw() only support USDC');
-            }
+        const codeUpper = code.toUpperCase();
+        if (codeUpper !== 'USDC') {
+            throw new errors.NotSupported(this.id + ' withdraw() only support USDC');
         }
-        const currency = this.currency(code);
+        const currency = this.currency(codeUpper);
         const verifyingContractAddress = this.safeString(this.options, 'verifyingContractAddress');
         const chainId = this.safeString(params, 'chainId');
         const currencyNetworks = this.safeDict(currency, 'networks', {});
@@ -2979,7 +2971,7 @@ class woofipro extends woofipro$1["default"] {
             'brokerId': this.safeString(this.options, 'keyBrokerId', 'woofi_pro'),
             'chainId': this.parseToInt(chainId),
             'receiver': address,
-            'token': code,
+            'token': codeUpper,
             'amount': amount.toString(),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
@@ -2992,8 +2984,8 @@ class woofipro extends woofipro$1["default"] {
             'verifyingContract': verifyingContractAddress,
             'message': withdrawRequest,
         };
-        params = this.omit(params, 'chainId');
-        const response = await this.v1PrivatePostWithdrawRequest(this.extend(request, params));
+        const paramsOmitted = this.omit(params, 'chainId');
+        const response = await this.v1PrivatePostWithdrawRequest(this.extend(request, paramsOmitted));
         //
         //     {
         //         "success": true,
@@ -3014,10 +3006,10 @@ class woofipro extends woofipro$1["default"] {
         //     }
         //
         const marketId = this.safeString(marginMode, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'marginMode': this.safeStringLower(marginMode, 'default_margin_mode'),
         };
     }
@@ -3034,7 +3026,7 @@ class woofipro extends woofipro$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v1PrivateGetClientMarginModes(params);
         //
         // {
@@ -3050,7 +3042,7 @@ class woofipro extends woofipro$1["default"] {
         //
         const data = this.safeDict(response, 'data', {});
         const rows = this.safeList(data, 'rows', []);
-        return this.parseMarginModes(rows, symbols, 'symbol');
+        return this.parseMarginModes(rows, symbolsNormalized, 'symbol');
     }
     /**
      * @method
@@ -3090,14 +3082,14 @@ class woofipro extends woofipro$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        marginMode = marginMode.toLowerCase();
-        if (marginMode !== 'cross' && marginMode !== 'isolated') {
+        const marginModeValue = marginMode.toLowerCase();
+        if (marginModeValue !== 'cross' && marginModeValue !== 'isolated') {
             throw new errors.BadRequest(this.id + ' setMarginMode() marginMode must be either cross or isolated');
         }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'default_margin_mode': marginMode.toUpperCase(),
+            'default_margin_mode': marginModeValue.toUpperCase(),
         };
         //
         // {
@@ -3124,7 +3116,7 @@ class woofipro extends woofipro$1["default"] {
             'amount': undefined,
             'total': undefined,
             'code': this.safeString(market, 'settle'),
-            'status': (success === true) ? 'ok' : 'failed',
+            'status': (success) ? 'ok' : 'failed',
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
@@ -3290,7 +3282,7 @@ class woofipro extends woofipro$1["default"] {
         // }
         //
         const contract = this.safeString(position, 'symbol');
-        market = this.safeMarket(contract, market);
+        const marketResolved = this.safeMarket(contract, market);
         let size = this.safeString(position, 'position_qty');
         let side = undefined;
         if (Precise["default"].stringGt(size, '0')) {
@@ -3299,7 +3291,7 @@ class woofipro extends woofipro$1["default"] {
         else {
             side = 'short';
         }
-        const contractSize = this.safeString(market, 'contractSize');
+        const contractSize = this.safeString(marketResolved, 'contractSize');
         const markPrice = this.safeString(position, 'mark_price');
         const timestamp = this.safeInteger(position, 'timestamp');
         const entryPrice = this.safeString(position, 'average_open_price');
@@ -3309,7 +3301,7 @@ class woofipro extends woofipro$1["default"] {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': undefined,
@@ -3329,7 +3321,6 @@ class woofipro extends woofipro$1["default"] {
             'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross',
-            'marginType': undefined,
             'side': side,
             'percentage': undefined,
             'hedged': undefined,
@@ -3443,36 +3434,41 @@ class woofipro extends woofipro$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
-        let url = this.urls['api'][access] + '/' + version + '/';
-        params = this.omit(params, this.extractParams(path));
-        params = this.keysort(params);
+        const apiUrl = this.safeString(this.urls['api'], access);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + version + '/';
+        let requestParams = this.keysort(this.omit(params, this.extractParams(path)));
+        let requestBody = undefined;
+        let requestHeaders = undefined;
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys(params).length > 0) {
-                url += '?' + this.urlencode(params);
+            if (Object.keys(requestParams).length > 0) {
+                url += '?' + this.urlencode(requestParams);
             }
         }
         else {
             this.checkRequiredCredentials();
             if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order' || path === 'batch-order')) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-                if (isSandboxMode !== true) {
+                if (!isSandboxMode) {
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
-                        const ordersList = this.safeList(params, 'orders', []);
+                        const ordersList = this.safeList(requestParams, 'orders', []);
                         for (let i = 0; i < ordersList.length; i++) {
-                            params['orders'][i]['order_tag'] = brokerId;
+                            requestParams['orders'][i]['order_tag'] = brokerId;
                         }
                     }
                     else {
-                        params['order_tag'] = brokerId;
+                        requestParams['order_tag'] = brokerId;
                     }
                 }
-                params = this.keysort(params);
+                requestParams = this.keysort(requestParams);
             }
             let auth = '';
             const ts = this.nonce().toString();
@@ -3481,36 +3477,39 @@ class woofipro extends woofipro$1["default"] {
             if (apiKey.indexOf('ed25519:') < 0) {
                 apiKey = 'ed25519:' + apiKey;
             }
-            headers = {
+            requestHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
             auth = ts + method + '/' + version + '/' + pathWithParams;
             if (method === 'POST' || method === 'PUT') {
-                body = this.json(params);
-                auth += body;
-                headers['content-type'] = 'application/json';
+                requestBody = this.json(requestParams);
+                auth += requestBody;
+                requestHeaders['content-type'] = 'application/json';
             }
             else {
-                if (Object.keys(params).length > 0) {
-                    url += '?' + this.urlencode(params);
-                    auth += '?' + this.rawencode(params);
+                if (Object.keys(requestParams).length > 0) {
+                    url += '?' + this.urlencode(requestParams);
+                    auth += '?' + this.rawencode(requestParams);
                 }
-                headers['content-type'] = 'application/x-www-form-urlencoded';
+                requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
                 if (method === 'DELETE') {
-                    body = '';
+                    requestBody = '';
                 }
             }
             let secret = this.secret;
-            if (secret.indexOf('ed25519:') >= 0) {
-                const parts = secret.split('ed25519:');
+            const rawSecret = this.secret;
+            if (rawSecret.indexOf('ed25519:') >= 0) {
+                const parts = rawSecret.split('ed25519:');
                 secret = parts[1];
             }
             const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519_js.ed25519);
-            headers['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
+            requestHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

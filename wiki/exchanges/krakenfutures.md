@@ -31,6 +31,7 @@
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchPositions](#fetchpositions)
+* [fetchPositionsHistory](#fetchpositionshistory)
 * [fetchLeverageTiers](#fetchleveragetiers)
 * [transferOut](#transferout)
 * [transfer](#transfer)
@@ -132,8 +133,8 @@ fetch the trading fees for multiple markets, resolving the account's 30-day usd 
 
 **See**
 
-- https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
-- https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+- https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+- https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
 
 
 | Param | Type | Required | Description |
@@ -154,7 +155,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.kraken.com/api/docs/futures-api/charts/candles  
+**See**: https://docs.kraken.com/api-reference/candles/market-candles  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -182,8 +183,8 @@ Fetch a history of filled trades that this account has made
 
 **See**
 
-- https://docs.kraken.com/api/docs/futures-api/trading/get-history
-- https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+- https://docs.kraken.com/api-reference/market-data/get-trade-history
+- https://docs.kraken.com/api-reference/market-history/get-public-execution-events
 
 
 | Param | Type | Required | Description |
@@ -355,7 +356,7 @@ dead man's switch, cancel all orders after the given timeout
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: <code>object</code> - the api result
 
-**See**: https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after  
+**See**: https://docs.kraken.com/api-reference/order-management/dead-mans-switch  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -472,7 +473,7 @@ Gets all canceled orders, including trigger orders, for an account from the exch
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: An array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api/docs/futures-api/history/get-order-events  
+**See**: https://docs.kraken.com/api-reference/account-history/get-order-events  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -568,7 +569,7 @@ Fetch the balance for a sub-account, all sub-account balances are inside 'info' 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: A [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.kraken.com/api/docs/futures-api/trading/get-accounts  
+**See**: https://docs.kraken.com/api-reference/account-information/get-wallets  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -644,6 +645,39 @@ Fetches current contract trading positions
 
 ```javascript
 krakenfutures.fetchPositions (symbols, params?)
+```
+
+
+<a name="fetchPositionsHistory" id="fetchpositionshistory"></a>
+
+### fetchPositionsHistory{docsify-ignore}
+fetches historical positions, by default the events that closed a position
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-history/get-position-update-events  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols, only a single symbol is filtered by the exchange |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum number of positions to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch EXCHANGE SPECIFIC PARAMETERS |
+| params.opened | <code>bool</code> | No | set to true to also return the events that opened a position |
+| params.increased | <code>bool</code> | No | set to true to also return the events that increased a position |
+| params.decreased | <code>bool</code> | No | set to true to also return the events that decreased a position |
+| params.reversed | <code>bool</code> | No | set to true to also return the events that reversed a position |
+| params.no_change | <code>bool</code> | No | set to true to also return the events that left the position size untouched |
+| params.trades | <code>bool</code> | No | set to true to also return every event caused by a trade |
+| params.funding_realization | <code>bool</code> | No | set to true to also return the funding realization events |
+| params.settlement | <code>bool</code> | No | set to true to also return the settlement events |
+| params.continuation_token | <code>string</code> | No | the token of a previous response, to fetch the next page |
+
+
+```javascript
+krakenfutures.fetchPositionsHistory (symbols?, since?, limit?, params?)
 ```
 
 

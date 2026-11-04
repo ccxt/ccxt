@@ -10,14 +10,14 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchLedgerEntry".to_string());
+    let mut method: Value = Value::Str("fetchLedgerEntry".into());
     let mut items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger", vec![code.clone()]).await;
-    let mut length: Value = get_array_length(&items);
+    let mut length: Value = Value::Int(items.len() as i64);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), items.clone(), code.clone()]);
-    if is_greater_than(&length, &Value::Int(0)) {
-        let mut firstItem: Value = get_value(&items, &Value::Int(0));
-        let mut id: Value = get_value(&firstItem, &Value::Str("id".to_string()));
-        if !is_equal(&id, &Value::Null) {
+    if length.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        let mut firstItem: Value = items.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut id: Value = firstItem.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+        if (id != Value::Null) {
             let mut item: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger_entry", vec![id.clone()]).await;
             let mut now: Value = exchange.milliseconds();
             testLedgerEntry(exchange.clone(), skippedProperties.clone(), method.clone(), item.clone(), code.clone(), now.clone());

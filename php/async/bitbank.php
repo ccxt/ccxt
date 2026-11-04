@@ -309,17 +309,20 @@ class bitbank extends Exchange {
         //       }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
-        $pairs = $this->safe_value($data, 'pairs', array());
+        $data = $this->safe_dict($response, 'data');
+        $pairs = $this->safe_list($data, 'pairs', array());
         return $this->parse_markets($pairs);
     }
 
-    public function parse_market(mixed $entry): array {
+    public function parse_market(array $entry): array {
         $id = $this->safe_string($entry, 'name');
         $baseId = $this->safe_string($entry, 'base_asset');
         $quoteId = $this->safe_string($entry, 'quote_asset');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
@@ -335,7 +338,7 @@ class bitbank extends Exchange {
             'swap' => false,
             'future' => false,
             'option' => false,
-            'active' => $this->safe_value($entry, 'is_enabled'),
+            'active' => $this->safe_bool($entry, 'is_enabled'),
             'contract' => false,
             'linear' => null,
             'inverse' => null,
@@ -450,7 +453,7 @@ class bitbank extends Exchange {
             'pair' => $market['id'],
         );
         $response = Async\await($this->publicGetPairDepth($this->extend($request, $params)));
-        $orderbook = $this->safe_value($response, 'data', array());
+        $orderbook = $this->safe_dict($response, 'data', array());
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
@@ -468,7 +471,7 @@ class bitbank extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer($trade, 'executed_at');
-        $market = $this->safe_market(null, $market);
+        $marketResolved = $this->safe_market(null, $market);
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $id = $this->safe_string_2($trade, 'transaction_id', 'trade_id');
@@ -477,7 +480,7 @@ class bitbank extends Exchange {
         $feeCostString = $this->safe_string($trade, 'fee_amount_quote');
         if ($feeCostString !== null) {
             $fee = array(
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
                 'cost' => $feeCostString,
             );
         }
@@ -487,7 +490,7 @@ class bitbank extends Exchange {
         return $this->safe_trade(array(
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'id' => $id,
             'order' => $orderId,
             'type' => $type,
@@ -498,7 +501,7 @@ class bitbank extends Exchange {
             'cost' => null,
             'fee' => $fee,
             'info' => $trade,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -525,7 +528,7 @@ class bitbank extends Exchange {
             'pair' => $market['id'],
         );
         $response = Async\await($this->publicGetPairTransactions($this->extend($request, $params)));
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $trades = $this->safe_list($data, 'transactions', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -575,7 +578,7 @@ class bitbank extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $pairs = $this->safe_list($data, 'pairs', array());
         $result = array();
         for ($i = 0; $i < count($pairs); $i++) {
@@ -633,13 +636,15 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        if ($since === null) {
-            if ($limit === null) {
-                $limit = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
-            }
-            $duration = $this->parse_timeframe($timeframe);
-            $since = $this->milliseconds() - $duration * 1000 * $limit;
+        // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
+        $windowLimit = ($limit === null) ? 1000 : $limit;
+        $limitResolved = ($since === null) ? $windowLimit : $limit;
+        $duration = $this->parse_timeframe($timeframe);
+        $windowMs = $duration * 1000 * 1000;
+        if ($limit !== null) {
+            $windowMs = $duration * 1000 * $limit;
         }
+        $sinceResolved = ($since === null) ? $this->milliseconds() - $windowMs : $since;
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -647,7 +652,7 @@ class bitbank extends Exchange {
         $request = array(
             'pair' => $market['id'],
             'candletype' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'yyyymmdd' => $this->yyyymmdd($since, ''),
+            'yyyymmdd' => $this->yyyymmdd($sinceResolved, ''),
         );
         $response = Async\await($this->publicGetPairCandlestickCandletypeYyyymmdd($this->extend($request, $params)));
         //
@@ -668,11 +673,11 @@ class bitbank extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $candlestick = $this->safe_value($data, 'candlestick', array());
-        $first = $this->safe_value($candlestick, 0, array());
+        $data = $this->safe_dict($response, 'data', array());
+        $candlestick = $this->safe_list($data, 'candlestick', array());
+        $first = $this->safe_dict($candlestick, 0, array());
         $ohlcv = $this->safe_list($first, 'ohlcv', array());
-        return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $sinceResolved, $limitResolved);
     }
 
     public function parse_balance(mixed $response): array {
@@ -681,10 +686,10 @@ class bitbank extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $assets = $this->safe_list($data, 'assets', array());
         for ($i = 0; $i < count($assets); $i++) {
-            $balance = $assets[$i];
+            $balance = $this->safe_dict($assets, $i);
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -751,7 +756,7 @@ class bitbank extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'UNFILLED' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -762,10 +767,10 @@ class bitbank extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order(array $order, ?array $market = null): array {
+    public function parse_order(?array $order, ?array $market = null): array {
         $id = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'pair');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($order, 'ordered_at');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'start_amount');
@@ -782,7 +787,7 @@ class bitbank extends Exchange {
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
@@ -797,10 +802,10 @@ class bitbank extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -836,7 +841,7 @@ class bitbank extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -883,11 +888,11 @@ class bitbank extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -967,12 +972,12 @@ class bitbank extends Exchange {
             $request['since'] = $this->parse_to_int($since / 1000);
         }
         $response = Async\await($this->privateGetUserSpotActiveOrders($this->extend($request, $params)));
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1004,7 +1009,7 @@ class bitbank extends Exchange {
             $request['since'] = $this->parse_to_int($since / 1000);
         }
         $response = Async\await($this->privateGetUserSpotTradeHistory($this->extend($request, $params)));
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $trades = $this->safe_list($data, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -1031,10 +1036,10 @@ class bitbank extends Exchange {
             'asset' => $currency['id'],
         );
         $response = Async\await($this->privateGetUserWithdrawalAccount($this->extend($request, $params)));
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         // Not sure about this if there could be more than one account...
-        $accounts = $this->safe_value($data, 'accounts', array());
-        $firstAccount = $this->safe_value($accounts, 0, array());
+        $accounts = $this->safe_list($data, 'accounts', array());
+        $firstAccount = $this->safe_dict($accounts, 0, array());
         $address = $this->safe_string($firstAccount, 'address');
         return array(
             'info' => $response,
@@ -1045,11 +1050,11 @@ class bitbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -1058,12 +1063,15 @@ class bitbank extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        if (!(is_array($params) && array_key_exists('uuid' ?? '', $params))) {
+        $tagAndParams = $this->handle_param_string($params, 'tag');
+        $tagWithdrawTag = $tagAndParams[0];
+        $paramsWithdrawTag = $tagAndParams[1];
+        $this->check_address($address, $code, $tagWithdrawTag);
+        if (!(is_array($paramsWithdrawTag) && array_key_exists('uuid' ?? '', $paramsWithdrawTag))) {
             throw new ExchangeError($this->id . ' uuid is required for withdrawal');
         }
         if ($this->markets === null) {
@@ -1074,7 +1082,7 @@ class bitbank extends Exchange {
             'asset' => $currency['id'],
             'amount' => $amount,
         );
-        $response = Async\await($this->privatePostUserRequestWithdrawal($this->extend($request, $params)));
+        $response = Async\await($this->privatePostUserRequestWithdrawal($this->extend($request, $paramsWithdrawTag)));
         //
         //     {
         //         "success": 1,
@@ -1114,7 +1122,7 @@ class bitbank extends Exchange {
         //     }
         //
         $txid = $this->safe_string($transaction, 'txid');
-        $currency = $this->safe_currency(null, $currency);
+        $currencyResolved = $this->safe_currency(null, $currency);
         return array(
             'id' => $txid,
             'txid' => $txid,
@@ -1126,7 +1134,7 @@ class bitbank extends Exchange {
             'addressTo' => null,
             'amount' => null,
             'type' => null,
-            'currency' => $currency['code'],
+            'currency' => $currencyResolved['code'],
             'status' => null,
             'updated' => null,
             'tagFrom' => null,
@@ -1139,14 +1147,21 @@ class bitbank extends Exchange {
         );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->implode_hostname($this->urls['api'][$api]) . '/';
-        if (($api === 'public') || ($api === 'markets')) {
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($apiUrl) . '/';
+        $requestBody = null;
+        $requestHeaders = null;
+        if (($apiName === 'public') || ($apiName === 'markets')) {
             $url .= $this->implode_params($path, $params);
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
@@ -1161,38 +1176,39 @@ class bitbank extends Exchange {
             $isTimeWindow = ($authMethod === 'timeWindow');
             $requestTime = (string) $this->milliseconds();
             $timeWindow = $this->safe_string($this->options, 'timeWindow', '5000');
-            $nonce = (string) $this->nonce();
-            $auth = null;
+            $nonce = (string) $this->incrementing_nonce();
+            $auth = $nonce;
             if ($isTimeWindow) {
                 $auth = $requestTime . $timeWindow;
-            } else {
-                $auth = $nonce;
             }
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             if ($method === 'POST') {
-                $body = $this->json($query);
-                $auth .= $body;
+                $jsonBody = $this->json($query);
+                $requestBody = $jsonBody;
+                $auth .= $jsonBody;
             } else {
                 $auth .= '/' . $this->version . '/' . $path;
                 if (count($query) > 0) {
-                    $query = $this->urlencode($query);
-                    $url .= '?' . $query;
-                    $auth .= '?' . $query;
+                    $queryString = $this->urlencode($query);
+                    $url .= '?' . $queryString;
+                    $auth .= '?' . $queryString;
                 }
             }
-            $headers = array(
+            $requestHeaders = array(
                 'Content-Type' => 'application/json',
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-SIGNATURE' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
             if ($isTimeWindow) {
-                $headers['ACCESS-REQUEST-TIME'] = $requestTime;
-                $headers['ACCESS-TIME-WINDOW'] = $timeWindow;
+                $requestHeaders['ACCESS-REQUEST-TIME'] = $requestTime;
+                $requestHeaders['ACCESS-TIME-WINDOW'] = $timeWindow;
             } else {
-                $headers['ACCESS-NONCE'] = $nonce;
+                $requestHeaders['ACCESS-NONCE'] = $nonce;
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -1200,7 +1216,7 @@ class bitbank extends Exchange {
             return null;
         }
         $success = $this->safe_integer($response, 'success');
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         if (($success === null || $success === 0) || ($data === null)) {
             $errorMessages = array(
                 '10000' => 'URL does not exist',

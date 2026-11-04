@@ -28,6 +28,7 @@ class kucoinfutures extends kucoin {
                 'swap' => true,
                 'future' => true,
                 'option' => null,
+                'editOrder' => false,
                 'fetchBidsAsks' => true,
                 'transfer' => true,
             ),
@@ -42,7 +43,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_bids_asks(...))($symbols, $params);
     }
 
@@ -84,7 +85,6 @@ class kucoinfutures extends kucoin {
             'amount' => $amountToPrecision,
         );
         $toAccountString = $this->parse_transfer_type($toAccount);
-        $response = null;
         if ($toAccountString === 'TRADE' || $toAccountString === 'MAIN') {
             $request['recAccountType'] = $toAccountString;
             $response = Async\await($this->futuresPrivatePostTransferOut($this->extend($request, $params)));
@@ -134,7 +134,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function parse_transfer_type(mixed $transferType) {
+    public function parse_transfer_type(?string $transferType): ?string {
         $transferTypes = array(
             'spot' => 'TRADE',
             'funding' => 'MAIN',

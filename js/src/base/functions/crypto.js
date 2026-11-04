@@ -80,16 +80,14 @@ function decodeOid(bytes) {
     }
     return values.join('.');
 }
-/*  .............................................   */
-const hash = (request, hash, digest = 'hex') => {
+function hash(request, hash, digest = 'hex') {
     const binary = hash(utf8Bytes(request));
     return encoders[digest](binary);
-};
-/*  .............................................   */
-const hmac = (request, secret, hash, digest = 'hex') => {
+}
+function hmac(request, secret, hash, digest = 'hex') {
     const binary = _hmac(hash, utf8Bytes(secret), utf8Bytes(request));
     return encoders[digest](binary);
-};
+}
 /*  .............................................   */
 function ecdsa(request, secret, curve, prehash = null, fixedLength = false) {
     if (prehash) {

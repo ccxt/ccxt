@@ -33,6 +33,7 @@
 * [setPositionMode](#setpositionmode)
 * [fetchPositionMode](#fetchpositionmode)
 * [fetchBalance](#fetchbalance)
+* [transfer](#transfer)
 * [fetchTransfers](#fetchtransfers)
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
@@ -737,6 +738,30 @@ query for balance and get the amount of funds available for trading or funds loc
 
 ```javascript
 bydfi.fetchBalance (params?)
+```
+
+
+<a name="transfer" id="transfer"></a>
+
+### transfer{docsify-ignore}
+transfer currency internally between wallets on the same account
+
+**Kind**: instance method of [<code>bydfi</code>](#bydfi)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://developers.bydfi.com/en/account#asset-transfer-between-accounts  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | 'spot', 'funding', or 'swap' |
+| toAccount | <code>string</code> | Yes | 'spot', 'funding', or 'swap' |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bydfi.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 

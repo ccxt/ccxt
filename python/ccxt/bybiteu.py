@@ -61,5 +61,9 @@ class bybiteu(bybit, ImplicitAPI):
             },
             'options': {
                 'mica': True,
+                'defaultType': 'spot',
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
             },
         })

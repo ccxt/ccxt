@@ -4,6 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -18,9 +19,9 @@ public class TestSignIn extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "signIn";
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, method), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, method), false))))
+        if (!java.util.Objects.equals(Helpers.GetValue(exchange.has, method), null) && !java.util.Objects.equals(Helpers.GetValue(exchange.has, method), false))
         {
-            ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "signIn", new Object[]{})).join();
+            ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "signIn", new Object[]{new HashMap<String, Object>() {{}}})).join();
         }
         return true;
         });

@@ -15,7 +15,7 @@ public partial class BaseTest
             });
             // todo: Assert (exchange.MAX_VALUE !== undefined);
             object tokenBucket = exchangeProp(exchange, "tokenBucket"); // trick for uncamelcase transpilation
-            Assert(!isEqual(tokenBucket, null));
+            Assert((tokenBucket != null));
             object rateLimit = exchangeProp(exchange, "rateLimit");
             Assert(isEqual(rateLimit, 10.8));
             Assert(isEqual(getValue(tokenBucket, "delay"), 0.001));
@@ -24,7 +24,7 @@ public partial class BaseTest
             Assert(exchange.inArray(getValue(tokenBucket, "capacity"), new List<object>() {1, 1}));
             object cost = exchange.parseToNumeric(exchange.safeString2(tokenBucket, "cost", "defaultCost")); // python sync, todo fix
             Assert(exchange.inArray(cost, new List<object>() {1, 1}));
-            Assert(!isTrue((inOp(tokenBucket, "maxCapacity"))) || isTrue(exchange.inArray(getValue(tokenBucket, "maxCapacity"), new List<object>() {1000, 1000})));
+            Assert(!(inOp(tokenBucket, "maxCapacity")) || isTrue(exchange.inArray(getValue(tokenBucket, "maxCapacity"), new List<object>() {1000, 1000})));
         }
         public void helperTestSandboxState(Exchange exchange, object expectEnabled = null)
         {
@@ -71,11 +71,21 @@ public partial class BaseTest
             //
             // CASE B: when sandbox is enabled
             //
-            ((IDictionary<string,object>)getValue(opts, "options"))["sandbox"] = true;
+            ((IDictionary<string,object>)((IDictionary<string,object>)opts)["options"])["sandbox"] = true;
             var exchange4 = new ccxt.Exchange(opts);
             helperTestSandboxState(exchange4, true);
             exchange4.setSandboxMode(false);
             helperTestSandboxState(exchange4, false);
+            //
+            // CASE C: passed 'sandbox' within userConfig
+            //
+            ((IDictionary<string,object>)((IDictionary<string,object>)opts)["options"])["sandbox"] = false;
+            // @ts-expect-error
+            opts["sandbox"] = true;
+            var exchange5 = new ccxt.Exchange(opts);
+            helperTestSandboxState(exchange5, true);
+            exchange5.setSandboxMode(false);
+            helperTestSandboxState(exchange5, false);
         }
         public void helperTestInitMarket()
         {
@@ -96,7 +106,7 @@ public partial class BaseTest
                     { "BTC/USD", sampleMarket },
                 } },
             });
-            Assert(isTrue((!isEqual(exchange2.markets, null))) && isTrue((!isEqual(getValue(exchange2.markets, "BTC/USD"), null))));
+            Assert((!isEqual(exchange2.markets, null)) && (!isEqual(getValue(exchange2.markets, "BTC/USD"), null)));
         }
         public void helperTestProperties()
         {
@@ -106,23 +116,16 @@ public partial class BaseTest
             //
             List<object> keys = new List<object>() {"chrome", "chrome39", "chrome100"};
             Assert(!isEqual(exchangeProp(exchange, "userAgents"), null));
-            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; i < (keys?.Count ?? 0); i++)
             {
-                string? key = ((string)getValue(keys, i));
+                string? key = ((string)keys[i]);
                 object userAgent = getValue(exchangeProp(exchange, "userAgents"), key);
-                Assert(!isEqual(userAgent, null));
+                Assert((userAgent != null));
             }
             //
             // options
             //
             Assert(!isEqual(exchange.options, null));
-            // const defaultNetworkCodeReplacements = [
-            //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-            //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-            //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-            //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-            // ];
-            // AssertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
             //
             // credentials
             //
@@ -193,7 +196,7 @@ public partial class BaseTest
             // common props
             //
             // @SKIP_START_GO
-            Assert(isEqual(exchange.id, add("Exch", "ange")), "id should be \"Exchange\"");
+            Assert(isEqual(exchange.id, ("Exch" + "ange")), "id should be \"Exchange\"");
             Assert(!isEqual(exchange.has, null), "has should not be undefined");
             Assert(isEqual(exchange.api, null), "api should be undefined");
             Assert(isEqual(exchange.features, null), "features should be undefined");
@@ -202,13 +205,13 @@ public partial class BaseTest
             Assert(isEqual(exchangeProp(exchange, "enableRateLimit"), true), "enableRateLimit should be true");
             Assert(isEqual(exchangeProp(exchange, "rateLimiterAlgorithm"), "leakyBucket"), "rateLimiterAlgorithm should be \"leakyBucket\"");
             Assert(isEqual(exchangeProp(exchange, "rateLimit"), 2000), "rateLimit should be 2000");
-            Assert(isEqual(exchange.certified, false), "certified should be false");
-            Assert(isEqual(exchange.pro, false), "pro should be false");
-            Assert(isEqual(exchange.alias, false), "alias should be false");
+            Assert(!isTrue(exchange.certified), "certified should be false");
+            Assert(!isTrue(exchange.pro), "pro should be false");
+            Assert(!isTrue(exchange.alias), "alias should be false");
             List<object> httpExceptionKeys = new List<object>() {"400", "401", "403", "404", "405", "407", "408", "409", "410", "418", "422", "429", "451", "500", "501", "502", "503", "504", "511", "520", "521", "522", "525", "526", "530"};
             // php errors with below, bcz integer key cast
             // AssertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
-            Assert(isEqual(getArrayLength((new List<object>(((IDictionary<string,object>)exchangeProp(exchange, "httpExceptions")).Keys))), getArrayLength(httpExceptionKeys)), add(add("httpExceptions should have ", ((object)(getArrayLength(httpExceptionKeys))).ToString()), " keys"));
+            Assert((((new List<object>(((IDictionary<string,object>)exchangeProp(exchange, "httpExceptions")).Keys))).Count == (httpExceptionKeys?.Count ?? 0)), (("httpExceptions should have " + ((object)((httpExceptionKeys?.Count ?? 0))).ToString()) + " keys"));
             Dictionary<string, object> limits = new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", null },
@@ -243,8 +246,8 @@ public partial class BaseTest
             AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "urls", exchange.urls, urls);
             Assert(isEqual(exchange.precision, null), "precision should be undefined");
             Assert(isEqual(exchange.hostname, null), "hostname should be undefined");
-            Assert(isTrue(isEqual(exchangeProp(exchange, "precisionMode"), null)) || isTrue(isEqual(exchangeProp(exchange, "precisionMode"), 4)), "precisionMode should be undefined or 4");
-            Assert(isTrue(isEqual(exchangeProp(exchange, "paddingMode"), null)) || isTrue(isEqual(exchangeProp(exchange, "paddingMode"), 5)), "paddingMode should be undefined or 5");
+            Assert(isEqual(exchangeProp(exchange, "precisionMode"), null) || isEqual(exchangeProp(exchange, "precisionMode"), 4), "precisionMode should be undefined or 4");
+            Assert(isEqual(exchangeProp(exchange, "paddingMode"), null) || isEqual(exchangeProp(exchange, "paddingMode"), 5), "paddingMode should be undefined or 5");
             AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "headers", exchange.headers, new Dictionary<string, object>() {});
             // Assert (exchange.origin === '*');
             Assert(isEqual(exchangeProp(exchange, "substituteCommonCurrencyCodes"), true), "substituteCommonCurrencyCodes should be true");
@@ -275,7 +278,7 @@ public partial class BaseTest
             };
             AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "status", exchange.status, status);
             Assert(isEqual(exchange.timeout, 10000), "timeout should be 10000");
-            Assert(isEqual(exchange.verbose, false), "verbose should be false");
+            Assert(!isTrue(exchange.verbose), "verbose should be false");
             // Assert (exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
             Assert(!isEqual(exchangeProp(exchange, "reloadingMarkets"), true), "reloadingMarkets should be false");
             Assert(isEqual(exchangeProp(exchange, "marketsLoading"), null), "marketsLoading should be undefined");
@@ -306,7 +309,7 @@ public partial class BaseTest
             // common props
             //
             Assert(isEqual(exchange.markets, null), "markets should be undefined");
-            Assert(isEqual(getArrayLength(exchange.symbols), 0), "symbols should be an empty array");
+            Assert((getArrayLength(exchange.symbols) == 0), "symbols should be an empty array");
             Assert(isEqual(exchange.markets_by_id, null), "markets_by_id should be undefined");
             Assert(isEqual(exchange.ids, null), "ids should be undefined");
             AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "currencies", exchange.currencies, new Dictionary<string, object>() {});
@@ -323,7 +326,7 @@ public partial class BaseTest
             });
             // fetch history
             object fetchHistoryCache = exchange.getFetchCache();
-            Assert(isEqual(getArrayLength(fetchHistoryCache), 0), "fetchHistoryCache should be an empty array");
+            Assert((getArrayLength(fetchHistoryCache) == 0), "fetchHistoryCache should be an empty array");
         }
         public void testAfterConstructor()
         {

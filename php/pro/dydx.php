@@ -66,10 +66,11 @@ class dydx extends \ccxt\async\dydx {
             'id' => $market['id'],
         );
         $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
@@ -100,7 +101,7 @@ class dydx extends \ccxt\async\dydx {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_trades(mixed $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // {
         //     "type": "subscribed",
@@ -143,7 +144,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // {
         //     "id": "02b6148d0000000200000003",
@@ -231,7 +232,7 @@ class dydx extends \ccxt\async\dydx {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // {
         //     "type": "subscribed",
@@ -315,10 +316,11 @@ class dydx extends \ccxt\async\dydx {
             'id' => $market['id'] . '/' . $resolution,
         );
         $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()): PromiseInterface {
@@ -352,7 +354,7 @@ class dydx extends \ccxt\async\dydx {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // {
         //     "type": "subscribed",
@@ -416,7 +418,7 @@ class dydx extends \ccxt\async\dydx {
         $messageHash = 'ohlcv:' . $symbol;
         $ohlcv = $this->safe_dict($candles, 0, $content);
         $parsed = $this->parse_ohlcv($ohlcv, $market);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -427,7 +429,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, mixed $message): bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         // {
         //     "type": "error",
@@ -445,7 +447,7 @@ class dydx extends \ccxt\async\dydx {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $type = $this->safe_string($message, 'type');
         if ($type === 'error') {
             $this->handle_error_message($client, $message);

@@ -14,102 +14,102 @@ use crate::exchange::ExchangeRuntime;
 impl OpinionCore {
     /// Auto-generated wrapper for the `opinionPublicGetMarket` implicit endpoint.
     pub async fn opinion_public_get_market(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_public_get_market".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_public_get_market".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPublicGetMarketMarketId` implicit endpoint.
     pub async fn opinion_public_get_market_market_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_public_get_market_market_id".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_public_get_market_market_id".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPublicGetMarketCategoricalMarketId` implicit endpoint.
     pub async fn opinion_public_get_market_categorical_market_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_public_get_market_categorical_market_id".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_public_get_market_categorical_market_id".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPublicGetMarketSlugSlug` implicit endpoint.
     pub async fn opinion_public_get_market_slug_slug(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_public_get_market_slug_slug".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_public_get_market_slug_slug".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPublicGetLabel` implicit endpoint.
     pub async fn opinion_public_get_label(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_public_get_label".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_public_get_label".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPublicGetTokenLatestPrice` implicit endpoint.
     pub async fn opinion_public_get_token_latest_price(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_public_get_token_latest_price".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_public_get_token_latest_price".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPublicGetTokenOrderbook` implicit endpoint.
     pub async fn opinion_public_get_token_orderbook(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_public_get_token_orderbook".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_public_get_token_orderbook".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPublicGetTokenPriceHistory` implicit endpoint.
     pub async fn opinion_public_get_token_price_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_public_get_token_price_history".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_public_get_token_price_history".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPublicGetQuoteToken` implicit endpoint.
     pub async fn opinion_public_get_quote_token(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_public_get_quote_token".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_public_get_quote_token".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivateGetOrder` implicit endpoint.
     pub async fn opinion_private_get_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_get_order".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_get_order".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivateGetOrderOrderId` implicit endpoint.
     pub async fn opinion_private_get_order_order_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_get_order_order_id".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_get_order_order_id".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivateGetPositionsUserWalletAddress` implicit endpoint.
     pub async fn opinion_private_get_positions_user_wallet_address(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_get_positions_user_wallet_address".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_get_positions_user_wallet_address".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivateGetTradeUserWalletAddress` implicit endpoint.
     pub async fn opinion_private_get_trade_user_wallet_address(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_get_trade_user_wallet_address".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_get_trade_user_wallet_address".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivateGetAuthApiKey` implicit endpoint.
     pub async fn opinion_private_get_auth_api_key(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_get_auth_api_key".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_get_auth_api_key".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivateGetUserAuth` implicit endpoint.
     pub async fn opinion_private_get_user_auth(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_get_user_auth".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_get_user_auth".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivateGetUserBalance` implicit endpoint.
     pub async fn opinion_private_get_user_balance(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_get_user_balance".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_get_user_balance".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivatePostAuthApiKey` implicit endpoint.
     pub async fn opinion_private_post_auth_api_key(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_post_auth_api_key".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_post_auth_api_key".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivatePostOrder` implicit endpoint.
     pub async fn opinion_private_post_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_post_order".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_post_order".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivatePostOrderCancel` implicit endpoint.
     pub async fn opinion_private_post_order_cancel(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_post_order_cancel".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_post_order_cancel".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `opinionPrivateDeleteAuthApiKey` implicit endpoint.
     pub async fn opinion_private_delete_auth_api_key(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("opinion_private_delete_auth_api_key".to_string()), optional_args).await
+        self.call_method(Value::Str("opinion_private_delete_auth_api_key".into()), optional_args).await
     }
 
 }

@@ -1,6 +1,6 @@
 import { Feed } from 'feed';
 import { blogAbsoluteBase, blogDescription, getSortedPosts, postCanonicalUrl } from '@/lib/blog';
-import { appName } from '@/lib/shared';
+import { appName, basePath, siteUrl } from '@/lib/shared';
 
 // Fully static: generated once at build time. This route lives OUTSIDE [lang] on
 // purpose — paths with a file extension bypass the i18n proxy (see src/proxy.ts
@@ -14,7 +14,9 @@ export function GET(): Response {
     link: `${blogAbsoluteBase}/blog`,
     description: blogDescription,
     language: 'en',
-    favicon: `${blogAbsoluteBase}/icon.svg`,
+    // The icon is a docs-app asset; point at its origin directly (ccxt.com/icon.svg
+    // only 302s there, which some feed readers don't follow).
+    favicon: `${siteUrl}${basePath}/icon.svg`,
     copyright: `© ${new Date().getFullYear()} CCXT`,
     feedLinks: { rss: `${blogAbsoluteBase}/blog/rss.xml` },
   });

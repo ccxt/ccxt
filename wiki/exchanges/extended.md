@@ -479,14 +479,14 @@ make a Starknet withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the Starknet address to withdraw to |
-| tag | <code>string</code> | Yes | unused |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.chainId | <code>string</code> | No | only STRK is supported |
 | params.settlementExpiration | <code>int</code> | No | settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds |
 
 
 ```javascript
-extended.withdraw (code, amount, address, tag, params?)
+extended.withdraw (code, amount, address, params?)
 ```
 
 

@@ -124,7 +124,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             }
             $extraNames = $extraNames . ', ' . $scopeKey;
         }
-        throw new ArgumentsRequired($this->id . ' fetchEvents() requires at least one of $query, $queries, $tags, $eventId, slug' . $extraNames . ' to scope the search');
+        throw new ArgumentsRequired($this->id . ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' . $extraNames . ' to scope the search');
     }
 
     public function apply_event_fetch_params(array $events, $params = array(), ?array $queries = null) {
@@ -422,7 +422,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     public function outcome(?string $outcomeSymbol) {
         if ($outcomeSymbol === null) {
-            throw new ArgumentsRequired($this->id . ' outcome() requires an $outcomeSymbol argument');
+            throw new ArgumentsRequired($this->id . ' outcome() requires an outcomeSymbol argument');
         }
         if (($this->outcomes === null) || $this->is_empty($this->outcomes)) {
             throw new ExchangeError($this->id . ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
@@ -464,12 +464,14 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if ($outcomeObj !== null) {
             return $outcomeObj;
         }
-        return array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
+        // stub for an unknown handle; it only carries the identity keys, not the market fields
+        $outcomeObjValue = array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
+        return $outcomeObjValue;
     }
 
     public function safe_outcome_symbol(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
-        $outcomeObj = $this->safe_outcome($outcomeIdOrSymbol, $outcomeObj);
-        return $outcomeObj['outcome'];
+        $outcomeObjValue = $this->safe_outcome($outcomeIdOrSymbol, $outcomeObj);
+        return $outcomeObjValue['outcome'];
     }
 
     public function shorten_slug(?string $slug) {
@@ -565,10 +567,8 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        if ($outcome === null) {
-            $outcome = '';
-        }
-        $upper = strtoupper($outcome);
+        $outcomeValue = ($outcome === null) ? '' : $outcome;
+        $upper = strtoupper($outcomeValue);
         $allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         $chars = $this->string_to_chars_array($upper);
         $label = '';
@@ -729,7 +729,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $missingLength = count($missing);
             $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
             $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-            if (($missingLength > 0) && ($loadAll === true) && !$wasWarm && !$reload) {
+            if (($missingLength > 0) && ($loadAll) && !$wasWarm && !$reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 Async\await($this->load_outcomes());
@@ -785,7 +785,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
         // sane on venues whose full universe is one cheap request (hyperliquid)
         if ($outcomeSymbol === null) {
-            throw new ArgumentsRequired($this->id . ' loadOutcome() requires an $outcomeSymbol argument');
+            throw new ArgumentsRequired($this->id . ' loadOutcome() requires an outcomeSymbol argument');
         }
         if (!$reload) {
             if ($this->has_outcome($outcomeSymbol)) {
@@ -802,7 +802,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 }
             }
             $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-            if (($loadAll === true) && !$wasWarm) {
+            if (($loadAll) && !$wasWarm) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -917,7 +917,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order book for a prediction $outcome
          * @param {string} $outcome unified $outcome handle
@@ -1496,11 +1496,13 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         $fallback = $this->safe_string_2($orderbook, 'outcome', 'symbol');
-        $orderbook['outcome'] = ($outcomeObj === null) ? $fallback : $this->safe_string($outcomeObj, 'outcome', $fallback);
-        $orderbook['outcomeId'] = ($outcomeObj === null) ? $this->safe_string($orderbook, 'outcomeId') : $this->safe_string($outcomeObj, 'outcomeId');
-        $orderbook['market'] = ($outcomeObj === null) ? $this->safe_string($orderbook, 'market') : $this->safe_string($outcomeObj, 'market');
+        $identity = array(
+            'outcome' => ($outcomeObj === null) ? $fallback : $this->safe_string($outcomeObj, 'outcome', $fallback),
+            'outcomeId' => ($outcomeObj === null) ? $this->safe_string($orderbook, 'outcomeId') : $this->safe_string($outcomeObj, 'outcomeId'),
+            'market' => ($outcomeObj === null) ? $this->safe_string($orderbook, 'market') : $this->safe_string($outcomeObj, 'market'),
+        );
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-        return $this->omit($orderbook, 'symbol');
+        return $this->extend($this->omit($orderbook, 'symbol'), $identity);
     }
 
     public function parse_prediction_ticker(array $ticker, ?array $market = null) {
@@ -1547,7 +1549,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $results = $this->sort_by_2($results, 'timestamp', 'id');
         $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
-        return $this->filter_by_outcome_since_limit($results, $outcomeHandle, $since, $limit);
+        return $this->filter_by_value_since_limit($results, 'outcome', $outcomeHandle, $since, $limit, 'timestamp', false);
     }
 
     public function parse_prediction_orders(array $orders, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -1682,7 +1684,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     public function int_to_rlp_hex(?int $value) {
         if ($value === null) {
-            throw new ArgumentsRequired($this->id . ' intToRlpHex() requires a $value argument');
+            throw new ArgumentsRequired($this->id . ' intToRlpHex() requires a value argument');
         }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
         if ($value === 0) {

@@ -30,7 +30,9 @@ impl OkxusCore {
     pub fn init(&mut self) {
         let described = OkxusCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -158,6 +160,9 @@ impl crate::exchange::DerivedExchange for OkxusCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -193,31 +198,31 @@ impl OkxusCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("okxus".to_string()));
-        m.insert("name".to_string(), Value::Str("OKX (US)".to_string()));
+        m.insert("id".to_string(), Value::Str("okxus".into()));
+        m.insert("name".to_string(), Value::Str("OKX (US)".into()));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(true));
-        m.insert("hostname".to_string(), Value::Str("us.okx.com".to_string()));
+        m.insert("hostname".to_string(), Value::Str("us.okx.com".into()));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rest".to_string(), Value::Str("https://{hostname}".to_string()));
+        m.insert("rest".to_string(), Value::Str("https://{hostname}".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://app.okx.com".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://app.okx.com/docs-v5/en/#overview".to_string()));
-        m.insert("fees".to_string(), Value::Str("https://app.okx.com/pages/products/fees.html".to_string()));
+        m.insert("www".to_string(), Value::Str("https://app.okx.com".into()));
+        m.insert("doc".to_string(), Value::Str("https://app.okx.com/docs-v5/en/#overview".into()));
+        m.insert("fees".to_string(), Value::Str("https://app.okx.com/pages/products/fees.html".into()));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::Str("https://www.app.okx.com/join/CCXT2023".to_string()));
+        m.insert("url".to_string(), Value::Str("https://www.app.okx.com/join/CCXT2023".into()));
         m.insert("discount".to_string(), Value::Float(0.2));
     m
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rest".to_string(), Value::Str("https://{hostname}".to_string()));
+        m.insert("rest".to_string(), Value::Str("https://{hostname}".into()));
     m
 }));
     m
@@ -246,7 +251,7 @@ impl OkxusCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".into())]));
     m
 }));
     m

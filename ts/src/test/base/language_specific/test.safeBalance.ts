@@ -7,7 +7,6 @@ const { index, aggregate, unCamelCase } = functions;
 
 const equal = strictEqual;
 
-
 function testSafeBalance () {
 
     const exchange = new Exchange ({

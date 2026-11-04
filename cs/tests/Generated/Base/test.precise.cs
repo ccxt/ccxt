@@ -88,27 +88,27 @@ public partial class BaseTest
             Assert(isEqual(Precise.stringMax("3.1415", "-2"), "3.1415"));
             Assert(isEqual(Precise.stringMax("-3.1415", "-2"), "-2"));
             Assert(isEqual(Precise.stringMax("0.000", "-0.0"), "0"));
-            Assert(!isTrue(Precise.stringGt("1.0000", "2")));
+            Assert(!Precise.stringGt("1.0000", "2"));
             Assert(Precise.stringGt("2", "1.2345"));
             Assert(Precise.stringGt("3.1415", "-2"));
-            Assert(!isTrue(Precise.stringGt("-3.1415", "-2")));
-            Assert(!isTrue(Precise.stringGt("3.1415", "3.1415")));
+            Assert(!Precise.stringGt("-3.1415", "-2"));
+            Assert(!Precise.stringGt("3.1415", "3.1415"));
             Assert(Precise.stringGt("3.14150000000000000000001", "3.1415"));
-            Assert(!isTrue(Precise.stringGe("1.0000", "2")));
+            Assert(!Precise.stringGe("1.0000", "2"));
             Assert(Precise.stringGe("2", "1.2345"));
             Assert(Precise.stringGe("3.1415", "-2"));
-            Assert(!isTrue(Precise.stringGe("-3.1415", "-2")));
+            Assert(!Precise.stringGe("-3.1415", "-2"));
             Assert(Precise.stringGe("3.1415", "3.1415"));
             Assert(Precise.stringGe("3.14150000000000000000001", "3.1415"));
             Assert(Precise.stringLt("1.0000", "2"));
-            Assert(!isTrue(Precise.stringLt("2", "1.2345")));
-            Assert(!isTrue(Precise.stringLt("3.1415", "-2")));
+            Assert(!Precise.stringLt("2", "1.2345"));
+            Assert(!Precise.stringLt("3.1415", "-2"));
             Assert(Precise.stringLt("-3.1415", "-2"));
-            Assert(!isTrue(Precise.stringLt("3.1415", "3.1415")));
+            Assert(!Precise.stringLt("3.1415", "3.1415"));
             Assert(Precise.stringLt("3.1415", "3.14150000000000000000001"));
             Assert(Precise.stringLe("1.0000", "2"));
-            Assert(!isTrue(Precise.stringLe("2", "1.2345")));
-            Assert(!isTrue(Precise.stringLe("3.1415", "-2")));
+            Assert(!Precise.stringLe("2", "1.2345"));
+            Assert(!Precise.stringLe("3.1415", "-2"));
             Assert(Precise.stringLe("-3.1415", "-2"));
             Assert(Precise.stringLe("3.1415", "3.1415"));
             Assert(Precise.stringLe("3.1415", "3.14150000000000000000001"));
@@ -157,7 +157,7 @@ public partial class BaseTest
             Assert(isEqual(Precise.stringMul("-1.5E-3", "2"), "-0.003"));
             // comparisons with scientific notation
             Assert(Precise.stringGt("1e3", "999.999"));
-            Assert(!isTrue(Precise.stringLt("1e-3", "0.001"))); // equal values, different representation
+            Assert(!Precise.stringLt("1e-3", "0.001")); // equal values, different representation
             Assert(isEqual(Precise.stringMax("1e3", "999.999"), "1000"));
             Assert(isEqual(Precise.stringMin("999.999", "1e3"), "999.999"));
             // large integers
@@ -206,23 +206,23 @@ public partial class BaseTest
             Assert(isEqual(Precise.stringMax("1", null), null));
             Assert(isEqual(Precise.stringMax(null, null), null));
             // bool false
-            Assert(isEqual(Precise.stringEquals(null, "1"), false));
-            Assert(isEqual(Precise.stringEquals("1", null), false));
-            Assert(isEqual(Precise.stringEquals(null, null), false));
-            Assert(isEqual(Precise.stringEq(null, "1"), false));
-            Assert(isEqual(Precise.stringEq("1", null), false));
-            Assert(isEqual(Precise.stringEq(null, null), false));
-            Assert(isEqual(Precise.stringGt(null, "1"), false));
-            Assert(isEqual(Precise.stringGt("1", null), false));
-            Assert(isEqual(Precise.stringGt(null, null), false));
-            Assert(isEqual(Precise.stringGe(null, "1"), false));
-            Assert(isEqual(Precise.stringGe("1", null), false));
-            Assert(isEqual(Precise.stringGe(null, null), false));
-            Assert(isEqual(Precise.stringLt(null, "1"), false));
-            Assert(isEqual(Precise.stringLt("1", null), false));
-            Assert(isEqual(Precise.stringLt(null, null), false));
-            Assert(isEqual(Precise.stringLe(null, "1"), false));
-            Assert(isEqual(Precise.stringLe("1", null), false));
-            Assert(isEqual(Precise.stringLe(null, null), false));
+            Assert(!Precise.stringEquals(null, "1"));
+            Assert(!Precise.stringEquals("1", null));
+            Assert(!Precise.stringEquals(null, null));
+            Assert(!Precise.stringEq(null, "1"));
+            Assert(!Precise.stringEq("1", null));
+            Assert(!Precise.stringEq(null, null));
+            Assert(!Precise.stringGt(null, "1"));
+            Assert(!Precise.stringGt("1", null));
+            Assert(!Precise.stringGt(null, null));
+            Assert(!Precise.stringGe(null, "1"));
+            Assert(!Precise.stringGe("1", null));
+            Assert(!Precise.stringGe(null, null));
+            Assert(!Precise.stringLt(null, "1"));
+            Assert(!Precise.stringLt("1", null));
+            Assert(!Precise.stringLt(null, null));
+            Assert(!Precise.stringLe(null, "1"));
+            Assert(!Precise.stringLe("1", null));
+            Assert(!Precise.stringLe(null, null));
         }
 }

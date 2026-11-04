@@ -1201,13 +1201,6 @@ public partial class bingx : Exchange
         return await this.callAsync<Dictionary<string, object>> ("userAuthPrivateDeleteUserDataStream",parameters);
     }
 
-    /// <summary>Calls the copyTradingV1PrivateGetSwapTraceCurrentTrack endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> copyTradingV1PrivateGetSwapTraceCurrentTrack (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("copyTradingV1PrivateGetSwapTraceCurrentTrack",parameters);
-    }
-
     /// <summary>Calls the copyTradingV1PrivateGetPFuturesTraderDetail endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> copyTradingV1PrivateGetPFuturesTraderDetail (object parameters = null)
@@ -1262,13 +1255,6 @@ public partial class bingx : Exchange
     public async Task<Dictionary<string, object>> copyTradingV1PrivateGetSpotHistoryOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("copyTradingV1PrivateGetSpotHistoryOrder",parameters);
-    }
-
-    /// <summary>Calls the copyTradingV1PrivatePostSwapTraceCloseTrackOrder endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> copyTradingV1PrivatePostSwapTraceCloseTrackOrder (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("copyTradingV1PrivatePostSwapTraceCloseTrackOrder",parameters);
     }
 
     /// <summary>Calls the copyTradingV1PrivatePostSwapTraceSetTPSL endpoint.</summary>
@@ -1327,18 +1313,18 @@ public partial class bingx : Exchange
         return await this.callAsync<Dictionary<string, object>> ("apiV3PrivatePostPostAssetTransfer",parameters);
     }
 
+    /// <summary>Calls the apiAssetV1PrivateGetTransferSupportCoins endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> apiAssetV1PrivateGetTransferSupportCoins (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("apiAssetV1PrivateGetTransferSupportCoins",parameters);
+    }
+
     /// <summary>Calls the apiAssetV1PrivatePostTransfer endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> apiAssetV1PrivatePostTransfer (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("apiAssetV1PrivatePostTransfer",parameters);
-    }
-
-    /// <summary>Calls the apiAssetV1PublicGetTransferSupportCoins endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> apiAssetV1PublicGetTransferSupportCoins (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("apiAssetV1PublicGetTransferSupportCoins",parameters);
     }
 
     /// <summary>Calls the agentV1PrivateGetAccountInviteAccountList endpoint.</summary>

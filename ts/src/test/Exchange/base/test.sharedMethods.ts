@@ -236,7 +236,6 @@ function assertSymbolInMarkets (exchange: Exchange, skippedProperties: object, m
     assert ((exchange.markets !== undefined) && (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
 }
 
-
 function assertGreater (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
@@ -295,6 +294,16 @@ function assertEqual (exchange: Exchange, skippedProperties: object, method: str
     if (value !== undefined && compareTo !== undefined) {
         assert (Precise.stringEq (value, compareTo), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') was expected to be equal to ' + stringValue (compareTo) + logText);
     }
+}
+
+function assertUnifiedNetworkCode (exchange: Exchange, skippedProperties: object, method: string, entry: object, networkCode: Str) {
+    // returned network codes must be the unified code, never one of its aliases (e.g. ERC20, not ETH)
+    if (('network' in skippedProperties) || (networkCode === undefined)) {
+        return;
+    }
+    const logText = logTemplate (exchange, method, entry);
+    const unifiedCode = exchange.safeString (exchange.networkAliases, networkCode, networkCode);
+    assert (unifiedCode === networkCode, 'network code ' + networkCode + ' is an alias, expected the unified code ' + unifiedCode + logText);
 }
 
 function assertNonEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
@@ -696,7 +705,6 @@ function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, tick
     assert (eMessage === '', eMessage); // trigger error
 }
 
-
 export default {
     exchangeProp,
     deepEqual,
@@ -718,6 +726,7 @@ export default {
     assertLessOrEqual,
     assertEqual,
     assertNonEqual,
+    assertUnifiedNetworkCode,
     assertInteger,
     checkPrecisionAccuracy,
     fetchBestBidAsk,

@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicCommonGetV2PublicAnnoucements(params?: {}): Promise<Dict>;
     publicCommonGetV2PublicTime(params?: {}): Promise<Dict>;
     publicSpotGetSpotV1NoticeQueryAllNotices(params?: {}): Promise<Dict>;
@@ -116,6 +116,17 @@ interface Exchange {
     publicUtaGetV3MarketFuturesLongShort(params?: {}): Promise<Dict>;
     publicUtaGetV3MarketFuturesPositionLongShort(params?: {}): Promise<Dict>;
     publicUtaGetV3MarketFuturesAccountLongShort(params?: {}): Promise<Dict>;
+    publicUtaGetV3StockplusMarketStatic(params?: {}): Promise<Dict>;
+    publicUtaGetV3StockplusMarketQuote(params?: {}): Promise<Dict>;
+    publicUtaGetV3StockplusMarketIntraday(params?: {}): Promise<Dict>;
+    publicUtaGetV3StockplusMarketDepth(params?: {}): Promise<Dict>;
+    publicUtaGetV3StockplusMarketCandlestick(params?: {}): Promise<Dict | List | string>;
+    publicUtaGetV3StockplusMarketHistoryCandlestick(params?: {}): Promise<Dict | List | string>;
+    publicUtaGetV3StockplusMarketTrade(params?: {}): Promise<Dict>;
+    publicUtaGetV3StockplusMarketOptionQuote(params?: {}): Promise<Dict>;
+    publicUtaGetV3StockplusMarketOptionChainInfo(params?: {}): Promise<Dict>;
+    publicUtaGetV3StockplusMarketOptionExpiryDate(params?: {}): Promise<Dict>;
+    publicUtaGetV3StockplusMarketOptionVolume(params?: {}): Promise<Dict>;
     publicUtaGetV3RealityMarketStockInfo(params?: {}): Promise<Dict>;
     publicUtaGetV3RealityMarketStates(params?: {}): Promise<Dict>;
     publicUtaGetV3RealityMarketCalendar(params?: {}): Promise<Dict>;
@@ -641,6 +652,17 @@ interface Exchange {
     privateUtaGetV3PositionCurrentPosition(params?: {}): Promise<Dict>;
     privateUtaGetV3PositionHistoryPosition(params?: {}): Promise<Dict>;
     privateUtaGetV3PositionAdlRank(params?: {}): Promise<Dict>;
+    privateUtaGetV3AccountRealityOrderbook(params?: {}): Promise<Dict>;
+    privateUtaGetV3AccountRealityFills(params?: {}): Promise<Dict>;
+    privateUtaGetV3StockplusAssetTransferRecords(params?: {}): Promise<Dict>;
+    privateUtaGetV3StockplusAssetAccount(params?: {}): Promise<Dict>;
+    privateUtaGetV3StockplusAssetStockPosition(params?: {}): Promise<Dict>;
+    privateUtaGetV3StockplusAssetCashFlow(params?: {}): Promise<Dict>;
+    privateUtaGetV3StockplusTradeTodayOrders(params?: {}): Promise<Dict>;
+    privateUtaGetV3StockplusTradeHistoryOrders(params?: {}): Promise<Dict>;
+    privateUtaGetV3StockplusTradeOrderDetail(params?: {}): Promise<Dict>;
+    privateUtaGetV3StockplusTradeTodayExecutions(params?: {}): Promise<Dict>;
+    privateUtaGetV3StockplusTradeHistoryExecutions(params?: {}): Promise<Dict>;
     privateUtaGetV3TaxRecords(params?: {}): Promise<Dict>;
     privateUtaGetV3TradeOrderInfo(params?: {}): Promise<Dict>;
     privateUtaGetV3TradeUnfilledOrders(params?: {}): Promise<Dict>;
@@ -663,8 +685,6 @@ interface Exchange {
     privateUtaGetV3AccountEligibleLoanInfo(params?: {}): Promise<Dict>;
     privateUtaGetV3AccountEligibleDiscountRate(params?: {}): Promise<Dict>;
     privateUtaGetV3AccountFundingFinancialRecords(params?: {}): Promise<Dict>;
-    privateUtaGetV3AccountRealityOrderbook(params?: {}): Promise<Dict>;
-    privateUtaGetV3AccountRealityFills(params?: {}): Promise<Dict>;
     privateUtaGetV3CopyFuturesTradingPairs(params?: {}): Promise<Dict>;
     privateUtaGetV3CopyFuturesPositionSummary(params?: {}): Promise<Dict>;
     privateUtaGetV3CopyFuturesMaxTransferable(params?: {}): Promise<Dict>;
@@ -699,15 +719,6 @@ interface Exchange {
     privateUtaGetV3StockplusMarketIntraday(params?: {}): Promise<Dict>;
     privateUtaGetV3StockplusMarketHistoryCandlestick(params?: {}): Promise<Dict>;
     privateUtaGetV3StockplusMarketCandlestick(params?: {}): Promise<Dict>;
-    privateUtaGetV3StockplusTradeTodayOrders(params?: {}): Promise<Dict>;
-    privateUtaGetV3StockplusTradeHistoryOrders(params?: {}): Promise<Dict>;
-    privateUtaGetV3StockplusTradeOrderDetail(params?: {}): Promise<Dict>;
-    privateUtaGetV3StockplusTradeTodayExecutions(params?: {}): Promise<Dict>;
-    privateUtaGetV3StockplusTradeHistoryExecutions(params?: {}): Promise<Dict>;
-    privateUtaGetV3StockplusAssetAccount(params?: {}): Promise<Dict>;
-    privateUtaGetV3StockplusAssetCashFlow(params?: {}): Promise<Dict>;
-    privateUtaGetV3StockplusAssetStockPosition(params?: {}): Promise<Dict>;
-    privateUtaGetV3StockplusAssetTransferRecords(params?: {}): Promise<Dict>;
     privateUtaGetV3P2pAdList(params?: {}): Promise<Dict>;
     privateUtaGetV3P2pAdInfo(params?: {}): Promise<Dict>;
     privateUtaGetV3P2pAdLimit(params?: {}): Promise<Dict>;
@@ -743,6 +754,10 @@ interface Exchange {
     privateUtaPostV3LoanBorrow(params?: {}): Promise<Dict>;
     privateUtaPostV3LoanRepay(params?: {}): Promise<Dict>;
     privateUtaPostV3LoanRevisePledge(params?: {}): Promise<Dict>;
+    privateUtaPostV3StockplusAssetTransfer(params?: {}): Promise<Dict>;
+    privateUtaPostV3StockplusTradePlaceOrder(params?: {}): Promise<Dict>;
+    privateUtaPostV3StockplusTradeModifyOrder(params?: {}): Promise<Dict>;
+    privateUtaPostV3StockplusTradeCancelOrder(params?: {}): Promise<Dict>;
     privateUtaPostV3TradePlaceOrder(params?: {}): Promise<Dict>;
     privateUtaPostV3TradePlaceStrategyOrder(params?: {}): Promise<Dict>;
     privateUtaPostV3TradeModifyOrder(params?: {}): Promise<Dict>;
@@ -782,17 +797,11 @@ interface Exchange {
     privateUtaPostV3TradeGridModifyNeutralGridInterval(params?: {}): Promise<Dict>;
     privateUtaPostV3UserSetRateLimitQuota(params?: {}): Promise<Dict>;
     privateUtaPostV3UserSubAccountAgentCreate(params?: {}): Promise<Dict>;
-    privateUtaPostV3StockplusTradePlaceOrder(params?: {}): Promise<Dict>;
-    privateUtaPostV3StockplusTradeCancelOrder(params?: {}): Promise<Dict>;
-    privateUtaPostV3StockplusTradeModifyOrder(params?: {}): Promise<Dict>;
-    privateUtaPostV3StockplusAssetTransfer(params?: {}): Promise<Dict>;
     privateUtaPostV3P2pAdCreate(params?: {}): Promise<Dict>;
     privateUtaPostV3P2pAdUpdate(params?: {}): Promise<Dict>;
     privateUtaPostV3P2pAdOperate(params?: {}): Promise<Dict>;
     privateUtaPostV3P2pFeeSimulate(params?: {}): Promise<Dict>;
     privateUtaPostV3P2pOrderPay(params?: {}): Promise<Dict>;
     privateUtaPostV3P2pOrderRelease(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

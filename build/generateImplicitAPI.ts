@@ -11,6 +11,7 @@ import ts from 'typescript6';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { applyJavaImports } from './javaUtilImports.js';
+import { goPredictionEndpointBody, goPredictionNeedsCcxtImport } from './go-pred-endpoint.js';
 
 const HTTP_METHODS = [ 'get', 'post', 'put', 'delete', 'patch' ];
 
@@ -23,6 +24,25 @@ const ENDPOINT_NAME = 'Endpoint';
 const ROOT = path.join (path.dirname (fileURLToPath (import.meta.url)), '..');
 
 type ReturnTypes = { [method: string]: string };
+
+// TS literal in the eslint.config.mjs main style: single quotes, spaced brackets and braces.
+const tsString = (s: string): string => (s.includes ("'") ? JSON.stringify (s) : "'" + JSON.stringify (s).slice (1, -1).replace (/\\"/g, '"') + "'");
+const isFilledObject = (v: any): boolean => (v !== null && typeof v === 'object' && !Array.isArray (v) && Object.keys (v).length > 0);
+const tsLiteral = (value: any): string => {
+    if (Array.isArray (value)) {
+        return value.length ? '[ ' + value.map (tsLiteral).join (', ') + ' ]' : '[]';
+    }
+    if (value !== null && typeof value === 'object') {
+        const entries = Object.entries (value);
+        if (!entries.length) {
+            return '{}';
+        }
+        // object-curly-spacing objectsInObjects:false — no space before '}' when the last value is an object
+        const close = isFilledObject (entries[entries.length - 1][1]) ? '}' : ' }';
+        return '{ ' + entries.map (([ k, v ]) => tsString (k) + ': ' + tsLiteral (v)).join (', ') + close;
+    }
+    return (typeof value === 'string') ? tsString (value) : JSON.stringify (value);
+};
 
 const capitalize = (s: string): string => {
     return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
@@ -495,6 +515,13 @@ let storedRustMethods: Dict = {};
 // straight from the base). Used by the Go emitter to skip endpoints the parent
 // core already declares (see createImplicitMethodsGo).
 let storedParents: Dict = {};
+// exchange id -> set of endpoint names reachable in the class's OWN api tree
+// (`instance.api`). The Go emitter bakes the TransformedApi entry into a wrapper
+// only for these (see createImplicitMethodsGo).
+let storedResolvableNames: Dict = {};
+// pro id -> its pro parent, for pro classes that extend the parent's pro class rather
+// than their own rest class: they get their endpoints from abstract/pro/<id>.ts
+let storedDetachedPro: Dict = {};
 
 // when true, we are generating the implicit APIs for the prediction-market
 // exchanges (ts/src/prediction/) which live in their own namespace/subfolder
@@ -513,6 +540,8 @@ function resetStoredMethods () {
     storedGoMethods = {};
     storedJavaMethods = {};
     storedParents = {};
+    storedResolvableNames = {};
+    storedDetachedPro = {};
 }
 
 
@@ -617,7 +646,10 @@ function getPreamble () {
 
 //-------------------------------------------------------------------------
 
-function generateImplicitMethodNames(id: string, api: string, paths: string[] = []){
+// resolvable walks an api tree and maps each derived camelCase endpoint name to
+// the tree data the Go emitter can bake (endpoint, path chain, verb, resolved
+// cost), without touching the stored* state.
+function generateImplicitMethodNames(id: string, api: string, paths: string[] = [], resolvable?: Map<string, Dict>){
     const keys = Object.keys(api);
     for (const key of keys){
         let value = api[key];
@@ -642,9 +674,6 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                 const result = paths.concat (key).concat (endpoint.split (pattern)).filter(r => r.length > 0);
                 let camelCasePath = result.map(capitalize).join('');
                 camelCasePath = lowercaseFirstLetter(camelCasePath);
-                storedCamelCaseMethods[id].push (camelCasePath)
-                let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
-                storedUnderscoreMethods[id].push (underscorePath)
                 let config: {} | undefined = undefined
                 if (Array.isArray (value)) {
                     config = {}
@@ -654,6 +683,13 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                         config = { 'cost': config }
                     }
                 }
+                if (resolvable) {
+                    resolvable.set (camelCasePath, { endpoint, paths, method: key.toUpperCase (), goCost: endpointCost (config) })
+                    continue
+                }
+                storedCamelCaseMethods[id].push (camelCasePath)
+                let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
+                storedUnderscoreMethods[id].push (underscorePath)
                 // Nothing has to be stripped from the config here: the response
                 // shape is declared as an erased type assertion on the api leaf
                 // (`{ 'cost': 1 } as Endpoint<List>`), so it never becomes a
@@ -664,15 +700,18 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                 const phpConfig = JSON.stringify (config).replace (/{/g, 'array(').replace (/:/g, ' => ').replace (/}/g, ')').replace (/,/g, ', ')
                 storedContext[id].push ({
                     endpoint,
-                    phpPath: paths.length === 1 ? `'${paths[0]}'` : 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
-                    pyPath: paths.length === 1 ? `'${paths[0]}'` : '[' + paths.map (x => `'${x}'`).join (', ') + ']',
+                    paths,
+                    tsPath: tsLiteral (paths),
+                    tsConfig: tsLiteral (config),
+                    phpPath: 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
+                    pyPath: '[' + paths.map (x => `'${x}'`).join (', ') + ']',
                     phpConfig: phpConfig,
                     pyConfig: pyConfig,
                     method: key.toUpperCase (),
                 })
             }
         } else {
-            generateImplicitMethodNames(id, value, paths.concat([ key ]))
+            generateImplicitMethodNames(id, value, paths.concat([ key ]), resolvable)
         }
     }
 }
@@ -706,9 +745,6 @@ function createImplicitMethodsPhp(){
         const camelCaseMethods = storedCamelCaseMethods[exchange];
         const underscoreMethods = storedUnderscoreMethods[exchange]
 
-        const typeScriptMethods = camelCaseMethods.map (method => {
-            return `${IDEN}${method} (params?: {}): Promise<${typescriptReturnType (exchange, method)}>;`
-        });
         const phpMethods = underscoreMethods.concat (camelCaseMethods).map ((method, idx) => {
             const i = idx % underscoreMethods.length
             const context = storedContext[exchange][i]
@@ -723,7 +759,7 @@ function createImplicitMethodsPhp(){
 ${IDEN} * @return \\React\\Promise\\PromiseInterface<${bodyShape}>
 ${IDEN} */
 ${IDEN}public function ${method}($params = array()): \\React\\Promise\\PromiseInterface {
-${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, ${context.phpConfig});
 ${IDEN}}`
             }
             // Sync REST: shape stays in @return only. A native `: array` TypeErrors when
@@ -733,15 +769,11 @@ ${IDEN}}`
 ${IDEN} * @return ${bodyShape}
 ${IDEN} */
 ${IDEN}public function ${method}($params = array()) {
-${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, ${context.phpConfig});
 ${IDEN}}`
         })
 
-        typeScriptMethods.push ('}')
         phpMethods.push ('}')
-        const footer = storedTypeScriptMethods[exchange].pop ()
-        storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
-        finalizeTypescriptImport (exchange)
         storedPhpMethods[exchange] = storedPhpMethods[exchange].concat (phpMethods)
     }
 }
@@ -754,14 +786,46 @@ function createImplicitMethodsTs(){
         const exchange = exchanges[index];
         const camelCaseMethods = storedCamelCaseMethods[exchange];
 
-        const typeScriptMethods = camelCaseMethods.map (method => {
-            return `${IDEN}${method} (params?: {}): Promise<${typescriptReturnType (exchange, method)}>;`
-        });
-        typeScriptMethods.push ('}')
+        const inherited = typescriptInheritedNames (exchange);
+        // lines-between-class-members: one blank line between generated methods
+        const typeScriptMethods = [ camelCaseMethods.map ((method, i) => typescriptMethod (exchange, method, storedContext[exchange][i], inherited)).join ('\n\n') ];
+        typeScriptMethods.push ('}', '')
         const footer = storedTypeScriptMethods[exchange].pop ()
         storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
         finalizeTypescriptImport (exchange)
     }
+}
+
+// the camelCase name users call an endpoint by; the snake_case alias is attached at runtime
+function typescriptMethodName (context: Dict): string {
+    const cap = (x: string) => x.charAt (0).toUpperCase () + x.slice (1);
+    const paths: string[] = context.paths;
+    const lower = context.method.toLowerCase ();
+    const splitPath = context.endpoint.trim ().split (/[^a-zA-Z0-9]/);
+    const camel = [ paths[0] ].concat (paths.slice (1).map (cap)).join ('') + cap (lower) + cap (splitPath.map (cap).join (''));
+    return camel;
+}
+
+// every endpoint name the parent's generated abstract already defines
+function typescriptInheritedNames (exchange: string): Set<string> {
+    const parent = storedParents[exchange];
+    const names = new Set<string> ();
+    for (const context of storedContext[parent] || []) {
+        names.add (typescriptMethodName (context));
+    }
+    return names;
+}
+
+// one implicit endpoint as a real method of the abstract class
+function typescriptMethod (exchange: string, method: string, context: Dict, inherited: Set<string>): string {
+    const returnType = typescriptReturnType (exchange, method);
+    const call = `return this.request (${tsString (context.endpoint.trim ())}, ${context.tsPath}, '${context.method}', params, ${context.tsConfig});`;
+    const name = typescriptMethodName (context);
+    return [
+        `${IDEN}${inherited.has (name) ? 'override ' : ''}${name} (params = {}): Promise<${returnType}> {`,
+        `${IDEN}${IDEN}${call}`,
+        `${IDEN}}`,
+    ].join ('\n')
 }
 
 // -------------------------------------------------------------------------
@@ -878,7 +942,7 @@ function createImplicitMethodsRust(){
             return [[
                 `${IDEN}/// Auto-generated wrapper for the \`${camel}\` implicit endpoint.`,
                 `${IDEN}pub async fn ${snake}(&mut self, optional_args: &[Value]) -> Value {`,
-                `${IDEN}${IDEN}self.call_method(Value::Str("${snake}".to_string()), optional_args).await`,
+                `${IDEN}${IDEN}self.call_method(Value::Str("${snake}".into()), optional_args).await`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')];
@@ -887,6 +951,79 @@ function createImplicitMethodsRust(){
         // Close the `impl <Core>` block opened in createRustHeader.
         storedRustMethods[exchange].push('}');
     }
+}
+
+// the price of an endpoint as callEndpoint resolves it out of the TransformedApi
+// entry: config['cost'], a bare numeric config, or the 1 default. Only a whole
+// number is bakeable: the ported api dict carries a fractional cost as the source
+// expression that produced it (`10 / 3`), which Go evaluates by integer division,
+// so a fractional cost returns null and keeps the runtime dispatch.
+function endpointCost (config: any): number | null {
+    if (typeof config === 'number') {
+        return Number.isInteger (config) ? config : null;
+    }
+    if (config === null || config === undefined) {
+        return 1;
+    }
+    if (typeof config === 'object' && !Array.isArray (config)) {
+        const cost = config['cost'];
+        if (cost === undefined) {
+            return 1;
+        }
+        return (typeof cost === 'number' && Number.isInteger (cost)) ? cost : null;
+    }
+    return null;
+}
+
+// Body of a generated Go endpoint wrapper. When the class's own api tree
+// declares the endpoint, the lookup callEndpoint performs is replaced by the
+// entry itself — path, path chain, verb and cost are baked from that same tree,
+// and args are thinned the way callEndpoint thins them (GetArg(args, 0, nil), an
+// empty headers dict, nil body). Every other endpoint keeps the runtime
+// dispatch: its TransformedApi table has no entry, so it resolves to nil today.
+function goBakes (resolvable: any): boolean {
+    return !!(resolvable && typeof resolvable.goCost === 'number' && typeof resolvable.endpoint === 'string');
+}
+
+// Go spelling of a declared shape as a channel element. The same channel also carries the
+// transport's recovered panic string, so the element is a carrier over the value: the shape
+// narrows without giving up the failure path.
+const GO_RETURN_TYPES: Dict = {
+    'Dict': 'map[string]any',
+    'List': '[]any',
+    'string': 'string',
+};
+
+// the element of a generated Go endpoint channel. A union or an undeclared shape has no
+// member that would be honest for every response, and the runtime dispatch is not asserted
+// by the api leaf, so both keep the widest element.
+function goChannelElement (exchange: string, method: string, resolvable: any): string {
+    if (!goBakes (resolvable)) {
+        return 'any'
+    }
+    const members = returnTypeMembers (exchange, method)
+    const element = (members.length === 1) ? GO_RETURN_TYPES[members[0]] : undefined
+    return element || 'any'
+}
+
+// the channel type as written in the signature; the carrier is package-local in ccxt and is
+// reached through the ccxt import in ccxtprediction
+function goChannelType (element: string, pkgPrefix: string): string {
+    return (element === 'any') ? (pkgPrefix + 'AsyncResult[any]') : (pkgPrefix + 'EndpointResult[' + element + ']')
+}
+
+function goEndpointBody (method: string, resolvable: any, callEndpoint: string, pkgPrefix: string, element: string): string {
+    if (!goBakes (resolvable)) {
+        return `\treturn this.${callEndpoint}("${method}", args...)`
+    }
+    const paths: string[] = resolvable.paths || []
+    // the api argument is always the []string of walked path levels
+    const api = `[]string{${paths.map (x => JSON.stringify (x)).join (', ')}}`
+    const call = `${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(${resolvable.goCost})}`
+    if (element === 'any') {
+        return `\treturn this.Fetch2Async(${call})`
+    }
+    return `\treturn ${pkgPrefix}Fetch2Result[${element}](this, ${call})`
 }
 
 function createImplicitMethodsGo(){
@@ -918,6 +1055,10 @@ function createImplicitMethodsGo(){
         // cannot access the unexported callEndpointAsync from package ccxt — use the
         // exported wrapper instead
         const callEndpoint = isPrediction ? 'CallEndpointAsync' : 'callEndpointAsync';
+        // prediction exchanges live in package ccxtprediction and take the
+        // package-level helpers through the ccxt import (GetArg is not re-exported
+        // into that package)
+        const pkgPrefix = isPrediction ? 'ccxt.' : '';
         // A derived exchange's core embeds its parent's core in Go
         // (`type BinanceusCore struct { BinanceCore }`), so every endpoint the parent
         // already declares is promoted onto the child receiver. Re-emitting those
@@ -932,11 +1073,14 @@ function createImplicitMethodsGo(){
             }
         }
         const ownMethodNames = methodNames.filter (method => !(capitalize(method) in inherited));
-        const methods = ownMethodNames.map(method=> {
+        const resolvable: Map<string, Dict> = storedResolvableNames[exchange] || new Map<string, Dict> ();
+        const methods = ownMethodNames.map(method => {
+            const own = resolvable.get (method);
+            const element = goChannelElement (exchange, method, own);
             return [
                 `// ${capitalize(method)} returns a channel that yields ${proseReturnShape (exchange, method)}.`,
-                `func (this *${capitalize(exchange)}) ${capitalize(method)}(args ...any) <-chan any {`,
-                `\treturn this.${callEndpoint}("${method}", args...)`,
+                `func (this *${capitalize(exchange)}) ${capitalize(method)}(args ...any) <-chan ${goChannelType (element, pkgPrefix)} {`,
+                isPrediction ? goPredictionEndpointBody (goEndpointBody (method, own, callEndpoint, pkgPrefix, element)) : goEndpointBody (method, own, callEndpoint, pkgPrefix, element),
                 `}`,
                 ``,
             ].join('\n')
@@ -949,6 +1093,10 @@ function createImplicitMethodsGo(){
             // ].join('\n')
         });
         // methods.unshift (reusableMethod);
+        if (isPrediction && goPredictionNeedsCcxtImport (methods)) {
+            // baked bodies (GetArg) and every channel type (AsyncResult) name package ccxt
+            storedGoMethods[exchange].push (`import ccxt "github.com/ccxt/ccxt/go/v4"`, '')
+        }
         storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
     }
 }
@@ -962,6 +1110,19 @@ async function editFiles (path: string, methods: Dict, extension: string) {
     const files = exchanges.map (ex => path + ex + extension)
     await Promise.all (files.map ((path, idx) => writeFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
     // await unlinkFiles (path, extension)
+}
+
+// the same endpoints, layered over the pro parent for the pro classes in storedDetachedPro
+async function editDetachedProFilesTs () {
+    const ids = Object.keys (storedDetachedPro);
+    fs.mkdirSync (TS_PATH + 'pro/', { recursive: true });
+    await Promise.all (ids.map ((id) => {
+        const parent = storedDetachedPro[id];
+        const lines = storedTypeScriptMethods[id].map ((line: string) => line
+            .replace (`import _${parent} from '../${parent}.js';`, `import _${parent} from '../../pro/${parent}.js';`)
+            .replace (`from '../base/types.js';`, `from '../../base/types.js';`));
+        return writeFile (TS_PATH + 'pro/' + id + '.ts', lines.join ('\n') + '\n');
+    }));
 }
 
 async function unlinkFiles (path: string, extension: string) {
@@ -1025,8 +1186,8 @@ function createTypescriptHeader(instance: Exchange, parent: string){
     } else {
         importParent = `import _${parent} from '${basePath}${parent}.js';`
     }
-    const typescriptHeader = `interface ${parent} {`
-    const typescriptFooter = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
+    const typescriptHeader = `abstract class ${parent} extends _${parent} {`
+    const typescriptFooter = `export default ${parent};` // hotswap later
     storedTypeScriptMethods[exchange] = [ getPreamble (), importType, importParent, '', typescriptHeader, typescriptFooter ];
 }
 
@@ -1143,6 +1304,10 @@ function populateImplicitMethods(exchanges: string[]) {
             const proInstance = new proContainer[exchange] ()
             api = proInstance.api
             describing = proInstance;
+            const proParent = Object.getPrototypeOf (proContainer[exchange]);
+            if (!(proContainer[exchange].prototype instanceof exchangeClass) && proParent.name !== 'Exchange') {
+                storedDetachedPro[exchange] = proParent.name;
+            }
         }
         const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
         createTypescriptHeader(instance, parent);
@@ -1157,6 +1322,13 @@ function populateImplicitMethods(exchanges: string[]) {
         storedCamelCaseMethods[exchange] = []
         storedUnderscoreMethods[exchange] = []
         storedContext[exchange] = []
+        // the endpoints this class's own api tree declares, with the tree data the
+        // Go emitter bakes (see goEndpointBody); pro-only WS endpoints are absent
+        // and keep the dispatch
+        storedResolvableNames[exchange] = new Map<string, Dict> ()
+        if (instance.api) {
+            generateImplicitMethodNames (exchange, instance.api, [], storedResolvableNames[exchange])
+        }
         // The api tree this instance exposes is the deep merge of describe()
         // along its prototype chain, so the declared shapes are merged the same
         // way — over the same files, in the same order — read from the
@@ -1186,9 +1358,12 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
     log.bright.cyan ('Exporting TypeScript implicit api methods', subdir ? ('(' + subdir + ')') : '')
     populateImplicitMethods(exchanges); // common step for all languages
 
-    if (shouldGenerateAll || langKeys['--ts']) {
+    // typed ports (go/cs/java/rust) check their stubs against the TS abstract: emit it with them
+    const typedPort = langKeys['--go'] || langKeys['--csharp'] || langKeys['--java'] || langKeys['--rust'];
+    if (shouldGenerateAll || langKeys['--ts'] || typedPort) {
         createImplicitMethodsTs ()
         await editFiles (TS_PATH + subdir, storedTypeScriptMethods, '.ts');
+        await editDetachedProFilesTs ();
         log.bright.cyan ('TypeScript implicit api methods completed!')
 
     }

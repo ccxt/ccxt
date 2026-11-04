@@ -1,6 +1,6 @@
 Every endpoint in `hibachi`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/hibachi) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetMarketExchangeInfo`); the snake_case alias (`public_get_market_exchange_info`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetMarketExchangeInfo`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetMarketExchangeInfo`); Python and PHP use the snake_case form (`public_get_market_exchange_info`), and Go uses the PascalCase form (`PublicGetMarketExchangeInfo`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -53,7 +53,7 @@ response := <-hibachi.PublicGetMarketExchangeInfo(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official hibachi API documentation:** [hibachi.xyz](https://www.hibachi.xyz/)
+📚 **Official hibachi API documentation:** [api-doc.hibachi.xyz](https://api-doc.hibachi.xyz/)
 
 > 28 implicit endpoints across 2 access groups.
 
