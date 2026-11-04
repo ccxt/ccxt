@@ -2312,28 +2312,22 @@ virtual void testHasProps(ccxt::any exchange) {
   ccxt::any fetchOrderBookSkips =
       this->getSkips(exchange, std::string("fetchOrderBook"));
   // ensure with hardcoded list of required methods
-  if (isTrue(
-          isTrue(isTrue(this->wsTests) &&
-                 isTrue((!isEqual(
-                     callDynamically(
-                         exchange, std::string("safeBool"),
-                         ccxt::list{getProperty(exchange, std::string("has")),
-                                    std::string("watchOrderBook"), false}),
-                     true)))) &&
-          isTrue(!isString(watchOrderBookSkips)))) {
+  if (isTrue(isTrue(isTrue(this->wsTests) &&
+                    isTrue((!isTrue(callDynamically(
+                        exchange, std::string("safeBool"),
+                        ccxt::list{getProperty(exchange, std::string("has")),
+                                   std::string("watchOrderBook"), false}))))) &&
+             isTrue(!isString(watchOrderBookSkips)))) {
     dump(std::string("[TEST_FAILURE] Method \"watchOrderBook\" is not set in "
                      "\"has\", please check the \"has\" property of exchange"));
     exitScript(1);
-  } else if (isTrue(
-                 isTrue(!isTrue(this->wsTests) &&
-                        isTrue((!isEqual(
-                            callDynamically(
-                                exchange, std::string("safeBool"),
-                                ccxt::list{
-                                    getProperty(exchange, std::string("has")),
-                                    std::string("fetchOrderBook"), false}),
-                            true)))) &&
-                 isTrue(!isString(fetchOrderBookSkips)))) {
+  } else if (isTrue(isTrue(!isTrue(this->wsTests) &&
+                           isTrue((!isTrue(callDynamically(
+                               exchange, std::string("safeBool"),
+                               ccxt::list{
+                                   getProperty(exchange, std::string("has")),
+                                   std::string("fetchOrderBook"), false}))))) &&
+                    isTrue(!isString(fetchOrderBookSkips)))) {
     dump(std::string("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in "
                      "\"has\", please check the \"has\" property of exchange"));
     exitScript(1);
@@ -3666,7 +3660,7 @@ testExchangeWsStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                    ccxt::any isDisabled = callDynamically(
                        exchange, std::string("safeBool"),
                        ccxt::list{result, std::string("disabled"), false});
-                   if (isTrue(isEqual(isDisabled, true))) {
+                   if (isTrue(isDisabled)) {
                      continue;
                    }
                    ccxt::any disabledString = callDynamically(
@@ -3726,6 +3720,24 @@ testExchangeWsStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                    callDynamically(exchange,
                                    std::string("extendExchangeOptions"),
                                    ccxt::list{testExchangeOptions});
+                   ccxt::any apiKey = callDynamically(
+                       exchange, std::string("safeString"),
+                       ccxt::list{result, std::string("apiKey")});
+                   if (!isTrue(callDynamically(exchange,
+                                               std::string("isEmptyString"),
+                                               ccxt::list{apiKey}))) {
+                     setProperty(exchange, std::string("apiKey"),
+                                 toString(apiKey));
+                   }
+                   ccxt::any secret = callDynamically(
+                       exchange, std::string("safeString"),
+                       ccxt::list{result, std::string("secret")});
+                   if (!isTrue(callDynamically(exchange,
+                                               std::string("isEmptyString"),
+                                               ccxt::list{secret}))) {
+                     setProperty(exchange, std::string("secret"),
+                                 toString(secret));
+                   }
                    ccxt::any skipKeys =
                        this->effectiveSkipKeys(exchange, exchangeData, result);
                    awaitValue(this->testWsStatically(exchange, method, skipKeys,
@@ -3999,7 +4011,7 @@ testExchangeRequestStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                    ccxt::any isDisabled = callDynamically(
                        exchange, std::string("safeBool"),
                        ccxt::list{result, std::string("disabled"), false});
-                   if (isTrue(isEqual(isDisabled, true))) {
+                   if (isTrue(isDisabled)) {
                      continue;
                    }
                    ccxt::any disabledString = callDynamically(
@@ -4013,7 +4025,7 @@ testExchangeRequestStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                        exchange, std::string("safeBool"),
                        ccxt::list{result, std::string("disabledCS"), false});
                    if (isTrue(
-                           isTrue((isEqual(isDisabledCSharp, true))) &&
+                           isTrue((isDisabledCSharp)) &&
                            isTrue((isEqual(this->lang, std::string("C#")))))) {
                      continue;
                    }
@@ -4021,7 +4033,7 @@ testExchangeRequestStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                        exchange, std::string("safeBool"),
                        ccxt::list{result, std::string("disabledGO"), false});
                    if (isTrue(
-                           isTrue((isEqual(isDisabledGo, true))) &&
+                           isTrue((isDisabledGo)) &&
                            isTrue((isEqual(this->lang, std::string("GO")))))) {
                      continue;
                    }
@@ -4044,7 +4056,7 @@ testExchangeRequestStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                    ccxt::any isDisabledJava = callDynamically(
                        exchange, std::string("safeBool"),
                        ccxt::list{result, std::string("disabledJava"), false});
-                   if (isTrue(isTrue((isEqual(isDisabledJava, true))) &&
+                   if (isTrue(isTrue((isDisabledJava)) &&
                               isTrue((
                                   isEqual(this->lang, std::string("java")))))) {
                      continue;
@@ -4166,14 +4178,14 @@ testExchangeResponseStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                    ccxt::any isDisabled = callDynamically(
                        exchange, std::string("safeBool"),
                        ccxt::list{result, std::string("disabled"), false});
-                   if (isTrue(isEqual(isDisabled, true))) {
+                   if (isTrue(isDisabled)) {
                      continue;
                    }
                    ccxt::any isDisabledCSharp = callDynamically(
                        exchange, std::string("safeBool"),
                        ccxt::list{result, std::string("disabledCS"), false});
                    if (isTrue(
-                           isTrue((isEqual(isDisabledCSharp, true))) &&
+                           isTrue((isDisabledCSharp)) &&
                            isTrue((isEqual(this->lang, std::string("C#")))))) {
                      continue;
                    }
@@ -4181,7 +4193,7 @@ testExchangeResponseStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                        exchange, std::string("safeBool"),
                        ccxt::list{result, std::string("disabledPHP"), false});
                    if (isTrue(
-                           isTrue((isEqual(isDisabledPHP, true))) &&
+                           isTrue((isDisabledPHP)) &&
                            isTrue((isEqual(this->lang, std::string("PHP")))))) {
                      continue;
                    }
@@ -4193,7 +4205,7 @@ testExchangeResponseStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                        exchange, std::string("safeBool"),
                        ccxt::list{result, std::string("disabledGO"), false});
                    if (isTrue(
-                           isTrue((isEqual(isDisabledGO, true))) &&
+                           isTrue((isDisabledGO)) &&
                            isTrue((isEqual(this->lang, std::string("GO")))))) {
                      continue;
                    }
@@ -4216,7 +4228,7 @@ testExchangeResponseStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                    ccxt::any isDisabledJava = callDynamically(
                        exchange, std::string("safeBool"),
                        ccxt::list{result, std::string("disabledJava"), false});
-                   if (isTrue(isTrue((isEqual(isDisabledJava, true))) &&
+                   if (isTrue(isTrue((isDisabledJava)) &&
                               isTrue((
                                   isEqual(this->lang, std::string("java")))))) {
                      continue;
@@ -4274,7 +4286,7 @@ virtual ccxt::any checkIfExchangeIsDisabled(ccxt::any exchangeName,
   ccxt::any isAsyncOnly = callDynamically(
       exchange, std::string("safeBool"),
       ccxt::list{exchangeData, std::string("asyncOnly"), false});
-  if (isTrue(isTrue((isEqual(isAsyncOnly, true))) && isTrue(isSync()))) {
+  if (isTrue(isTrue((isAsyncOnly)) && isTrue(isSync()))) {
     dump(add(add(std::string("[TEST_WARNING] Exchange "), exchangeName),
              std::string(" is async-only, skipped by the sync test harness")));
     return true;
@@ -4282,7 +4294,7 @@ virtual ccxt::any checkIfExchangeIsDisabled(ccxt::any exchangeName,
   ccxt::any isDisabledPy = callDynamically(
       exchange, std::string("safeBool"),
       ccxt::list{exchangeData, std::string("disabledPy"), false});
-  if (isTrue(isTrue((isEqual(isDisabledPy, true))) &&
+  if (isTrue(isTrue((isDisabledPy)) &&
              isTrue((isEqual(this->lang, std::string("PY")))))) {
     dump(add(add(std::string("[TEST_WARNING] Exchange "), exchangeName),
              std::string(" is disabled in python")));
@@ -4291,7 +4303,7 @@ virtual ccxt::any checkIfExchangeIsDisabled(ccxt::any exchangeName,
   ccxt::any isDisabledPHP = callDynamically(
       exchange, std::string("safeBool"),
       ccxt::list{exchangeData, std::string("disabledPHP"), false});
-  if (isTrue(isTrue((isEqual(isDisabledPHP, true))) &&
+  if (isTrue(isTrue((isDisabledPHP)) &&
              isTrue((isEqual(this->lang, std::string("PHP")))))) {
     dump(add(add(std::string("[TEST_WARNING] Exchange "), exchangeName),
              std::string(" is disabled in php")));
@@ -4300,7 +4312,7 @@ virtual ccxt::any checkIfExchangeIsDisabled(ccxt::any exchangeName,
   ccxt::any isDisabledCSharp = callDynamically(
       exchange, std::string("safeBool"),
       ccxt::list{exchangeData, std::string("disabledCS"), false});
-  if (isTrue(isTrue((isEqual(isDisabledCSharp, true))) &&
+  if (isTrue(isTrue((isDisabledCSharp)) &&
              isTrue((isEqual(this->lang, std::string("C#")))))) {
     dump(add(add(std::string("[TEST_WARNING] Exchange "), exchangeName),
              std::string(" is disabled in c#")));
@@ -4309,7 +4321,7 @@ virtual ccxt::any checkIfExchangeIsDisabled(ccxt::any exchangeName,
   ccxt::any isDisabledGO = callDynamically(
       exchange, std::string("safeBool"),
       ccxt::list{exchangeData, std::string("disabledGO"), false});
-  if (isTrue(isTrue((isEqual(isDisabledGO, true))) &&
+  if (isTrue(isTrue((isDisabledGO)) &&
              isTrue((isEqual(this->lang, std::string("GO")))))) {
     dump(add(add(std::string("[TEST_WARNING] Exchange "), exchangeName),
              std::string(" is disabled in go")));
@@ -4336,7 +4348,7 @@ virtual ccxt::any checkIfExchangeIsDisabled(ccxt::any exchangeName,
   ccxt::any isDisabledJava = callDynamically(
       exchange, std::string("safeBool"),
       ccxt::list{exchangeData, std::string("disabledJava"), false});
-  if (isTrue(isTrue((isEqual(isDisabledJava, true))) &&
+  if (isTrue(isTrue((isDisabledJava)) &&
              isTrue((isEqual(this->lang, std::string("java")))))) {
     dump(add(add(std::string("[TEST_WARNING] Exchange "), exchangeName),
              std::string(" is disabled in java")));
@@ -4869,9 +4881,7 @@ virtual std::shared_future<ccxt::any> testBinance() {
                   std::string("binance createOrders - inverse conditional "
                               "order must send newClientOrderId"));
               assertTrue(
-                  isEqual(startsWith(inverseConditionalClientOrderId,
-                                     inverseSwapId),
-                          true),
+                  startsWith(inverseConditionalClientOrderId, inverseSwapId),
                   add(add(add(std::string("binance createOrders - inverse "
                                           "conditional clientOrderId: "),
                               inverseConditionalClientOrderId),
@@ -4942,7 +4952,7 @@ virtual std::shared_future<ccxt::any> testBinance() {
                          std::string(
                              "binance - option order must send clientOrderId"));
               assertTrue(
-                  isEqual(startsWith(optionClientOrderId, inverseSwapId), true),
+                  startsWith(optionClientOrderId, inverseSwapId),
                   add(add(add(std::string("binance - option clientOrderId: "),
                               optionClientOrderId),
                           std::string(
@@ -5017,9 +5027,7 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     std::string("binance - implicit dapi batch order must "
                                 "inject newClientOrderId"));
                 assertTrue(
-                    isEqual(startsWith(implicitDapiBatchClientOrderId,
-                                       inverseSwapId),
-                            true),
+                    startsWith(implicitDapiBatchClientOrderId, inverseSwapId),
                     add(add(add(std::string("binance - implicit dapi batch "
                                             "clientOrderId: "),
                                 implicitDapiBatchClientOrderId),
@@ -5054,7 +5062,7 @@ virtual std::shared_future<ccxt::any> testBinance() {
                            std::string("binance - implicit fapi algo order "
                                        "must inject clientAlgoId"));
                 assertTrue(
-                    isEqual(startsWith(implicitFapiClientAlgoId, swapId), true),
+                    startsWith(implicitFapiClientAlgoId, swapId),
                     add(add(add(std::string(
                                     "binance - implicit fapi clientAlgoId: "),
                                 implicitFapiClientAlgoId),
@@ -5086,14 +5094,12 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 assertTrue(!isEqual(implicitPapiUmClientOrderId, ccxt::any{}),
                            std::string("binance - implicit papi um order must "
                                        "inject newClientOrderId"));
-                assertTrue(
-                    isEqual(startsWith(implicitPapiUmClientOrderId, swapId),
-                            true),
-                    add(add(add(std::string("binance - implicit papi um "
-                                            "clientOrderId: "),
-                                implicitPapiUmClientOrderId),
-                            std::string(" does not start with swapId")),
-                        swapId));
+                assertTrue(startsWith(implicitPapiUmClientOrderId, swapId),
+                           add(add(add(std::string("binance - implicit papi um "
+                                                   "clientOrderId: "),
+                                       implicitPapiUmClientOrderId),
+                                   std::string(" does not start with swapId")),
+                               swapId));
                 ccxt::any implicitPapiCmOrderRequest = ccxt::dict{};
                 try {
                   awaitValue(callExchangeMethodDynamically(
@@ -5119,9 +5125,7 @@ virtual std::shared_future<ccxt::any> testBinance() {
                            std::string("binance - implicit papi cm order must "
                                        "inject newClientOrderId"));
                 assertTrue(
-                    isEqual(
-                        startsWith(implicitPapiCmClientOrderId, inverseSwapId),
-                        true),
+                    startsWith(implicitPapiCmClientOrderId, inverseSwapId),
                     add(add(add(std::string("binance - implicit papi cm "
                                             "clientOrderId: "),
                                 implicitPapiCmClientOrderId),
@@ -5152,14 +5156,12 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     !isEqual(implicitPapiMarginClientOrderId, ccxt::any{}),
                     std::string("binance - implicit papi margin order must "
                                 "inject newClientOrderId"));
-                assertTrue(
-                    isEqual(startsWith(implicitPapiMarginClientOrderId, spotId),
-                            true),
-                    add(add(add(std::string("binance - implicit papi margin "
-                                            "clientOrderId: "),
-                                implicitPapiMarginClientOrderId),
-                            std::string(" does not start with spotId")),
-                        spotId));
+                assertTrue(startsWith(implicitPapiMarginClientOrderId, spotId),
+                           add(add(add(std::string("binance - implicit papi "
+                                                   "margin clientOrderId: "),
+                                       implicitPapiMarginClientOrderId),
+                                   std::string(" does not start with spotId")),
+                               spotId));
                 ccxt::any implicitSapiMarginOrderRequest = ccxt::dict{};
                 try {
                   awaitValue(callExchangeMethodDynamically(
@@ -5185,14 +5187,12 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     !isEqual(implicitSapiMarginClientOrderId, ccxt::any{}),
                     std::string("binance - implicit sapi margin order must "
                                 "inject newClientOrderId"));
-                assertTrue(
-                    isEqual(startsWith(implicitSapiMarginClientOrderId, spotId),
-                            true),
-                    add(add(add(std::string("binance - implicit sapi margin "
-                                            "clientOrderId: "),
-                                implicitSapiMarginClientOrderId),
-                            std::string(" does not start with spotId")),
-                        spotId));
+                assertTrue(startsWith(implicitSapiMarginClientOrderId, spotId),
+                           add(add(add(std::string("binance - implicit sapi "
+                                                   "margin clientOrderId: "),
+                                       implicitSapiMarginClientOrderId),
+                                   std::string(" does not start with spotId")),
+                               spotId));
                 // the papi um algo order endpoint takes clientAlgoId
                 ccxt::any implicitPapiUmAlgoOrderRequest = ccxt::dict{};
                 try {
@@ -5220,14 +5220,12 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 assertTrue(!isEqual(implicitPapiUmClientAlgoId, ccxt::any{}),
                            std::string("binance - implicit papi um algo order "
                                        "must inject clientAlgoId"));
-                assertTrue(
-                    isEqual(startsWith(implicitPapiUmClientAlgoId, swapId),
-                            true),
-                    add(add(add(std::string("binance - implicit papi um "
-                                            "clientAlgoId: "),
-                                implicitPapiUmClientAlgoId),
-                            std::string(" does not start with swapId")),
-                        swapId));
+                assertTrue(startsWith(implicitPapiUmClientAlgoId, swapId),
+                           add(add(add(std::string("binance - implicit papi um "
+                                                   "clientAlgoId: "),
+                                       implicitPapiUmClientAlgoId),
+                                   std::string(" does not start with swapId")),
+                               swapId));
                 // the papi cm conditional order endpoint takes
                 // newClientStrategyId
                 ccxt::any implicitPapiCmConditionalOrderRequest = ccxt::dict{};
@@ -5258,8 +5256,7 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     std::string("binance - implicit papi cm conditional order "
                                 "must inject newClientStrategyId"));
                 assertTrue(
-                    isEqual(startsWith(implicitPapiCmStrategyId, inverseSwapId),
-                            true),
+                    startsWith(implicitPapiCmStrategyId, inverseSwapId),
                     add(add(add(std::string("binance - implicit papi cm "
                                             "newClientStrategyId: "),
                                 implicitPapiCmStrategyId),
@@ -5292,13 +5289,12 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     !isEqual(implicitPapiUmStrategyId, ccxt::any{}),
                     std::string("binance - implicit papi um conditional order "
                                 "must inject newClientStrategyId"));
-                assertTrue(
-                    isEqual(startsWith(implicitPapiUmStrategyId, swapId), true),
-                    add(add(add(std::string("binance - implicit papi um "
-                                            "newClientStrategyId: "),
-                                implicitPapiUmStrategyId),
-                            std::string(" does not start with swapId")),
-                        swapId));
+                assertTrue(startsWith(implicitPapiUmStrategyId, swapId),
+                           add(add(add(std::string("binance - implicit papi um "
+                                                   "newClientStrategyId: "),
+                                       implicitPapiUmStrategyId),
+                                   std::string(" does not start with swapId")),
+                               swapId));
                 // the eapi order endpoints take clientOrderId
                 ccxt::any implicitEapiOrderRequest = ccxt::dict{};
                 try {
@@ -5325,9 +5321,7 @@ virtual std::shared_future<ccxt::any> testBinance() {
                            std::string("binance - implicit eapi order must "
                                        "inject clientOrderId"));
                 assertTrue(
-                    isEqual(
-                        startsWith(implicitEapiClientOrderId, inverseSwapId),
-                        true),
+                    startsWith(implicitEapiClientOrderId, inverseSwapId),
                     add(add(add(std::string(
                                     "binance - implicit eapi clientOrderId: "),
                                 implicitEapiClientOrderId),
@@ -5370,9 +5364,7 @@ virtual std::shared_future<ccxt::any> testBinance() {
                     std::string("binance - implicit eapi batch order must "
                                 "inject clientOrderId"));
                 assertTrue(
-                    isEqual(startsWith(implicitEapiBatchClientOrderId,
-                                       inverseSwapId),
-                            true),
+                    startsWith(implicitEapiBatchClientOrderId, inverseSwapId),
                     add(add(add(std::string("binance - implicit eapi batch "
                                             "clientOrderId: "),
                                 implicitEapiBatchClientOrderId),
@@ -5404,14 +5396,12 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 assertTrue(!isEqual(implicitEquityClientOrderId, ccxt::any{}),
                            std::string("binance - implicit equity order must "
                                        "inject clientOrderId"));
-                assertTrue(
-                    isEqual(startsWith(implicitEquityClientOrderId, spotId),
-                            true),
-                    add(add(add(std::string("binance - implicit equity "
-                                            "clientOrderId: "),
-                                implicitEquityClientOrderId),
-                            std::string(" does not start with spotId")),
-                        spotId));
+                assertTrue(startsWith(implicitEquityClientOrderId, spotId),
+                           add(add(add(std::string("binance - implicit equity "
+                                                   "clientOrderId: "),
+                                       implicitEquityClientOrderId),
+                                   std::string(" does not start with spotId")),
+                               spotId));
                 // the order list endpoints inject a listClientOrderId and one
                 // client order id per leg
                 ccxt::any implicitOcoListRequest = ccxt::dict{};
@@ -5448,23 +5438,20 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 assertTrue(!isEqual(ocoListClientOrderId, ccxt::any{}),
                            std::string("binance - implicit oco list must "
                                        "inject listClientOrderId"));
-                assertTrue(
-                    isEqual(startsWith(ocoListClientOrderId, spotId), true),
-                    add(add(add(std::string("binance - implicit oco "
-                                            "listClientOrderId: "),
-                                ocoListClientOrderId),
-                            std::string(" does not start with spotId")),
-                        spotId));
+                assertTrue(startsWith(ocoListClientOrderId, spotId),
+                           add(add(add(std::string("binance - implicit oco "
+                                                   "listClientOrderId: "),
+                                       ocoListClientOrderId),
+                                   std::string(" does not start with spotId")),
+                               spotId));
                 assertTrue(
                     isTrue((!isEqual(ocoAboveClientOrderId, ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(ocoAboveClientOrderId, spotId), true))),
+                        isTrue((startsWith(ocoAboveClientOrderId, spotId))),
                     std::string("binance - implicit oco aboveClientOrderId "
                                 "must inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(ocoBelowClientOrderId, ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(ocoBelowClientOrderId, spotId), true))),
+                        isTrue((startsWith(ocoBelowClientOrderId, spotId))),
                     std::string("binance - implicit oco belowClientOrderId "
                                 "must inject the spot broker id"));
                 ccxt::any implicitOtocoListRequest = ccxt::dict{};
@@ -5510,26 +5497,22 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 assertTrue(
                     isTrue(
                         (!isEqual(otocoWorkingClientOrderId, ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(otocoWorkingClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(otocoWorkingClientOrderId, spotId))),
                     std::string("binance - implicit otoco workingClientOrderId "
                                 "must inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(otocoPendingAboveClientOrderId,
                                      ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(otocoPendingAboveClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(otocoPendingAboveClientOrderId,
+                                           spotId))),
                     std::string(
                         "binance - implicit otoco pendingAboveClientOrderId "
                         "must inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(otocoPendingBelowClientOrderId,
                                      ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(otocoPendingBelowClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(otocoPendingBelowClientOrderId,
+                                           spotId))),
                     std::string(
                         "binance - implicit otoco pendingBelowClientOrderId "
                         "must inject the spot broker id"));
@@ -5560,18 +5543,16 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 assertTrue(
                     isTrue((!isEqual(sapiMarginOcoLimitClientOrderId,
                                      ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(sapiMarginOcoLimitClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(sapiMarginOcoLimitClientOrderId,
+                                           spotId))),
                     std::string(
                         "binance - implicit sapi margin oco limitClientOrderId "
                         "must inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(sapiMarginOcoStopClientOrderId,
                                      ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(sapiMarginOcoStopClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(sapiMarginOcoStopClientOrderId,
+                                           spotId))),
                     std::string(
                         "binance - implicit sapi margin oco stopClientOrderId "
                         "must inject the spot broker id"));
@@ -5598,9 +5579,8 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 assertTrue(
                     isTrue((!isEqual(papiMarginOcoListClientOrderId,
                                      ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(papiMarginOcoListClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(papiMarginOcoListClientOrderId,
+                                           spotId))),
                     std::string(
                         "binance - implicit papi margin oco listClientOrderId "
                         "must inject the spot broker id"));
@@ -5615,18 +5595,16 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 assertTrue(
                     isTrue((!isEqual(papiMarginOcoLimitClientOrderId,
                                      ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(papiMarginOcoLimitClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(papiMarginOcoLimitClientOrderId,
+                                           spotId))),
                     std::string(
                         "binance - implicit papi margin oco limitClientOrderId "
                         "must inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(papiMarginOcoStopClientOrderId,
                                      ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(papiMarginOcoStopClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(papiMarginOcoStopClientOrderId,
+                                           spotId))),
                     std::string(
                         "binance - implicit papi margin oco stopClientOrderId "
                         "must inject the spot broker id"));
@@ -5661,27 +5639,24 @@ virtual std::shared_future<ccxt::any> testBinance() {
                 assertTrue(
                     isTrue(
                         (!isEqual(legacyOcoListClientOrderId, ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(legacyOcoListClientOrderId, spotId),
-                            true))),
+                        isTrue(
+                            (startsWith(legacyOcoListClientOrderId, spotId))),
                     std::string(
                         "binance - implicit legacy oco listClientOrderId must "
                         "inject the spot broker id"));
                 assertTrue(
                     isTrue(
                         (!isEqual(legacyOcoLimitClientOrderId, ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(legacyOcoLimitClientOrderId, spotId),
-                            true))),
+                        isTrue(
+                            (startsWith(legacyOcoLimitClientOrderId, spotId))),
                     std::string(
                         "binance - implicit legacy oco limitClientOrderId must "
                         "inject the spot broker id"));
                 assertTrue(
                     isTrue(
                         (!isEqual(legacyOcoStopClientOrderId, ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(legacyOcoStopClientOrderId, spotId),
-                            true))),
+                        isTrue(
+                            (startsWith(legacyOcoStopClientOrderId, spotId))),
                     std::string(
                         "binance - implicit legacy oco stopClientOrderId must "
                         "inject the spot broker id"));
@@ -5720,22 +5695,17 @@ virtual std::shared_future<ccxt::any> testBinance() {
                                std::string("pendingClientOrderId")});
                 assertTrue(
                     isTrue((!isEqual(otoListClientOrderId, ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(otoListClientOrderId, spotId), true))),
+                        isTrue((startsWith(otoListClientOrderId, spotId))),
                     std::string("binance - implicit oto listClientOrderId must "
                                 "inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(otoWorkingClientOrderId, ccxt::any{}))) &&
-                        isTrue((
-                            isEqual(startsWith(otoWorkingClientOrderId, spotId),
-                                    true))),
+                        isTrue((startsWith(otoWorkingClientOrderId, spotId))),
                     std::string("binance - implicit oto workingClientOrderId "
                                 "must inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(otoPendingClientOrderId, ccxt::any{}))) &&
-                        isTrue((
-                            isEqual(startsWith(otoPendingClientOrderId, spotId),
-                                    true))),
+                        isTrue((startsWith(otoPendingClientOrderId, spotId))),
                     std::string("binance - implicit oto pendingClientOrderId "
                                 "must inject the spot broker id"));
                 ccxt::any implicitOpoListRequest = ccxt::dict{};
@@ -5773,22 +5743,17 @@ virtual std::shared_future<ccxt::any> testBinance() {
                                std::string("pendingClientOrderId")});
                 assertTrue(
                     isTrue((!isEqual(opoListClientOrderId, ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(opoListClientOrderId, spotId), true))),
+                        isTrue((startsWith(opoListClientOrderId, spotId))),
                     std::string("binance - implicit opo listClientOrderId must "
                                 "inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(opoWorkingClientOrderId, ccxt::any{}))) &&
-                        isTrue((
-                            isEqual(startsWith(opoWorkingClientOrderId, spotId),
-                                    true))),
+                        isTrue((startsWith(opoWorkingClientOrderId, spotId))),
                     std::string("binance - implicit opo workingClientOrderId "
                                 "must inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(opoPendingClientOrderId, ccxt::any{}))) &&
-                        isTrue((
-                            isEqual(startsWith(opoPendingClientOrderId, spotId),
-                                    true))),
+                        isTrue((startsWith(opoPendingClientOrderId, spotId))),
                     std::string("binance - implicit opo pendingClientOrderId "
                                 "must inject the spot broker id"));
                 ccxt::any implicitOpocoListRequest = ccxt::dict{};
@@ -5837,33 +5802,28 @@ virtual std::shared_future<ccxt::any> testBinance() {
                                std::string("pendingBelowClientOrderId")});
                 assertTrue(
                     isTrue((!isEqual(opocoListClientOrderId, ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(opocoListClientOrderId, spotId), true))),
+                        isTrue((startsWith(opocoListClientOrderId, spotId))),
                     std::string("binance - implicit opoco listClientOrderId "
                                 "must inject the spot broker id"));
                 assertTrue(
                     isTrue(
                         (!isEqual(opocoWorkingClientOrderId, ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(opocoWorkingClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(opocoWorkingClientOrderId, spotId))),
                     std::string("binance - implicit opoco workingClientOrderId "
                                 "must inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(opocoPendingAboveClientOrderId,
                                      ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(opocoPendingAboveClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(opocoPendingAboveClientOrderId,
+                                           spotId))),
                     std::string(
                         "binance - implicit opoco pendingAboveClientOrderId "
                         "must inject the spot broker id"));
                 assertTrue(
                     isTrue((!isEqual(opocoPendingBelowClientOrderId,
                                      ccxt::any{}))) &&
-                        isTrue((isEqual(
-                            startsWith(opocoPendingBelowClientOrderId, spotId),
-                            true))),
+                        isTrue((startsWith(opocoPendingBelowClientOrderId,
+                                           spotId))),
                     std::string(
                         "binance - implicit opoco pendingBelowClientOrderId "
                         "must inject the spot broker id"));
@@ -5897,8 +5857,7 @@ virtual std::shared_future<ccxt::any> testBinance() {
                            std::string("binance - implicit cancel-replace must "
                                        "inject newClientOrderId"));
                 assertTrue(
-                    isEqual(startsWith(cancelReplaceClientOrderId, spotId),
-                            true),
+                    startsWith(cancelReplaceClientOrderId, spotId),
                     add(add(add(std::string("binance - implicit cancel-replace "
                                             "newClientOrderId: "),
                                 cancelReplaceClientOrderId),
@@ -6982,43 +6941,75 @@ virtual std::shared_future<ccxt::any> testBlofin() {
 //     return true;
 // }
 virtual std::shared_future<ccxt::any> testCoinbaseinternational() {
-  return std::async(
-             std::launch::deferred,
-             [=]() mutable -> ccxt::any {
-               ccxt::any exchange = this->initOfflineExchange(
-                   std::string("coinbaseinternational"));
-               ::setValue(getProperty(exchange, std::string("options")),
-                          std::string("portfolio"), std::string("random"));
-               ccxt::any id = std::string("nfqkvdjp");
-               assertTrue(
-                   isEqual(
-                       ::getValue(getProperty(exchange, std::string("options")),
-                                  std::string("brokerId")),
-                       id),
-                   std::string("id not in options"));
-               ccxt::any request = ccxt::dict{};
-               try {
-                 awaitValue(
-                     callDynamically(exchange, std::string("createOrder"),
-                                     ccxt::list{std::string("BTC/USDC:USDC"),
-                                                std::string("limit"),
-                                                std::string("buy"), 1, 20000}));
-               } catch (...) {
-                 std::exception_ptr e = std::current_exception();
-                 request = jsonParse(
-                     getProperty(exchange, std::string("last_request_body")));
-               }
-               ccxt::any clientOrderId =
-                   ::getValue(request, std::string("client_order_id"));
-               assertTrue(
-                   isEqual(startsWith(clientOrderId, toString(id)), true),
-                   std::string("clientOrderId does not start with id"));
-               if (!isTrue(isSync())) {
-                 awaitValue(close(exchange));
-               }
-               return true;
-             })
-      .share();
+  return std::
+      async(std::launch::deferred,
+            [=]() mutable -> ccxt::any {
+              ccxt::any exchange = this->initOfflineExchange(
+                  std::string("coinbaseinternational"));
+              // ECDSA (P-256) auth-token signing needs a hex-encoded secret,
+              // unlike the generic dummy one
+              setProperty(exchange, std::string("secret"),
+                          std::string("0123456789abcdef0123456789abcdef01234567"
+                                      "89abcdef0123456789abcdef"));
+              // pre-seed the gateway access token so createOrder signs the
+              // order directly instead of making a prior (offline-unreachable)
+              // public/auth network call
+              setProperty(exchange, std::string("token"), std::string("token"));
+              ccxt::any tokenExpires =
+                  add(callDynamically(exchange, std::string("milliseconds"),
+                                      ccxt::list{}),
+                      100000);
+              ::setValue(getProperty(exchange, std::string("options")),
+                         std::string("v2TokenExpires"), tokenExpires);
+              ::setValue(getProperty(exchange, std::string("options")),
+                         std::string("portfolio"), std::string("random"));
+              ccxt::any id = std::string("ccxt");
+              assertTrue(isEqual(::getValue(getProperty(exchange,
+                                                        std::string("options")),
+                                            std::string("brokerId")),
+                                 id),
+                         std::string("id not in options"));
+              ccxt::any clientOrderId = ccxt::any{};
+              try {
+                awaitValue(
+                    callDynamically(exchange, std::string("createOrder"),
+                                    ccxt::list{std::string("BTC/USDC:USDC"),
+                                               std::string("limit"),
+                                               std::string("buy"), 1, 20000}));
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
+                // buy/sell are GET endpoints, so the label is in the query
+                // string, not a JSON body
+                ccxt::any url =
+                    getProperty(exchange, std::string("last_request_url"));
+                ccxt::any urlParts = split(url, std::string("?"));
+                assertTrue(
+                    isGreaterThan(getArrayLength(urlParts), 1),
+                    add(std::string("last_request_url has no query string: "),
+                        url));
+                ccxt::any query =
+                    this->urlencodedToDict(::getValue(urlParts, 1));
+                clientOrderId = ::getValue(query, std::string("label"));
+              }
+              // the label is built as "<brokerId>-<uuid22>", so assert the
+              // hyphenated prefix to ensure the uuid suffix was appended after
+              // the ccxt broker id
+              assertTrue(
+                  isTrue(!isEqual(clientOrderId, ccxt::any{})) &&
+                      isTrue(isEqual(
+                          startsWith(clientOrderId, add(id, std::string("-"))),
+                          true)),
+                  add(add(add(add(std::string("clientOrderId "), clientOrderId),
+                              std::string(
+                                  " does not start with the brokerId prefix ")),
+                          id),
+                      std::string("-")));
+              if (!isTrue(isSync())) {
+                awaitValue(close(exchange));
+              }
+              return true;
+            })
+          .share();
 }
 
 virtual std::shared_future<ccxt::any> testCoinbaseAdvanced() {

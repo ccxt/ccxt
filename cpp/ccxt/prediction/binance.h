@@ -322,27 +322,28 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
+                 ccxt::any maxTopicsOption = this->safeInteger(
+                     this->options, std::string("maxFetchMarketsLimit"), 200);
                  ccxt::any maxTopicsResolved =
-                     (isTrue((isEqual(maxTopics, ccxt::any{})))
-                          ? ccxt::any(this->safeInteger(
-                                this->options,
-                                std::string("maxFetchMarketsLimit"), 200))
-                          : ccxt::any(maxTopics));
-                 ccxt::any pageLimit = this->safeInteger(
+                     (isTrue((!isEqual(maxTopics, ccxt::any{})))
+                          ? ccxt::any(maxTopics)
+                          : ccxt::any(maxTopicsOption));
+                 ccxt::any pageLimitOption = this->safeInteger(
                      this->options, std::string("marketsPageLimit"), 100);
-                 if (isTrue(isGreaterThan(pageLimit, 100))) {
-                   pageLimit = 100;
-                 }
+                 ccxt::any pageLimit =
+                     (isTrue((isGreaterThan(pageLimitOption, 100)))
+                          ? ccxt::any(100)
+                          : ccxt::any(pageLimitOption));
                  ccxt::any collected = ccxt::list{};
                  ccxt::any offset = 0;
                  while (true) {
-                   ccxt::any reqLimit = pageLimit;
                    ccxt::any collectedLength = getArrayLength(collected);
                    ccxt::any remaining =
                        subtract(maxTopicsResolved, collectedLength);
-                   if (isTrue(isLessThan(remaining, reqLimit))) {
-                     reqLimit = remaining;
-                   }
+                   ccxt::any reqLimit =
+                       (isTrue((isLessThan(remaining, pageLimit)))
+                            ? ccxt::any(remaining)
+                            : ccxt::any(pageLimit));
                    if (isTrue(isLessThanOrEqual(reqLimit, 0))) {
                      break;
                    }
@@ -395,7 +396,7 @@ public:
                    ccxt::any hasMore =
                        this->safeBool(response, std::string("hasMore"), false);
                    if (isTrue(
-                           isTrue((!isEqual(hasMore, true))) ||
+                           isTrue((!isTrue(hasMore))) ||
                            isTrue((isLessThan(pageTopicsLength, reqLimit))))) {
                      break;
                    }
@@ -521,7 +522,7 @@ public:
                  ccxt::any allowUnscopedFetchEvents = this->safeBool(
                      this->options, std::string("allowUnscopedFetchEvents"),
                      false);
-                 if (isTrue(!isEqual(allowUnscopedFetchEvents, true))) {
+                 if (!isTrue(allowUnscopedFetchEvents)) {
                    this->requireEventQuery(params);
                  }
                  ccxt::any queries = this->parseSearchQueries(params);
@@ -673,12 +674,13 @@ public:
                  ccxt::any seen = ccxt::dict{};
                  ccxt::any collected = ccxt::list{};
                  ccxt::any queriesLength = getArrayLength(queries);
-                 ccxt::any limitResolved = limit;
-                 if (isTrue(isEqual(limit, ccxt::any{}))) {
-                   limitResolved = 20;
-                 } else if (isTrue(isGreaterThan(limit, 50))) {
-                   limitResolved = 50;
-                 }
+                 ccxt::any limitValue =
+                     (isTrue((isEqual(limit, ccxt::any{}))) ? ccxt::any(20)
+                                                            : ccxt::any(limit));
+                 ccxt::any limitResolved =
+                     (isTrue((isGreaterThan(limitValue, 50)))
+                          ? ccxt::any(50)
+                          : ccxt::any(limitValue));
                  for (ccxt::any qi = 0; isLessThan(qi, queriesLength);
                       postFixIncrement(qi)) {
                    ccxt::any request = ccxt::dict{
@@ -717,9 +719,7 @@ public:
                  }
                  ccxt::any capped = collected;
                  ccxt::any collectedLength = getArrayLength(collected);
-                 if (isTrue(isTrue((!isEqual(limitResolved, ccxt::any{}))) &&
-                            isTrue((isGreaterThan(collectedLength,
-                                                  limitResolved))))) {
+                 if (isTrue(isGreaterThan(collectedLength, limitResolved))) {
                    capped = this->arraySlice(collected, 0, limitResolved);
                  }
                  return awaitValue(this->completeRawTopics(capped));
@@ -1827,10 +1827,10 @@ public:
                  //
                  ccxt::any data = this->safeList(
                      response, std::string("positions"), ccxt::list{});
-                 ccxt::any positions = this->parsePredictionPositions(data);
                  if (isTrue(isEqual(outcomes, ccxt::any{}))) {
-                   return positions;
+                   return this->parsePredictionPositions(data);
                  }
+                 ccxt::any positions = this->parsePredictionPositions(data);
                  ccxt::any filtered = ccxt::list{};
                  ccxt::any positionsLength = getArrayLength(positions);
                  for (ccxt::any i = 0; isLessThan(i, positionsLength);
@@ -2231,10 +2231,10 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
-                 ccxt::any cachedWallet =
-                     this->safeDict(this->options, std::string("wallet"));
-                 if (isTrue(!isEqual(cachedWallet, ccxt::any{}))) {
-                   return cachedWallet;
+                 if (isTrue(!isEqual(
+                         this->safeDict(this->options, std::string("wallet")),
+                         ccxt::any{}))) {
+                   return this->safeDict(this->options, std::string("wallet"));
                  }
                  ccxt::any walletAddress = ::getValue(
                      this->handleOptionStringAndParams(
@@ -2258,10 +2258,9 @@ public:
                  ccxt::any wallets = this->safeList(
                      response, std::string("wallets"), ccxt::list{});
                  if (isTrue(isEqual(walletAddress, ccxt::any{}))) {
-                   cachedWallet = this->safeDict(wallets, 0);
                    ::setValue(this->options, std::string("wallet"),
-                              cachedWallet);
-                   return cachedWallet;
+                              this->safeDict(wallets, 0));
+                   return this->safeDict(this->options, std::string("wallet"));
                  }
                  ccxt::any walletLength = getArrayLength(wallets);
                  for (ccxt::any i = 0; isLessThan(i, walletLength);
@@ -2270,18 +2269,17 @@ public:
                                                   std::string("walletAddress"),
                                                   std::string(""));
                    if (isTrue(isEqual(w, walletAddress))) {
-                     cachedWallet = ::getValue(wallets, i);
-                     break;
+                     ::setValue(this->options, std::string("wallet"),
+                                ::getValue(wallets, i));
+                     return this->safeDict(this->options,
+                                           std::string("wallet"));
                    }
                  }
-                 if (isTrue(isEqual(cachedWallet, ccxt::any{}))) {
-                   throw NotSupported(toString(
-                       add(add(this->id,
-                               std::string("fetchWallet could'n find wallet ")),
-                           walletAddress)));
-                 }
-                 ::setValue(this->options, std::string("wallet"), cachedWallet);
-                 return cachedWallet;
+                 throw NotSupported(toString(
+                     add(add(this->id,
+                             std::string("fetchWallet could'n find wallet ")),
+                         walletAddress)));
+                 return ccxt::any{};
                })
         .share();
   }

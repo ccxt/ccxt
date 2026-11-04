@@ -64,6 +64,7 @@ struct BorrowInterest;
 struct LeverageTier;
 struct LedgerEntry;
 struct DepositWithdrawFeeNetwork;
+struct DepositWithdrawFeeNetworkEntry;
 struct DepositWithdrawFee;
 struct DepositWithdrawFees;
 struct TransferEntry;
@@ -1836,11 +1837,23 @@ struct DepositWithdrawFeeNetwork {
     }
 };
 
+struct DepositWithdrawFeeNetworkEntry {
+    std::optional<DepositWithdrawFeeNetwork> deposit;
+    std::optional<DepositWithdrawFeeNetwork> withdraw;
+
+    DepositWithdrawFeeNetworkEntry () = default;
+    explicit DepositWithdrawFeeNetworkEntry (const ccxt::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->deposit = typedsupport::optStruct<DepositWithdrawFeeNetwork> (raw, "deposit");
+        this->withdraw = typedsupport::optStruct<DepositWithdrawFeeNetwork> (raw, "withdraw");
+    }
+};
+
 struct DepositWithdrawFee {
     ccxt::any info;
     std::optional<DepositWithdrawFeeNetwork> withdraw;
     std::optional<DepositWithdrawFeeNetwork> deposit;
-    std::map<std::string, DepositWithdrawFeeNetwork> networks;
+    std::map<std::string, DepositWithdrawFeeNetworkEntry> networks;
 
     DepositWithdrawFee () = default;
     explicit DepositWithdrawFee (const ccxt::any& raw) {
@@ -1848,7 +1861,7 @@ struct DepositWithdrawFee {
         this->info = typedsupport::getAny (raw, "info");
         this->withdraw = typedsupport::optStruct<DepositWithdrawFeeNetwork> (raw, "withdraw");
         this->deposit = typedsupport::optStruct<DepositWithdrawFeeNetwork> (raw, "deposit");
-        this->networks = typedsupport::structMap<DepositWithdrawFeeNetwork> (raw, "networks");
+        this->networks = typedsupport::structMap<DepositWithdrawFeeNetworkEntry> (raw, "networks");
     }
 };
 

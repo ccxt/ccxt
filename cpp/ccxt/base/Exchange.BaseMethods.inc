@@ -1310,7 +1310,7 @@ fetchWebEndpoint(ccxt::any method, ccxt::any endpointMethod,
                                  "website. Probably webpage markup has been "
                                  "changed, breaking the page custom parser."));
                }
-               if (isTrue(isEqual(muteOnFailure, true))) {
+               if (isTrue(muteOnFailure)) {
                  return ccxt::any{};
                } else {
                  throw BadResponse(toString(errorMessage));
@@ -1956,7 +1956,7 @@ fetchDepositWithdrawFee(ccxt::any code, ccxt::any params = ccxt::dict{}) {
                }
                ccxt::any fees = awaitValue(
                    this->fetchDepositWithdrawFees(ccxt::list{code}, params));
-               return this->safeValue(fees, code);
+               return this->safeDict(fees, code);
              })
       .share();
 }
@@ -2669,11 +2669,12 @@ fetchDepositAddress(ccxt::any code, ccxt::any params = ccxt::dict{}) {
                               ::getValue(this->has,
                                          std::string("fetchDepositAddresses")),
                               false)))) {
-                 ccxt::any depositAddresses = awaitValue(
+                 ccxt::any depositAddressesList = awaitValue(
                      this->fetchDepositAddresses(ccxt::list{code}, params));
-                 ccxt::any depositAddress =
-                     this->safeValue(depositAddresses, code);
-                 if (isTrue(isEqual(depositAddress, ccxt::any{}))) {
+                 ccxt::any depositAddresses = this->indexBy(
+                     depositAddressesList, std::string("currency"));
+                 if (isTrue(isEqual(this->safeDict(depositAddresses, code),
+                                    ccxt::any{}))) {
                    throw InvalidAddress(toString(add(
                        add(add(this->id,
                                std::string(" fetchDepositAddress() could not "
@@ -2682,9 +2683,8 @@ fetchDepositAddress(ccxt::any code, ccxt::any params = ccxt::dict{}) {
                        std::string(", make sure you have created a "
                                    "corresponding deposit address in your "
                                    "wallet on the exchange website"))));
-                 } else {
-                   return depositAddress;
                  }
+                 return this->safeDict(depositAddresses, code);
                } else if (isTrue(isTrue(!isEqual(
                                      ::getValue(
                                          this->has,
@@ -2806,7 +2806,8 @@ loadTimeDifference(ccxt::any params = ccxt::dict{}) {
                }
                ::setValue(this->options, std::string("timeDifference"),
                           subtract(after, serverTime));
-               return ::getValue(this->options, std::string("timeDifference"));
+               return this->parseToInt(
+                   ::getValue(this->options, std::string("timeDifference")));
              })
       .share();
 }
@@ -2836,7 +2837,8 @@ fetchMarketLeverageTiers(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
                  }
                  ccxt::any tiers =
                      awaitValue(this->fetchLeverageTiers(ccxt::list{symbol}));
-                 return this->safeValue(tiers, symbol);
+                 ccxt::any marketTiers = this->safeList(tiers, symbol);
+                 return marketTiers;
                } else {
                  throw NotSupported(toString(add(
                      this->id,
@@ -3646,7 +3648,8 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallDeterministic(
                   maxEntriesPerRequestOption,
                   std::string("fetchPaginatedCallDeterministic() "
                               "maxEntriesPerRequest is required"));
-              ccxt::any step = multiply(time, maxEntriesPerRequestValue);
+              ccxt::any step =
+                  multiply(time, this->parseToInt(maxEntriesPerRequestValue));
               ccxt::any until = this->safeInteger2(
                   paramsOmitted, std::string("until"),
                   std::string("till")); // do not omit it here
@@ -3708,7 +3711,9 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallDeterministic(
                                      method, symbol, currentSince,
                                      maxEntriesPerRequestValue, timeframe,
                                      paramsOmitted));
-                currentSince = subtract(add(currentSince, step), 1);
+                // this.sum keeps it numeric in PHP, where the regex transpiler
+                // turns `a + b` into string concatenation
+                currentSince = subtract(this->sum(currentSince, step), 1);
               }
               ccxt::any results = awaitValue(promiseAll(tasks));
               ccxt::any result = ccxt::list{};
@@ -3782,8 +3787,8 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallCursor(
                 try {
                   if (isTrue(!isEqual(cursorValue, ccxt::any{}))) {
                     if (isTrue(!isEqual(cursorIncrement, ccxt::any{}))) {
-                      cursorValue =
-                          add(this->parseToInt(cursorValue), cursorIncrement);
+                      cursorValue = this->sum(this->parseToInt(cursorValue),
+                                              cursorIncrement);
                     }
                     ::setValue(paramsOmitted, cursorSent, cursorValue);
                   }
@@ -3967,11 +3972,11 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallIncremental(
                   errors = 0;
                   ccxt::any responseLength = getArrayLength(response);
                   if (isTrue(this->verbose)) {
-                    ccxt::any iteration = toString((add(i, 1)));
+                    ccxt::any iteration = (add(i, 1));
                     ccxt::any incrementalMessage =
                         add(add(add(add(add(std::string(
                                                 "Incremental pagination call "),
-                                            iteration),
+                                            toString(iteration)),
                                         std::string(" method ")),
                                     method),
                                 std::string(" response length ")),
