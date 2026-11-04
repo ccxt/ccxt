@@ -7,14 +7,14 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
-import io.github.ccxt.types.Account;
 import io.github.ccxt.types.Balances;
-import io.github.ccxt.types.DepositAddress;
-import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRateHistory;
-import io.github.ccxt.types.MarginModification;
+import io.github.ccxt.types.Leverage;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
+import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -48,25 +48,22 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             put( "certified", false );
             put( "pro", true );
             put( "rateLimit", 100 );
-            put( "version", "v1" );
+            put( "version", "v2" );
             put( "userAgent", ((Map<String, Object>)Coinbaseinternational.this.userAgents).get("chrome") );
-            put( "headers", new HashMap<String, Object>() {{
-                put( "CB-VERSION", "2018-05-30" );
-            }} );
             put( "has", new HashMap<String, Object>() {{
                 put( "CORS", true );
                 put( "spot", true );
-                put( "margin", true );
+                put( "margin", false );
                 put( "swap", true );
-                put( "future", false );
-                put( "option", false );
+                put( "future", true );
+                put( "option", true );
                 put( "addMargin", false );
                 put( "cancelAllOrders", true );
                 put( "cancelOrder", true );
                 put( "cancelOrders", false );
                 put( "closeAllPositions", false );
                 put( "closePosition", false );
-                put( "createDepositAddress", true );
+                put( "createDepositAddress", false );
                 put( "createLimitBuyOrder", true );
                 put( "createLimitSellOrder", true );
                 put( "createMarketBuyOrder", true );
@@ -81,7 +78,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "createStopMarketOrder", true );
                 put( "createStopOrder", true );
                 put( "editOrder", true );
-                put( "fetchAccounts", true );
+                put( "fetchAccounts", false );
                 put( "fetchBalance", true );
                 put( "fetchBidsAsks", false );
                 put( "fetchBorrowRateHistories", false );
@@ -93,7 +90,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "fetchCurrencies", true );
                 put( "fetchDeposits", true );
                 put( "fetchDepositsWithdrawals", true );
-                put( "fetchFundingHistory", true );
+                put( "fetchFundingHistory", false );
                 put( "fetchFundingRate", false );
                 put( "fetchFundingRateHistory", true );
                 put( "fetchFundingRates", false );
@@ -102,7 +99,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchL2OrderBook", false );
                 put( "fetchLedger", false );
-                put( "fetchLeverage", false );
+                put( "fetchLeverage", true );
                 put( "fetchLeverageTiers", false );
                 put( "fetchMarginAdjustmentHistory", false );
                 put( "fetchMarginMode", false );
@@ -115,7 +112,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "fetchOpenInterestHistory", false );
                 put( "fetchOpenOrders", true );
                 put( "fetchOrder", true );
-                put( "fetchOrderBook", false );
+                put( "fetchOrderBook", true );
                 put( "fetchOrders", false );
                 put( "fetchPosition", true );
                 put( "fetchPositionHistory", false );
@@ -126,229 +123,421 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
-                put( "fetchTime", false );
+                put( "fetchTime", true );
                 put( "fetchTrades", false );
                 put( "fetchTradingFee", false );
                 put( "fetchTradingFees", false );
                 put( "fetchTransfers", true );
                 put( "fetchWithdrawals", true );
                 put( "reduceMargin", false );
-                put( "sandbox", true );
-                put( "setLeverage", false );
-                put( "setMargin", true );
+                put( "sandbox", false );
+                put( "setLeverage", true );
+                put( "setMargin", false );
                 put( "setMarginMode", false );
                 put( "setPositionMode", false );
-                put( "transfer", true );
-                put( "withdraw", true );
+                put( "transfer", false );
+                put( "withdraw", false );
             }} );
             put( "urls", new HashMap<String, Object>() {{
                 put( "logo", "https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625" );
                 put( "api", new HashMap<String, Object>() {{
-                    put( "rest", "https://api.international.coinbase.com/api" );
-                }} );
-                put( "test", new HashMap<String, Object>() {{
-                    put( "rest", "https://api-n5e1.coinbase.com/api" );
+                    put( "rest", "https://drb.coinbase.com/api/v2" );
                 }} );
                 put( "www", "https://international.coinbase.com" );
-                put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.cloud.coinbase.com/intx/docs")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/overview", "https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication", "https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication", "https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication#generating-a-jwt", "https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens", "https://docs.deribit.com")) );
                 put( "fees", new ArrayList<Object>(Arrays.asList("https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees")) );
                 put( "referral", "" );
             }} );
             put( "requiredCredentials", new HashMap<String, Object>() {{
                 put( "apiKey", true );
                 put( "secret", true );
-                put( "password", true );
             }} );
             put( "api", new HashMap<String, Object>() {{
-                put( "v1", new HashMap<String, Object>() {{
-                    put( "public", new HashMap<String, Object>() {{
-                        put( "get", new HashMap<String, Object>() {{
-                            put( "assets", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "assets/{assets}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "assets/{asset}/networks", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "instruments", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "instruments/{instrument}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "instruments/{instrument}/quote", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "instruments/{instrument}/funding", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "instruments/{instrument}/candles", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "instruments/volumes/daily", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "position-offsets", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "fee-rate-tiers", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
+                put( "public", new HashMap<String, Object>() {{
+                    put( "post", new HashMap<String, Object>() {{
+                        put( "auth", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
                         }} );
                     }} );
-                    put( "private", new HashMap<String, Object>() {{
-                        put( "get", new HashMap<String, Object>() {{
-                            put( "address-book", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "orders", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "orders/{id}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "index/{index}/composition", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "index/{index}/composition-history", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "index/{index}/price", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "index/{index}/candles", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/detail", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/summary", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/balances", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/balances/{asset}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/positions", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/positions/{instrument}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/position-limits", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/position-limits/positions", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/position-limits/positions/{instrument}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/fills", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/fills", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/fee-rates", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/loans", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/loans/{asset}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/loans/{asset}/availability", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/margin-call-status", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "transfers", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "transfers/{transfer_uuid}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "disable_heartbeat", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
                         }} );
-                        put( "post", new HashMap<String, Object>() {{
-                            put( "orders", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/margin", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/cross-collateral-enabled", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/auto-margin-enabled", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/loans/{asset}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}/loans/{asset}/preview", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/transfer", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/transfer-position", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "transfers/withdraw", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "transfers/address", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "transfers/create-counterparty-id", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "transfers/validate-counterparty-id", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "transfers/withdraw/counterparty", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
+                        put( "get_announcements", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
                         }} );
-                        put( "put", new HashMap<String, Object>() {{
-                            put( "orders/{id}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "portfolios/{portfolio}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
+                        put( "get_block_rfq_trades", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
                         }} );
-                        put( "delete", new HashMap<String, Object>() {{
-                            put( "orders", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "orders/{id}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
+                        put( "get_book_summary_by_currency", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
                         }} );
-                        put( "patch", new HashMap<String, Object>() {{
-                            put( "portfolios/{portfolio}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
+                        put( "get_book_summary_by_instrument", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_combo_details", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_combo_ids", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_combos", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_contract_size", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_currencies", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_delivery_prices", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_expirations", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_funding_chart_data", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_funding_rate_history", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_funding_rate_value", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_historical_volatility", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_index_chart_data", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_index_price", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_index_price_names", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_instrument", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_instruments", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_settlements_by_currency", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_settlements_by_instrument", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_trades_by_currency", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_trades_by_currency_and_time", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_trades_by_instrument", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_last_trades_by_instrument_and_time", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_mark_price_history", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_book", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_book_by_instrument_id", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_supported_index_names", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_time", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_trade_volumes", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_tradingview_chart_data", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_volatility_index_data", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "hello", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "set_heartbeat", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "status", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subscribe", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "test", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "ticker", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tickers_by_currency", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "unsubscribe", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "unsubscribe_all", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                }} );
+                put( "private", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "accept_block_rfq", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "add_block_rfq_quote", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "approve_block_trade", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "buy", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_all", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_all_block_rfq_quotes", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_all_by_currency", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_all_by_currency_pair", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_all_by_instrument", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_all_by_kind_or_type", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_block_rfq", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_block_rfq_quote", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_block_rfq_trigger", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_by_label", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "change_margin_model", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "close_position", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "create_block_rfq", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "create_combo", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "disable_cancel_on_disconnect", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "edit", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "edit_block_rfq_quote", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "edit_by_label", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "enable_cancel_on_disconnect", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "execute_block_trade", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_access_log", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_account_summaries", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_account_summary", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_block_rfq_makers", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_block_rfq_quotes", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_block_rfq_user_info", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_block_rfqs", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_block_trade", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_block_trade_requests", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_block_trades", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_broker_trade_requests", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_broker_trades", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_cancel_on_disconnect", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_leg_prices", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_leverage", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_margins", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_max_order_size", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_open_orders", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_open_orders_by_currency", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_open_orders_by_instrument", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_open_orders_by_label", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_history_by_currency", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_history_by_instrument", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_margin_by_ids", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_state", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_state_by_label", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_pme_params", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_position", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_positions", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_risk_profile", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_settlement_history_by_currency", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_settlement_history_by_instrument", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_subaccounts", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_subaccounts_details", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_trading_limits", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_transaction_log", new HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "get_trigger_order_history", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_locks", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_trades_by_currency", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_trades_by_currency_and_time", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_trades_by_instrument", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_trades_by_instrument_and_time", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_user_trades_by_order", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "invalidate_block_trade_signature", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "logout", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "pme/simulate", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "reject_block_trade", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "sell", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "set_leverage", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "simulate_block_trade", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "simulate_portfolio", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subscribe", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "submit_transfer_between_subaccounts", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "unsubscribe", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "unsubscribe_all", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "verify_block_trade", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
                         }} );
                     }} );
                 }} );
@@ -367,45 +556,56 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }} );
             put( "precisionMode", TICK_SIZE );
             put( "exceptions", new HashMap<String, Object>() {{
-                put( "exact", new HashMap<String, Object>() {{}} );
+                put( "exact", new HashMap<String, Object>() {{
+                    put( "13004", AuthenticationError.class );
+                }} );
                 put( "broad", new HashMap<String, Object>() {{
-                    put( "DUPLICATE_CLIENT_ORDER_ID", DuplicateOrderId.class );
-                    put( "Order rejected", InvalidOrder.class );
-                    put( "market orders must be IoC", InvalidOrder.class );
-                    put( "tif is required", InvalidOrder.class );
-                    put( "Invalid replace order request", InvalidOrder.class );
-                    put( "Unauthorized", PermissionDenied.class );
-                    put( "invalid result_limit", BadRequest.class );
-                    put( "is a required field", BadRequest.class );
-                    put( "Not Found", BadRequest.class );
-                    put( "ip not allowed", AuthenticationError.class );
-                    put( "cbe spot routing instrument not supported", NotSupported.class );
+                    put( "invalid_credentials", AuthenticationError.class );
                 }} );
             }} );
             put( "timeframes", new HashMap<String, Object>() {{
-                put( "1m", "ONE_MINUTE" );
-                put( "5m", "FIVE_MINUTE" );
-                put( "15m", "FIFTEEN_MINUTE" );
-                put( "30m", "THIRTY_MINUTE" );
-                put( "1h", "ONE_HOUR" );
-                put( "2h", "TWO_HOUR" );
-                put( "6h", "SIX_HOUR" );
-                put( "1d", "ONE_DAY" );
+                put( "1m", "1" );
+                put( "5m", "5" );
+                put( "15m", "15" );
+                put( "30m", "30" );
+                put( "1h", "60" );
+                put( "2h", "120" );
+                put( "6h", "360" );
+                put( "1d", "1D" );
             }} );
             put( "options", new HashMap<String, Object>() {{
-                put( "brokerId", "nfqkvdjp" );
+                put( "route", "auto" );
+                put( "brokerId", "ccxt" );
                 put( "portfolio", "" );
-                put( "withdraw", new HashMap<String, Object>() {{
-                    put( "method", "v1PrivatePostTransfersWithdraw" );
-                }} );
+                put( "accessTokenRefreshRatio", 0.8 );
                 put( "networksById", new HashMap<String, Object>() {{
-                    put( "ethereum", "ETH" );
-                    put( "arbitrum", "ARBITRUM" );
-                    put( "avacchain", "AVAX" );
-                    put( "optimism", "OPTIMISM" );
-                    put( "polygon", "MATIC" );
-                    put( "solana", "SOL" );
-                    put( "bitcoin", "BTC" );
+                    put( "networks/algorand-mainnet", "ALGO" );
+                    put( "networks/aptos-mainnet", "APT" );
+                    put( "networks/arbitrum-mainnet", "ARBITRUM" );
+                    put( "networks/avacchain-mainnet", "AVAX" );
+                    put( "networks/base-mainnet", "BASE" );
+                    put( "networks/bitcoin-mainnet", "BTC" );
+                    put( "networks/bitcoincash-mainnet", "BCH" );
+                    put( "networks/bittensor-mainnet", "TAO" );
+                    put( "networks/bsc-mainnet", "BSC" );
+                    put( "networks/cardano-mainnet", "ADA" );
+                    put( "networks/cosmos-mainnet", "ATOM" );
+                    put( "networks/dfinity-mainnet", "ICP" );
+                    put( "networks/doge-mainnet", "DOGE" );
+                    put( "networks/ethereum-mainnet", "ETH" );
+                    put( "networks/filecoin-mainnet", "FIL" );
+                    put( "networks/hedera-mainnet", "HBAR" );
+                    put( "networks/hyperliquid-mainnet", "HYPE" );
+                    put( "networks/litecoin-mainnet", "LTC" );
+                    put( "networks/near-mainnet", "NEAR" );
+                    put( "networks/optimism-mainnet", "OPTIMISM" );
+                    put( "networks/polkadot-mainnet", "DOT" );
+                    put( "networks/polygon-mainnet", "MATIC" );
+                    put( "networks/ripple-mainnet", "XRP" );
+                    put( "networks/solana-mainnet", "SOL" );
+                    put( "networks/stellar-mainnet", "XLM" );
+                    put( "networks/sui-mainnet", "SUI" );
+                    put( "networks/vechain-mainnet", "VET" );
                 }} );
             }} );
             put( "features", new HashMap<String, Object>() {{
@@ -430,17 +630,17 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                         put( "trailing", false );
                         put( "leverage", false );
                         put( "marketBuyByCost", false );
-                        put( "marketBuyRequiresPrice", true );
-                        put( "selfTradePrevention", true );
+                        put( "marketBuyRequiresPrice", false );
+                        put( "selfTradePrevention", false );
                         put( "iceberg", false );
                     }} );
                     put( "createOrders", null );
                     put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
-                        put( "limit", 100 );
+                        put( "limit", null );
                         put( "daysBack", null );
                         put( "untilDays", 10000 );
-                        put( "symbolRequired", false );
+                        put( "symbolRequired", true );
                     }} );
                     put( "fetchOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
@@ -473,754 +673,429 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     }} );
                 }} );
                 put( "future", new HashMap<String, Object>() {{
-                    put( "linear", null );
-                    put( "inverse", null );
+                    put( "linear", new HashMap<String, Object>() {{
+                        put( "extends", "default" );
+                    }} );
+                    put( "inverse", new HashMap<String, Object>() {{
+                        put( "extends", "default" );
+                    }} );
+                }} );
+                put( "option", new HashMap<String, Object>() {{
+                    put( "linear", new HashMap<String, Object>() {{
+                        put( "extends", "default" );
+                    }} );
+                    put( "inverse", new HashMap<String, Object>() {{
+                        put( "extends", "default" );
+                    }} );
                 }} );
             }} );
         }});
     }
 
-    public CompletableFuture<Object> handlePortfolioAndParams(Object methodName, Object... optionalArgs)
+    /**
+     * @method
+     * @name coinbaseinternational#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.cdp.coinbase.com/api-reference/supporting/public-get_time
+     * @see https://docs.deribit.com/api-reference/supporting/public-get_time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "portfolio");
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            if ((!java.util.Objects.equals(portfolio, null)) && (!java.util.Objects.equals(portfolio, "")))
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTime", parameters);
+            Map<String, Object> response = (this.publicGetGetTime(paramsResolved)).join();
+            //
+            //     {
+            //         "jsonrpc": "2.0",
+            //         "result": 1788865676744,
+            //         "usIn": 1788865676744468,
+            //         "usOut": 1788865676744569,
+            //         "usDiff": 101,
+            //         "testnet": false
+            //     }
+            //
+            Long timestamp = this.safeInteger(response, "result");
+            return timestamp;
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchMarkets
+     * @description retrieves data on all markets for coinbaseinternational
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_instruments
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.currency] settlement currency filter, defaults to any on Deribit
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchMarkets", parameters);
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            if (this.isNativeDeribitCredentials())
             {
-                return new ArrayList<Object>(Arrays.asList(portfolio, parameters));
+                request.put("currency", "any");
             }
-            String defaultPortfolio = this.safeString(this.options, "portfolio");
-            if ((!java.util.Objects.equals(defaultPortfolio, null)) && (!java.util.Objects.equals(defaultPortfolio, "")))
-            {
-                return new ArrayList<Object>(Arrays.asList(defaultPortfolio, parameters));
-            }
-            Object accounts = (this.fetchAccounts(new Object[0])).join();
-            for (var i = 0; i < ((List<?>)accounts).size(); i++)
-            {
-                Object account = (accounts == null || i < 0 || i >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(i));
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(account, "info", new HashMap<String, Object>() {{}});
-                if (java.util.Objects.equals(this.safeBool(info, "is_default"), true))
-                {
-                    String portfolioId = this.safeString(info, "portfolio_id");
-                    Helpers.addElementToObject(this.options, "portfolio", portfolioId);
-                    return new ArrayList<Object>(Arrays.asList(portfolioId, parameters));
-                }
-            }
-            throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
+            Map<String, Object> response = (this.publicGetGetInstruments(this.extend(request, paramsResolved))).join();
+            //
+            //     {
+            //         "jsonrpc": "2.0",
+            //         "id": 1788770469,
+            //         "result": [
+            //             {
+            //                 "block_trade_tick_size": 0.01,
+            //                 "lot_size": 100,
+            //                 "settlement_currency": "USDC",
+            //                 "index_id": 34000004,
+            //                 "creation_timestamp": 1786804445000,
+            //                 "state": "open",
+            //                 "max_liquidation_commission": 0.01,
+            //                 "base_currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9",
+            //                 "taker_commission": 3.5e-4,
+            //                 "base_currency": "AAVE",
+            //                 "kind": "future",
+            //                 "underlying_type": "crypto",
+            //                 "instrument_id": 675320,
+            //                 "is_active": true,
+            //                 "instrument_type": "linear",
+            //                 "future_type": "linear",
+            //                 "expiration_timestamp": 32503708800000,
+            //                 "max_leverage": 50,
+            //                 "counter_currency": "USDC",
+            //                 "tick_size_steps": [],
+            //                 "quote_currency_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+            //                 "maker_commission": 1.5e-4,
+            //                 "tick_size": 0.01,
+            //                 "settlement_period": "perpetual",
+            //                 "product_group": "TIER_3",
+            //                 "block_trade_commission": 2.5e-4,
+            //                 "min_trade_amount": 0.01,
+            //                 "contract_size": 0.01,
+            //                 "price_index": "aave_usdc",
+            //                 "quote_currency": "USDC",
+            //                 "instrument_name": "AAVE_USDC-PERPETUAL",
+            //                 "max_non_default_leverage": 5.0,
+            //                 "block_trade_min_trade_amount": 200000
+            //             },
+            //             {
+            //                 "state": "open",
+            //                 "price_index": "eth_usd",
+            //                 "kind": "option",
+            //                 "instrument_name": "ETH-25JUN27-5500-P",
+            //                 "maker_commission": 0.0003,
+            //                 "taker_commission": 0.0003,
+            //                 "instrument_type": "reversed",
+            //                 "instrument_id": 677208,
+            //                 "expiration_timestamp": 1813910400000,
+            //                 "underlying_type": "crypto",
+            //                 "product_group": "ETH",
+            //                 "creation_timestamp": 1787173020000,
+            //                 "is_active": true,
+            //                 "contract_size": 1.0,
+            //                 "tick_size": 0.0001,
+            //                 "strike": 5.5e3,
+            //                 "counter_currency": "USD",
+            //                 "option_type": "put",
+            //                 "block_trade_commission": 0.0003,
+            //                 "min_trade_amount": 1,
+            //                 "block_trade_min_trade_amount": 250,
+            //                 "block_trade_tick_size": 0.0001,
+            //                 "settlement_currency": "ETH",
+            //                 "settlement_period": "month",
+            //                 "base_currency": "ETH",
+            //                 "index_id": 2000033,
+            //                 "quote_currency": "ETH",
+            //                 "tick_size_steps": [
+            //                     {
+            //                         "tick_size": 0.0005,
+            //                         "above_price": 0.005
+            //                     }
+            //                 ],
+            //                 "lot_size": 10,
+            //                 "base_currency_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+            //                 "quote_currency_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4"
+            //             }
+            //         ],
+            //         "usIn": 1788770471610519,
+            //         "usOut": 1788770471610767,
+            //         "usDiff": 248,
+            //         "testnet": false
+            //     }
+            //
+            List<Object> instruments = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            return this.parseMarkets(instruments);
         });
 
     }
 
-    public CompletableFuture<Object> handleNetworkIdAndParams(Object currencyCode, Object methodName, Object... optionalArgs)
+    public MarketInterface parseMarket(Object market)
+    {
+        String instrumentName = this.safeString(market, "instrument_name");
+        String lowercaseId = this.safeStringLower(market, "instrument_name");
+        String baseId = this.safeString(market, "base_currency");
+        String quoteId = this.safeString(market, "counter_currency");
+        String settleId = this.safeString(market, "settlement_currency", quoteId);
+        String kind = this.safeString(market, "kind", "");
+        String settlementPeriod = this.safeString(market, "settlement_period");
+        Boolean isSpot = (java.util.Objects.equals(kind, "spot"));
+        Boolean isPerpetual = (java.util.Objects.equals(settlementPeriod, "perpetual"));
+        Boolean isFuture = !Boolean.TRUE.equals(isPerpetual) && (((String)kind).indexOf("future") >= 0);
+        Boolean isOption = (((String)kind).indexOf("option") >= 0);
+        Object comboPosition = ((String)kind).indexOf("combo");
+        Boolean isComboMarket = (((Integer) comboPosition) >= 0);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String type = "swap";
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            type = "spot";
+        } else if (Boolean.TRUE.equals(isFuture))
+        {
+            type = "future";
+        } else if (Boolean.TRUE.equals(isOption))
+        {
+            type = "option";
+        }
+        String symbol = instrumentName;
+        if (!Boolean.TRUE.equals(isComboMarket))
+        {
+            symbol = ((base + "/") + quote);
+            if (!Boolean.TRUE.equals(isSpot))
+            {
+                symbol = ((symbol + ":") + settle);
+            }
+        }
+        Boolean linear = ((Boolean.TRUE.equals(isSpot))) ? null : (java.util.Objects.equals(settle, quote));
+        Boolean inverse = ((Boolean.TRUE.equals(isSpot))) ? null : (!java.util.Objects.equals(settle, quote));
+        String marketSettle = ((Boolean.TRUE.equals(isSpot))) ? null : settle;
+        String marketSettleId = ((Boolean.TRUE.equals(isSpot))) ? null : settleId;
+        Double minTradeAmount = this.safeNumber(market, "min_trade_amount", (Object) null);
+        Double tickSize = this.safeNumber(market, "tick_size", (Object) null);
+        Boolean isFutureOrOption = Boolean.TRUE.equals(isFuture) || Boolean.TRUE.equals(isOption);
+        Long expiry = ((Boolean.TRUE.equals(isFutureOrOption))) ? this.safeInteger(market, "expiration_timestamp") : null;
+        Boolean active = (Boolean) this.safeBool(market, "is_active", (Object) null);
+        Double strike = this.safeNumber(market, "strike", (Object) null);
+        String optionType = this.safeString(market, "option_type");
+        if (!Boolean.TRUE.equals(isComboMarket) && (Boolean.TRUE.equals(isOption) || Boolean.TRUE.equals(isFuture)))
+        {
+            String expiryString = this.yymmdd(expiry, "");
+            symbol = ((symbol + "-") + expiryString);
+        }
+        if (!Boolean.TRUE.equals(isComboMarket) && Boolean.TRUE.equals(isOption))
+        {
+            String optionTypeLetter = "P";
+            if (java.util.Objects.equals(optionType, "call"))
+            {
+                optionTypeLetter = "C";
+            }
+            String strikeString = this.numberToString(strike);
+            symbol = ((((symbol + "-") + strikeString) + "-") + optionTypeLetter);
+        }
+        Map<String, Object> marketStructure = new HashMap<String, Object>();
+        marketStructure.put("id", instrumentName);
+        marketStructure.put("lowercaseId", lowercaseId);
+        marketStructure.put("symbol", symbol);
+        marketStructure.put("base", base);
+        marketStructure.put("quote", quote);
+        marketStructure.put("settle", marketSettle);
+        marketStructure.put("baseId", baseId);
+        marketStructure.put("quoteId", quoteId);
+        marketStructure.put("settleId", marketSettleId);
+        marketStructure.put("type", type);
+        marketStructure.put("spot", isSpot);
+        marketStructure.put("margin", false);
+        marketStructure.put("swap", isPerpetual);
+        marketStructure.put("future", isFuture);
+        marketStructure.put("option", isOption);
+        marketStructure.put("active", active);
+        marketStructure.put("contract", !Boolean.TRUE.equals(isSpot));
+        marketStructure.put("linear", linear);
+        marketStructure.put("inverse", inverse);
+        marketStructure.put("taker", this.safeNumber(market, "taker_commission", (Object) null));
+        marketStructure.put("maker", this.safeNumber(market, "maker_commission", (Object) null));
+        marketStructure.put("contractSize", ((Boolean.TRUE.equals(isSpot))) ? null : this.safeNumber(market, "contract_size", (Object) null));
+        marketStructure.put("expiry", expiry);
+        marketStructure.put("expiryDatetime", this.iso8601(expiry));
+        marketStructure.put("strike", strike);
+        marketStructure.put("optionType", optionType);
+        marketStructure.put("precision", new HashMap<String, Object>() {{
+                put( "amount", minTradeAmount );
+                put( "price", tickSize );
+            }});
+        marketStructure.put("limits", new HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", Coinbaseinternational.this.safeNumber(market, "max_leverage", (Object) null) );
+                }} );
+                put( "amount", new HashMap<String, Object>() {{
+                    put( "min", minTradeAmount );
+                    put( "max", null );
+                }} );
+                put( "price", new HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "cost", new HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }});
+        marketStructure.put("info", market);
+        marketStructure.put("created", this.safeInteger(market, "creation_timestamp"));
+        Map<String, Object> parsedMarket = (Map<String, Object>) this.safeMarketStructure(marketStructure);
+        return (MarketInterface) parsedMarket;
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object networkId = null;
-            List<Object> networkIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "network_arn_id");
-            networkId = ((List<Object>) networkIdparametersVariable).get(0);
-            parameters = ((List<Object>) networkIdparametersVariable).get(1);
-            if (java.util.Objects.equals(networkId, null))
-            {
-                (this.loadCurrencyNetworks(currencyCode)).join();
-                Object networks = ((Map<String, Object>)Helpers.GetValue(this.currencies, currencyCode)).get("networks");
-                String network = this.safeString2(parameters, "networkCode", "network");
-                if (java.util.Objects.equals(network, null))
-                {
-                    // find default network
-                    if (this.isEmpty(networks))
-                    {
-                        throw new BadRequest((((this.id + " createDepositAddress network not found for currency ") + currencyCode) + " please specify networkId in params")) ;
-                    }
-                    Object defaultNetwork = this.findDefaultNetwork((Map<String, Object>) (networks));
-                    networkId = ((Map<String, Object>)defaultNetwork).get("id");
-                } else
-                {
-                    networkId = this.networkCodeToId(network, currencyCode);
-                }
-            }
-            return new ArrayList<Object>(Arrays.asList(networkId, parameters));
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchCurrencies", parameters);
+            Map<String, Object> response = (this.publicGetGetCurrencies(paramsResolved)).join();
+            //
+            //     {
+            //         "jsonrpc": "2.0",
+            //         "result": [
+            //             {
+            //                 "decimals": 6,
+            //                 "currency": "AAVE",
+            //                 "apr": 0.0,
+            //                 "min_withdrawal_fee": 0.0,
+            //                 "withdrawal_fee": 0.0,
+            //                 "coin_type": "AAVE",
+            //                 "withdrawal_priorities": [],
+            //                 "network_fee": 0.0,
+            //                 "coinbase_networks": [
+            //                     {
+            //                         "display_name": "Ethereum",
+            //                         "resource_name": "networks/ethereum-mainnet"
+            //                     }
+            //                 ],
+            //                 "network_currency": "AAVE",
+            //                 "min_confirmations": 0,
+            //                 "currency_long": "Aave",
+            //                 "in_cross_collateral_pool": false,
+            //                 "onchain_operations_precision": 6,
+            //                 "currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9"
+            //             }
+            //         ],
+            //         "usIn": 1788866173661805,
+            //         "usOut": 1788866173664998,
+            //         "usDiff": 3193,
+            //         "testnet": false
+            //     }
+            //
+            List<Object> currencies = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            return this.parseCurrencies(currencies);
         });
 
     }
 
-    /**
-     * @method
-     * @name coinbaseinternational#fetchAccounts
-     * @description fetch all the accounts associated with a profile
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfolios
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
-     */
-    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            List<Object> response = (this.v1PrivateGetPortfolios(parameters)).join();
-            //
-            //    [
-            //        {
-            //           "portfolio_id":"1ap32qsc-1-0",
-            //           "portfolio_uuid":"028d7f6c-b92c-7361-8b7e-2932711e5a22",
-            //           "name":"CCXT Portfolio 030624-17:16",
-            //           "user_uuid":"e6cf46b6-a32f-5fa7-addb-3324d4526fbd",
-            //           "maker_fee_rate":"0",
-            //           "taker_fee_rate":"0.0002",
-            //           "trading_lock":false,
-            //           "borrow_disabled":false,
-            //           "is_lsp":false,
-            //           "is_default":true,
-            //           "cross_collateral_enabled":false
-            //        }
-            //    ]
-            //
-            return this.parseAccounts(response, parameters);
-        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
-
-    }
-
-    public Object parseAccount(Object account)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
         //
-        //    {
-        //       "portfolio_id":"1ap32qsc-1-0",
-        //       "portfolio_uuid":"028d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //       "name":"CCXT Portfolio 030624-17:16",
-        //       "user_uuid":"e6cf46b6-a32f-5fa7-addb-3324d4526fbd",
-        //       "maker_fee_rate":"0",
-        //       "taker_fee_rate":"0.0002",
-        //       "trading_lock":false,
-        //       "borrow_disabled":false,
-        //       "is_lsp":false,
-        //       "is_default":true,
-        //       "cross_collateral_enabled":false
-        //    }
+        //     {
+        //         "decimals": 6,
+        //         "currency": "AAVE",
+        //         "apr": 0.0,
+        //         "min_withdrawal_fee": 0.0,
+        //         "withdrawal_fee": 0.0,
+        //         "coin_type": "AAVE",
+        //         "withdrawal_priorities": [],
+        //         "network_fee": 0.0,
+        //         "coinbase_networks": [
+        //             {
+        //                 "display_name": "Ethereum",
+        //                 "resource_name": "networks/ethereum-mainnet"
+        //             }
+        //         ],
+        //         "network_currency": "AAVE",
+        //         "min_confirmations": 0,
+        //         "currency_long": "Aave",
+        //         "in_cross_collateral_pool": false,
+        //         "onchain_operations_precision": 6,
+        //         "currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9"
+        //     }
         //
-        return new HashMap<String, Object>() {{
-            put( "id", Coinbaseinternational.this.safeString2(account, "portfolio_id", "portfolio_uuid") );
-            put( "type", null );
-            put( "code", null );
-            put( "info", account );
-        }};
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 100;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+        String currencyId = this.safeString(currency, "currency");
+        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String decimals = this.safeString2(currency, "onchain_operations_precision", "decimals");
+        Double precision = this.parseNumber(this.parsePrecision(decimals));
+        Double networkFee = this.safeNumber(currency, "network_fee", (Object) null);
+        Double withdrawalFee = this.safeNumber(currency, "withdrawal_fee", (Object) null);
+        List<Object> rawNetworks = (List<Object>) this.safeList(currency, "coinbase_networks", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
+        for (var i = 0; i < ((List<?>)rawNetworks).size(); i++)
+        {
+            Object rawNetwork = (rawNetworks == null || i < 0 || i >= rawNetworks.size() ? null : rawNetworks.get(i));
+            String networkId = this.safeString(rawNetwork, "resource_name");
+            String network = this.networkIdToCode(networkId, code);
+            if (!java.util.Objects.equals(network, null))
             {
-                (this.loadMarkets()).join();
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("info", rawNetwork);
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("name", this.safeString(rawNetwork, "display_name"));
+                mapLiteral1.put("network", network);
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("deposit", null);
+                mapLiteral1.put("withdraw", null);
+                mapLiteral1.put("precision", precision);
+                mapLiteral1.put("fee", networkFee);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
+        put( "withdraw", new HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+        put( "deposit", new HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+    }});
+                networks.put(network, this.safeNetwork(mapLiteral1));
             }
-            Object paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 10000)).join();
-            }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", ((Map<String, Object>)market).get("id") );
-                put( "granularity", Coinbaseinternational.this.safeString(Coinbaseinternational.this.timeframes, timeframe, timeframe) );
-            }};
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)request).put("start", this.iso8601(since));
-            } else
-            {
-                throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a since argument")) ;
-            }
-            Long unitl = this.safeInteger(parameters, "until");
-            if (!java.util.Objects.equals(unitl, null))
-            {
-                parameters = this.omit(parameters, "until");
-                ((Map<String, Object>)request).put("end", this.iso8601(unitl));
-            }
-            Map<String, Object> response = (this.v1PublicGetInstrumentsInstrumentCandles(this.extend(request, parameters))).join();
-            //
-            //   {
-            //       "aggregations": [
-            //         {
-            //           "start": "2024-04-23T00:00:00Z",
-            //           "open": "62884.4",
-            //           "high": "64710.6",
-            //           "low": "62884.4",
-            //           "close": "63508.4",
-            //           "volume": "3253.9983"
-            //         }
-            //       ]
-            //   }
-            //
-            List<Object> candles = (List<Object>) this.safeList(response, "aggregations", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
-
-    }
-
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        //
-        //   {
-        //     "start": "2024-04-23T00:00:00Z",
-        //     "open": "62884.4",
-        //     "high": "64710.6",
-        //     "low": "62884.4",
-        //     "close": "63508.4",
-        //     "volume": "3253.9983"
-        //   }
-        //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString2(ohlcv, "start", "time")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentfunding
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
-     */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            Object paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
-            Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
-            maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
-            parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
-            String pageKey = "ccxtPageKey";
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
-            }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
-            Long offSet = (Long) this.safeInteger2(parameters, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequest));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", ((Map<String, Object>)market).get("id") );
-                put( "result_offset", offSet );
-            }};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                ((Map<String, Object>)request).put("result_limit", limit);
-            }
-            Map<String, Object> response = (this.v1PublicGetInstrumentsInstrumentFunding(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "pagination":{
-            //           "result_limit":"25",
-            //           "result_offset":"0"
-            //        },
-            //        "results":[
-            //           {
-            //              "instrument_id":"149264167780483072",
-            //              "funding_rate":"0.000011",
-            //              "mark_price":"47388.1",
-            //              "event_time":"2024-02-10T16:00:00Z"
-            //           },
-            //           ...
-            //        ]
-            //    }
-            //
-            List<Object> rawRates = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRateHistories(rawRates, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
-
-    }
-
-    public Object parseFundingRateHistory(Object info, Object... optionalArgs)
-    {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return this.parseFundingRate(info, market);
-    }
-
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
-    {
-        //
-        //    {
-        //       "instrument_id":"149264167780483072",
-        //       "funding_rate":"0.000011",
-        //       "mark_price":"47388.1",
-        //       "event_time":"2024-02-10T16:00:00Z"
-        //    }
-        //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String fundingDatetime = this.safeString2(contract, "event_time", "time");
-        return new HashMap<String, Object>() {{
-            put( "info", contract );
-            put( "symbol", Coinbaseinternational.this.safeSymbol(null, market) );
-            put( "markPrice", Coinbaseinternational.this.safeNumber(contract, "mark_price") );
-            put( "indexPrice", null );
-            put( "interestRate", null );
-            put( "estimatedSettlePrice", null );
-            put( "timestamp", Coinbaseinternational.this.parse8601(fundingDatetime) );
-            put( "datetime", fundingDatetime );
-            put( "fundingRate", Coinbaseinternational.this.safeNumber(contract, "funding_rate") );
-            put( "fundingTimestamp", Coinbaseinternational.this.parse8601(fundingDatetime) );
-            put( "fundingDatetime", fundingDatetime );
-            put( "nextFundingRate", null );
-            put( "nextFundingTimestamp", null );
-            put( "nextFundingDatetime", null );
-            put( "previousFundingRate", null );
-            put( "previousFundingTimestamp", null );
-            put( "previousFundingDatetime", null );
-        }};
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchFundingHistory
-     * @description fetch the history of funding payments paid and received on this account
-     * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch funding history for
-     * @param {int} [limit] the maximum number of funding history structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
-     */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "FUNDING" );
-            }};
-            Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Object portfolios = null;
-            List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "portfolios");
-            portfolios = ((List<Object>) portfoliosparametersVariable).get(0);
-            parameters = ((List<Object>) portfoliosparametersVariable).get(1);
-            if (!java.util.Objects.equals(portfolios, null))
-            {
-                ((Map<String, Object>)request).put("portfolios", portfolios);
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)request).put("time_from", this.iso8601(since));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                ((Map<String, Object>)request).put("result_limit", limit);
-            } else
-            {
-                ((Map<String, Object>)request).put("result_limit", 100);
-            }
-            Map<String, Object> response = (this.v1PrivateGetTransfers(this.extend(request, parameters))).join();
-            List<Object> fundings = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(fundings, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
-
-    }
-
-    public Object parseIncome(Object income, Object... optionalArgs)
-    {
-        //
-        // {
-        //     "amount":"0.0008",
-        //     "asset":"USDC",
-        //     "created_at":"2024-02-22T16:00:00Z",
-        //     "from_portfolio":{
-        //        "id":"13yuk1fs-1-0",
-        //        "name":"Eng Test Portfolio - 2",
-        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
-        //     },
-        //     "instrument_id":"149264164756389888",
-        //     "instrument_symbol":"ETH-PERP",
-        //     "position_id":"1xy4v51m-1-2",
-        //     "status":"PROCESSED",
-        //     "to_portfolio":{
-        //        "name":"CB_FUND"
-        //     },
-        //     "transfer_type":"FUNDING",
-        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
-        //     "updated_at":"2024-02-22T16:00:00Z"
-        // }
-        //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String marketId = this.safeString(income, "symbol");
-        market = this.safeMarket(marketId, market, null, "contract");
-        Long datetime = this.safeInteger(income, "created_at");
-        Long timestamp = this.parse8601(datetime);
-        String currencyId = this.safeString(income, "asset");
-        String code = this.safeCurrencyCode(currencyId);
-        final Object finalMarket = market;
-        return new HashMap<String, Object>() {{
-            put( "info", income );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+        }
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+            put( "id", currencyId );
+            put( "name", Coinbaseinternational.this.safeString(currency, "currency_long") );
             put( "code", code );
-            put( "timestamp", timestamp );
-            put( "datetime", Coinbaseinternational.this.iso8601(timestamp) );
-            put( "id", Coinbaseinternational.this.safeString(income, "transfer_uuid") );
-            put( "amount", Coinbaseinternational.this.safeNumber(income, "amount") );
-            put( "rate", null );
-        }};
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchTransfers
-     * @description fetch a history of internal transfers made on an account
-     * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
-     * @param {string} code unified currency code of the currency transferred
-     * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of  transfers structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "INTERNAL" );
-            }};
-            Object currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Object portfolios = null;
-            List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "portfolios");
-            portfolios = ((List<Object>) portfoliosparametersVariable).get(0);
-            parameters = ((List<Object>) portfoliosparametersVariable).get(1);
-            if (!java.util.Objects.equals(portfolios, null))
-            {
-                ((Map<String, Object>)request).put("portfolios", portfolios);
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)request).put("time_from", this.iso8601(since));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                ((Map<String, Object>)request).put("result_limit", limit);
-            } else
-            {
-                ((Map<String, Object>)request).put("result_limit", 100);
-            }
-            Map<String, Object> response = (this.v1PrivateGetTransfers(this.extend(request, parameters))).join();
-            List<Object> transfers = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(transfers, currency, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
-
-    }
-
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
-    {
-        //
-        // {
-        //     "amount":"0.0008",
-        //     "asset":"USDC",
-        //     "created_at":"2024-02-22T16:00:00Z",
-        //     "from_portfolio":{
-        //        "id":"13yuk1fs-1-0",
-        //        "name":"Eng Test Portfolio - 2",
-        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
-        //     },
-        //     "instrument_id":"149264164756389888",
-        //     "instrument_symbol":"ETH-PERP",
-        //     "position_id":"1xy4v51m-1-2",
-        //     "status":"PROCESSED",
-        //     "to_portfolio":{
-        //        "name":"CB_FUND"
-        //     },
-        //     "transfer_type":"FUNDING",
-        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
-        //     "updated_at":"2024-02-22T16:00:00Z"
-        // }
-        //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Long datetime = this.safeInteger(transfer, "created_at");
-        Long timestamp = this.parse8601(datetime);
-        String currencyId = this.safeString(transfer, "asset");
-        String code = this.safeCurrencyCode(currencyId);
-        Map<String, Object> fromPorfolio = (Map<String, Object>) this.safeDict(transfer, "from_portfolio", new HashMap<String, Object>() {{}});
-        String fromId = this.safeString(fromPorfolio, "id");
-        Map<String, Object> toPorfolio = (Map<String, Object>) this.safeDict(transfer, "to_portfolio", new HashMap<String, Object>() {{}});
-        String toId = this.safeString(toPorfolio, "id");
-        return new HashMap<String, Object>() {{
-            put( "info", transfer );
-            put( "id", Coinbaseinternational.this.safeString(transfer, "transfer_uuid") );
-            put( "timestamp", timestamp );
-            put( "datetime", Coinbaseinternational.this.iso8601(timestamp) );
-            put( "currency", code );
-            put( "amount", Coinbaseinternational.this.safeNumber(transfer, "amount") );
-            put( "fromAccount", fromId );
-            put( "toAccount", toId );
-            put( "status", Coinbaseinternational.this.parseTransferStatus(Coinbaseinternational.this.safeString(transfer, "status")) );
-        }};
-    }
-
-    public String parseTransferStatus(String status)
-    {
-        Map<String, Object> statuses = new HashMap<String, Object>() {{
-            put( "FAILED", "failed" );
-            put( "PROCESSED", "ok" );
-            put( "NEW", "pending" );
-            put( "STARTED", "pending" );
-        }};
-        return this.safeString(statuses, status, status);
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#createDepositAddress
-     * @description create a currency deposit address
-     * @see https://docs.cloud.coinbase.com/intx/reference/createaddress
-     * @see https://docs.cloud.coinbase.com/intx/reference/createcounterpartyid
-     * @param {string} code unified currency code of the currency for the deposit address
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a) if not provided will pick default
-     * @param {string} [params.network] unified network code to identify the blockchain network
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
-            method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("createDepositAddress", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            final Object finalPortfolio = portfolio;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "portfolio", finalPortfolio );
-            }};
-            if (java.util.Objects.equals(method, "v1PrivatePostTransfersAddress"))
-            {
-                Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
-                Object networkId = null;
-                List<Object> networkIdparametersVariable = (List<Object>) (this.handleNetworkIdAndParams(code, "createDepositAddress", parameters)).join();
-                networkId = ((List<Object>) networkIdparametersVariable).get(0);
-                parameters = ((List<Object>) networkIdparametersVariable).get(1);
-                ((Map<String, Object>)request).put("network_arn_id", networkId);
-            }
-            Object response = null;
-            if (java.util.Objects.equals(method, "v1PrivatePostTransfersCreateCounterpartyId"))
-            {
-                response = (this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, parameters))).join();
-            } else
-            {
-                response = (this.v1PrivatePostTransfersAddress(this.extend(request, parameters))).join();
-            }
-            //
-            // v1PrivatePostTransfersAddress
-            //    {
-            //        address: "3LkwYscRyh6tUR1XTqXSJQoJnK7ucC1F4n",
-            //        network_arn_id: "networks/bitcoin-mainnet/assets/6ecc0dcc-10a2-500e-b315-a3b9abae19ce",
-            //        destination_tag: "",
-            //    }
-            // v1PrivatePostTransfersCreateCounterpartyId
-            //    {
-            //        "portfolio_uuid":"018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
-            //        "counterparty_id":"CB2ZPUCZBE"
-            //    }
-            //
-            String tag = this.safeString(response, "destination_tag");
-            String address = this.safeString2(response, "address", "counterparty_id");
-            final Object finalResponse = response;
-            return new HashMap<String, Object>() {{
-                put( "currency", code );
-                put( "tag", tag );
-                put( "address", address );
-                put( "network", null );
-                put( "info", finalResponse );
-            }};
-        }).thenApply(DepositAddress::new);
-
-    }
-
-    public Object findDefaultNetwork(Map<String, Object> networks)
-    {
-        List<Object> networksArray = this.toArray(networks);
-        for (var i = 0; i < ((List<?>)networksArray).size(); i++)
-        {
-            Object info = Helpers.GetValue((networksArray == null || i < 0 || i >= networksArray.size() ? null : networksArray.get(i)), "info");
-            Boolean is_default = (Boolean) this.safeBool(info, "is_default", false);
-            if (java.util.Objects.equals(is_default, true))
-            {
-                return (networksArray == null || i < 0 || i >= networksArray.size() ? null : networksArray.get(i));
-            }
-        }
-        return (networksArray == null || 0 >= ((List<?>)networksArray).size() ? null : ((List<?>)networksArray).get(0));
-    }
-
-    public CompletableFuture<Object> loadCurrencyNetworks(Object code, Object... optionalArgs)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks");
-            if (!java.util.Objects.equals(networks, null))
-            {
-                return false;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", ((Map<String, Object>)currency).get("id") );
-            }};
-            List<Object> rawNetworks = (this.v1PublicGetAssetsAssetNetworks(request)).join();
-            //
-            //    [
-            //        {
-            //            "asset_id":"1",
-            //            "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-            //            "asset_name":"USDC",
-            //            "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
-            //            "min_withdrawal_amt":"1",
-            //            "max_withdrawal_amt":"100000000",
-            //            "network_confirms":35,
-            //            "processing_time":485,
-            //            "is_default":true,
-            //            "network_name":"ethereum",
-            //            "display_name":"Ethereum"
-            //        },
-            //        ....
-            //    ]
-            //
-            Helpers.addElementToObject(currency, "networks", this.parseNetworks(rawNetworks));
-            return true;
-        });
-
-    }
-
-    public Object parseNetworks(Object networks, Object... optionalArgs)
-    {
-        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)networks).size(); i++)
-        {
-            Map<String, Object> network = this.extend(this.parseNetwork((Map<String, Object>) ((networks == null || i < 0 || i >= ((List<?>)networks).size() ? null : ((List<?>)networks).get(i)))), parameters);
-            Helpers.addElementToObject(result, network.get("network"), network);
-        }
-        return result;
-    }
-
-    public Object parseNetwork(Map<String, Object> network, Object... optionalArgs)
-    {
-        //
-        //    {
-        //        "asset_id":"1",
-        //        "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //        "asset_name":"USDC",
-        //        "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
-        //        "min_withdrawal_amt":"1",
-        //        "max_withdrawal_amt":"100000000",
-        //        "network_confirms":35,
-        //        "processing_time":485,
-        //        "is_default":true,
-        //        "network_name":"ethereum",
-        //        "display_name":"Ethereum"
-        //    }
-        //
-        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        String currencyId = this.safeString(network, "asset_name");
-        String currencyCode = this.safeCurrencyCode(currencyId);
-        String networkId = this.safeString(network, "network_arn_id");
-        String networkIdForCode = this.safeStringN(network, new ArrayList<Object>(Arrays.asList("network_name", "display_name", "network_arn_id")), "");
-        return this.safeNetwork(new HashMap<String, Object>() {{
-            put( "info", network );
-            put( "id", networkId );
-            put( "name", Coinbaseinternational.this.safeString(network, "display_name") );
-            put( "network", Coinbaseinternational.this.networkIdToCode(networkIdForCode, currencyCode) );
+            put( "precision", precision );
+            put( "info", currency );
             put( "active", null );
             put( "deposit", null );
             put( "withdraw", null );
-            put( "precision", null );
-            put( "fee", null );
+            put( "networks", networks );
+            put( "fee", withdrawalFee );
+            put( "fees", new HashMap<String, Object>() {{
+                put( "withdraw", withdrawalFee );
+            }} );
             put( "limits", new HashMap<String, Object>() {{
                 put( "withdraw", new HashMap<String, Object>() {{
-                    put( "min", Coinbaseinternational.this.safeNumber(network, "min_withdrawal_amt") );
-                    put( "max", Coinbaseinternational.this.safeNumber(network, "max_withdrawal_amt") );
+                    put( "min", null );
+                    put( "max", null );
                 }} );
                 put( "deposit", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -1232,782 +1107,291 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     /**
      * @method
-     * @name coinbaseinternational#setMargin
-     * @description Either adds or reduces margin in order to set the margin to a specific value
-     * @see https://docs.cloud.coinbase.com/intx/reference/setportfoliomarginoverride
-     * @param {string} symbol unified market symbol of the market to set margin in
-     * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the exchange API endpoint
-     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
-     */
-    public CompletableFuture<MarginModification> setMargin(String symbol2, Object amount, Object... optionalArgs)
-    {
-        final Object symbol3 = symbol2;
-        return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("setMargin", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                throw new BadRequest((this.id + " setMargin() only allows setting margin to full portfolio")) ;
-            }
-            final Object finalPortfolio = portfolio;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "portfolio", finalPortfolio );
-                put( "margin_override", amount );
-            }};
-            Object response = (this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters))).join();
-            return response;
-        }).thenApply(MarginModification::new);
-
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchDepositsWithdrawals
-     * @description fetch history of deposits and withdrawals
-     * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
-     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @name coinbaseinternational#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_tradingview_chart_data
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOHLCV", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object paginate = null;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
-            Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
-            maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
-            parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
-            String pageKey = "ccxtPageKey";
-            if (java.util.Objects.equals(paginate, true))
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchOHLCV", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+            if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 10000L)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
-            Long offSet = (Long) this.safeInteger2(parameters, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "result_offset", offSet );
+                put( "instrument_name", market.get("id") );
+                put( "resolution", Coinbaseinternational.this.safeString(Coinbaseinternational.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
-            if (!java.util.Objects.equals(since, null))
+            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals(this.safeBool2(marketInfo, "is_cbe_routed", "is_csr", false)))
             {
-                ((Map<String, Object>)request).put("time_from", this.iso8601(since));
+                throw new NotSupported((this.id + " fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments")) ;
             }
-            if (!java.util.Objects.equals(limit, null))
+            Object limitResolved = java.util.Objects.requireNonNullElse(limit, 100L);
+            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Long now = this.milliseconds();
+            if (java.util.Objects.equals(since, null))
             {
-                Object newLimit = Helpers.mathMin(limit, 100);
-                ((Map<String, Object>)request).put("result_limit", newLimit);
-            }
-            Object portfolios = null;
-            List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "portfolios");
-            portfolios = ((List<Object>) portfoliosparametersVariable).get(0);
-            parameters = ((List<Object>) portfoliosparametersVariable).get(1);
-            if (!java.util.Objects.equals(portfolios, null))
+                if (java.util.Objects.equals(limitResolved, null))
+                {
+                    limitResolved = 100;
+                }
+                request.put("start_timestamp", this.sum(now, Helpers.multiply(Helpers.multiply(((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(limitResolved), duration), 1000)));
+                request.put("end_timestamp", now);
+            } else
             {
-                ((Map<String, Object>)request).put("portfolios", portfolios);
+                Object sinceResolved = Math.max((since - 1L), 0);
+                request.put("start_timestamp", sinceResolved);
+                if (java.util.Objects.equals(limitResolved, null))
+                {
+                    request.put("end_timestamp", now);
+                } else
+                {
+                    request.put("end_timestamp", this.sum(sinceResolved, Helpers.multiply(Helpers.multiply(limitResolved, duration), 1000)));
+                }
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
-            parameters = ((List<Object>) untilparametersVariable).get(1);
+            Long until = this.safeInteger(paramsPaginate, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("time_to", this.iso8601(until));
+                request.put("end_timestamp", until);
             }
-            Map<String, Object> response = (this.v1PrivateGetTransfers(this.extend(request, parameters))).join();
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, "until") : paramsPaginate;
+            Map<String, Object> response = (this.publicGetGetTradingviewChartData(this.extend(request, paramsOmitted))).join();
             //
-            //    {
-            //        "pagination":{
-            //           "result_limit":25,
-            //           "result_offset":0
-            //        },
-            //        "results":[
-            //           {
-            //              "transfer_uuid":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3",
-            //              "transfer_type":"WITHDRAW",
-            //              "amount":"1.000000",
-            //              "asset":"USDC",
-            //              "status":"PROCESSED",
-            //              "network_name":"ethereum",
-            //              "created_at":"2024-03-14T02:32:18.497795Z",
-            //              "updated_at":"2024-03-14T02:35:38.514588Z",
-            //              "from_portfolio":{
-            //                 "id":"1yun54bb-1-6",
-            //                 "uuid":"018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
-            //                 "name":"fungus technology o?Portfolio"
-            //              },
-            //              "to_address":"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB"
-            //           }
-            //        ]
-            //    }
+            //     {
+            //         "usOut": 1788853501919338,
+            //         "usIn": 1788853501916627,
+            //         "usDiff": 2711,
+            //         "testnet": false,
+            //         "result": {
+            //             "volume": [0.0001, 0.0168, 0],
+            //             "ticks": [1788853380000, 1788853440000, 1788853500000],
+            //             "status": "ok",
+            //             "open": [78494.0, 78444.0, 78441.0],
+            //             "low": [ 78494.0, 78441.0, 78441.0],
+            //             "high": [78494.0, 78444.0, 78441.0],
+            //             "cost": [7.8494, 1317.8151, 0],
+            //             "close": [78494.0, 78441.0, 78441.0]
+            //         },
+            //         "jsonrpc": "2.0"
+            //     }
             //
-            List<Object> rawTransactions = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(rawTransactions);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> candles = (List<Object>) this.convertTradingViewToOHLCV(((Object)result), "ticks", "open", "high", "low", "close", "volume", true);
+            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, java.util.Objects.requireNonNullElse(limit, 100L), false);
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
-    /**
-     * @method
-     * @name coinbaseinternational#fetchPosition
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfolioposition
-     * @description fetch data on an open position
-     * @param {string} symbol unified market symbol of the market the position is held in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<Position> fetchPosition(Object symbol2, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
-        final Object symbol3 = symbol2;
-        return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            symbol = this.symbol(symbol);
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("fetchPosition", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            final Object finalPortfolio = portfolio;
-            final Object finalSymbol = symbol;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "portfolio", finalPortfolio );
-                put( "instrument", Coinbaseinternational.this.marketId((String) (finalSymbol)) );
-            }};
-            Map<String, Object> position = (this.v1PrivateGetPortfoliosPortfolioPositionsInstrument(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "symbol":"BTC-PERP",
-            //        "instrument_id":"114jqr89-0-0",
-            //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-            //        "vwap":"52482.3",
-            //        "net_size":"0",
-            //        "buy_order_size":"0.001",
-            //        "sell_order_size":"0",
-            //        "im_contribution":"0.2",
-            //        "unrealized_pnl":"0",
-            //        "mark_price":"52406.8",
-            //        "entry_vwap":"52472.9"
-            //    }
-            //
-            return this.parsePosition((Map<String, Object>) (position));
-        }).thenApply(Position::new);
-
-    }
-
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        //
-        //    {
-        //       "symbol":"BTC-PERP",
-        //       "instrument_id":"114jqr89-0-0",
-        //       "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //       "vwap":"52482.3",
-        //       "net_size":"0",
-        //       "buy_order_size":"0.001",
-        //       "sell_order_size":"0",
-        //       "im_contribution":"0.2",
-        //       "unrealized_pnl":"0",
-        //       "mark_price":"52406.8",
-        //       "entry_vwap":"52472.9"
-        //    }
-        //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String marketId = this.safeString(position, "symbol");
-        String quantity = this.safeString(position, "net_size");
-        market = this.safeMarket(marketId, market, "-");
-        String side = "long";
-        if (Precise.stringLe(quantity, "0"))
+        Boolean isArray = (ohlcv instanceof List);
+        if (Boolean.TRUE.equals(isArray))
         {
-            side = "short";
-            quantity = Precise.stringMul("-1", quantity);
+            return ohlcv;
         }
-        final Object finalMarket = market;
-        final Object finalSide = side;
-        final Object finalQuantity = quantity;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", Coinbaseinternational.this.safeString(position, "id") );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "entryPrice", null );
-            put( "markPrice", Coinbaseinternational.this.safeNumber(position, "mark_price") );
-            put( "notional", null );
-            put( "collateral", null );
-            put( "unrealizedPnl", Coinbaseinternational.this.safeNumber(position, "unrealized_pnl") );
-            put( "side", finalSide );
-            put( "contracts", Coinbaseinternational.this.parseNumber(finalQuantity) );
-            put( "contractSize", Coinbaseinternational.this.safeNumber(finalMarket, "contractSize") );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "hedged", null );
-            put( "maintenanceMargin", null );
-            put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", Coinbaseinternational.this.safeNumber(position, "im_contribution") );
-            put( "initialMarginPercentage", null );
-            put( "leverage", null );
-            put( "liquidationPrice", null );
-            put( "marginRatio", null );
-            put( "marginMode", null );
-            put( "percentage", null );
-        }}));
+        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString2(ohlcv, "start", "time")), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
 
     /**
      * @method
-     * @name coinbaseinternational#fetchPositions
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliopositions
-     * @description fetch all open positions
-     * @param {string[]} [symbols] list of unified market symbols
+     * @name coinbaseinternational#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_funding_rate_history
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {boolean} [params.paginate] native Deribit automatic pagination is not supported
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchFundingRateHistory", parameters);
+            Object paramsPaginate = paramsResolved;
+            if (this.isNativeDeribitCredentials())
+            {
+                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchFundingRateHistory", "paginate", false);
+                Boolean paginate = paginateparamsFinalVariable.first();
+                Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
+                if (Boolean.TRUE.equals(paginate))
+                {
+                    throw new NotSupported((this.id + " fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until")) ;
+                }
+                paramsPaginate = paramsFinal;
+            }
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
+            }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("fetchPositions", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            final Object finalPortfolio = portfolio;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "portfolio", finalPortfolio );
-            }};
-            List<Object> response = (this.v1PrivateGetPortfoliosPortfolioPositions(this.extend(request, parameters))).join();
+            Map<String, Object> market = this.market(symbol);
+            Long duration = (((long) this.parseTimeframe("1h")) * 1000L);
+            Long now = this.milliseconds();
+            Object sinceResolved = since;
+            if (java.util.Objects.equals(sinceResolved, null))
+            {
+                sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instrument_name", market.get("id"));
+            request.put("start_timestamp", sinceResolved);
+            request.put("end_timestamp", now);
+            if (!java.util.Objects.equals(limit, null))
+            {
+                Object endTimestamp = this.sum(sinceResolved, (limit * duration));
+                request.put("end_timestamp", endTimestamp);
+            }
+            Long until = this.safeInteger(paramsPaginate, "until");
+            if (!java.util.Objects.equals(until, null))
+            {
+                request.put("end_timestamp", until);
+            }
+            Object paramsOmitted = paramsPaginate;
+            if ((!java.util.Objects.equals(until, null)) || this.isNativeDeribitCredentials())
+            {
+                paramsOmitted = this.omit(paramsPaginate, "until");
+            }
+            Map<String, Object> response = (this.publicGetGetFundingRateHistory(this.extend(request, paramsOmitted))).join();
             //
-            //    [
-            //        {
-            //           "symbol":"BTC-PERP",
-            //           "instrument_id":"114jqr89-0-0",
-            //           "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-            //           "vwap":"52482.3",
-            //           "net_size":"0",
-            //           "buy_order_size":"0.001",
-            //           "sell_order_size":"0",
-            //           "im_contribution":"0.2",
-            //           "unrealized_pnl":"0",
-            //           "mark_price":"52406.8",
-            //           "entry_vwap":"52472.9"
-            //        }
-            //    ]
+            //     {
+            //         "jsonrpc": "2.0",
+            //         "result": [
+            //             {
+            //                 "timestamp": 1786269600000,
+            //                 "index_price": 64832.34,
+            //                 "interest_8h": 0.0,
+            //                 "interest_1h": 0.0,
+            //                 "prev_index_price": 64773.05
+            //             },
+            //         ],
+            //         "usIn": 1788858185989192,
+            //         "usOut": 1788858185991663,
+            //         "usDiff": 2471,
+            //         "testnet": false
+            //     }
             //
-            Object positions = this.parsePositions(response);
-            if (this.isEmpty(symbols))
-            {
-                return positions;
-            }
-            symbols = this.marketSymbols(symbols);
-            return this.filterByArrayPositions(positions, "symbol", symbols, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+            List<Object> rawRates = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            return this.parseFundingRateHistories(rawRates, market, since, limit);
+        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
 
-    /**
-     * @method
-     * @name coinbaseinternational#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public Object parseFundingRateHistory(Object info, Map<String, Object> market)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            ((Map<String, Object>)parameters).put("type", "WITHDRAW");
-            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
-
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            ((Map<String, Object>)parameters).put("type", "DEPOSIT");
-            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
-
-    }
-
-    public String parseTransactionStatus(String status)
-    {
-        Map<String, Object> statuses = new HashMap<String, Object>() {{
-            put( "PROCESSED", "ok" );
-            put( "NEW", "pending" );
-            put( "STARTED", "pending" );
-            put( "FAILED", "canceled" );
-        }};
-        return this.safeString(statuses, status, status);
-    }
-
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        //
-        //    {
-        //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
-        //    }
-        // const transactionType = this.safeString (transaction, 'type');
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String datetime = this.safeString(transaction, "updated_at");
-        Map<String, Object> fromPorfolio = (Map<String, Object>) this.safeDict(transaction, "from_portfolio", new HashMap<String, Object>() {{}});
-        String addressFrom = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("from_address", "from_cb_account", this.safeStringN(fromPorfolio, new ArrayList<Object>(Arrays.asList("id", "uuid", "name"))), "from_counterparty_id")));
-        Map<String, Object> toPorfolio = (Map<String, Object>) this.safeDict(transaction, "from_portfolio", new HashMap<String, Object>() {{}});
-        String addressTo = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("to_address", "to_cb_account", this.safeStringN(toPorfolio, new ArrayList<Object>(Arrays.asList("id", "uuid", "name"))), "to_counterparty_id")));
-        String code = this.safeString(currency, "code");
+        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(info, market);
         return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", Coinbaseinternational.this.safeString(transaction, "transfer_uuid") );
-            put( "txid", Coinbaseinternational.this.safeString(transaction, "transaction_uuid") );
-            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
-            put( "datetime", datetime );
-            put( "network", Coinbaseinternational.this.networkIdToCode(Coinbaseinternational.this.safeString(transaction, "network_name"), code) );
-            put( "address", null );
-            put( "addressTo", addressTo );
-            put( "addressFrom", addressFrom );
-            put( "tag", null );
-            put( "tagTo", null );
-            put( "tagFrom", null );
-            put( "type", Coinbaseinternational.this.safeString(transaction, "resource") );
-            put( "amount", Coinbaseinternational.this.safeNumber(transaction, "amount") );
-            put( "currency", Coinbaseinternational.this.safeCurrencyCode(Coinbaseinternational.this.safeString(transaction, "asset"), currency) );
-            put( "status", Coinbaseinternational.this.parseTransactionStatus(Coinbaseinternational.this.safeString(transaction, "status")) );
-            put( "updated", Coinbaseinternational.this.parse8601(datetime) );
-            put( "fee", new HashMap<String, Object>() {{
-                put( "cost", null );
-                put( "currency", null );
-            }} );
+            put( "info", info );
+            put( "symbol", fundingRate.get("symbol") );
+            put( "fundingRate", fundingRate.get("fundingRate") );
+            put( "timestamp", fundingRate.get("timestamp") );
+            put( "datetime", fundingRate.get("datetime") );
         }};
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseFundingRate(Object contract, Map<String, Object> market)
     {
         //
-        //    {
-        //       "portfolio_id":"1wp37qsc-1-0",
-        //       "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //       "portfolio_name":"CCXT Portfolio 020624-17:16",
-        //       "fill_id":"1xbfy19y-1-184",
-        //       "exec_id":"280841526207070392",
-        //       "order_id":"1xbfv8yw-1-0",
-        //       "instrument_id":"114jqr89-0-0",
-        //       "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //       "symbol":"BTC-PERP",
-        //       "match_id":"280841526207053840",
-        //       "fill_price":"52500",
-        //       "fill_qty":"0.01",
-        //       "client_id":"1x59ctku-1-1",
-        //       "client_order_id":"ccxt3e4e2a5f-4a89-",
-        //       "order_qty":"0.01",
-        //       "limit_price":"52500",
-        //       "total_filled":"0.01",
-        //       "filled_vwap":"52500",
-        //       "expire_time":"",
-        //       "stop_price":"",
-        //       "side":"BUY",
-        //       "tif":"GTC",
-        //       "stp_mode":"BOTH",
-        //       "flags":"",
-        //       "fee":"0.105",
-        //       "fee_asset":"USDC",
-        //       "order_status":"DONE",
-        //       "event_time":"2024-02-15T00:43:57.631Z"
-        //    }
+        // fetchFundingRateHistory
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String marketId = this.safeString(trade, "symbol");
-        String datetime = this.safeString(trade, "event_time");
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "info", trade );
-            put( "id", Coinbaseinternational.this.safeString2(trade, "fill_id", "exec_id") );
-            put( "order", Coinbaseinternational.this.safeString(trade, "order_id") );
-            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
-            put( "datetime", datetime );
-            put( "symbol", Coinbaseinternational.this.safeSymbol(marketId, market) );
-            put( "type", null );
-            put( "side", Coinbaseinternational.this.safeStringLower(trade, "side") );
-            put( "takerOrMaker", null );
-            put( "price", Coinbaseinternational.this.safeNumber(trade, "fill_price") );
-            put( "amount", Coinbaseinternational.this.safeNumber(trade, "fill_qty") );
-            put( "cost", null );
-            put( "fee", new HashMap<String, Object>() {{
-                put( "cost", Coinbaseinternational.this.safeNumber(trade, "fee") );
-                put( "currency", Coinbaseinternational.this.safeCurrencyCode(Coinbaseinternational.this.safeString(trade, "fee_asset")) );
-            }} );
-        }}));
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchMarkets
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
-     * @description retrieves data on all markets for coinbaseinternational
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            List<Object> response = (this.v1PublicGetInstruments(parameters)).join();
-            //
-            //    [
-            //        {
-            //           "instrument_id":"149264164756389888",
-            //           "instrument_uuid":"e9360798-6a10-45d6-af05-67c30eb91e2d",
-            //           "symbol":"ETH-PERP",
-            //           "type":"PERP",
-            //           "base_asset_id":"118059611793145856",
-            //           "base_asset_uuid":"d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
-            //           "base_asset_name":"ETH",
-            //           "quote_asset_id":"1",
-            //           "quote_asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-            //           "quote_asset_name":"USDC",
-            //           "base_increment":"0.0001",
-            //           "quote_increment":"0.01",
-            //           "price_band_percent":"0.02",
-            //           "market_order_percent":"0.0075",
-            //           "qty_24hr":"44434.8131",
-            //           "notional_24hr":"110943454.279785",
-            //           "avg_daily_qty":"1099171.6025",
-            //           "avg_daily_notional":"2637240145.456987",
-            //           "previous_day_qty":"78909.3939",
-            //           "open_interest":"1270.749",
-            //           "position_limit_qty":"1831.9527",
-            //           "position_limit_adq_pct":"0.05",
-            //           "replacement_cost":"0.23",
-            //           "base_imf":"0.1",
-            //           "min_notional_value":"10",
-            //           "funding_interval":"3600000000000",
-            //           "trading_state":"TRADING",
-            //           "quote":{
-            //              "best_bid_price":"2490.8",
-            //              "best_bid_size":"9.0515",
-            //              "best_ask_price":"2490.81",
-            //              "best_ask_size":"4.8486",
-            //              "trade_price":"2490.39",
-            //              "trade_qty":"0.9508",
-            //              "index_price":"2490.5",
-            //              "mark_price":"2490.8",
-            //              "settlement_price":"2490.81",
-            //              "limit_up":"2615.42",
-            //              "limit_down":"2366.34",
-            //              "predicted_funding":"0.000009",
-            //              "timestamp":"2024-02-10T16:07:39.454Z"
-            //           }
-            //        },
-            //        ...
-            //    ]
-            //
-            return this.parseMarkets(response);
-        });
-
-    }
-
-    public Object parseMarket(Object market)
-    {
+        //     {
+        //         "timestamp": 1786269600000,
+        //         "index_price": 64832.34,
+        //         "interest_8h": 0.0,
+        //         "interest_1h": 0.0,
+        //         "prev_index_price": 64773.05
+        //     }
         //
-        //   {
-        //       "instrument_id":"149264164756389888",
-        //       "instrument_uuid":"e9360798-6a10-45d6-af05-67c30eb91e2d",
-        //       "symbol":"ETH-PERP",
-        //       "type":"PERP",
-        //       "base_asset_id":"118059611793145856",
-        //       "base_asset_uuid":"d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
-        //       "base_asset_name":"ETH",
-        //       "quote_asset_id":"1",
-        //       "quote_asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //       "quote_asset_name":"USDC",
-        //       "base_increment":"0.0001",
-        //       "quote_increment":"0.01",
-        //       "price_band_percent":"0.02",
-        //       "market_order_percent":"0.0075",
-        //       "qty_24hr":"44434.8131",
-        //       "notional_24hr":"110943454.279785",
-        //       "avg_daily_qty":"1099171.6025",
-        //       "avg_daily_notional":"2637240145.456987",
-        //       "previous_day_qty":"78909.3939",
-        //       "open_interest":"1270.749",
-        //       "position_limit_qty":"1831.9527",
-        //       "position_limit_adq_pct":"0.05",
-        //       "replacement_cost":"0.23",
-        //       "base_imf":"0.1",
-        //       "min_notional_value":"10",
-        //       "funding_interval":"3600000000000",
-        //       "trading_state":"TRADING",
-        //       "quote":{
-        //          "best_bid_price":"2490.8",
-        //          "best_bid_size":"9.0515",
-        //          "best_ask_price":"2490.81",
-        //          "best_ask_size":"4.8486",
-        //          "trade_price":"2490.39",
-        //          "trade_qty":"0.9508",
-        //          "index_price":"2490.5",
-        //          "mark_price":"2490.8",
-        //          "settlement_price":"2490.81",
-        //          "limit_up":"2615.42",
-        //          "limit_down":"2366.34",
-        //          "predicted_funding":"0.000009",
-        //          "timestamp":"2024-02-10T16:07:39.454Z"
-        //       }
-        //    }
-        //
-        String marketId = this.safeString(market, "symbol");
-        String baseId = this.safeString(market, "base_asset_name");
-        String quoteId = this.safeString(market, "quote_asset_name");
-        String typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
-        Boolean isSpot = (java.util.Objects.equals(typeId, "SPOT"));
-        Object fees = this.fees;
-        Object symbol = ((baseId + "/") + quoteId);
-        String settleId = null;
-        if (!Boolean.TRUE.equals(isSpot))
-        {
-            settleId = quoteId;
-            symbol = Helpers.add(symbol, (":" + quoteId));
-        }
-        Object isLinear = ((Boolean.TRUE.equals(isSpot))) ? null : (java.util.Objects.equals(settleId, quoteId));
-        Object isInverse = ((Boolean.TRUE.equals(isSpot))) ? null : (!java.util.Objects.equals(settleId, quoteId));
-        if (java.util.Objects.equals(marketId, null))
-        {
-            throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
-        }
-        final Object finalMarketId = marketId;
-        final Object finalSymbol = symbol;
-        final Object finalBaseId = baseId;
-        final Object finalSettleId = settleId;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", finalMarketId );
-            put( "lowercaseId", ((String)finalMarketId).toLowerCase() );
-            put( "symbol", finalSymbol );
-            put( "base", finalBaseId );
-            put( "quote", quoteId );
-            put( "settle", finalSettleId );
-            put( "baseId", finalBaseId );
-            put( "quoteId", quoteId );
-            put( "settleId", finalSettleId );
-            put( "type", ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap" );
-            put( "spot", isSpot );
-            put( "margin", false );
-            put( "swap", !Boolean.TRUE.equals(isSpot) );
-            put( "future", false );
-            put( "option", false );
-            put( "active", java.util.Objects.equals(Coinbaseinternational.this.safeString(market, "trading_state"), "TRADING") );
-            put( "contract", !Boolean.TRUE.equals(isSpot) );
-            put( "linear", isLinear );
-            put( "inverse", isInverse );
-            put( "taker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "taker") );
-            put( "maker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "maker") );
-            put( "contractSize", ((Boolean.TRUE.equals(isSpot))) ? null : 1 );
-            put( "expiry", null );
-            put( "expiryDatetime", null );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "precision", new HashMap<String, Object>() {{
-                put( "amount", Coinbaseinternational.this.safeNumber(market, "base_increment") );
-                put( "price", Coinbaseinternational.this.safeNumber(market, "quote_increment") );
-                put( "cost", Coinbaseinternational.this.safeNumber(market, "quote_increment") );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
-                put( "leverage", new HashMap<String, Object>() {{
-                    put( "min", null );
-                    put( "max", Coinbaseinternational.this.safeNumber(market, "base_imf") );
-                }} );
-                put( "amount", new HashMap<String, Object>() {{
-                    put( "min", null );
-                    put( "max", ((Boolean.TRUE.equals(isSpot))) ? null : Coinbaseinternational.this.safeNumber(market, "position_limit_qty") );
-                }} );
-                put( "price", new HashMap<String, Object>() {{
-                    put( "min", null );
-                    put( "max", null );
-                }} );
-                put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Coinbaseinternational.this.safeNumber(market, "min_notional_value") );
-                    put( "max", null );
-                }} );
-            }} );
-            put( "info", market );
-            put( "created", null );
-        }});
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://docs.cloud.coinbase.com/intx/reference/getassets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            List<Object> currencies = (this.v1PublicGetAssets(parameters)).join();
-            //
-            //    [
-            //        {
-            //           "asset_id":"1",
-            //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f6",
-            //           "asset_name":"USDC",
-            //           "status":"ACTIVE",
-            //           "collateral_weight":1.0,
-            //           "supported_networks_enabled":true
-            //        },
-            //        ...
-            //    ]
-            //
-            return this.parseCurrencies(currencies);
-        });
-
-    }
-
-    public Object parseCurrency(Object currency)
-    {
-        //
-        //    {
-        //       "asset_id":"1",
-        //       "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //       "asset_name":"USDC",
-        //       "status":"ACTIVE",
-        //       "collateral_weight":1.0,
-        //       "supported_networks_enabled":true
-        //    }
-        //
-        String id = this.safeString(currency, "asset_name");
-        String code = this.safeCurrencyCode(id);
-        String statusId = this.safeString(currency, "status");
-        final Object finalStatusId = statusId;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "name", code );
-            put( "code", code );
-            put( "precision", null );
-            put( "info", currency );
-            put( "active", (java.util.Objects.equals(finalStatusId, "ACTIVE")) );
-            put( "deposit", null );
-            put( "withdraw", null );
-            put( "networks", null );
-            put( "fee", null );
-            put( "fees", null );
-            put( "limits", Coinbaseinternational.this.limits );
-        }}));
+        Long timestamp = this.safeInteger(contract, "timestamp");
+        return new HashMap<String, Object>() {{
+            put( "info", contract );
+            put( "symbol", Coinbaseinternational.this.safeSymbol(null, market, (String) null, (String) null) );
+            put( "markPrice", null );
+            put( "indexPrice", Coinbaseinternational.this.safeNumber(contract, "index_price", (Object) null) );
+            put( "interestRate", null );
+            put( "estimatedSettlePrice", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Coinbaseinternational.this.iso8601(timestamp) );
+            put( "fundingRate", Coinbaseinternational.this.safeNumber(contract, "interest_8h", (Object) null) );
+            put( "fundingTimestamp", timestamp );
+            put( "fundingDatetime", Coinbaseinternational.this.iso8601(timestamp) );
+            put( "nextFundingRate", null );
+            put( "nextFundingTimestamp", null );
+            put( "nextFundingDatetime", null );
+            put( "previousFundingRate", null );
+            put( "previousFundingTimestamp", null );
+            put( "previousFundingDatetime", null );
+        }};
     }
 
     /**
      * @method
      * @name coinbaseinternational#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTickers", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
-            List<Object> instruments = (this.v1PublicGetInstruments(parameters)).join();
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
+            if (java.util.Objects.equals(symbolsResolved, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchTickers() requires a symbols argument")) ;
+            }
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-            List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            if ((instruments instanceof List))
+            for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
             {
-                rows = instruments;
+                String symbol = this.safeString(symbolsResolved, i);
+                if (java.util.Objects.equals(symbol, null))
+                {
+                    continue;
+                }
+                Ticker ticker = (this.fetchTicker(symbol, paramsResolved)).join();
+                tickers.put(symbol, ticker);
             }
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
-            {
-                Object instrument = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-                String marketId = this.safeString(instrument, "symbol");
-                String symbol = this.safeSymbol(marketId);
-                Map<String, Object> quote = (Map<String, Object>) this.safeDict(instrument, "quote", new HashMap<String, Object>() {{}});
-                ((Map<String, Object>)tickers).put((String)symbol, this.parseTicker(quote, this.safeMarket(marketId)));
-            }
-            return this.filterByArray(tickers, "symbol", symbols, true);
+            return this.filterByArrayTickers(tickers, "symbol", symbolsResolved);
         }).thenApply(Tickers::new);
 
     }
@@ -2016,159 +1400,549 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @method
      * @name coinbaseinternational#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentquote
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTicker", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", Coinbaseinternational.this.marketId((String) (symbol)) );
+                put( "instrument_name", market.get("id") );
             }};
-            Map<String, Object> ticker = (this.v1PublicGetInstrumentsInstrumentQuote(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetTicker(this.extend(request, paramsResolved))).join();
+            //
+            //     {
+            //         "jsonrpc": "2.0",
+            //         "id": 1788867257,
+            //         "result": {
+            //             "timestamp": 1788867258984,
+            //             "state": "open",
+            //             "stats": {
+            //                 "high": 79695.0,
+            //                 "low": 78184.0,
+            //                 "price_change": -1.2347,
+            //                 "volume": 15.0492,
+            //                 "volume_usd": 1188223.3,
+            //                 "volume_notional": 1188367.9964
+            //             },
+            //             "index_price": 78451.93,
+            //             "instrument_name": "BTC_USDC",
+            //             "last_price": 78469.0,
+            //             "min_price": 76882.0,
+            //             "max_price": 80021.0,
+            //             "mark_price": 78451.93,
+            //             "best_ask_price": 78493.0,
+            //             "best_bid_price": 78465.0,
+            //             "best_ask_amount": 0.0004,
+            //             "best_bid_amount": 0.001
+            //         },
+            //         "usIn": 1788867259058846,
+            //         "usOut": 1788867259060040,
+            //         "usDiff": 1194,
+            //         "testnet": false
+            //     }
+            //
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
     {
         //
-        //    {
-        //        "best_bid_price":"2490.8",
-        //        "best_bid_size":"9.0515",
-        //        "best_ask_price":"2490.81",
-        //        "best_ask_size":"4.8486",
-        //        "trade_price":"2490.39",
-        //        "trade_qty":"0.9508",
-        //        "index_price":"2490.5",
-        //        "mark_price":"2490.8",
-        //        "settlement_price":"2490.81",
-        //        "limit_up":"2615.42",
-        //        "limit_down":"2366.34",
-        //        "predicted_funding":"0.000009",
-        //        "timestamp":"2024-02-10T16:07:39.454Z"
-        //    }
+        //     {
+        //         "timestamp": 1788867258984,
+        //         "state": "open",
+        //         "stats": {
+        //             "high": 79695.0,
+        //             "low": 78184.0,
+        //             "price_change": -1.2347,
+        //             "volume": 15.0492,
+        //             "volume_usd": 1188223.3,
+        //             "volume_notional": 1188367.9964
+        //         },
+        //         "index_price": 78451.93,
+        //         "instrument_name": "BTC_USDC",
+        //         "last_price": 78469.0,
+        //         "min_price": 76882.0,
+        //         "max_price": 80021.0,
+        //         "mark_price": 78451.93,
+        //         "best_ask_price": 78493.0,
+        //         "best_bid_price": 78465.0,
+        //         "best_ask_amount": 0.0004,
+        //         "best_bid_amount": 0.001
+        //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String datetime = this.safeString(ticker, "timestamp");
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "info", ticker );
-            put( "symbol", Coinbaseinternational.this.safeSymbol(null, market) );
-            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
-            put( "datetime", datetime );
-            put( "bid", Coinbaseinternational.this.safeNumber(ticker, "best_bid_price") );
-            put( "bidVolume", Coinbaseinternational.this.safeNumber(ticker, "best_bid_size") );
-            put( "ask", Coinbaseinternational.this.safeNumber(ticker, "best_ask_price") );
-            put( "askVolume", Coinbaseinternational.this.safeNumber(ticker, "best_ask_size") );
-            put( "high", null );
-            put( "low", null );
-            put( "open", null );
-            put( "close", null );
-            put( "last", null );
-            put( "change", null );
-            put( "percentage", null );
-            put( "average", null );
-            put( "vwap", null );
-            put( "baseVolume", null );
-            put( "quoteVolume", null );
-            put( "previousClose", null );
-            put( "markPrice", Coinbaseinternational.this.safeNumber(ticker, "mark_price") );
-            put( "indexPrice", Coinbaseinternational.this.safeNumber(ticker, "index_price") );
-        }});
+        Long timestamp = this.safeInteger(ticker, "timestamp");
+        Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats", new HashMap<String, Object>() {{}});
+        Double last = this.safeNumber(ticker, "last_price", (Object) null);
+        String marketId = this.safeString(ticker, "instrument_name");
+        Double quoteVolume = this.safeNumber(stats, "volume_notional", (Object) null);
+        if (this.isNativeDeribitCredentials())
+        {
+            quoteVolume = this.safeNumber2(stats, "volume_notional", "volume_usd", (Object) null);
+        }
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", ticker);
+        mapLiteral2.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("bid", this.safeNumber(ticker, "best_bid_price", (Object) null));
+        mapLiteral2.put("bidVolume", this.safeNumber(ticker, "best_bid_amount", (Object) null));
+        mapLiteral2.put("ask", this.safeNumber(ticker, "best_ask_price", (Object) null));
+        mapLiteral2.put("askVolume", this.safeNumber(ticker, "best_ask_amount", (Object) null));
+        mapLiteral2.put("high", this.safeNumber(stats, "high", (Object) null));
+        mapLiteral2.put("low", this.safeNumber(stats, "low", (Object) null));
+        mapLiteral2.put("open", null);
+        mapLiteral2.put("close", last);
+        mapLiteral2.put("last", last);
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", null);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("baseVolume", this.safeNumber(stats, "volume", (Object) null));
+        mapLiteral2.put("quoteVolume", quoteVolume);
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("markPrice", this.safeNumber(ticker, "mark_price", (Object) null));
+        mapLiteral2.put("indexPrice", this.safeNumber(ticker, "index_price", (Object) null));
+        return this.safeTicker(mapLiteral2, (Map<String, Object>) null);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchOrderBook
+     * @description fetches a market order book
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_order_book
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
+     * @param {string} symbol unified market symbol
+     * @param {int} [limit] the maximum number of bids and asks to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOrderBook", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instrument_name", market.get("id") );
+            }};
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("depth", limit);
+                if (this.isNativeDeribitCredentials())
+                {
+                    List<Object> depths = new ArrayList<Object>(Arrays.asList(1, 5, 10, 20, 50, 100, 1000, 10000));
+                    if (((limit < 1)) || ((limit > 10000)))
+                    {
+                        throw new BadRequest((this.id + " fetchOrderBook() limit must be between 1 and 10000")) ;
+                    }
+                    for (var i = 0; i < ((List<?>)depths).size(); i++)
+                    {
+                        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(limit, (depths == null || i < 0 || i >= depths.size() ? null : depths.get(i))))
+                        {
+                            request.put("depth", (depths == null || i < 0 || i >= depths.size() ? null : depths.get(i)));
+                            break;
+                        }
+                    }
+                }
+            }
+            Map<String, Object> response = (this.publicGetGetOrderBook(this.extend(request, paramsResolved))).join();
+            //
+            //     {
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "timestamp": 1788868357984,
+            //             "state": "open",
+            //             "stats": {
+            //                 "high": 79695.0,
+            //                 "low": 78184.0,
+            //                 "price_change": -1.2564,
+            //                 "volume": 15.14,
+            //                 "volume_usd": 1195335.73,
+            //                 "volume_notional": 1195481.8941
+            //             },
+            //             "change_id": 9047601566,
+            //             "index_price": 78375.89,
+            //             "instrument_name": "BTC_USDC",
+            //             "bids": [
+            //                 [78376.0, 0.0037],
+            //                 [78373.0, 0.04],
+            //                 [78369.0, 0.0006],
+            //                 [78361.0, 0.001],
+            //                 [78355.0, 0.001]
+            //             ],
+            //             "asks": [
+            //                 [78419.0, 0.0015],
+            //                 [78421.0, 0.0405],
+            //                 [78431.0, 0.0008],
+            //                 [78432.0, 0.0001],
+            //                 [78433.0, 0.009]
+            //             ],
+            //             "last_price": 78436.0,
+            //             "min_price": 76808.0,
+            //             "max_price": 79944.0,
+            //             "mark_price": 78375.89,
+            //             "best_ask_price": 78419.0,
+            //             "best_bid_price": 78376.0,
+            //             "best_ask_amount": 0.0015,
+            //             "best_bid_amount": 0.0037
+            //         },
+            //         "usIn": 1788868358451540,
+            //         "usOut": 1788868358451883,
+            //         "usDiff": 343,
+            //         "testnet": false
+            //     }
+            //
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Long timestamp = this.safeInteger(result, "timestamp");
+            return this.parseOrderBook(result, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
+        }).thenApply(OrderBook::new);
+
     }
 
     /**
      * @method
      * @name coinbaseinternational#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliobalances
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.code] unified currency code for a native Deribit single account summary
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchBalance", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("fetchBalance", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            final Object finalPortfolio = portfolio;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "portfolio", finalPortfolio );
-            }};
-            List<Object> balances = (this.v1PrivateGetPortfoliosPortfolioBalances(this.extend(request, parameters))).join();
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            String code = this.safeString(paramsResolved, "code");
+            Map<String, Object> paramsOmitted = paramsResolved;
+            if (this.isNativeDeribitCredentials())
+            {
+                paramsOmitted = this.omit(paramsResolved, "code");
+            }
+            Map<String, Object> response = null;
+            if (this.isNativeDeribitCredentials() && (!java.util.Objects.equals(code, null)))
+            {
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("currency", this.currencyId(code));
+                response = (this.privateGetGetAccountSummary(this.extend(request, paramsOmitted))).join();
+            } else
+            {
+                response = (this.privateGetGetAccountSummaries(paramsOmitted)).join();
+            }
             //
-            //    [
-            //        {
-            //           "asset_id":"0-0-1",
-            //           "asset_name":"USDC",
-            //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-            //           "quantity":"500000.0000000000",
-            //           "hold":"0",
-            //           "hold_available_for_collateral":"0",
-            //           "transfer_hold":"0",
-            //           "collateral_value":"500000.0",
-            //           "max_withdraw_amount":"500000.0000000000",
-            //           "loan":"0",
-            //           "loan_collateral_requirement":"0.0"
-            //        }
-            //    ]
+            // {
+            //     "id": 2515,
+            //     "jsonrpc": "2.0",
+            //     "result": {
+            //         "block_rfq_self_match_prevention": true,
+            //         "creation_timestamp": 1687352432143,
+            //         "email": "user@example.com",
+            //         "id": 10,
+            //         "interuser_transfers_enabled": false,
+            //         "login_enabled": false,
+            //         "mmp_enabled": false,
+            //         "referrer_id": null,
+            //         "security_keys_enabled": false,
+            //         "self_trading_extended_to_subaccounts": false,
+            //         "self_trading_reject_mode": "cancel_maker",
+            //         "summaries": [
+            //         {
+            //             "available_funds": 301.38059622,
+            //             "available_withdrawal_funds": 301.35396172,
+            //             "balance": 302.60065765,
+            //             "cross_collateral_enabled": false,
+            //             "currency": "BTC",
+            //             "delta_total": 31.602958,
+            //             "delta_total_map": {
+            //             "btc_usd": 31.594357699
+            //             },
+            //             "equity": 302.61869214,
+            //             "estimated_liquidation_ratio": 0.10098722,
+            //             "estimated_liquidation_ratio_map": {
+            //             "btc_usd": 0.1009872222854525
+            //             },
+            //             "fee_balance": 0,
+            //             "fees": {
+            //             "btc_usd": {
+            //                 "future": {
+            //                 "block_trade": 0.3,
+            //                 "default": {
+            //                     "maker": -0.0001,
+            //                     "taker": 0.00035000000000000005,
+            //                     "type": "fixed"
+            //                 }
+            //                 },
+            //                 "option": {
+            //                 "block_trade": 0.625,
+            //                 "default": {
+            //                     "maker": 0.625,
+            //                     "taker": 0.625,
+            //                     "type": "relative"
+            //                 }
+            //                 },
+            //                 "perpetual": {
+            //                 "block_trade": 0.3,
+            //                 "default": {
+            //                     "maker": -0.0001,
+            //                     "taker": 0.00035000000000000005,
+            //                     "type": "fixed"
+            //                 }
+            //                 }
+            //             }
+            //             },
+            //             "futures_pl": -0.32434225,
+            //             "futures_session_rpl": -0.03258105,
+            //             "futures_session_upl": 0.05921555,
+            //             "initial_margin": 1.24669592,
+            //             "limits": {
+            //             "limits_per_currency": false,
+            //             "matching_engine": {
+            //                 "cancel_all": {
+            //                 "burst": 250,
+            //                 "rate": 200
+            //                 },
+            //                 "guaranteed_quotes": {
+            //                 "burst": 2,
+            //                 "rate": 2
+            //                 },
+            //                 "max_quotes": {
+            //                 "burst": 10,
+            //                 "rate": 10
+            //                 },
+            //                 "quotes": {
+            //                 "burst": 500,
+            //                 "rate": 500
+            //                 },
+            //                 "spot": {
+            //                 "burst": 250,
+            //                 "rate": 200
+            //                 },
+            //                 "trading": {
+            //                 "total": {
+            //                     "burst": 250,
+            //                     "rate": 200
+            //                 }
+            //                 }
+            //             },
+            //             "non_matching_engine": {
+            //                 "burst": 1500,
+            //                 "rate": 1000
+            //             }
+            //             },
+            //             "maintenance_margin": 0.8857841,
+            //             "margin_balance": 302.62729214,
+            //             "margin_model": "segregated_sm",
+            //             "options_delta": -1.01962,
+            //             "options_gamma": 0.00001,
+            //             "options_gamma_map": {
+            //             "btc_usd": 0.00001
+            //             },
+            //             "options_pl": -0.0065,
+            //             "options_session_rpl": 0,
+            //             "options_session_upl": -0.0065,
+            //             "options_theta": 15.97071,
+            //             "options_value": -0.0086,
+            //             "options_vega": 0.0858,
+            //             "options_vega_map": {
+            //             "btc_usd": 0.0858
+            //             },
+            //             "portfolio_margining_enabled": false,
+            //             "projected_delta_total": 32.613978,
+            //             "projected_initial_margin": 1.01529592,
+            //             "projected_maintenance_margin": 0.7543841,
+            //             "session_rpl": -0.03258105,
+            //             "session_upl": 0.05271555,
+            //             "spot_reserve": 0,
+            //             "total_pl": -0.33084225
+            //         },
+            //         {
+            //             "additional_reserve": 0,
+            //             "available_funds": 99.999598,
+            //             "available_withdrawal_funds": 99.999597,
+            //             "balance": 100,
+            //             "cross_collateral_enabled": false,
+            //             "currency": "ETH",
+            //             "delta_total": 0,
+            //             "delta_total_map": {
+            //             "eth_usd": 0
+            //             },
+            //             "equity": 100,
+            //             "estimated_liquidation_ratio": 0,
+            //             "estimated_liquidation_ratio_map": {
+            //             "eth_usd": 0
+            //             },
+            //             "fee_balance": 0,
+            //             "fees": {
+            //             "eth_usd": {
+            //                 "future": {
+            //                 "block_trade": 0.2,
+            //                 "default": {
+            //                     "maker": -0.00005,
+            //                     "taker": 0.00025,
+            //                     "type": "fixed"
+            //                 }
+            //                 },
+            //                 "option": {
+            //                 "block_trade": 0.5,
+            //                 "default": {
+            //                     "maker": 0.5,
+            //                     "taker": 0.5,
+            //                     "type": "relative"
+            //                 }
+            //                 },
+            //                 "perpetual": {
+            //                 "block_trade": 0.2,
+            //                 "default": {
+            //                     "maker": -0.00005,
+            //                     "taker": 0.00025,
+            //                     "type": "fixed"
+            //                 }
+            //                 }
+            //             }
+            //             },
+            //             "futures_pl": 0,
+            //             "futures_session_rpl": 0,
+            //             "futures_session_upl": 0,
+            //             "initial_margin": 0.000402,
+            //             "limits": {
+            //             "limits_per_currency": false,
+            //             "matching_engine": {
+            //                 "cancel_all": {
+            //                 "burst": 250,
+            //                 "rate": 200
+            //                 },
+            //                 "guaranteed_quotes": {
+            //                 "burst": 2,
+            //                 "rate": 2
+            //                 },
+            //                 "max_quotes": {
+            //                 "burst": 10,
+            //                 "rate": 10
+            //                 },
+            //                 "quotes": {
+            //                 "burst": 500,
+            //                 "rate": 500
+            //                 },
+            //                 "spot": {
+            //                 "burst": 250,
+            //                 "rate": 200
+            //                 },
+            //                 "trading": {
+            //                 "total": {
+            //                     "burst": 250,
+            //                     "rate": 200
+            //                 }
+            //                 }
+            //             },
+            //             "non_matching_engine": {
+            //                 "burst": 1500,
+            //                 "rate": 1000
+            //             }
+            //             },
+            //             "maintenance_margin": 0,
+            //             "margin_balance": 100,
+            //             "margin_model": "segregated_sm",
+            //             "options_delta": 0,
+            //             "options_gamma": 0,
+            //             "options_gamma_map": {},
+            //             "options_pl": 0,
+            //             "options_session_rpl": 0,
+            //             "options_session_upl": 0,
+            //             "options_theta": 0,
+            //             "options_theta_map": {},
+            //             "options_value": 0,
+            //             "options_vega": 0,
+            //             "options_vega_map": {},
+            //             "portfolio_margining_enabled": false,
+            //             "projected_delta_total": 0,
+            //             "projected_initial_margin": 0.0002,
+            //             "projected_maintenance_margin": 0,
+            //             "session_rpl": 0,
+            //             "session_upl": 0,
+            //             "spot_reserve": 0.0002,
+            //             "total_pl": 0
+            //         }
+            //         ],
+            //         "system_name": "user",
+            //         "type": "main",
+            //         "username": "user"
+            //     }
+            // }
             //
-            return this.parseBalance(balances);
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            if (!this.isNativeDeribitCredentials())
+            {
+                // Account summaries are arrays; retain the gateway info shape without dropping balances.
+                List<Object> summaries = (List<Object>) this.safeList(result, "summaries", (Object) null);
+                if (!java.util.Objects.equals(summaries, null))
+                {
+                    return this.parseBalance(summaries);
+                }
+                return this.parseBalance(this.safeDict(result, "summaries", new ArrayList<Object>(Arrays.asList())));
+            }
+            return this.parseBalance(result);
         }).thenApply(Balances::new);
 
     }
 
-    public Object parseBalance(Object response)
+    public Balances parseBalance(Object response)
     {
-        //
-        //    {
-        //       "asset_id":"0-0-1",
-        //       "asset_name":"USDC",
-        //       "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //       "quantity":"500000.0000000000",
-        //       "hold":"0",
-        //       "hold_available_for_collateral":"0",
-        //       "transfer_hold":"0",
-        //       "collateral_value":"500000.0",
-        //       "max_withdraw_amount":"500000.0000000000",
-        //       "loan":"0",
-        //       "loan_collateral_requirement":"0.0"
-        //    }
-        //
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        Object summaries = new ArrayList<Object>(Arrays.asList(response));
+        if ((response instanceof List))
         {
-            Object rawBalance = Helpers.GetValue(response, i);
-            String currencyId = this.safeString(rawBalance, "asset_name");
-            String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
-            ((Map<String, Object>)account).put("total", this.safeString(rawBalance, "quantity"));
-            ((Map<String, Object>)account).put("used", this.safeString(rawBalance, "hold"));
-            if (!java.util.Objects.equals(code, null))
+            summaries = response;
+        } else if (this.isNativeDeribitCredentials())
+        {
+            summaries = this.safeList(response, "summaries", new ArrayList<Object>(Arrays.asList(response)));
+        }
+        for (var i = 0; i < ((List<?>)summaries).size(); i++)
+        {
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(summaries, i, (Object) null);
+            String currencyId = this.safeString(data, "currency");
+            String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            Map<String, Object> account = this.account();
+            account.put("free", this.safeString(data, "available_funds"));
+            // available_funds is max(0, margin_balance - initial_margin), so using
+            // margin_balance as total lets safeBalance derive the used collateral
+            // consistently (and avoids reporting maintenance_margin as used funds).
+            account.put("total", this.safeString2(data, "margin_balance", "equity"));
+            if (!java.util.Objects.equals(currencyCode, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put(currencyCode, account);
             }
         }
         return this.safeBalance(result);
@@ -2176,62 +1950,652 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     /**
      * @method
-     * @name coinbaseinternational#transfer
-     * @description Transfer an amount of asset from one portfolio to another.
-     * @see https://docs.cloud.coinbase.com/intx/reference/createportfolioassettransfer
-     * @param {string} code unified currency code
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @name coinbaseinternational#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest transfer to fetch
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTransfers", parameters);
+            if (java.util.Objects.equals(code, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchTransfers() requires a currency code argument")) ;
+            }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "amount", amount );
-                put( "from", fromAccount );
-                put( "to", toAccount );
-            }};
-            Map<String, Object> response = (this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters))).join();
-            Boolean success = (Boolean) this.safeBool(response, "success");
-            final Object finalSuccess = success;
-            return new HashMap<String, Object>() {{
-                put( "info", response );
-                put( "id", null );
-                put( "timestamp", null );
-                put( "datetime", null );
-                put( "currency", code );
-                put( "amount", amount );
-                put( "fromAccount", fromAccount );
-                put( "toAccount", toAccount );
-                put( "status", (((java.util.Objects.equals(finalSuccess, true)))) ? "ok" : "failed" );
-            }};
-        }).thenApply(TransferEntry::new);
+            Map<String, Object> currency = this.currency((String) (code));
+            Long now = this.milliseconds();
+            Object sinceResolved = since;
+            if (java.util.Objects.equals(sinceResolved, null))
+            {
+                sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("start_timestamp", sinceResolved);
+            request.put("end_timestamp", now);
+            request.put("query", "transfer");
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("count", limit);
+            }
+            Long until = this.safeInteger(paramsResolved, "until");
+            if (!java.util.Objects.equals(until, null))
+            {
+                request.put("end_timestamp", until);
+            }
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsResolved, "until") : paramsResolved;
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = (this.privateGetGetTransactionLog(this.extend(request, paramsOmitted))).join();
+            //
+            //     {
+            //         "id": 4,
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "continuation": 61282,
+            //             "logs": [
+            //                 {
+            //                     "balance": 3001.22270418,
+            //                     "cashflow": -2.5,
+            //                     "change": -2.5,
+            //                     "commission": 0,
+            //                     "currency": "BTC",
+            //                     "equity": 3000.9275869,
+            //                     "id": 61312,
+            //                     "info": {
+            //                         "other_user": "Subaccount",
+            //                         "other_user_id": 27,
+            //                         "transfer_type": "subaccount"
+            //                     },
+            //                     "instrument_name": null,
+            //                     "interest_pl": null,
+            //                     "order_id": null,
+            //                     "position": null,
+            //                     "price": null,
+            //                     "side": "-",
+            //                     "timestamp": 1613659830333,
+            //                     "trade_id": null,
+            //                     "type": "transfer",
+            //                     "user_id": 7,
+            //                     "user_seq": 6009,
+            //                     "username": "TestUser"
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> transfers = (List<Object>) this.safeList(result, "logs", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTransfers(transfers, currency, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
+    }
+
+    public Object parseTransfer(Object transfer, Map<String, Object> currency)
+    {
+        //
+        //     {
+        //         "balance": 3001.22270418,
+        //         "cashflow": -2.5,
+        //         "change": -2.5,
+        //         "commission": 0,
+        //         "currency": "BTC",
+        //         "equity": 3000.9275869,
+        //         "id": 61312,
+        //         "info": {
+        //             "other_user": "Subaccount",
+        //             "other_user_id": 27,
+        //             "transfer_type": "subaccount"
+        //         },
+        //         "instrument_name": null,
+        //         "interest_pl": null,
+        //         "order_id": null,
+        //         "position": null,
+        //         "price": null,
+        //         "side": "-",
+        //         "timestamp": 1613659830333,
+        //         "trade_id": null,
+        //         "type": "transfer",
+        //         "user_id": 7,
+        //         "user_seq": 6009,
+        //         "username": "TestUser"
+        //     }
+        //
+        Long transactionTimestamp = this.safeInteger(transfer, "timestamp");
+        String currencyId = this.safeString(transfer, "currency");
+        Map<String, Object> info = (Map<String, Object>) this.safeDict(transfer, "info", new HashMap<String, Object>() {{}});
+        Double amount = this.safeNumber(transfer, "change", (Object) null);
+        String fromAccount = this.safeString(transfer, "username");
+        String toAccount = this.safeString(info, "other_user");
+        if (this.isNativeDeribitCredentials())
+        {
+            String cashflow = this.safeString2(transfer, "cashflow", "change");
+            amount = this.parseNumber(Precise.stringAbs(cashflow));
+            if (!Precise.stringLt(cashflow, "0"))
+            {
+                fromAccount = this.safeString(info, "other_user");
+                toAccount = this.safeString(transfer, "username");
+            }
+        }
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transfer);
+            h2kMap0.put("id", this.safeString(transfer, "id"));
+            h2kMap0.put("timestamp", transactionTimestamp);
+            h2kMap0.put("datetime", this.iso8601(transactionTimestamp));
+            h2kMap0.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap0.put("amount", amount);
+            h2kMap0.put("fromAccount", fromAccount);
+            h2kMap0.put("toAccount", toAccount);
+            h2kMap0.put("status", "ok");
+            return h2kMap0;
+        }
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchPosition
+     * @description fetch data on an open position
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_position
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_position
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchPosition", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instrument_name", market.get("id") );
+            }};
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = (this.privateGetGetPosition(this.extend(request, paramsResolved))).join();
+            //
+            //     {
+            //         "id": 404,
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "average_price": 0,
+            //             "delta": 0,
+            //             "direction": "buy",
+            //             "estimated_liquidation_price": 0,
+            //             "floating_profit_loss": 0,
+            //             "index_price": 3555.86,
+            //             "initial_margin": 0,
+            //             "instrument_name": "BTC-PERPETUAL",
+            //             "interest_value": 1.7362511643080387,
+            //             "kind": "future",
+            //             "leverage": 100,
+            //             "maintenance_margin": 0,
+            //             "mark_price": 3556.62,
+            //             "open_orders_margin": 0.000165889,
+            //             "realized_profit_loss": 0,
+            //             "settlement_price": 3555.44,
+            //             "size": 0,
+            //             "size_currency": 0,
+            //             "total_profit_loss": 0
+            //         }
+            //     }
+            //
+            Map<String, Object> position = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            return this.parsePosition((Map<String, Object>) (position), market);
+        }).thenApply(Position::new);
+
+    }
+
+    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    {
+        //
+        //     {
+        //         "average_price": 0,
+        //         "delta": 0,
+        //         "direction": "buy",
+        //         "estimated_liquidation_price": 0,
+        //         "floating_profit_loss": 0,
+        //         "index_price": 3555.86,
+        //         "initial_margin": 0,
+        //         "instrument_name": "BTC-PERPETUAL",
+        //         "interest_value": 1.7362511643080387,
+        //         "kind": "future",
+        //         "leverage": 100,
+        //         "maintenance_margin": 0,
+        //         "mark_price": 3556.62,
+        //         "open_orders_margin": 0.000165889,
+        //         "realized_profit_loss": 0,
+        //         "settlement_price": 3555.44,
+        //         "size": 0,
+        //         "size_currency": 0,
+        //         "total_profit_loss": 0
+        //     }
+        //
+        String instrumentName = this.safeString(position, "instrument_name");
+        Map<String, Object> marketResolved = this.safeMarket(instrumentName, market, (String) null, (String) null);
+        String side = this.safeString(position, "direction");
+        if (java.util.Objects.equals(side, "buy"))
+        {
+            side = "long";
+        } else if (java.util.Objects.equals(side, "sell"))
+        {
+            side = "short";
+        }
+        String notional = this.safeString(position, "size_currency");
+        String initialMargin = this.safeString(position, "initial_margin");
+        String maintenanceMargin = this.safeString(position, "maintenance_margin");
+        Double contracts = this.safeNumber(position, "size", (Object) null);
+        if (this.isNativeDeribitCredentials())
+        {
+            String size = this.safeString(position, "size");
+            if (!java.util.Objects.equals(marketResolved.get("option"), true))
+            {
+                notional = size;
+                if (java.util.Objects.equals(marketResolved.get("linear"), true))
+                {
+                    size = this.safeString(position, "size_currency");
+                }
+            } else
+            {
+                notional = Precise.stringMul(size, this.safeString(position, "mark_price"));
+            }
+            String contractsString = this.safeString(position, "contracts", Precise.stringDiv(size, this.safeString(marketResolved, "contractSize")));
+            contracts = this.parseNumber(Precise.stringAbs(contractsString));
+        }
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", position);
+        mapLiteral3.put("id", null);
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("entryPrice", this.safeNumber(position, "average_price", (Object) null));
+        mapLiteral3.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
+        mapLiteral3.put("notional", this.parseNumber(Precise.stringAbs(notional)));
+        mapLiteral3.put("collateral", null);
+        mapLiteral3.put("unrealizedPnl", this.safeNumber(position, "floating_profit_loss", (Object) null));
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("contracts", contracts);
+        mapLiteral3.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral3.put("timestamp", null);
+        mapLiteral3.put("datetime", null);
+        mapLiteral3.put("hedged", null);
+        mapLiteral3.put("maintenanceMargin", this.parseNumber(maintenanceMargin));
+        mapLiteral3.put("maintenanceMarginPercentage", null);
+        mapLiteral3.put("initialMargin", this.parseNumber(initialMargin));
+        mapLiteral3.put("initialMarginPercentage", null);
+        mapLiteral3.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral3.put("liquidationPrice", this.safeNumber(position, "estimated_liquidation_price", (Object) null));
+        mapLiteral3.put("marginRatio", null);
+        mapLiteral3.put("marginMode", null);
+        mapLiteral3.put("percentage", null);
+        return this.safePosition(mapLiteral3);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.currency] settlement currency filter
+     * @param {string} [params.kind] instrument kind filter
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchPositions", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = (this.privateGetGetPositions(paramsResolved)).join();
+            //
+            //     {
+            //         "id": 2236,
+            //         "jsonrpc": "2.0",
+            //         "result": [
+            //             {
+            //                 "average_price": 7440.18,
+            //                 "delta": 0.006687487,
+            //                 "direction": "buy",
+            //                 "estimated_liquidation_price": 1.74,
+            //                 "floating_profit_loss": 0,
+            //                 "index_price": 7466.79,
+            //                 "initial_margin": 0.000197283,
+            //                 "instrument_name": "BTC-PERPETUAL",
+            //                 "interest_value": 1.7362511643080387,
+            //                 "kind": "future",
+            //                 "leverage": 34,
+            //                 "maintenance_margin": 0.000143783,
+            //                 "mark_price": 7476.65,
+            //                 "open_orders_margin": 0.000197288,
+            //                 "realized_funding": -1e-8,
+            //                 "realized_profit_loss": -9e-9,
+            //                 "settlement_price": 7476.65,
+            //                 "size": 50,
+            //                 "size_currency": 0.006687487,
+            //                 "total_profit_loss": 0.000032781
+            //             }
+            //         ]
+            //     }
+            //
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            if (this.isEmpty(symbols))
+            {
+                return this.parsePositions(result, (List<String>) null, new HashMap<String, Object>() {{}});
+            }
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            return this.parsePositions(result, symbolsNormalized, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code
+     * @param {int} [since] timestamp in ms of the earliest transaction to fetch
+     * @param {int} [limit] the maximum number of transactions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
+     * @param {string} [params.query] transaction-log query filter
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchDepositsWithdrawals", parameters);
+            if (java.util.Objects.equals(code, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchDepositsWithdrawals() requires a currency code argument")) ;
+            }
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> currency = this.currency((String) (code));
+            Long now = this.milliseconds();
+            Object sinceResolved = since;
+            if (java.util.Objects.equals(sinceResolved, null))
+            {
+                sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("start_timestamp", sinceResolved);
+            request.put("end_timestamp", now);
+            Long until = this.safeInteger(paramsResolved, "until");
+            if (!java.util.Objects.equals(until, null))
+            {
+                request.put("end_timestamp", until);
+            }
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("count", limit);
+            }
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsResolved, "until") : paramsResolved;
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = (this.privateGetGetTransactionLog(this.extend(request, paramsOmitted))).join();
+            //
+            //     {
+            //         "id": 4,
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "continuation": 61282,
+            //             "logs": [
+            //                 {
+            //                     "balance": 3003.72054712,
+            //                     "cashflow": 0.65,
+            //                     "change": 0.65,
+            //                     "commission": 0,
+            //                     "currency": "BTC",
+            //                     "equity": 3003.4876111,
+            //                     "id": 61291,
+            //                     "info": {
+            //                         "addr": "2N8prMvpZHr8aYqodX3S4yhz5wMxjY8La3p",
+            //                         "deposit_type": "wallet",
+            //                         "transaction": "de6eba075855f32c9510f338d3ca0900376cedcb9f7b142caccfbdc292d3237e"
+            //                     },
+            //                     "instrument_name": null,
+            //                     "interest_pl": null,
+            //                     "order_id": null,
+            //                     "position": null,
+            //                     "price": null,
+            //                     "side": "-",
+            //                     "timestamp": 1613657828414,
+            //                     "trade_id": null,
+            //                     "type": "deposit",
+            //                     "user_id": 7,
+            //                     "user_seq": 6007,
+            //                     "username": "TestUser"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> logs = (List<Object>) this.safeList(result, "logs", new ArrayList<Object>(Arrays.asList()));
+            if (!this.isNativeDeribitCredentials())
+            {
+                return this.parseTransactions(logs, currency, since, limit, new HashMap<String, Object>() {{}});
+            }
+            List<Object> transactions = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)logs).size(); i++)
+            {
+                Object transaction = (logs == null || i < 0 || i >= logs.size() ? null : logs.get(i));
+                String transactionType = this.safeString(transaction, "type");
+                if ((java.util.Objects.equals(transactionType, "deposit")) || (java.util.Objects.equals(transactionType, "withdrawal")))
+                {
+                    ((List<Object>)transactions).add(transaction);
+                }
+            }
+            return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchWithdrawals", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(paramsResolved, new HashMap<String, Object>() {{
+                put( "query", "withdrawal" );
+            }}))).join();
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchDeposits", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(paramsResolved, new HashMap<String, Object>() {{
+                put( "query", "deposit" );
+            }}))).join();
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+
+    }
+
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    {
+        //
+        //     {
+        //         "balance": 3003.72054712,
+        //         "cashflow": 0.65,
+        //         "change": 0.65,
+        //         "commission": 0,
+        //         "currency": "BTC",
+        //         "equity": 3003.4876111,
+        //         "id": 61291,
+        //         "info": {
+        //             "addr": "2N8prMvpZHr8aYqodX3S4yhz5wMxjY8La3p",
+        //             "deposit_type": "wallet",
+        //             "transaction": "de6eba075855f32c9510f338d3ca0900376cedcb9f7b142caccfbdc292d3237e"
+        //         },
+        //         "instrument_name": null,
+        //         "interest_pl": null,
+        //         "order_id": null,
+        //         "position": null,
+        //         "price": null,
+        //         "side": "-",
+        //         "timestamp": 1613657828414,
+        //         "trade_id": null,
+        //         "type": "deposit",
+        //         "user_id": 7,
+        //         "user_seq": 6007,
+        //         "username": "TestUser"
+        //     }
+        //
+        Long transactionTimestamp = this.safeInteger(transaction, "timestamp");
+        Map<String, Object> info = (Map<String, Object>) this.safeDict(transaction, "info", new HashMap<String, Object>() {{}});
+        String transactionType = this.safeString(transaction, "type");
+        String transactionId = this.safeString(transaction, "id");
+        String currencyId = this.safeString(transaction, "currency");
+        String address = this.safeString(info, "addr");
+        Double amount = this.safeNumber(transaction, "change", (Object) null);
+        Double feeCost = null;
+        String feeCurrency = null;
+        if (this.isNativeDeribitCredentials())
+        {
+            amount = this.parseNumber(Precise.stringAbs(this.safeString2(transaction, "cashflow", "change")));
+            feeCost = this.safeNumber(transaction, "commission", (Object) null);
+            feeCurrency = this.safeCurrencyCode(currencyId, currency);
+        }
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", transactionId);
+            h2kMap1.put("txid", this.safeString(info, "transaction"));
+            h2kMap1.put("timestamp", transactionTimestamp);
+            h2kMap1.put("datetime", this.iso8601(transactionTimestamp));
+            h2kMap1.put("network", null);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", transactionType);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap1.put("status", "ok");
+            h2kMap1.put("updated", transactionTimestamp);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("cost", feeCost);
+            mapLiteral4.put("currency", feeCurrency);
+            h2kMap1.put("fee", mapLiteral4);
+            return h2kMap1;
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#getOrderAmount
+     * @description converts unified native Deribit contract quantities to exchange amount units
+     * @param {object} market unified market
+     * @param {float} amount unified order quantity
+     * @returns {string} precision-formatted exchange order amount
+     */
+    public Object getOrderAmount(Object market, Object amount)
+    {
+        String exchangeAmount = this.numberToString(amount);
+        if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)))
+        {
+            exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
+        }
+        return this.amountToPrecision(((Map<String, Object>)market).get("symbol"), exchangeAmount);
     }
 
     /**
      * @method
      * @name coinbaseinternational#createOrder
      * @description create a trade order
-     * @see https://docs.cloud.coinbase.com/intx/reference/createorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-buy
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
+     * @param {float} amount number of contracts for native Deribit derivatives, otherwise the exchange order amount (base currency for spot)
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] price to trigger stop orders
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -2241,206 +2605,374 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("createOrder", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object typeId = ((String)type).toUpperCase();
-            Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
-            String clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
-            Object clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
-            clientOrderId = (clientOrderId == null ? null : ((String)clientOrderId).substring(0, Math.min(17, ((String)clientOrderId).length())));
+            Map<String, Object> market = this.market(symbol);
+            Double triggerPrice = this.safeNumberN(paramsResolved, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")), (Object) null);
             if (java.util.Objects.equals(side, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
             }
-            final Object finalClientOrderId = clientOrderId;
-            final Object finalSide = side;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "client_order_id", finalClientOrderId );
-                put( "side", ((String)finalSide).toUpperCase() );
-                put( "instrument", ((Map<String, Object>)market).get("id") );
-                put( "size", Coinbaseinternational.this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount) );
-            }};
+            if (this.isNativeDeribitCredentials())
+            {
+                triggerPrice = this.safeNumberN(paramsResolved, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price", "trigger_price")), (Object) null);
+                if ((!java.util.Objects.equals(side, "buy")) && (!java.util.Objects.equals(side, "sell")))
+                {
+                    throw new ArgumentsRequired((this.id + " createOrder() requires a buy or sell side argument")) ;
+                }
+                if ((!java.util.Objects.equals(this.safeNumber(paramsResolved, "stopLossPrice", (Object) null), null)) || (!java.util.Objects.equals(this.safeNumber(paramsResolved, "takeProfitPrice", (Object) null), null)))
+                {
+                    throw new NotSupported((this.id + " createOrder() supports triggerPrice, not stopLossPrice or takeProfitPrice")) ;
+                }
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instrument_name", market.get("id"));
+            request.put("amount", this.getOrderAmount(market, amount));
+            request.put("type", type);
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 if (java.util.Objects.equals(type, "limit"))
                 {
-                    typeId = "STOP_LIMIT";
+                    request.put("type", "stop_limit");
                 } else
                 {
-                    typeId = "STOP";
+                    request.put("type", "stop_market");
                 }
-                ((Map<String, Object>)request).put("stop_price", triggerPrice);
+                request.put("trigger_price", triggerPrice);
+                if (this.isNativeDeribitCredentials())
+                {
+                    request.put("trigger", this.safeString(paramsResolved, "trigger", "last_price"));
+                }
             }
-            ((Map<String, Object>)request).put("type", typeId);
             if (java.util.Objects.equals(type, "limit"))
             {
                 if (java.util.Objects.equals(price, null))
                 {
                     throw new InvalidOrder((this.id + " createOrder() requires a price parameter for a limit order types")) ;
                 }
-                ((Map<String, Object>)request).put("price", price);
-            }
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("createOrder", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            if (!java.util.Objects.equals(portfolio, null))
-            {
-                ((Map<String, Object>)request).put("portfolio", portfolio);
-            }
-            Object postOnly = this.safeBool2(parameters, "postOnly", "post_only");
-            String tif = this.safeString2(parameters, "tif", "timeInForce");
-            // market orders must be IOC
-            if (java.util.Objects.equals(typeId, "MARKET"))
-            {
-                if (!java.util.Objects.equals(tif, null) && !java.util.Objects.equals(tif, "IOC"))
+                request.put("price", price);
+                if (this.isNativeDeribitCredentials())
                 {
-                    throw new InvalidOrder((this.id + " createOrder() market orders must have tif set to \"IOC\"")) ;
+                    request.put("price", this.priceToPrecision(symbol, price));
                 }
-                tif = "IOC";
-            } else
+            }
+            Boolean postOnly = (Boolean) this.safeBool2(paramsResolved, "postOnly", "post_only", (Object) null);
+            String timeInForce = this.safeString2(paramsResolved, "tif", "timeInForce");
+            if (this.isNativeDeribitCredentials())
             {
-                tif = (((java.util.Objects.equals(tif, null)))) ? "GTC" : tif;
+                Boolean reduceOnly = (Boolean) this.safeBool2(paramsResolved, "reduceOnly", "reduce_only", (Object) null);
+                if (!java.util.Objects.equals(reduceOnly, null))
+                {
+                    request.put("reduce_only", reduceOnly);
+                }
             }
             if (!java.util.Objects.equals(postOnly, null))
             {
-                ((Map<String, Object>)request).put("post_only", postOnly);
+                request.put("post_only", postOnly);
+                request.put("reject_post_only", postOnly);
             }
-            ((Map<String, Object>)request).put("tif", tif);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "user", "postOnly", "timeInForce")));
-            Map<String, Object> response = (this.v1PrivatePostOrders(this.extend(request, parameters))).join();
+            if (!java.util.Objects.equals(timeInForce, null))
+            {
+                Map<String, Object> timeInForces = new HashMap<String, Object>() {{
+                    put( "GTC", "good_til_cancelled" );
+                    put( "IOC", "immediate_or_cancel" );
+                    put( "FOK", "fill_or_kill" );
+                    put( "GTD", "good_til_day" );
+                }};
+                request.put("time_in_force", this.safeString(timeInForces, timeInForce, timeInForce));
+            }
+            String clientOrderId = this.safeString2(paramsResolved, "clientOrderId", "client_order_id");
+            if (!java.util.Objects.equals(clientOrderId, null))
+            {
+                request.put("label", clientOrderId);
+            } else
+            {
+                String brokerId = this.safeString(this.options, "brokerId");
+                if (!java.util.Objects.equals(brokerId, null))
+                {
+                    request.put("label", ((brokerId + "-") + this.uuid22()));
+                }
+            }
+            if (this.isNativeDeribitCredentials() && ((java.util.Objects.equals(timeInForce, "PO")) || (java.util.Objects.equals(postOnly, true))))
+            {
+                if (java.util.Objects.equals(type, "market"))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() cannot create post-only market orders")) ;
+                }
+                request.put("post_only", true);
+                request.put("reject_post_only", true);
+                request.put("time_in_force", "good_til_cancelled");
+            }
+            Map<String, Object> paramsOrder = this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price")));
+            if (this.isNativeDeribitCredentials())
+            {
+                paramsOrder = this.omit(paramsOrder, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only")));
+            }
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(side, "buy"))
+            {
+                response = (this.privateGetBuy(this.extend(request, paramsOrder))).join();
+            } else
+            {
+                response = (this.privateGetSell(this.extend(request, paramsOrder))).join();
+            }
             //
-            //    {
-            //        "order_id":"1x96skvg-1-0",
-            //        "client_order_id":"ccxt",
-            //        "side":"BUY",
-            //        "instrument_id":"114jqr89-0-0",
-            //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-            //        "symbol":"BTC-PERP",
-            //        "portfolio_id":"1wp37qsc-1-0",
-            //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-            //        "type":"LIMIT",
-            //        "price":"10000",
-            //        "size":"0.001",
-            //        "tif":"GTC",
-            //        "stp_mode":"BOTH",
-            //        "event_type":"NEW",
-            //        "order_status":"WORKING",
-            //        "leaves_qty":"0.001",
-            //        "exec_qty":"0",
-            //        "avg_price":"0",
-            //        "fee":"0"
-            //    }
+            //     {
+            //         "id": 6130,
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "order": {
+            //                 "amount": 21,
+            //                 "api": true,
+            //                 "average_price": 202.8,
+            //                 "creation_timestamp": 1590486335742,
+            //                 "direction": "sell",
+            //                 "filled_amount": 21,
+            //                 "instrument_name": "ETH-PERPETUAL",
+            //                 "is_liquidation": false,
+            //                 "is_rebalance": false,
+            //                 "label": "",
+            //                 "last_update_timestamp": 1590486335742,
+            //                 "max_show": 21,
+            //                 "order_id": "ETH-584864807",
+            //                 "order_state": "filled",
+            //                 "order_type": "limit",
+            //                 "post_only": false,
+            //                 "price": 198.75,
+            //                 "reduce_only": true,
+            //                 "replaced": false,
+            //                 "time_in_force": "good_til_cancelled",
+            //                 "web": false
+            //             },
+            //             "trades": [
+            //                 {
+            //                     "amount": 21,
+            //                     "direction": "sell",
+            //                     "fee": 0.00007766,
+            //                     "fee_currency": "ETH",
+            //                     "index_price": 202.86,
+            //                     "instrument_name": "ETH-PERPETUAL",
+            //                     "liquidity": "T",
+            //                     "mark_price": 202.79,
+            //                     "matching_id": null,
+            //                     "order_id": "ETH-584864807",
+            //                     "order_type": "limit",
+            //                     "post_only": false,
+            //                     "price": 202.8,
+            //                     "reduce_only": true,
+            //                     "state": "filled",
+            //                     "tick_direction": 0,
+            //                     "timestamp": 1590486335742,
+            //                     "trade_id": "ETH-2696097",
+            //                     "trade_seq": 1966068
+            //                 }
+            //             ]
+            //         }
+            //     }
             //
-            return this.parseOrder(response, market);
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            order.put("trades", trades);
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Order parseOrder(Object order, Map<String, Object> market)
     {
         //
-        //    {
-        //        "order_id":"1x96skvg-1-0",
-        //        "client_order_id":"ccxt",
-        //        "side":"BUY",
-        //        "instrument_id":"114jqr89-0-0",
-        //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //        "symbol":"BTC-PERP",
-        //        "portfolio_id":"1wp37qsc-1-0",
-        //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //        "type":"LIMIT",
-        //        "price":"10000",
-        //        "size":"0.001",
-        //        "tif":"GTC",
-        //        "stp_mode":"BOTH",
-        //        "event_type":"NEW",
-        //        "order_status":"WORKING",
-        //        "leaves_qty":"0.001",
-        //        "exec_qty":"0",
-        //        "avg_price":"0",
-        //        "fee":"0"
-        //    }
+        // createOrder, editOrder
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String marketId = this.safeString(order, "symbol");
-        Double feeCost = this.safeNumber(order, "fee");
-        Object fee = null;
-        if (!java.util.Objects.equals(feeCost, null))
+        //     {
+        //         "amount": 21,
+        //         "api": true,
+        //         "average_price": 202.8,
+        //         "creation_timestamp": 1590486335742,
+        //         "direction": "sell",
+        //         "filled_amount": 21,
+        //         "instrument_name": "ETH-PERPETUAL",
+        //         "is_liquidation": false,
+        //         "is_rebalance": false,
+        //         "label": "",
+        //         "last_update_timestamp": 1590486335742,
+        //         "max_show": 21,
+        //         "order_id": "ETH-584864807",
+        //         "order_state": "filled",
+        //         "order_type": "limit",
+        //         "post_only": false,
+        //         "price": 198.75,
+        //         "reduce_only": true,
+        //         "replaced": false,
+        //         "time_in_force": "good_til_cancelled",
+        //         "web": false
+        //     }
+        //
+        // cancelOrder
+        //
+        //     {
+        //         "amount": 5,
+        //         "api": false,
+        //         "creation_timestamp": 1550575961291,
+        //         "direction": "sell",
+        //         "instrument_name": "ETH-PERPETUAL",
+        //         "is_liquidation": false,
+        //         "is_rebalance": false,
+        //         "label": "",
+        //         "last_update_timestamp": 1550575961291,
+        //         "max_show": 5,
+        //         "order_id": "ETH-SLIS-12",
+        //         "order_state": "untriggered",
+        //         "order_type": "stop_market",
+        //         "post_only": false,
+        //         "price": "market_price",
+        //         "reduce_only": false,
+        //         "time_in_force": "good_til_cancelled",
+        //         "trigger": "index_price",
+        //         "trigger_price": 144.73,
+        //         "triggered": false
+        //     }
+        //
+        // fetchOrder, fetchOpenOrders
+        //
+        //     {
+        //         "amount": 37,
+        //         "api": false,
+        //         "average_price": 118.94,
+        //         "creation_timestamp": 1550219749176,
+        //         "direction": "sell",
+        //         "filled_amount": 37,
+        //         "instrument_name": "ETH-PERPETUAL",
+        //         "is_liquidation": false,
+        //         "is_rebalance": false,
+        //         "label": "",
+        //         "last_update_timestamp": 1550219810944,
+        //         "max_show": 37,
+        //         "order_id": "ETH-331562",
+        //         "order_state": "filled",
+        //         "order_type": "limit",
+        //         "post_only": false,
+        //         "price": 118.94,
+        //         "reduce_only": false,
+        //         "time_in_force": "good_til_cancelled"
+        //     }
+        //
+        String instrumentName = this.safeString(order, "instrument_name");
+        Map<String, Object> marketResolved = this.safeMarket(instrumentName, market, (String) null, (String) null);
+        Long timestamp = this.safeInteger(order, "creation_timestamp");
+        Long lastUpdateTimestamp = this.safeInteger(order, "last_update_timestamp");
+        Double filled = this.safeNumber(order, "filled_amount", (Object) null);
+        Double amount = this.safeNumber(order, "amount", (Object) null);
+        if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("contract"), true)))
         {
-            final Object finalFeeCost = feeCost;
+            String contractSize = this.safeString(marketResolved, "contractSize");
+            amount = this.parseNumber(this.safeString(order, "contracts", Precise.stringDiv(this.safeString(order, "amount"), contractSize)));
+            filled = this.parseNumber(Precise.stringDiv(this.safeString(order, "filled_amount"), contractSize));
+        }
+        Object remaining = null;
+        if ((!java.util.Objects.equals(filled, null)) && (!java.util.Objects.equals(amount, null)))
+        {
+            remaining = (amount - filled);
+        }
+        Double price = this.safeNumber(order, "price", (Object) null);
+        Double average = this.safeNumber(order, "average_price", (Object) null);
+        String filledString = this.safeString(order, "filled_amount");
+        String averageString = this.safeString(order, "average_price");
+        Double cost = null;
+        if ((!java.util.Objects.equals(filledString, null)) && (!java.util.Objects.equals(averageString, null)))
+        {
+            cost = this.parseNumber(Precise.stringMul(filledString, averageString));
+            if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("inverse"), true)) && (!java.util.Objects.equals(marketResolved.get("option"), true)))
+            {
+                cost = this.parseNumber(Precise.stringDiv(filledString, averageString));
+            }
+        }
+        Long lastTradeTimestamp = lastUpdateTimestamp;
+        Long nativeLastUpdateTimestamp = null;
+        String orderType = this.safeStringLower(order, "order_type");
+        Boolean reduceOnly = false;
+        Map<String, Object> fee = new HashMap<String, Object>() {{}};
+        if (this.isNativeDeribitCredentials())
+        {
+            lastTradeTimestamp = null;
+            if ((!java.util.Objects.equals(filled, null)) && ((filled != null && filled > 0)))
+            {
+                lastTradeTimestamp = lastUpdateTimestamp;
+            }
+            nativeLastUpdateTimestamp = lastUpdateTimestamp;
+            orderType = this.safeStringLower2(order, "original_order_type", "order_type");
+            reduceOnly = (Boolean) this.safeBool(order, "reduce_only", false);
             fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCost );
+                put( "cost", Coinbaseinternational.this.safeNumber(order, "commission", (Object) null) );
+                put( "currency", Coinbaseinternational.this.safeString(marketResolved, "settle", Coinbaseinternational.this.safeString(marketResolved, "quote")) );
             }};
         }
-        String datetime = this.safeString2(order, "submit_time", "event_time");
-        final Object finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "info", order );
-            put( "id", Coinbaseinternational.this.safeString(order, "order_id") );
-            put( "clientOrderId", Coinbaseinternational.this.safeString(order, "client_order_id") );
-            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
-            put( "datetime", datetime );
-            put( "lastTradeTimestamp", null );
-            put( "symbol", Coinbaseinternational.this.safeSymbol(marketId, market) );
-            put( "type", Coinbaseinternational.this.parseOrderType(Coinbaseinternational.this.safeString(order, "type")) );
-            put( "timeInForce", Coinbaseinternational.this.safeString(order, "tif") );
-            put( "postOnly", null );
-            put( "side", Coinbaseinternational.this.safeStringLower(order, "side") );
-            put( "price", Coinbaseinternational.this.safeString(order, "price") );
-            put( "triggerPrice", Coinbaseinternational.this.safeString(order, "stop_price") );
-            put( "amount", Coinbaseinternational.this.safeString(order, "size") );
-            put( "filled", Coinbaseinternational.this.safeString(order, "exec_qty") );
-            put( "remaining", Coinbaseinternational.this.safeString(order, "leaves_qty") );
-            put( "cost", null );
-            put( "average", Coinbaseinternational.this.safeString(order, "avg_price") );
-            put( "status", Coinbaseinternational.this.parseOrderStatus(Coinbaseinternational.this.safeString(order, "order_status")) );
-            put( "fee", finalFee );
-            put( "trades", null );
-        }}), market);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", this.safeString(order, "order_id"));
+        mapLiteral5.put("clientOrderId", this.safeString(order, "label"));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral5.put("lastUpdateTimestamp", nativeLastUpdateTimestamp);
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("type", this.parseOrderType(orderType));
+        mapLiteral5.put("timeInForce", this.parseTimeInForce(this.safeString(order, "time_in_force")));
+        mapLiteral5.put("postOnly", this.safeBool(order, "post_only", (Object) null));
+        mapLiteral5.put("reduceOnly", reduceOnly);
+        mapLiteral5.put("side", this.safeString(order, "direction"));
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("triggerPrice", this.safeNumber2(order, "trigger_price", "stop_price", (Object) null));
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("filled", filled);
+        mapLiteral5.put("remaining", remaining);
+        mapLiteral5.put("cost", cost);
+        mapLiteral5.put("average", average);
+        mapLiteral5.put("status", this.parseOrderStatus(this.safeStringLower(order, "order_state")));
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", this.safeList(order, "trades", (Object) null));
+        return this.safeOrder(mapLiteral5, marketResolved);
+    }
+
+    public String parseTimeInForce(String timeInForce)
+    {
+        Map<String, Object> timeInForces = new HashMap<String, Object>() {{
+            put( "good_til_cancelled", "GTC" );
+            put( "fill_or_kill", "FOK" );
+            put( "immediate_or_cancel", "IOC" );
+            put( "good_til_day", "GTD" );
+        }};
+        return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
     public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
-            put( "WORKING", "open" );
-            put( "NEW", "open" );
-            put( "PARTIAL_FILLED", "open" );
-            put( "FILLED", "closed" );
-            put( "CANCELED", "canceled" );
-            put( "REPLACED", "canceled" );
-            put( "PENDING_CANCEL", "open" );
-            put( "REJECTED", "rejected" );
-            put( "PENDING_NEW", "open" );
-            put( "EXPIRED", "expired" );
-            put( "PENDING_REPLACE", "open" );
+            put( "open", "open" );
+            put( "cancelled", "canceled" );
+            put( "filled", "closed" );
+            put( "rejected", "rejected" );
+            put( "untriggered", "open" );
         }};
         return this.safeString(statuses, status, status);
     }
 
     public String parseOrderType(String type)
     {
-        if (java.util.Objects.equals(type, "UNKNOWN_ORDER_TYPE"))
-        {
-            return null;
-        }
         Map<String, Object> types = new HashMap<String, Object>() {{
-            put( "MARKET", "market" );
-            put( "LIMIT", "limit" );
-            put( "STOP", "limit" );
-            put( "STOP_LIMIT", "limit" );
+            put( "stop_limit", "limit" );
+            put( "take_limit", "limit" );
+            put( "stop_market", "market" );
+            put( "take_market", "market" );
         }};
         return this.safeString(types, ((String)type), type);
     }
@@ -2449,62 +2981,64 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @method
      * @name coinbaseinternational#cancelOrder
      * @description cancels an open order
-     * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
      * @param {string} id order id
      * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("cancelOrder", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("cancelOrder", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            final Object finalPortfolio = portfolio;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "portfolio", finalPortfolio );
-                put( "id", id );
+                put( "order_id", id );
             }};
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            Map<String, Object> orders = (this.v1PrivateDeleteOrdersId(this.extend(request, parameters))).join();
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = (this.privateGetCancel(this.extend(request, paramsResolved))).join();
             //
-            //    {
-            //        "order_id":"1x96skvg-1-0",
-            //        "client_order_id":"ccxt",
-            //        "side":"BUY",
-            //        "instrument_id":"114jqr89-0-0",
-            //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-            //        "symbol":"BTC-PERP",
-            //        "portfolio_id":"1wp37qsc-1-0",
-            //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-            //        "type":"LIMIT",
-            //        "price":"10000",
-            //        "size":"0.001",
-            //        "tif":"GTC",
-            //        "stp_mode":"BOTH",
-            //        "event_type":"CANCELED",
-            //        "order_status":"DONE",
-            //        "leaves_qty":"0.001",
-            //        "exec_qty":"0",
-            //        "avg_price":"0",
-            //        "fee":"0"
-            //    }
+            //     {
+            //         "id": 4214,
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "amount": 5,
+            //             "api": false,
+            //             "creation_timestamp": 1550575961291,
+            //             "direction": "sell",
+            //             "instrument_name": "ETH-PERPETUAL",
+            //             "is_liquidation": false,
+            //             "is_rebalance": false,
+            //             "label": "",
+            //             "last_update_timestamp": 1550575961291,
+            //             "max_show": 5,
+            //             "order_id": "ETH-SLIS-12",
+            //             "order_state": "untriggered",
+            //             "order_type": "stop_market",
+            //             "post_only": false,
+            //             "price": "market_price",
+            //             "reduce_only": false,
+            //             "time_in_force": "good_til_cancelled",
+            //             "trigger": "index_price",
+            //             "trigger_price": 144.73,
+            //             "triggered": false
+            //         }
+            //     }
             //
-            return this.parseOrder(orders, market);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
@@ -2513,37 +3047,49 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @method
      * @name coinbaseinternational#cancelAllOrders
      * @description cancel all open orders
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("cancelAllOrders", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("cancelAllOrders", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            final Object finalPortfolio = portfolio;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "portfolio", finalPortfolio );
-            }};
-            Object market = null;
-            if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(symbol, "")))
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                ((Map<String, Object>)request).put("instrument", ((Map<String, Object>)market).get("id"));
+                Map<String, Object> market = this.market(symbol);
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "instrument_name", market.get("id") );
+                }};
+                response = (this.privateGetCancelAllByInstrument(this.extend(request, paramsResolved))).join();
+            } else
+            {
+                response = (this.privateGetCancelAll(paramsResolved)).join();
             }
-            List<Object> orders = (this.v1PrivateDeleteOrders(this.extend(request, parameters))).join();
-            return this.parseOrders(orders, market);
+            //
+            //     {
+            //         "id": 47,
+            //         "jsonrpc": "2.0",
+            //         "result": 4
+            //     }
+            //
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("info", response);
+            Order order = this.safeOrder(mapLiteral6, (Map<String, Object>) null);
+            return new ArrayList<Object>(Arrays.asList(order));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2552,61 +3098,111 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @method
      * @name coinbaseinternational#editOrder
      * @description edit a trade order
-     * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} amount number of contracts for native Deribit derivatives, otherwise the exchange order amount (base currency for spot)
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} params.clientOrderId client order id
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {float} [params.triggerPrice] price to trigger stop orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("editOrder", parameters);
+            if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(amount, null)) && (java.util.Objects.equals(this.safeNumber(paramsResolved, "contracts", (Object) null), null)))
+            {
+                throw new ArgumentsRequired((this.id + " editOrder() requires amount or params.contracts on Deribit")) ;
+            }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", id );
+                put( "order_id", id );
             }};
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("editOrder", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            if (!java.util.Objects.equals(portfolio, null))
-            {
-                ((Map<String, Object>)request).put("portfolio", portfolio);
-            }
             if (!java.util.Objects.equals(amount, null))
             {
-                ((Map<String, Object>)request).put("size", this.amountToPrecision(symbol, amount));
+                request.put("amount", this.getOrderAmount(market, amount));
             }
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
-            Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "stop_price", "triggerPrice")));
+            Double triggerPrice = this.safeNumberN(paramsResolved, new ArrayList<Object>(Arrays.asList("stopPrice", "stop_price", "triggerPrice")), (Object) null);
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                ((Map<String, Object>)request).put("stop_price", triggerPrice);
+                request.put("trigger_price", triggerPrice);
             }
-            String clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
-            if (java.util.Objects.equals(clientOrderId, null))
-            {
-                throw new BadRequest((this.id + " editOrder() requires a clientOrderId parameter")) ;
-            }
-            ((Map<String, Object>)request).put("client_order_id", clientOrderId);
-            Map<String, Object> order = (this.v1PrivatePutOrdersId(this.extend(request, parameters))).join();
+            Map<String, Object> paramsOrder = this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = (this.privateGetEdit(this.extend(request, paramsOrder))).join();
+            //
+            //     {
+            //         "id": 6130,
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "order": {
+            //                 "amount": 21,
+            //                 "api": true,
+            //                 "average_price": 202.8,
+            //                 "creation_timestamp": 1590486335742,
+            //                 "direction": "sell",
+            //                 "filled_amount": 21,
+            //                 "instrument_name": "ETH-PERPETUAL",
+            //                 "is_liquidation": false,
+            //                 "is_rebalance": false,
+            //                 "label": "",
+            //                 "last_update_timestamp": 1590486335742,
+            //                 "max_show": 21,
+            //                 "order_id": "ETH-584864807",
+            //                 "order_state": "filled",
+            //                 "order_type": "limit",
+            //                 "post_only": false,
+            //                 "price": 198.75,
+            //                 "reduce_only": true,
+            //                 "replaced": false,
+            //                 "time_in_force": "good_til_cancelled",
+            //                 "web": false
+            //             },
+            //             "trades": [
+            //                 {
+            //                     "amount": 21,
+            //                     "direction": "sell",
+            //                     "fee": 0.00007766,
+            //                     "fee_currency": "ETH",
+            //                     "index_price": 202.86,
+            //                     "instrument_name": "ETH-PERPETUAL",
+            //                     "liquidity": "T",
+            //                     "mark_price": 202.79,
+            //                     "matching_id": null,
+            //                     "order_id": "ETH-584864807",
+            //                     "order_type": "limit",
+            //                     "post_only": false,
+            //                     "price": 202.8,
+            //                     "reduce_only": true,
+            //                     "state": "filled",
+            //                     "tick_direction": 0,
+            //                     "timestamp": 1590486335742,
+            //                     "trade_id": "ETH-2696097",
+            //                     "trade_seq": 1966068
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            order.put("trades", trades);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -2616,63 +3212,62 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @method
      * @name coinbaseinternational#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
      * @param {string} id the order id
      * @param {string} symbol unified market symbol that the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOrder", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("fetchOrder", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            final Object finalPortfolio = portfolio;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", id );
-                put( "portfolio", finalPortfolio );
+                put( "order_id", id );
             }};
-            Map<String, Object> order = (this.v1PrivateGetOrdersId(this.extend(request, parameters))).join();
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = (this.privateGetGetOrderState(this.extend(request, paramsResolved))).join();
             //
-            //    {
-            //        "order_id":"1x96skvg-1-0",
-            //        "client_order_id":"ccxt",
-            //        "side":"BUY",
-            //        "instrument_id":"114jqr89-0-0",
-            //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-            //        "symbol":"BTC-PERP",
-            //        "portfolio_id":"1wp37qsc-1-0",
-            //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-            //        "type":"LIMIT",
-            //        "price":"10000",
-            //        "size":"0.001",
-            //        "tif":"GTC",
-            //        "stp_mode":"BOTH",
-            //        "event_type":"NEW",
-            //        "event_time":"2024-02-14T03:25:14Z",
-            //        "submit_time":"2024-02-14T03:25:13.999Z",
-            //        "order_status":"WORKING",
-            //        "leaves_qty":"0.001",
-            //        "exec_qty":"0",
-            //        "avg_price":"0",
-            //        "fee":"0"
-            //    }
+            //     {
+            //         "id": 4316,
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "amount": 37,
+            //             "api": false,
+            //             "average_price": 118.94,
+            //             "creation_timestamp": 1550219749176,
+            //             "direction": "sell",
+            //             "filled_amount": 37,
+            //             "instrument_name": "ETH-PERPETUAL",
+            //             "is_liquidation": false,
+            //             "is_rebalance": false,
+            //             "label": "",
+            //             "last_update_timestamp": 1550219810944,
+            //             "max_show": 37,
+            //             "order_id": "ETH-331562",
+            //             "order_state": "filled",
+            //             "order_type": "limit",
+            //             "post_only": false,
+            //             "price": 118.94,
+            //             "reduce_only": false,
+            //             "time_in_force": "good_til_cancelled"
+            //         }
+            //     }
             //
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -2682,108 +3277,85 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @method
      * @name coinbaseinternational#fetchOpenOrders
      * @description fetches information on all currently open orders
-     * @see https://docs.cloud.coinbase.com/intx/reference/getorders
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
      * @param {string} symbol unified market symbol of the orders
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {boolean} [params.paginate] native Deribit pagination is not supported
      * @param {int} [params.offset] offset
      * @param {string} [params.event_type] The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOpenOrders", parameters);
+            Object paramsPaginate = paramsResolved;
+            if (this.isNativeDeribitCredentials())
+            {
+                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchOpenOrders", "paginate", false);
+                Boolean paginate = paginateparamsFinalVariable.first();
+                Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
+                if (Boolean.TRUE.equals(paginate))
+                {
+                    throw new NotSupported((this.id + " fetchOpenOrders() does not support pagination")) ;
+                }
+                paramsPaginate = paramsFinal;
+            }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("fetchOpenOrders", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            Object paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
-            Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
-            maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
-            parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
-            String pageKey = "ccxtPageKey";
-            if (Boolean.TRUE.equals(paginate))
+            if (java.util.Objects.equals(symbol, null))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
+                throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
             }
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
-            Long offSet = (Long) this.safeInteger2(parameters, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequest));
-            final Object finalPortfolio = portfolio;
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "portfolio", finalPortfolio );
-                put( "result_offset", offSet );
+                put( "instrument_name", market.get("id") );
             }};
-            Object market = null;
-            if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(symbol, "")))
+            if (!this.isNativeDeribitCredentials() && (!java.util.Objects.equals(limit, null)))
             {
-                market = this.market(symbol);
-                ((Map<String, Object>)request).put("instrument", symbol);
+                request.put("count", limit);
             }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                if (Helpers.isGreaterThan(limit, 100))
-                {
-                    throw new BadRequest((this.id + " fetchOpenOrders() maximum limit is 100")) ;
-                }
-                ((Map<String, Object>)request).put("result_limit", limit);
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)request).put("ref_datetime", this.iso8601(since));
-            }
-            Map<String, Object> response = (this.v1PrivateGetOrders(this.extend(request, parameters))).join();
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = (this.privateGetGetOpenOrdersByInstrument(this.extend(request, paramsPaginate))).join();
             //
-            //    {
-            //        "pagination":{
-            //           "result_limit":25,
-            //           "result_offset":0
-            //        },
-            //        "results":[
-            //           {
-            //              "order_id":"1y4cm6b4-1-0",
-            //              "client_order_id":"ccxtd0dd4b5d-8e5f-",
-            //              "side":"SELL",
-            //              "instrument_id":"114jqr89-0-0",
-            //              "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-            //              "symbol":"BTC-PERP",
-            //              "portfolio_id":"1wp37qsc-1-0",
-            //              "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-            //              "type":"LIMIT",
-            //              "price":"54000",
-            //              "size":"0.01",
-            //              "tif":"GTC",
-            //              "stp_mode":"BOTH",
-            //              "event_type":"NEW",
-            //              "event_time":"2024-02-24T16:46:37.413Z",
-            //              "submit_time":"2024-02-24T16:46:37.412Z",
-            //              "order_status":"WORKING",
-            //              "leaves_qty":"0.01",
-            //              "exec_qty":"0",
-            //              "avg_price":"0",
-            //              "fee":"0"
-            //           },
-            //           ...
-            //        ]
-            //    }
+            //     {
+            //         "id": 1953,
+            //         "jsonrpc": "2.0",
+            //         "result": [
+            //             {
+            //                 "amount": 10,
+            //                 "api": true,
+            //                 "average_price": 0,
+            //                 "creation_timestamp": 1550050597036,
+            //                 "direction": "buy",
+            //                 "filled_amount": 0,
+            //                 "instrument_name": "BTC-15FEB19-3250-P",
+            //                 "is_liquidation": false,
+            //                 "is_rebalance": false,
+            //                 "label": "fooBar",
+            //                 "last_update_timestamp": 1550050597036,
+            //                 "max_show": 10,
+            //                 "order_id": "146062",
+            //                 "order_state": "open",
+            //                 "order_type": "limit",
+            //                 "post_only": false,
+            //                 "price": 0.0028,
+            //                 "reduce_only": false,
+            //                 "time_in_force": "good_til_cancelled"
+            //             }
+            //         ]
+            //     }
             //
-            List<Object> rawOrders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(rawOrders, market, since, limit);
+            List<Object> rawOrders = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            return this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2792,264 +3364,743 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @method
      * @name coinbaseinternational#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.cloud.coinbase.com/intx/reference/getmultiportfoliofills
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by-instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
      * @param {string} symbol unified market symbol of the trades
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] the maximum number of trade structures to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {boolean} [params.historical] native Deribit indexed history, excludes recent trades
+     * @param {int} [params.until] native Deribit latest time in ms to fetch trades for
+     * @param {boolean} [params.paginate] native Deribit automatic pagination is not supported
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchMyTrades", parameters);
+            Object paramsPaginate = paramsResolved;
+            if (this.isNativeDeribitCredentials())
+            {
+                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchMyTrades", "paginate", false);
+                Boolean paginate = paginateparamsFinalVariable.first();
+                Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
+                if (Boolean.TRUE.equals(paginate))
+                {
+                    throw new NotSupported((this.id + " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters")) ;
+                }
+                paramsPaginate = paramsFinal;
+            }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
-            String pageKey = "ccxtPageKey";
-            Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
-            maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
-            parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
+            if (java.util.Objects.equals(symbol, null))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
+                throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
             }
-            Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
-            Long offSet = (Long) this.safeInteger2(parameters, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "result_offset", offSet );
+                put( "instrument_name", market.get("id") );
+                put( "include_old", true );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isGreaterThan(limit, 100))
+                request.put("count", limit);
+            }
+            Long until = this.safeInteger(paramsPaginate, "until");
+            Object paramsOmitted = paramsPaginate;
+            if (this.isNativeDeribitCredentials())
+            {
+                paramsOmitted = this.omit(paramsPaginate, "until");
+            }
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = null;
+            if (this.isNativeDeribitCredentials() && ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null))))
+            {
+                request.put("start_timestamp", (((!java.util.Objects.equals(since, null)))) ? since : 0);
+                request.put("end_timestamp", (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds());
+                if (this.isNativeDeribitCredentials())
                 {
-                    throw new BadRequest((this.id + " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
+                    ((Map<String,Object>)request).remove("include_old");
                 }
-                ((Map<String, Object>)request).put("result_limit", limit);
-            }
-            if (!java.util.Objects.equals(since, null))
+                response = (this.privateGetGetUserTradesByInstrumentAndTime(this.extend(request, paramsOmitted))).join();
+            } else
             {
-                ((Map<String, Object>)request).put("time_from", this.iso8601(since));
+                response = (this.privateGetGetUserTradesByInstrument(this.extend(request, paramsOmitted))).join();
             }
-            String until = this.safeString(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
-            {
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
-                ((Map<String, Object>)request).put("ref_datetime", this.iso8601(until));
-            }
-            Map<String, Object> response = (this.v1PrivateGetPortfoliosFills(this.extend(request, parameters))).join();
             //
-            //    {
-            //        "pagination":{
-            //           "result_limit":25,
-            //           "result_offset":0
-            //        },
-            //        "results":[
-            //           {
-            //              "portfolio_id":"1wp37qsc-1-0",
-            //              "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-            //              "portfolio_name":"CCXT Portfolio 020624-17:16",
-            //              "fill_id":"1xbfy19y-1-184",
-            //              "exec_id":"280841526207070392",
-            //              "order_id":"1xbfv8yw-1-0",
-            //              "instrument_id":"114jqr89-0-0",
-            //              "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-            //              "symbol":"BTC-PERP",
-            //              "match_id":"280841526207053840",
-            //              "fill_price":"52500",
-            //              "fill_qty":"0.01",
-            //              "client_id":"1x59ctku-1-1",
-            //              "client_order_id":"ccxt3e4e2a5f-4a89-",
-            //              "order_qty":"0.01",
-            //              "limit_price":"52500",
-            //              "total_filled":"0.01",
-            //              "filled_vwap":"52500",
-            //              "expire_time":"",
-            //              "stop_price":"",
-            //              "side":"BUY",
-            //              "tif":"GTC",
-            //              "stp_mode":"BOTH",
-            //              "flags":"",
-            //              "fee":"0.105",
-            //              "fee_asset":"USDC",
-            //              "order_status":"DONE",
-            //              "event_time":"2024-02-15T00:43:57.631Z"
-            //           },
-            //        ]
-            //    }
+            //     {
+            //         "id": 9292,
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "has_more": false,
+            //             "trades": [
+            //                 {
+            //                     "amount": 1,
+            //                     "direction": "sell",
+            //                     "fee": 0.0004,
+            //                     "fee_currency": "BTC",
+            //                     "index_price": 8993.47,
+            //                     "instrument_name": "BTC-27MAY20-8750-C",
+            //                     "iv": 38.51,
+            //                     "liquidity": "M",
+            //                     "mark_price": 0.03135383,
+            //                     "matching_id": null,
+            //                     "order_id": "4008699030",
+            //                     "order_type": "limit",
+            //                     "post_only": false,
+            //                     "price": 0.028,
+            //                     "reduce_only": false,
+            //                     "state": "filled",
+            //                     "tick_direction": 1,
+            //                     "timestamp": 1590480620145,
+            //                     "trade_id": "48078936",
+            //                     "trade_seq": 1,
+            //                     "underlying_price": 8994.95
+            //                 },
+            //                 {
+            //                     "amount": 10,
+            //                     "direction": "buy",
+            //                     "fee": -2.1e-7,
+            //                     "fee_currency": "BTC",
+            //                     "index_price": 9679.48,
+            //                     "instrument_name": "BTC-26JUN20",
+            //                     "liquidity": "M",
+            //                     "mark_price": 9684,
+            //                     "matching_id": null,
+            //                     "order_id": "3993343822",
+            //                     "order_type": "limit",
+            //                     "post_only": false,
+            //                     "price": 9681.5,
+            //                     "reduce_only": false,
+            //                     "state": "filled",
+            //                     "tick_direction": 2,
+            //                     "timestamp": 1589923311862,
+            //                     "trade_id": "47958936",
+            //                     "trade_seq": 299513
+            //                 }
+            //             ]
+            //         }
+            //     }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit);
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
+    public Trade parseTrade(Object trade, Map<String, Object> market)
+    {
+        //
+        // fetchMyTrades
+        //
+        //     {
+        //         "amount": 1,
+        //         "direction": "sell",
+        //         "fee": 0.0004,
+        //         "fee_currency": "BTC",
+        //         "index_price": 8993.47,
+        //         "instrument_name": "BTC-27MAY20-8750-C",
+        //         "iv": 38.51,
+        //         "liquidity": "M",
+        //         "mark_price": 0.03135383,
+        //         "matching_id": null,
+        //         "order_id": "4008699030",
+        //         "order_type": "limit",
+        //         "post_only": false,
+        //         "price": 0.028,
+        //         "reduce_only": false,
+        //         "state": "filled",
+        //         "tick_direction": 1,
+        //         "timestamp": 1590480620145,
+        //         "trade_id": "48078936",
+        //         "trade_seq": 1,
+        //         "underlying_price": 8994.95
+        //     },
+        //     {
+        //         "amount": 10,
+        //         "direction": "buy",
+        //         "fee": -2.1e-7,
+        //         "fee_currency": "BTC",
+        //         "index_price": 9679.48,
+        //         "instrument_name": "BTC-26JUN20",
+        //         "liquidity": "M",
+        //         "mark_price": 9684,
+        //         "matching_id": null,
+        //         "order_id": "3993343822",
+        //         "order_type": "limit",
+        //         "post_only": false,
+        //         "price": 9681.5,
+        //         "reduce_only": false,
+        //         "state": "filled",
+        //         "tick_direction": 2,
+        //         "timestamp": 1589923311862,
+        //         "trade_id": "47958936",
+        //         "trade_seq": 299513
+        //     }
+        //
+        String instrumentName = this.safeString(trade, "instrument_name");
+        Map<String, Object> marketResolved = this.safeMarket(instrumentName, market, (String) null, (String) null);
+        Long timestamp = this.safeInteger(trade, "timestamp");
+        Double price = this.safeNumber(trade, "price", (Object) null);
+        Double amount = this.safeNumber(trade, "amount", (Object) null);
+        String amountString = this.safeString(trade, "amount");
+        if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("contract"), true)))
+        {
+            amount = this.parseNumber(this.safeString(trade, "contracts", Precise.stringDiv(amountString, this.safeString(marketResolved, "contractSize"))));
+        }
+        String priceString = this.safeString(trade, "price");
+        Double cost = null;
+        if ((!java.util.Objects.equals(amountString, null)) && (!java.util.Objects.equals(priceString, null)))
+        {
+            cost = this.parseNumber(Precise.stringMul(amountString, priceString));
+            if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("inverse"), true)) && (!java.util.Objects.equals(marketResolved.get("option"), true)))
+            {
+                cost = this.parseNumber(Precise.stringDiv(amountString, priceString));
+            }
+        }
+        String feeCurrencyId = this.safeString(trade, "fee_currency");
+        String feeCurrency = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+        Map<String, Object> fee = new HashMap<String, Object>() {{
+            put( "cost", Coinbaseinternational.this.safeNumber(trade, "fee", (Object) null) );
+            put( "currency", feeCurrency );
+        }};
+        String takerOrMaker = null;
+        if (this.isNativeDeribitCredentials())
+        {
+            Map<String, Object> liquidities = new HashMap<String, Object>() {{
+                put( "M", "maker" );
+                put( "T", "taker" );
+            }};
+            takerOrMaker = this.safeString(liquidities, this.safeString(trade, "liquidity"));
+        }
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", trade);
+        mapLiteral7.put("id", this.safeString(trade, "trade_id"));
+        mapLiteral7.put("order", this.safeString(trade, "order_id"));
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("symbol", marketResolved.get("symbol"));
+        mapLiteral7.put("type", this.safeString(trade, "order_type"));
+        mapLiteral7.put("side", this.safeString(trade, "direction"));
+        mapLiteral7.put("takerOrMaker", takerOrMaker);
+        mapLiteral7.put("price", price);
+        mapLiteral7.put("amount", amount);
+        mapLiteral7.put("cost", cost);
+        mapLiteral7.put("fee", fee);
+        return this.safeTrade(mapLiteral7, marketResolved);
+    }
+
     /**
      * @method
-     * @name coinbaseinternational#withdraw
-     * @description make a withdrawal
-     * @see https://docs.cloud.coinbase.com/intx/reference/withdraw
-     * @see https://docs.cloud.coinbase.com/intx/reference/counterpartywithdraw
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} [tag] an optional tag for the withdrawal
+     * @name coinbaseinternational#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_leverage
+     * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.add_network_fee_to_total] if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
-     * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
-     * @param {string} [params.nonce] a unique integer representing the withdrawal request
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route; native route throws NotSupported; get_leverage is gateway-only
+     * @param {boolean} [params.isolated] set to true for isolated margin
+     * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
-            this.checkAddress(address);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchLeverage", parameters);
+            if (this.isNativeDeribitCredentials())
+            {
+                throw new NotSupported((this.id + " fetchLeverage() is a Coinbase gateway method; native Deribit has no documented get_leverage endpoint")) ;
+            }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("withdraw", parameters)).join();
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
-            parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
-            method = ((List<Object>) methodparametersVariable).get(0);
-            parameters = ((List<Object>) methodparametersVariable).get(1);
-            Object networkId = null;
-            List<Object> networkIdparametersVariable = (List<Object>) (this.handleNetworkIdAndParams(code, "withdraw", parameters)).join();
-            networkId = ((List<Object>) networkIdparametersVariable).get(0);
-            parameters = ((List<Object>) networkIdparametersVariable).get(1);
-            final Object finalPortfolio = portfolio;
-            final Object finalNetworkId = networkId;
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "portfolio", finalPortfolio );
-                put( "type", "send" );
-                put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "address", address );
-                put( "amount", amount );
-                put( "currency", ((Map<String, Object>)currency).get("id") );
-                put( "network_arn_id", finalNetworkId );
-                put( "nonce", Coinbaseinternational.this.nonce() );
+                put( "instrument_name", market.get("id") );
             }};
-            Object response = null;
-            if (java.util.Objects.equals(method, "v1PrivatePostTransfersWithdrawCounterparty"))
-            {
-                response = (this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, parameters))).join();
-            } else
-            {
-                response = (this.v1PrivatePostTransfersWithdraw(this.extend(request, parameters))).join();
-            }
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = (this.privateGetGetLeverage(this.extend(request, paramsResolved))).join();
             //
-            //    {
-            //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
-            //    }
+            //     {
+            //         "id": 1,
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "instrument_name": "BTC-PERPETUAL",
+            //             "leverage": 25,
+            //             "max_leverage": 100
+            //         }
+            //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
-        }).thenApply(Transaction::new);
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            return this.parseLeverage((Map<String, Object>) (result), market);
+        }).thenApply(Leverage::new);
 
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList());
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object version = Helpers.GetValue(api, 0);
-        Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 1), "private");
-        String fullPath = ((Helpers.add("/", version) + "/") + this.implodeParams(path, parameters));
-        Object query = this.omit(parameters, this.extractParams(path));
-        String savedPath = ("/api" + fullPath);
-        if (java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE"))
+        String marketId = this.safeString(leverage, "instrument_name");
+        Object bothLeverage = this.safeInteger(leverage, "leverage");
+        if (this.isNativeDeribitCredentials())
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
-            {
-                fullPath = (fullPath + ("?" + this.urlencodeWithArrayRepeat(query)));
-            }
+            bothLeverage = this.safeNumber2(leverage, "leverage", "max_leverage", (Object) null);
         }
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), fullPath);
-        if (Boolean.TRUE.equals(signed))
         {
-            this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
-            Object payload = "";
-            if (!java.util.Objects.equals(method, "GET"))
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", leverage);
+            h2kMap2.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            h2kMap2.put("marginMode", null);
+            h2kMap2.put("longLeverage", bothLeverage);
+            h2kMap2.put("shortLeverage", bothLeverage);
+            return h2kMap2;
+        }
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-set_leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route; native route throws NotSupported; set_leverage is gateway-only
+     * @param {boolean} [params.isolated] set to true for isolated margin
+     * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("setLeverage", parameters);
+            if (this.isNativeDeribitCredentials())
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
-                {
-                    body = this.json(query);
-                    payload = body;
-                }
+                throw new NotSupported((this.id + " setLeverage() is a Coinbase gateway method; native Deribit has no documented set_leverage endpoint")) ;
             }
-            String auth = ((Helpers.add(nonce, method) + savedPath) + payload);
-            Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
-            final Object finalNonce = nonce;
-            headers = new HashMap<String, Object>() {{
-                put( "CB-ACCESS-TIMESTAMP", finalNonce );
-                put( "CB-ACCESS-SIGN", signature );
-                put( "CB-ACCESS-PASSPHRASE", Coinbaseinternational.this.password );
-                put( "CB-ACCESS-KEY", Coinbaseinternational.this.apiKey );
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
+            }
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instrument_name", market.get("id") );
+                put( "leverage", Coinbaseinternational.this.numberToString(leverage) );
             }};
+            (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> response = (this.privateGetSetLeverage(this.extend(request, paramsResolved))).join();
+            //
+            //     {
+            //         "id": 1,
+            //         "jsonrpc": "2.0",
+            //         "result": 50
+            //     }
+            //
+            return response;
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description signs a short-lived CDP JWT that public/auth exchanges for a gateway access token
+     * @see https://docs.cdp.coinbase.com/api-reference/v2/authentication
+     * @see https://docs.cdp.coinbase.com/get-started/authentication/jwt-authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication#generating-a-jwt
+     * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/rest-api/authentication/post-publicauth
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/deribit-partners#authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/intx-partners#authentication
+     * @param {int} seconds current timestamp in seconds
+     * @param {string} [method] request method
+     * @param {string} [url] request URL
+     * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
+     * @returns {string} signed JWT
+     */
+    public String createAuthToken(Object seconds, String method, String url, Object useEddsa)
+    {
+        Object uri = null;
+        if (!java.util.Objects.equals(url, null))
+        {
+            uri = ((method + " ") + ((String)url).replaceFirst("https://", ""));
+            Object quesPos = ((String)uri).indexOf("?");
+            if ((((Integer) quesPos) > 0))
+            {
+                uri = Helpers.slice(uri, 0, quesPos);
+            }
         }
-        final Object finalMethod = method;
-        final Object finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", url );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
+        String nonce = this.randomBytes(16);
+        String aud = "retail_rest_api_proxy";
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        {
+            aud = "cdp_service";
+        }
+        String iss = "coinbase-cloud";
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        {
+            iss = "cdp";
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("aud", new ArrayList<Object>(Arrays.asList(aud)));
+        request.put("sub", this.apiKey);
+        request.put("iss", iss);
+        request.put("nbf", seconds);
+        request.put("exp", ((Object) (switch ((Object) (seconds)) { case null -> (Object) null; case Long hx4J40v4 -> (Object) (hx4J40v4 + 120L); case Integer hx4J40v4 -> (Object) (hx4J40v4.longValue() + 120L); case Double hx4J40v4 -> (Object) (hx4J40v4 + ((double) 120L)); case String hx4J40v4 -> (Object) (hx4J40v4 + "120"); default -> (Object) null; })));
+        request.put("iat", seconds);
+        if (!java.util.Objects.equals(uri, null))
+        {
+            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+            {
+                request.put("uri", uri);
+            } else
+            {
+                request.put("uris", new ArrayList<Object>(Arrays.asList(uri)));
+            }
+        }
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        {
+            Object byteArray = this.base64ToBinary(this.secret);
+            Object seed = this.arraySlice(byteArray, 0, 32);
+            return jwt(request, seed, sha256(), false, new HashMap<String, Object>() {{
+                put( "kid", Coinbaseinternational.this.apiKey );
+                put( "nonce", nonce );
+                put( "alg", "EdDSA" );
+            }});
+        }
+        return jwt(request, this.encode(this.secret), sha256(), false, new HashMap<String, Object>() {{
+            put( "kid", Coinbaseinternational.this.apiKey );
+            put( "nonce", nonce );
+            put( "alg", "ES256" );
+        }});
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description exchanges a CDP JWT for a Deribit gateway access token
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/overview
+     * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens
+     * @see https://docs.cdp.coinbase.com/api-reference/v2/authentication#generate-bearer-token
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.forceRefresh] ignore the cached token and request a new one
+     * @returns {string} a Deribit gateway access token
+     */
+    public CompletableFuture<String> authenticateV2(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("authenticateV2", parameters);
+            if (this.isNativeDeribitCredentials())
+            {
+                return null;
+            }
+            Boolean forceRefresh = (Boolean) this.safeBool(paramsResolved, "forceRefresh", false);
+            Map<String, Object> paramsOmitted = this.omit(paramsResolved, "forceRefresh");
+            Long now = this.milliseconds();
+            Object token = this.getV2AccessToken();
+            Long tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
+            if (!Boolean.TRUE.equals(forceRefresh) && (!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(token, "")) && (!java.util.Objects.equals(tokenExpires, null)) && ((tokenExpires != null && (now == null || now < tokenExpires))))
+            {
+                return token;
+            }
+            Map<String, Object> response = (this.publicPostAuth(paramsOmitted)).join();
+            //
+            //     {
+            //         "jsonrpc": "2.0",
+            //         "result": {
+            //             "access_token": "...",
+            //             "expires_in": 899,
+            //             "scope": "...",
+            //             "token_type": "bearer"
+            //         }
+            //     }
+            //
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            String accessToken = this.safeString(result, "access_token");
+            Long expiresIn = this.safeInteger(result, "expires_in");
+            if (java.util.Objects.equals(accessToken, null))
+            {
+                throw new AuthenticationError((this.id + " public/auth did not return an access token")) ;
+            }
+            if (java.util.Objects.equals(expiresIn, null))
+            {
+                throw new AuthenticationError((this.id + " public/auth did not return an expiry")) ;
+            }
+            Double ratio = this.safeNumber(this.options, "accessTokenRefreshRatio", (Object) null);
+            Double refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
+            Long tokenRefreshInMilliseconds = this.parseToInt(((expiresIn * 1000L) * refreshRatio));
+            this.token = accessToken;
+            Helpers.addElementToObject(this.options, "v2AccessToken", accessToken);
+            Helpers.addElementToObject(this.options, "v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
+            return accessToken;
+        }).thenApply(res -> (String) res);
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
+     * @returns {string|undefined} the access token
+     */
+    public Object getV2AccessToken()
+    {
+        String token = this.safeString(this.options, "v2AccessToken");
+        if ((!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(token, "")))
+        {
+            return token;
+        }
+        if ((java.util.Objects.equals(this.token, null)) || (java.util.Objects.equals(this.token, "")))
+        {
+            return null;
+        }
+        return this.token;
+    }
+
+    public Object sign(Object path, Object api, Object method, Object parameters)
+    {
+        Object access = (((java.util.Objects.requireNonNullElse(api, "public") instanceof List))) ? (java.util.Objects.requireNonNullElse(api, "public") == null || 0 >= ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).size() ? null : ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).get(0)) : java.util.Objects.requireNonNullElse(api, "public");
+        String rpcMethod = ((access + "/") + path);
+        Map<String, Object> requestParams = (Map<String, Object>) this.handleRouteAndParams("sign", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        Boolean isNativeDeribit = this.isNativeDeribitCredentials();
+        String baseApiUrl = this.safeString(this.urls.get("api"), "rest", "");
+        if (Boolean.TRUE.equals(isNativeDeribit))
+        {
+            baseApiUrl = "https://www.deribit.com/api/v2";
+        }
+        String url = ((baseApiUrl + "/") + rpcMethod);
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
+        if (Boolean.TRUE.equals(isNativeDeribit) && ((java.util.Objects.equals(path, "get_leverage")) || (java.util.Objects.equals(path, "set_leverage"))))
+        {
+            throw new NotSupported((((this.id + " ") + rpcMethod) + " is only documented on the Coinbase gateway")) ;
+        }
+        if ((java.util.Objects.equals(access, "public")) && (java.util.Objects.equals(path, "auth")))
+        {
+            this.checkRequiredCredentials(true);
+            if (Boolean.TRUE.equals(isNativeDeribit))
+            {
+                requestParams = this.extend(new HashMap<String, Object>() {{
+                    put( "grant_type", "client_credentials" );
+                    put( "client_id", Coinbaseinternational.this.apiKey );
+                    put( "client_secret", Coinbaseinternational.this.secret );
+                }}, requestParams);
+            } else
+            {
+                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                mapLiteral8.put("grant_type", "coinbase_cdp");
+                mapLiteral8.put("token", this.createAuthToken(this.seconds(), java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), url, this.isEddsaSecret()));
+                requestParams = this.extend(mapLiteral8, requestParams);
+            }
+        } else if ((java.util.Objects.equals(access, "private")) && Boolean.TRUE.equals(isNativeDeribit))
+        {
+            this.checkRequiredCredentials(true);
+            String timestamp = String.valueOf(this.milliseconds());
+            String nonce = String.valueOf(this.nonce());
+            String signedRequest = (((((("/" + "api/") + this.version) + "/") + access) + "/") + path);
+            if (requestParams.size() > 0)
+            {
+                signedRequest = (signedRequest + ("?" + this.urlencode(requestParams)));
+            }
+            String requestData = ((((java.util.Objects.requireNonNullElse(method, "GET") + "\n") + signedRequest) + "\n") + "\n"); // eslint-disable-line quotes
+            String auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("Content-Type", "application/json");
+                hx4NewMap0.put("Authorization", ((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",nonce=") + nonce));
+                requestHeaders = hx4NewMap0;
+            }
+        } else if (java.util.Objects.equals(access, "private"))
+        {
+            Object accessToken = this.getV2AccessToken();
+            if (java.util.Objects.equals(accessToken, null))
+            {
+                throw new AuthenticationError((this.id + " requires an access token from public/auth")) ;
+            }
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("Content-Type", "application/json");
+                hx4NewMap1.put("Authorization", ("Bearer " + accessToken));
+                requestHeaders = hx4NewMap1;
+            }
+        }
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
+        {
+            String requestUrl = url;
+            if (requestParams.size() > 0)
+            {
+                requestUrl = (requestUrl + ("?" + this.urlencode(requestParams)));
+            }
+            {
+                HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+                h2kMap3.put("url", requestUrl);
+                h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap3.put("body", null);
+                h2kMap3.put("headers", requestHeaders);
+                return h2kMap3;
+            }
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("jsonrpc", "2.0");
+        request.put("id", this.nonce());
+        request.put("method", rpcMethod);
+        request.put("params", requestParams);
+        String requestBody = this.json(request);
+        requestHeaders = this.extend(new HashMap<String, Object>() {{
+            put( "Content-Type", "application/json" );
+        }}, requestHeaders);
+        {
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", requestBody);
+            h2kMap4.put("headers", requestHeaders);
+            return h2kMap4;
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description whether the configured secret is an Ed25519 (EdDSA) CDP key rather than an ECDSA PEM key
+     * @returns {boolean} true for Ed25519 keys
+     */
+    public Boolean isEddsaSecret()
+    {
+        Boolean secretIsPem = ((String)this.secret).indexOf("BEGIN") >= 0;
+        if (Boolean.TRUE.equals(secretIsPem))
+        {
+            return false;
+        }
+        Boolean useV2CloudApiKey = (Boolean) this.safeBool(this.options, "v2CloudAPiKey", false);
+        return ((this.secret.length() == 88)) || Boolean.TRUE.equals(useV2CloudApiKey) || (this.secret.endsWith("="));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#handleRouteAndParams
+     * @description selects a backend before market loading or authentication and removes routing parameters
+     * @param {string} methodName unified REST or Pro method name
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
+     */
+    public Object handleRouteAndParams(String methodName, Map<String, Object> parameters)
+    {
+        List<Object> routeparamsResolvedVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "route", "auto");
+        var route = ((List<Object>) routeparamsResolvedVariable).get(0);
+        Map<String, Object> paramsResolved = (Map<String, Object>) ((List<Object>) routeparamsResolvedVariable).get(1);
+        Boolean deribit = this.resolveRoute(route);
+        Boolean previousBackend = (Boolean) this.safeBool(this.options, "routeBackend", (Object) null);
+        Boolean configuredBackend = this.isNativeDeribitCredentials();
+        Boolean hasToken = !java.util.Objects.equals(this.getV2AccessToken(), null);
+        Boolean hasWsState = !java.util.Objects.equals(this.safeInteger(this.options, "wsAuthRefreshAt"), null);
+        if ((!java.util.Objects.equals(previousBackend, null)) && (!java.util.Objects.equals(previousBackend, deribit)))
+        {
+            throw new BadRequest((this.id + " cannot switch route backend on an initialized instance; use a separate exchange instance")) ;
+        }
+        if ((java.util.Objects.equals(previousBackend, null)) && (!java.util.Objects.equals(this.markets, null) || Boolean.TRUE.equals(hasToken) || Boolean.TRUE.equals(hasWsState)) && (!java.util.Objects.equals(configuredBackend, deribit)))
+        {
+            throw new BadRequest((this.id + " cannot switch route backend after markets or authentication state; use a separate exchange instance")) ;
+        }
+        // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
+        if (Boolean.TRUE.equals(deribit))
+        {
+            Helpers.addElementToObject(this.options, "route", "deribit");
+        } else
+        {
+            Helpers.addElementToObject(this.options, "route", "coinbase");
+        }
+        Helpers.addElementToObject(this.options, "routeBackend", deribit);
+        Helpers.addElementToObject(this.has, "fetchLeverage", !Boolean.TRUE.equals(deribit));
+        Helpers.addElementToObject(this.has, "setLeverage", !Boolean.TRUE.equals(deribit));
+        return this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("route", "defaultRoute", "callerMethodName")));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#isNativeDeribitCredentials
+     * @description reads the selected backend or resolves the configured automatic or explicit route
+     * @returns {boolean} true for the native Deribit route
+     */
+    public Boolean isNativeDeribitCredentials()
+    {
+        return this.resolveRoute(this.options.get("route"));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#resolveRoute
+     * @description resolves a backend override or conservatively detects the known native Deribit credential format
+     * @param {string} [route] auto (default), deribit, or coinbase
+     * @returns {boolean} true for native Deribit, false for Coinbase
+     */
+    public Boolean resolveRoute(Object route)
+    {
+        if (java.util.Objects.equals(route, "deribit"))
+        {
+            return true;
+        }
+        if (java.util.Objects.equals(route, "coinbase"))
+        {
+            return false;
+        }
+        if ((!java.util.Objects.equals(route, null)) && (!java.util.Objects.equals(route, "auto")))
+        {
+            throw new BadRequest((this.id + " route must be auto, deribit, or coinbase")) ;
+        }
+        if ((java.util.Objects.equals(this.apiKey, null)) || (java.util.Objects.equals(this.apiKey, "")) || (java.util.Objects.equals(this.secret, null)) || (java.util.Objects.equals(this.secret, "")))
+        {
+            return false;
+        }
+        if ((((String)this.apiKey).indexOf("organizations/") >= 0) || (((String)this.secret).indexOf("BEGIN") >= 0) || this.isEddsaSecret())
+        {
+            return false;
+        }
+        return ((this.apiKey.length() == 8)) && ((this.secret.length() == 43));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
         //
-        //    {
-        //        "title":"io.javalin.http.BadRequestResponse: Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",
-        //        "status":400
-        //    }
+        //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         //
         if (java.util.Objects.equals(response, null))
         {
             return null;  // fallback to default error handler
         }
-        String feedback = ((this.id + " ") + body);
-        String errMsg = this.safeString(response, "title");
-        if (!java.util.Objects.equals(errMsg, null))
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
+        if (java.util.Objects.equals(error, null))
         {
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errMsg, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errMsg, feedback);
-            throw new ExchangeError(feedback) ;
+            return null;
         }
-        return null;
+        String errorCode = this.safeString(error, "code");
+        String errorMessage = this.safeString(error, "message");
+        String feedback = ((this.id + " ") + body);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+        throw new ExchangeError(feedback) ;
     }
 }

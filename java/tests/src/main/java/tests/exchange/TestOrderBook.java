@@ -34,15 +34,15 @@ public class TestOrderBook extends BaseTest {
             put( "datetime", "2017-09-01T00:00:00" );
             put( "nonce", 134234234 );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("nonce"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("nonce"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, orderbook);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);
         Object logText = TestSharedMethods.logTemplate(exchange, method, orderbook);
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         Object bids = ((Map<String, Object>)orderbook).get("bids");
-        Object bidsLength = ((List<?>)bids).size();
-        for (var i = 0; Helpers.isLessThan(i, bidsLength); i++)
+        Integer bidsLength = ((List<?>)bids).size();
+        for (var i = 0; (bidsLength != null && i < bidsLength); i++)
         {
             String currentBidString = exchange.safeString((bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 0);
             if (!(Helpers.inOp(skippedProperties, "compareToNextItem")))
@@ -51,7 +51,7 @@ public class TestOrderBook extends BaseTest {
                 if (Helpers.isGreaterThan(bidsLength, nextI))
                 {
                     String nextBidString = exchange.safeString(Helpers.GetValue(bids, nextI), 0);
-                    Assert(Precise.stringGt(currentBidString, nextBidString), Helpers.add(((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString), logText));
+                    Assert(Precise.stringGt(currentBidString, nextBidString), (((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString) + logText));
                 }
             }
             if (!(Helpers.inOp(skippedProperties, "compareToZero")))
@@ -62,8 +62,8 @@ public class TestOrderBook extends BaseTest {
             }
         }
         Object asks = ((Map<String, Object>)orderbook).get("asks");
-        Object asksLength = ((List<?>)asks).size();
-        for (var i = 0; Helpers.isLessThan(i, asksLength); i++)
+        Integer asksLength = ((List<?>)asks).size();
+        for (var i = 0; (asksLength != null && i < asksLength); i++)
         {
             String currentAskString = exchange.safeString((asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 0);
             if (!(Helpers.inOp(skippedProperties, "compareToNextItem")))
@@ -72,7 +72,7 @@ public class TestOrderBook extends BaseTest {
                 if (Helpers.isGreaterThan(asksLength, nextI))
                 {
                     String nextAskString = exchange.safeString(Helpers.GetValue(asks, nextI), 0);
-                    Assert(Precise.stringLt(currentAskString, nextAskString), Helpers.add(((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString), logText));
+                    Assert(Precise.stringLt(currentAskString, nextAskString), (((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString) + logText));
                 }
             }
             if (!(Helpers.inOp(skippedProperties, "compareToZero")))
@@ -84,7 +84,7 @@ public class TestOrderBook extends BaseTest {
         }
         if (!(Helpers.inOp(skippedProperties, "spread")))
         {
-            if ((Helpers.isGreaterThan(bidsLength, 0)) && (Helpers.isGreaterThan(asksLength, 0)))
+            if (((bidsLength != null && bidsLength > 0)) && ((asksLength != null && asksLength > 0)))
             {
                 String firstBid = exchange.safeString((bids == null || 0 >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(0)), 0);
                 String firstAsk = exchange.safeString((asks == null || 0 >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(0)), 0);

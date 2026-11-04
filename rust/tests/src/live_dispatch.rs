@@ -93,6 +93,7 @@ fn ws_test_options_take() -> Value {
 }
 use crate::registry::for_each_core;
 use crate::registry::for_each_ws_core;
+use crate::registry::for_each_prediction_core;
 use indexmap::IndexMap as HashMap;
 use std::sync::{Mutex, OnceLock};
 
@@ -585,12 +586,11 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
             });
         }
     }; }
-    // In prediction mode, `hyperliquid` and `binance` resolve to their
-    // prediction Cores; these arms run before for_each_core! so they win over
-    // the regular exchanges of the same id.
+    // In prediction mode every prediction venue resolves to its prediction Core;
+    // these arms run before for_each_core! so an id shared with a regular
+    // exchange (binance, hyperliquid, polymarket, ...) wins over the REST Core.
     if PREDICTION_MODE.load(Ordering::Relaxed) {
-        arm!(hyperliquid, PredHyperliquidCore);
-        arm!(binance, PredBinanceCore);
+        for_each_prediction_core!(arm);
     }
     // Under --ws, prefer the pro Core (carries watch* in `has`, routes the WS
     // handlers). Falls through to the REST Core for ids without a pro variant.

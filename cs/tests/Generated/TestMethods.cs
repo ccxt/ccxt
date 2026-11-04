@@ -139,7 +139,7 @@ public partial class testMainClass
                     for (int j = 0; j < (possibleMethodNames?.Count ?? 0); j++)
                     {
                         string? methodName = ((string)possibleMethodNames[j]);
-                        methodName = ((string)methodName).Replace((string)"()", (string)"");
+                        methodName = methodName.Replace((string)"()", (string)"");
                         if ((testFileName == methodName))
                         {
                             ((IList<object>)this.onlySpecificTests).Add(testFileName);
@@ -153,8 +153,8 @@ public partial class testMainClass
     public async virtual Task<object> importFiles(BaseExchange exchange)
     {
         List<object> properties = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
-        ((IList<object>)properties).Add("loadMarkets");
-        ((IList<object>)properties).Add("afterConstruct");
+        properties.Add("loadMarkets");
+        properties.Add("afterConstruct");
         if (isTrue(isSync()))
         {
             this.testFiles = getTestFilesSync(properties, this.wsTests);
@@ -322,7 +322,7 @@ public partial class testMainClass
             await exchange.loadMarkets(true);
             dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         }
-        if ((skipMessage != null) && (skipMessage != ""))
+        if ((skipMessage != null) && skipMessage != "")
         {
             if (isTrue(this.info))
             {
@@ -382,7 +382,7 @@ public partial class testMainClass
         for (int i = 0; i < objectNames.Count; i++)
         {
             string? objectName = ((string)objectNames[i]);
-            object objectMethods = getValue(objectSkips, objectName);
+            object objectMethods = (objectSkips != null && objectName != null && objectSkips.ContainsKey(objectName) ? objectSkips[objectName] : null);
             if (isTrue(exchange.inArray(methodName, objectMethods)))
             {
                 // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
@@ -421,9 +421,9 @@ public partial class testMainClass
         // run-tests.js, so the exceptions are still printed out to console from there.
         args ??= new List<object>();
         isPublic ??= false;
-        object maxRetries = 3;
+        Int64 maxRetries = 3;
         object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-        for (int i = 0; isLessThan(i, maxRetries); i++)
+        for (int i = 0; i < maxRetries; i++)
         {
             try
             {
@@ -443,7 +443,7 @@ public partial class testMainClass
                 if (isTrue(isOperationFailed))
                 {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
-                    if (isEqual(i, subtract(maxRetries, 1)))
+                    if (isEqual(i, (maxRetries - 1)))
                     {
                         object isOnMaintenance = (e is OnMaintenance);
                         object isExchangeNotAvailable = (e is ExchangeNotAvailable);
@@ -477,14 +477,14 @@ public partial class testMainClass
                             }
                         }
                         // output the message
-                        string failType = (shouldFail == true) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
+                        string failType = shouldFail == true ? "[TEST_FAILURE]" : "[TEST_WARNING]";
                         dump(failType, exchange.id, methodName, argsStringified, lastUrlMsg, "Method could not be tested due to a repeated Network/Availability issues", " | ", exceptionMessage(e));
                         return retSuccess;
                     } else
                     {
                         // wait and retry again
                         // (increase wait time on every retry)
-                        await exchange.sleep(multiply((add(i, 1)), 1000));
+                        await exchange.sleep(multiply(((i + 1L)), 1000));
                     }
                 } else
                 {
@@ -578,15 +578,15 @@ public partial class testMainClass
         {
             if (isEqual(isSpot, true))
             {
-                ((IDictionary<string,object>)tests)["fetchCurrencies"] = new List<object>() {};
+                tests["fetchCurrencies"] = new List<object>() {};
             } else
             {
-                ((IDictionary<string,object>)tests)["fetchFundingRates"] = new List<object>() {primarySymbol};
-                ((IDictionary<string,object>)tests)["fetchFundingRate"] = new List<object>() {primarySymbol};
-                ((IDictionary<string,object>)tests)["fetchFundingRateHistory"] = new List<object>() {primarySymbol};
-                ((IDictionary<string,object>)tests)["fetchIndexOHLCV"] = new List<object>() {primarySymbol};
-                ((IDictionary<string,object>)tests)["fetchMarkOHLCV"] = new List<object>() {primarySymbol};
-                ((IDictionary<string,object>)tests)["fetchPremiumIndexOHLCV"] = new List<object>() {primarySymbol};
+                tests["fetchFundingRates"] = new List<object>() {primarySymbol};
+                tests["fetchFundingRate"] = new List<object>() {primarySymbol};
+                tests["fetchFundingRateHistory"] = new List<object>() {primarySymbol};
+                tests["fetchIndexOHLCV"] = new List<object>() {primarySymbol};
+                tests["fetchMarkOHLCV"] = new List<object>() {primarySymbol};
+                tests["fetchPremiumIndexOHLCV"] = new List<object>() {primarySymbol};
             }
         }
         this.publicTests = tests;
@@ -602,7 +602,7 @@ public partial class testMainClass
         {
             string? testName = ((string)testNames[i]);
             object testArgs = getValue(tests, testName);
-            ((IList<object>)promises).Add(this.testSafe(testName, exchange, testArgs, isPublicTest));
+            promises.Add(this.testSafe(testName, exchange, testArgs, isPublicTest));
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
@@ -612,10 +612,10 @@ public partial class testMainClass
         for (int i = 0; i < testNames.Count; i++)
         {
             string? testName = ((string)testNames[i]);
-            object testReturnedValue = getValue(results, i);
+            object testReturnedValue = (results != null && i < results.Count ? results[i] : null);
             if (!isEqual(testReturnedValue, true))
             {
-                ((IList<object>)failedMethods).Add(testName);
+                failedMethods.Add(testName);
             }
         }
         string testPrefixString = isTrue(isPublicTest) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
@@ -701,10 +701,10 @@ public partial class testMainClass
             object market = getValue(markets, key);
             if (isTrue(spot) && (isEqual(getValue(market, "spot"), true)))
             {
-                ((IDictionary<string,object>)res)[(string)getValue(market, "symbol")] = market;
+                res[(string)getValue(market, "symbol")] = market;
             } else if (!isTrue(spot) && (!isEqual(getValue(market, "spot"), true)))
             {
-                ((IDictionary<string,object>)res)[(string)getValue(market, "symbol")] = market;
+                res[(string)getValue(market, "symbol")] = market;
             }
         }
         return res;
@@ -743,7 +743,7 @@ public partial class testMainClass
             List<object> activeSymbols = new List<object>() {};
             for (int i = 0; i < getArrayLength(activeMarkets); i++)
             {
-                ((IList<object>)activeSymbols).Add(getValue(getValue(activeMarkets, i), "symbol"));
+                activeSymbols.Add(getValue(getValue(activeMarkets, i), "symbol"));
             }
             symbol = this.getTestSymbol(exchange, spot, activeSymbols);
         }
@@ -855,9 +855,9 @@ public partial class testMainClass
                     if (isGreaterThan(volume, 0))
                     {
                         Dictionary<string, object> entry = new Dictionary<string, object>() {};
-                        ((IDictionary<string,object>)entry)["symbol"] = tickerSymbol;
-                        ((IDictionary<string,object>)entry)["volume"] = volume;
-                        ((IList<object>)candidates).Add(entry);
+                        entry["symbol"] = tickerSymbol;
+                        entry["volume"] = volume;
+                        candidates.Add(entry);
                     }
                 }
             }
@@ -871,7 +871,7 @@ public partial class testMainClass
         List<object> result = new List<object> {exchange.safeString(getValue(ranked, 0), "symbol")};
         if (rankedLength > 1)
         {
-            ((IList<object>)result).Add(exchange.safeString(getValue(ranked, 1), "symbol"));
+            result.Add(exchange.safeString(getValue(ranked, 1), "symbol"));
         }
         return result;
     }
@@ -1081,14 +1081,14 @@ public partial class testMainClass
                     // separators as spaces) so the scoped contract holds even without a pin
                     List<object> handleParts = ((string)outcomeSymbol).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                     string? marketPart = ((string)(handleParts != null && 0 < handleParts.Count ? handleParts[0] : null));
-                    string lowerPart = ((string)marketPart).ToLower();
+                    string lowerPart = marketPart.ToLower();
                     string dedashed = lowerPart.Replace((string)"-", (string)" ");
                     eventQuery = dedashed.Replace((string)"_", (string)" ");
                 }
                 Dictionary<string, object> eventParams = new Dictionary<string, object>() {};
                 if ((eventQuery != null))
                 {
-                    ((IDictionary<string,object>)eventParams)["query"] = eventQuery;
+                    eventParams["query"] = eventQuery;
                 }
                 object events = await callExchangeMethodDynamically(exchange, "fetchEvents", new List<object>() {eventParams});
                 assert((events != null), add(exchange.id, " fetchEvents returned undefined"));
@@ -1118,7 +1118,7 @@ public partial class testMainClass
                     // copy to a const so the dict capture is effectively-final (Java inner-class rule),
                     // since eventId is reassigned above. every venue must refetch an event by its own id
                     object eventIdScope = eventId;
-                    ((IList<object>)scopesToTest).Add(new Dictionary<string, object>() {
+                    scopesToTest.Add(new Dictionary<string, object>() {
                         { "eventId", eventIdScope },
                     });
                 }
@@ -1128,12 +1128,12 @@ public partial class testMainClass
                 int extraScopesLength = getArrayLength(extraScopes);
                 for (int si = 0; si < extraScopesLength; si++)
                 {
-                    ((IList<object>)scopesToTest).Add(getValue(extraScopes, si));
+                    scopesToTest.Add(getValue(extraScopes, si));
                 }
                 int scopesToTestLength = (scopesToTest?.Count ?? 0);
                 for (int sj = 0; sj < scopesToTestLength; sj++)
                 {
-                    object scope = getValue(scopesToTest, sj);
+                    object scope = (scopesToTest != null && sj < scopesToTest.Count ? scopesToTest[sj] : null);
                     // fetchEvents scoped by a single parameter must return a non-empty, valid list
                     object scopedEvents = await callExchangeMethodDynamically(exchange, "fetchEvents", new List<object>() {scope});
                     object scopedList = exchange.safeList(new Dictionary<string, object>() {
@@ -1426,7 +1426,7 @@ public partial class testMainClass
         };
         if (isTrue(getCliArgValue("--fundedTests")))
         {
-            ((IDictionary<string,object>)tests)["createOrder"] = new List<object>() {symbol};
+            tests["createOrder"] = new List<object>() {symbol};
         }
         if (isTrue(this.wsTests))
         {
@@ -1444,18 +1444,18 @@ public partial class testMainClass
         {
             if (isEqual(isSpot, true))
             {
-                ((IDictionary<string,object>)tests)["fetchCurrencies"] = new List<object>() {};
+                tests["fetchCurrencies"] = new List<object>() {};
             } else
             {
                 // derivatives only
-                ((IDictionary<string,object>)tests)["fetchPositions"] = new List<object>() {symbol}; // this test fetches all positions for 1 symbol
-                ((IDictionary<string,object>)tests)["fetchPosition"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchPositionRisk"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["setPositionMode"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["setMarginMode"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchOpenInterestHistory"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchFundingRateHistory"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchFundingHistory"] = new List<object>() {symbol};
+                tests["fetchPositions"] = new List<object>() {symbol}; // this test fetches all positions for 1 symbol
+                tests["fetchPosition"] = new List<object>() {symbol};
+                tests["fetchPositionRisk"] = new List<object>() {symbol};
+                tests["setPositionMode"] = new List<object>() {symbol};
+                tests["setMarginMode"] = new List<object>() {symbol};
+                tests["fetchOpenInterestHistory"] = new List<object>() {symbol};
+                tests["fetchFundingRateHistory"] = new List<object>() {symbol};
+                tests["fetchFundingHistory"] = new List<object>() {symbol};
             }
         }
         // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
@@ -1484,7 +1484,7 @@ public partial class testMainClass
             } catch(Exception e)
             {
                 exceptionMessageString = exceptionMessage(e);
-                await exchange.sleep(multiply(j, 1000));
+                await exchange.sleep((j * 1000L));
             }
         }
         // if exception was set, then throw it
@@ -1581,11 +1581,11 @@ public partial class testMainClass
         object watchOrderBookSkips = this.getSkips(exchange, "watchOrderBook");
         object fetchOrderBookSkips = this.getSkips(exchange, "fetchOrderBook");
         // ensure with hardcoded list of required methods
-        if (isTrue(this.wsTests) && (!isEqual(exchange.safeBool(exchange.has, "watchOrderBook", false), true)) && !(watchOrderBookSkips is string))
+        if (isTrue(this.wsTests) && (!isTrue(exchange.safeBool(exchange.has, "watchOrderBook", false))) && !(watchOrderBookSkips is string))
         {
             dump("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange");
             exitScript(1);
-        } else if (!isTrue(this.wsTests) && (!isEqual(exchange.safeBool(exchange.has, "fetchOrderBook", false), true)) && !(fetchOrderBookSkips is string))
+        } else if (!isTrue(this.wsTests) && (!isTrue(exchange.safeBool(exchange.has, "fetchOrderBook", false))) && !(fetchOrderBookSkips is string))
         {
             dump("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange");
             exitScript(1);
@@ -1660,7 +1660,7 @@ public partial class testMainClass
                 dump(("[WARN] tests not found: " + (path)));
                 return null;
             }
-            ((IDictionary<string,object>)result)[(string)targetExchange] = ioFileRead(path);
+            result[(string)targetExchange] = ioFileRead(path);
             return result;
         }
         object files = ioDirRead(folder);
@@ -1677,7 +1677,7 @@ public partial class testMainClass
             }
             string exchangeName = ((string)file).Replace((string)".json", (string)"");
             object content = ioFileRead(add(folder, file));
-            ((IDictionary<string,object>)result)[(string)exchangeName] = content;
+            result[(string)exchangeName] = content;
         }
         return result;
     }
@@ -1695,16 +1695,16 @@ public partial class testMainClass
             if (i > 2)
             {
                 string? current = ((string)urlParts[i]);
-                if (getIndexOf(current, "?") > -1)
+                if ((current?.IndexOf("?", StringComparison.Ordinal) ?? -1) > -1)
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
-                    List<object> currentParts = ((string)current).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
-                    res = add(res, "/");
+                    List<object> currentParts = current.Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
+                    res = (res + ("/"));
                     res = add(res, (currentParts != null && 0 < currentParts.Count ? currentParts[0] : null));
                     break;
                 }
-                res = add(res, "/");
-                res = add(res, current);
+                res = (res + ("/"));
+                res = (res + (current));
             }
         }
         return res;
@@ -1717,7 +1717,7 @@ public partial class testMainClass
         for (int i = 0; i < parts.Count; i++)
         {
             string? part = ((string)parts[i]);
-            List<object> keyValue = ((string)part).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
+            List<object> keyValue = part.Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
             int keysLength = keyValue.Count;
             if ((keysLength != 2))
             {
@@ -1730,7 +1730,7 @@ public partial class testMainClass
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
             }
-            ((IDictionary<string,object>)result)[(string)key] = value;
+            result[(string)key] = value;
         }
         return result;
     }
@@ -1759,7 +1759,7 @@ public partial class testMainClass
 
     public virtual object isVacantValue(BaseExchange exchange, object value)
     {
-        // C# only. The unified types are structs, so the two sides of the comparison
+        // C# and Go only. The unified types are structs, so the two sides of the comparison
         // carry different key sets for reasons that are structural, not behavioural:
         //   - a struct field the venue never populated is still a field, and comes
         //     back as an explicit null the fixture may not carry (Balance.debt);
@@ -1816,6 +1816,24 @@ public partial class testMainClass
         return count;
     }
 
+    public virtual object effectiveSkipKeys(BaseExchange exchange, object exchangeData, object entry)
+    {
+        // 'forceCheckKeys' re-enables the full comparison (both presence and value)
+        // for the listed keys in this one entry, overriding the file-level 'skipKeys'
+        object rawSkipKeys = exchange.safeList(exchangeData, "skipKeys", new List<object>() {});
+        object forceCheckKeys = exchange.safeList(entry, "forceCheckKeys", new List<object>() {});
+        List<object> skipKeys = new List<object>() {};
+        for (int i = 0; i < getArrayLength(rawSkipKeys); i++)
+        {
+            object key = getValue(rawSkipKeys, i);
+            if (!isTrue((exchange.inArray(key, forceCheckKeys))))
+            {
+                skipKeys.Add(key);
+            }
+        }
+        return skipKeys;
+    }
+
     public virtual object assertNewAndStoredOutputInner(BaseExchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
     {
         strictTypeCheck ??= true;
@@ -1829,7 +1847,7 @@ public partial class testMainClass
         {
             return true;
         }
-        if (isEqual(this.lang, "C#"))
+        if ((isEqual(this.lang, "C#")) || (isEqual(this.lang, "GO")))
         {
             // a struct is never null: an absent `fee` comes back as a Fee whose every
             // field is null, and an absent `fees` as []. The stored fixture writes the
@@ -1852,7 +1870,7 @@ public partial class testMainClass
             List<object> newOutputKeys = new List<object>(((IDictionary<string,object>)newOutput).Keys);
             object storedKeysLength = storedOutputKeys.Count;
             object newKeysLength = newOutputKeys.Count;
-            if (isEqual(this.lang, "C#"))
+            if ((isEqual(this.lang, "C#")) || (isEqual(this.lang, "GO")))
             {
                 // the unified types are structs there, so an unpopulated field still
                 // comes back (as an explicit null) and a unified key with no struct
@@ -1865,17 +1883,17 @@ public partial class testMainClass
             for (int i = 0; i < storedOutputKeys.Count; i++)
             {
                 object key = storedOutputKeys[i];
-                if (isTrue(exchange.inArray(key, skipKeys)))
-                {
-                    continue;
-                }
                 if (!isTrue((exchange.inArray(key, newOutputKeys))))
                 {
-                    if ((isEqual(this.lang, "C#")) && isTrue(this.isVacantValue(exchange, getValue(storedOutput, key))))
+                    if (((isEqual(this.lang, "C#")) || (isEqual(this.lang, "GO"))) && isTrue(this.isVacantValue(exchange, getValue(storedOutput, key))))
                     {
                         continue;
                     }
                     this.assertStaticError(false, ("output key missing: " + (key)), storedOutput, newOutput);
+                }
+                if (isTrue(exchange.inArray(key, skipKeys)))
+                {
+                    continue;
                 }
                 object storedValue = getValue(storedOutput, key);
                 object newValue = getValue(newOutput, key);
@@ -1924,13 +1942,13 @@ public partial class testMainClass
                 bool isComputedUndefined = ((sanitizedNewOutput == null));
                 bool isStoredUndefined = ((sanitizedStoredOutput == null));
                 bool shouldBeSame = ((isComputedBool == isStoredBool)) && ((isComputedString == isStoredString)) && ((isComputedUndefined == isStoredUndefined));
-                if (!shouldBeSame && ((isEqual(this.lang, "PY")) || (isEqual(this.lang, "C#"))) && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined)
+                if (!shouldBeSame && ((isEqual(this.lang, "PY")) || (isEqual(this.lang, "C#")) || (isEqual(this.lang, "GO"))) && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined)
                 {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
                     // c#: a typed core returns the unified `Num` fields as a real double, whereas the
                     // fixture was captured through the untyped path and kept the venue's quoted string
-                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // (cost "0.02" vs 0.02) - same value, different json spelling; go structs likewise
                     // pass the sanitized VALUES, not their string forms: C# renders a small
                     // double as "6.79E-05", which parseToNumeric cannot parse. And only the
                     // STRING side needs parsing - parseToNumeric round-trips a double through
@@ -2108,6 +2126,97 @@ public partial class testMainClass
         return true;
     }
 
+    public virtual object assertStaticIsolatedPosition(BaseExchange exchange, object entry)
+    {
+        if (!isTrue(exchange.isDictionary(entry)))
+        {
+            return true;
+        }
+        object marginMode = exchange.safeString(entry, "marginMode");
+        if (!isEqual(marginMode, "isolated"))
+        {
+            return true;
+        }
+        object side = exchange.safeString(entry, "side");
+        object entryPrice = exchange.safeNumber(entry, "entryPrice");
+        object liquidationPrice = exchange.safeNumber(entry, "liquidationPrice");
+        object contracts = exchange.safeNumber(entry, "contracts");
+        object contractSize = exchange.safeNumber(entry, "contractSize");
+        object maintenanceMargin = exchange.safeNumber(entry, "maintenanceMargin");
+        object collateral = exchange.safeNumber(entry, "collateral");
+        object initialMargin = exchange.safeNumber(entry, "initialMargin");
+        object unrealizedPnl = exchange.safeNumber(entry, "unrealizedPnl");
+        if (((entryPrice != null)) && ((liquidationPrice != null)) && (isGreaterThan(entryPrice, 0)) && (isGreaterThan(liquidationPrice, 0)))
+        {
+            if (isEqual(side, "long"))
+            {
+                this.assertStaticError(isLessThan(liquidationPrice, entryPrice), "isolated long liquidationPrice should be less than entryPrice", entryPrice, liquidationPrice);
+            } else if (isEqual(side, "short"))
+            {
+                this.assertStaticError(isGreaterThan(liquidationPrice, entryPrice), "isolated short liquidationPrice should be greater than entryPrice", entryPrice, liquidationPrice);
+            }
+        }
+        object entryMargin = null;
+        if ((collateral != null))
+        {
+            if (((unrealizedPnl != null)) && (!isEqual(collateral, initialMargin)))
+            {
+                entryMargin = subtract(collateral, unrealizedPnl);
+            } else
+            {
+                entryMargin = collateral;
+            }
+        } else if ((initialMargin != null))
+        {
+            entryMargin = initialMargin;
+        }
+        if (((entryMargin != null)) && ((entryPrice != null)) && ((liquidationPrice != null)) && ((contracts != null)) && ((contractSize != null)) && ((maintenanceMargin != null)))
+        {
+            if ((isGreaterThan(entryMargin, 0)) && (isGreaterThan(entryPrice, 0)) && (isGreaterThan(liquidationPrice, 0)) && (isGreaterThan(contracts, 0)) && (isGreaterThan(contractSize, 0)) && (isGreaterThan(maintenanceMargin, 0)))
+            {
+                object symbol = exchange.safeString(entry, "symbol");
+                object market = ((symbol != null)) ? exchange.safeDict(exchange.markets, symbol) : null;
+                bool isInverse = ((market != null)) && isTrue(exchange.safeBool(market, "inverse", false));
+                object priceDiff = 0;
+                if (isInverse)
+                {
+                    object invEntry = divide(1, entryPrice);
+                    object invLiq = divide(1, liquidationPrice);
+                    priceDiff = (isGreaterThan(invEntry, invLiq)) ? (subtract(invEntry, invLiq)) : (subtract(invLiq, invEntry));
+                } else
+                {
+                    priceDiff = (isGreaterThan(entryPrice, liquidationPrice)) ? (subtract(entryPrice, liquidationPrice)) : (subtract(liquidationPrice, entryPrice));
+                }
+                object lossFromEntry = multiply(multiply(priceDiff, contracts), contractSize);
+                object calculatedMm = subtract(entryMargin, lossFromEntry);
+                this.assertStaticError(isGreaterThan(calculatedMm, 0), "isolated position remaining collateral at liquidationPrice should be greater than 0", maintenanceMargin, calculatedMm);
+                object mmDiff = (isGreaterThan(calculatedMm, maintenanceMargin)) ? (subtract(calculatedMm, maintenanceMargin)) : (subtract(maintenanceMargin, calculatedMm));
+                object maxTolerance = multiply(entryMargin, 0.05);
+                this.assertStaticError(isLessThanOrEqual(mmDiff, maxTolerance), "isolated position maintenanceMargin does not match remaining collateral at liquidationPrice", maintenanceMargin, calculatedMm);
+            }
+        }
+        return true;
+    }
+
+    public virtual object assertStaticIsolatedPositions(BaseExchange exchange, object method, object output)
+    {
+        if ((isEqual(method, "fetchPosition")) || (isEqual(method, "fetchPositions")) || (isEqual(method, "fetchPositionsForSymbol")) || (isEqual(method, "fetchPositionsRisk")))
+        {
+            if (((output is IList<object>) || (output.GetType().IsGenericType && output.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            {
+                int outputLength = getArrayLength(output);
+                for (int i = 0; i < outputLength; i++)
+                {
+                    this.assertStaticIsolatedPosition(exchange, getValue(output, i));
+                }
+            } else if (isTrue(exchange.isDictionary(output)))
+            {
+                this.assertStaticIsolatedPosition(exchange, output);
+            }
+        }
+        return true;
+    }
+
     public virtual void assertStaticResponseOutput(BaseExchange exchange, object skipKeys, object computedResult, object storedResult)
     {
         this.assertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false);
@@ -2126,10 +2235,10 @@ public partial class testMainClass
             object current = getValue(input, i);
             if (isTrue(isNullValue(current)))
             {
-                ((IList<object>)newInput).Add(null);
+                newInput.Add(null);
             } else
             {
-                ((IList<object>)newInput).Add(current);
+                newInput.Add(current);
             }
         }
         return newInput;
@@ -2216,10 +2325,12 @@ public partial class testMainClass
             {
                 object unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
                 this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
+                this.assertStaticIsolatedPositions(mockedExchange, method, expectedResult);
             } else
             {
                 object unifiedResultSync = callExchangeMethodDynamicallySync(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
                 this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResultSync, expectedResult);
+                this.assertStaticIsolatedPositions(mockedExchange, method, expectedResult);
             }
         } catch(Exception e)
         {
@@ -2231,11 +2342,26 @@ public partial class testMainClass
         return true;
     }
 
+    public virtual object wsRequestWasSent(BaseExchange exchange, object url, object id)
+    {
+        object sentMessages = getWsSentMessages(exchange, url);
+        for (int i = 0; i < getArrayLength(sentMessages); i++)
+        {
+            if (isEqual(exchange.safeString(getValue(sentMessages, i), "id"), id))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, object sequential = null)
     {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
         // runners and the frame's resolution would be dropped
+        // a reply frame must not arrive before its request was sent, or it is dropped
+        // a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
         // threaded runtimes resolve futures on another thread — wait for
         // the consumed frame to settle so the pending check above does not
         // observe a stale future and burn the next frame early; frames
@@ -2244,18 +2370,31 @@ public partial class testMainClass
         sequential ??= false;
         for (int i = 0; i < getArrayLength(messages); i++)
         {
-            object waited = 0;
-            while (!isTrue(wsClientHasPendingFutures(exchange, url)) && (isLessThan(waited, 5000)))
+            Int64 waited = 0;
+            while (!isTrue(wsClientHasPendingFutures(exchange, url)) && (waited < 5000))
             {
                 await exchange.sleep(50);
-                waited = add(waited, 50);
+                waited = (waited + 50);
             }
-            injectWsMessage(exchange, url, getValue(messages, i));
-            object settled = 0;
-            while (isTrue(wsClientHasPendingFutures(exchange, url)) && (isLessThan(settled, 500)))
+            object frameId = exchange.safeString(getValue(messages, i), "id");
+            Int64 waitedSent = 0;
+            while (((frameId != null)) && !isTrue(this.wsRequestWasSent(exchange, url, frameId)) && (waitedSent < 5000))
+            {
+                await exchange.sleep(50);
+                waitedSent = (waitedSent + 50);
+            }
+            object frame = getValue(messages, i);
+            object binaryFrame = exchange.safeString(frame, "binary");
+            if ((binaryFrame != null))
+            {
+                frame = exchange.base16ToBinary(binaryFrame);
+            }
+            injectWsMessage(exchange, url, frame);
+            Int64 settled = 0;
+            while (isTrue(wsClientHasPendingFutures(exchange, url)) && (settled < 500))
             {
                 await exchange.sleep(20);
-                settled = add(settled, 20);
+                settled = (settled + 20);
             }
         }
         await exchange.sleep(50);
@@ -2268,12 +2407,12 @@ public partial class testMainClass
             // executed inline on a stack that blocks the watch side (forkjoin
             // work stealing): give up eventually so the stack unwinds instead
             // of deadlocking
-            object waitedDone = 0;
-            while (!isTrue(isWsTestCompleted(exchange, url)) && (isLessThan(waitedDone, 30000)))
+            Int64 waitedDone = 0;
+            while (!isTrue(isWsTestCompleted(exchange, url)) && (waitedDone < 30000))
             {
                 rejectPendingWsFutures(exchange, url);
                 await exchange.sleep(50);
-                waitedDone = add(waitedDone, 50);
+                waitedDone = (waitedDone + 50);
             }
         }
         // reject anything still pending so a wrong fixture fails fast
@@ -2368,7 +2507,7 @@ public partial class testMainClass
                 // after the first resolution, so serialize only at the end
                 List<object> promises = new List<object> {callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)};
                 List<object> results = await promiseAll(promises);
-                object unifiedResult = jsonParse(jsonStringify(getValue(results, 0)));
+                object unifiedResult = jsonParse(jsonStringify((results != null && 0 < results.Count ? results[0] : null)));
                 this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, getValue(data, "parsedResponse"));
                 this.assertWsSentMessages(exchange, url, data);
             }
@@ -2404,7 +2543,7 @@ public partial class testMainClass
                 // and would leak state across entries otherwise
                 BaseExchange exchange = this.initOfflineExchange(exchangeName, true);
                 object isDisabled = exchange.safeBool(result, "disabled", false);
-                if (isEqual(isDisabled, true))
+                if (isTrue(isDisabled))
                 {
                     continue;
                 }
@@ -2441,7 +2580,17 @@ public partial class testMainClass
                 exchange.extendExchangeOptions(globalOptions);
                 object testExchangeOptions = exchange.safeValue(result, "options", new Dictionary<string, object>() {});
                 exchange.extendExchangeOptions(testExchangeOptions);
-                object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
+                object apiKey = exchange.safeString(result, "apiKey");
+                if (!isTrue(exchange.isEmptyString(apiKey)))
+                {
+                    exchange.apiKey = ((object)((string)apiKey)).ToString();
+                }
+                object secret = exchange.safeString(result, "secret");
+                if (!isTrue(exchange.isEmptyString(secret)))
+                {
+                    exchange.secret = ((object)((string)secret)).ToString();
+                }
+                object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                 await this.testWsStatically(exchange, method, skipKeys, result);
                 if (!isTrue(isSync()))
                 {
@@ -2547,8 +2696,13 @@ public partial class testMainClass
         };
         if (isEqual(exchangeName, "grvt"))
         {
-            ((IDictionary<string,object>)options)["apiKey"] = "";
-            ((IDictionary<string,object>)options)["secret"] = "";
+            options["apiKey"] = "";
+            options["secret"] = "";
+        }
+        if (isEqual(exchangeName, "backpack"))
+        {
+            // Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy secret.
+            options["secret"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
         }
         BaseExchange exchange = initExchange(exchangeName, options, isWs);
         if ((currencies != null))
@@ -2572,7 +2726,7 @@ public partial class testMainClass
                     // on prediction structures and must be absent
                     assert(!isEqual(exchange.safeString(evMarket, "market"), null), add(exchangeName, " static events fixture: market row missing the unified market handle"));
                     assert(isEqual(exchange.safeString(evMarket, "symbol"), null), add(exchangeName, " static events fixture: market row must not carry the deprecated symbol key"));
-                    ((IList<object>)eventMarkets).Add(evMarket);
+                    eventMarkets.Add(evMarket);
                 }
             }
             if ((eventMarkets?.Count ?? 0) > 0)
@@ -2640,7 +2794,7 @@ public partial class testMainClass
                     continue;
                 }
                 object isDisabled = exchange.safeBool(result, "disabled", false);
-                if (isEqual(isDisabled, true))
+                if (isTrue(isDisabled))
                 {
                     continue;
                 }
@@ -2650,12 +2804,12 @@ public partial class testMainClass
                     continue;
                 }
                 object isDisabledCSharp = exchange.safeBool(result, "disabledCS", false);
-                if ((isEqual(isDisabledCSharp, true)) && (isEqual(this.lang, "C#")))
+                if (isTrue((isDisabledCSharp)) && (isEqual(this.lang, "C#")))
                 {
                     continue;
                 }
                 object isDisabledGo = exchange.safeBool(result, "disabledGO", false);
-                if ((isEqual(isDisabledGo, true)) && (isEqual(this.lang, "GO")))
+                if (isTrue((isDisabledGo)) && (isEqual(this.lang, "GO")))
                 {
                     continue;
                 }
@@ -2665,12 +2819,12 @@ public partial class testMainClass
                     continue;
                 }
                 object isDisabledJava = exchange.safeBool(result, "disabledJava", false);
-                if ((isEqual(isDisabledJava, true)) && (isEqual(this.lang, "java")))
+                if (isTrue((isDisabledJava)) && (isEqual(this.lang, "java")))
                 {
                     continue;
                 }
                 object type = exchange.safeString(exchangeData, "outputType");
-                object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
+                object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                 await this.testRequestStatically(exchange, method, result, type, skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
@@ -2729,17 +2883,17 @@ public partial class testMainClass
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, testExchangeOptions));
                 object isDisabled = exchange.safeBool(result, "disabled", false);
-                if (isEqual(isDisabled, true))
+                if (isTrue(isDisabled))
                 {
                     continue;
                 }
                 object isDisabledCSharp = exchange.safeBool(result, "disabledCS", false);
-                if ((isEqual(isDisabledCSharp, true)) && (isEqual(this.lang, "C#")))
+                if (isTrue((isDisabledCSharp)) && (isEqual(this.lang, "C#")))
                 {
                     continue;
                 }
                 object isDisabledPHP = exchange.safeBool(result, "disabledPHP", false);
-                if ((isEqual(isDisabledPHP, true)) && (isEqual(this.lang, "PHP")))
+                if (isTrue((isDisabledPHP)) && (isEqual(this.lang, "PHP")))
                 {
                     continue;
                 }
@@ -2748,7 +2902,7 @@ public partial class testMainClass
                     continue;
                 }
                 object isDisabledGO = exchange.safeBool(result, "disabledGO", false);
-                if ((isEqual(isDisabledGO, true)) && (isEqual(this.lang, "GO")))
+                if (isTrue((isDisabledGO)) && (isEqual(this.lang, "GO")))
                 {
                     continue;
                 }
@@ -2758,11 +2912,11 @@ public partial class testMainClass
                     continue;
                 }
                 object isDisabledJava = exchange.safeBool(result, "disabledJava", false);
-                if ((isEqual(isDisabledJava, true)) && (isEqual(this.lang, "java")))
+                if (isTrue((isDisabledJava)) && (isEqual(this.lang, "java")))
                 {
                     continue;
                 }
-                object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
+                object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                 await this.testResponseStatically(exchange, method, skipKeys, result);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
@@ -2801,31 +2955,31 @@ public partial class testMainClass
         // prediction-market exchanges exist only in the async namespaces in python/php,
         // so their fixtures declare asyncOnly and the sync harness skips them
         object isAsyncOnly = exchange.safeBool(exchangeData, "asyncOnly", false);
-        if ((isEqual(isAsyncOnly, true)) && isTrue(isSync()))
+        if (isTrue((isAsyncOnly)) && isTrue(isSync()))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is async-only, skipped by the sync test harness"));
             return true;
         }
         object isDisabledPy = exchange.safeBool(exchangeData, "disabledPy", false);
-        if ((isEqual(isDisabledPy, true)) && (isEqual(this.lang, "PY")))
+        if (isTrue((isDisabledPy)) && (isEqual(this.lang, "PY")))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in python"));
             return true;
         }
         object isDisabledPHP = exchange.safeBool(exchangeData, "disabledPHP", false);
-        if ((isEqual(isDisabledPHP, true)) && (isEqual(this.lang, "PHP")))
+        if (isTrue((isDisabledPHP)) && (isEqual(this.lang, "PHP")))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in php"));
             return true;
         }
         object isDisabledCSharp = exchange.safeBool(exchangeData, "disabledCS", false);
-        if ((isEqual(isDisabledCSharp, true)) && (isEqual(this.lang, "C#")))
+        if (isTrue((isDisabledCSharp)) && (isEqual(this.lang, "C#")))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in c#"));
             return true;
         }
         object isDisabledGO = exchange.safeBool(exchangeData, "disabledGO", false);
-        if ((isEqual(isDisabledGO, true)) && (isEqual(this.lang, "GO")))
+        if (isTrue((isDisabledGO)) && (isEqual(this.lang, "GO")))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in go"));
             return true;
@@ -2837,7 +2991,7 @@ public partial class testMainClass
             return true;
         }
         object isDisabledJava = exchange.safeBool(exchangeData, "disabledJava", false);
-        if ((isEqual(isDisabledJava, true)) && (isEqual(this.lang, "java")))
+        if (isTrue((isDisabledJava)) && (isEqual(this.lang, "java")))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in java"));
             return true;
@@ -2890,13 +3044,13 @@ public partial class testMainClass
             sum = exchange.sum(sum, numberOfTests);
             if (isEqual(type, "request"))
             {
-                ((IList<object>)promises).Add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
+                promises.Add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
             } else if (isEqual(type, "ws"))
             {
-                ((IList<object>)promises).Add(this.testExchangeWsStatically(exchangeName, exchangeData, testName));
+                promises.Add(this.testExchangeWsStatically(exchangeName, exchangeData, testName));
             } else
             {
-                ((IList<object>)promises).Add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
+                promises.Add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
             }
         }
         try
@@ -2958,7 +3112,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb()};
+        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended()};
         await promiseAll(promises);
         string successMessage = (("[" + (this.lang)) + "][TEST_SUCCESS] brokerId tests passed.");
         dump(("[INFO]" + successMessage));
@@ -2981,8 +3135,7 @@ public partial class testMainClass
             spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
         object clientOrderId = getValue(spotOrderRequest, "newClientOrderId");
-        string spotIdString = ((object)spotId).ToString();
-        assert((((string)clientOrderId).StartsWith(((string)spotIdString)) == true), ((("binance - spot clientOrderId: " + (clientOrderId)) + " does not start with spotId") + spotIdString));
+        assert((((string)clientOrderId).StartsWith(((string)spotId)) == true), ((("binance - spot clientOrderId: " + (clientOrderId)) + " does not start with spotId") + spotId));
         object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
@@ -3001,11 +3154,56 @@ public partial class testMainClass
         }
         // linear swap
         object clientOrderIdSwap = getValue(swapOrderRequest, "newClientOrderId");
-        string swapIdString = ((object)swapId).ToString();
-        assert((((string)clientOrderIdSwap).StartsWith(((string)swapIdString)) == true), ((("binance - swap clientOrderId: " + (clientOrderIdSwap)) + " does not start with swapId") + swapIdString));
+        assert((((string)clientOrderIdSwap).StartsWith(((string)swapId)) == true), ((("binance - swap clientOrderId: " + (clientOrderIdSwap)) + " does not start with swapId") + swapId));
         // inverse swap
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert((((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)) == true), ((("binance - swap clientOrderIdInverse: " + (clientOrderIdInverse)) + " does not start with swapId") + inverseSwapId));
+        // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultType", "swap" },
+        });
+        object swapNoSubTypeRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapNoSubTypeRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object swapNoSubTypeId = getValue(swapNoSubTypeRequest, "newClientOrderId");
+        assert((((string)swapNoSubTypeId).StartsWith(((string)swapId)) == true), ((("binance - defaultType swap without subType clientOrderId: " + (swapNoSubTypeId)) + " does not start with swapId") + swapId));
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultSubType", "linear" },
+        });
+        object swapLinearRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapLinearRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object swapLinearId = getValue(swapLinearRequest, "newClientOrderId");
+        assert((((string)swapLinearId).StartsWith(((string)swapId)) == true), ((("binance - defaultType swap linear clientOrderId: " + (swapLinearId)) + " does not start with swapId") + swapId));
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultSubType", "inverse" },
+        });
+        object swapInverseRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USD", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapInverseRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object swapInverseId = getValue(swapInverseRequest, "newClientOrderId");
+        assert((((string)swapInverseId).StartsWith(((string)inverseSwapId)) == true), ((("binance - defaultType swap inverse clientOrderId: " + (swapInverseId)) + " does not start with inverseSwapId") + inverseSwapId));
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultType", "spot" },
+        });
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultSubType", "linear" },
+        });
         // linear swap conditional order
         object swapAlgoOrderRequest = new Dictionary<string, object>() {};
         try
@@ -3013,16 +3211,27 @@ public partial class testMainClass
             await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new Dictionary<string, object>() {
                 { "triggerPrice", 101000 },
             });
-            object checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
-            bool algoOrderIdDefined = (!isEqual(getValue(checkOrderRequest, "algoOrderId"), null));
-            assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined");
-            object clientAlgoIdSwap = getValue(swapAlgoOrderRequest, "clientAlgoId");
-            string swapAlgoIdString = ((object)swapId).ToString();
-            assert((((string)clientAlgoIdSwap).StartsWith(((string)swapAlgoIdString)) == true), ((("binance - swap clientOrderId: " + (clientAlgoIdSwap)) + " does not start with swapId") + swapAlgoIdString));
         } catch(Exception e)
         {
             swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
+        object clientAlgoIdSwap = getValue(swapAlgoOrderRequest, "clientAlgoId");
+        assert((clientAlgoIdSwap != null), "binance - swap conditional order must send clientAlgoId");
+        assert((((string)clientAlgoIdSwap).StartsWith(((string)swapId)) == true), ((("binance - swap clientAlgoId: " + (clientAlgoIdSwap)) + " does not start with swapId") + swapId));
+        // inverse swap conditional order
+        object inverseAlgoOrderRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USD:BTC", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+                { "triggerPrice", 21000 },
+            });
+        } catch(Exception e)
+        {
+            inverseAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object clientAlgoIdInverse = getValue(inverseAlgoOrderRequest, "clientAlgoId");
+        assert((clientAlgoIdInverse != null), "binance - inverse swap conditional order must send clientAlgoId");
+        assert((((string)clientAlgoIdInverse).StartsWith(((string)inverseSwapId)) == true), ((("binance - inverse swap clientAlgoId: " + (clientAlgoIdInverse)) + " does not start with inverseSwapId") + inverseSwapId));
         object createOrdersRequest = new Dictionary<string, object>() {};
         try
         {
@@ -3048,7 +3257,546 @@ public partial class testMainClass
         {
             object current = getValue(batchOrders, i);
             object currentClientOrderId = getValue(current, "newClientOrderId");
-            assert((((string)currentClientOrderId).StartsWith(((string)swapIdString)) == true), ((("binance createOrders - clientOrderId: " + (currentClientOrderId)) + " does not start with swapId") + swapIdString));
+            assert((((string)currentClientOrderId).StartsWith(((string)swapId)) == true), ((("binance createOrders - clientOrderId: " + (currentClientOrderId)) + " does not start with swapId") + swapId));
+        }
+        // linear conditional orders cannot be batched
+        object linearConditionalBatchNotSupported = false;
+        try
+        {
+            List<object> linearConditionalOrders = new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTC/USDT:USDT" },
+    { "type", "limit" },
+    { "side", "buy" },
+    { "amount", 1 },
+    { "price", 20000 },
+    { "params", new Dictionary<string, object>() {
+        { "triggerPrice", 21000 },
+    } },
+}};
+            await exchange.CreateOrders(linearConditionalOrders);
+        } catch(Exception e)
+        {
+            linearConditionalBatchNotSupported = (e is NotSupported);
+        }
+        assert(linearConditionalBatchNotSupported, "binance createOrders - linear conditional order must throw NotSupported");
+        // inverse conditional orders are batched in the regular (non-algo) format
+        object inverseConditionalBatchRequest = new Dictionary<string, object>() {};
+        object inverseConditionalBatchNotSupported = false;
+        try
+        {
+            List<object> inverseConditionalOrders = new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTC/USD:BTC" },
+    { "type", "limit" },
+    { "side", "buy" },
+    { "amount", 1 },
+    { "price", 20000 },
+    { "params", new Dictionary<string, object>() {
+        { "triggerPrice", 21000 },
+    } },
+}};
+            await exchange.CreateOrders(inverseConditionalOrders);
+        } catch(Exception e)
+        {
+            inverseConditionalBatchNotSupported = (e is NotSupported);
+            inverseConditionalBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        assert(!isTrue(inverseConditionalBatchNotSupported), "binance createOrders - inverse conditional order must not throw NotSupported");
+        object inverseConditionalBatchOrders = exchange.safeList(inverseConditionalBatchRequest, "batchOrders", new List<object>() {});
+        object inverseConditionalBatchOrder = exchange.safeDict(inverseConditionalBatchOrders, 0, new Dictionary<string, object>() {});
+        object inverseConditionalClientOrderId = exchange.safeString(inverseConditionalBatchOrder, "newClientOrderId");
+        assert((inverseConditionalClientOrderId != null), "binance createOrders - inverse conditional order must send newClientOrderId");
+        assert(((string)inverseConditionalClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance createOrders - inverse conditional clientOrderId: " + (inverseConditionalClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+        // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
+        object linearFutureOrderRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("ETH/USDT:USDT-261225", "limit", "buy", 1, 2000);
+        } catch(Exception e)
+        {
+            linearFutureOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object clientOrderIdLinearFuture = getValue(linearFutureOrderRequest, "newClientOrderId");
+        assert((((string)clientOrderIdLinearFuture).StartsWith(((string)swapId)) == true), ((("binance - linear future clientOrderId: " + (clientOrderIdLinearFuture)) + " does not start with swapId") + swapId));
+        object inverseFutureOrderRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("ETH/USD:ETH-261225", "limit", "buy", 1, 2000);
+        } catch(Exception e)
+        {
+            inverseFutureOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object clientOrderIdInverseFuture = getValue(inverseFutureOrderRequest, "newClientOrderId");
+        assert((((string)clientOrderIdInverseFuture).StartsWith(((string)inverseSwapId)) == true), ((("binance - inverse future clientOrderId: " + (clientOrderIdInverseFuture)) + " does not start with inverseSwapId") + inverseSwapId));
+        // the option api takes clientOrderId instead of newClientOrderId
+        object optionOrderRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("ETH/USDT:USDT-231229-800-C", "limit", "buy", 1, 100);
+        } catch(Exception e)
+        {
+            optionOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object optionClientOrderId = exchange.safeString(optionOrderRequest, "clientOrderId");
+        assert((optionClientOrderId != null), "binance - option order must send clientOrderId");
+        assert(((string)optionClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance - option clientOrderId: " + (optionClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
+        // the implicit order endpoints inject the broker id of their api section
+        // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
+        if (!isTrue(isSync()))
+        {
+            object implicitDapiOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "dapiPrivatePostOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSD_PERP" },
+    { "side", "SELL" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitDapiOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitDapiClientOrderId = getValue(implicitDapiOrderRequest, "newClientOrderId");
+            assert((((string)implicitDapiClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit dapi clientOrderId: " + (implicitDapiClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+            object implicitDapiBatchRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "dapiPrivatePostBatchOrders", new List<object>() {new Dictionary<string, object>() {
+    { "batchOrders", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSD_PERP" },
+    { "side", "SELL" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "timeInForce", "GTC" },
+}} },
+}});
+            } catch(Exception e)
+            {
+                implicitDapiBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitDapiBatchOrders = exchange.safeList(implicitDapiBatchRequest, "batchOrders", new List<object>() {});
+            object implicitDapiBatchOrder = exchange.safeDict(implicitDapiBatchOrders, 0, new Dictionary<string, object>() {});
+            object implicitDapiBatchClientOrderId = exchange.safeString(implicitDapiBatchOrder, "newClientOrderId");
+            assert((implicitDapiBatchClientOrderId != null), "binance - implicit dapi batch order must inject newClientOrderId");
+            assert(((string)implicitDapiBatchClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance - implicit dapi batch clientOrderId: " + (implicitDapiBatchClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+            // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
+            object implicitFapiAlgoOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "fapiPrivatePostAlgoOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSDT" },
+    { "side", "SELL" },
+    { "type", "STOP" },
+    { "algoType", "CONDITIONAL" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "triggerPrice", "4200" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitFapiAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitFapiClientAlgoId = exchange.safeString(implicitFapiAlgoOrderRequest, "clientAlgoId");
+            assert((implicitFapiClientAlgoId != null), "binance - implicit fapi algo order must inject clientAlgoId");
+            assert(((string)implicitFapiClientAlgoId).StartsWith(((string)swapId)), ((("binance - implicit fapi clientAlgoId: " + (implicitFapiClientAlgoId)) + " does not start with swapId") + swapId));
+            // the papi order endpoints resolve the broker id from the path, not from the api section
+            object implicitPapiUmOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostUmOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSDT" },
+    { "side", "SELL" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiUmOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiUmClientOrderId = exchange.safeString(implicitPapiUmOrderRequest, "newClientOrderId");
+            assert((implicitPapiUmClientOrderId != null), "binance - implicit papi um order must inject newClientOrderId");
+            assert(((string)implicitPapiUmClientOrderId).StartsWith(((string)swapId)), ((("binance - implicit papi um clientOrderId: " + (implicitPapiUmClientOrderId)) + " does not start with swapId") + swapId));
+            object implicitPapiCmOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostCmOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSD_PERP" },
+    { "side", "SELL" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiCmOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiCmClientOrderId = exchange.safeString(implicitPapiCmOrderRequest, "newClientOrderId");
+            assert((implicitPapiCmClientOrderId != null), "binance - implicit papi cm order must inject newClientOrderId");
+            assert(((string)implicitPapiCmClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance - implicit papi cm clientOrderId: " + (implicitPapiCmClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+            object implicitPapiMarginOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostMarginOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "BUY" },
+    { "type", "LIMIT" },
+    { "quantity", "0.001" },
+    { "price", "20000" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiMarginOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiMarginClientOrderId = exchange.safeString(implicitPapiMarginOrderRequest, "newClientOrderId");
+            assert((implicitPapiMarginClientOrderId != null), "binance - implicit papi margin order must inject newClientOrderId");
+            assert(((string)implicitPapiMarginClientOrderId).StartsWith(((string)spotId)), ((("binance - implicit papi margin clientOrderId: " + (implicitPapiMarginClientOrderId)) + " does not start with spotId") + spotId));
+            object implicitSapiMarginOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "sapiPostMarginOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "BUY" },
+    { "type", "LIMIT" },
+    { "quantity", "0.001" },
+    { "price", "20000" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitSapiMarginOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitSapiMarginClientOrderId = exchange.safeString(implicitSapiMarginOrderRequest, "newClientOrderId");
+            assert((implicitSapiMarginClientOrderId != null), "binance - implicit sapi margin order must inject newClientOrderId");
+            assert(((string)implicitSapiMarginClientOrderId).StartsWith(((string)spotId)), ((("binance - implicit sapi margin clientOrderId: " + (implicitSapiMarginClientOrderId)) + " does not start with spotId") + spotId));
+            // the papi um algo order endpoint takes clientAlgoId
+            object implicitPapiUmAlgoOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostUmAlgoOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSDT" },
+    { "side", "SELL" },
+    { "algoType", "CONDITIONAL" },
+    { "type", "STOP" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "triggerPrice", "4200" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiUmAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiUmClientAlgoId = exchange.safeString(implicitPapiUmAlgoOrderRequest, "clientAlgoId");
+            assert((implicitPapiUmClientAlgoId != null), "binance - implicit papi um algo order must inject clientAlgoId");
+            assert(((string)implicitPapiUmClientAlgoId).StartsWith(((string)swapId)), ((("binance - implicit papi um clientAlgoId: " + (implicitPapiUmClientAlgoId)) + " does not start with swapId") + swapId));
+            // the papi cm conditional order endpoint takes newClientStrategyId
+            object implicitPapiCmConditionalOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostCmConditionalOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSD_PERP" },
+    { "side", "SELL" },
+    { "strategyType", "STOP" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "stopPrice", "4200" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiCmConditionalOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiCmStrategyId = exchange.safeString(implicitPapiCmConditionalOrderRequest, "newClientStrategyId");
+            assert((implicitPapiCmStrategyId != null), "binance - implicit papi cm conditional order must inject newClientStrategyId");
+            assert(((string)implicitPapiCmStrategyId).StartsWith(((string)inverseSwapId)), ((("binance - implicit papi cm newClientStrategyId: " + (implicitPapiCmStrategyId)) + " does not start with inverseSwapId") + inverseSwapId));
+            object implicitPapiUmConditionalOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostUmConditionalOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETHUSDT" },
+    { "side", "SELL" },
+    { "strategyType", "STOP" },
+    { "quantity", "1" },
+    { "price", "4100" },
+    { "stopPrice", "4200" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiUmConditionalOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitPapiUmStrategyId = exchange.safeString(implicitPapiUmConditionalOrderRequest, "newClientStrategyId");
+            assert((implicitPapiUmStrategyId != null), "binance - implicit papi um conditional order must inject newClientStrategyId");
+            assert(((string)implicitPapiUmStrategyId).StartsWith(((string)swapId)), ((("binance - implicit papi um newClientStrategyId: " + (implicitPapiUmStrategyId)) + " does not start with swapId") + swapId));
+            // the eapi order endpoints take clientOrderId
+            object implicitEapiOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "eapiPrivatePostOrder", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETH-231229-800-C" },
+    { "side", "BUY" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "100" },
+}});
+            } catch(Exception e)
+            {
+                implicitEapiOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitEapiClientOrderId = exchange.safeString(implicitEapiOrderRequest, "clientOrderId");
+            assert((implicitEapiClientOrderId != null), "binance - implicit eapi order must inject clientOrderId");
+            assert(((string)implicitEapiClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance - implicit eapi clientOrderId: " + (implicitEapiClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
+            object implicitEapiBatchRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "eapiPrivatePostBatchOrders", new List<object>() {new Dictionary<string, object>() {
+    { "batchOrders", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "ETH-231229-800-C" },
+    { "side", "BUY" },
+    { "type", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "100" },
+}} },
+}});
+            } catch(Exception e)
+            {
+                implicitEapiBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitEapiBatchOrders = exchange.safeList(implicitEapiBatchRequest, "batchOrders", new List<object>() {});
+            object implicitEapiBatchOrder = exchange.safeDict(implicitEapiBatchOrders, 0, new Dictionary<string, object>() {});
+            object implicitEapiBatchClientOrderId = exchange.safeString(implicitEapiBatchOrder, "clientOrderId");
+            assert((implicitEapiBatchClientOrderId != null), "binance - implicit eapi batch order must inject clientOrderId");
+            assert(((string)implicitEapiBatchClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance - implicit eapi batch clientOrderId: " + (implicitEapiBatchClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
+            // the equity order endpoint takes clientOrderId
+            object implicitEquityOrderRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "sapiPostEquityOrderPlace", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "AAPLUSDC" },
+    { "side", "BUY" },
+    { "orderType", "LIMIT" },
+    { "quantity", "1" },
+    { "price", "100" },
+    { "timeInForce", "GTC" },
+}});
+            } catch(Exception e)
+            {
+                implicitEquityOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object implicitEquityClientOrderId = exchange.safeString(implicitEquityOrderRequest, "clientOrderId");
+            assert((implicitEquityClientOrderId != null), "binance - implicit equity order must inject clientOrderId");
+            assert(((string)implicitEquityClientOrderId).StartsWith(((string)spotId)), ((("binance - implicit equity clientOrderId: " + (implicitEquityClientOrderId)) + " does not start with spotId") + spotId));
+            // the order list endpoints inject a listClientOrderId and one client order id per leg
+            object implicitOcoListRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderListOco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "SELL" },
+    { "quantity", "0.001" },
+    { "abovePrice", "110000" },
+    { "aboveType", "LIMIT_MAKER" },
+    { "belowType", "STOP_LOSS" },
+    { "belowStopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitOcoListRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object ocoListClientOrderId = exchange.safeString(implicitOcoListRequest, "listClientOrderId");
+            object ocoAboveClientOrderId = exchange.safeString(implicitOcoListRequest, "aboveClientOrderId");
+            object ocoBelowClientOrderId = exchange.safeString(implicitOcoListRequest, "belowClientOrderId");
+            assert((ocoListClientOrderId != null), "binance - implicit oco list must inject listClientOrderId");
+            assert(((string)ocoListClientOrderId).StartsWith(((string)spotId)), ((("binance - implicit oco listClientOrderId: " + (ocoListClientOrderId)) + " does not start with spotId") + spotId));
+            assert(((ocoAboveClientOrderId != null)) && isTrue((((string)ocoAboveClientOrderId).StartsWith(((string)spotId)))), "binance - implicit oco aboveClientOrderId must inject the spot broker id");
+            assert(((ocoBelowClientOrderId != null)) && isTrue((((string)ocoBelowClientOrderId).StartsWith(((string)spotId)))), "binance - implicit oco belowClientOrderId must inject the spot broker id");
+            object implicitOtocoListRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderListOtoco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "workingType", "LIMIT" },
+    { "workingSide", "BUY" },
+    { "workingPrice", "100000" },
+    { "workingQuantity", "0.001" },
+    { "pendingSide", "SELL" },
+    { "pendingQuantity", "0.001" },
+    { "pendingAboveType", "LIMIT_MAKER" },
+    { "pendingAbovePrice", "110000" },
+    { "pendingBelowType", "STOP_LOSS" },
+    { "pendingBelowStopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitOtocoListRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object otocoWorkingClientOrderId = exchange.safeString(implicitOtocoListRequest, "workingClientOrderId");
+            object otocoPendingAboveClientOrderId = exchange.safeString(implicitOtocoListRequest, "pendingAboveClientOrderId");
+            object otocoPendingBelowClientOrderId = exchange.safeString(implicitOtocoListRequest, "pendingBelowClientOrderId");
+            assert(((otocoWorkingClientOrderId != null)) && isTrue((((string)otocoWorkingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit otoco workingClientOrderId must inject the spot broker id");
+            assert(((otocoPendingAboveClientOrderId != null)) && isTrue((((string)otocoPendingAboveClientOrderId).StartsWith(((string)spotId)))), "binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id");
+            assert(((otocoPendingBelowClientOrderId != null)) && isTrue((((string)otocoPendingBelowClientOrderId).StartsWith(((string)spotId)))), "binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id");
+            object implicitSapiMarginOcoRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "sapiPostMarginOrderOco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "SELL" },
+    { "quantity", "0.001" },
+    { "price", "110000" },
+    { "stopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitSapiMarginOcoRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object sapiMarginOcoLimitClientOrderId = exchange.safeString(implicitSapiMarginOcoRequest, "limitClientOrderId");
+            object sapiMarginOcoStopClientOrderId = exchange.safeString(implicitSapiMarginOcoRequest, "stopClientOrderId");
+            assert(((sapiMarginOcoLimitClientOrderId != null)) && isTrue((((string)sapiMarginOcoLimitClientOrderId).StartsWith(((string)spotId)))), "binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id");
+            assert(((sapiMarginOcoStopClientOrderId != null)) && isTrue((((string)sapiMarginOcoStopClientOrderId).StartsWith(((string)spotId)))), "binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id");
+            object implicitPapiMarginOcoRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "papiPostMarginOrderOco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "SELL" },
+    { "quantity", "0.001" },
+    { "price", "110000" },
+    { "stopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitPapiMarginOcoRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object papiMarginOcoListClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "listClientOrderId");
+            assert(((papiMarginOcoListClientOrderId != null)) && isTrue((((string)papiMarginOcoListClientOrderId).StartsWith(((string)spotId)))), "binance - implicit papi margin oco listClientOrderId must inject the spot broker id");
+            object papiMarginOcoLimitClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "limitClientOrderId");
+            object papiMarginOcoStopClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "stopClientOrderId");
+            assert(((papiMarginOcoLimitClientOrderId != null)) && isTrue((((string)papiMarginOcoLimitClientOrderId).StartsWith(((string)spotId)))), "binance - implicit papi margin oco limitClientOrderId must inject the spot broker id");
+            assert(((papiMarginOcoStopClientOrderId != null)) && isTrue((((string)papiMarginOcoStopClientOrderId).StartsWith(((string)spotId)))), "binance - implicit papi margin oco stopClientOrderId must inject the spot broker id");
+            object implicitLegacyOcoRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderOco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "SELL" },
+    { "quantity", "0.001" },
+    { "price", "110000" },
+    { "stopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitLegacyOcoRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object legacyOcoListClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "listClientOrderId");
+            object legacyOcoLimitClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "limitClientOrderId");
+            object legacyOcoStopClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "stopClientOrderId");
+            assert(((legacyOcoListClientOrderId != null)) && isTrue((((string)legacyOcoListClientOrderId).StartsWith(((string)spotId)))), "binance - implicit legacy oco listClientOrderId must inject the spot broker id");
+            assert(((legacyOcoLimitClientOrderId != null)) && isTrue((((string)legacyOcoLimitClientOrderId).StartsWith(((string)spotId)))), "binance - implicit legacy oco limitClientOrderId must inject the spot broker id");
+            assert(((legacyOcoStopClientOrderId != null)) && isTrue((((string)legacyOcoStopClientOrderId).StartsWith(((string)spotId)))), "binance - implicit legacy oco stopClientOrderId must inject the spot broker id");
+            object implicitOtoListRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderListOto", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "workingType", "LIMIT" },
+    { "workingSide", "BUY" },
+    { "workingPrice", "100000" },
+    { "workingQuantity", "0.001" },
+    { "pendingType", "MARKET" },
+    { "pendingSide", "SELL" },
+    { "pendingQuantity", "0.001" },
+}});
+            } catch(Exception e)
+            {
+                implicitOtoListRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object otoListClientOrderId = exchange.safeString(implicitOtoListRequest, "listClientOrderId");
+            object otoWorkingClientOrderId = exchange.safeString(implicitOtoListRequest, "workingClientOrderId");
+            object otoPendingClientOrderId = exchange.safeString(implicitOtoListRequest, "pendingClientOrderId");
+            assert(((otoListClientOrderId != null)) && isTrue((((string)otoListClientOrderId).StartsWith(((string)spotId)))), "binance - implicit oto listClientOrderId must inject the spot broker id");
+            assert(((otoWorkingClientOrderId != null)) && isTrue((((string)otoWorkingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit oto workingClientOrderId must inject the spot broker id");
+            assert(((otoPendingClientOrderId != null)) && isTrue((((string)otoPendingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit oto pendingClientOrderId must inject the spot broker id");
+            object implicitOpoListRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderListOpo", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "workingType", "LIMIT" },
+    { "workingSide", "BUY" },
+    { "workingPrice", "100000" },
+    { "workingQuantity", "0.001" },
+    { "pendingType", "MARKET" },
+    { "pendingSide", "SELL" },
+    { "pendingQuantity", "0.001" },
+}});
+            } catch(Exception e)
+            {
+                implicitOpoListRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object opoListClientOrderId = exchange.safeString(implicitOpoListRequest, "listClientOrderId");
+            object opoWorkingClientOrderId = exchange.safeString(implicitOpoListRequest, "workingClientOrderId");
+            object opoPendingClientOrderId = exchange.safeString(implicitOpoListRequest, "pendingClientOrderId");
+            assert(((opoListClientOrderId != null)) && isTrue((((string)opoListClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opo listClientOrderId must inject the spot broker id");
+            assert(((opoWorkingClientOrderId != null)) && isTrue((((string)opoWorkingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opo workingClientOrderId must inject the spot broker id");
+            assert(((opoPendingClientOrderId != null)) && isTrue((((string)opoPendingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opo pendingClientOrderId must inject the spot broker id");
+            object implicitOpocoListRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderListOpoco", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "workingType", "LIMIT" },
+    { "workingSide", "BUY" },
+    { "workingPrice", "100000" },
+    { "workingQuantity", "0.001" },
+    { "pendingSide", "SELL" },
+    { "pendingQuantity", "0.001" },
+    { "pendingAboveType", "LIMIT_MAKER" },
+    { "pendingAbovePrice", "110000" },
+    { "pendingBelowType", "STOP_LOSS" },
+    { "pendingBelowStopPrice", "95000" },
+}});
+            } catch(Exception e)
+            {
+                implicitOpocoListRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object opocoListClientOrderId = exchange.safeString(implicitOpocoListRequest, "listClientOrderId");
+            object opocoWorkingClientOrderId = exchange.safeString(implicitOpocoListRequest, "workingClientOrderId");
+            object opocoPendingAboveClientOrderId = exchange.safeString(implicitOpocoListRequest, "pendingAboveClientOrderId");
+            object opocoPendingBelowClientOrderId = exchange.safeString(implicitOpocoListRequest, "pendingBelowClientOrderId");
+            assert(((opocoListClientOrderId != null)) && isTrue((((string)opocoListClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opoco listClientOrderId must inject the spot broker id");
+            assert(((opocoWorkingClientOrderId != null)) && isTrue((((string)opocoWorkingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opoco workingClientOrderId must inject the spot broker id");
+            assert(((opocoPendingAboveClientOrderId != null)) && isTrue((((string)opocoPendingAboveClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id");
+            assert(((opocoPendingBelowClientOrderId != null)) && isTrue((((string)opocoPendingBelowClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id");
+            // the cancel-replace endpoint creates a new order and takes newClientOrderId for it
+            object implicitCancelReplaceRequest = new Dictionary<string, object>() {};
+            try
+            {
+                await callExchangeMethodDynamically(exchange, "privatePostOrderCancelReplace", new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTCUSDT" },
+    { "side", "BUY" },
+    { "type", "LIMIT" },
+    { "quantity", "0.001" },
+    { "price", "20000" },
+    { "timeInForce", "GTC" },
+    { "cancelReplaceMode", "STOP_ON_FAILURE" },
+    { "cancelOrderId", "12345" },
+}});
+            } catch(Exception e)
+            {
+                implicitCancelReplaceRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            object cancelReplaceClientOrderId = exchange.safeString(implicitCancelReplaceRequest, "newClientOrderId");
+            assert((cancelReplaceClientOrderId != null), "binance - implicit cancel-replace must inject newClientOrderId");
+            assert(((string)cancelReplaceClientOrderId).StartsWith(((string)spotId)), ((("binance - implicit cancel-replace newClientOrderId: " + (cancelReplaceClientOrderId)) + " does not start with spotId") + spotId));
         }
         if (!isTrue(isSync()))
         {
@@ -3174,6 +3922,80 @@ public partial class testMainClass
             reqHeaders = (!isEqual(exchange.last_request_headers, null) && !isEqual(exchange.last_request_headers, null)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), (("bithumb - id: " + id) + " not in headers (public endpoints)."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testExtended()
+    {
+        if (isEqual(this.lang, "RUST"))
+        {
+            return false;  // the extended static request suite is disabledRS as well
+        }
+        Exchange exchange = ((Exchange)this.initOfflineExchange("extended"));
+        exchange.privateKey = "0x12345";
+        ((IDictionary<string,object>)exchange.options)["account"] = new Dictionary<string, object>() {
+            { "l2Key", "0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf" },
+            { "l2Vault", "123456" },
+        };
+        string builderId = "257624";
+        string builderFeeRate = "0.0001";
+        assert(isEqual(getValue(exchange.options, "builderFee"), true), "extended - builderFee is not enabled in options");
+        assert(isEqual(getValue(exchange.options, "builderId"), builderId), (("extended - builderId: " + builderId) + " not in options"));
+        assert(isEqual(getValue(exchange.options, "builderFeeRate"), builderFeeRate), (("extended - builderFeeRate: " + builderFeeRate) + " not in options"));
+        // default: the builder code and fee rate come from options
+        object request = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(isEqual(getValue(request, "builderId"), builderId), ((("extended - builderId: " + (getValue(request, "builderId"))) + " different from options: ") + builderId));
+        assert(isEqual(getValue(request, "builderFee"), builderFeeRate), ((("extended - builderFee: " + (getValue(request, "builderFee"))) + " different from options: ") + builderFeeRate));
+        assert(isEqual(getValue(request, "fee"), "0.0005"), (("extended - fee: " + (getValue(request, "fee"))) + " should stay the base fee, the builder fee is a separate field"));
+        // params override the fee rate, the builder code stays
+        request = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+                { "builderFeeRate", "0.0002" },
+            });
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(isEqual(getValue(request, "builderFee"), "0.0002"), (("extended - builderFee: " + (getValue(request, "builderFee"))) + " does not take the params value 0.0002"));
+        assert(isEqual(getValue(request, "builderId"), builderId), (("extended - builderId: " + (getValue(request, "builderId"))) + " changed by a builderFeeRate param"));
+        assert(!(inOp(request, "builderFeeRate")), "extended - builderFeeRate param leaked into the request");
+        // sandbox: the builder is only attached when passed explicitly in params
+        exchange.setSandboxMode(true);
+        request = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(!(inOp(request, "builderId")), "extended - sandbox attached builderId from options");
+        request = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+                { "builderId", "999" },
+                { "builderFeeRate", "0.0003" },
+            });
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(isEqual(getValue(request, "builderId"), "999"), (("extended - sandbox builderId: " + (getValue(request, "builderId"))) + " does not take the params value 999"));
+        assert(isEqual(getValue(request, "builderFee"), "0.0003"), (("extended - sandbox builderFee: " + (getValue(request, "builderFee"))) + " does not take the params value 0.0003"));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3397,29 +4219,6 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> testCoinex()
-    {
-        Exchange exchange = ((Exchange)this.initOfflineExchange("coinex"));
-        string id = "x-167673045";
-        assert(isEqual(getValue(exchange.options, "brokerId"), id), (("coinex - id: " + id) + " not in options"));
-        object spotOrderRequest = new Dictionary<string, object>() {};
-        try
-        {
-            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
-        } catch(Exception e)
-        {
-            spotOrderRequest = jsonParse(exchange.last_request_body);
-        }
-        object clientOrderId = getValue(spotOrderRequest, "client_id");
-        string idString = ((object)id).ToString();
-        assert((((string)clientOrderId).StartsWith(((string)idString)) == true), ((("coinex - clientOrderId: " + (clientOrderId)) + " does not start with id: ") + idString));
-        if (!isTrue(isSync()))
-        {
-            await close(exchange);
-        }
-        return true;
-    }
-
     public async virtual Task<object> testBingx()
     {
         Exchange exchange = ((Exchange)this.initOfflineExchange("bingx"));
@@ -3505,19 +4304,31 @@ public partial class testMainClass
     public async virtual Task<object> testCoinbaseinternational()
     {
         Exchange exchange = ((Exchange)this.initOfflineExchange("coinbaseinternational"));
+        // ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+        exchange.secret = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        // pre-seed the gateway access token so createOrder signs the order directly instead of
+        // making a prior (offline-unreachable) public/auth network call
+        exchange.token = "token";
+        object tokenExpires = add(exchange.milliseconds(), 100000);
+        ((IDictionary<string,object>)exchange.options)["v2TokenExpires"] = tokenExpires;
         ((IDictionary<string,object>)exchange.options)["portfolio"] = "random";
-        string id = "nfqkvdjp";
+        string id = "ccxt";
         assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
-        object request = new Dictionary<string, object>() {};
+        object clientOrderId = null;
         try
         {
             await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            request = jsonParse(exchange.last_request_body);
+            // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+            string url = ((string)exchange.last_request_url);
+            List<object> urlParts = url.Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
+            assert(urlParts.Count > 1, ("last_request_url has no query string: " + url));
+            object query = this.urlencodedToDict((urlParts != null && 1 < urlParts.Count ? urlParts[1] : null));
+            clientOrderId = getValue(query, "label");
         }
-        object clientOrderId = getValue(request, "client_order_id");
-        assert((((string)clientOrderId).StartsWith(((string)((object)id).ToString())) == true), "clientOrderId does not start with id");
+        // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+        assert((clientOrderId != null) && (((string)clientOrderId).StartsWith((id + "-")) == true), (((("clientOrderId " + (clientOrderId)) + " does not start with the brokerId prefix ") + id) + "-"));
         if (!isTrue(isSync()))
         {
             await close(exchange);

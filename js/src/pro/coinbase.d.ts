@@ -93,7 +93,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
     handleTickers(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
@@ -117,7 +117,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbase#watchTradesForSymbols
@@ -139,7 +139,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbase#watchOrders
@@ -161,7 +161,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
+    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbase#watchOrderBook
@@ -182,7 +182,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbase#watchOrderBookForSymbols
@@ -194,11 +194,11 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleTrade(client: any, message: Dict): void;
-    handleOrder(client: any, message: Dict): void;
+    handleTrade(client: Client, message: Dict): void;
+    handleOrder(client: Client, message: Dict): void;
     parseWsOrder(order: Dict, market?: Market): Order;
-    handleOrderBookHelper(orderbook: any, updates: any): void;
-    handleOrderBook(client: any, message: Dict): void;
+    handleOrderBookHelper(orderbook: any, updates: any[]): void;
+    handleOrderBook(client: Client, message: Dict): void;
     tryResolveUsdc(client: Client, messageHash: string, result: any): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleHeartbeats(client: Client, message: Dict): Dict;

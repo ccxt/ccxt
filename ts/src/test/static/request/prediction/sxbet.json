@@ -1,0 +1,300 @@
+{
+    "exchange": "sxbet",
+    "asyncOnly": true,
+    "skipKeys": [
+        "salt",
+        "orderSignature",
+        "expiry"
+    ],
+    "outputType": "json",
+    "walletAddress": "0xabababababababababababababababababababab",
+    "privateKey": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "options": {
+        "sxObv3Metadata": {
+            "chainId": 4162,
+            "domain": {
+                "name": "OBv3 Escrow",
+                "version": "1",
+                "chainId": 4162,
+                "verifyingContract": "0xF946f2AE410bCeF6cFe53FB27D4F178A79B7863D"
+            },
+            "activeAsset": {
+                "symbol": "USDC",
+                "baseToken": "0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B",
+                "escrowAddress": "0xF946f2AE410bCeF6cFe53FB27D4F178A79B7863D",
+                "decimals": 6
+            },
+            "oddsLadderStepSize": 125,
+            "limits": {
+                "orderSizeMinimumBaseUnits": "1000000"
+            }
+        }
+    },
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets requests the first cursor page of active markets",
+                "method": "fetchMarkets",
+                "url": "https://api.sx.bet/markets/active?pageSize=100",
+                "input": []
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents scoped by leagueId forwards the filter server-side",
+                "method": "fetchEvents",
+                "url": "https://api.sx.bet/markets/active?pageSize=100&leagueId=243",
+                "input": [
+                    {
+                        "leagueId": "243"
+                    }
+                ]
+            },
+            {
+                "description": "fetchEvents scoped by eventId requests the fixture's markets",
+                "method": "fetchEvents",
+                "url": "https://api.sx.bet/markets/active?pageSize=100&sportXeventId=L12003787",
+                "input": [
+                    {
+                        "eventId": "L12003787"
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker requests the public v3 book snapshot",
+                "url": "https://api.sx.bet/orderbook-v3/snapshot?marketHash=0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook requests the aggregated v3 snapshot",
+                "url": "https://api.sx.bet/orderbook-v3/snapshot?marketHash=0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders lists the account orders",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": []
+            },
+            {
+                "description": "fetchOpenOrders clamps the limit to the venue perPage ceiling of 100",
+                "url": "https://api.sx.bet/orders-v3?perPage=100",
+                "input": [
+                    null,
+                    null,
+                    250
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder requests one order by its id path",
+                "url": "https://api.sx.bet/orders-v3/0x1111111111111111111111111111111111111111111111111111111111111111",
+                "input": [
+                    "0x1111111111111111111111111111111111111111111111111111111111111111"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades lists the account fills",
+                "url": "https://api.sx.bet/fills-v3",
+                "input": []
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions requests open-exposure statuses MATCHED and LOCKED",
+                "url": "https://api.sx.bet/positions-v3?status=MATCHED%2CLOCKED",
+                "input": []
+            }
+        ],
+        "fetchSettlements": [
+            {
+                "description": "fetchSettlements lists settled bets",
+                "url": "https://api.sx.bet/trades-v3?status=SETTLED",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance reads the account's proxy balance from user/balance-v3",
+                "url": "https://api.sx.bet/user/balance-v3",
+                "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder limit buy posts a GTC order with an eip712 order signature",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "limit",
+                    "buy",
+                    5,
+                    0.5
+                ],
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"5000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb16\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"GTC\",\"orderSignature\":\"0xbbf28b08e5fc75a1030ed4c1417e3c443b3862149251fe22d8138fed73d282541bb176a620b6fac61301143ab11c71c8c03dc09a2e3d7108d7c13d7e01d188b81c\"}],\"waitForOutcome\":true}"
+            },
+            {
+                "description": "createOrder limit sell posts the complementary-outcome GTC order",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "limit",
+                    "sell",
+                    5,
+                    0.5
+                ],
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"5000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb29\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":false,\"timeInForce\":\"GTC\",\"orderSignature\":\"0x4590d971a6900b50448669cb8b9ef86b148d875b1af29fc4366971ee57cf8bb3063cfe975503ef306e24f38260fd434dc5b9779daef68879ddbb14e77bcdf1c81c\"}],\"waitForOutcome\":true}"
+            },
+            {
+                "description": "createOrder market buy posts an IOC order",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "market",
+                    "buy",
+                    1,
+                    0.5
+                ],
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"1000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb2a\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"IOC\",\"orderSignature\":\"0xf2c1c6e41199c5aeb6a4b95b9eabb1935b8eb601ddac82ac880649a3d33d138f63bf8281b243d2313983dd3cd05870309131e8dba673ee8335573c14f6110f1b1c\"}],\"waitForOutcome\":true}"
+            },
+            {
+                "description": "createOrder market sell posts the complementary-outcome IOC order",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "market",
+                    "sell",
+                    1,
+                    0.5
+                ],
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"1000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb2b\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":false,\"timeInForce\":\"IOC\",\"orderSignature\":\"0xc9c4946f5d2364790b82444c326b490fe78dd22398f7b81acf2abd42e63abe7c76eb7e2a16e6abbbac0243e15177887a9c255620e11e5ad894f030bd879e25191b\"}],\"waitForOutcome\":true}"
+            },
+            {
+                "description": "createOrder honors the timeInForce and clientOrderId overrides",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "market",
+                    "buy",
+                    1,
+                    0.5,
+                    {
+                        "timeInForce": "FOK",
+                        "clientOrderId": "ccxt-test-1"
+                    }
+                ],
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"1000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb2c\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"FOK\",\"orderSignature\":\"0x1a2fe802066fe991c74fab7c5011b8a090b49722b2366c586f05b0e14d0eddb77c5ca55f1aee633fd0f0c907414ecb365e0d07a694412a741ee946e31777b7951b\",\"clientOrderId\":\"ccxt-test-1\"}],\"waitForOutcome\":true}"
+            },
+            {
+                "description": "createOrder honors an explicit IOC on a limit order",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "limit",
+                    "buy",
+                    5,
+                    0.5,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"5000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a0621beb2c\",\"expiry\":1788438791,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"IOC\",\"orderSignature\":\"0x03f0e367c63fc936e15e266b73e1f200818ba8649bc42cec735ceb1bf9541ed6630c42e64ef487b305f5604c07592c301196e3e350e0068220fd6e6a57c7b8e51b\"}],\"waitForOutcome\":true}"
+            },
+            {
+                "description": "createOrder routes useBetCredits and externalUserId into the order item",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "market",
+                    "buy",
+                    1,
+                    0.5,
+                    {
+                        "useBetCredits": true,
+                        "externalUserId": "partner-42"
+                    }
+                ],
+                "output": "{\"orders\":[{\"marketHash\":\"0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb\",\"maker\":\"0xabababababababababababababababababababab\",\"totalBetSize\":\"1000000\",\"percentageOdds\":\"50000000000000000000\",\"salt\":\"0x000000000000000000000000000000000000000000000000000001a073ddadd6\",\"expiry\":1788736702,\"baseToken\":\"0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B\",\"isMakerBettingOutcomeOne\":true,\"timeInForce\":\"IOC\",\"orderSignature\":\"0xa7aca7e1e7e1004e070c912388d8f0cb22994fb88fc9fef48a6781076027f3c3361c931c8e2ea1fd7c807b4d8e57f95301eee25ba6eb7a0a9ae421000e2f65cf1b\",\"useBetCredits\":true,\"externalUserId\":\"partner-42\"}],\"waitForOutcome\":true}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder deletes one order by id",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": [
+                    "0x1111111111111111111111111111111111111111111111111111111111111111"
+                ],
+                "output": "{\"orders\":[{\"orderId\":\"0x1111111111111111111111111111111111111111111111111111111111111111\"}]}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders deletes every resting order of the account",
+                "url": "https://api.sx.bet/orders-v3/all",
+                "input": []
+            },
+            {
+                "description": "cancelAllOrders accepts the sportXeventId alias and sends eventId in the query",
+                "url": "https://api.sx.bet/orders-v3/event?eventId=L12003787",
+                "input": [
+                    null,
+                    {
+                        "sportXeventId": "L12003787"
+                    }
+                ]
+            },
+            {
+                "description": "cancelAllOrders scoped to one fixture sends eventId in the query of the event path",
+                "url": "https://api.sx.bet/orders-v3/event?eventId=L12003787",
+                "input": [
+                    null,
+                    {
+                        "eventId": "L12003787"
+                    }
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders deletes several orders in one request",
+                "url": "https://api.sx.bet/orders-v3",
+                "input": [
+                    [
+                        "0x1111111111111111111111111111111111111111111111111111111111111111",
+                        "0x2222222222222222222222222222222222222222222222222222222222222222"
+                    ]
+                ],
+                "output": "{\"orders\":[{\"orderId\":\"0x1111111111111111111111111111111111111111111111111111111111111111\"},{\"orderId\":\"0x2222222222222222222222222222222222222222222222222222222222222222\"}]}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades requests the public v3 bet tape scoped to the market",
+                "url": "https://api.sx.bet/trades-v3/public?marketHash=0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL"
+                ]
+            },
+            {
+                "description": "fetchTrades keeps since client-side - the public tape has no date filter",
+                "url": "https://api.sx.bet/trades-v3/public?marketHash=0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    1754000000000
+                ]
+            }
+        ]
+    }
+}

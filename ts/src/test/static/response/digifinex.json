@@ -650,6 +650,472 @@
                     "status": "ok"
                 }
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder - swap, canceled open long order",
+                "method": "fetchOrder",
+                "input": [
+                    "2104194414527123456",
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": {
+                        "order_id": "2104194414527123456",
+                        "instrument_id": "OETHUSDTPERP",
+                        "margin_mode": "crossed",
+                        "contract_val": "0.001",
+                        "type": 1,
+                        "order_type": 0,
+                        "price": "1600",
+                        "size": "1",
+                        "filled_qty": "0",
+                        "price_avg": "0",
+                        "fee": "0",
+                        "state": -1,
+                        "leverage": "20",
+                        "turnover": "0",
+                        "close_profit": "0",
+                        "has_stop": 0,
+                        "insert_time": 1790514018155,
+                        "time_stamp": 1790514031891
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "2104194414527123456",
+                        "instrument_id": "OETHUSDTPERP",
+                        "margin_mode": "crossed",
+                        "contract_val": "0.001",
+                        "type": 1,
+                        "order_type": 0,
+                        "price": "1600",
+                        "size": "1",
+                        "filled_qty": "0",
+                        "price_avg": "0",
+                        "fee": "0",
+                        "state": -1,
+                        "leverage": "20",
+                        "turnover": "0",
+                        "close_profit": "0",
+                        "has_stop": 0,
+                        "insert_time": 1790514018155,
+                        "time_stamp": 1790514031891
+                    },
+                    "id": "2104194414527123456",
+                    "clientOrderId": null,
+                    "timestamp": 1790514018155,
+                    "datetime": "2026-09-27T13:00:18.155Z",
+                    "lastTradeTimestamp": 1790514031891,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 1600,
+                    "triggerPrice": null,
+                    "reduceOnly": false,
+                    "amount": 1,
+                    "filled": 0,
+                    "remaining": 1,
+                    "cost": 0,
+                    "average": null,
+                    "status": "canceled",
+                    "fee": {
+                        "cost": 0
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order - swap",
+                "method": "cancelOrder",
+                "input": [
+                    "2104194414527123456",
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": "2104194414527123456"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": 0,
+                        "data": "2104194414527123456"
+                    },
+                    "id": "2104194414527123456",
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "symbol": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null
+                }
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders - spot, one canceled and one failed id",
+                "method": "cancelOrders",
+                "disabledCS": true,
+                "input": [
+                    [
+                        "2a743b849c131f2f93268836bf2baf50",
+                        "2a743b849c131f2f93268836bf2baf5f"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "date": 1790512827,
+                    "success": [
+                        "2a743b849c131f2f93268836bf2baf50"
+                    ],
+                    "error": [
+                        "2a743b849c131f2f93268836bf2baf5f"
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": "2a743b849c131f2f93268836bf2baf50",
+                        "id": "2a743b849c131f2f93268836bf2baf50",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "info": "2a743b849c131f2f93268836bf2baf5f",
+                        "id": "2a743b849c131f2f93268836bf2baf5f",
+                        "status": "failed",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "cancelOrders - swap, one canceled and one non-existent id",
+                "method": "cancelOrders",
+                "disabledCS": true,
+                "input": [
+                    [
+                        "2104199400262733824",
+                        "1000000000000000001"
+                    ],
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": [
+                        "2104199400262733824"
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": "2104199400262733824",
+                        "id": "2104199400262733824",
+                        "symbol": "ETH/USDT:USDT",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "info": "1000000000000000001",
+                        "id": "1000000000000000001",
+                        "symbol": "ETH/USDT:USDT",
+                        "status": "failed",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancelOrdersForSymbols - spot, two symbols",
+                "method": "cancelOrdersForSymbols",
+                "disabledCS": true,
+                "input": [
+                    [
+                        {
+                            "id": "8bdde1dae469ad9827e735090e8bd177",
+                            "symbol": "XRP/USDT"
+                        },
+                        {
+                            "id": "5667eab645ada5c784c95f71d2b0be78",
+                            "symbol": "LTC/USDT"
+                        }
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "date": 1790584079,
+                    "success": [
+                        "5667eab645ada5c784c95f71d2b0be78",
+                        "8bdde1dae469ad9827e735090e8bd177"
+                    ],
+                    "error": []
+                },
+                "parsedResponse": [
+                    {
+                        "info": "5667eab645ada5c784c95f71d2b0be78",
+                        "id": "5667eab645ada5c784c95f71d2b0be78",
+                        "symbol": "LTC/USDT",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "info": "8bdde1dae469ad9827e735090e8bd177",
+                        "id": "8bdde1dae469ad9827e735090e8bd177",
+                        "symbol": "XRP/USDT",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "cancelOrdersForSymbols - swap, two symbols",
+                "method": "cancelOrdersForSymbols",
+                "disabledCS": true,
+                "input": [
+                    [
+                        {
+                            "id": "2104487950191431681",
+                            "symbol": "ETH/USDT:USDT"
+                        },
+                        {
+                            "id": "2104487959884468224",
+                            "symbol": "LTC/USDT:USDT"
+                        }
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": [
+                        "2104487959884468224",
+                        "2104487950191431681"
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": "2104487950191431681",
+                        "id": "2104487950191431681",
+                        "symbol": "ETH/USDT:USDT",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "info": "2104487959884468224",
+                        "id": "2104487959884468224",
+                        "symbol": "LTC/USDT:USDT",
+                        "status": "canceled",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            }
         ]
     }
 }

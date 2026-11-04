@@ -221,7 +221,7 @@ export default class indodax extends Exchange {
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'XLM': 'Stellar Token',
-                    'BSC': 'bep20',
+                    'BEP20': 'bep20',
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     // 'BEP2': 'bep2',
@@ -313,7 +313,7 @@ export default class indodax extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
@@ -380,6 +380,9 @@ export default class indodax extends Exchange {
             const quoteId = this.safeString (market, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const isMaintenance = this.safeInteger (market, 'is_maintenance');
             const inMaintenance = (isMaintenance !== undefined) && (isMaintenance !== 0);
             result.push ({
@@ -649,7 +652,7 @@ export default class indodax extends Exchange {
             const parsed = this.parseTicker (rawTicker, market);
             parsedTickers[marketId] = parsed;
         }
-        return this.filterByArray (parsedTickers, 'symbol', symbols);
+        return this.filterByArrayTickers (parsedTickers, 'symbol', symbols);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -735,22 +738,24 @@ export default class indodax extends Exchange {
         const selectedTimeframe = this.safeString (this.timeframes, timeframe, timeframe);
         const now = this.seconds ();
         const until = this.safeInteger (params, 'until', now);
-        params = this.omit (params, [ 'until' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
         const request: Dict = {
             'to': until,
             'tf': selectedTimeframe,
             'symbol': market['id'],
         };
-        if (limit === undefined) {
-            limit = 1000;
-        }
+        const limitResolved = (limit === undefined) ? 1000 : limit;
         if (since !== undefined) {
             request['from'] = Math.floor (since / 1000);
         } else {
             const duration = this.parseTimeframe (timeframe);
-            request['from'] = now - limit * duration - 1;
+            if (limit === undefined) {
+                request['from'] = now - 1000 * duration - 1;
+            } else {
+                request['from'] = now - limit * duration - 1;
+            }
         }
-        const response = await this.publicGetTradingviewHistoryV2 (this.extend (request, params));
+        const response = await this.publicGetTradingviewHistoryV2 (this.extend (request, paramsOmitted));
         //
         //     [
         //         {
@@ -763,10 +768,10 @@ export default class indodax extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limitResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'filled': 'closed',
@@ -819,7 +824,7 @@ export default class indodax extends Exchange {
         //
         let side: Str = undefined;
         if ('type' in order) {
-            side = order['type'];
+            side = this.safeString (order, 'type');
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
         let symbol: Str = undefined;
@@ -829,15 +834,15 @@ export default class indodax extends Exchange {
         let remaining: Str = undefined;
         let filled: Str = undefined;
         const marketId = this.safeString (order, 'pair');
-        market = this.safeMarket (marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            let quoteId = market['quoteId'];
-            let baseId = market['baseId'];
-            if ((market['quoteId'] === 'idr') && ('order_rp' in order)) {
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        if (marketResolved !== undefined) {
+            symbol = marketResolved['symbol'];
+            let quoteId = marketResolved['quoteId'];
+            let baseId = marketResolved['baseId'];
+            if ((marketResolved['quoteId'] === 'idr') && ('order_rp' in order)) {
                 quoteId = 'rp';
             }
-            if ((market['baseId'] === 'idr') && ('remain_rp' in order)) {
+            if ((marketResolved['baseId'] === 'idr') && ('remain_rp' in order)) {
                 baseId = 'rp';
             }
             cost = this.safeString (order, 'order_' + quoteId);
@@ -1003,11 +1008,15 @@ export default class indodax extends Exchange {
         };
         let priceIsRequired = false;
         let quantityIsRequired = false;
+        const isMarketBuy = (type === 'market') && (side === 'buy');
+        let paramsOmitted: Dict = params;
+        if (isMarketBuy) {
+            paramsOmitted = this.omit (params, 'cost');
+        }
         if (type === 'market') {
             if (side === 'buy') {
                 let quoteAmount: Str = undefined;
                 const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
                 } else {
@@ -1039,7 +1048,7 @@ export default class indodax extends Exchange {
         if (quantityIsRequired) {
             request[market['baseId'] as string] = this.amountToPrecision (symbol, amount);
         }
-        const result = await this.privatePostTrade (this.extend (request, params));
+        const result = await this.privatePostTrade (this.extend (request, paramsOmitted));
         const data = this.safeDict (result, 'return', {});
         const id = this.safeString (data, 'order_id');
         return this.safeOrder ({
@@ -1062,7 +1071,7 @@ export default class indodax extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        const side = this.safeValue (params, 'side');
+        const side = this.safeString (params, 'side');
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an extra "side" param');
         }
@@ -1283,13 +1292,13 @@ export default class indodax extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1307,10 +1316,10 @@ export default class indodax extends Exchange {
             'withdraw_address': address,
             'request_id': requestId.toString (),
         };
-        if ((tag !== undefined) && (tag !== '')) {
-            request['withdraw_memo'] = tag;
+        if ((tagWithdrawTag !== undefined) && (tagWithdrawTag !== '')) {
+            request['withdraw_memo'] = tagWithdrawTag;
         }
-        const response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        const response = await this.privatePostWithdrawCoin (this.extend (request, paramsWithdrawTag));
         //
         //     {
         //         "success": 1,
@@ -1407,7 +1416,7 @@ export default class indodax extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'success': 'ok',
         };
@@ -1467,9 +1476,7 @@ export default class indodax extends Exchange {
         const addresses = this.safeDict (data, 'address', {});
         const networks = this.safeDict (data, 'network', {});
         const addressKeys = Object.keys (addresses);
-        const result: Dict = {
-            'info': data,
-        };
+        const result: Dict[] = [];
         for (let i = 0; i < addressKeys.length; i++) {
             const marketId = addressKeys[i];
             const code = this.safeCurrencyCode (marketId);
@@ -1503,42 +1510,58 @@ export default class indodax extends Exchange {
                 }
                 const finalNetwork = network; // java req
                 if (code !== undefined) {
-                    result[code] = {
+                    result.push ({
                         'info': {},
                         'currency': code,
                         'network': finalNetwork,
                         'address': address,
                         'tag': undefined,
-                    };
+                    });
                 }
             }
         }
-        return result as DepositAddress[];
+        return this.toArray (result);
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api];
-        if (api === 'public') {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl;
+        let privateBody: Str = undefined;
+        let privateHeaders: NullableDict = undefined;
+        const isPublic = (apiName === 'public');
+        if (isPublic) {
             const query = this.omit (params, this.extractParams (path));
             const requestPath = '/' + this.implodeParams (path, params);
-            url = url + requestPath;
+            url += requestPath;
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencodeWithArrayRepeat (query);
             }
         } else {
             this.checkRequiredCredentials ();
-            body = this.urlencode (this.extend ({
+            privateBody = this.urlencode (this.extend ({
                 'method': path,
                 'timestamp': this.nonce (),
                 'recvWindow': this.options['recvWindow'],
             }, params));
-            headers = {
+            privateHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
+                'Sign': this.hmac (this.encode (privateBody), this.encode (this.secret), sha512),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        let requestBody: Str = privateBody;
+        if (isPublic) {
+            requestBody = undefined;
+        }
+        let requestHeaders: NullableDict = privateHeaders;
+        if (isPublic) {
+            requestHeaders = undefined;
+        }
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

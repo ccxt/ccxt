@@ -1183,6 +1183,10 @@ the question, so a compromised or buggy router response cannot steer orders into
 
 Full reference: [Order Router in the CCXT Manual](https://docs.ccxt.com/#/?id=order-router).
 
+## Bitget Stock Routing
+
+Default discovery cross-references classic spot symbols against public UTA spot instruments to identify stocks; loading UTA markets is not required. `symbolType: 'stock'` sets the unified market's `stock` flag; `isReality: 'yes'` is a fallback only when `symbolType` is absent. Stock-underlying derivatives retain their derivative type and do not use Reality spot REST endpoints. Stock spot WebSocket subscriptions automatically use UTA; derivatives retain classic derivative WebSockets unless `uta: true` is selected explicitly. Symbol-required methods infer stock routing from market metadata and discard legacy `params.stock` overrides. The stock selector remains available for symbol-less discovery, tickers and balances. This does not add Stock+ securities-account support or imply share ownership.
+
 ## Learn More
 
 - [CCXT Manual](https://docs.ccxt.com/)

@@ -2,11 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var bybit = require('./bybit.js');
+var bybitid$1 = require('./abstract/bybitid.js');
+var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bybitid extends bybit["default"] {
+class bybitid extends bybitid$1["default"] {
     describe() {
         // Bybit Indonesia serves the same v5 API as the global exchange, with the
         // same product categories (spot, linear, inverse, option) but its own
@@ -26,6 +27,9 @@ class bybitid extends bybit["default"] {
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
                 'referral': undefined,
+            },
+            'httpExceptions': {
+                '403': errors.PermissionDenied, // error:The Amazon CloudFront distribution is configured to block access from your country
             },
         });
     }

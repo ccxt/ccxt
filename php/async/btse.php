@@ -214,7 +214,7 @@ class btse extends Exchange {
                         'spot/api/v3.3/orderbook' => 5, // not used
                         'spot/api/v3.3/orderbook/L2' => 5, // done
                         'spot/api/v3.3/trades' => array( 'cost' => 5 ), // done
-                        'spot/api/v3.3/time' => 5, // done
+                        'spot/api/v3.3/time' => array( 'cost' => 5 ), // done
                         'futures/api/v2.3/market_summary' => array( 'cost' => 5 ), // done
                         'futures/api/v2.3/ohlcv' => array( 'cost' => 5 ), // done
                         'futures/api/v2.3/price' => 5, // not used
@@ -649,7 +649,7 @@ class btse extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $response = Async\await($this->publicGetPublicApiMarketV1Markets($params));
@@ -734,6 +734,9 @@ class btse extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $maxAmountString = $this->safe_string($market, 'maxOrderSize');
         $minAmountString = $this->safe_string($market, 'minOrderSize');
@@ -833,10 +836,9 @@ class btse extends Exchange {
          */
         Async\await($this->load_markets());
         $maxLimit = 300;
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit));
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -854,23 +856,21 @@ class btse extends Exchange {
             // the endpoint accepts timestamps in seconds
             $request['start'] = $this->parse_to_int($since / 1000);
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOHLCV', 'until');
         if ($until !== null) {
             if ($since !== null) {
                 // check if the requested time range is too large for one request
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
                 $duration = $this->parse_timeframe($timeframe);
                 $maxDelta = $duration * $maxLimit * 1000; // parseTimeframe returns seconds, the difference below is in milliseconds
-                $difference = $until - $since;
-                if ($difference < $maxDelta) {
+                if (($until - $since) < $maxDelta) {
                     $request['end'] = $this->parse_to_int($until / 1000);
                 }
             } else {
                 $request['end'] = $this->parse_to_int($until / 1000);
             }
         }
-        $response = Async\await($this->publicGetPublicApiMarketV1Klines($this->extend($request, $params)));
+        $response = Async\await($this->publicGetPublicApiMarketV1Klines($this->extend($request, $paramsUntil)));
         //
         //     {
         //         "data": [
@@ -890,8 +890,7 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        return $result;
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -980,7 +979,7 @@ class btse extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -988,15 +987,17 @@ class btse extends Exchange {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports contract markets only');
         }
         $period = null;
-        list($period, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'period');
+        $paramsPeriod = null;
+        list($period, $paramsPeriod) = $this->handle_option_string_and_params($params, 'fetchFundingRateHistory', 'period');
         if ($period === null) {
             $period = '7D';
             if ($since !== null) {
-                $age = $this->milliseconds() - $since;
-                $day = 86400000;
-                if ($age > 14 * $day) {
+                $now = $this->milliseconds();
+                $twoWeeksAgo = $now - 1209600000; // 14 days in ms
+                $oneWeekAgo = $now - 604800000; // 7 days in ms
+                if ($since < $twoWeeksAgo) {
                     $period = '1M';
-                } elseif ($age > 7 * $day) {
+                } elseif ($since < $oneWeekAgo) {
                     $period = '2W';
                 }
             }
@@ -1005,9 +1006,8 @@ class btse extends Exchange {
             'symbol' => $market['id'],
             'period' => $period,
         );
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'until');
-        $response = Async\await($this->publicGetPublicApiMarketV1RecentFundingHistory($this->extend($request, $params)));
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($paramsPeriod, 'fetchFundingRateHistory', 'until');
+        $response = Async\await($this->publicGetPublicApiMarketV1RecentFundingHistory($this->extend($request, $paramsUntil)));
         //
         //     {
         //         "data": [
@@ -1023,10 +1023,10 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $rates = $this->parse_funding_rate_histories($data, $market, $since, $limit);
         if ($until === null) {
-            return $rates;
+            return $this->parse_funding_rate_histories($data, $market, $since, $limit);
         }
+        $rates = $this->parse_funding_rate_histories($data, $market, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($rates); $i++) {
             $rate = $rates[$i];
@@ -1067,16 +1067,15 @@ class btse extends Exchange {
          * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-$wallet-balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->type] $wallet $type, spot or swap, default is spot
+         * @param {string} [$params->type] $wallet type, spot or swap, default is spot
          * @param {string} [$params->wallet] futures $wallet name, CROSS@ by default, or ISOLATED@ followed by the market id with -USDT appended
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         Async\await($this->load_markets());
-        $type = 'spot';
-        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params, $type);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $params, 'spot');
         $response = null;
-        if ($type === 'spot') {
-            $walletResponse = Async\await($this->privateGetPublicApiWalletV1UserAssets($params));
+        if ($marketType === 'spot') {
+            $walletResponse = Async\await($this->privateGetPublicApiWalletV1UserAssets($paramsMarketType));
             //
             //     {
             //         "data": [
@@ -1097,12 +1096,11 @@ class btse extends Exchange {
             //
             $response = $this->safe_list($walletResponse, 'data', array());
         } else {
-            $wallet = null;
-            list($wallet, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'wallet', 'CROSS@');
+            list($wallet, $paramsWallet) = $this->handle_option_string_and_params($paramsMarketType, 'fetchBalance', 'wallet', 'CROSS@');
             $request = array(
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privateGetFuturesApiV23UserWallet($this->extend($request, $params)));
+            $response = Async\await($this->privateGetFuturesApiV23UserWallet($this->extend($request, $paramsWallet)));
             //
             //     [
             //         {
@@ -1132,14 +1130,14 @@ class btse extends Exchange {
         $frees = array();
         $useds = array();
         for ($i = 0; $i < count($response); $i++) {
-            $row = $response[$i];
+            $row = $this->safe_dict($response, $i);
             $assets = $this->safe_list($row, 'assets');
             if ($assets !== null) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
                 $inUse = $this->safe_list($row, 'assetsInUse', array());
                 for ($j = 0; $j < count($inUse); $j++) {
-                    $usedRow = $inUse[$j];
+                    $usedRow = $this->safe_dict($inUse, $j);
                     $usedCode = $this->safe_currency_code($this->safe_string($usedRow, 'currency'));
                     if ($usedCode === null) {
                         continue;
@@ -1147,7 +1145,7 @@ class btse extends Exchange {
                     $useds[$usedCode] = Precise::string_add($this->safe_string($useds, $usedCode, '0'), $this->safe_string($usedRow, 'balance'));
                 }
                 for ($j = 0; $j < count($assets); $j++) {
-                    $assetRow = $assets[$j];
+                    $assetRow = $this->safe_dict($assets, $j);
                     $code = $this->safe_currency_code($this->safe_string($assetRow, 'currency'));
                     if ($code === null) {
                         continue;
@@ -1193,12 +1191,12 @@ class btse extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-$tiers-structure leverage $tiers structures~, indexed by $market $symbols
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array();
-        if ($symbols !== null) {
-            $length = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $length = count($symbolsNormalized);
             if ($length === 1) {
-                $requestedSymbol = $this->safe_string($symbols, 0);
+                $requestedSymbol = $this->safe_string($symbolsNormalized, 0);
                 $market = $this->market($requestedSymbol);
                 $request['symbol'] = $market['id'];
             }
@@ -1223,54 +1221,38 @@ class btse extends Exchange {
         //
         // a single-symbol request returns the entry directly in data
         //
-        $data = $this->safe_list($response, 'data');
-        if ($data === null) {
-            $single = $this->safe_dict($response, 'data', array());
-            $data = array( $single );
-        }
+        $single = $this->safe_dict($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array( $single ));
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($entry, 'symbol');
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
-            if ($symbols === null || $this->in_array($symbol, $symbols)) {
+            if ($symbolsNormalized === null || $this->in_array($symbol, $symbolsNormalized)) {
                 $levels = $this->safe_list($entry, 'riskLimits', array());
                 $tiers = array();
+                // each tier's floor is the previous tier's cap (0 for the first)
+                $minNotional = null;
                 for ($j = 0; $j < count($levels); $j++) {
                     $level = $levels[$j];
+                    $maxNotional = $this->safe_number($level, 'value');
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
                     $tiers[] = array(
                         'tier' => $this->safe_integer($level, 'level'),
                         'symbol' => $symbol,
                         'currency' => $market['settle'],
-                        'minNotional' => null,
-                        'maxNotional' => $this->safe_number($level, 'value'),
+                        'minNotional' => ($j === 0) ? 0 : $minNotional,
+                        'maxNotional' => $maxNotional,
                         'maintenanceMarginRate' => null,
                         'maxLeverage' => null,
                         'info' => $level,
                     );
+                    $minNotional = $maxNotional;
                 }
                 $result[$symbol] = $tiers; // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
-        }
-        // the exchange only provides the cap of each risk tier, so the floor
-        // is derived from the previous tier: 0 for the first tier, and the
-        // previous tier's maxNotional for every subsequent tier
-        $symbolKeys = is_array($result) ? array_keys($result) : array();
-        for ($i = 0; $i < count($symbolKeys); $i++) {
-            $symbolKey = $symbolKeys[$i];
-            $tiersList = $result[$symbolKey];
-            for ($j = 0; $j < count($tiersList); $j++) {
-                if ($j === 0) {
-                    $tiersList[$j]['minNotional'] = 0;
-                } else {
-                    $tiersList[$j]['minNotional'] = $tiersList[$j - 1]['maxNotional'];
-                }
-            }
-            // php copies arrays by value, so the mutated list must be written back explicitly
-            $result[$symbolKey] = $tiersList;
         }
         return $result;
     }
@@ -1287,7 +1269,7 @@ class btse extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-$tiers-structure leverage $tiers structure~
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -1295,7 +1277,8 @@ class btse extends Exchange {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
         }
         $result = Async\await($this->fetch_leverage_tiers(array( $symbol ), $params));
-        return $result[$symbol];
+        $tiers = $this->safe_list($result, $symbol);
+        return $tiers;
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1313,12 +1296,12 @@ class btse extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols, null, true, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
         // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
-        $params = $this->omit($params, 'type');
-        $response = Async\await($this->publicGetPublicApiMarketV1Ticker24hr($params));
+        $paramsOmitted = $this->omit($params, 'type');
+        $response = Async\await($this->publicGetPublicApiMarketV1Ticker24hr($paramsOmitted));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_tickers($data, $symbols);
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -1374,11 +1357,8 @@ class btse extends Exchange {
         //     }
         //
         // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
-        $data = $this->safe_dict($response, 'data');
-        if ($data === null) {
-            $rows = $this->safe_list($response, 'data', array());
-            $data = $this->safe_dict($rows, 0, array());
-        }
+        $rows = $this->safe_list($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', $this->safe_dict($rows, 0, array()));
         return $this->parse_ticker($data, $market);
     }
 
@@ -1388,20 +1368,20 @@ class btse extends Exchange {
         // openInterest, fundingRate, nextFundingTime and fundingIntervalMinutes
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $last = $this->safe_string($ticker, 'lastPrice');
         $baseVolume = $this->safe_string($ticker, 'amount');
-        if (($baseVolume !== null) && ($market !== null) && ($market['contract'] === true)) {
+        if (($baseVolume !== null) && ($marketResolved !== null) && ($marketResolved['contract'] === true)) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
-            $contractSizeString = $this->number_to_string($market['contractSize']);
+            $contractSizeString = $this->number_to_string($marketResolved['contractSize']);
             if ($contractSizeString !== null) {
                 $baseVolume = Precise::string_mul($baseVolume, $contractSizeString);
             }
         }
         $timestamp = $this->safe_timestamp($ticker, 'closeTime');
         return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $this->safe_symbol($marketId, $marketResolved),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'highPrice'),
@@ -1425,7 +1405,7 @@ class btse extends Exchange {
             'markPrice' => null,
             'indexPrice' => null,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
@@ -1445,17 +1425,14 @@ class btse extends Exchange {
         Async\await($this->load_markets());
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() $symbol does not support $market ' . $symbol);
+            throw new BadRequest($this->id . ' fetchOpenInterest() symbol does not support market ' . $symbol);
         }
         $request = array(
             'symbol' => $market['id'],
         );
         $response = Async\await($this->publicGetPublicApiMarketV1Ticker24hr($this->extend($request, $params)));
-        $interest = $this->safe_dict($response, 'data');
-        if ($interest === null) {
-            $rows = $this->safe_list($response, 'data', array());
-            $interest = $this->safe_dict($rows, 0, array());
-        }
+        $rows = $this->safe_list($response, 'data', array());
+        $interest = $this->safe_dict($response, 'data', $this->safe_dict($rows, 0, array()));
         return $this->parse_open_interest($interest, $market);
     }
 
@@ -1474,7 +1451,7 @@ class btse extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetPublicApiMarketV1Ticker24hr($params));
         $data = $this->safe_list($response, 'data', array());
         $rows = array();
@@ -1485,24 +1462,24 @@ class btse extends Exchange {
                 $rows[] = $row;
             }
         }
-        return $this->parse_open_interests($rows, $symbols);
+        return $this->parse_open_interests($rows, $symbolsNormalized);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         // ticker/24hr contract rows, see parseFundingRate for the full shape
         //
         $marketId = $this->safe_string($interest, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($interest, 'closeTime');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'openInterestAmount' => $this->safe_number($interest, 'openInterest'),
             'openInterestValue' => $this->safe_number($interest, 'openInterestUSD'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
@@ -1522,17 +1499,14 @@ class btse extends Exchange {
         Async\await($this->load_markets());
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
-            throw new BadRequest($this->id . ' fetchFundingRate() $symbol does not support spot markets');
+            throw new BadRequest($this->id . ' fetchFundingRate() symbol does not support spot markets');
         }
         $request = array(
             'symbol' => $market['id'],
         );
         $response = Async\await($this->publicGetPublicApiMarketV1Ticker24hr($this->extend($request, $params)));
-        $data = $this->safe_dict($response, 'data');
-        if ($data === null) {
-            $rows = $this->safe_list($response, 'data', array());
-            $data = $this->safe_dict($rows, 0, array());
-        }
+        $rows = $this->safe_list($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', $this->safe_dict($rows, 0, array()));
         return $this->parse_funding_rate($data, $market);
     }
 
@@ -1551,7 +1525,7 @@ class btse extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetPublicApiMarketV1Ticker24hr($params));
         $data = $this->safe_list($response, 'data', array());
         $rows = array();
@@ -1562,7 +1536,7 @@ class btse extends Exchange {
                 $rows[] = $row;
             }
         }
-        return $this->parse_funding_rates($rows, $symbols);
+        return $this->parse_funding_rates($rows, $symbolsNormalized);
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
@@ -1592,7 +1566,7 @@ class btse extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($contract, 'closeTime');
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
@@ -1608,7 +1582,7 @@ class btse extends Exchange {
         }
         return array(
             'info' => $contract,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'markPrice' => null,
             'indexPrice' => null,
             'interestRate' => null,
@@ -1654,9 +1628,8 @@ class btse extends Exchange {
             $request['limit'] = min($limit, 500); // the endpoint supports a maximum of 500 trades
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'until');
-        $response = Async\await($this->publicGetPublicApiMarketV1Trades($this->extend($request, $params)));
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchTrades', 'until');
+        $response = Async\await($this->publicGetPublicApiMarketV1Trades($this->extend($request, $paramsUntil)));
         //
         //     {
         //         "data": [
@@ -1676,10 +1649,10 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $trades = $this->parse_trades($data, $market, $since, $limit);
         if ($until === null) {
-            return $trades;
+            return $this->parse_trades($data, $market, $since, $limit);
         }
+        $trades = $this->parse_trades($data, $market, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
             $trade = $trades[$i];
@@ -1712,9 +1685,8 @@ class btse extends Exchange {
          */
         Async\await($this->load_markets());
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
-            $params = $this->omit($params, 'paginate');
-            return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $this->omit($params, 'paginate')));
         }
         $market = null;
         $request = array();
@@ -1728,13 +1700,13 @@ class btse extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params, $marketType);
+        $paramsUntil = null;
+        list($request, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchMyTrades', $market, $paramsUntil, 'spot');
         $response = null;
         if ($marketType === 'spot') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument for spot markets');
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument for spot markets');
             }
             //
             //     {
@@ -1765,7 +1737,7 @@ class btse extends Exchange {
             //         "time": 1786610160164
             //     }
             //
-            $response = Async\await($this->privateGetSpotApiV4TradeTradeHistory($this->extend($request, $params)));
+            $response = Async\await($this->privateGetSpotApiV4TradeTradeHistory($this->extend($request, $paramsMarketType)));
         } else {
             // the futures endpoint does not support a count parameter, the limit is applied client-side
             $request = $this->omit($request, 'count');
@@ -1807,12 +1779,9 @@ class btse extends Exchange {
             //         "time": 1786610160164
             //     }
             //
-            $response = Async\await($this->privateGetFuturesApiV3TradeTradeHistory($this->extend($request, $params)));
+            $response = Async\await($this->privateGetFuturesApiV3TradeTradeHistory($this->extend($request, $paramsMarketType)));
         }
-        $rows = $this->safe_list($response, 'data');
-        if ($rows === null) {
-            $rows = $response;
-        }
+        $rows = $this->safe_list($response, 'data', $response);
         return $this->parse_trades($rows, $market, $since, $limit);
     }
 
@@ -1838,16 +1807,16 @@ class btse extends Exchange {
          */
         Async\await($this->load_markets());
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        if ($clientOrderId === null) {
-            if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires an $id argument or a $clientOrderId parameter');
-            } else {
-                $params = $this->extend($params, array( 'orderID' => $id ));
-            }
-        } else {
-            $params = $this->extend($params, array( 'clOrderID' => $clientOrderId ));
+        if (($clientOrderId === null) && ($id === null)) {
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires an id argument or a clientOrderId parameter');
         }
-        return Async\await($this->fetch_my_trades($symbol, $since, $limit, $params));
+        $orderIdParams = array();
+        if ($clientOrderId === null) {
+            $orderIdParams = array( 'orderID' => $id );
+        } else {
+            $orderIdParams = array( 'clOrderID' => $clientOrderId );
+        }
+        return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($params, $orderIdParams)));
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1922,7 +1891,7 @@ class btse extends Exchange {
         // the unified futures rows echo the short symbol form but carry the full
         // market id in positionId, which resolves against the markets snapshot
         $marketId = $this->safe_string_2($trade, 'positionId', 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $fee = null;
         $feeCost = $this->safe_number($trade, 'feeAmount');
@@ -1936,7 +1905,7 @@ class btse extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'id' => $this->safe_string_n($trade, array( 'tradeId', 'serialId', 'id' )),
             'order' => $this->safe_string($trade, 'orderId'),
             'type' => $this->parse_order_type($this->safe_string_2($trade, 'orderType', 'type')),
@@ -1946,7 +1915,7 @@ class btse extends Exchange {
             'amount' => $this->safe_string_2($trade, 'filledSize', 'size'),
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -2032,7 +2001,7 @@ class btse extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $type = strtoupper($type);
+        $typeValue = strtoupper($type);
         $upperSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
@@ -2041,47 +2010,47 @@ class btse extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrderId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
         }
-        $isMarketOrder = ($type === 'MARKET');
-        $isLimitOrder = ($type === 'LIMIT');
+        $query = $this->omit($params, 'clientOrderId');
+        $isMarketOrder = ($typeValue === 'MARKET');
+        $isLimitOrder = ($typeValue === 'LIMIT');
         $postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $postOnly, $params); // this will remove PO from params.timeInForce if present
+        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, $postOnly, $query); // this will remove PO from params.timeInForce if present
         if ($postOnly) {
             $request['postOnly'] = true;
         }
-        $timeInForce = $this->handle_time_in_force($params);
+        $timeInForce = $this->handle_time_in_force($query);
         if ($timeInForce !== null) {
             $request['timeInForce'] = $timeInForce;
         }
-        $triggerPrice = $this->safe_string($params, 'triggerPrice');
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $triggerPrice = $this->safe_string($query, 'triggerPrice');
+        $takeProfitPrice = $this->safe_string($query, 'takeProfitPrice');
+        $stopLossPrice = $this->safe_string($query, 'stopLossPrice');
         $isTriggerOrder = ($triggerPrice !== null) || ($takeProfitPrice !== null);
         $isStopLossOrder = ($stopLossPrice !== null);
         $isConditionalOrder = ($isTriggerOrder || $isStopLossOrder) && ($isMarketOrder || $isLimitOrder);
         $isAlgoOrder = $isConditionalOrder || (!$isMarketOrder && !$isLimitOrder);
-        if ($isLimitOrder || ($type === 'PEG') || ($type === 'OCO')) {
+        if ($isLimitOrder || ($typeValue === 'PEG') || ($typeValue === 'OCO')) {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders');
+                throw new InvalidOrder($this->id . ' createOrder() requires a price argument for ' . $typeValue . ' orders');
             }
         }
         // market and trailing buys are denominated in the quote currency while
         // every other combination is denominated in the base currency, the
         // sizing rules are strict on both sides, verified live
-        $needsQuoteSize = ($isMarketOrder || ($type === 'TRAILING')) && ($upperSide === 'BUY');
+        $needsQuoteSize = ($isMarketOrder || ($typeValue === 'TRAILING')) && ($upperSide === 'BUY');
         if ($needsQuoteSize) {
             $quoteAmount = null;
             $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            $cost = $this->safe_string($params, 'cost');
-            $params = $this->omit($params, 'cost');
+            list($createMarketBuyOrderRequiresPrice, $query) = $this->handle_option_bool_and_params($query, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_string($query, 'cost');
+            $query = $this->omit($query, 'cost');
             if ($cost !== null) {
                 $quoteAmount = $this->cost_to_precision($symbol, $cost);
             } elseif ($createMarketBuyOrderRequiresPrice) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend, alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -2096,7 +2065,7 @@ class btse extends Exchange {
         }
         $response = null;
         if (!$isAlgoOrder) {
-            $request['orderType'] = $type;
+            $request['orderType'] = $typeValue;
             if ($isLimitOrder) {
                 $request['orderPrice'] = $this->price_to_precision($symbol, $price);
             }
@@ -2129,7 +2098,7 @@ class btse extends Exchange {
             //         }
             //     ]
             //
-            $response = Async\await($this->privatePostSpotApiV4TradeOrders($this->extend($request, $params)));
+            $response = Async\await($this->privatePostSpotApiV4TradeOrders($this->extend($request, $query)));
         } else {
             if ($isConditionalOrder) {
                 $request['orderType'] = 'CONDITIONAL';
@@ -2151,32 +2120,32 @@ class btse extends Exchange {
                 }
                 $request['triggerOrderType'] = $triggerOrderType;
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPriceToSend);
-                $triggerPriceType = $this->safe_string($params, 'triggerPriceType', 'last');
+                $triggerPriceType = $this->safe_string($query, 'triggerPriceType', 'last');
                 $request['triggerPriceType'] = $this->encode_trigger_price_type($triggerPriceType);
-                $params = $this->omit($params, array( 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'triggerPriceType' ));
+                $query = $this->omit($query, array( 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'triggerPriceType' ));
             } else {
-                $request['orderType'] = $type;
-                if ($type === 'OCO') {
+                $request['orderType'] = $typeValue;
+                if ($typeValue === 'OCO') {
                     // the price argument is the limit price of the take profit leg,
                     // the stopPrice param is the limit price of the stop loss leg
                     // and the triggerPrice param is where the stop loss leg fires
                     $request['takeProfitOrderPrice'] = $this->price_to_precision($symbol, $price);
-                    $stopPrice = $this->safe_string($params, 'stopPrice');
+                    $stopPrice = $this->safe_string($query, 'stopPrice');
                     if ($stopPrice !== null) {
                         $request['stopLossOrderPrice'] = $this->price_to_precision($symbol, $stopPrice);
                     }
                     if ($triggerPrice !== null) {
                         $request['stopLossTriggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                     }
-                    $triggerPriceType = $this->safe_string($params, 'triggerPriceType', 'last');
+                    $triggerPriceType = $this->safe_string($query, 'triggerPriceType', 'last');
                     $request['stopLossTriggerPriceType'] = $this->encode_trigger_price_type($triggerPriceType);
-                    $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'triggerPriceType' ));
-                } elseif ($type === 'PEG') {
+                    $query = $this->omit($query, array( 'stopPrice', 'triggerPrice', 'triggerPriceType' ));
+                } elseif ($typeValue === 'PEG') {
                     // the required stealth and optional deviation params pass through
                     $request['orderPrice'] = $this->price_to_precision($symbol, $price);
-                } elseif ($type === 'TRAILING') {
-                    $trailingAmount = $this->safe_string($params, 'trailingAmount');
-                    $trailingPercent = $this->safe_string($params, 'trailingPercent');
+                } elseif ($typeValue === 'TRAILING') {
+                    $trailingAmount = $this->safe_string($query, 'trailingAmount');
+                    $trailingPercent = $this->safe_string($query, 'trailingPercent');
                     if ($trailingAmount !== null) {
                         $request['trailValue'] = $this->price_to_precision($symbol, $trailingAmount);
                         $request['trailValueType'] = 'DISTANCE';
@@ -2184,13 +2153,13 @@ class btse extends Exchange {
                         $request['trailValue'] = $trailingPercent;
                         $request['trailValueType'] = 'PERCENTAGE';
                     }
-                    $triggerPriceType = $this->safe_string($params, 'triggerPriceType', 'last');
+                    $triggerPriceType = $this->safe_string($query, 'triggerPriceType', 'last');
                     $request['triggerPriceType'] = $this->encode_trigger_price_type($triggerPriceType);
-                    $params = $this->omit($params, array( 'trailingAmount', 'trailingPercent', 'triggerPriceType' ));
+                    $query = $this->omit($query, array( 'trailingAmount', 'trailingPercent', 'triggerPriceType' ));
                 }
                 // TWAP orders require the timePeriod param which passes through
             }
-            $response = Async\await($this->privatePostSpotApiV4TradeOrdersAlgo($this->extend($request, $params)));
+            $response = Async\await($this->privatePostSpotApiV4TradeOrdersAlgo($this->extend($request, $query)));
         }
         $order = $this->safe_dict($response, 0, array());
         return $this->parse_order($order, $market);
@@ -2239,7 +2208,7 @@ class btse extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $type = strtoupper($type);
+        $typeValue = strtoupper($type);
         $request = array(
             'symbol' => $this->futures_request_id($market),
             'orderSide' => strtoupper($side),
@@ -2248,19 +2217,19 @@ class btse extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrderId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
         }
+        $query = $this->omit($params, 'clientOrderId');
         // handle positionMode
-        $positionMode = $this->safe_string($params, 'positionMode');
+        $positionMode = $this->safe_string($query, 'positionMode');
         // if positionMode is provided, we will get it from params and send it as is
         if ($positionMode === null) {
             $hedged = false;
-            list($hedged, $params) = $this->handle_option_and_params($params, 'createOrder', 'hedged', $hedged);
+            list($hedged, $query) = $this->handle_option_bool_and_params($query, 'createOrder', 'hedged', $hedged);
             $marginMode = 'cross';
-            list($marginMode, $params) = $this->handle_option_and_params($params, 'createOrder', 'marginMode', $marginMode);
+            list($marginMode, $query) = $this->handle_option_string_and_params($query, 'createOrder', 'marginMode', $marginMode);
             if ($marginMode === 'isolated') {
                 if ($hedged) {
-                    throw new BadRequest($this->id . ' createOrder() cannot use isolated margin with $hedged positions');
+                    throw new BadRequest($this->id . ' createOrder() cannot use isolated margin with hedged positions');
                 }
                 $request['positionMode'] = 'ISOLATED';
             } elseif ($hedged) {
@@ -2268,33 +2237,33 @@ class btse extends Exchange {
             }
             // if not hedged and not isolated, the default is ONE_WAY
         }
-        $isMarketOrder = ($type === 'MARKET');
-        $isLimitOrder = ($type === 'LIMIT');
+        $isMarketOrder = ($typeValue === 'MARKET');
+        $isLimitOrder = ($typeValue === 'LIMIT');
         $postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $postOnly, $params); // this will remove PO from params.timeInForce if present
+        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, $postOnly, $query); // this will remove PO from params.timeInForce if present
         if ($postOnly) {
             $request['postOnly'] = true;
         }
-        $timeInForce = $this->handle_time_in_force($params);
+        $timeInForce = $this->handle_time_in_force($query);
         if ($timeInForce !== null) {
             $request['timeInForce'] = $timeInForce;
         }
-        $triggerPrice = $this->safe_string($params, 'triggerPrice');
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $triggerPrice = $this->safe_string($query, 'triggerPrice');
+        $takeProfitPrice = $this->safe_string($query, 'takeProfitPrice');
+        $stopLossPrice = $this->safe_string($query, 'stopLossPrice');
         $isTriggerOrder = ($triggerPrice !== null) || ($takeProfitPrice !== null);
         $isStopLossOrder = ($stopLossPrice !== null);
         $isConditionalOrder = ($isTriggerOrder || $isStopLossOrder) && ($isMarketOrder || $isLimitOrder);
         $isAlgoOrder = $isConditionalOrder || (!$isMarketOrder && !$isLimitOrder);
-        if ($isLimitOrder || ($type === 'OCO')) {
+        if ($isLimitOrder || ($typeValue === 'OCO')) {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders');
+                throw new InvalidOrder($this->id . ' createOrder() requires a price argument for ' . $typeValue . ' orders');
             }
         }
         // here we handling with attached take profit and stop loss orders
-        $takeProfit = $this->safe_dict($params, 'takeProfit');
-        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($query, 'takeProfit');
+        $stopLoss = $this->safe_dict($query, 'stopLoss');
         if (($takeProfit !== null) || ($stopLoss !== null)) {
             $takeProfitTriggerPrice = $this->safe_string($takeProfit, 'triggerPrice');
             $stopLossTriggerPrice = $this->safe_string($stopLoss, 'triggerPrice');
@@ -2312,11 +2281,11 @@ class btse extends Exchange {
                     $request['stopLossTriggerType'] = $this->encode_trigger_price_type($stopLossTriggerPriceType);
                 }
             }
-            $params = $this->omit($params, array( 'takeProfit', 'stopLoss' ));
+            $query = $this->omit($query, array( 'takeProfit', 'stopLoss' ));
         }
         $response = null;
         if (!$isAlgoOrder) {
-            $request['orderType'] = $type;
+            $request['orderType'] = $typeValue;
             if ($isLimitOrder) {
                 $request['orderPrice'] = $this->price_to_precision($symbol, $price);
             }
@@ -2344,7 +2313,7 @@ class btse extends Exchange {
             //         "timeInForce": "GTC"
             //     }
             //
-            $response = Async\await($this->privatePostFuturesApiV3TradeOrders($this->extend($request, $params)));
+            $response = Async\await($this->privatePostFuturesApiV3TradeOrders($this->extend($request, $query)));
         } else {
             if ($isConditionalOrder) {
                 // the futures conditional variant has no trigger direction field,
@@ -2358,38 +2327,38 @@ class btse extends Exchange {
                     $triggerPriceToSend = $stopLossPrice;
                 }
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPriceToSend);
-                $triggerPriceType = $this->safe_string($params, 'triggerPriceType', 'mark');
+                $triggerPriceType = $this->safe_string($query, 'triggerPriceType', 'mark');
                 $request['triggerType'] = $this->encode_trigger_price_type($triggerPriceType);
                 if ($isLimitOrder) {
                     $request['orderPrice'] = $this->price_to_precision($symbol, $price);
                 }
-                $params = $this->omit($params, array( 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'triggerPriceType' ));
+                $query = $this->omit($query, array( 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'triggerPriceType' ));
             } else {
-                $request['orderType'] = $type;
-                if ($type === 'OCO') {
+                $request['orderType'] = $typeValue;
+                if ($typeValue === 'OCO') {
                     // the price argument is the limit price of the take profit leg,
                     // the stopPrice param is the limit price of the stop loss leg
                     // and the triggerPrice param is where the stop loss leg fires
                     $request['takeProfitOrderPrice'] = $this->price_to_precision($symbol, $price);
-                    $stopPrice = $this->safe_string($params, 'stopPrice');
+                    $stopPrice = $this->safe_string($query, 'stopPrice');
                     if ($stopPrice !== null) {
                         $request['stopLossOrderPrice'] = $this->price_to_precision($symbol, $stopPrice);
                     }
                     if ($triggerPrice !== null) {
                         $request['stopLossTriggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                     }
-                    $triggerPriceType = $this->safe_string($params, 'triggerPriceType', 'mark');
+                    $triggerPriceType = $this->safe_string($query, 'triggerPriceType', 'mark');
                     $request['stopLossTriggerType'] = $this->encode_trigger_price_type($triggerPriceType);
-                    $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'triggerPriceType' ));
-                } elseif ($type === 'PEG') {
+                    $query = $this->omit($query, array( 'stopPrice', 'triggerPrice', 'triggerPriceType' ));
+                } elseif ($typeValue === 'PEG') {
                     // the required deviation and stealth params pass through, the
                     // optional price argument becomes a worst-price bound
                     if ($price !== null) {
                         $request['orderPrice'] = $this->price_to_precision($symbol, $price);
                     }
-                } elseif ($type === 'TRAILING') {
-                    $trailingAmount = $this->safe_string($params, 'trailingAmount');
-                    $trailingPercent = $this->safe_string($params, 'trailingPercent');
+                } elseif ($typeValue === 'TRAILING') {
+                    $trailingAmount = $this->safe_string($query, 'trailingAmount');
+                    $trailingPercent = $this->safe_string($query, 'trailingPercent');
                     if ($trailingAmount !== null) {
                         $request['trailValue'] = $this->price_to_precision($symbol, $trailingAmount);
                         $request['trailValueType'] = 'DISTANCE';
@@ -2397,13 +2366,13 @@ class btse extends Exchange {
                         $request['trailValue'] = $trailingPercent;
                         $request['trailValueType'] = 'PERCENTAGE';
                     }
-                    $triggerPriceType = $this->safe_string($params, 'triggerPriceType', 'mark');
+                    $triggerPriceType = $this->safe_string($query, 'triggerPriceType', 'mark');
                     $request['trailTriggerPriceType'] = $this->encode_trigger_price_type($triggerPriceType);
-                    $params = $this->omit($params, array( 'trailingAmount', 'trailingPercent', 'triggerPriceType' ));
+                    $query = $this->omit($query, array( 'trailingAmount', 'trailingPercent', 'triggerPriceType' ));
                 }
                 // TWAP orders require the timePeriod param which passes through
             }
-            $response = Async\await($this->privatePostFuturesApiV3TradeOrdersAlgo($this->extend($request, $params)));
+            $response = Async\await($this->privatePostFuturesApiV3TradeOrdersAlgo($this->extend($request, $query)));
         }
         // the normal futures endpoint responds with a single order dict, keep a
         // one element array guard in case a gateway wraps it
@@ -2414,7 +2383,7 @@ class btse extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function encode_trigger_price_type(?string $priceType) {
+    public function encode_trigger_price_type(?string $priceType): ?string {
         $priceTypes = array(
             'last' => 'LAST_PRICE',
             'mark' => 'MARK_PRICE',
@@ -2450,25 +2419,24 @@ class btse extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrderId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
         } elseif ($id === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires an $id argument or a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires an id argument or a clientOrderId parameter');
         } else {
             $request['orderId'] = $id;
         }
+        $paramsOmitted = ($clientOrderId !== null) ? $this->omit($params, 'clientOrderId') : $params;
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params, $marketType);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrder', $market, $paramsOmitted, 'spot');
         $response = null;
         if ($marketType === 'spot') {
-            $response = Async\await($this->privateGetSpotApiV4TradeOrder($this->extend($request, $params)));
+            $response = Async\await($this->privateGetSpotApiV4TradeOrder($this->extend($request, $paramsMarketType)));
         } else {
             // the futures endpoint doubles as the single order lookup when an
             // order id is sent and responds with a bare array
-            $response = Async\await($this->privateGetFuturesApiV3TradeOrders($this->extend($request, $params)));
+            $response = Async\await($this->privateGetFuturesApiV3TradeOrders($this->extend($request, $paramsMarketType)));
         }
         // accept a bare order dict, a data envelope and a one element array
         $order = $this->safe_value($response, 'data', $response);
@@ -2508,38 +2476,38 @@ class btse extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrderId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
         } elseif ($id === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument or a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an id argument or a clientOrderId parameter');
         } else {
             $request['orderId'] = $id;
         }
-        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        $paramsOmitted = ($clientOrderId !== null) ? $this->omit($params, 'clientOrderId') : $params;
+        $triggerPrice = $this->safe_string($paramsOmitted, 'triggerPrice');
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $params = $this->omit($params, 'triggerPrice');
         }
+        $query = ($triggerPrice !== null) ? $this->omit($paramsOmitted, 'triggerPrice') : $paramsOmitted;
         if ($amount !== null) {
             $request['orderSize'] = $this->amount_to_precision($symbol, $amount);
         }
         if ($price !== null) {
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
-        $isSlide = $this->safe_bool($params, 'slide', false);
-        if (($amount === null) && ($price === null) && ($triggerPrice === null) && ($isSlide !== true)) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument, a $price argument or a $triggerPrice parameter');
+        $isSlide = $this->safe_bool($query, 'slide', false);
+        if (($amount === null) && ($price === null) && ($triggerPrice === null) && (!$isSlide)) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         $response = null;
         if ($market['spot'] === true) {
             $request['symbol'] = $market['id'];
-            $response = Async\await($this->privatePutSpotApiV4TradeOrders($this->extend($request, $params)));
+            $response = Async\await($this->privatePutSpotApiV4TradeOrders($this->extend($request, $query)));
         } else {
             // the futures amend requires an explicit amendType discriminator
             // which can change the price and size together or a single field
             $request['symbol'] = $this->futures_request_id($market);
             if ($triggerPrice !== null) {
                 if (($amount !== null) || ($price !== null)) {
-                    throw new BadRequest($this->id . ' editOrder() can not amend the trigger $price together with the $price or the $amount on contract markets');
+                    throw new BadRequest($this->id . ' editOrder() can not amend the trigger price together with the price or the amount on contract markets');
                 }
                 $request['amendType'] = 'TRIGGER_PRICE';
             } elseif (($amount !== null) && ($price !== null)) {
@@ -2549,7 +2517,7 @@ class btse extends Exchange {
             } else {
                 $request['amendType'] = 'PRICE';
             }
-            $response = Async\await($this->privatePutFuturesApiV3TradeOrders($this->extend($request, $params)));
+            $response = Async\await($this->privatePutFuturesApiV3TradeOrders($this->extend($request, $query)));
         }
         $order = $this->safe_dict($response, 0, array());
         return $this->parse_order($order, $market);
@@ -2573,7 +2541,7 @@ class btse extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -2581,16 +2549,16 @@ class btse extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrderId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
         } elseif ($id === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument or a $clientOrderId parameter');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an id argument or a clientOrderId parameter');
         } else {
             $request['orderId'] = $id;
         }
+        $paramsOmitted = ($clientOrderId !== null) ? $this->omit($params, 'clientOrderId') : $params;
         $response = null;
         if ($market['spot'] === true) {
             $request['symbol'] = $market['id'];
-            $response = Async\await($this->privateDeleteSpotApiV4TradeOrders($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteSpotApiV4TradeOrders($this->extend($request, $paramsOmitted)));
         } else {
             //
             //     [
@@ -2609,7 +2577,7 @@ class btse extends Exchange {
             //     ]
             //
             $request['symbol'] = $this->futures_request_id($market);
-            $response = Async\await($this->privateDeleteFuturesApiV3TradeOrders($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteFuturesApiV3TradeOrders($this->extend($request, $paramsOmitted)));
         }
         $order = $this->safe_dict($response, 0, array());
         return $this->parse_order($order, $market);
@@ -2637,22 +2605,22 @@ class btse extends Exchange {
             $market = $this->market($symbol);
         }
         $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params, $marketType);
+        list($marketTypeOption, $paramsMarketType) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params, $marketType);
         $request = array();
         $response = null;
-        if ($marketType === 'spot') {
+        if ($marketTypeOption === 'spot') {
             // the literal ALL value cancels every open order across all pairs
             $request['symbol'] = ($market !== null) ? $market['id'] : 'ALL';
-            $response = Async\await($this->privateDeleteSpotApiV4TradeOrdersAll($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteSpotApiV4TradeOrdersAll($this->extend($request, $paramsMarketType)));
         } else {
             if ($market === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for contract markets');
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument for contract markets');
             }
             // the unified futures api has no cancel all endpoint, the legacy
             // endpoint cancels every order for the symbol when no order id is
             // sent, and it identifies contracts by the short symbol form
             $request['symbol'] = $this->futures_request_id($market);
-            $response = Async\await($this->privateDeleteFuturesApiV23Order($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteFuturesApiV23Order($this->extend($request, $paramsMarketType)));
         }
         return $this->parse_orders($response, $market);
     }
@@ -2677,14 +2645,14 @@ class btse extends Exchange {
         $request = array();
         $response = null;
         $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrdersAfter', null, $params, $marketType);
-        if ($marketType === 'spot') {
+        list($marketTypeOption, $paramsMarketType) = $this->handle_market_type_and_params('cancelAllOrdersAfter', null, $params, $marketType);
+        if ($marketTypeOption === 'spot') {
             $request['timeout'] = $timeout;
-            $response = Async\await($this->privatePostSpotApiV4TradeOrdersCancelAllAfter($this->extend($request, $params)));
+            $response = Async\await($this->privatePostSpotApiV4TradeOrdersCancelAllAfter($this->extend($request, $paramsMarketType)));
         } else {
             // the futures param is named timeoutMs and is required, zero disarms
             $request['timeoutMs'] = $timeout;
-            $response = Async\await($this->privatePostFuturesApiV3TradeOrdersCancelAllAfter($this->extend($request, $params)));
+            $response = Async\await($this->privatePostFuturesApiV3TradeOrdersCancelAllAfter($this->extend($request, $paramsMarketType)));
         }
         return $response;
     }
@@ -2714,18 +2682,18 @@ class btse extends Exchange {
             $market = $this->market($symbol);
         }
         $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params, $marketType);
+        list($marketTypeOption, $paramsMarketType) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params, $marketType);
         $response = null;
-        if ($marketType === 'spot') {
+        if ($marketTypeOption === 'spot') {
             if ($market !== null) {
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetSpotApiV4TradeOrders($this->extend($request, $params)));
+            $response = Async\await($this->privateGetSpotApiV4TradeOrders($this->extend($request, $paramsMarketType)));
         } else {
             if ($market !== null) {
                 $request['symbol'] = $this->futures_request_id($market);
             }
-            $response = Async\await($this->privateGetFuturesApiV3TradeOrders($this->extend($request, $params)));
+            $response = Async\await($this->privateGetFuturesApiV3TradeOrders($this->extend($request, $paramsMarketType)));
         }
         // the endpoints have no server side time filters, accept a bare array
         // and a data envelope and filter client-side
@@ -2796,7 +2764,7 @@ class btse extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_2($order, 'symbol', 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($order, 'timestamp');
         // open_orders rows carry no numeric status - the state lives in
         // orderState (STATUS_ACTIVE / STATUS_INACTIVE), and time_in_force
@@ -2821,7 +2789,7 @@ class btse extends Exchange {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => null,
             'status' => $status,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $orderType,
             'timeInForce' => $this->parse_time_in_force($rawTimeInForce),
             'postOnly' => $this->safe_bool($order, 'postOnly'),
@@ -2838,10 +2806,10 @@ class btse extends Exchange {
             'trades' => null,
             'fee' => null,
             'average' => $this->omit_zero($this->safe_string_2($order, 'avgFilledPrice', 'averageFillPrice')),
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '2' => 'open', // Order Inserted
             '3' => 'closed', // Order Transacted
@@ -2866,7 +2834,7 @@ class btse extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             // the unified futures place order response reports a degenerate 0
             // in the type field regardless of the real order type, observed
@@ -2878,7 +2846,7 @@ class btse extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $values = array(
             'GTC' => 'GTC',
             'IOC' => 'IOC',
@@ -2913,13 +2881,13 @@ class btse extends Exchange {
         Async\await($this->load_markets());
         $response = null;
         $marketType = 'spot';
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params, $marketType);
-        if ($marketType === 'spot') {
-            $response = Async\await($this->privateGetSpotApiV4TradeFees($params));
+        list($marketTypeOption, $paramsMarketType) = $this->handle_market_type_and_params('fetchTradingFees', null, $params, $marketType);
+        if ($marketTypeOption === 'spot') {
+            $response = Async\await($this->privateGetSpotApiV4TradeFees($paramsMarketType));
         } else {
             // the futures fees stay on the legacy endpoint, the unified futures
             // api has no fees route
-            $response = Async\await($this->privateGetFuturesApiV23UserFees($params));
+            $response = Async\await($this->privateGetFuturesApiV23UserFees($paramsMarketType));
         }
         //
         //     [
@@ -2969,7 +2937,7 @@ class btse extends Exchange {
         // the endpoint applies a server side history type filter sent as a
         // json encoded array in the query string, verified live
         $request['historyTypes'] = $this->json($typesList);
-        $params = $this->omit($params, 'walletType');
+        $paramsOmitted = $this->omit($params, 'walletType');
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -2977,7 +2945,7 @@ class btse extends Exchange {
         } elseif ($walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
             // verified live, and omitting walletType still defaults to spot
-            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $code argument for the spot wallet history');
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a code argument for the spot wallet history');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2985,12 +2953,11 @@ class btse extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($paramsOmitted, $methodName, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = Async\await($this->privateGetPublicApiWalletV1UserWalletHistory($this->extend($request, $params)));
+        $response = Async\await($this->privateGetPublicApiWalletV1UserWalletHistory($this->extend($request, $paramsUntil)));
         //
         //     {
         //         "code": 1,
@@ -3203,7 +3170,7 @@ class btse extends Exchange {
         $request = array();
         $walletType = $this->safe_string($params, 'walletType', 'SPOT');
         $request['walletType'] = $walletType;
-        $params = $this->omit($params, 'walletType');
+        $paramsOmitted = $this->omit($params, 'walletType');
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -3211,7 +3178,7 @@ class btse extends Exchange {
         } elseif ($walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
             // verified live, and omitting walletType still defaults to spot
-            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument for the spot wallet history');
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a code argument for the spot wallet history');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -3219,12 +3186,11 @@ class btse extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($paramsOmitted, 'fetchLedger', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = Async\await($this->privateGetPublicApiWalletV1UserWalletHistory($this->extend($request, $params)));
+        $response = Async\await($this->privateGetPublicApiWalletV1UserWalletHistory($this->extend($request, $paramsUntil)));
         //
         //     [
         //         {
@@ -3398,16 +3364,13 @@ class btse extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         Async\await($this->load_markets());
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->privateGetFuturesApiV3TradePositions($params));
         //
         // the response is a bare array of position rows
         //
-        $rows = $this->safe_list($response, 'data');
-        if ($rows === null) {
-            $rows = $response;
-        }
-        return $this->parse_positions($rows, $symbols);
+        $rows = $this->safe_list($response, 'data', $response);
+        return $this->parse_positions($rows, $symbolsNormalized);
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array()): PromiseInterface {
@@ -3427,10 +3390,10 @@ class btse extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $params = $this->extend(array(
+        $paramsExtended = $this->extend(array(
             'symbol' => $this->futures_request_id($market),
         ), $params);
-        return Async\await($this->fetch_positions(array( $symbol ), $params));
+        return Async\await($this->fetch_positions(array( $symbol ), $paramsExtended));
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -3481,7 +3444,7 @@ class btse extends Exchange {
         } else {
             $marketId = $this->safe_string($position, 'symbol');
         }
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($position, 'timestamp');
         $marginType = $this->safe_string($position, 'marginType');
         $side = $this->safe_string_lower_2($position, 'positionDirection', 'side');
@@ -3494,7 +3457,7 @@ class btse extends Exchange {
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'positionId'),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'entryPrice' => $this->parse_number($this->safe_string($position, 'entryPrice')),
             'markPrice' => $this->parse_number($this->safe_string($position, 'markPrice')),
             'lastPrice' => null,
@@ -3523,7 +3486,7 @@ class btse extends Exchange {
         ));
     }
 
-    public function parse_margin_mode_type(?string $marginMode) {
+    public function parse_margin_mode_type(?string $marginMode): ?string {
         $marginModes = array(
             '91' => 'cross',
             '92' => 'isolated',
@@ -3533,7 +3496,7 @@ class btse extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function parse_position_side(?string $side) {
+    public function parse_position_side(?string $side): ?string {
         $sides = array(
             'buy' => 'long',
             'sell' => 'short',
@@ -3556,7 +3519,7 @@ class btse extends Exchange {
          * @return {array} an object detailing whether the $market is in $hedged or one-way mode
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchPositionMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchPositionMode() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -3602,11 +3565,14 @@ class btse extends Exchange {
         // it terms of btse positionMode could be HEDGE, ONE_WAY or ISOLATED
         // ISOLATED positionMode is always hedged and multi-position
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $positionMode = $hedged ? 'HEDGE' : 'ONE_WAY';
+        $positionMode = 'ONE_WAY';
+        if ($hedged) {
+            $positionMode = 'HEDGE';
+        }
         $request = array(
             'symbol' => $this->futures_request_id($market),
             'positionMode' => $positionMode,
@@ -3648,7 +3614,7 @@ class btse extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($marginMode, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $positionMode = $this->safe_string_lower($marginMode, 'marginMode');
         $marginModeValue = 'cross';
         if ($positionMode === 'isolated') {
@@ -3656,7 +3622,7 @@ class btse extends Exchange {
         }
         return array(
             'info' => $marginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'marginMode' => $marginModeValue,
         );
     }
@@ -3684,33 +3650,33 @@ class btse extends Exchange {
         // we use params.hedged to define the positionMode when marginMode is cross
         // and warn user if the params are not correct for the marginMode being set
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $marginMode = strtolower($marginMode);
+        $marginModeValue = strtolower($marginMode);
         $positionMode = 'ONE_WAY';
-        if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be either cross or isolated');
+        if (($marginModeValue !== 'cross') && ($marginModeValue !== 'isolated')) {
+            throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be either cross or isolated');
         }
         $hedged = $this->safe_bool($params, 'hedged');
-        if ($marginMode === 'cross') {
+        if ($marginModeValue === 'cross') {
             if (!(is_array($params) && array_key_exists('hedged' ?? '', $params))) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $hedged parameter for cross margin mode');
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a hedged parameter for cross margin mode');
             } elseif ($hedged === true) {
                 $positionMode = 'HEDGE';
             }
         } elseif ((is_array($params) && array_key_exists('hedged' ?? '', $params)) && ($hedged !== true)) {
-            throw new BadRequest($this->id . ' setMarginMode() $hedged parameter cannot be false for isolated margin mode');
+            throw new BadRequest($this->id . ' setMarginMode() hedged parameter cannot be false for isolated margin mode');
         } else {
             $positionMode = 'ISOLATED';
         }
-        $params = $this->omit($params, 'hedged');
+        $paramsOmitted = $this->omit($params, 'hedged');
         $request = array(
             'symbol' => $this->futures_request_id($market),
             'positionMode' => $positionMode,
         );
-        return Async\await($this->privatePostFuturesApiV3TradePositionMode($this->extend($request, $params)));
+        return Async\await($this->privatePostFuturesApiV3TradePositionMode($this->extend($request, $paramsOmitted)));
     }
 
     public function close_position(string $symbol, ?string $side = null, $params = array()): PromiseInterface {
@@ -3736,28 +3702,24 @@ class btse extends Exchange {
         $market = $this->market($symbol);
         $positionId = $this->safe_string($params, 'positionId');
         if ($positionId === null) {
-            throw new ArgumentsRequired($this->id . ' closePosition() requires a $positionId parameter');
+            throw new ArgumentsRequired($this->id . ' closePosition() requires a positionId parameter');
         }
         $request = array(
             'symbol' => $this->futures_request_id($market),
         );
-        $type = 'market';
-        list($type, $params) = $this->handle_option_and_params($params, 'closePosition', 'type', $type);
-        $type = strtoupper($type);
-        $request['orderType'] = $type;
-        if ($type === 'LIMIT') {
-            $price = $this->safe_string($params, 'price');
+        list($orderType, $paramsOrderType) = $this->handle_option_string_and_params($params, 'closePosition', 'type', 'market');
+        $typeUpper = strtoupper($orderType);
+        $request['orderType'] = $typeUpper;
+        if ($typeUpper === 'LIMIT') {
+            $price = $this->safe_string($paramsOrderType, 'price');
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' closePosition() requires a $price parameter for limit orders');
+                throw new ArgumentsRequired($this->id . ' closePosition() requires a price parameter for limit orders');
             }
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
-            $params = $this->omit($params, 'price');
         }
-        $response = Async\await($this->privateDeleteFuturesApiV3TradePositions($this->extend($request, $params)));
-        $order = $this->safe_dict($response, 0);
-        if ($order === null) {
-            $order = $response;
-        }
+        $paramsOmitted = ($typeUpper === 'LIMIT') ? $this->omit($paramsOrderType, 'price') : $paramsOrderType;
+        $response = Async\await($this->privateDeleteFuturesApiV3TradePositions($this->extend($request, $paramsOmitted)));
+        $order = $this->safe_dict($response, 0, $response);
         return $this->parse_order($order, $market);
     }
 
@@ -3809,7 +3771,7 @@ class btse extends Exchange {
         $shortLeverage = null;
         $marginMode = null;
         for ($i = 0; $i < count($safeResponse); $i++) {
-            $entrty = $safeResponse[$i];
+            $entrty = $this->safe_dict($safeResponse, $i);
             $leverageValue = $this->safe_integer($entrty, 'leverage');
             $positionDirection = $this->safe_string($entrty, 'positionDirection');
             $marginMode = $this->safe_string_lower($entrty, 'marginMode');
@@ -3847,7 +3809,7 @@ class btse extends Exchange {
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -3858,12 +3820,11 @@ class btse extends Exchange {
         // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
         // verified live - a bare call on a cross account silently changes the
         // isolated leverage only, so the unified marginMode param is translated here
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
+        list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('setLeverage', $params);
         if ($marginMode !== null) {
             $request['marginMode'] = strtoupper($marginMode);
         }
-        $response = Async\await($this->privatePostFuturesApiV3TradeLeverage($this->extend($request, $params)));
+        $response = Async\await($this->privatePostFuturesApiV3TradeLeverage($this->extend($request, $paramsMarginMode)));
         return $response;
     }
 
@@ -3883,7 +3844,7 @@ class btse extends Exchange {
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             $spotErrorCode = $this->safe_string($response, 'code');
             $spotMessage = $this->safe_string($response, 'msg');
             $feedback = $this->id . ' ' . $body;
@@ -3927,7 +3888,7 @@ class btse extends Exchange {
             $rows = array( $response );
         }
         for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
+            $row = $this->safe_dict($rows, $i);
             $status = $this->safe_string($row, 'status');
             if ($status !== null) {
                 $message = $this->safe_string($row, 'message');
@@ -3943,15 +3904,22 @@ class btse extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
-        $baseUrl = $this->urls['api'][$api];
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()) {
+        $apiName = $api[0];
+        $requestBody = null;
+        $requestHeaders = null;
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $baseUrl = $apiUrl;
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        $isBodyDelete = ($method === 'DELETE') && (str_starts_with($path, 'futures/api/v3/') === true);
+        $isBodyDelete = ($method === 'DELETE') && (str_starts_with($path, 'futures/api/v3/'));
         $queryString = '';
         if ((($method === 'GET') || ($method === 'DELETE')) && !$isBodyDelete) {
             if (count($query) > 0) {
@@ -3959,28 +3927,28 @@ class btse extends Exchange {
                 $url .= '?' . $queryString;
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             $bodyString = $this->json($query);
             if ((($method === 'GET') || ($method === 'DELETE')) && !$isBodyDelete) {
                 $bodyString = '';
             } else {
-                $body = $bodyString;
+                $requestBody = $bodyString;
             }
             // the signed urlpath is the path relative to the base url of the product, the
             // spot and futures apis of every generation mount under /spot and /futures and
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             $signPath = null;
-            if (str_starts_with($path, 'public-api/') === true) {
+            if (str_starts_with($path, 'public-api/')) {
                 $signPath = '/' . $path;
             } else {
                 $signPath = $this->clean_path($path);
             }
             $payload = $signPath . (string) $nonce . $bodyString;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384');
-            $headers = array(
+            $requestHeaders = array(
                 'request-api' => $this->apiKey,
                 'request-nonce' => (string) $nonce,
                 'request-sign' => $signature,
@@ -3988,7 +3956,9 @@ class btse extends Exchange {
                 'BROKER-ID' => 'ccxt',
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function futures_request_id(mixed $market) {
@@ -3998,7 +3968,7 @@ class btse extends Exchange {
         return $this->safe_string($market['info'], 'tradeCurrency', $market['id']);
     }
 
-    public function clean_path(string $path) {
+    public function clean_path(string $path): string {
         $result = str_replace('spot', '', $path);
         $result = str_replace('futures', '', $result);
         $result = str_replace('otc', '', $result);
@@ -4006,6 +3976,6 @@ class btse extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 }

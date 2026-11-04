@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     fapiPublicGetV1Ping(params?: {}): Promise<Dict>;
     fapiPublicGetV3Ping(params?: {}): Promise<Dict>;
     fapiPublicGetV1Time(params?: {}): Promise<Dict>;
@@ -180,7 +180,5 @@ interface Exchange {
     sapiPrivateDeleteV3AllOpenOrders(params?: {}): Promise<List>;
     sapiPrivateDeleteV3Order(params?: {}): Promise<Dict>;
     sapiPrivateDeleteV3ListenKey(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

@@ -92,7 +92,7 @@ class bydfi extends \ccxt\async\bydfi {
         );
     }
 
-    public function request_id() {
+    public function request_id(): float {
         $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
@@ -112,9 +112,9 @@ class bydfi extends \ccxt\async\bydfi {
         );
         $unsubscribe = $this->safe_bool($params, 'unsubscribe', false);
         $method = 'SUBSCRIBE';
-        if ($unsubscribe === true) {
+        $paramsOmitted = ($unsubscribe) ? $this->omit($params, 'unsubscribe') : $params;
+        if ($unsubscribe) {
             $method = 'UNSUBSCRIBE';
-            $params = $this->omit($params, 'unsubscribe');
             $subscriptionParams['unsubscribe'] = true;
             $subscriptionParams['messageHashes'] = $messageHashes;
         }
@@ -123,7 +123,7 @@ class bydfi extends \ccxt\async\bydfi {
             'method' => $method,
             'params' => $channels,
         );
-        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($message, $params), $messageHashes, $this->extend($subscriptionParams, $subscription)));
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($message, $paramsOmitted), $messageHashes, $this->extend($subscriptionParams, $subscription)));
     }
 
     public function watch_private(array $messageHashes, $params = array()) {
@@ -137,6 +137,7 @@ class bydfi extends \ccxt\async\bydfi {
         $client = $this->client($url);
         $privateSubscription = $this->safe_value($client->subscriptions, $subHash);
         $subscription = array();
+        $paramsLogin = null;
         if ($privateSubscription === null) {
             $id = $this->request_id();
             $timestamp = (string) $this->milliseconds();
@@ -151,10 +152,11 @@ class bydfi extends \ccxt\async\bydfi {
                     'sign' => $signature,
                 ),
             );
-            $params = $this->deep_extend($request, $params);
+            $paramsLogin = $this->deep_extend($request, $params);
             $subscription['id'] = $id;
         }
-        return Async\await($this->watch_multiple($url, $messageHashes, $params, array( 'private' ), $subscription));
+        $paramsResolved = ($paramsLogin !== null) ? $paramsLogin : $params;
+        return Async\await($this->watch_multiple($url, $messageHashes, $paramsResolved, array( 'private' ), $subscription));
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -212,24 +214,24 @@ class bydfi extends \ccxt\async\bydfi {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true);
         $messageHashes = array();
         $messageHash = 'ticker::';
         $channels = array();
         $channel = '@ticker';
-        if ($symbols === null) {
+        if ($symbolsNormalized === null) {
             $messageHashes[] = $messageHash . 'all';
             $channels[] = '!ticker@arr';
         } else {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
                 $marketId = $this->market_id($symbol);
                 $messageHashes[] = $messageHash . $symbol;
                 $channels[] = $marketId . $channel;
             }
         }
         Async\await($this->watch_public($messageHashes, $channels, $params));
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -247,7 +249,7 @@ class bydfi extends \ccxt\async\bydfi {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $symbols = $this->market_symbols($symbols, null, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true);
         $messageHashes = array();
         $messageHash = 'unsubscribe::ticker::';
         $channels = array();
@@ -255,7 +257,7 @@ class bydfi extends \ccxt\async\bydfi {
         $subscription = array(
             'topic' => 'ticker',
         );
-        if ($symbols === null) {
+        if ($symbolsNormalized === null) {
             // all tickers and tickers for specific symbols are different channels
             // we need to unsubscribe from all ticker channels
             $subHashes = $this->get_message_hashes_for_tickers_unsubscription();
@@ -275,19 +277,19 @@ class bydfi extends \ccxt\async\bydfi {
             $messageHashes[] = $messageHash;
             $channels[] = '!ticker@arr';
         } else {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
                 $marketId = $this->market_id($symbol);
                 $messageHashes[] = $messageHash . $symbol;
                 $channels[] = $marketId . $channel;
             }
-            $subscription['symbols'] = $symbols;
+            $subscription['symbols'] = $symbolsNormalized;
         }
-        $params = $this->extend($params, array( 'unsubscribe' => true ));
-        return Async\await($this->watch_public($messageHashes, $channels, $params, $subscription));
+        $paramsExtended = $this->extend($params, array( 'unsubscribe' => true ));
+        return Async\await($this->watch_public($messageHashes, $channels, $paramsExtended, $subscription));
     }
 
-    public function get_message_hashes_for_tickers_unsubscription() {
+    public function get_message_hashes_for_tickers_unsubscription(): array {
         $url = $this->urls['api']['ws']['public'];
         $client = $this->client($url);
         $subscriptions = $client->subscriptions;
@@ -376,13 +378,13 @@ class bydfi extends \ccxt\async\bydfi {
          */
         $symbolsLength = count($symbolsAndTimeframes);
         if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
-            throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and $timeframes, like  ['ETH/USDC', '1m']");
+            throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         Async\await($this->load_markets());
         $channels = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
             $marketId = $this->safe_string($symbolAndTimeframe, 0);
             $market = $this->market($marketId);
             $tf = $this->safe_string($symbolAndTimeframe, 1);
@@ -392,10 +394,11 @@ class bydfi extends \ccxt\async\bydfi {
             $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $interval;
         }
         list($symbol, $timeframe, $candles) = Async\await($this->watch_public($messageHashes, $channels, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $candles->getLimit($symbol, $limit);
+            $limitResolved = $candles->getLimit($symbol, $limit);
         }
-        $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
+        $filtered = $this->filter_by_since_limit($candles, $since, $limitResolved, 0, true);
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
@@ -421,7 +424,7 @@ class bydfi extends \ccxt\async\bydfi {
         $channels = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
             $marketId = $this->safe_string($symbolAndTimeframe, 0);
             $market = $this->market($marketId);
             $tf = $this->safe_string($symbolAndTimeframe, 1);
@@ -429,12 +432,12 @@ class bydfi extends \ccxt\async\bydfi {
             $channels[] = $market['id'] . '@kline_' . $interval;
             $messageHashes[] = 'unsubscribe::ohlcv::' . $market['symbol'] . '::' . $interval;
         }
-        $params = $this->extend($params, array( 'unsubscribe' => true ));
+        $paramsExtended = $this->extend($params, array( 'unsubscribe' => true ));
         $subscription = array(
             'topic' => 'ohlcv',
             'symbolsAndTimeframes' => $symbolsAndTimeframes,
         );
-        return Async\await($this->watch_public($messageHashes, $channels, $params, $subscription));
+        return Async\await($this->watch_public($messageHashes, $channels, $paramsExtended, $subscription));
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -518,24 +521,24 @@ class bydfi extends \ccxt\async\bydfi {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $depth = '100';
-        list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
+        list($depthOption, $paramsDepth) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
         $frequency = '100ms';
-        list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'frequency', $frequency);
+        list($frequencyOption, $paramsFrequency) = $this->handle_option_string_and_params($paramsDepth, 'watchOrderBookForSymbols', 'frequency', $frequency);
         $channelSuffix = '';
-        if ($frequency === '100ms') {
+        if ($frequencyOption === '100ms') {
             $channelSuffix = '@100ms';
         }
         $channels = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $channels[] = $market['id'] . '@depth' . $depth . $channelSuffix;
+            $channels[] = $market['id'] . '@depth' . $depthOption . $channelSuffix;
             $messageHashes[] = 'orderbook::' . $symbol;
         }
-        $orderbook = Async\await($this->watch_public($messageHashes, $channels, $params));
+        $orderbook = Async\await($this->watch_public($messageHashes, $channels, $paramsFrequency));
         return $orderbook->limit();
     }
 
@@ -557,29 +560,29 @@ class bydfi extends \ccxt\async\bydfi {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $depth = '100';
-        list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
+        list($depthOption, $paramsDepth) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
         $frequency = '100ms';
-        list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'frequency', $frequency);
+        list($frequencyOption, $paramsFrequency) = $this->handle_option_string_and_params($paramsDepth, 'watchOrderBookForSymbols', 'frequency', $frequency);
         $channelSuffix = '';
-        if ($frequency === '100ms') {
+        if ($frequencyOption === '100ms') {
             $channelSuffix = '@100ms';
         }
         $channels = array();
         $messageHashes = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $channels[] = $market['id'] . '@depth' . $depth . $channelSuffix;
+            $channels[] = $market['id'] . '@depth' . $depthOption . $channelSuffix;
             $messageHashes[] = 'unsubscribe::orderbook::' . $symbol;
         }
         $subscription = array(
             'topic' => 'orderbook',
-            'symbols' => $symbols,
+            'symbols' => $symbolsNormalized,
         );
-        $params = $this->extend($params, array( 'unsubscribe' => true ));
-        return Async\await($this->watch_public($messageHashes, $channels, $params, $subscription));
+        $paramsExtended = $this->extend($paramsFrequency, array( 'unsubscribe' => true ));
+        return Async\await($this->watch_public($messageHashes, $channels, $paramsExtended, $subscription));
     }
 
     public function handle_order_book(Client $client, array $message) {
@@ -648,23 +651,24 @@ class bydfi extends \ccxt\async\bydfi {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true);
         $messageHashes = array();
-        if ($symbols === null) {
+        if ($symbolsNormalized === null) {
             $messageHashes[] = 'orders';
         } else {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'orders::' . $symbol;
             }
         }
         $orders = Async\await($this->watch_private($messageHashes, $params));
+        $first = $this->safe_dict($orders, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($orders, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $orders->getLimit($tradeSymbol, $limit);
+            $limitResolved = $orders->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($orders, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_order(Client $client, array $message) {
@@ -740,7 +744,7 @@ class bydfi extends \ccxt\async\bydfi {
         //     }
         //
         $marketId = $this->safe_string($order, 's');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $rawStatus = $this->safe_string($order, 'st');
         $rawType = $this->safe_string($order, 't');
         $fee = null;
@@ -748,7 +752,7 @@ class bydfi extends \ccxt\async\bydfi {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => Precise::string_abs($feeCost),
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
             );
         }
         return $this->safe_order(array(
@@ -760,7 +764,7 @@ class bydfi extends \ccxt\async\bydfi {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => null,
             'status' => $this->parse_order_status($rawStatus),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $this->parseOrderType($rawType),
             'timeInForce' => null,
             'postOnly' => null,
@@ -777,7 +781,7 @@ class bydfi extends \ccxt\async\bydfi {
             'trades' => null,
             'fee' => $fee,
             'average' => $this->omit_zero($this->safe_string($order, 'ap')),
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -799,14 +803,14 @@ class bydfi extends \ccxt\async\bydfi {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true);
         $messageHashes = array();
         $messageHash = 'positions';
-        if ($symbols === null) {
+        if ($symbolsNormalized === null) {
             $messageHashes[] = $messageHash;
         } else {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = $messageHash . '::' . $symbol;
             }
         }
@@ -814,7 +818,7 @@ class bydfi extends \ccxt\async\bydfi {
         if ($this->newUpdates) {
             return $positions;
         }
-        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
     public function handle_positions(Client $client, array $message) {
@@ -901,13 +905,13 @@ class bydfi extends \ccxt\async\bydfi {
         //     }
         //
         $marketId = $this->safe_string($position, 's');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $rawPositionSide = $this->safe_string($position, 'S');
         $positionMode = $this->safe_string($position, 'pt');
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'entryPrice' => $this->parse_number($this->safe_string($position, 'ap')),
             'markPrice' => null,
             'lastPrice' => null,
@@ -964,7 +968,7 @@ class bydfi extends \ccxt\async\bydfi {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
+        if (($fetchBalanceSnapshot) && ($awaitBalanceSnapshot)) {
             Async\await($client->future('fetchBalanceSnapshot'));
         }
         $messageHash = 'balance';
@@ -974,7 +978,7 @@ class bydfi extends \ccxt\async\bydfi {
     public function fetch_balance_snapshot(Client $client) {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot === true) {
+        if ($fetchBalanceSnapshot) {
             $messageHash = 'fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -992,7 +996,30 @@ class bydfi extends \ccxt\async\bydfi {
             'type' => 'swap',
         );
         $response = Async\await($this->fetch_balance($params));
-        $this->balance = $this->extend($response, $this->balance);
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $reserved = array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' );
+        $keys = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->in_array($key, $reserved)) {
+                continue;
+            }
+            if (!(is_array($this->balance) && array_key_exists($key ?? '', $this->balance))) {
+                $this->balance[$key] = $response[$key];
+            }
+        }
+        if (!(is_array($this->balance) && array_key_exists('info' ?? '', $this->balance))) {
+            $this->balance['info'] = $response['info'];
+            $this->balance['timestamp'] = $response['timestamp'];
+            $this->balance['datetime'] = $response['datetime'];
+        }
+        $this->balance = $this->safe_balance($this->balance);
         // don't remove the future from the .futures cache
         $future = $client->futures[$messageHash];
         $future->resolve();
@@ -1040,31 +1067,34 @@ class bydfi extends \ccxt\async\bydfi {
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        $messageHash = 'balance';
-        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
-            $data = $this->safe_dict($message, 'a', array());
-            $balances = $this->safe_list($data, 'B', array());
-            $timestamp = $this->safe_integer($message, 'T');
-            $result = array(
-                'info' => $message,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            );
-            for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
-                $currencyId = $this->safe_string($balance, 'a');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['total'] = $this->safe_string($balance, 'wb');
-                $account['used'] = $this->safe_string($balance, 'tfm');
-                if ($code !== null) {
-                    $result[$code] = $account;
-                }
-            }
-            $parsedBalance = $this->safe_balance($result);
-            $this->balance = $this->extend($this->balance, $parsedBalance);
-            $client->resolve($this->balance, $messageHash);
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if ($this->balance === null) {
+            $this->balance = array();
         }
+        $data = $this->safe_dict($message, 'a', array());
+        $balances = $this->safe_list($data, 'B', array());
+        $timestamp = $this->safe_integer($message, 'T');
+        $this->balance['info'] = $message;
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $this->safe_dict($balances, $i);
+            $currencyId = $this->safe_string($balance, 'a');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'wb');
+            $account['used'] = $this->safe_string($balance, 'tfm');
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
+        }
+        $this->balance = $this->safe_balance($this->balance);
+        $messageHash = 'balance';
+        $client->resolve($this->balance, $messageHash);
     }
 
     public function handle_subscription_status(Client $client, array $message): array {
@@ -1078,7 +1108,7 @@ class bydfi extends \ccxt\async\bydfi {
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage === true) {
+        if ($isUnSubMessage) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;

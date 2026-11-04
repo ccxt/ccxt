@@ -5,11 +5,12 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-import math
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NetworkError
 
 
 class lbank(ccxt.async_support.lbank):
@@ -31,6 +32,8 @@ class lbank(ccxt.async_support.lbank):
                 'watchOrders': True,
                 'watchOrderBook': True,
                 'watchOHLCV': True,
+                'unWatchOHLCV': True,
+                'unWatchTrades': True,
             },
             'urls': {
                 'api': {
@@ -59,7 +62,7 @@ class lbank(ccxt.async_support.lbank):
             },
         })
 
-    def request_id(self):
+    def request_id(self) -> float:
         self.lock_id()
         previousValue = self.safe_integer(self.options, 'requestId', 0)
         newValue = self.sum(previousValue, 1)
@@ -72,6 +75,31 @@ class lbank(ccxt.async_support.lbank):
         # see https://github.com/ccxt/ccxt/issues/26864
         if (market is not None) and (market['contract'] is True):
             raise NotSupported(self.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet')
+
+    async def un_subscribe(self, subHash: str, request: dict, subscription: dict, params: dict = {}):
+        """
+ @ignore
+        sends an unsubscribe request and drops the subscription and its cache
+        :param str subHash: the messageHash the watch method subscribed with
+        :param dict request: the unsubscribe request
+        :param dict subscription: the cache to clean, see cleanCache
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True
+        """
+        url = self.urls['api']['ws']
+        client = self.client(url)
+        if subHash in client.subscriptions:
+            try:
+                await client.send(self.deep_extend(request, params))
+            except Exception as e:
+                # the socket is not open (yet), so the queued subscribe has not gone out either -
+                # keep the subscription instead of letting that subscribe stream unwatched
+                raise NetworkError(self.id + ' could not unsubscribe ' + subHash + ', the websocket connection is not open')
+        # lbank does not acknowledge an unsubscribe, it just stops streaming the channel,
+        # so the subscription is cleaned up as soon as the request is sent
+        self.clean_cache(subscription)
+        self.clean_unsubscription(client, subHash, 'unsubscribe:' + subHash)
+        return True
 
     async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -102,7 +130,8 @@ class lbank(ccxt.async_support.lbank):
             'pair': market['id'],
         }
         if since is not None:
-            message['start'] = self.parse_to_int(int(math.floor(since / 1000)))
+            sinceInt = self.parse_to_int(since)
+            message['start'] = self.parse_to_int(sinceInt / 1000)
         if limit is not None:
             message['size'] = limit
         request = self.deep_extend(message, params)
@@ -139,9 +168,42 @@ class lbank(ccxt.async_support.lbank):
         }
         request = self.deep_extend(subscribe, params)
         ohlcv = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
+        """
+
+        https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to unwatch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True once the unsubscribe request has been sent(lbank does not acknowledge it)
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        self.check_contract_market(market, 'unWatchOHLCV')
+        watchOHLCVOptions = self.safe_dict(self.options, 'watchOHLCV', {})
+        timeframes = self.safe_dict(watchOHLCVOptions, 'timeframes', {})
+        timeframeId = self.safe_string(timeframes, timeframe)
+        if timeframeId is None:
+            raise BadRequest(self.id + ' unWatchOHLCV() does not support the ' + timeframe + ' timeframe')
+        request = {
+            'action': 'unsubscribe',
+            'subscribe': 'kbar',
+            'kbar': timeframeId,
+            'pair': market['id'],
+        }
+        subscription = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [[market['symbol'], timeframe]],
+        }
+        return await self.un_subscribe('ohlcv:' + market['symbol'] + ':' + timeframeId, request, subscription, params)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -233,6 +295,10 @@ class lbank(ccxt.async_support.lbank):
                 self.safe_number(rawOHLCV, 'c'),
                 self.safe_number(rawOHLCV, 'v'),
             ]
+            messageHash = 'ohlcv:' + symbol + ':' + timeframeId
+            if not (messageHash in client.subscriptions):
+                # a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
+                return
             timeframe = self.find_timeframe(timeframeId, timeframes)
             self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.ohlcvs[symbol], timeframe)
@@ -241,7 +307,6 @@ class lbank(ccxt.async_support.lbank):
                 stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
-            messageHash = 'ohlcv:' + symbol + ':' + timeframeId
             client.resolve(stored, messageHash)
 
     async def fetch_ticker_ws(self, symbol: str, params: dict = {}) -> Ticker:
@@ -325,7 +390,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTicker:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "tick":{
@@ -392,13 +457,12 @@ class lbank(ccxt.async_support.lbank):
         self.check_contract_market(market, 'fetchTradesWs')
         url = self.urls['api']['ws']
         messageHash = 'fetchTrades:' + market['symbol']
-        if limit is None:
-            limit = 10
+        limitResolved = 10 if (limit is None) else limit
         message = {
             'action': 'request',
             'request': 'trade',
             'pair': market['id'],
-            'size': limit,
+            'size': limitResolved,
         }
         request = self.deep_extend(message, params)
         requestId = self.request_id()
@@ -432,6 +496,31 @@ class lbank(ccxt.async_support.lbank):
         result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
         return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
 
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+        """
+
+        https://www.lbank.com/en-US/docs/index.html#trade-record
+
+        unWatches the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to unwatch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True once the unsubscribe request has been sent(lbank does not acknowledge it)
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        self.check_contract_market(market, 'unWatchTrades')
+        request = {
+            'action': 'unsubscribe',
+            'subscribe': 'trade',
+            'pair': market['id'],
+        }
+        subscription = {
+            'topic': 'trades',
+            'symbols': [market['symbol']],
+        }
+        return await self.un_subscribe('trades:' + market['symbol'], request, subscription, params)
+
     def handle_trades(self, client: Client, message: dict):
         #
         # request
@@ -462,12 +551,16 @@ class lbank(ccxt.async_support.lbank):
         marketId = self.safe_string(message, 'pair')
         symbol = self.safe_symbol(marketId)
         market = self.safe_market(marketId)
+        rawTrade = self.safe_dict(message, 'trade')
+        subHash = 'trades:' + symbol
+        if (rawTrade is not None) and not (subHash in client.subscriptions):
+            # a trade lbank pushed before it processed an unWatchTrades, which it does not acknowledge
+            return
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        rawTrade = self.safe_value(message, 'trade')
         rawTrades = self.safe_list(message, 'trades', [rawTrade])
         for i in range(0, len(rawTrades)):
             trade = self.parse_ws_trade(rawTrades[i], market)
@@ -479,7 +572,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTrades:' + symbol
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict | list, market: Market = None) -> Trade:
         #
         # request
         #    [ 'timestamp', 'price', 'volume', 'direction' ]
@@ -493,7 +586,11 @@ class lbank(ccxt.async_support.lbank):
         #    }
         #
         timestamp = self.safe_integer(trade, 0)
-        datetime = (self.iso8601(timestamp)) if (timestamp is not None) else (self.safe_string(trade, 'TS'))
+        datetime = None
+        if timestamp is not None:
+            datetime = (self.iso8601(timestamp))
+        else:
+            datetime = (self.safe_string(trade, 'TS'))
         if timestamp is None:
             timestamp = self.parse8601(datetime)
         rawSide = self.safe_string_2(trade, 'direction', 3)
@@ -538,11 +635,11 @@ class lbank(ccxt.async_support.lbank):
         url = self.urls['api']['ws']
         messageHash = None
         pair = 'all'
+        symbolResolved = None if (symbol is None) else self.symbol(symbol)
         if symbol is None:
             messageHash = 'orders:all'
         else:
             market = self.market(symbol)
-            symbol = self.symbol(symbol)
             messageHash = 'orders:' + market['symbol']
             pair = market['id']
         message = {
@@ -553,7 +650,7 @@ class lbank(ccxt.async_support.lbank):
         }
         request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, messageHash, request)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limit, True)
 
     def handle_orders(self, client: Client, message: dict):
         #
@@ -752,12 +849,11 @@ class lbank(ccxt.async_support.lbank):
         self.check_contract_market(market, 'fetchOrderBookWs')
         url = self.urls['api']['ws']
         messageHash = 'fetchOrderbook:' + market['symbol']
-        if limit is None:
-            limit = 100
+        limitResolved = 100 if (limit is None) else limit
         subscribe = {
             'action': 'request',
             'request': 'depth',
-            'depth': limit,
+            'depth': limitResolved,
             'pair': market['id'],
         }
         request = self.deep_extend(subscribe, params)
@@ -781,16 +877,15 @@ class lbank(ccxt.async_support.lbank):
         self.check_contract_market(market, 'watchOrderBook')
         url = self.urls['api']['ws']
         messageHash = 'orderbook:' + market['symbol']
-        params = self.omit(params, 'aggregation')
-        if limit is None:
-            limit = 100
+        paramsOmitted = self.omit(params, 'aggregation')
+        limitResolved = 100 if (limit is None) else limit
         subscribe = {
             'action': 'subscribe',
             'subscribe': 'depth',
-            'depth': limit,
+            'depth': limitResolved,
             'pair': market['id'],
         }
-        request = self.deep_extend(subscribe, params)
+        request = self.deep_extend(subscribe, paramsOmitted)
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
@@ -880,7 +975,7 @@ class lbank(ccxt.async_support.lbank):
         error = ExchangeError(self.id + ' ' + errMsg)
         client.reject(error)
 
-    async def handle_ping(self, client: Client, message: object):
+    async def handle_ping(self, client: Client, message: dict):
         #
         #  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         #
@@ -917,7 +1012,7 @@ class lbank(ccxt.async_support.lbank):
         if handler is not None:
             handler(client, message)
 
-    async def authenticate(self, params: dict = {}):
+    async def authenticate(self, params: dict = {}) -> Str:
         # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
         # concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
         # subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
@@ -932,7 +1027,7 @@ class lbank(ccxt.async_support.lbank):
             # a flight is already in progress - wake when the leader settles
             # it: the subscribeKey is then in the bucket
             await client.future(messageHash)
-            return client.subscriptions['authenticated']['key']
+            return self.safe_string(self.safe_dict(client.subscriptions, 'authenticated'), 'key')
         future = client.reusableFuture(messageHash)
         try:
             authenticated = self.safe_dict(client.subscriptions, 'authenticated')
@@ -972,4 +1067,4 @@ class lbank(ccxt.async_support.lbank):
         # rethrows a rejected flight to the leader and attaches the handler
         # that keeps an alone leader from crashing on an unhandled rejection
         await future
-        return client.subscriptions['authenticated']['key']
+        return self.safe_string(self.safe_dict(client.subscriptions, 'authenticated'), 'key')

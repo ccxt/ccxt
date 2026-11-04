@@ -1288,6 +1288,127 @@ public class BitgetApi extends Exchange
     }
 
     /**
+     * Calls the publicUtaGetV3StockplusMarketStatic endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicUtaGetV3StockplusMarketStatic (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketStatic", optionalArgs);
+    }
+
+    /**
+     * Calls the publicUtaGetV3StockplusMarketQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicUtaGetV3StockplusMarketQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketQuote", optionalArgs);
+    }
+
+    /**
+     * Calls the publicUtaGetV3StockplusMarketIntraday endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicUtaGetV3StockplusMarketIntraday (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketIntraday", optionalArgs);
+    }
+
+    /**
+     * Calls the publicUtaGetV3StockplusMarketDepth endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicUtaGetV3StockplusMarketDepth (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketDepth", optionalArgs);
+    }
+
+    /**
+     * Calls the publicUtaGetV3StockplusMarketCandlestick endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object, a JSON array or a JSON scalar, so this endpoint keeps Object
+     */
+    public CompletableFuture<Object>  publicUtaGetV3StockplusMarketCandlestick (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketCandlestick", optionalArgs);
+    }
+
+    /**
+     * Calls the publicUtaGetV3StockplusMarketHistoryCandlestick endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object, a JSON array or a JSON scalar, so this endpoint keeps Object
+     */
+    public CompletableFuture<Object>  publicUtaGetV3StockplusMarketHistoryCandlestick (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketHistoryCandlestick", optionalArgs);
+    }
+
+    /**
+     * Calls the publicUtaGetV3StockplusMarketTrade endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicUtaGetV3StockplusMarketTrade (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketTrade", optionalArgs);
+    }
+
+    /**
+     * Calls the publicUtaGetV3StockplusMarketOptionQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicUtaGetV3StockplusMarketOptionQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketOptionQuote", optionalArgs);
+    }
+
+    /**
+     * Calls the publicUtaGetV3StockplusMarketOptionChainInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicUtaGetV3StockplusMarketOptionChainInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketOptionChainInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the publicUtaGetV3StockplusMarketOptionExpiryDate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicUtaGetV3StockplusMarketOptionExpiryDate (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketOptionExpiryDate", optionalArgs);
+    }
+
+    /**
+     * Calls the publicUtaGetV3StockplusMarketOptionVolume endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicUtaGetV3StockplusMarketOptionVolume (Object... optionalArgs)
+    {
+        return this.callAsync ("publicUtaGetV3StockplusMarketOptionVolume", optionalArgs);
+    }
+
+    /**
      * Calls the publicUtaGetV3RealityMarketStockInfo endpoint.
      *
      * @param optionalArgs the request parameters
@@ -7063,6 +7184,127 @@ public class BitgetApi extends Exchange
     }
 
     /**
+     * Calls the privateUtaGetV3AccountRealityOrderbook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3AccountRealityOrderbook (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3AccountRealityOrderbook", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaGetV3AccountRealityFills endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3AccountRealityFills (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3AccountRealityFills", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaGetV3StockplusAssetTransferRecords endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusAssetTransferRecords (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3StockplusAssetTransferRecords", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaGetV3StockplusAssetAccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusAssetAccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3StockplusAssetAccount", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaGetV3StockplusAssetStockPosition endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusAssetStockPosition (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3StockplusAssetStockPosition", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaGetV3StockplusAssetCashFlow endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusAssetCashFlow (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3StockplusAssetCashFlow", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaGetV3StockplusTradeTodayOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusTradeTodayOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3StockplusTradeTodayOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaGetV3StockplusTradeHistoryOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusTradeHistoryOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3StockplusTradeHistoryOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaGetV3StockplusTradeOrderDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusTradeOrderDetail (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3StockplusTradeOrderDetail", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaGetV3StockplusTradeTodayExecutions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusTradeTodayExecutions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3StockplusTradeTodayExecutions", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaGetV3StockplusTradeHistoryExecutions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusTradeHistoryExecutions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaGetV3StockplusTradeHistoryExecutions", optionalArgs);
+    }
+
+    /**
      * Calls the privateUtaGetV3TaxRecords endpoint.
      *
      * @param optionalArgs the request parameters
@@ -7302,28 +7544,6 @@ public class BitgetApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privateUtaGetV3AccountFundingFinancialRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateUtaGetV3AccountFundingFinancialRecords", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3AccountRealityOrderbook endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3AccountRealityOrderbook (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3AccountRealityOrderbook", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3AccountRealityFills endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3AccountRealityFills (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3AccountRealityFills", optionalArgs);
     }
 
     /**
@@ -7698,105 +7918,6 @@ public class BitgetApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusMarketCandlestick (Object... optionalArgs)
     {
         return this.callAsync ("privateUtaGetV3StockplusMarketCandlestick", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3StockplusTradeTodayOrders endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusTradeTodayOrders (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3StockplusTradeTodayOrders", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3StockplusTradeHistoryOrders endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusTradeHistoryOrders (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3StockplusTradeHistoryOrders", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3StockplusTradeOrderDetail endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusTradeOrderDetail (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3StockplusTradeOrderDetail", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3StockplusTradeTodayExecutions endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusTradeTodayExecutions (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3StockplusTradeTodayExecutions", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3StockplusTradeHistoryExecutions endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusTradeHistoryExecutions (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3StockplusTradeHistoryExecutions", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3StockplusAssetAccount endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusAssetAccount (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3StockplusAssetAccount", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3StockplusAssetCashFlow endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusAssetCashFlow (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3StockplusAssetCashFlow", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3StockplusAssetStockPosition endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusAssetStockPosition (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3StockplusAssetStockPosition", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaGetV3StockplusAssetTransferRecords endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaGetV3StockplusAssetTransferRecords (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaGetV3StockplusAssetTransferRecords", optionalArgs);
     }
 
     /**
@@ -8182,6 +8303,50 @@ public class BitgetApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privateUtaPostV3LoanRevisePledge (Object... optionalArgs)
     {
         return this.callAsync ("privateUtaPostV3LoanRevisePledge", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaPostV3StockplusAssetTransfer endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaPostV3StockplusAssetTransfer (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaPostV3StockplusAssetTransfer", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaPostV3StockplusTradePlaceOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaPostV3StockplusTradePlaceOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaPostV3StockplusTradePlaceOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaPostV3StockplusTradeModifyOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaPostV3StockplusTradeModifyOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaPostV3StockplusTradeModifyOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privateUtaPostV3StockplusTradeCancelOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateUtaPostV3StockplusTradeCancelOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateUtaPostV3StockplusTradeCancelOrder", optionalArgs);
     }
 
     /**
@@ -8611,50 +8776,6 @@ public class BitgetApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privateUtaPostV3UserSubAccountAgentCreate (Object... optionalArgs)
     {
         return this.callAsync ("privateUtaPostV3UserSubAccountAgentCreate", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaPostV3StockplusTradePlaceOrder endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaPostV3StockplusTradePlaceOrder (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaPostV3StockplusTradePlaceOrder", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaPostV3StockplusTradeCancelOrder endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaPostV3StockplusTradeCancelOrder (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaPostV3StockplusTradeCancelOrder", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaPostV3StockplusTradeModifyOrder endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaPostV3StockplusTradeModifyOrder (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaPostV3StockplusTradeModifyOrder", optionalArgs);
-    }
-
-    /**
-     * Calls the privateUtaPostV3StockplusAssetTransfer endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateUtaPostV3StockplusAssetTransfer (Object... optionalArgs)
-    {
-        return this.callAsync ("privateUtaPostV3StockplusAssetTransfer", optionalArgs);
     }
 
     /**

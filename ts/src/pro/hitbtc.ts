@@ -8,6 +8,7 @@ import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Lis
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -30,6 +31,8 @@ export default class hitbtc extends hitbtcRest {
                 'watchOrders': true,
                 'watchOHLCV': true,
                 'watchMyTrades': false,
+                'unWatchTrades': true,
+                'unWatchOHLCV': true,
                 'createOrderWs': true,
                 'cancelOrderWs': true,
                 'fetchOpenOrdersWs': true,
@@ -55,7 +58,7 @@ export default class hitbtc extends hitbtcRest {
                     'method': 'ticker/{speed}',  // 'ticker/{speed}' or 'ticker/price/{speed}'
                 },
                 'watchTickers': {
-                    'method': 'ticker/{speed}',  // 'ticker/{speed}','ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
+                    'method': 'ticker/{speed}',  // 'ticker/{speed}', 'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/price/{speed}/batch'
                 },
                 'watchBidsAsks': {
                     'method': 'orderbook/top/{speed}',  // 'orderbook/top/{speed}', 'orderbook/top/{speed}/batch'
@@ -99,7 +102,10 @@ export default class hitbtc extends hitbtcRest {
         if (authenticated === undefined) {
             const timestamp = this.milliseconds ();
             const timestampString = this.numberToString (timestamp);
-            const timestampEncoded = (timestampString === undefined) ? '' : timestampString;
+            let timestampEncoded: Str = timestampString;
+            if (timestampString === undefined) {
+                timestampEncoded = '';
+            }
             const signature = this.hmac (this.encode (timestampEncoded), this.encode (this.secret), sha256, 'hex');
             const request: Dict = {
                 'method': 'login',
@@ -144,24 +150,67 @@ export default class hitbtc extends hitbtcRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const isBatch = name.indexOf ('batch') >= 0;
+        const resolvedPerSymbol = !isBatch || (messageHashPrefix === 'orderbooks'); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         const url = this.urls['api']['ws']['public'];
         const messageHashes: string[] = [];
-        if (symbols !== undefined && !isBatch) {
-            for (let i = 0; i < symbols.length; i++) {
-                messageHashes.push (messageHashPrefix + '::' + symbols[i]);
+        if (symbolsNormalized !== undefined && resolvedPerSymbol) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                messageHashes.push (messageHashPrefix + '::' + symbolsNormalized[i]);
             }
         } else {
             messageHashes.push (messageHashPrefix);
         }
+        const requestId = this.incrementingNonce ();
         const subscribe: Dict = {
             'method': 'subscribe',
-            'id': this.nonce (),
+            'id': requestId,
             'ch': name,
         };
         const request = this.extend (subscribe, params);
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, subscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name websocket endpoint name
+     * @param {string} messageHashPrefix prefix of the message hashes the matching watch method subscribed with
+     * @param {string[]} symbols unified CCXT symbols
+     * @param {object} subscription the topic and symbols of the caches to clean once the unsubscribe is acknowledged
+     * @param {object} [params] extra parameters specific to the hitbtc api
+     * @returns {boolean} true once the exchange acknowledges the unsubscribe
+     */
+    async unSubscribePublic (name: string, messageHashPrefix: string, symbols: string[], subscription: Dict, params: Dict = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const subMessageHashes: string[] = [];
+        const messageHashes: string[] = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const subMessageHash = messageHashPrefix + '::' + symbols[i];
+            subMessageHashes.push (subMessageHash);
+            messageHashes.push ('unsubscribe:' + subMessageHash);
+        }
+        const requestId = this.incrementingNonce ();
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'id': requestId,
+            'ch': name,
+            'params': {
+                'symbols': this.marketIds (symbols),
+            },
+        };
+        const unsubscription = this.extend (subscription, {
+            'id': requestId,
+            'unsubscribe': true,
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+        });
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, unsubscription);
     }
 
     /**
@@ -182,12 +231,16 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             messageHash = messageHash + '::' + symbol;
         }
+        const requestId = this.incrementingNonce ();
         const subscribe: Dict = {
             'method': name,
             'params': params,
-            'id': this.nonce (),
+            'id': requestId,
         };
-        return await this.watch (url, messageHash, subscribe, messageHash);
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        return await this.watch (url, messageHash, subscribe, messageHash, subscription);
     }
 
     /**
@@ -202,7 +255,7 @@ export default class hitbtc extends hitbtcRest {
         }
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce ().toString ();
+        const messageHash = this.incrementingNonce ().toString ();
         const subscribe: Dict = {
             'method': name,
             'params': params,
@@ -232,12 +285,13 @@ export default class hitbtc extends hitbtcRest {
         const options = this.safeDict (this.options, 'watchOrderBook');
         const defaultMethod = this.safeString (options, 'method', 'orderbook/full');
         let name = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
-        const depth = this.safeString (params, 'depth', '20');
-        const speed = this.safeString (params, 'depth', '100');
+        const depthValue = this.safeString (params, 'depth', '20'); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
+        const speedValue = this.safeString (params, 'speed', '100'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        const paramsOmitted: Dict = this.omit (params, [ 'method', 'defaultMethod', 'depth', 'speed' ]);
         if (name === 'orderbook/{depth}/{speed}') {
-            name = 'orderbook/D' + depth + '/' + speed + 'ms';
+            name = 'orderbook/D' + depthValue + '/' + speedValue + 'ms';
         } else if (name === 'orderbook/{depth}/{speed}/batch') {
-            name = 'orderbook/D' + depth + '/' + speed + 'ms/batch';
+            name = 'orderbook/D' + depthValue + '/' + speedValue + 'ms/batch';
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -245,7 +299,7 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': [ market['id'] ],
             },
         };
-        const orderbook = await this.subscribePublic (name, 'orderbooks', [ symbol ], this.deepExtend (request, params));
+        const orderbook: WsOrderBook = await this.subscribePublic (name, 'orderbooks', [ symbol ], this.deepExtend (request, paramsOmitted));
         return orderbook.limit ();
     }
 
@@ -273,9 +327,29 @@ export default class hitbtc extends hitbtcRest {
         //        }
         //    }
         //
-        const snapshot = this.safeDict (message, 'snapshot');
-        const data = this.safeDict2 (message, 'snapshot', 'update', {});
-        const type = (snapshot !== undefined && snapshot !== null) ? 'snapshot' : 'update';
+        // partial orderbook ('orderbook/D{depth}/{speed}ms' and its '/batch' variant), every message is a full top-N snapshot
+        //
+        //    {
+        //        "ch": "orderbook/D5/500ms",
+        //        "data": {
+        //            "BTCUSDT": {
+        //                "t": 1790511595279,
+        //                "s": 1520022,
+        //                "a": [ [ "85025.97", "0.00732" ], [ "85037.31", "0.03659" ] ],
+        //                "b": [ [ "84995.48", "0.02769" ], [ "84994.29", "0.00724" ] ]
+        //            }
+        //        }
+        //    }
+        //
+        const snapshot = this.safeDict2 (message, 'snapshot', 'data');
+        let data: Dict = this.safeDict (message, 'update', {});
+        if (snapshot !== undefined) {
+            data = snapshot;
+        }
+        let type: Str = 'update';
+        if (snapshot !== undefined && snapshot !== null) {
+            type = 'snapshot';
+        }
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -315,7 +389,7 @@ export default class hitbtc extends hitbtcRest {
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -336,37 +410,42 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
-        const ticker = await this.watchTickers ([ symbol ], params);
+        const ticker = await this.watchTickers ([ symbol ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
         return this.safeValue (ticker, symbol);
     }
 
     /**
      * @method
-     * @name hitbtc#watchTicker
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @param {string[]} [symbols]
-     * @param {object} params extra parameters specific to the exchange API endpoint
-     * @param {string} params.method 'ticker/{speed}' ,'ticker/price/{speed}', 'ticker/{speed}/batch' (default), or 'ticker/{speed}/price/batch''
-     * @param {string} params.speed '1s' (default), or '3s'
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     * @name hitbtc#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://api.hitbtc.com/#subscribe-to-ticker
+     * @see https://api.hitbtc.com/#subscribe-to-ticker-in-batches
+     * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
+     * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the tickers for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'ticker/{speed}' (default), 'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/price/{speed}/batch'
+     * @param {string} [params.speed] '1s' (default), or '3s'
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        const options = this.safeDict (this.options, 'watchTicker');
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const [ methodName, paramsMethod ] = this.handleParamString (params, 'callerMethodName', 'watchTickers'); // watchTicker passes its own name, so options.watchTicker still applies to it
+        const options = this.safeDict (this.options, methodName);
         const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}/batch');
-        const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
-        const speed = this.safeString (params, 'speed', '1s');
-        const name = this.implodeParams (method, { 'speed': speed });
-        params = this.omit (params, [ 'method', 'speed' ]);
+        const method = this.safeString2 (paramsMethod, 'method', 'defaultMethod', defaultMethod);
+        const speedValue = this.safeString (paramsMethod, 'speed', '1s'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        const name = this.implodeParams (method, { 'speed': speedValue });
+        const paramsOmitted: Dict = this.omit (paramsMethod, [ 'method', 'defaultMethod', 'speed' ]);
         const marketIds: string[] = [];
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             marketIds.push ('*');
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const marketId = this.marketId (symbols[i]);
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const marketId = this.marketId (symbolsNormalized[i]);
                 if (marketId !== undefined) {
                     marketIds.push (marketId);
                 }
@@ -377,15 +456,18 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': marketIds,
             },
         };
-        const newTickers = await this.subscribePublic (name, 'tickers', symbols, this.deepExtend (request, params));
+        const newTickers = await this.subscribePublic (name, 'tickers', symbolsNormalized, this.deepExtend (request, paramsOmitted));
         if (this.newUpdates) {
             if (!Array.isArray (newTickers)) {
                 const tickers: Dict = {};
-                tickers[newTickers['symbol']] = newTickers;
+                const newTickersSymbol = this.safeString (newTickers, 'symbol');
+                if (newTickersSymbol !== undefined) {
+                    tickers[newTickersSymbol] = newTickers;
+                }
                 return tickers;
             }
         }
-        return this.filterByArray (newTickers, 'symbol', symbols);
+        return this.filterByArray (newTickers, 'symbol', symbolsNormalized);
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -444,7 +526,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "t": 1614815872000,             // Timestamp in milliseconds
@@ -507,7 +589,7 @@ export default class hitbtc extends hitbtcRest {
      * @see https://api.hitbtc.com/#subscribe-to-top-of-book
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)'
+     * @param {string} [params.method] 'orderbook/top/{speed}' (default) or 'orderbook/top/{speed}/batch'
      * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -515,28 +597,31 @@ export default class hitbtc extends hitbtcRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const options = this.safeDict (this.options, 'watchBidsAsks');
         const defaultMethod = this.safeString (options, 'method', 'orderbook/top/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
-        const speed = this.safeString (params, 'speed', '100ms');
-        const name = this.implodeParams (method, { 'speed': speed });
-        params = this.omit (params, [ 'method', 'speed' ]);
-        const marketIds = this.marketIds (symbols);
+        const speedValue = this.safeString (params, 'speed', '100ms'); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        const name = this.implodeParams (method, { 'speed': speedValue });
+        const paramsOmitted: Dict = this.omit (params, [ 'method', 'defaultMethod', 'speed' ]);
+        const marketIds = this.marketIds (symbolsNormalized);
         const request: Dict = {
             'params': {
                 'symbols': marketIds,
             },
         };
-        const newTickers = await this.subscribePublic (name, 'bidask', symbols, this.deepExtend (request, params));
+        const newTickers = await this.subscribePublic (name, 'bidask', symbolsNormalized, this.deepExtend (request, paramsOmitted));
         if (this.newUpdates) {
             if (!Array.isArray (newTickers)) {
                 const tickers: Dict = {};
-                tickers[newTickers['symbol']] = newTickers;
+                const newTickersSymbol = this.safeString (newTickers, 'symbol');
+                if (newTickersSymbol !== undefined) {
+                    tickers[newTickersSymbol] = newTickers;
+                }
                 return tickers;
             }
         }
-        return this.filterByArray (newTickers, 'symbol', symbols);
+        return this.filterByArray (newTickers, 'symbol', symbolsNormalized);
     }
 
     handleBidAsk (client: Client, message: Dict) {
@@ -573,7 +658,10 @@ export default class hitbtc extends hitbtcRest {
 
     parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 't');
-        const bidAskSymbol = (market !== undefined) ? market['symbol'] : undefined;
+        let bidAskSymbol: Str = undefined;
+        if (market !== undefined) {
+            bidAskSymbol = market['symbol'];
+        }
         return this.safeTicker ({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,
@@ -612,10 +700,30 @@ export default class hitbtc extends hitbtcRest {
         }
         const name = 'trades';
         const trades = await this.subscribePublic (name, 'trades', [ symbol ], this.deepExtend (request, params));
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp');
+    }
+
+    /**
+     * @method
+     * @name hitbtc#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api.hitbtc.com/#subscribe-to-trades
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} true once hitbtc acknowledges the unsubscribe
+     */
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const subscription: Dict = {
+            'topic': 'trades',
+            'symbols': [ market['symbol'] ],
+        };
+        return await this.unSubscribePublic ('trades', 'trades', [ market['symbol'] ], subscription, params);
     }
 
     handleTrades (client: Client, message: Dict): Dict {
@@ -744,11 +852,34 @@ export default class hitbtc extends hitbtcRest {
         if (limit !== undefined) {
             request['params']['limit'] = limit;
         }
-        const ohlcv = await this.subscribePublic (name, 'candles', [ symbol ], this.deepExtend (request, params));
+        const ohlcv = await this.subscribePublic (name, name, [ symbol ], this.deepExtend (request, params));
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0);
+    }
+
+    /**
+     * @method
+     * @name hitbtc#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.hitbtc.com/#subscribe-to-candles
+     * @param {string} symbol unified symbol of the market to unwatch the OHLCV data for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} true once hitbtc acknowledges the unsubscribe
+     */
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const period = this.safeString (this.timeframes, timeframe, timeframe);
+        const name = 'candles/' + period;
+        const subscription: Dict = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [ [ market['symbol'], timeframe ] ],
+        };
+        return await this.unSubscribePublic (name, name, [ market['symbol'] ], subscription, params);
     }
 
     handleOHLCV (client: Client, message: Dict): Dict {
@@ -799,17 +930,19 @@ export default class hitbtc extends hitbtcRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+            let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
-            const ohlcvs = this.parseWsOHLCVs (data[marketId], market);
-            for (let j = 0; j < ohlcvs.length; j++) {
-                stored.append (ohlcvs[j]);
+            // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
+            const rawOhlcvs = this.safeList (data, marketId, []);
+            for (let j = 0; j < rawOhlcvs.length; j++) {
+                const parsed = this.parseWsOHLCV (rawOhlcvs[j], market);
+                stored.append (parsed);
             }
-            const messageHash = 'candles::' + symbol;
+            const messageHash = channel + '::' + symbol;
             client.resolve (stored, messageHash);
         }
         return message;
@@ -854,23 +987,23 @@ export default class hitbtc extends hitbtcRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let marketType: Str = undefined;
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const name = this.getSupportedMapping (marketType, {
             'spot': 'spot_subscribe',
             'margin': 'margin_subscribe',
             'swap': 'futures_subscribe',
             'future': 'futures_subscribe',
         });
-        const orders = await this.subscribePrivate (name, symbol, params);
+        const orders = await this.subscribePrivate (name, symbol, paramsMarketType);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp');
     }
 
     handleOrder (client: Client, message: Dict): Dict {
@@ -964,7 +1097,9 @@ export default class hitbtc extends hitbtcRest {
         const parsed = this.parseOrder (order);
         orders.append (parsed);
         client.resolve (orders, messageHash);
-        client.resolve (orders, messageHash + '::' + symbol);
+        if (messageHash !== undefined) {
+            client.resolve (orders, messageHash + '::' + symbol);
+        }
     }
 
     override parseWsOrderTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1046,11 +1181,11 @@ export default class hitbtc extends hitbtcRest {
         //
         const timestamp = this.safeString (order, 'created_at');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'trade_id');
         let trades: NullableList = undefined;
         if (tradeId !== undefined) {
-            const trade = this.parseWsOrderTrade (order, market);
+            const trade = this.parseWsOrderTrade (order, marketResolved);
             trades = [ trade ];
         }
         const rawStatus = this.safeString (order, 'status');
@@ -1068,14 +1203,14 @@ export default class hitbtc extends hitbtcRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'price': this.safeString (order, 'price'),
             'amount': this.safeString (order, 'quantity'),
             'type': this.safeString (order, 'type'),
             'side': this.safeStringUpper (order, 'side'),
             'timeInForce': this.safeString (order, 'time_in_force'),
             'postOnly': this.safeString (order, 'post_only'),
-            'reduceOnly': this.safeValue (order, 'reduce_only'),
+            'reduceOnly': this.safeBool (order, 'reduce_only'),
             'filled': undefined,
             'remaining': undefined,
             'cost': undefined,
@@ -1083,7 +1218,7 @@ export default class hitbtc extends hitbtcRest {
             'average': undefined,
             'trades': trades,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1103,19 +1238,18 @@ export default class hitbtc extends hitbtcRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const name = this.getSupportedMapping (type, {
             'spot': 'spot_balance_subscribe',
             'swap': 'futures_balance_subscribe',
             'future': 'futures_balance_subscribe',
         });
-        const mode = this.safeString (params, 'mode', 'batches');
-        params = this.omit (params, 'mode');
+        const mode = this.safeString (paramsMarketType, 'mode', 'batches');
+        const paramsOmitted: Dict = this.omit (paramsMarketType, 'mode');
         const request: Dict = {
             'mode': mode,
         };
-        return await this.subscribePrivate (name, undefined, this.extend (request, params));
+        return await this.subscribePrivate (name, undefined, this.extend (request, paramsOmitted));
     }
 
     /**
@@ -1143,13 +1277,10 @@ export default class hitbtc extends hitbtcRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {};
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        [ request, params ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, params);
-        request = this.extend (request, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', paramsMarketType);
+        const [ orderRequest, paramsValue ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, paramsMarginMode);
+        const request = this.extend (orderRequest, paramsValue);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_new_order', request);
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {
@@ -1184,9 +1315,8 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrderWs', market, params);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrderWs', params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrderWs', market, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrderWs', paramsMarketType);
         request = this.extend (request, query);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_cancel_order', request);
@@ -1217,16 +1347,14 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersWs', market, params);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrdersWs', params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrdersWs', market, params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('cancelAllOrdersWs', paramsMarketType);
         if (marketType === 'swap') {
-            return await this.tradeRequest ('futures_cancel_orders', params);
+            return await this.tradeRequest ('futures_cancel_orders', paramsMarginMode);
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {
             throw new NotSupported (this.id + ' cancelAllOrdersWs is not supported for margin orders');
         } else {
-            return await this.tradeRequest ('spot_cancel_orders', params);
+            return await this.tradeRequest ('spot_cancel_orders', paramsMarginMode);
         }
     }
 
@@ -1255,10 +1383,8 @@ export default class hitbtc extends hitbtcRest {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrdersWs', market, params);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrdersWs', params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrdersWs', market, params);
+        const marginMode = this.handleMarginModeAndParams ('fetchOpenOrdersWs', paramsMarketType)[0];
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_get_orders', request);
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {
@@ -1285,9 +1411,28 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const messageHash = this.safeString (message, 'method');
-        const params = this.safeValue (message, 'params');
+        const params = this.safeList (message, 'params', []);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         const balance = this.parseBalance (params);
-        this.balance = this.deepExtend (this.balance, balance);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [ 'free', 'used', 'total' ];
+        const keys = Object.keys (balance);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray (key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -1377,6 +1522,11 @@ export default class hitbtc extends hitbtcRest {
             }
         } else {
             const result = this.safeValue (message, 'result');
+            const resultChannel = this.safeString (result, 'ch');
+            if (resultChannel !== undefined) {
+                this.handleUnSubscription (client, message);
+                return;
+            }
             const clientOrderId = this.safeString (result, 'client_order_id');
             if (clientOrderId !== undefined) {
                 this.handleOrderRequest (client, message);
@@ -1391,6 +1541,38 @@ export default class hitbtc extends hitbtcRest {
                 if ((arrayLength === 0) || ('client_order_id' in first)) {
                     this.handleOrderRequest (client, message);
                 }
+            }
+        }
+    }
+
+    handleUnSubscription (client: Client, message: Dict) {
+        //
+        // hitbtc answers subscribe and unsubscribe requests alike, listing the symbols still subscribed on the channel
+        //
+        //    {
+        //        "result": {
+        //            "ch": "trades",
+        //            "subscriptions": [ "ETHUSDT" ]
+        //        },
+        //        "id": 1793679985268
+        //    }
+        //
+        // the answers can arrive in a different order than the requests, so they are matched by id
+        //
+        const id = this.safeString (message, 'id');
+        const subscriptionHashes = Object.keys (client.subscriptions);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscription = client.subscriptions[subscriptionHashes[i]];
+            const isUnSubscription = this.safeBool (subscription, 'unsubscribe', false);
+            const subscriptionId = this.safeString (subscription, 'id');
+            if (isUnSubscription && (subscriptionId !== undefined) && (subscriptionId === id)) {
+                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                const messageHashes = this.safeList (subscription, 'messageHashes', []);
+                for (let j = 0; j < subMessageHashes.length; j++) {
+                    this.cleanUnsubscription (client, subMessageHashes[j], messageHashes[j]);
+                }
+                this.cleanCache (subscription);
+                return;
             }
         }
     }
@@ -1432,7 +1614,7 @@ export default class hitbtc extends hitbtcRest {
         const error = this.safeDict (message, 'error');
         if (error !== undefined) {
             try {
-                const code = this.safeValue (error, 'code');
+                const code = this.safeString (error, 'code');
                 const errorMessage = this.safeString (error, 'message');
                 const description = this.safeString (error, 'description');
                 const feedback = this.id + ' ' + description;
@@ -1440,6 +1622,7 @@ export default class hitbtc extends hitbtcRest {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
                 throw new ExchangeError (feedback); // unknown message
             } catch (e) {
+                const id = this.safeString (message, 'id');
                 if (e instanceof AuthenticationError) {
                     const messageHash = 'authenticated';
                     client.reject (e, messageHash);
@@ -1447,8 +1630,19 @@ export default class hitbtc extends hitbtcRest {
                         delete client.subscriptions[messageHash];
                     }
                 } else {
-                    const id = this.safeString (message, 'id');
-                    client.reject (e, id);
+                    client.reject (e, id); // trade requests use the request id as the message hash
+                }
+                // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
+                // authentication errors included: a private channel the api key has no access to is refused with 1003
+                // the login request has no id, so a login error matches no subscription
+                const subscriptionHashes = Object.keys (client.subscriptions);
+                for (let i = 0; i < subscriptionHashes.length; i++) {
+                    const subscriptionHash = subscriptionHashes[i];
+                    const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                    if ((subscriptionId !== undefined) && (subscriptionId === id)) {
+                        client.reject (e, subscriptionHash);
+                        delete client.subscriptions[subscriptionHash]; // so a retry sends the subscribe request again
+                    }
                 }
                 return true;
             }

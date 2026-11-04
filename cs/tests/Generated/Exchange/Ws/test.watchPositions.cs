@@ -12,8 +12,8 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchPositions";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
-        while (isLessThan(now, ends))
+        Int64 ends = (now + 15000);
+        while (now < ends)
         {
             object response = null;
             bool success = true;
@@ -22,7 +22,7 @@ public partial class testMainClass : BaseTest
                 response = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));
                 if ((response == null))
                 {
-                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -34,11 +34,11 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if ((success == true))
+            if (success)
             {
                 if ((response == null))
                 {
-                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
@@ -66,7 +66,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success2 = false;
             }
-            if ((success2 == true))
+            if (success2)
             {
                 assert(((positionsForSymbols is IList<object>) || (positionsForSymbols.GetType().IsGenericType && positionsForSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbols)));
                 // max theoretical 4 positions: two for one-way-mode and two for two-way mode

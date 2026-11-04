@@ -171,8 +171,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.08105,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -217,8 +218,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.08085,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -263,8 +265,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.070914,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -309,8 +312,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.070956,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     }
@@ -422,8 +426,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.08105,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -468,8 +473,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.070914,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     }
@@ -488,6 +494,7 @@
                             "asset": "usd",
                             "contract": "pf_dogeusd",
                             "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "positionMargin": null,
                             "collateral": null,
                             "date": "2026-09-17T12:00:00.000Z",
                             "execution": null,
@@ -516,6 +523,7 @@
                             "asset": "usd",
                             "contract": "pf_dogeusd",
                             "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "positionMargin": null,
                             "collateral": null,
                             "date": "2026-09-17T12:00:00.000Z",
                             "execution": null,
@@ -749,6 +757,96 @@
         ],
         "fetchTicker": [
             {
+                "description": "inverse ticker, vol24h is denominated in usd so the base volume comes from vwap24h",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "result": "success",
+                    "serverTime": "2026-10-25T20:01:28.163Z",
+                    "ticker": {
+                        "symbol": "PI_XBTUSD",
+                        "last": 80647,
+                        "lastTime": "2026-10-25T16:55:21.225005057Z",
+                        "tag": "perpetual",
+                        "pair": "XBT:USD",
+                        "markPrice": 80594.91646714682,
+                        "bid": 80417,
+                        "bidSize": 9,
+                        "ask": 80649.5,
+                        "askSize": 133,
+                        "vol24h": 14049,
+                        "volumeQuote": 14049,
+                        "openInterest": 2072198,
+                        "open24h": 80643,
+                        "high24h": 81132.5,
+                        "low24h": 79978,
+                        "vwap24h": 80691.02284860132,
+                        "lastSize": 1760,
+                        "fundingRate": 2.494472027e-9,
+                        "fundingRatePrediction": 2.619620186e-9,
+                        "relativeFundingRate": 0.000200713925,
+                        "relativeFundingRatePrediction": 0.00021081975,
+                        "suspended": false,
+                        "indexPrice": 80454.15,
+                        "postOnly": false,
+                        "change24h": 0
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": 1792947321225,
+                    "datetime": "2026-10-25T16:55:21.225Z",
+                    "high": 81132.5,
+                    "low": 79978,
+                    "bid": 80417,
+                    "bidVolume": 9,
+                    "ask": 80649.5,
+                    "askVolume": 133,
+                    "vwap": 80691.02284860132,
+                    "open": 80643,
+                    "close": 80647,
+                    "last": 80647,
+                    "previousClose": null,
+                    "change": 4,
+                    "percentage": 0.0049601329315625,
+                    "average": 80645,
+                    "baseVolume": 0.17410858735004278,
+                    "quoteVolume": 14049,
+                    "markPrice": 80594.91646714682,
+                    "indexPrice": 80454.15,
+                    "info": {
+                        "symbol": "PI_XBTUSD",
+                        "last": 80647,
+                        "lastTime": "2026-10-25T16:55:21.225005057Z",
+                        "tag": "perpetual",
+                        "pair": "XBT:USD",
+                        "markPrice": 80594.91646714682,
+                        "bid": 80417,
+                        "bidSize": 9,
+                        "ask": 80649.5,
+                        "askSize": 133,
+                        "vol24h": 14049,
+                        "volumeQuote": 14049,
+                        "openInterest": 2072198,
+                        "open24h": 80643,
+                        "high24h": 81132.5,
+                        "low24h": 79978,
+                        "vwap24h": 80691.02284860132,
+                        "lastSize": 1760,
+                        "fundingRate": 2.494472027e-9,
+                        "fundingRatePrediction": 2.619620186e-9,
+                        "relativeFundingRate": 0.000200713925,
+                        "relativeFundingRatePrediction": 0.00021081975,
+                        "suspended": false,
+                        "indexPrice": 80454.15,
+                        "postOnly": false,
+                        "change24h": 0
+                    }
+                }
+            },
+            {
                 "description": "fetch a single ticker",
                 "method": "fetchTicker",
                 "input": [
@@ -788,13 +886,13 @@
                     "symbol": "BTC/USD:USD",
                     "timestamp": 1788550416797,
                     "datetime": "2026-09-04T19:33:36.797Z",
-                    "high": null,
-                    "low": null,
+                    "high": 82453,
+                    "low": 78634,
                     "bid": 79743,
                     "bidVolume": 0.08,
                     "ask": 79744,
                     "askVolume": 0.0501,
-                    "vwap": null,
+                    "vwap": 80326.49587665,
                     "open": 81440,
                     "close": 79747,
                     "last": 79747,
@@ -803,7 +901,7 @@
                     "percentage": -2.0788310412573674,
                     "average": 80593.5,
                     "baseVolume": 9516.4471,
-                    "quoteVolume": null,
+                    "quoteVolume": 764422848.7385,
                     "markPrice": 79743.60343560348,
                     "indexPrice": 79738.66,
                     "info": {
@@ -1359,6 +1457,85 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fills of other contracts are filtered out",
+                "method": "fetchMyTrades",
+                "input": [
+                    "DOGE/USD:USD"
+                ],
+                "httpResponse": {
+                    "result": "success",
+                    "fills": [
+                        {
+                            "fill_id": "d832e3ea-7006-4b74-bd64-36b8eb69515e",
+                            "symbol": "PF_XRPUSD",
+                            "side": "sell",
+                            "order_id": "a2cce3f5-423c-408a-9cd2-69d9070772bd",
+                            "size": 5,
+                            "price": 1.4812,
+                            "fillTime": "2026-09-21T16:40:15.294Z",
+                            "fillType": "taker",
+                            "realized_pnl": -0.0035,
+                            "realized_funding": -3.945e-08,
+                            "sequence_id": "38493173"
+                        },
+                        {
+                            "fill_id": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                            "symbol": "PF_DOGEUSD",
+                            "side": "sell",
+                            "order_id": "a2c47458-8685-41db-8bf7-b5e3eac571b0",
+                            "size": 250,
+                            "price": 0.08105,
+                            "fillTime": "2026-09-17T12:01:32.483Z",
+                            "fillType": "taker",
+                            "realized_pnl": 0.05,
+                            "realized_funding": -7.64284e-06,
+                            "sequence_id": "26114695"
+                        }
+                    ],
+                    "serverTime": "2026-09-21T16:40:31.108Z"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fill_id": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                            "symbol": "PF_DOGEUSD",
+                            "side": "sell",
+                            "order_id": "a2c47458-8685-41db-8bf7-b5e3eac571b0",
+                            "size": 250,
+                            "price": 0.08105,
+                            "fillTime": "2026-09-17T12:01:32.483Z",
+                            "fillType": "taker",
+                            "realized_pnl": 0.05,
+                            "realized_funding": -7.64284e-06,
+                            "sequence_id": "26114695"
+                        },
+                        "id": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                        "symbol": "DOGE/USD:USD",
+                        "timestamp": 1789646492483,
+                        "datetime": "2026-09-17T12:01:32.483Z",
+                        "order": "a2c47458-8685-41db-8bf7-b5e3eac571b0",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 0.08105,
+                        "amount": 250,
+                        "cost": 20.2625,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0.01013125,
+                            "rate": 0.0005
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.01013125,
+                                "rate": 0.0005
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "description": "user trades",
                 "method": "fetchMyTrades",
                 "input": [
@@ -1516,8 +1693,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": null,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     }
@@ -1562,7 +1740,7 @@
                         "timestamp": 1707258274849,
                         "datetime": "2024-02-06T22:24:34.849Z",
                         "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 1,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 68.54,
@@ -1576,8 +1754,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": null,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "isolated",
+                        "marginMode": "isolated",
                         "side": "long",
                         "percentage": null
                     }

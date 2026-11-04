@@ -111,9 +111,9 @@ export default class toobit extends Exchange {
                         'quote/v1/depth/merged': { 'cost': 1 } as Endpoint<Dict>,
                         'quote/v1/trades': { 'cost': 1 } as Endpoint<List>,
                         'quote/v1/klines': { 'cost': 1 } as Endpoint<List>,
-                        'quote/v1/index/klines': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/index/klines': { 'cost': 1 } as Endpoint<Dict>,
                         'quote/v1/indexPriceComponents': { 'cost': 1 } as Endpoint<Dict>,
-                        'quote/v1/markPrice/klines': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/markPrice/klines': { 'cost': 1 } as Endpoint<Dict>,
                         'quote/v1/markPrice': { 'cost': 10 } as Endpoint<Dict>, // 5 requests per second
                         'quote/v1/index': { 'cost': 1 } as Endpoint<Dict>,
                         'quote/v1/ticker/24hr': { 'cost': 40 } as Endpoint<List>, // todo: 1-40 depending noSymbol
@@ -449,7 +449,6 @@ export default class toobit extends Exchange {
                 'networks': {
                     'BTC': 'BTC',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'BEP20': 'BSC',
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
@@ -560,7 +559,6 @@ export default class toobit extends Exchange {
      * @method
      * @name toobit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -732,7 +730,7 @@ export default class toobit extends Exchange {
         //            },
         //          ...
         //
-        const coins = this.safeList (response, 'coins', []);
+        const coins: Dict[] = this.safeList (response, 'coins', []);
         const result: Dict = {};
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
@@ -749,7 +747,7 @@ export default class toobit extends Exchange {
         const id = this.safeString (rawCurrency, 'coinId');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const rawNetworks = this.safeList (rawCurrency, 'chainTypes', []);
+        const rawNetworks: Dict[] = this.safeList (rawCurrency, 'chainTypes', []);
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString (rawNetwork, 'chainType');
@@ -813,8 +811,9 @@ export default class toobit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<MarketInterface[]> {
-        let response = this.safeDict (this.options, 'exchangeInfo');
-        if (response !== undefined) {
+        const cachedInfo = this.safeDict (this.options, 'exchangeInfo');
+        let response = cachedInfo;
+        if (cachedInfo !== undefined) {
             this.options['exchangeInfo'] = undefined; // reset it to avoid using old cached data
         } else {
             response = await this.commonGetApiV1ExchangeInfo (params);
@@ -969,6 +968,9 @@ export default class toobit extends Exchange {
         const baseIdClean = baseParts[0];
         const base = this.safeCurrencyCode (baseIdClean);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString (market, 'marginToken');
         const settle = this.safeCurrencyCode (settleId);
         const status = this.safeString (market, 'status');
@@ -1173,19 +1175,12 @@ export default class toobit extends Exchange {
         const amountString = this.safeString2 (trade, 'q', 'qty');
         const isBuyer = this.safeBool (trade, 'isBuyer');
         let side: Str = undefined;
-        let isBuyerMaker = this.safeBool (trade, 'ibm');
-        if (isBuyerMaker === undefined) {
-            const isBuyerTaker = this.safeBool (trade, 'm');
-            if (isBuyerTaker !== undefined) {
-                isBuyerMaker = !isBuyerTaker;
-            }
-        }
+        const isBuyerMaker = this.safeBool (trade, 'ibm');
+        const isBuyerTaker = this.safeBool (trade, 'm');
         if (isBuyerMaker !== undefined) {
-            if (isBuyerMaker) {
-                side = 'sell';
-            } else {
-                side = 'buy';
-            }
+            side = (isBuyerMaker === true) ? 'sell' : 'buy';
+        } else if (isBuyerTaker !== undefined) {
+            side = (isBuyerTaker === true) ? 'buy' : 'sell';
         } else {
             if (isBuyer === true) {
                 side = 'buy';
@@ -1207,8 +1202,8 @@ export default class toobit extends Exchange {
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
-        market = this.safeMarket (undefined, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (undefined, market);
+        const symbol = marketResolved['symbol'];
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -1223,7 +1218,7 @@ export default class toobit extends Exchange {
             'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1239,6 +1234,8 @@ export default class toobit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
@@ -1250,22 +1247,37 @@ export default class toobit extends Exchange {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted = (until !== undefined) ? this.omit (params, 'until') : params;
+        const [ endpoint, paramsPrice ] = this.handleOptionStringAndParams (paramsOmitted, 'fetchOHLCV', 'price');
+        const isPriceKlines = (endpoint === 'index') || (endpoint === 'mark');
+        let startKey = 'startTime';
+        let endKey = 'endTime';
+        if (isPriceKlines) {
+            startKey = 'from';
+            endKey = 'to';
+        }
+        if (since !== undefined) {
+            request[startKey] = since;
+        }
         if (until !== undefined) {
-            params = this.omit (params, 'until');
-            request['endTime'] = until;
+            request[endKey] = until;
+        } else if (isPriceKlines && (since !== undefined)) {
+            // mark and index klines walk backwards from `to` and ignore a lone `from`
+            const duration = this.parseTimeframe (timeframe);
+            if (limit === undefined) {
+                request['to'] = this.sum (since, duration * 2000 * 1000); // exchange default limit
+            } else {
+                request['to'] = this.sum (since, duration * limit * 1000);
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let response: Dict | List = [];
-        let endpoint: Str = undefined;
-        [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
-            response = await this.commonGetQuoteV1IndexKlines (this.extend (request, params));
+            request['symbol'] = this.safeString (market['info'], 'indexToken'); // index klines take the index id instead of the market id
+            response = await this.commonGetQuoteV1IndexKlines (this.extend (request, paramsPrice));
             //
             //     {
             //         "code": 200,
@@ -1294,7 +1306,7 @@ export default class toobit extends Exchange {
             //     }
             //
         } else if (endpoint === 'mark') {
-            response = await this.commonGetQuoteV1MarkPriceKlines (this.extend (request, params));
+            response = await this.commonGetQuoteV1MarkPriceKlines (this.extend (request, paramsPrice));
             //
             //     {
             //         "code": 200,
@@ -1313,7 +1325,7 @@ export default class toobit extends Exchange {
             //     }
             //
         } else {
-            response = await this.commonGetQuoteV1Klines (this.extend (request, params));
+            response = await this.commonGetQuoteV1Klines (this.extend (request, paramsPrice));
             //
             //    [
             //        [
@@ -1335,6 +1347,8 @@ export default class toobit extends Exchange {
         let candles: List = [];
         if (Array.isArray (response)) {
             candles = response;
+        } else {
+            candles = this.safeList (response, 'data', []);
         }
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
@@ -1364,26 +1378,25 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        let type: Str = undefined;
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         let market: Market = undefined;
         const request: Dict = {};
-        if (symbols !== undefined) {
-            const symbol = this.safeString (symbols, 0);
+        if (symbolsNormalized !== undefined) {
+            const symbol = this.safeString (symbolsNormalized, 0);
             if (symbol !== undefined) {
                 market = this.market (symbol);
             }
-            const length = symbols.length;
+            const length = symbolsNormalized.length;
             if ((length === 1) && (market !== undefined)) {
                 request['symbol'] = market['id'];
             }
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.commonGetQuoteV1Ticker24hr (this.extend (request, params));
+            response = await this.commonGetQuoteV1Ticker24hr (this.extend (request, paramsMarketType));
         } else {
-            response = await this.commonGetQuoteV1ContractTicker24hr (this.extend (request, params));
+            response = await this.commonGetQuoteV1ContractTicker24hr (this.extend (request, paramsMarketType));
         }
         //
         //    [
@@ -1401,28 +1414,37 @@ export default class toobit extends Exchange {
         //        },
         //        ...
         //
-        return this.parseTickers (response, symbols, params);
+        const rows = [];
+        for (let i = 0; i < response.length; i++) {
+            const ticker = response[i];
+            const marketId = this.safeString (ticker, 's');
+            if ((marketId !== undefined) && (this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+                rows.push (ticker);
+            }
+        }
+        return this.parseTickers (rows, symbolsNormalized, paramsMarketType);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 't');
         const last = this.safeString (ticker, 'c');
         let baseVolume = this.safeString (ticker, 'v');
-        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
+        const contractSize = this.safeNumber (marketResolved, 'contractSize');
+        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul (baseVolume, this.numberToString (market['contractSize']));
+            baseVolume = Precise.stringMul (baseVolume, this.numberToString (contractSize));
         }
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'h'),
             'low': this.safeString (ticker, 'l'),
-            'bid': undefined,
+            'bid': this.safeString (ticker, 'b'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeString (ticker, 'a'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeString (ticker, 'o'),
@@ -1436,7 +1458,7 @@ export default class toobit extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': this.safeString (ticker, 'qv'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1444,7 +1466,7 @@ export default class toobit extends Exchange {
      * @name toobit#fetchLastPrices
      * @description fetches the last price for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
@@ -1453,12 +1475,12 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {};
-        if (symbols !== undefined) {
-            const length = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const length = symbolsNormalized.length;
             if (length === 1) {
-                const market = this.market (symbols[0]);
+                const market = this.market (symbolsNormalized[0]);
                 request['symbol'] = market['id'];
             }
         }
@@ -1471,17 +1493,17 @@ export default class toobit extends Exchange {
         //            "p": "0.823"
         //        },
         //
-        return this.parseLastPrices (response, symbols);
+        return this.parseLastPrices (response, symbolsNormalized);
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
         const marketId = this.safeString (entry, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         return {
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumberOmitZero (entry, 'price'),
+            'price': this.safeNumberOmitZero (entry, 'p'),
             'side': undefined,
             'info': entry,
         };
@@ -1492,7 +1514,7 @@ export default class toobit extends Exchange {
      * @name toobit#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1501,12 +1523,12 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {};
-        if (symbols !== undefined) {
-            const length = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const length = symbolsNormalized.length;
             if (length === 1) {
-                const market = this.market (symbols[0]);
+                const market = this.market (symbolsNormalized[0]);
                 request['symbol'] = market['id'];
             }
         }
@@ -1522,18 +1544,18 @@ export default class toobit extends Exchange {
         //            "t": "1755936610506"
         //        }, ...
         //
-        return this.parseBidsAsksCustom (response, symbols);
+        return this.parseBidsAsksCustom (response, symbolsNormalized);
     }
 
-    parseBidsAsksCustom (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
+    parseBidsAsksCustom (tickers: Dict[], symbols: Strings = undefined, params: Dict = {}): Tickers {
         const results: Ticker[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const parsedTicker = this.parseBidAskCustom (tickers[i]);
             const ticker = this.extend (parsedTicker, params);
             results.push (ticker);
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
 
     parseBidAskCustom (ticker: Dict): Dict {
@@ -1567,12 +1589,12 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {};
-        if (symbols !== undefined) {
-            const length = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const length = symbolsNormalized.length;
             if (length === 1) {
-                const market = this.market (symbols[0]);
+                const market = this.market (symbolsNormalized[0]);
                 request['symbol'] = market['id'];
             }
         }
@@ -1585,7 +1607,7 @@ export default class toobit extends Exchange {
         //            "nextFundingTime": "1755964800000"
         //        },...
         //
-        return this.parseFundingRates (response, symbols);
+        return this.parseFundingRates (response, symbolsNormalized);
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -1632,10 +1654,9 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -1647,7 +1668,7 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.commonGetApiV1FuturesHistoryFundingRate (this.extend (request, params));
+        const response = await this.commonGetApiV1FuturesHistoryFundingRate (this.extend (request, paramsPaginate));
         //
         //    [
         //        {
@@ -1686,8 +1707,7 @@ export default class toobit extends Exchange {
             await this.loadMarkets ();
         }
         let response = undefined;
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const marketType = this.handleMarketTypeAndParams ('fetchBalance', undefined, params)[0];
         if (this.inArray (marketType, [ 'swap', 'future' ])) {
             response = await this.privateGetApiV1FuturesBalance ();
             //
@@ -1729,9 +1749,9 @@ export default class toobit extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeList (response, 'balances', response);
+        const balances: Dict[] = this.safeList (response, 'balances', response);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
             const account = this.account ();
             account['free'] = this.safeString2 (balance, 'free', 'availableBalance');
@@ -1764,14 +1784,13 @@ export default class toobit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {};
         let response: Dict = {};
         if (market['spot'] === true) {
-            [ request, params ] = this.createOrderRequest (symbol, type, side, amount, price, params);
-            response = await this.privatePostApiV1SpotOrder (this.extend (request, params));
+            const [ request, paramsRequest ] = this.createOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.privatePostApiV1SpotOrder (this.extend (request, paramsRequest));
         } else {
-            [ request, params ] = this.createContractOrderRequest (symbol, type, side, amount, price, params);
-            response = await this.privatePostApiV1FuturesOrder (this.extend (request, params));
+            const [ request, paramsRequest ] = this.createContractOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.privatePostApiV1FuturesOrder (this.extend (request, paramsRequest));
         }
         //
         //     {
@@ -1799,7 +1818,7 @@ export default class toobit extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): [ Dict, Dict ] {
+    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): [ Dict, Dict ] {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1815,8 +1834,7 @@ export default class toobit extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let cost: Str = undefined;
-        [ cost, params ] = this.handleParamString (params, 'cost');
+        const [ cost, paramsCost ] = this.handleParamString (params, 'cost');
         if (type === 'market' && side === 'buy') {
             if (cost === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires params["cost"] for market buy order');
@@ -1825,17 +1843,16 @@ export default class toobit extends Exchange {
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        let isPostOnly: Bool = undefined;
-        [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
-        if (isPostOnly === true) {
+        const [ isPostOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', false, paramsCost);
+        if (isPostOnly) {
             request['type'] = 'LIMIT_MAKER';
         } else {
             request['type'] = type.toUpperCase ();
         }
-        return [ request, params ];
+        return [ request, paramsPostOnly ];
     }
 
-    createContractOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): [ Dict, Dict ] {
+    createContractOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): [ Dict, Dict ] {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1847,14 +1864,14 @@ export default class toobit extends Exchange {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        let reduceOnly: Bool = undefined;
-        [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly');
+        const [ reduceOnly, paramsReduceOnly ] = this.handleParamBool (params, 'reduceOnly');
         if (side === 'buy') {
-            side = (reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
+            request['side'] = (reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
         } else if (side === 'sell') {
-            side = (reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
+            request['side'] = (reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
+        } else {
+            request['side'] = side;
         }
-        request['side'] = side;
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1865,19 +1882,18 @@ export default class toobit extends Exchange {
             request['type'] = 'LIMIT'; // weird, but exchange works this way
             request['priceType'] = 'MARKET';
         }
-        let isPostOnly: Bool = undefined;
-        [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
-        if (isPostOnly === true) {
+        const [ isPostOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', false, paramsReduceOnly);
+        if (isPostOnly) {
             request['timeInForce'] = 'LIMIT_MAKER';
         }
-        const values = this.handleTriggerPricesAndParams (symbol, params);
+        const values = this.handleTriggerPricesAndParams (symbol, paramsPostOnly);
         const triggerPrice = values[0];
-        params = values[3];
+        const paramsTrigger: Dict = values[3];
         if (triggerPrice !== undefined) {
             request['stopPrice'] = triggerPrice;
         }
-        const stopLoss = this.safeDict (params, 'stopLoss');
-        const takeProfit = this.safeDict (params, 'takeProfit');
+        const stopLoss = this.safeDict (paramsTrigger, 'stopLoss');
+        const takeProfit = this.safeDict (paramsTrigger, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const triggerPriceTypes = {
@@ -1886,7 +1902,7 @@ export default class toobit extends Exchange {
         };
         if (hasStopLoss) {
             request['stopLoss'] = this.safeValue (stopLoss, 'triggerPrice');
-            const limitPrice = this.safeValue (stopLoss, 'price');
+            const limitPrice = this.safeString (stopLoss, 'price');
             if (limitPrice !== undefined) {
                 request['slOrderType'] = 'LIMIT';
                 request['slLimitPrice'] = this.priceToPrecision (symbol, limitPrice);
@@ -1895,11 +1911,10 @@ export default class toobit extends Exchange {
             if (triggerPriceType !== undefined) {
                 request['slTriggerBy'] = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
             }
-            params = this.omit (params, 'stopLoss');
         }
         if (hasTakeProfit) {
             request['takeProfit'] = this.safeValue (takeProfit, 'triggerPrice');
-            const limitPrice = this.safeValue (takeProfit, 'price');
+            const limitPrice = this.safeString (takeProfit, 'price');
             if (limitPrice !== undefined) {
                 request['tpOrderType'] = 'LIMIT';
                 request['tpLimitPrice'] = this.priceToPrecision (symbol, limitPrice);
@@ -1908,12 +1923,12 @@ export default class toobit extends Exchange {
             if (triggerPriceType !== undefined) {
                 request['tpTriggerBy'] = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
             }
-            params = this.omit (params, 'takeProfit');
         }
-        if (!('newClientOrderId' in params)) {
+        const paramsOmitted = this.omit (paramsTrigger, [ 'stopLoss', 'takeProfit' ]);
+        if (!('newClientOrderId' in paramsOmitted)) {
             request['newClientOrderId'] = this.uuid ();
         }
-        return [ request, params ];
+        return [ request, paramsOmitted ];
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1977,7 +1992,7 @@ export default class toobit extends Exchange {
         //
         const timestamp = this.safeInteger2 (order, 'transactTime', 'time');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const rawType = this.safeString (order, 'type');
         let rawSideLower = this.safeStringLower (order, 'side');
         let reduceOnly: Bool = undefined;
@@ -1992,10 +2007,8 @@ export default class toobit extends Exchange {
             }
             rawSideLower = this.safeString (sideParts, 0);
         }
-        let triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
-        if (triggerPrice === '0.0') {
-            triggerPrice = undefined;
-        }
+        // omitZero already maps '0.0' to undefined
+        const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'orderId'),
@@ -2005,7 +2018,7 @@ export default class toobit extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType (rawType),
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': (rawType === 'LIMIT_MAKER'),
@@ -2023,10 +2036,10 @@ export default class toobit extends Exchange {
             'reduceOnly': reduceOnly,
             'leverage': undefined,
             'hedged': undefined,
-        }, market);
+        }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
@@ -2042,7 +2055,7 @@ export default class toobit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status: Str) {
+    parseOrderType (status: Str): Str {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -2075,16 +2088,15 @@ export default class toobit extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params, 'none');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params, 'none');
         if (marketType === 'none') {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
         let response: Dict = {};
         if (marketType === 'spot') {
-            response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
+            response = await this.privateDeleteApiV1SpotOrder (this.extend (request, paramsMarketType));
         } else {
-            response = await this.privateDeleteApiV1FuturesOrder (this.extend (request, params));
+            response = await this.privateDeleteApiV1FuturesOrder (this.extend (request, paramsMarketType));
         }
         // response same as in `createOrder`
         const status = this.parseOrderStatus (this.safeString (response, 'status'));
@@ -2114,19 +2126,18 @@ export default class toobit extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params, 'none');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params, 'none');
         if (marketType === 'none') {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
+            response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, paramsMarketType));
             //
             // {"success":true}  // always same response
             //
         } else {
-            response = await this.privateDeleteApiV1FuturesBatchOrders (this.extend (request, params));
+            response = await this.privateDeleteApiV1FuturesBatchOrders (this.extend (request, paramsMarketType));
             //
             // { "code": 200, "message":"success", "timestamp":1541161088303 }
             //
@@ -2161,19 +2172,18 @@ export default class toobit extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params, 'none');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrders', market, params, 'none');
         if (marketType === 'none') {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request, params));
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request, paramsMarketType));
             //
             // {"success":true}  // always same response
             //
         } else {
-            response = await this.privateDeleteApiV1FuturesCancelOrderByIds (this.extend (request, params));
+            response = await this.privateDeleteApiV1FuturesCancelOrderByIds (this.extend (request, paramsMarketType));
             //
             // {
             //     "code":200,
@@ -2191,7 +2201,7 @@ export default class toobit extends Exchange {
             //
             // or empty array if no orders were canceled
         }
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseOrders (result, market);
     }
 
@@ -2279,11 +2289,10 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let response: Dict | List = [];
         if (marketType === 'spot') {
-            response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, params));
+            response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, paramsMarketType));
             //
             //    [
             //        {
@@ -2312,7 +2321,7 @@ export default class toobit extends Exchange {
             //    ]
             //
         } else {
-            response = await this.privateGetApiV1FuturesOpenOrders (this.extend (request, params));
+            response = await this.privateGetApiV1FuturesOpenOrders (this.extend (request, paramsMarketType));
         }
         return this.parseOrders (response, market, since, limit);
     }
@@ -2332,24 +2341,23 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            requestUntil['symbol'] = market['id'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const marketType = this.handleMarketTypeAndParams ('fetchOrders', market, paramsUntil)[0];
         let response: Dict | List = [];
         if (marketType === 'spot') {
-            response = await this.privateGetApiV1SpotTradeOrders (request);
+            response = await this.privateGetApiV1SpotTradeOrders (requestUntil);
             //
             //    [
             //        {
@@ -2399,7 +2407,7 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2408,14 +2416,13 @@ export default class toobit extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
+        const marketType = this.handleMarketTypeAndParams ('fetchClosedOrders', market, paramsUntil)[0];
         let response: Dict | List = [];
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
         } else {
-            response = await this.privateGetApiV1FuturesHistoryOrders (request);
+            response = await this.privateGetApiV1FuturesHistoryOrders (requestUntil);
             //
             //    [
             //        {
@@ -2474,7 +2481,7 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -2483,12 +2490,11 @@ export default class toobit extends Exchange {
         }
         const market = this.market (symbol);
         request['symbol'] = market['id'];
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsMarketType);
         let response: List = [];
         if (marketType === 'spot') {
-            response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
+            response = await this.privateGetApiV1AccountTrades (this.extend (requestUntil, paramsUntil));
             //
             //    [
             //        {
@@ -2515,7 +2521,7 @@ export default class toobit extends Exchange {
             //        }, ...
             //
         } else {
-            response = await this.privateGetApiV1FuturesUserTrades (request);
+            response = await this.privateGetApiV1FuturesUserTrades (requestUntil);
             //
             //    [
             //        {
@@ -2614,7 +2620,7 @@ export default class toobit extends Exchange {
             await this.loadMarkets ();
         }
         let currency: Currency = undefined;
-        let request: Dict = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -2622,17 +2628,16 @@ export default class toobit extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            requestUntil['limit'] = limit;
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, paramsUntil);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateGetApiV1AccountBalanceFlow (this.extend (request, params));
+            response = await this.privateGetApiV1AccountBalanceFlow (this.extend (requestUntil, paramsMarketType));
         } else {
-            response = await this.privateGetApiV1FuturesBalanceFlow (this.extend (request, params));
+            response = await this.privateGetApiV1FuturesBalanceFlow (this.extend (requestUntil, paramsMarketType));
         }
         //
         // both answers are same format
@@ -2657,7 +2662,7 @@ export default class toobit extends Exchange {
 
     override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         const currencyId = this.safeString (item, 'coinId');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (item, 'created');
         const after = this.safeNumber (item, 'total');
         const amountRaw = this.safeString (item, 'change', '');
@@ -2676,13 +2681,13 @@ export default class toobit extends Exchange {
             'referenceId': undefined,
             'referenceAccount': undefined,
             'type': this.parseLedgerType (this.safeString (item, 'flowType')),
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'amount': amount,
             'before': undefined,
             'after': after,
             'status': undefined,
             'fee': undefined,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     parseLedgerType (type: Str): Str {
@@ -2706,14 +2711,12 @@ export default class toobit extends Exchange {
             await this.loadMarkets ();
         }
         let response = undefined;
-        let marketType: Str = undefined;
         let market: Market = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchTradingFees(): does not support ' + marketType + ' markets');
         } else if (this.inArray (marketType, [ 'swap', 'future' ])) {
-            let symbol: Str = undefined;
-            [ symbol, params ] = this.handleParamString (params, 'symbol');
+            const [ symbol, paramsSymbol ] = this.handleParamString (paramsMarketType, 'symbol');
             if (symbol === undefined) {
                 throw new BadRequest (this.id + ' fetchTradingFees requires a params["symbol"]');
             }
@@ -2721,7 +2724,7 @@ export default class toobit extends Exchange {
             const request: Dict = {
                 'symbol': market['id'],
             };
-            response = await this.privateGetApiV1FuturesCommissionRate (this.extend (request, params));
+            response = await this.privateGetApiV1FuturesCommissionRate (this.extend (request, paramsSymbol));
         }
         //
         // {
@@ -2787,7 +2790,7 @@ export default class toobit extends Exchange {
             await this.loadMarkets ();
         }
         let currency: Currency = undefined;
-        let request: Dict = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -2795,13 +2798,13 @@ export default class toobit extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            requestUntil['limit'] = limit;
         }
         let response: List = [];
         if (type === 'deposits') {
-            response = await this.privateGetApiV1AccountDepositOrders (this.extend (request, params));
+            response = await this.privateGetApiV1AccountDepositOrders (this.extend (requestUntil, paramsUntil));
             //
             // [
             //     {
@@ -2824,7 +2827,7 @@ export default class toobit extends Exchange {
             // ]
             //
         } else if (type === 'withdrawals') {
-            response = await this.privateGetApiV1AccountWithdrawOrders (this.extend (request, params));
+            response = await this.privateGetApiV1AccountWithdrawOrders (this.extend (requestUntil, paramsUntil));
             //
             // [
             //     {
@@ -2853,7 +2856,23 @@ export default class toobit extends Exchange {
             // ]
             //
         }
-        return this.parseTransactions (response, currency, since, limit, params);
+        const transactType = (type === 'deposits') ? 'deposit' : 'withdrawal';
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+            results.push (this.extend (this.parseTransactionWithType (response[i], currency, transactType), paramsUntil));
+        }
+        const sorted = this.sortBy (results, 'timestamp');
+        const currencyCode = (currency !== undefined) ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit (sorted, currencyCode, since, limit);
+    }
+
+    parseTransactionWithType (transaction: Dict, currency: Currency = undefined, transactType: Str = undefined): Transaction {
+        const result = this.parseTransaction (transaction, currency);
+        if (transactType !== undefined) {
+            result['type'] = transactType;
+            result['status'] = this.parseTransactionStatus (this.safeString (transaction, 'status'), transactType);
+        }
+        return result;
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2913,7 +2932,7 @@ export default class toobit extends Exchange {
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
         const addressTo = this.safeString (transaction, 'address');
         const addressFrom = this.safeString (transaction, 'fromAddress');
-        const isWithdraw = ('arriveQuantity' in transaction);
+        const isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
@@ -2931,7 +2950,7 @@ export default class toobit extends Exchange {
             'type': type,
             'amount': this.safeNumber (transaction, 'quantity'),
             'currency': code,
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status'), type),
             'updated': undefined,
             'fee': fee,
             'comment': undefined,
@@ -2939,16 +2958,29 @@ export default class toobit extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
-        const statuses: Dict = {
-            '2': 'pending',
-            '12': 'pending',
-            '11': 'failed',
-            '3': 'ok',
+    parseTransactionStatus (status: Str, type: Str = undefined): Str {
+        const statusesByType: Dict = {
+            'deposit': {
+                '2': 'ok', // DEPOSIT_CAN_WITHDRAW
+                '11': 'failed', // REJECT
+                '12': 'pending', // AUDIT
+            },
+            'withdrawal': {
+                '0': 'pending', // WITHDRAWAL_STATUS_UNKNOWN
+                '1': 'pending', // BROKER_AUDITING_STATUS
+                '2': 'failed', // BROKER_REJECT_STATUS
+                '3': 'pending', // AUDITING_STATUS
+                '6': 'ok', // WITHDRAWAL_SUCCESS_STATUS
+                '7': 'failed', // WITHDRAWAL_FAILURE_STATUS
+                '9': 'canceled', // WITHDRAWAL_CANCELLED_STATUS
+                '10': 'pending', // WAIT_MERCHANT_PASS
+                '11': 'pending', // APPLY_CANCEL, cancellation requested but not final yet
+            },
         };
         if (status === undefined) {
             return undefined;
         }
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2989,7 +3021,7 @@ export default class toobit extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
@@ -3009,15 +3041,15 @@ export default class toobit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         this.checkAddress (address);
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() : param["network"] is required');
         }
@@ -3035,7 +3067,7 @@ export default class toobit extends Exchange {
         if (tag !== undefined) {
             request['addressExt'] = tag;
         }
-        const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, params));
+        const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, paramsNetworkCode));
         //
         // {
         //     "status": 0,
@@ -3069,10 +3101,10 @@ export default class toobit extends Exchange {
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
-        marginMode = marginMode.toUpperCase ();
+        const marginModeValue: string = marginMode.toUpperCase ();
         const request: Dict = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': marginModeValue,
         };
         const response = await this.privatePostApiV1FuturesMarginType (this.extend (request, params));
         //
@@ -3210,14 +3242,14 @@ export default class toobit extends Exchange {
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const side = this.safeStringLower (position, 'side');
         const quantity = this.safeString (position, 'position');
         const leverage = this.safeInteger (position, 'leverage');
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'entryPrice': this.safeNumber (position, 'avgPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': this.safeNumber (position, 'lastPrice'),
@@ -3226,7 +3258,7 @@ export default class toobit extends Exchange {
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPnL'),
             'side': side,
             'contracts': this.parseNumber (quantity),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'timestamp': undefined,
             'datetime': undefined,
             'hedged': undefined,
@@ -3242,13 +3274,19 @@ export default class toobit extends Exchange {
         });
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString (this.urls['api'], apiName);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl: string = baseApiUrl;
+        let url = baseUrl + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';
         const isDelete = method === 'DELETE';
         const extraQuery: Dict = {};
         const query = this.omit (params, this.extractParams (path));
-        if (api !== 'private') {
+        if (apiName !== 'private') {
             // Public endpoints
             if (!isPost) {
                 if (Object.keys (query).length > 0) {
@@ -3263,36 +3301,46 @@ export default class toobit extends Exchange {
             extraQuery['timestamp'] = timestamp.toString ();
             const queryExtended = this.extend (query, extraQuery);
             let queryString = '';
+            let privateBody: Str = undefined;
             if (isPost || isDelete) {
                 // everything else except Batch-Orders
                 if (!Array.isArray (params)) {
-                    body = this.urlencode (queryExtended);
+                    privateBody = this.urlencode (queryExtended);
                 } else {
                     queryString = this.urlencode (extraQuery);
-                    body = this.json (query);
+                    privateBody = this.json (query);
                 }
             } else {
                 queryString = this.urlencode (queryExtended);
             }
+            let payloadBody = undefined;
+            if (isPost || isDelete) {
+                payloadBody = privateBody;
+            }
             let payload = queryString;
-            if (body !== undefined) {
-                payload = body + payload;
+            if (payloadBody !== undefined) {
+                payload = payloadBody + payload;
             }
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
             if (queryString !== '') {
                 queryString += '&signature=' + signature;
                 url += '?' + queryString;
             } else {
-                body += '&signature=' + signature;
+                privateBody += '&signature=' + signature;
             }
-            headers = {
+            const privateHeaders: Dict = {
                 'Referrer': 'CCXT',
                 'X-BB-APIKEY': this.apiKey,
                 'X-BB-API-PLATFORM': this.safeString (this.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
+            let requestBody = undefined;
+            if (isPost || isDelete) {
+                requestBody = privateBody;
+            }
+            return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

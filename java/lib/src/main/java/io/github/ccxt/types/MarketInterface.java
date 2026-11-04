@@ -48,7 +48,17 @@ public final class MarketInterface extends TypedMap {
     public MarketMarginModes marginModes;
     public Limits limits;
     public Long created;
+    public String baseName;
+    public String id2;
+    public Long instIdCode;
+    public Map<String, Object> tiers;
     public List<PredictionOutcome> outcomes;
+    public String market;
+    public String marketType;
+    public String executionModel;
+    public String collateral;
+    public Boolean resolved;
+    public String resolvedOutcome;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -98,10 +108,21 @@ public final class MarketInterface extends TypedMap {
         Object limitsRaw = TypeHelper.safeValue(data, "limits");
         this.limits = limitsRaw != null ? new Limits(limitsRaw) : null;
         this.created = TypeHelper.safeInteger(data, "created");
+        this.baseName = TypeHelper.safeString(data, "baseName");
+        this.id2 = TypeHelper.safeString(data, "id2");
+        this.instIdCode = TypeHelper.safeInteger(data, "instIdCode");
+        Object tiersRaw = TypeHelper.safeValue(data, "tiers");
+        this.tiers = tiersRaw instanceof Map ? (Map<String, Object>) tiersRaw : null;
         Object outcomesRaw = TypeHelper.safeValue(data, "outcomes");
         if (outcomesRaw instanceof List<?> outcomesList) {
             this.outcomes = ((List<Object>) outcomesList).stream().map(PredictionOutcome::new).collect(Collectors.toList());
         }
+        this.market = TypeHelper.safeString(data, "market");
+        this.marketType = TypeHelper.safeString(data, "marketType");
+        this.executionModel = TypeHelper.safeString(data, "executionModel");
+        this.collateral = TypeHelper.safeString(data, "collateral");
+        this.resolved = TypeHelper.safeBool(data, "resolved");
+        this.resolvedOutcome = TypeHelper.safeString(data, "resolvedOutcome");
         this.info = TypeHelper.getInfo(data);
     }
 }

@@ -12,8 +12,8 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchPosition";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
-        while (isLessThan(now, ends))
+        Int64 ends = (now + 15000);
+        while (now < ends)
         {
             object response = null;
             bool success = true;
@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (((success == true)) && ((response != null)))
+            if ((success) && ((response != null)))
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
                 now = exchange.milliseconds();

@@ -5754,6 +5754,28 @@ public class BinanceusApi extends Binance
     }
 
     /**
+     * Calls the dapiPrivateGetAlgoOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  dapiPrivateGetAlgoOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("dapiPrivateGetAlgoOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the dapiPrivateGetAllAlgoOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public CompletableFuture<List<Object>>  dapiPrivateGetAllAlgoOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("dapiPrivateGetAllAlgoOrders", optionalArgs);
+    }
+
+    /**
      * Calls the dapiPrivateGetAllOrders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -6114,6 +6136,17 @@ public class BinanceusApi extends Binance
     public CompletableFuture<Map<String, Object>>  dapiPrivateDeleteAlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateDeleteAlgoOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the dapiPrivateDeleteAlgoOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  dapiPrivateDeleteAlgoOpenOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("dapiPrivateDeleteAlgoOpenOrders", optionalArgs);
     }
 
     /**

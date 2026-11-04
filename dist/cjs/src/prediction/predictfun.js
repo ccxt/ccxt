@@ -297,11 +297,7 @@ class predictfun extends predictfun$1["default"] {
     async fetchEvent(id, params = {}) {
         // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
         // overrides it so a caller can pass the slug the same way fetchEvents () takes it
-        const paramSlug = this.safeString(params, 'slug');
-        let slug = id;
-        if (paramSlug !== undefined) {
-            slug = paramSlug;
-        }
+        const slug = this.safeString(params, 'slug', id);
         if (slug === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchEvent() requires the "id" argument or the "slug" parameter');
         }
@@ -332,14 +328,16 @@ class predictfun extends predictfun$1["default"] {
         }
         const queries = this.parseSearchQueries(params);
         const queriesLength = queries.length;
-        params = this.omit(params, ['query', 'queries']);
-        const userLimit = this.safeInteger(params, 'limit');
+        const paramsValue = this.omit(params, ['query', 'queries']);
+        // keys dropped before the client-side pass; the categories listing also drops its limit
+        const postOmitKeys = ['tags'];
+        const userLimit = this.safeInteger(paramsValue, 'limit');
         let fetchCap = this.safeInteger(this.options, 'maxFetchEventsResults', 100);
         if (userLimit !== undefined) {
             fetchCap = userLimit;
         }
-        const slug = this.safeString2(params, 'slug', 'eventId');
-        const rest = this.omit(params, ['status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant']);
+        const slug = this.safeString2(paramsValue, 'slug', 'eventId');
+        const rest = this.omit(paramsValue, ['status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant']);
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
@@ -353,18 +351,19 @@ class predictfun extends predictfun$1["default"] {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss
             // the venue's semantic matches and cost one request per page
-            rawTopics = await this.fetchRawTopicsByQueries(queries, params);
+            rawTopics = await this.fetchRawTopicsByQueries(queries, paramsValue);
         }
         else {
             const request = {};
-            const tags = this.safeList(params, 'tags', []);
+            const tags = this.safeList(paramsValue, 'tags', []);
             const tagsLength = tags.length;
             if (tagsLength > 0) {
                 const tagsString = tags.join(',');
                 request['tagIds'] = tagsString;
             }
-            params = this.omit(params, ['limit', 'tags']);
-            const extendedRequest = this.extend(request, params);
+            postOmitKeys.push('limit');
+            const paramsCategories = this.omit(paramsValue, ['limit', 'tags']);
+            const extendedRequest = this.extend(request, paramsCategories);
             let rawTopicsResponse = await this.predictfunGetV1Categories(extendedRequest);
             //
             //     {
@@ -569,10 +568,10 @@ class predictfun extends predictfun$1["default"] {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let postParams = this.omit(params, ['tags']);
+        let postParams = this.omit(paramsValue, postOmitKeys);
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
-        const rawStatus = this.safeString(params, 'status');
+        const rawStatus = this.safeString(paramsValue, 'status');
         if (rawStatus === 'OPEN') {
             postParams = this.extend(postParams, { 'status': 'active' });
         }
@@ -673,7 +672,7 @@ class predictfun extends predictfun$1["default"] {
             const categories = this.safeList(data, 'categories', []);
             const categoriesLength = categories.length;
             for (let ci = 0; ci < categoriesLength; ci++) {
-                const category = categories[ci];
+                const category = this.safeDict(categories, ci);
                 const categorySlug = this.safeString(category, 'slug');
                 if (categorySlug === undefined) {
                     // nothing to key a duplicate on, keep the row rather than drop it
@@ -982,9 +981,8 @@ class predictfun extends predictfun$1["default"] {
         }
         const digits = '0123456789';
         const chars = this.stringToCharsArray(text);
-        const charsLength = chars.length;
         let stripped = '';
-        for (let i = 0; i < charsLength; i++) {
+        for (let i = 0; i < chars.length; i++) {
             const ch = chars[i];
             let keep = true;
             if (ch === '$') {
@@ -995,7 +993,7 @@ class predictfun extends predictfun$1["default"] {
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
                 const prevIsDigit = (i > 0) && (digits.indexOf(chars[i - 1]) >= 0);
-                const nextIsDigit = ((i + 1) < charsLength) && (digits.indexOf(chars[i + 1]) >= 0);
+                const nextIsDigit = ((i + 1) < chars.length) && (digits.indexOf(chars[i + 1]) >= 0);
                 keep = !(prevIsDigit && nextIsDigit);
             }
             if (keep) {
@@ -1124,7 +1122,10 @@ class predictfun extends predictfun$1["default"] {
         const topicSlug = this.safeString(rawMarket, 'categorySlug');
         // the same handle parseEvent () derives for the enclosing event - stamping it here is what
         // lets every outcome-addressed structure (order, ticker, trade, position) report an event
-        const eventHandle = (topicSlug !== undefined) ? this.shortenSlug(topicSlug) : undefined;
+        let eventHandle = undefined;
+        if (topicSlug !== undefined) {
+            eventHandle = this.shortenSlug(topicSlug);
+        }
         const title = this.safeString(rawMarket, 'title', marketId);
         const topicMarkets = this.safeList(rawTopic, 'markets', []);
         const marketCount = topicMarkets.length;
@@ -1191,7 +1192,10 @@ class predictfun extends predictfun$1["default"] {
         }
         const resolvedOutcome = resolvedOutcomeRaw;
         const collateral = 'USDT';
-        const marketType = (rawOutcomesLength > 2) ? 'categorical' : 'binary';
+        let marketType = 'binary';
+        if (rawOutcomesLength > 2) {
+            marketType = 'categorical';
+        }
         const createdDatetime = this.safeString(rawMarket, 'createdAt');
         return {
             'id': marketId,
@@ -1292,14 +1296,14 @@ class predictfun extends predictfun$1["default"] {
             const noBids = [];
             const noAsks = [];
             for (let i = 0; i < bids.length; i++) {
-                const bid = bids[i];
+                const bid = this.safeList(bids, i);
                 const bidPrice = this.safeString(bid, 0);
                 const bidSize = this.parseNumber(this.safeString(bid, 1));
                 const complementPrice = this.parseNumber(Precise["default"].stringSub('1', bidPrice));
                 noAsks.push([complementPrice, bidSize]);
             }
             for (let i = 0; i < asks.length; i++) {
-                const ask = asks[i];
+                const ask = this.safeList(asks, i);
                 const askPrice = this.safeString(ask, 0);
                 const askSize = this.parseNumber(this.safeString(ask, 1));
                 const complementPrice = this.parseNumber(Precise["default"].stringSub('1', askPrice));
@@ -1413,7 +1417,8 @@ class predictfun extends predictfun$1["default"] {
         let outcomeFound = false;
         for (let i = 0; i < rawOutcomesLength; i++) {
             const candidate = rawOutcomes[i];
-            if (this.safeInteger(candidate, 'indexSet') === indexSet) {
+            const candidateIndexSet = this.safeInteger(candidate, 'indexSet');
+            if (candidateIndexSet === indexSet) {
                 rawOutcome = candidate;
                 outcomeFound = true;
                 break;
@@ -1586,7 +1591,7 @@ class predictfun extends predictfun$1["default"] {
         const flattenTrades = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = data[i];
+            const entry = this.safeDict(data, i);
             const taker = this.safeDict(entry, 'taker', {});
             const takerOutcome = this.safeDict(taker, 'outcome', {});
             const takerIndexSet = this.safeInteger(takerOutcome, 'indexSet');
@@ -1897,7 +1902,10 @@ class predictfun extends predictfun$1["default"] {
         if (tokenId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() could not resolve the on chain token id of ' + outcome);
         }
-        const strategy = (type === 'market') ? 'MARKET' : 'LIMIT';
+        let strategy = 'LIMIT';
+        if (type === 'market') {
+            strategy = 'MARKET';
+        }
         const isMarket = (strategy === 'MARKET');
         if ((!isMarket) && (price === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a "price" argument for a limit order');
@@ -1915,8 +1923,7 @@ class predictfun extends predictfun$1["default"] {
         // read through the extractor rather than off the instance, so one call can opt in without
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
-        let warnOnMarketOrderWithoutPrice = true;
-        [warnOnMarketOrderWithoutPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
+        const [warnOnMarketOrderWithoutPrice, paramsWarnOnMarketOrderWithoutPrice] = this.handleOptionBoolAndParams(params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
         if (price === undefined) {
             // a priceless limit order already threw above, so this is a market order
             if (warnOnMarketOrderWithoutPrice) {
@@ -1940,7 +1947,7 @@ class predictfun extends predictfun$1["default"] {
             makerAmount = costWei;
             takerAmount = quantityWei;
         }
-        const slippageBps = this.safeString(params, 'slippageBps', '0');
+        const slippageBps = this.safeString(paramsWarnOnMarketOrderWithoutPrice, 'slippageBps', '0');
         if (Precise["default"].stringGt(slippageBps, '0')) {
             if (isBuy) {
                 // widen what the taker is willing to pay, capped at one unit of collateral a share
@@ -1957,14 +1964,14 @@ class predictfun extends predictfun$1["default"] {
         const marketObj = this.safeDict(this.markets, marketSymbol, {});
         const marketRow = this.safeDict(marketObj, 'info', {});
         const marketFeeRateBps = this.safeString(marketRow, 'feeRateBps', '200'); // should be at least 200
-        const feeRateBps = this.safeString(params, 'feeRateBps', marketFeeRateBps);
+        const feeRateBps = this.safeString(paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', marketFeeRateBps);
         const marketIsNegRisk = this.safeBool(marketRow, 'isNegRisk', false);
-        const isNegRisk = this.safeBool(params, 'isNegRisk', marketIsNegRisk);
+        const isNegRisk = this.safeBool(paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk);
         const marketIsYieldBearing = this.safeBool(marketRow, 'isYieldBearing', false);
-        const isYieldBearing = this.safeBool(params, 'isYieldBearing', marketIsYieldBearing);
+        const isYieldBearing = this.safeBool(paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing);
         const defaultExpiration = this.safeInteger(this.options, 'defaultExpiration', 3600); // 1 hour
         let expirationDelta = defaultExpiration;
-        let expiration = this.safeInteger(params, 'expiration');
+        let expiration = this.safeInteger(paramsWarnOnMarketOrderWithoutPrice, 'expiration');
         if (expiration === undefined) {
             if (isMarket) {
                 expirationDelta = this.safeInteger(this.options, 'marketOrderExpiration', defaultExpiration);
@@ -1973,19 +1980,19 @@ class predictfun extends predictfun$1["default"] {
             expiration = this.sum(now, expirationDelta);
         }
         const nonce = this.incrementingNonce();
-        const salt = this.safeString(params, 'salt', this.numberToString(nonce));
-        let taker = '0x0000000000000000000000000000000000000000';
-        [taker, params] = this.handleOptionAndParams(params, 'createOrder', 'taker', taker);
+        const salt = this.safeString(paramsWarnOnMarketOrderWithoutPrice, 'salt', this.numberToString(nonce));
+        const taker = '0x0000000000000000000000000000000000000000';
+        const [takerOption, paramsTaker] = this.handleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, 'createOrder', 'taker', taker);
         const contractOrder = {
             'salt': salt,
             'maker': this.walletAddress,
             'signer': this.walletAddress,
-            'taker': taker,
+            'taker': takerOption,
             'tokenId': tokenId,
             'makerAmount': this.decimalToPrecision(makerAmount, number.TRUNCATE, 0, number.DECIMAL_PLACES),
             'takerAmount': this.decimalToPrecision(takerAmount, number.TRUNCATE, 0, number.DECIMAL_PLACES),
             'expiration': expiration,
-            'nonce': this.safeString(params, 'nonce', '0'),
+            'nonce': this.safeString(paramsTaker, 'nonce', '0'),
             'feeRateBps': feeRateBps,
             'side': isBuy ? 0 : 1,
             'signatureType': 0, // EOA
@@ -2000,28 +2007,28 @@ class predictfun extends predictfun$1["default"] {
             'pricePerShare': this.decimalToPrecision(priceWei, number.TRUNCATE, 0, number.DECIMAL_PLACES),
             'strategy': strategy,
         };
-        let postOnly = this.safeBool(params, 'isPostOnly', false);
-        [postOnly, params] = this.handlePostOnly(isMarket, postOnly, params);
-        if (postOnly) {
-            data['isPostOnly'] = postOnly;
+        const postOnly = this.safeBool(paramsTaker, 'isPostOnly', false);
+        const [postOnlyOption, paramsPostOnly] = this.handlePostOnly(isMarket, postOnly, paramsTaker);
+        if (postOnlyOption) {
+            data['isPostOnly'] = postOnlyOption;
         }
-        const timeInForce = this.safeStringUpper(params, 'timeInForce');
+        const timeInForce = this.safeStringUpper(paramsPostOnly, 'timeInForce');
         if (timeInForce === 'FOK') {
             data['isFillOrKill'] = true;
         }
         // documented, and the venue takes it inside data rather than as a top level key
-        const selfTradePrevention = this.safeStringUpper(params, 'selfTradePrevention');
+        const selfTradePrevention = this.safeStringUpper(paramsPostOnly, 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             data['selfTradePrevention'] = selfTradePrevention;
         }
         // every param the method consumes itself has to come out, otherwise it survives into the
         // extend below and is posted as a top level key next to 'data'
-        params = this.omit(params, ['isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing', 'slippageBps', 'salt', 'nonce', 'expiration', 'selfTradePrevention', 'taker']);
+        const paramsOmitted = this.omit(paramsPostOnly, ['isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing', 'slippageBps', 'salt', 'nonce', 'expiration', 'selfTradePrevention', 'taker']);
         // the JWT authorises the order, the api key only authorises the request
         const request = {
             'data': data,
         };
-        const response = await this.predictfunPostV1Orders(this.extend(request, params));
+        const response = await this.predictfunPostV1Orders(this.extend(request, paramsOmitted));
         //
         //     {
         //         "data": {
@@ -2123,10 +2130,10 @@ class predictfun extends predictfun$1["default"] {
         //     }
         //
         const rows = this.safeList(response, 'data', []);
-        const parsed = this.parsePredictionPositions(rows);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions(rows);
         }
+        const parsed = this.parsePredictionPositions(rows);
         // the venue filters by marketId only, so a set of outcome handles is applied here
         const wanted = {};
         const wantedOutcomes = this.toArray(outcomes);
@@ -3069,7 +3076,7 @@ class predictfun extends predictfun$1["default"] {
         // silently leaving those two languages with a stale cache
         const subMessageHashesLength = subMessageHashes.length;
         for (let i = 0; i < subMessageHashesLength; i++) {
-            const subHash = subMessageHashes[i];
+            const subHash = this.safeString(subMessageHashes, i);
             if ((subHash === 'orders') || (subHash === 'myTrades')) {
                 this.cleanCache({
                     'topic': subHash,
@@ -3090,11 +3097,12 @@ class predictfun extends predictfun$1["default"] {
      */
     async watchOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         let messageHash = 'orders';
+        let outcomeResolved = outcome;
         if (outcome !== undefined) {
-            await this.loadOutcome(outcome);
-            const outcomeObj = this.outcome(outcome);
-            outcome = this.safeOutcomeSymbol(undefined, outcomeObj);
-            messageHash = 'orders::' + outcome;
+            await this.loadOutcome(outcomeResolved);
+            const outcomeObj = this.outcome(outcomeResolved);
+            outcomeResolved = this.safeOutcomeSymbol(undefined, outcomeObj);
+            messageHash = 'orders::' + outcomeResolved;
         }
         else {
             // events arrive for whatever market the wallet traded, and the handler that resolves
@@ -3105,10 +3113,11 @@ class predictfun extends predictfun$1["default"] {
             await this.loadOutcomes();
         }
         const orders = await this.watchWalletEvents(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(outcome, limit);
+            limitResolved = orders.getLimit(outcomeResolved, limitResolved);
         }
-        return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -3123,11 +3132,12 @@ class predictfun extends predictfun$1["default"] {
      */
     async watchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         let messageHash = 'myTrades';
+        let outcomeResolved = outcome;
         if (outcome !== undefined) {
-            await this.loadOutcome(outcome);
-            const outcomeObj = this.outcome(outcome);
-            outcome = this.safeOutcomeSymbol(undefined, outcomeObj);
-            messageHash = 'myTrades::' + outcome;
+            await this.loadOutcome(outcomeResolved);
+            const outcomeObj = this.outcome(outcomeResolved);
+            outcomeResolved = this.safeOutcomeSymbol(undefined, outcomeObj);
+            messageHash = 'myTrades::' + outcomeResolved;
         }
         else {
             // same as watchOrders (): the fills come from the one wallet topic and are resolved by
@@ -3135,10 +3145,11 @@ class predictfun extends predictfun$1["default"] {
             await this.loadOutcomes();
         }
         const trades = await this.watchWalletEvents(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(outcome, limit);
+            limitResolved = trades.getLimit(outcomeResolved, limitResolved);
         }
-        return this.filterByOutcomeSinceLimit(trades, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -3406,7 +3417,7 @@ class predictfun extends predictfun$1["default"] {
         const noAsks = [];
         const bidsLength = rawBids.length;
         for (let i = 0; i < bidsLength; i++) {
-            const bid = rawBids[i];
+            const bid = this.safeList(rawBids, i);
             const bidPrice = this.safeString(bid, 0);
             const bidSize = this.parseNumber(this.safeString(bid, 1));
             yesBids.push([this.parseNumber(bidPrice), bidSize]);
@@ -3415,7 +3426,7 @@ class predictfun extends predictfun$1["default"] {
         }
         const asksLength = rawAsks.length;
         for (let i = 0; i < asksLength; i++) {
-            const ask = rawAsks[i];
+            const ask = this.safeList(rawAsks, i);
             const askPrice = this.safeString(ask, 0);
             const askSize = this.parseNumber(this.safeString(ask, 1));
             yesAsks.push([this.parseNumber(askPrice), askSize]);
@@ -3424,7 +3435,7 @@ class predictfun extends predictfun$1["default"] {
         const outcomes = this.outcomesByMarketId(marketId);
         const outcomesLength = outcomes.length;
         for (let i = 0; i < outcomesLength; i++) {
-            const outcomeObj = outcomes[i];
+            const outcomeObj = this.safeDict(outcomes, i);
             const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
             const isYesOutcome = this.safeInteger(outcomeInfo, 'indexSet') === 1;
             const outcomeHandle = this.safeString(outcomeObj, 'outcome');
@@ -3573,7 +3584,8 @@ class predictfun extends predictfun$1["default"] {
         for (let i = 0; i < outcomesLength; i++) {
             const candidate = outcomes[i];
             const info = this.safeDict(candidate, 'info', {});
-            if (this.safeInteger(info, 'indexSet') === outcomeIndex) {
+            const candidateIndexSet = this.safeInteger(info, 'indexSet');
+            if (candidateIndexSet === outcomeIndex) {
                 return candidate;
             }
         }
@@ -3586,7 +3598,10 @@ class predictfun extends predictfun$1["default"] {
         // undefined rather than guessed - a handle that does not match the one the rest of the api
         // reports is worse than none at all
         const topicSlug = this.safeString(details, 'categorySlug');
-        const eventHandle = (topicSlug !== undefined) ? this.shortenSlug(topicSlug) : undefined;
+        let eventHandle = undefined;
+        if (topicSlug !== undefined) {
+            eventHandle = this.shortenSlug(topicSlug);
+        }
         const label = this.stripPriceFormatting(this.safeStringUpper(details, 'outcomeName'));
         return {
             'outcome': undefined,
@@ -3850,14 +3865,12 @@ class predictfun extends predictfun$1["default"] {
      * @name predictfun#sign
      * @description builds the request URL and attaches the API key header required by every endpoint
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the API group and access level
+     * @param {string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path, api = 'predictfun', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['predictfun'], method = 'GET', params = {}) {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all
@@ -3866,7 +3879,7 @@ class predictfun extends predictfun$1["default"] {
         if ((apiKey === undefined) && !sandboxMode) {
             throw new errors.AuthenticationError(this.id + ' sign() requires the "apiKey" credential for all endpoints');
         }
-        const apiGroup = typeof api === 'string' ? api : api[0];
+        const apiGroup = api[0];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['predictfun']);
         let url = baseUrl + '/' + this.implodeParams(path, params);
@@ -3876,8 +3889,8 @@ class predictfun extends predictfun$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = existingHeaders;
+        const existingHeaders = {};
+        const headersValue = existingHeaders;
         const authHeaders = {};
         if ((apiKey !== undefined) && (!sandboxMode)) {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -3912,15 +3925,16 @@ class predictfun extends predictfun$1["default"] {
         if ((jwtToken !== undefined) && this.inArray(path, walletPaths)) {
             authHeaders['Authorization'] = 'Bearer ' + jwtToken;
         }
+        let bodyValue = undefined;
         if (method !== 'GET') {
             if (!sandboxMode) {
                 this.checkRequiredCredentials();
             }
             authHeaders['Content-Type'] = 'application/json';
-            body = this.json(params);
+            bodyValue = this.json(params);
         }
-        headers = this.extend(headers, authHeaders);
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersExtended = this.extend(headersValue, authHeaders);
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }
 

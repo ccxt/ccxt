@@ -362,7 +362,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name nado#fetchFundingHistory
@@ -459,7 +459,7 @@ export default class nado extends Exchange {
         id: Str;
         amount: number | undefined;
     };
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseCurrency(rawCurrency: Dict): Currency;
     parseBalance(response: any): Balances;
@@ -481,7 +481,7 @@ export default class nado extends Exchange {
     signCancellationProducts(cancellation: Dict, chainId: Str, endpointAddress: Str): string;
     signFetchTriggerOrders(tx: Dict, chainId: Str, endpointAddress: Str): string;
     signHash(hash: string, privateKey: Str): string;
-    removeMarketSuffix(marketId: Str): string | undefined;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    removeMarketSuffix(marketId: Str): Str;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

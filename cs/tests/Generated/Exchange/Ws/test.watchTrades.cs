@@ -12,10 +12,10 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchTrades";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
+        Int64 ends = (now + 15000);
         int maxIdleTime = 5000;
         bool idle = false;
-        while ((isLessThan(now, ends)) && !idle)
+        while ((now < ends) && !idle)
         {
             object response = new List<object>() {};
             bool success = true;
@@ -32,14 +32,14 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            if ((success == true))
+            if (success)
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response);
                 for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now, true);
                 }
-                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                if ((((now - startTime)) > maxIdleTime))
                 {
                     idle = true;
                 }

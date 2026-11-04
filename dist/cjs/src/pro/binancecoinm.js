@@ -2,15 +2,15 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var binance = require('./binance.js');
-var binancecoinm$1 = require('../binancecoinm.js');
+var binancecoinm$1 = require('../abstract/pro/binancecoinm.js');
+var binancecoinm$2 = require('../binancecoinm.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class binancecoinm extends binance["default"] {
+class binancecoinm extends binancecoinm$1["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new binancecoinm$1["default"]();
+        const restInstance = new binancecoinm$2["default"]();
         const restDescribe = restInstance.describe();
         const parentWsDescribe = super.describeData();
         const extended = this.deepExtend(restDescribe, parentWsDescribe);

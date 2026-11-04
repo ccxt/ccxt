@@ -251,6 +251,12 @@ impl std::ops::Deref for Blofin {
 }
 
 impl Blofin {
+    /// Typed wrapper around `fetchCurrencies`.
+    pub async fn fetch_currencies(&mut self, params: impl Into<Params>) -> crate::Result<Currencies> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_currencies(&[params.into().into_value()])).await?;
+        Ok(dict_from_value(&v, Currency::from_value))
+    }
+
     /// Typed wrapper around `fetchMarkets`.
     pub async fn fetch_markets(&mut self, params: impl Into<Params>) -> crate::Result<Vec<Market>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_markets(&[params.into().into_value()])).await?;
@@ -324,8 +330,8 @@ impl Blofin {
     }
 
     /// Typed wrapper around `withdraw`.
-    pub async fn withdraw(&mut self, code: &str, amount: f64, address: &str, tag: Option<&str>, params: impl Into<Params>) -> crate::Result<Transaction> {
-        let v = crate::runtime::call_typed(self.core_mut().withdraw(Value::from(code), Value::Float(amount), Value::from(address), &[tag.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
+    pub async fn withdraw(&mut self, code: &str, amount: f64, address: &str, params: impl Into<Params>) -> crate::Result<Transaction> {
+        let v = crate::runtime::call_typed(self.core_mut().withdraw(Value::from(code), Value::Float(amount), Value::from(address), &[params.into().into_value()])).await?;
         Ok(Transaction::from_value(v))
     }
 
@@ -864,9 +870,9 @@ impl Blofin {
     }
 
     /// Typed wrapper around `fetchL3OrderBook`.
-    pub async fn fetch_l3_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<OrderBook> {
+    pub async fn fetch_l3_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<OrderBookL3> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_l3_order_book(Value::from(symbol), &[limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(OrderBook::from_value(v))
+        Ok(OrderBookL3::from_value(v))
     }
 
     /// Typed wrapper around `fetchTrades`.

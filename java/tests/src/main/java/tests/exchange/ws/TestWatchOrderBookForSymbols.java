@@ -5,6 +5,7 @@ import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -33,7 +34,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBookForSymbols", new Object[]{symbols})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBookForSymbols", new Object[]{symbols, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
                 // interim workaround for InvalidNonce raised by the c# runtime
@@ -44,7 +45,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
                 succeeded = false;
             }
             currentTime = exchange.milliseconds();
-            if ((java.util.Objects.equals(succeeded, true)) && (!java.util.Objects.equals(response, null)))
+            if (Boolean.TRUE.equals(succeeded) && (!java.util.Objects.equals(response, null)))
             {
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, null);
                 TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);

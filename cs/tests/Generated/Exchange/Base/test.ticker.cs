@@ -51,8 +51,8 @@ public partial class testMainClass : BaseTest
         // trick csharp-transpiler for string
         if (!isTrue((((object)method).ToString().Contains("BidsAsks"))))
         {
-            ((IList<object>)emptyAllowedFor).Add("bid");
-            ((IList<object>)emptyAllowedFor).Add("ask");
+            emptyAllowedFor.Add("bid");
+            emptyAllowedFor.Add("ask");
         }
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
@@ -60,7 +60,7 @@ public partial class testMainClass : BaseTest
         // check market
         IDictionary<string, object> market = null;
         bool isUnrecognizedSymbol = false;
-        bool isFetchTickerCalled = isEqual(method, "fetchTicker");
+        bool isFetchTickerCalled = (method is "fetchTicker");
         object symbolForMarket = ((symbol != null)) ? symbol : exchange.safeString(entry, "symbol");
         if ((symbolForMarket != null))
         {
@@ -130,7 +130,7 @@ public partial class testMainClass : BaseTest
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
             bool? isInverse = exchange.safeBool(market, "inverse", false);
-            if (((baseVolume != null)) && ((quoteVolume != null)) && ((high != null)) && ((low != null)) && ((isInverse != true)))
+            if (((baseVolume != null)) && ((quoteVolume != null)) && ((high != null)) && ((low != null)) && (isInverse != true))
             {
                 string? baseLow = Precise.stringMul(baseVolume, low);
                 string? baseHigh = Precise.stringMul(baseVolume, high);
@@ -281,7 +281,7 @@ public partial class testMainClass : BaseTest
             {
                 // - should be above -100 and (for non-options) below MAX
                 assert(Precise.stringGe(percentage, "-100"), ("percentage should be above -100% " + (logText)));
-                if ((isOptionMarket != true))
+                if (isOptionMarket != true)
                 {
                     assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), ((("percentage should be below " + maxIncrease) + "00% ") + (logText)));
                 }
@@ -294,7 +294,7 @@ public partial class testMainClass : BaseTest
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease
                 assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), ("change should be above -price " + (logText)));
-                if ((isOptionMarket != true))
+                if (isOptionMarket != true)
                 {
                     assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), ((("change should be below " + maxIncrease) + "x price ") + (logText)));
                 }

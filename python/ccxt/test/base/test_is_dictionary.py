@@ -20,17 +20,17 @@ def test_is_dictionary():
     })
     # populated dict
     assert(exchange.is_dictionary({
-    'a': 1,
-}))
+        'a': 1,
+    }))
     # populated list is not a dict
-    assert exchange.is_dictionary([1, 2, 3]) is False
+    assert not exchange.is_dictionary([1, 2, 3])
     # null is not a dict, in js typeof null is object so the explicit
     # null check matters, see https://github.com/ccxt/ccxt/pull/29704
-    assert exchange.is_dictionary(None) is False
+    assert not exchange.is_dictionary(None)
     # undefined is not a dict
-    assert exchange.is_dictionary(None) is False
+    assert not exchange.is_dictionary(None)
     # scalars are not dicts
-    assert exchange.is_dictionary('str') is False
-    assert exchange.is_dictionary(5) is False
-    assert exchange.is_dictionary(True) is False
+    assert not exchange.is_dictionary('str')
+    assert not exchange.is_dictionary(5)
+    assert not exchange.is_dictionary(True)
     assert exchange.is_dictionary({})

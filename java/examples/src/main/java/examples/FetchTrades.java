@@ -23,7 +23,7 @@ public class FetchTrades {
 
         exchange.loadMarkets(false);
 
-        List<Trade> trades = exchange.fetchTrades(symbol, null, 20L, null);
+        List<Trade> trades = exchange.fetchTrades(symbol, null, 20L, null).join();
 
         System.out.printf("%-24s %-5s %12s %12s %14s%n",
                 "Datetime", "Side", "Price", "Amount", "Cost");

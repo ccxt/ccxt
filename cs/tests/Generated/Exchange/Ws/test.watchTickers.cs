@@ -19,10 +19,10 @@ public partial class testMainClass : BaseTest
         argParams ??= new Dictionary<string, object>();
         string method = "watchTickers";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
+        Int64 ends = (now + 15000);
         int maxIdleTime = 5000;
         bool idle = false;
-        while ((isLessThan(now, ends)) && !idle)
+        while ((now < ends) && !idle)
         {
             object response = new Dictionary<string, object>() {};
             bool success = true;
@@ -54,7 +54,7 @@ public partial class testMainClass : BaseTest
             {
                 return false;
             }
-            if ((success == true))
+            if (success)
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
@@ -81,7 +81,7 @@ public partial class testMainClass : BaseTest
                         testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
                 }
-                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                if ((((now - startTime)) > maxIdleTime))
                 {
                     idle = true;
                 }

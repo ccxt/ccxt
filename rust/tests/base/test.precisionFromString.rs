@@ -54,6 +54,24 @@ pub fn testPrecisionFromString() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1.0".into())).as_f64() == Some(0.0)))));
     // Test 20: Mixed precision
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("0.12345".into())).as_f64() == Some(5.0)))));
+    // The mantissa's sign and digits must not become part of the exponent.
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-1e-4".into())).as_f64() == Some(4.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-1E-05".into())).as_f64() == Some(5.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-2.5e-6".into())).as_f64() == Some(6.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-1e4".into())).as_f64() == Value::Int(-4).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-1e+4".into())).as_f64() == Value::Int(-4).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("+1e-4".into())).as_f64() == Some(4.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("+1E+04".into())).as_f64() == Value::Int(-4).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("12.34e-5".into())).as_f64() == Some(5.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-12.34e-5".into())).as_f64() == Some(5.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("+12.34E+04".into())).as_f64() == Value::Int(-4).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-.5E-04".into())).as_f64() == Some(4.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-1e0".into())).as_f64() == Some(0.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-0.00100".into())).as_f64() == Some(3.0)))));
+    // Zero exponents must also return zero in the typed language ports.
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1e0".into())).as_f64() == Some(0.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1E+00".into())).as_f64() == Some(0.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1e-0".into())).as_f64() == Some(0.0)))));
     // Test 21: Negative mantissa with negative exponent
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-8e-8".into())).as_f64() == Some(8.0)))));
     // Test 22: Negative mantissa uppercase E with zero-padded exponent

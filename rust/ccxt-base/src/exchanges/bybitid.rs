@@ -30,7 +30,9 @@ impl BybitidCore {
     pub fn init(&mut self) {
         let described = BybitidCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -158,6 +160,9 @@ impl crate::exchange::DerivedExchange for BybitidCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -205,6 +210,11 @@ impl BybitidCore {
         m.insert("doc".to_string(), Value::from(vec![Value::Str("https://bybit-exchange.github.io/docs/v5/intro".into()), Value::Str("https://github.com/bybit-exchange".into())]));
         m.insert("fees".to_string(), Value::Str("https://help.bybit.com/hc/en-us/articles/360039261154".into()));
         m.insert("referral".to_string(), Value::Null);
+    m
+}));
+        m.insert("httpExceptions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("403".to_string(), Value::Str("PermissionDenied".into()).clone());
     m
 }));
     m

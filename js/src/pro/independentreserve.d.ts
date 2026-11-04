@@ -29,7 +29,7 @@ export default class independentreserve extends independentreserveRest {
     handleOrderBook(client: Client, message: Dict): void;
     valueToChecksum(value: Num): string;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleHeartbeat(client: Client, message: Dict): Dict;
     handleSubscriptions(client: Client, message: Dict): Dict;
     handleMessage(client: Client, message: Dict): void;

@@ -12,7 +12,7 @@ public partial class gateeu : gate
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.gateeu();
         Dictionary<string, object> restDescribe = restInstance.describe();
-        object parentWsDescribe = base.describeData();
+        Dictionary<string, object> parentWsDescribe = base.describeData();
         // the ws describe-data must be applied on top of the rest describe,
         // otherwise the explicit-undefined watch* defaults of the rest 'has'
         // block wipe the parent's ws capability flags in the deep extend

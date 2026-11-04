@@ -18,9 +18,9 @@ public partial class testMainClass : BaseTest
         // keep arriving quickly and stop once the book goes quiet.
         int maxIdleTime = 5000;
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
+        Int64 ends = (now + 15000);
         bool idle = false;
-        while ((isLessThan(now, ends)) && !idle)
+        while ((now < ends) && !idle)
         {
             object response = null;
             bool success = true;
@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
             // refresh the deadline on every path, otherwise a stream of temporary
             // failures would loop forever
             now = exchange.milliseconds();
-            if (((success == true)) && ((response != null)))
+            if ((success) && ((response != null)))
             {
                 testOrderBook(exchange, skippedProperties, method, response, symbol);
                 Int64 elapsed = (now - startTime);

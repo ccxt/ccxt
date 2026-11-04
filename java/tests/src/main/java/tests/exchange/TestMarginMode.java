@@ -23,7 +23,7 @@ public class TestMarginMode extends BaseTest {
             put( "symbol", "BTC/USDT:USDT" );
             put( "marginMode", "cross" );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("symbol"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("symbol"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     }
 

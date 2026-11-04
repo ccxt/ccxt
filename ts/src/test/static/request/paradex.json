@@ -108,6 +108,41 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "swap +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&start_at=1790600000000&end_at=1790606059999",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000,
+                    100
+                ],
+                "output": null
+            },
+            {
+                "description": "swap +since",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&start_at=1790600000000&end_at=1790660059999",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "swap",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&end_at=1790686305025&start_at=1790626245026",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m"
+                ],
+                "output": null
+            },
+            
+            {
                 "description": "mark ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=60&symbol=BTC-USD-PERP&price_kind=mark&end_at=1764326287714&start_at=1763962687715",
@@ -369,6 +404,22 @@
                 ],
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"TAKE_PROFIT_LIMIT\",\"instruction\":\"GTC\",\"price\":\"210\",\"size\":\"0\",\"trigger_price\":\"200\",\"flags\":[\"REDUCE_ONLY\"],\"signature\":\"[\\\"2276934189038552396241660827010472152888163052676591004314462080490853028883\\\",\\\"657585632622021821033179826259882399821230416216279066162195516051551718168\\\"]\",\"signature_timestamp\":1722426176000}",
                 "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "disabledRS": true,
+                "description": "spot limit buy order is sent with the spot market id",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "ETH/USDC",
+                    "limit",
+                    "buy",
+                    0.01,
+                    2500
+                ],
+                "output": "{\"market\":\"ETH-USD\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"GTC\",\"size\":\"0.01\",\"price\":\"2500\",\"signature\":\"[\\\"1\\\",\\\"2\\\"]\",\"signature_timestamp\":1721903698000}"
             }
         ],
         "createOrders": [
@@ -644,6 +695,34 @@
                 "method": "fetchAllGreeks",
                 "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
                 "input": []
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "index ohlcv is requested as the underlying price kind",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&price_kind=underlying&start_at=1790600000000&end_at=1790606059999",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000,
+                    100
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark ohlcv",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&price_kind=mark&start_at=1790600000000&end_at=1790606059999",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000,
+                    100
+                ],
+                "output": null
             }
         ]
     }

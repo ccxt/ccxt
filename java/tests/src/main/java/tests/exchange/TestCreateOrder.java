@@ -26,7 +26,7 @@ public class TestCreateOrder extends BaseTest {
         if (Boolean.TRUE.equals(debugCreateOrder))
         {
             // for c# fix, extra step to convert them to string
-            Object msg = ((((Helpers.add(" >>>>> testCreateOrder [", String.valueOf((Helpers.GetValue(exchange, "id")))) + " : ") + symbol) + "] ") + message);
+            String msg = (((((" >>>>> testCreateOrder [" + String.valueOf((Helpers.GetValue(exchange, "id")))) + " : ") + symbol) + "] ") + message);
             System.out.println(msg);
         }
         return true;
@@ -48,11 +48,11 @@ public class TestCreateOrder extends BaseTest {
         Boolean isSwapFuture = (java.util.Objects.equals(Helpers.GetValue(market, "swap"), true)) || (java.util.Objects.equals(Helpers.GetValue(market, "future"), true));
         Boolean hasFetchBalance = (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchBalance"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchBalance"), false));
         Assert(hasFetchBalance, (logPrefix + " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
-        Object balance = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBalance", new Object[]{})).join();
+        Object balance = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBalance", new Object[]{new HashMap<String, Object>() {{}}})).join();
         Object initialBaseBalance = Helpers.GetValue(Helpers.GetValue(balance, Helpers.GetValue(market, "base")), "free");
         Object initialQuoteBalance = Helpers.GetValue(Helpers.GetValue(balance, Helpers.GetValue(market, "quote")), "free");
-        Assert(!java.util.Objects.equals(initialQuoteBalance, null), (Helpers.add((logPrefix + " - testing account not have balance of"), Helpers.GetValue(market, "quote")) + " in fetchBalance() which is required to test"));
-        tcoDebug(exchange, symbol, Helpers.add((Helpers.add((Helpers.add((Helpers.add((("fetched balance for " + symbol) + " : "), String.valueOf(initialBaseBalance)) + " "), Helpers.GetValue(market, "base")) + "/"), initialQuoteBalance) + " "), Helpers.GetValue(market, "quote")));
+        Assert(!java.util.Objects.equals(initialQuoteBalance, null), (((logPrefix + " - testing account not have balance of") + Helpers.GetValue(market, "quote")) + " in fetchBalance() which is required to test"));
+        tcoDebug(exchange, symbol, ((((((((("fetched balance for " + symbol) + " : ") + String.valueOf(initialBaseBalance)) + " ") + Helpers.GetValue(market, "base")) + "/") + initialQuoteBalance) + " ") + Helpers.GetValue(market, "quote")));
         var bestBidbestAskVariable = (TestSharedMethods.fetchBestBidAsk(exchange, "createOrder", symbol)).join();
         var bestBid = ((List<Object>) bestBidbestAskVariable).get(0);
         var bestAsk = ((List<Object>) bestBidbestAskVariable).get(1);
@@ -179,7 +179,7 @@ public class TestCreateOrder extends BaseTest {
             Map<String, Object> parameters = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSwapFuture))
             {
-                ((Map<String, Object>)parameters).put("reduceOnly", true);
+                parameters.put("reduceOnly", true);
             }
             Object exitorderPriceArg = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? null : exitorderPrice;
             Object exitorderFilled = (tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties)).join();
@@ -199,13 +199,13 @@ public class TestCreateOrder extends BaseTest {
         String precisionAmount = exchange.safeString(((Map<String, Object>)market).get("precision"), "amount");
         Object entryorderAmountString = exchange.numberToString(requestedAmount);
         String filledString = exchange.safeString(fetchedOrder, "filled");
-        Assert(!java.util.Objects.equals(filledString, null), Helpers.add((logPrefix + " order should be filled, but it is not. "), exchange.json(fetchedOrder)));
+        Assert(!java.util.Objects.equals(filledString, null), ((logPrefix + " order should be filled, but it is not. ") + exchange.json(fetchedOrder)));
         // filled amount should be whithin the expected range i.e. if you buy 100 DOGECOIN and amount-precision is 1,
         // and also considering possible roundings in implementation, then filled amount should be between 99 and 101
         String maxExpectedFilledAmount = Precise.stringAdd(entryorderAmountString, precisionAmount);
         String minExpectedFilledAmount = Precise.stringSub(entryorderAmountString, precisionAmount);
-        Assert(Precise.stringLe(filledString, maxExpectedFilledAmount), Helpers.add((logPrefix + " filled amount is more than expected, possibly some implementation issue. "), exchange.json(fetchedOrder)));
-        Assert(Precise.stringGe(filledString, minExpectedFilledAmount), Helpers.add((logPrefix + " filled amount is less than expected, possibly some implementation issue. "), exchange.json(fetchedOrder)));
+        Assert(Precise.stringLe(filledString, maxExpectedFilledAmount), ((logPrefix + " filled amount is more than expected, possibly some implementation issue. ") + exchange.json(fetchedOrder)));
+        Assert(Precise.stringGe(filledString, minExpectedFilledAmount), ((logPrefix + " filled amount is less than expected, possibly some implementation issue. ") + exchange.json(fetchedOrder)));
         // order state should be "closed"
         TestSharedMethods.AssertOrderState(exchange, skippedProperties, "createdOrder", createdOrder, "closed", false);
         TestSharedMethods.AssertOrderState(exchange, skippedProperties, "fetchedOrder", fetchedOrder, "closed", true);
@@ -227,16 +227,16 @@ public class TestCreateOrder extends BaseTest {
         if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrder"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrder"), false)) && (!java.util.Objects.equals(orderId, null)))
         {
             usedMethod = "cancelOrder";
-            cancelResult = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelOrder", new Object[]{orderId, symbol})).join();
+            cancelResult = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelOrder", new Object[]{orderId, Helpers.toStringArg(symbol), new HashMap<String, Object>() {{}}})).join();
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelAllOrders"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelAllOrders"), false)))
         {
             usedMethod = "cancelAllOrders";
-            cancelResult = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelAllOrders", new Object[]{symbol})).join();
+            cancelResult = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelAllOrders", new Object[]{Helpers.toStringArg(symbol), new HashMap<String, Object>() {{}}})).join();
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrders"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrders"), false)))
         {
             throw new RuntimeException((String)(logPrefix + " cancelOrders method is not unified yet, coming soon...")) ;
         }
-        tcoDebug(exchange, symbol, Helpers.add((("canceled order using " + usedMethod) + ":"), ((Map<String, Object>)cancelResult).get("id")));
+        tcoDebug(exchange, symbol, ((("canceled order using " + usedMethod) + ":") + ((Map<String, Object>)cancelResult).get("id")));
         // todo:
         // TestSharedMethods.AssertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
         // TestSharedMethods.AssertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
@@ -254,8 +254,8 @@ public class TestCreateOrder extends BaseTest {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         Object skippedProperties = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        tcoDebug(exchange, symbol, Helpers.add((Helpers.add((Helpers.add((((("Executing createOrder " + orderType) + " ") + side) + " "), amount) + " "), price) + " "), exchange.json(parameters)));
-        Object order = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{symbol, orderType, side, amount, price, parameters})).join();
+        tcoDebug(exchange, symbol, ((((((((("Executing createOrder " + orderType) + " ") + side) + " ") + amount) + " ") + price) + " ") + exchange.json(parameters)));
+        Object order = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{symbol, (String) (orderType), (String) (side), amount, price, Helpers.toMapArg(parameters)})).join();
         try
         {
             TestOrder.testOrder(exchange, skippedProperties, "createOrder", order, symbol, System.currentTimeMillis());
@@ -275,14 +275,14 @@ public class TestCreateOrder extends BaseTest {
     public Object tcoMininumAmount(BaseExchange exchange, Object market)
     {
         Object amountValues = exchange.safeDict(((Map<String, Object>)market).get("limits"), "amount", new HashMap<String, Object>() {{}});
-        Object amountMin = exchange.safeNumber(amountValues, "min");
+        Object amountMin = exchange.safeNumber(amountValues, "min", (Object) null);
         Assert(!java.util.Objects.equals(amountMin, null), (Helpers.add(Helpers.add(exchange.id, " "), ((Map<String, Object>)market).get("symbol")) + " can not determine minimum amount for order"));
         return amountMin;
     }
     public Object tcoMininumCost(BaseExchange exchange, Object market)
     {
         Object costValues = exchange.safeDict(((Map<String, Object>)market).get("limits"), "cost", new HashMap<String, Object>() {{}});
-        Object costMin = exchange.safeNumber(costValues, "min");
+        Object costMin = exchange.safeNumber(costValues, "min", (Object) null);
         Assert(!java.util.Objects.equals(costMin, null), (Helpers.add(Helpers.add(exchange.id, " "), ((Map<String, Object>)market).get("symbol")) + " can not determine minimum cost for order"));
         return costMin;
     }
@@ -308,7 +308,7 @@ public class TestCreateOrder extends BaseTest {
             finalAmount = Helpers.mathMax(finalAmount, predefinedAmount);
         }
         // because it's possible that calculated value might get truncated down in "createOrder" (i.e. 0.129 -> 0.12), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
-        Object amountPrecision = exchange.safeNumber(((Map<String, Object>)market).get("precision"), "amount");
+        Object amountPrecision = exchange.safeNumber(((Map<String, Object>)market).get("precision"), "amount", (Object) null);
         Boolean isTickSizePrecision = Helpers.isEqual(exchange.precisionMode, 4);
         if (java.util.Objects.equals(amountPrecision, null))
         {

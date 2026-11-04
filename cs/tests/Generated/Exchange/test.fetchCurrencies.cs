@@ -12,14 +12,14 @@ public partial class testMainClass : BaseTest
         string method = "fetchCurrencies";
         object currencies = await invokeExchangeDynamically(exchange, "fetchCurrencies");
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
-        object numInactiveCurrencies = 0;
+        Int64 numInactiveCurrencies = 0;
         Int64? maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
         List<object> requiredActiveCurrencies = new List<object>() {"BTC", "ETH", "USDT", "USDC"};
         object features = exchange.features;
         IDictionary<string, object> featuresSpot = exchange.safeDict(features, "spot", new Dictionary<string, object>() {});
         IDictionary<string, object> fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new Dictionary<string, object>() {});
         object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
-        if (!isEqual(isFetchCurrenciesPrivate, true))
+        if (!(isFetchCurrenciesPrivate is true))
         {
             List<object> values = new List<object>(((IDictionary<string,object>)currencies).Values);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
@@ -33,27 +33,27 @@ public partial class testMainClass : BaseTest
             // loop
             for (int i = 0; i < currenciesLength; i++)
             {
-                object currency = getValue(values, i);
+                object currency = (values != null && i < values.Count ? values[i] : null);
                 testCurrency(exchange, skippedProperties, method, currency);
                 // detailed check for deposit/withdraw
                 bool? active = exchange.safeBool(currency, "active");
                 if ((active == false))
                 {
-                    numInactiveCurrencies = add(numInactiveCurrencies, 1);
+                    numInactiveCurrencies = (numInactiveCurrencies + 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
                 string? code = exchange.safeString(currency, "code");
                 bool? withdraw = exchange.safeBool(currency, "withdraw");
                 bool? deposit = exchange.safeBool(currency, "deposit");
                 bool? isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                bool skipUsdtForMica = ((isMicaCompliant == true)) && ((code == "USDT"));
-                if (isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && ((skipUsdtForMica != true)))
+                bool skipUsdtForMica = (isMicaCompliant == true) && (code == "USDT");
+                if (isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && (!skipUsdtForMica))
                 {
                     assert(((withdraw == true)) && ((deposit == true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active
-            object inactiveCurrenciesPercentage = multiply((divide(numInactiveCurrencies, currenciesLength)), 100);
+            object inactiveCurrenciesPercentage = multiply((((double)numInactiveCurrencies / currenciesLength)), 100);
             assert(skipActive || (isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), (((("Percentage of inactive currencies is too high at " + ((object)inactiveCurrenciesPercentage).ToString()) + "% that is more than the allowed maximum of ") + ((object)maxInactiveCurrenciesPercentage).ToString()) + "%"));
             detectCurrencyConflicts(exchange, currencies);
         }
@@ -69,9 +69,9 @@ public partial class testMainClass : BaseTest
             string? key = ((string)keys[i]);
             object currency = getValue(currencyValues, key);
             object code = getValue(currency, "code");
-            if (!(inOp(ids, code)))
+            if (!((code is string inOpKey0 && ids.ContainsKey(inOpKey0))))
             {
-                ((IDictionary<string,object>)ids)[(string)code] = getValue(currency, "id");
+                ids[(string)code] = getValue(currency, "id");
             } else
             {
                 bool isDifferent = !isEqual(getValue(ids, code), getValue(currency, "id"));

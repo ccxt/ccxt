@@ -57,12 +57,12 @@ public class TestTicker extends BaseTest {
             put( "quoteVolume", exchange.parseNumber("1.234") );
         }};
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"));
         // trick csharp-transpiler for string
         if (!Helpers.isTrue((String.valueOf(method).contains("BidsAsks"))))
         {
-            ((List<Object>)emptyAllowedFor).add("bid");
-            ((List<Object>)emptyAllowedFor).add("ask");
+            emptyAllowedFor.add("bid");
+            emptyAllowedFor.add("ask");
         }
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
@@ -99,7 +99,7 @@ public class TestTicker extends BaseTest {
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
         Boolean isStandardMarket = (!java.util.Objects.equals(market, null) && Helpers.isTrue(exchange.inArray(((Map<String, Object>)market).get("type"), new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")))));
-        Object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
+        Boolean valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
         if (Boolean.TRUE.equals(valuesShouldBePositive) && !(Helpers.inOp(skippedProperties, "positiveValues")))
         {
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "open", "0");
@@ -140,12 +140,12 @@ public class TestTicker extends BaseTest {
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
             Object isInverse = exchange.safeBool(market, "inverse", false);
-            if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(quoteVolume, null)) && (!java.util.Objects.equals(high, null)) && (!java.util.Objects.equals(low, null)) && (!java.util.Objects.equals(isInverse, true)))
+            if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(quoteVolume, null)) && (!java.util.Objects.equals(high, null)) && (!java.util.Objects.equals(low, null)) && (!Helpers.isTrue(isInverse)))
             {
                 String baseLow = Precise.stringMul(baseVolume, low);
                 String baseHigh = Precise.stringMul(baseVolume, high);
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
-                Object mPrecision = exchange.safeDict(market, "precision");
+                Object mPrecision = exchange.safeDict(market, "precision", (Object) null);
                 String amountPrecision = exchange.safeString(mPrecision, "amount");
                 String tolerance = "1.0001";
                 if (!java.util.Objects.equals(amountPrecision, null))
@@ -291,7 +291,7 @@ public class TestTicker extends BaseTest {
             {
                 // - should be above -100 and (for non-options) below MAX
                 Assert(Precise.stringGe(percentage, "-100"), ("percentage should be above -100% " + logText));
-                if (!java.util.Objects.equals(isOptionMarket, true))
+                if (!Helpers.isTrue(isOptionMarket))
                 {
                     Assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), ((("percentage should be below " + maxIncrease) + "00% ") + logText));
                 }
@@ -304,7 +304,7 @@ public class TestTicker extends BaseTest {
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease
                 Assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), ("change should be above -price " + logText));
-                if (!java.util.Objects.equals(isOptionMarket, true))
+                if (!Helpers.isTrue(isOptionMarket))
                 {
                     Assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), ((("change should be below " + maxIncrease) + "x price ") + logText));
                 }

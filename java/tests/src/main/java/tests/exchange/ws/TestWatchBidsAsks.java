@@ -48,7 +48,7 @@ public class TestWatchBidsAsks extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchBidsAsks", new Object[]{argSymbols, argParams})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchBidsAsks", new Object[]{Helpers.toStringListArg(argSymbols), Helpers.toMapArg(argParams)})).join();
             } catch(Exception e)
             {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
@@ -70,7 +70,7 @@ public class TestWatchBidsAsks extends BaseTest {
             {
                 return false;
             }
-            if (java.util.Objects.equals(success, true))
+            if (Boolean.TRUE.equals(success))
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + exchange.json(argSymbols)) + " must return a dictionary. ") + exchange.json(response)));
                 Object values = Helpers.objectValues(response);
