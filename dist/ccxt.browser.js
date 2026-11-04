@@ -240239,10 +240239,10 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
                 const marketId = parsedMarket['id'];
                 const instrument = this.safeDict(spotInstruments, marketId);
                 if (instrument !== undefined) {
-                    const parsedInstrument = this.parseMarket(instrument);
-                    if (parsedInstrument !== undefined) {
-                        parsedMarket['stock'] = parsedInstrument['stock'];
-                    }
+                    // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
+                    const assetType = this.safeStringLower(instrument, 'symbolType');
+                    const isReality = this.safeStringLower(instrument, 'isReality') === 'yes';
+                    parsedMarket['stock'] = assetType === 'stock' || assetType === undefined && isReality;
                 }
             }
             result.push(parsedMarket);
