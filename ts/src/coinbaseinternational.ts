@@ -321,7 +321,7 @@ export default class coinbaseinternational extends Exchange {
             },
             'options': {
                 'route': 'auto', // deribit for native Deribit, coinbase for Coinbase, auto detects known native key formats
-                'brokerId': 'nfqkvdjp',
+                'brokerId': 'ccxt',
                 'portfolio': '', // default portfolio id
                 'accessTokenRefreshRatio': 0.8, // refresh the bearer token after 80% of expires_in
                 'networksById': {
