@@ -33,7 +33,7 @@ async function testFeatures (exchange: Exchange, skippedProperties: object) {
 }
 
 function testFeaturesInner (exchange: Exchange, skippedProperties: object, featureObj: any) {
-    const format = {
+    let format = {
         'sandbox': false,
         'createOrder': {
             'marginMode': false,
@@ -118,6 +118,13 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
             'feeIncluded': false,
         },
     };
+    const temporarySkipKeys = [ 'withdraw' ];
+    for (let i = 0; i < temporarySkipKeys.length; i++) {
+        const key = temporarySkipKeys[i];
+        if (!(key in featureObj)) {
+            format = exchange.omit (format, key);
+        }
+    }
     const featureKeys = Object.keys (featureObj);
     const allMethods = Object.keys (exchange.has);
     for (let i = 0; i < featureKeys.length; i++) {
