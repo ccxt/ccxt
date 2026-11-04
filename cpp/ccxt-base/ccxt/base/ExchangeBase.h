@@ -498,6 +498,12 @@ public:
     virtual std::shared_future<ccxt::any> callEndpoint (ccxt::any, ccxt::any = ccxt::any {}) {
         throw NotSupported ("callEndpoint requires the generated Exchange layer");
     }
+    // upstream decodes mexc protobuf frames with the protobufjs npm module; the
+    // C++ port has no protobuf runtime, so this base method fails loudly (the
+    // ws mexc path surfaces NotSupported to the caller like any other gap)
+    virtual ccxt::any decodeProtoMsg (const ccxt::any&) {
+        throw NotSupported (::str (this->id) + " requires protobuf to decode messages (not implemented in the C++ port)");
+    }
 
     // -- HTTP plumbing ----------------------------------------------------------------
     // handleErrors is also declared on the generated Exchange class (a no-op default)
