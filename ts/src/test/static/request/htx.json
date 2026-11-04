@@ -13,6 +13,9 @@
         "networkChainIdsByNames": {
             "APT": {
                 "APT": "apt"
+            },
+            "USDT": {
+                "ERC20": "usdterc20"
             }
         },
         "networkNamesByChainIds": {
@@ -23,8 +26,7 @@
     "methods": {
         "withdraw": [
             {
-                "disabled": "need HTX options reorg",
-                "description": "typical fee inclusion check",
+                "description": "typical",
                 "method": "withdraw",
                 "url": "https://api.huobi.pro/v1/dw/withdraw/api/create?AccessKeyId=bg2hyw2dfg-c375436a-150faf2b-f9eeb&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-10-02T13%3A44%3A08&Signature=IoIJ9OYCj%2FdsY3cf40%2BYYh78C88f9duLnvsXOiDtJp8%3D",
                 "input": [
