@@ -1062,7 +1062,7 @@ public partial class coinspot : Exchange
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
         }
-        object paramsOmitted = this.omit(parameters, "side");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "side"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
         };

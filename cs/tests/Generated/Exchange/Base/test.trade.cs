@@ -57,7 +57,7 @@ public partial class testMainClass : BaseTest
         if (!(inOp(skippedProperties, "fees")))
         {
             // todo: remove undefined check and probably non-empty array check later
-            if (!isEqual(getValue(entry, "fees"), null))
+            if (!(getValue(entry, "fees") == null))
             {
                 for (int i = 0; i < getArrayLength(getValue(entry, "fees")); i++)
                 {

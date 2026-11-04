@@ -740,6 +740,12 @@ type UnWatchBidsAsksOptions = ccxt.UnWatchBidsAsksOptions
 var WithUnWatchBidsAsksSymbols = ccxt.WithUnWatchBidsAsksSymbols
 var WithUnWatchBidsAsksParams = ccxt.WithUnWatchBidsAsksParams
 
+type ClosePositionOptionsStruct = ccxt.ClosePositionOptionsStruct
+type ClosePositionOptions = ccxt.ClosePositionOptions
+
+var WithClosePositionSide = ccxt.WithClosePositionSide
+var WithClosePositionParams = ccxt.WithClosePositionParams
+
 type EditOrdersOptionsStruct = ccxt.EditOrdersOptionsStruct
 type EditOrdersOptions = ccxt.EditOrdersOptions
 

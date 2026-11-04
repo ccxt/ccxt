@@ -451,7 +451,7 @@ public partial class polymarket : Exchange
         //     }
         //
         bool? cancelOnly = this.safeBool(response, "cancel_only", false);
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((cancelOnly == true)) ? "maintenance" : "ok" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", cancelOnly == true ? "maintenance" : "ok" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -968,7 +968,7 @@ public partial class polymarket : Exchange
         string? takerOrMaker = null;
         if ((isTaker != null))
         {
-            takerOrMaker = ((isTaker == true)) ? "taker" : "maker";
+            takerOrMaker = isTaker == true ? "taker" : "maker";
         }
         string? feeCost = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
@@ -1048,7 +1048,7 @@ public partial class polymarket : Exchange
             // current one, so the newest candle never falls off the range
             Int64? end = ((until != null)) ? until : this.milliseconds();
             Int64? requestedLimit = ((limit != null)) ? limit : 100;
-            request["start_timestamp"] = subtract(end, multiply(((requestedLimit - 1)), duration));
+            request["start_timestamp"] = (end - (((requestedLimit - 1)) * duration));
         }
         Dictionary<string, object> response = await this.publicGetInfoKlines(this.extend(request, paramsOmitted));
         //
@@ -1116,7 +1116,7 @@ public partial class polymarket : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.publicGetInfoTickers(parameters);
         IDictionary<string, object> result = ((IDictionary<string, object>)this.parseFundingRates(response));
-        return ccxt.BaseExchange.ToFundingRates(this.filterByArray(result, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToFundingRates(this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol"));
     }
 
     public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
@@ -1275,8 +1275,8 @@ public partial class polymarket : Exchange
         await this.loadMarkets();
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.publicGetInfoTickers(parameters);
-        object result = this.parseOpenInterests(response);
-        return ccxt.BaseExchange.ToOpenInterests(this.filterByArray(result, "symbol", symbolsNormalized));
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.parseOpenInterests(response));
+        return ccxt.BaseExchange.ToOpenInterests(this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol"));
     }
 
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)
@@ -1346,7 +1346,7 @@ public partial class polymarket : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < this.symbols.Count; i++)
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = (this.symbols != null && i < this.symbols.Count ? this.symbols[i] : null);
             Dictionary<string, object> market = this.market(symbol);
             string? category = this.safeString((market.ContainsKey("info") ? market["info"] : null), "category");
             IDictionary<string, object> entry = this.safeDict(byCategory, category, fallback);
@@ -1375,7 +1375,7 @@ public partial class polymarket : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict with the signable row and the body entry
      */
-    public virtual Dictionary<string, object> createOrderRequest(IDictionary<string, object> market, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(IDictionary<string, object> market, object type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "trailingPercent", "trailingAmount"});
@@ -1426,7 +1426,7 @@ public partial class polymarket : Exchange
         {
             priceString = this.priceToPrecision(symbol, price);
         }
-        bool? reduceOnlyValue = ((reduceOnly == true)) ? true : null;
+        bool? reduceOnlyValue = reduceOnly == true ? true : null;
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
@@ -1490,7 +1490,7 @@ public partial class polymarket : Exchange
         };
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, parameters));
         object first = (orders != null && 0 < orders.Count ? orders[0] : null);
-        if (isEqual(getValue(first, "status"), "rejected"))
+        if ((getValue(first, "status") is "rejected"))
         {
             string? errorId = this.safeString(getValue(first, "info"), "error");
             string feedback = ((this.id + " createOrder() rejected: ") + this.json(getValue(first, "info")));
@@ -1616,7 +1616,7 @@ public partial class polymarket : Exchange
                 clientOrderIds = new List<object>() {clientOrderId};
             }
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderIds", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderIds", "clientOrderId"}));
         List<object> signable = null;
         Dictionary<string, object> bodyOp = null;
         List<object> response = null;
@@ -1798,7 +1798,7 @@ public partial class polymarket : Exchange
         return this.parseOrder(order, market);
     }
 
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "accepted", "open" },
@@ -1878,7 +1878,7 @@ public partial class polymarket : Exchange
         string? side = null;
         if ((isBuy != null))
         {
-            side = ((isBuy == true)) ? "buy" : "sell";
+            side = isBuy == true ? "buy" : "sell";
         }
         string? price = ((string)this.omitZero(this.safeString2(order, "price", "p")));
         string? type = null;
@@ -2056,7 +2056,7 @@ public partial class polymarket : Exchange
         string? marginMode = null;
         if ((isCross != null))
         {
-            marginMode = ((isCross == true)) ? "cross" : "isolated";
+            marginMode = isCross == true ? "cross" : "isolated";
         }
         Int64? timestamp = this.safeInteger(position, "timestamp");
         string? roe = this.safeString(position, "return_on_equity");
@@ -2649,7 +2649,7 @@ public partial class polymarket : Exchange
         string? marginMode = null;
         if ((isCross != null))
         {
-            marginMode = ((isCross == true)) ? "cross" : "isolated";
+            marginMode = isCross == true ? "cross" : "isolated";
         }
         Int64? value = this.safeInteger(leverage, "leverage");
         return new Dictionary<string, object>() {
@@ -2745,7 +2745,7 @@ public partial class polymarket : Exchange
         {
             throw new ArgumentsRequired ((this.id + " setMarginMode() requires a params.leverage argument, the venue updates the mode and the leverage in one operation")) ;
         }
-        object paramsOmitted = this.omit(parameters, "leverage");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "leverage"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "marginMode", marginMode },
         };
@@ -2837,9 +2837,9 @@ public partial class polymarket : Exchange
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
-        return ("0x" + (this.hash(message, keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
     public virtual string signHash(object hash, object privateKey)
@@ -2979,7 +2979,7 @@ public partial class polymarket : Exchange
         parameters ??= new Dictionary<string, object>();
         object credentials = await this.loadProxyCredentials();
         object packed = this.packb(signable);
-        object dataHash = this.hashMessage(packed);
+        string? dataHash = this.hashMessage(packed);
         Int64 ts = this.milliseconds();
         int salt = this.randNumber(9);
         Int64? chainId = this.safeInteger(this.options, "chainId", 137);
@@ -3037,7 +3037,7 @@ public partial class polymarket : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(row); i++)
         {
-            if (!isEqual(getValue(row, i), null))
+            if (!(getValue(row, i) == null))
             {
                 result.Add(getValue(row, i));
             }
@@ -3177,7 +3177,7 @@ public partial class polymarket : Exchange
         //     }
         //
         object source = response;
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && (isGreaterThanOrEqual(code, 400)))
+        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && ((Convert.ToInt64(code) >= 400)))
         {
             // request-level failures of the batch trade endpoints arrive
             // wrapped into a single-element array of the same error shape
@@ -3198,7 +3198,7 @@ public partial class polymarket : Exchange
             // http status fallback can apply a retryable classification, while
             // covering statuses the base table does not know
             string codeAsString = code.ToString();
-            if ((isLessThan(code, 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))
+            if (((Convert.ToInt64(code) < 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {
                 throw new ExchangeError (feedback) ;
             }

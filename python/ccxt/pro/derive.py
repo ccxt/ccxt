@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide
-from ccxt.base.types import Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -501,9 +501,9 @@ class derive(ccxt.async_support.derive):
             requestId = self.request_id(url)
             now = self.number_to_string(self.nonce())
             signature = self.signMessage(now, self.privateKey)
-            deriveWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
-            if (deriveWalletAddress is None) or (deriveWalletAddress == ''):
-                deriveWalletAddress = self.walletAddress  # v3: the owner wallet is the user's own EOA
+            configuredWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
+            # v3: the owner wallet is the user's own EOA
+            deriveWalletAddress = self.walletAddress if ((configuredWalletAddress is None) or (configuredWalletAddress == '')) else configuredWalletAddress
             request = {
                 'id': requestId,
                 'method': 'public/login',
@@ -933,10 +933,7 @@ class derive(ccxt.async_support.derive):
         data = self.safe_list(params, 'data', [])
         if self.balance is None:
             self.balance = {}
-        subBalance = self.safe_dict(self.balance, subaccountIdKey)
-        if subBalance is None:
-            emptySubBalance = {}
-            subBalance = emptySubBalance
+        subBalance = self.safe_dict(self.balance, subaccountIdKey, {})
         updated = False
         positionUpdates = []
         for i in range(0, len(data)):
@@ -968,7 +965,7 @@ class derive(ccxt.async_support.derive):
         if positionUpdatesLength > 0:
             client.resolve(positionUpdates, 'positions:' + topic)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         # {
         #     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',

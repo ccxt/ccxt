@@ -266,8 +266,8 @@ class p2b(ccxt.async_support.p2b):
         #        "id": null
         #    }
         #
-        data = self.safe_list(message, 'params')
-        data = self.safe_list(data, 0)
+        params = self.safe_list(message, 'params')
+        data = self.safe_list(params, 0)
         method = self.safe_string(message, 'method')
         splitMethod = method.split('.')
         channel = self.safe_string(splitMethod, 0)
@@ -419,7 +419,7 @@ class p2b(ccxt.async_support.p2b):
         if orderbook is None:
             self.orderbooks[symbol] = self.order_book({}, limit)
             orderbook = self.orderbooks[symbol]
-        if isFullUpdate is True:
+        if isFullUpdate:
             # the first parameter signals whether the message carries all
             # records or only the changed ones, a full set replaces the book,
             # otherwise stale levels that left the depth window would linger

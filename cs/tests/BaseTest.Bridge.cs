@@ -284,8 +284,5 @@ public partial class BaseTest
 
         // hand-written C#-only: a wrong-typed option throws BadRequest (offline)
         testOptionTypes();
-
-        // Run throttler performance test
-        await testThrottlerPerformance();
     }
 }

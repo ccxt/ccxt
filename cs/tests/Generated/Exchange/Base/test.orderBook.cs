@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
             string? currentBidString = exchange.safeString(getValue(bids, i), 0);
             if (!(inOp(skippedProperties, "compareToNextItem")))
             {
-                Int64 nextI = add(i, 1);
+                Int64 nextI = (i + 1L);
                 if (bidsLength > nextI)
                 {
                     string? nextBidString = exchange.safeString(getValue(bids, nextI), 0);
@@ -58,7 +58,7 @@ public partial class testMainClass : BaseTest
             string? currentAskString = exchange.safeString(getValue(asks, i), 0);
             if (!(inOp(skippedProperties, "compareToNextItem")))
             {
-                Int64 nextI = add(i, 1);
+                Int64 nextI = (i + 1L);
                 if (asksLength > nextI)
                 {
                     string? nextAskString = exchange.safeString(getValue(asks, nextI), 0);

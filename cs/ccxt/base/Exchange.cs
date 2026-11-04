@@ -1381,6 +1381,15 @@ public partial class BaseExchange
         {
             return b;
         }
+        // "true"/"false" strings and 1/0 numbers read as booleans; anything else throws
+        if ((value is string s && s == "true") || ((value is int || value is long || value is double) && System.Convert.ToDouble(value) == 1))
+        {
+            return true;
+        }
+        if ((value is string s2 && s2 == "false") || ((value is int || value is long || value is double) && System.Convert.ToDouble(value) == 0))
+        {
+            return false;
+        }
         throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
     }
 

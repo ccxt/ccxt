@@ -280,7 +280,7 @@ export default class alpaca extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     setSandboxMode(enable: boolean): void;
-    fetchTransactionsHelper(type: string, code: Str, since: any, limit: any, params: any): Promise<Transaction[]>;
+    fetchTransactionsHelper(type: string, code: Str, since: Int, limit: Int, params: any): Promise<Transaction[]>;
     /**
      * @method
      * @name alpaca#fetchDepositsWithdrawals

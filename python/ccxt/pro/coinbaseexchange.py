@@ -51,7 +51,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             },
         })
 
-    def authenticate(self):
+    def authenticate(self) -> dict:
         self.check_required_credentials()
         path = '/users/self/verify'
         nonce = self.nonce()
@@ -803,7 +803,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         amount = self.safe_number(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -922,8 +922,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'done': self.handle_order,
             'error': self.handle_error_message,
         }
-        length = len(client.url) - 0
-        authenticated = client.url[length - 1] == '?'
+        authenticated = client.url.endswith('?')
         method = self.safe_value(methods, type)
         if method is None:
             if type == 'match':

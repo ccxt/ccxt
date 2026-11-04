@@ -222,7 +222,10 @@ export default class limitless extends Exchange {
             const requestedLimit = this.safeInteger(params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
-            const limit = Math.min(requestedLimit, 50);
+            let limit = 50;
+            if ((requestedLimit !== undefined) && (requestedLimit < 50)) {
+                limit = requestedLimit;
+            }
             const searchRest = this.omit(rest, ['limit']);
             const seen = {};
             for (let i = 0; i < queries.length; i++) {
@@ -247,15 +250,16 @@ export default class limitless extends Exchange {
                 'limit': pageSize,
             };
             const firstPageResponse = await this.limitlessPublicGetMarketsActive(this.extend(request, rest));
-            const totalMarketsCount = this.safeInteger(firstPageResponse, 'totalMarketsCount');
             const firstData = this.safeList(firstPageResponse, 'data', []);
             allRaw = this.arrayConcat(allRaw, firstData);
             const promises = [];
             const cappedPages = Math.ceil(maxMarkets / pageSize);
-            const knownTotal = (totalMarketsCount !== undefined) ? totalMarketsCount : 0;
-            const allPages = Math.ceil(knownTotal / pageSize);
-            const totalPages = Math.min(allPages, cappedPages);
-            for (let i = 2; i <= totalPages; i++) {
+            const knownTotal = this.safeInteger(firstPageResponse, 'totalMarketsCount', 0);
+            const allPages = this.parseToInt(Math.ceil(knownTotal / pageSize));
+            for (let i = 2; i <= allPages; i++) {
+                if (i > cappedPages) {
+                    break;
+                }
                 page = i;
                 request['page'] = page;
                 promises.push(this.limitlessPublicGetMarketsActive(this.extend(request, rest)));
@@ -280,8 +284,7 @@ export default class limitless extends Exchange {
                     if (Array.isArray(response)) {
                         responseRows = response;
                     }
-                    const rawPageMarkets = this.safeList(response, 'data', responseRows);
-                    const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
+                    const page_markets = this.safeList(response, 'data', responseRows);
                     const pageMarketsLength = page_markets.length;
                     if (pageMarketsLength === 0) {
                         break;
@@ -427,7 +430,7 @@ export default class limitless extends Exchange {
         // market is tradeable only while it is FUNDED and not yet expired
         const isExpired = this.safeBool(raw, 'expired', false);
         const marketStatus = this.safeString(raw, 'status');
-        const active = (isExpired !== true) && (marketStatus === 'FUNDED');
+        const active = (!isExpired) && (marketStatus === 'FUNDED');
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         const expiryTimestamp = this.safeInteger(raw, 'expirationTimestamp');
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
@@ -1103,7 +1106,12 @@ export default class limitless extends Exchange {
         const prices = this.safeList(raw, 'prices', []);
         const pricesLength = prices.length;
         if ((lastStr === undefined) && (pricesLength > 0)) {
-            lastStr = (isYes) ? this.safeString(prices, 0) : this.safeString(prices, 1);
+            if (isYes) {
+                lastStr = this.safeString(prices, 0);
+            }
+            else {
+                lastStr = this.safeString(prices, 1);
+            }
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
         const rawVolume = this.safeString(raw, 'volume');
@@ -1177,7 +1185,7 @@ export default class limitless extends Exchange {
                 slugs.push(slug);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            const grouped = this.safeValue(outcomesBySlug, slug);
+            const grouped = this.safeList(outcomesBySlug, slug, []);
             grouped.push(outcomeObj);
             if (slug !== undefined) {
                 outcomesBySlug[slug] = grouped;
@@ -1196,7 +1204,7 @@ export default class limitless extends Exchange {
             const detail = responses[detailIndex];
             const book = responses[this.sum(detailIndex, 1)];
             const tickerInput = { 'market': detail, 'book': book };
-            const grouped = outcomesBySlug[slug];
+            const grouped = this.safeList(outcomesBySlug, slug, []);
             for (let j = 0; j < grouped.length; j++) {
                 const ticker = this.parsePredictionTicker(tickerInput, grouped[j]);
                 const symbolKey = this.safeString(ticker, 'outcome');
@@ -1410,8 +1418,7 @@ export default class limitless extends Exchange {
         if (Array.isArray(response)) {
             responseRows = response;
         }
-        const rawHistoryList = this.safeList(response, 'data', this.safeList(response, 'prices', responseRows));
-        const rawHistory = (rawHistoryList !== undefined) ? rawHistoryList : [];
+        const rawHistory = this.safeList(response, 'data', this.safeList(response, 'prices', responseRows));
         let history = rawHistory;
         const rawHistoryLength = rawHistory.length;
         if (rawHistoryLength > 0) {
@@ -1439,14 +1446,15 @@ export default class limitless extends Exchange {
         for (let i = 0; i < history.length; i++) {
             const point = this.safeDict(history, i);
             const pointPrice = this.safeNumber(point, 'price');
-            let pointTs = this.safeInteger(point, 'timestamp');
-            if (pointTs === undefined) {
+            const rawTs = this.safeInteger(point, 'timestamp');
+            let pointTs = rawTs;
+            if (rawTs === undefined) {
                 const tsString = this.safeString(point, 'timestamp');
                 pointTs = (tsString !== undefined && tsString !== '') ? this.parse8601(tsString) : undefined;
             }
-            else if (pointTs < 1000000000000) {
+            else if (rawTs < 1000000000000) {
                 // old responses may return unix seconds
-                pointTs = pointTs * 1000;
+                pointTs = rawTs * 1000;
             }
             if ((pointPrice !== undefined) && (pointTs !== undefined)) {
                 pseudoTrades.push({ 'timestamp': pointTs, 'price': pointPrice, 'amount': 0 });
@@ -1467,7 +1475,11 @@ export default class limitless extends Exchange {
             if (pTs === undefined) {
                 throw new ExchangeError(this.id + ' method() missing pTs');
             }
-            const bucket = this.parseToInt(pTs / ms) * ms;
+            if (pPrice === undefined) {
+                throw new ExchangeError(this.id + ' fetchOHLCV() missing pPrice');
+            }
+            const bucketIndex = this.parseToInt(pTs / ms);
+            const bucket = bucketIndex * ms;
             const key = bucket.toString();
             if (!(key in candles)) {
                 candles[key] = [bucket, pPrice, pPrice, pPrice, pPrice, 0];
@@ -1475,11 +1487,14 @@ export default class limitless extends Exchange {
             }
             else {
                 const candle = candles[key];
-                const pPriceOrZero = (pPrice === undefined) ? 0 : pPrice;
-                candle[2] = Math.max(candle[2], pPriceOrZero);
-                const candleLow = (candle[3] === undefined) ? pPrice : candle[3];
-                const pPriceOrCandleLow = (pPrice === undefined) ? candle[3] : pPrice;
-                candle[3] = Math.min(candleLow, pPriceOrCandleLow);
+                const prevHigh = this.safeNumber(candle, 2);
+                if ((prevHigh === undefined) || (pPrice > prevHigh)) {
+                    candle[2] = pPrice;
+                }
+                const prevLow = this.safeNumber(candle, 3);
+                if ((prevLow === undefined) || (prevLow > pPrice)) {
+                    candle[3] = pPrice;
+                }
                 candle[4] = pPrice;
                 candles[key] = candle; // php arrays are value types - write the mutation back
             }
@@ -2188,7 +2203,8 @@ export default class limitless extends Exchange {
         const response = await this.limitlessPrivatePostOrders(this.extend(request, paramsValue));
         const parsedOrder = this.parsePredictionOrder(response, outcomeObj);
         // the create-order response omits a status field; a freshly accepted order is open
-        if (parsedOrder['status'] === undefined) {
+        const parsedStatus = this.safeString(parsedOrder, 'status');
+        if (parsedStatus === undefined) {
             parsedOrder['status'] = 'open';
         }
         return parsedOrder;
@@ -2337,10 +2353,12 @@ export default class limitless extends Exchange {
         const response = await this.limitlessPrivateDeleteOrdersOrderId(this.extend(request, params));
         // the delete response carries no order body, so backfill the id and the resulting status
         const order = this.parsePredictionOrder(response);
-        if (order['id'] === undefined) {
+        const orderId = this.safeString(order, 'id');
+        if (orderId === undefined) {
             order['id'] = id;
         }
-        if (order['status'] === undefined) {
+        const orderStatus = this.safeString(order, 'status');
+        if (orderStatus === undefined) {
             order['status'] = 'canceled';
         }
         return order;
@@ -2471,7 +2489,7 @@ export default class limitless extends Exchange {
         }
         const request = {};
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, maxLimit);
+            request['limit'] = Math.min(limit, 100);
         }
         const response = await this.limitlessPrivateGetPortfolioHistory(this.extend(request, paramsValue));
         //
@@ -2927,7 +2945,10 @@ export default class limitless extends Exchange {
         if (queriesLength > 0) {
             const requestedLimit = this.safeInteger(params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request
-            const limit = Math.min(requestedLimit, 50);
+            let limit = 50;
+            if ((requestedLimit !== undefined) && (requestedLimit < 50)) {
+                limit = requestedLimit;
+            }
             const seen = {};
             for (let i = 0; i < queries.length; i++) {
                 if (queries === undefined) {
@@ -3036,7 +3057,6 @@ export default class limitless extends Exchange {
         const rest = this.omit(params, ['query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags']);
         const allRaw = [];
         let page = 1;
-        let collected = 0;
         while (true) {
             const request = { 'page': page, 'limit': pageSize };
             let response = undefined;
@@ -3053,13 +3073,14 @@ export default class limitless extends Exchange {
                 break;
             }
             for (let i = 0; i < dataLength; i++) {
+                const collected = allRaw.length;
                 if (collected < maxMarkets) {
                     allRaw.push(data[i]);
-                    collected = this.sum(collected, 1);
                 }
             }
             page = this.sum(page, 1);
-            if (dataLength < pageSize || collected >= maxMarkets) {
+            const collectedTotal = allRaw.length;
+            if (dataLength < pageSize || collectedTotal >= maxMarkets) {
                 break;
             }
         }
@@ -3143,8 +3164,7 @@ export default class limitless extends Exchange {
      */
     sign(path, api = ['limitless'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const apiLength = api.length;
-        const access = (apiLength > 1) ? api[1] : 'public';
+        const access = this.safeString(api, 1, 'public');
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams(path, params);
@@ -3157,17 +3177,14 @@ export default class limitless extends Exchange {
         let bodyValue = undefined;
         if (access === 'private') {
             let bodyString = '';
-            if (headersValue === undefined) {
-                headersValue = {};
-            }
+            headersValue = {};
             if (method === 'POST' && (querystring !== '')) {
                 bodyString = this.json(query);
                 bodyValue = bodyString;
-                const headerDefaults = (headersValue !== undefined) ? headersValue : {};
                 headersValue = this.extend({
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                }, headerDefaults);
+                }, headersValue);
             }
             this.checkRequiredCredentials();
             const timestamp = this.iso8601(this.milliseconds());
@@ -3196,7 +3213,8 @@ export default class limitless extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if ((statusCode >= 200) && (statusCode < 300)) {
+        const statusCodeInt = this.parseToInt(statusCode);
+        if ((statusCodeInt >= 200) && (statusCodeInt < 300)) {
             return undefined;
         }
         const feedback = this.id + ' ' + responseBody;
@@ -3209,7 +3227,7 @@ export default class limitless extends Exchange {
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error
-        if (statusCode === 400) {
+        if (statusCodeInt === 400) {
             throw new BadRequest(feedback);
         }
         return undefined;

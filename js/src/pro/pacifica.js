@@ -305,7 +305,7 @@ export default class pacifica extends pacificaRest {
             const orderId = this.safeString(order, 'i');
             const clientOrderId = this.safeString(order, 'I');
             let status = undefined;
-            if ((error !== undefined) || (success !== true)) {
+            if ((error !== undefined) || (!success)) {
                 status = 'closed';
             }
             else {

@@ -1276,7 +1276,7 @@ export default class coinone extends Exchange {
                 result[code] = depositAddress;
             }
         }
-        return result;
+        return this.toArray(result);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];

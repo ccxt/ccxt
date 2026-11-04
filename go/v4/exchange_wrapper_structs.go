@@ -2484,6 +2484,25 @@ func WithUnWatchBidsAsksParams(params map[string]any) UnWatchBidsAsksOptions {
 	}
 }
 
+type ClosePositionOptionsStruct struct {
+	Side   *string
+	Params *map[string]any
+}
+
+type ClosePositionOptions func(opts *ClosePositionOptionsStruct)
+
+func WithClosePositionSide(side string) ClosePositionOptions {
+	return func(opts *ClosePositionOptionsStruct) {
+		opts.Side = &side
+	}
+}
+
+func WithClosePositionParams(params map[string]any) ClosePositionOptions {
+	return func(opts *ClosePositionOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type EditOrdersOptionsStruct struct {
 	Params *map[string]any
 }
@@ -5540,6 +5559,39 @@ func WithFetchVolatilityHistoryParams(params map[string]any) FetchVolatilityHist
 	}
 }
 
+type FetchTransactionsHelperOptionsStruct struct {
+	Code   *string
+	Since  *int64
+	Limit  *int64
+	Params *map[string]any
+}
+
+type FetchTransactionsHelperOptions func(opts *FetchTransactionsHelperOptionsStruct)
+
+func WithFetchTransactionsHelperCode(code string) FetchTransactionsHelperOptions {
+	return func(opts *FetchTransactionsHelperOptionsStruct) {
+		opts.Code = &code
+	}
+}
+
+func WithFetchTransactionsHelperSince(since int64) FetchTransactionsHelperOptions {
+	return func(opts *FetchTransactionsHelperOptionsStruct) {
+		opts.Since = &since
+	}
+}
+
+func WithFetchTransactionsHelperLimit(limit int64) FetchTransactionsHelperOptions {
+	return func(opts *FetchTransactionsHelperOptionsStruct) {
+		opts.Limit = &limit
+	}
+}
+
+func WithFetchTransactionsHelperParams(params map[string]any) FetchTransactionsHelperOptions {
+	return func(opts *FetchTransactionsHelperOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchOrdersByStatusOptionsStruct struct {
 	Symbol *string
 	Since  *int64
@@ -5811,39 +5863,6 @@ func WithFetchTransactionsByTypeLimit(limit int64) FetchTransactionsByTypeOption
 
 func WithFetchTransactionsByTypeParams(params map[string]any) FetchTransactionsByTypeOptions {
 	return func(opts *FetchTransactionsByTypeOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchTransactionsHelperOptionsStruct struct {
-	Code   *string
-	Since  *int64
-	Limit  *int64
-	Params *map[string]any
-}
-
-type FetchTransactionsHelperOptions func(opts *FetchTransactionsHelperOptionsStruct)
-
-func WithFetchTransactionsHelperCode(code string) FetchTransactionsHelperOptions {
-	return func(opts *FetchTransactionsHelperOptionsStruct) {
-		opts.Code = &code
-	}
-}
-
-func WithFetchTransactionsHelperSince(since int64) FetchTransactionsHelperOptions {
-	return func(opts *FetchTransactionsHelperOptionsStruct) {
-		opts.Since = &since
-	}
-}
-
-func WithFetchTransactionsHelperLimit(limit int64) FetchTransactionsHelperOptions {
-	return func(opts *FetchTransactionsHelperOptionsStruct) {
-		opts.Limit = &limit
-	}
-}
-
-func WithFetchTransactionsHelperParams(params map[string]any) FetchTransactionsHelperOptions {
-	return func(opts *FetchTransactionsHelperOptionsStruct) {
 		opts.Params = &params
 	}
 }

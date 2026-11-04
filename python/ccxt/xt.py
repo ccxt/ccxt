@@ -1075,7 +1075,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = promises[1]
         return self.array_concat(spotMarkets, swapAndFutureMarkets)
 
-    def fetch_spot_markets(self, params: object = {}) -> list[Market]:
+    def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
         response = self.publicSpotGetSymbol(params)
         #
         #     {
@@ -1486,7 +1486,7 @@ class xt(Exchange, ImplicitAPI):
             # window start return one pre-since candle, shifting paginated windows and
             # dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
             duration = self.parse_timeframe(timeframe) * 1000
-            request['startTime'] = int(math.ceil(since / duration)) * duration
+            request['startTime'] = self.parse_to_int(int(math.ceil(since / duration))) * duration
         limitResolved = limit
         if limit is not None:
             maxLimit = 1000 if (market['spot'] is True) else 1500  # spot : derivatives max limit
@@ -1835,7 +1835,7 @@ class xt(Exchange, ImplicitAPI):
             symbol = ticker['symbol']
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1919,7 +1919,7 @@ class xt(Exchange, ImplicitAPI):
             symbol = ticker['symbol']
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -1968,7 +1968,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(ticker, 's')
-        marketType = self.safe_string(market, 'type') if (market is not None) else None
+        marketType = self.safe_string(market, 'type')
         hasSpotKeys = ('cv' in ticker) or ('aq' in ticker)
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
@@ -2298,7 +2298,7 @@ class xt(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string_2(trade, 's', 'symbol')
-        marketType = self.safe_string(market, 'type') if (market is not None) else None
+        marketType = self.safe_string(market, 'type')
         hasSpotKeys = ('b' in trade) or ('bizType' in trade) or ('oi' in trade)
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
@@ -2556,7 +2556,7 @@ class xt(Exchange, ImplicitAPI):
             if side == 'buy':
                 cost = self.safe_string(paramsMarginMode, 'cost')
                 createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if createMarketBuyOrderRequiresPrice is True:
+                if createMarketBuyOrderRequiresPrice:
                     if price is None and (cost is None):
                         raise InvalidOrder(self.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
                     else:
@@ -2579,7 +2579,7 @@ class xt(Exchange, ImplicitAPI):
         if isMarketBuy:
             paramsWithoutCost = self.omit(paramsMarginMode, 'cost')
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', timeInForce == 'GTX', paramsWithoutCost)
-        if postOnly is True:
+        if postOnly:
             timeInForce = 'GTX'
         paramsOmitted = self.omit(paramsPostOnly, ['timeInForce', 'postOnly'])
         if (side == 'sell') or (type == 'limit'):
@@ -2599,7 +2599,7 @@ class xt(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_contract_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params: dict = {}) -> Order:
+    def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: object, price: Num = None, params: dict = {}) -> Order:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -2609,7 +2609,7 @@ class xt(Exchange, ImplicitAPI):
         }
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', timeInForce == 'GTX', params)
-        if postOnly is True:
+        if postOnly:
             timeInForce = 'GTX'
         paramsOmitted4 = self.omit(paramsPostOnly, ['timeInForce', 'postOnly'])
         if timeInForce is not None:
@@ -2617,12 +2617,12 @@ class xt(Exchange, ImplicitAPI):
         reduceOnly = self.safe_bool(paramsOmitted4, 'reduceOnly', False)
         if side == 'buy':
             requestType = 'LONG'
-            if reduceOnly is True:
+            if reduceOnly:
                 requestType = 'SHORT'
             request['positionSide'] = requestType
         else:
             requestType = 'SHORT'
-            if reduceOnly is True:
+            if reduceOnly:
                 requestType = 'LONG'
             request['positionSide'] = requestType
         response = {}
@@ -3811,7 +3811,7 @@ class xt(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -3930,7 +3930,7 @@ class xt(Exchange, ImplicitAPI):
             },
         }, currencyResolved)
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',
@@ -4221,7 +4221,7 @@ class xt(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'SUBMIT': 'pending',
             'REVIEW': 'pending',
@@ -4498,7 +4498,7 @@ class xt(Exchange, ImplicitAPI):
             tier = self.safe_dict(brackets, i)
             marketId = self.safe_string(info, 'symbol')
             marketResolved = self.safe_market(marketId, market, '_', 'contract')
-            minNotional = self.safe_number(brackets[i - 1], 'maxNominalValue', 0)
+            minNotional = self.safe_number(self.safe_dict(brackets, i - 1), 'maxNominalValue', 0)
             tiers.append({
                 'tier': self.safe_integer(tier, 'bracket'),
                 'symbol': self.safe_symbol(marketId, marketResolved, '_', 'contract'),
@@ -4650,9 +4650,8 @@ class xt(Exchange, ImplicitAPI):
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_', 'swap')
         timestamp = self.safe_integer(contract, 'nextCollectionTime')
-        interval = self.safe_string(contract, 'collectionInternal')
-        if interval is not None:
-            interval = interval + 'h'
+        collectionInterval = self.safe_string(contract, 'collectionInternal')
+        interval = (collectionInterval + 'h') if (collectionInterval is not None) else None
         return {
             'info': contract,
             'symbol': symbol,
@@ -4713,7 +4712,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -5523,7 +5522,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = [], method='GET', params={}):
+    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params={}):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)
@@ -5552,12 +5551,8 @@ class xt(Exchange, ImplicitAPI):
             timestamp = self.number_to_string(self.nonce())
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
                 id = 'CCXT'
-                if query is None:
-                    raise NullResponse(self.id + ' sign() returned empty body')
                 if payload.find('future') > -1:
                     query['clientMedia'] = id
-                    if query is None:
-                        raise NullResponse(self.id + ' sign() returned empty body')
                 else:
                     query['media'] = id
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}') or (path == 'ws-token'))

@@ -371,7 +371,7 @@ class extended extends Exchange {
         return $markets;
     }
 
-    public function index_by_stringified_numeric_id(array $input) {
+    public function index_by_stringified_numeric_id(array $input): ?array {
         $result = array();
         if ($input === null) {
             return null;
@@ -1389,7 +1389,10 @@ class extended extends Exchange {
         $until = $this->safe_integer($paramsPaginate, 'until', $this->milliseconds());
         $endTime = $this->safe_integer($paramsPaginate, 'endTime', $until);
         $paramsOmitted = $this->omit($paramsPaginate, array( 'endTime', 'until' ));
-        $sinceResolved = ($since === null) ? $endTime - ($limitResolved * 60 * 60 * 1000) : $since;
+        $sinceResolved = $since;
+        if (($endTime !== null) && ($since === null)) {
+            $sinceResolved = $endTime - ($limitResolved * 60 * 60 * 1000);
+        }
         $request = array(
             'market' => $market['id'],
             'startTime' => $sinceResolved,
@@ -1477,7 +1480,10 @@ class extended extends Exchange {
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
         $endTime = $this->safe_integer($params, 'endTime', $until);
         $paramsOmitted = $this->omit($params, array( 'endTime', 'until' ));
-        $sinceResolved = ($since === null) ? $endTime - ($limitResolved * $this->parse_timeframe($timeframe) * 1000) : $since;
+        $sinceResolved = $since;
+        if (($endTime !== null) && ($since === null)) {
+            $sinceResolved = $endTime - ($limitResolved * $this->parse_timeframe($timeframe) * 1000);
+        }
         $request = array(
             'market' => $market['id'],
             'interval' => $interval,
@@ -1502,7 +1508,7 @@ class extended extends Exchange {
         return $this->parse_open_interests_history($data, $market, $sinceResolved, $limitResolved);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //       "i": "112620590.6060360000000000",
@@ -2624,14 +2630,13 @@ class extended extends Exchange {
     }
 
     private function do_fetch_extended_account($params = array()) {
-        $account = $this->safe_dict($this->options, 'account');
-        if ($account !== null) {
-            return $account;
+        $cachedAccount = $this->safe_dict($this->options, 'account');
+        if ($cachedAccount !== null) {
+            return $this->safe_dict($this->options, 'account', array());
         }
         $accountData = Async\await($this->fetch_account($params));
-        $account = $accountData['info'];
-        $this->options['account'] = $account;
-        return $account;
+        $this->options['account'] = $accountData['info'];
+        return $this->safe_dict($this->options, 'account', array());
     }
 
     public function create_order_settlement_data(bool $isBuy, string $amountString, string $priceString, $params = array()): array {
@@ -2684,7 +2689,7 @@ class extended extends Exchange {
         $recipient = $this->safe_string($params, 'recipient', $address);
         $currencyInfo = $this->safe_dict($currency, 'info', array());
         $collateralId = $this->safe_string($params, 'collateralId', $this->safe_string_2($currencyInfo, 'starkexId', 'l1Id'));
-        $resolution = $this->safe_integer($params, 'resolution', $this->safe_value_2($currencyInfo, 'starkexResolution', 'l1Resolution'));
+        $resolution = $this->safe_integer($params, 'resolution', $this->safe_integer_2($currencyInfo, 'starkexResolution', 'l1Resolution'));
         $starkKey = $this->safe_string($account, 'l2Key');
         if (($positionId === null) || ($collateralId === null) || ($resolution === null) || ($starkKey === null)) {
             throw new BadRequest($this->id . ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
@@ -2717,7 +2722,7 @@ class extended extends Exchange {
         $fromL2Key = $this->safe_string_2($params, 'fromL2Key', 'senderPublicKey', $this->safe_string($account, 'l2Key'));
         $currencyInfo = $this->safe_dict($currency, 'info', array());
         $collateralId = $this->safe_string_2($params, 'assetId', 'collateralId', $this->safe_string_2($currencyInfo, 'starkexId', 'l1Id'));
-        $resolution = $this->safe_integer($params, 'resolution', $this->safe_value_2($currencyInfo, 'starkexResolution', 'l1Resolution'));
+        $resolution = $this->safe_integer($params, 'resolution', $this->safe_integer_2($currencyInfo, 'starkexResolution', 'l1Resolution'));
         if (($fromVault === null) || ($fromL2Key === null) || ($collateralId === null) || ($resolution === null)) {
             throw new BadRequest($this->id . ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
         }
@@ -2795,7 +2800,8 @@ class extended extends Exchange {
         }
         $now = $this->milliseconds();
         $expiryEpochMillis = $this->safe_integer($paramsBuilder, 'expiryEpochMillis', $now + 3600000);
-        $settlementExpiration = $this->safe_integer($paramsBuilder, 'settlementExpiration', $this->parse_to_int(($expiryEpochMillis + 999) / 1000) + 1209600);
+        $settlementDefault = ($expiryEpochMillis !== null) ? $this->parse_to_int(($expiryEpochMillis + 999) / 1000) + 1209600 : null;
+        $settlementExpiration = $this->safe_integer($paramsBuilder, 'settlementExpiration', $settlementDefault);
         $nonce = $this->number_to_string($this->nonce());
         $account = Async\await($this->fetch_extended_account());
         $starkKey = $this->safe_string($account, 'l2Key');
@@ -3111,8 +3117,10 @@ class extended extends Exchange {
          */
         Async\await($this->load_markets());
         $market = null;
+        $orderSymbol = $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $orderSymbol = $market['symbol'];
         }
         $response = null;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
@@ -3137,7 +3145,6 @@ class extended extends Exchange {
         //     }
         //
         $orderId = ($clientOrderId === null) ? $id : null;
-        $orderSymbol = ($market === null) ? $symbol : $market['symbol'];
         return $this->safe_order(array(
             'info' => $response,
             'id' => $orderId,
@@ -3599,7 +3606,7 @@ class extended extends Exchange {
         return $value;
     }
 
-    public function get_extended_decimal_to_base16(mixed $value) {
+    public function get_extended_decimal_to_base16(mixed $value): string {
         $decimalString = '';
         if (gettype($value) === 'string') {
             $decimalString = $value;
@@ -3619,7 +3626,7 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function get_extended_signature_hex(mixed $signature) {
+    public function get_extended_signature_hex(mixed $signature): string {
         if (gettype($signature) === 'string') {
             if (mb_strpos($signature, '0x') === 0) {
                 return $signature;
@@ -3637,7 +3644,8 @@ class extended extends Exchange {
         $domainTypeHash = $this->convert_to_big_int($this->extended_starknet_get_selector_from_name(
             '"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'
         ));
-        $isTestnet = mb_strpos($this->urls['api']['rest'], 'sepolia') !== false;
+        $restUrl = $this->safe_string($this->urls['api'], 'rest', '');
+        $isTestnet = mb_strpos($restUrl, 'sepolia') !== false;
         $defaultChainId = 'SN_MAIN';
         if ($isTestnet) {
             $defaultChainId = 'SN_SEPOLIA';
@@ -3755,7 +3763,7 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $version = $this->safe_string($api, 0);

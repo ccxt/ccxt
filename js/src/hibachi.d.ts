@@ -128,10 +128,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
-    cancelOrderRequest(id: string): {
-        orderId: string;
-        signature: string;
-    };
+    cancelOrderRequest(id: string): Dict;
     /**
      * @method
      * @name hibachi#cancelOrder
@@ -285,7 +282,7 @@ export default class hibachi extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: string, api?: string[], method?: any, params?: Dict): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;

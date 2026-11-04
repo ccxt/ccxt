@@ -259,7 +259,7 @@ class hollaex extends \ccxt\async\hollaex {
         // }
         //
         $channel = $this->safe_string($message, 'topic');
-        $rawTrades = $this->safe_value($message, 'data');
+        $rawTrades = $this->safe_list($message, 'data', array());
         // usually the first message is an empty array
         // when the user does not have any trades yet
         $dataLength = count($rawTrades);
@@ -465,7 +465,7 @@ class hollaex extends \ccxt\async\hollaex {
         //     }
         //
         $messageHash = $this->safe_string($message, 'topic');
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data', array());
         $keys = is_array($data) ? array_keys($data) : array();
         $timestamp = $this->safe_timestamp($message, 'time');
         $this->balance['info'] = $data;
@@ -513,7 +513,8 @@ class hollaex extends \ccxt\async\hollaex {
         $this->check_required_credentials();
         $expires = $this->safe_string($this->options, 'ws-expires');
         if ($expires === null) {
-            $timeout = intval(($this->timeout / (string) 1000));
+            $timeoutMs = $this->parse_to_int($this->timeout);
+            $timeout = $this->parse_to_int($timeoutMs / 1000);
             $expires = $this->sum($this->seconds(), $timeout);
             if ($expires === null) {
                 throw new ArgumentsRequired($this->id . ' watchPrivate() expires is required');

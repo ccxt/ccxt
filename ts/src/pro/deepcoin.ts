@@ -192,7 +192,7 @@ export default class deepcoin extends deepcoinRest {
         const future = client.reusableFuture (messageHash);
         let listenKey: Str = undefined;
         try {
-            let listenKeyExpiryTimestamp = this.safeInteger (this.options, 'listenKeyExpiryTimestamp', time);
+            const listenKeyExpiryTimestamp = this.safeInteger (this.options, 'listenKeyExpiryTimestamp', time);
             const expired = (time - listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
             listenKey = this.safeString (this.options, 'listenKey');
             let response = undefined;
@@ -222,9 +222,9 @@ export default class deepcoin extends deepcoinRest {
                     // and the next caller re-leads
                     throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
                 }
-                listenKeyExpiryTimestamp = this.safeTimestamp (data, 'expire_time') as number;
+                const newExpiryTimestamp = this.safeTimestamp (data, 'expire_time') as number;
                 this.options['listenKey'] = listenKey;
-                this.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp;
+                this.options['listenKeyExpiryTimestamp'] = newExpiryTimestamp;
             }
             // settle the flight: client.resolve wakes every waiter and drops
             // the future from the registry under the client's own lock, so the

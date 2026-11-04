@@ -207,7 +207,7 @@ public partial class nado : ccxt.nado
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        if (!(inOp(this.orderbooks, (market.ContainsKey("symbol") ? market["symbol"] : null))))
+        if (!((this.orderbooks != null && (market.ContainsKey("symbol") ? market["symbol"] : null) is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))))
         {
             Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit)));
             ((IDictionary<string,object>)this.orderbooks)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.orderBook(snapshot, limit);
@@ -261,7 +261,7 @@ public partial class nado : ccxt.nado
             string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             markets.Add(market);
             messageHashes.Add(messageHash);
-            if (!(inOp(this.orderbooks, (market.ContainsKey("symbol") ? market["symbol"] : null))))
+            if (!((this.orderbooks != null && (market.ContainsKey("symbol") ? market["symbol"] : null) is string inOpKey1 && this.orderbooks.ContainsKey(inOpKey1))))
             {
                 Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit)));
                 ((IDictionary<string,object>)this.orderbooks)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.orderBook(snapshot, limit);
@@ -1369,12 +1369,11 @@ public partial class nado : ccxt.nado
         return await this.watch(url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
 
-    public async virtual Task<List<object>> unWatchPublicMultiple(object streamType, IList<object> markets, IList<object> messageHashes, object parameters = null, IList<object> subscriptionParams = null)
+    public async virtual Task<bool> unWatchPublicMultiple(object streamType, IList<object> markets, IList<object> messageHashes, object parameters = null, IList<object> subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "subscriptions"));
         var client = this.client(url);
-        List<object> results = new List<object>() {};
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             string? messageHash = ((string)(messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null));
@@ -1390,9 +1389,9 @@ public partial class nado : ccxt.nado
                 { "messageHash", messageHash },
                 { "unsubscribeHash", unsubscribeHash },
             };
-            results.Add(await this.watchMultiple(url, new List<object>() {unsubscribeHash}, request, new List<object>() {unsubscribeHash}, subscription));
+            await this.watchMultiple(url, new List<object>() {unsubscribeHash}, request, new List<object>() {unsubscribeHash}, subscription);
         }
-        return results;
+        return true;
     }
 
     public virtual Int64? parseWsTimestamp(object message, string key)
@@ -2004,7 +2003,7 @@ public partial class nado : ccxt.nado
                 this.cleanUnsubscription(client, messageHash, unsubscribeHash);
                 this.handleUnsubscriptionCache(messageHash);
             }
-            client.resolve(message, unsubscribeHash);
+            client.resolve(true, unsubscribeHash);
             return;
         }
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
@@ -2023,7 +2022,7 @@ public partial class nado : ccxt.nado
                 this.cleanUnsubscription(client, messageHash, unsubscribeHash);
                 this.handleUnsubscriptionCache(messageHash);
             }
-            client.resolve(message, unsubscribeHash);
+            client.resolve(true, unsubscribeHash);
             return;
         }
     }
@@ -2166,7 +2165,7 @@ public partial class nado : ccxt.nado
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }

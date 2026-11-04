@@ -1098,7 +1098,7 @@ public partial class foxbit : Exchange
         {
             request["client_order_id"] = clientOrderId;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"timeInForce", "postOnly", "triggerPrice", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"timeInForce", "postOnly", "triggerPrice", "clientOrderId"}));
         Dictionary<string, object> response = await this.v3PrivatePostOrders(this.extend(request, paramsOmitted));
         // {
         //     "id": 1234567890,
@@ -2120,7 +2120,7 @@ public partial class foxbit : Exchange
         string? address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
         string? sn = this.safeString(transaction, "sn");
         string type = "withdrawal";
-        if ((sn != null) && isEqual(getValue(sn, 0), "D"))
+        if ((sn != null) && (((object)((sn != null ? sn[0].ToString() : null))) is "D"))
         {
             type = "deposit";
         }
@@ -2212,22 +2212,19 @@ public partial class foxbit : Exchange
         {
             throw new ArgumentsRequired ((this.id + " parseLedgerEntry() requires a amount argument")) ;
         }
-        if (isLessThan(amount, 0))
-        {
-            direction = "out";
-            if ((amount == null))
-            {
-                throw new ArgumentsRequired ((this.id + " parseLedgerEntry() requires a amount argument")) ;
-            }
-            realAmount = multiply(amount, -1);
-        }
         if ((balance == null))
         {
             throw new ExchangeError ((this.id + " parseLedgerEntry() missing balance")) ;
         }
-        if ((amount == null))
+        object before = null;
+        if ((amount != null) && (balance != null))
         {
-            throw new ArgumentsRequired ((this.id + " parseLedgerEntry() requires a amount argument")) ;
+            before = (balance - amount);
+            if (((amount == null || 0 > amount)))
+            {
+                direction = "out";
+                realAmount = (amount = -amount);
+            }
         }
         return new Dictionary<string, object>() {
             { "id", id },
@@ -2241,7 +2238,7 @@ public partial class foxbit : Exchange
             { "type", type },
             { "currency", currencySymbol },
             { "amount", realAmount },
-            { "before", subtract(balance, amount) },
+            { "before", before },
             { "after", balance },
             { "status", "ok" },
             { "fee", fee },
@@ -2275,6 +2272,7 @@ public partial class foxbit : Exchange
         {
             List<object> paramKeys = new List<object>(((IDictionary<string,object>)paramsOmitted).Keys);
             int paramKeysLength = paramKeys.Count;
+            int lastKeyIndex = (paramKeysLength - 1);
             if (paramKeysLength > 0)
             {
                 query = this.urlencode(paramsOmitted);
@@ -2288,9 +2286,9 @@ public partial class foxbit : Exchange
                 {
                     signatureQuery = add(signatureQuery, add(add(key, "="), value));
                 }
-                if ((i < (paramKeysLength - 1)))
+                if (i < lastKeyIndex)
                 {
-                    signatureQuery = add(signatureQuery, "&");
+                    signatureQuery = (signatureQuery + ("&"));
                 }
             }
         }

@@ -1347,9 +1347,12 @@ class nado extends \ccxt\async\nado {
     }
 
     public function un_watch_public_multiple(?string $streamType, array $markets, array $messageHashes, $params = array(), ?array $subscriptionParams = null): PromiseInterface {
+        return Async\async(self::do_un_watch_public_multiple(...))($streamType, $markets, $messageHashes, $params, $subscriptionParams);
+    }
+
+    private function do_un_watch_public_multiple(?string $streamType, array $markets, array $messageHashes, $params = array(), ?array $subscriptionParams = null) {
         $url = $this->urls['api']['ws']['subscriptions'];
         $client = $this->client($url);
-        $results = array();
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
             $id = $this->request_id();
@@ -1364,9 +1367,9 @@ class nado extends \ccxt\async\nado {
                 'messageHash' => $messageHash,
                 'unsubscribeHash' => $unsubscribeHash,
             );
-            $results[] = Async\await($this->watch_multiple($url, array( $unsubscribeHash ), $request, array( $unsubscribeHash ), $subscription));
+            Async\await($this->watch_multiple($url, array( $unsubscribeHash ), $request, array( $unsubscribeHash ), $subscription));
         }
-        return $results;
+        return true;
     }
 
     public function parse_ws_timestamp(array $message, string $key): ?int {
@@ -1923,7 +1926,7 @@ class nado extends \ccxt\async\nado {
                 $this->clean_unsubscription($client, $messageHash, $unsubscribeHash);
                 $this->handle_unsubscription_cache($messageHash);
             }
-            $client->resolve($message, $unsubscribeHash);
+            $client->resolve(true, $unsubscribeHash);
             return;
         }
         $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
@@ -1939,7 +1942,7 @@ class nado extends \ccxt\async\nado {
                 $this->clean_unsubscription($client, $messageHash, $unsubscribeHash);
                 $this->handle_unsubscription_cache($messageHash);
             }
-            $client->resolve($message, $unsubscribeHash);
+            $client->resolve(true, $unsubscribeHash);
             return;
         }
     }

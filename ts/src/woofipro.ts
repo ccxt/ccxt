@@ -866,10 +866,6 @@ export default class woofipro extends Exchange {
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
-        const feeCost = this.safeString (fee, 'cost');
-        if ((fee !== undefined) && (feeCost !== undefined)) {
-            fee['cost'] = feeCost;
-        }
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
@@ -1226,7 +1222,7 @@ export default class woofipro extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -1336,7 +1332,7 @@ export default class woofipro extends Exchange {
             const interest = this.extend ({ 'timestamp': timestamp }, row);
             result.push (this.parseOpenInterest (interest));
         }
-        return this.filterByArray (result, 'symbol', symbolsNormalized) as OpenInterests;
+        return this.indexBy (this.filterByArray (result, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     /**
@@ -1789,7 +1785,7 @@ export default class woofipro extends Exchange {
         }, marketResolved);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1798,7 +1794,7 @@ export default class woofipro extends Exchange {
         return this.safeString (timeInForces, timeInForce);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status !== undefined) {
             const statuses: Dict = {
                 'NEW': 'open',
@@ -1816,7 +1812,7 @@ export default class woofipro extends Exchange {
         return undefined;
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -2166,7 +2162,7 @@ export default class woofipro extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
-        if ((trigger !== true) && (symbol === undefined)) {
+        if ((!trigger) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -2183,7 +2179,7 @@ export default class woofipro extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (paramsOmitted, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response: NullableDict = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
@@ -2223,7 +2219,7 @@ export default class woofipro extends Exchange {
         } else {
             extendParams['id'] = id;
         }
-        if (trigger === true) {
+        if (trigger) {
             const parsedResponse = (response === undefined) ? {} : response;
             return this.extend (this.parseOrder (parsedResponse), extendParams) as Order;
         }
@@ -2350,7 +2346,7 @@ export default class woofipro extends Exchange {
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response: NullableDict = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, paramsOmitted));
@@ -2421,7 +2417,7 @@ export default class woofipro extends Exchange {
             await this.loadMarkets ();
         }
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger === true) ? 100 : 500;
+        const maxLimit = (isTrigger) ? 100 : 500;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit) as Order[];
@@ -2441,12 +2437,12 @@ export default class woofipro extends Exchange {
         } else {
             request['size'] = maxLimit;
         }
-        if (isTrigger === true) {
+        if (isTrigger) {
             request['algo_type'] = 'STOP';
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_t', request, paramsOmitted);
         let response: NullableDict = undefined;
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.v1PrivateGetAlgoOrders (this.extend (requestUntil, paramsUntil));
         } else {
             response = await this.v1PrivateGetOrders (this.extend (requestUntil, paramsUntil));
@@ -2708,7 +2704,7 @@ export default class woofipro extends Exchange {
         return this.parseBalance (data);
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2848,7 +2844,7 @@ export default class woofipro extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2944,7 +2940,7 @@ export default class woofipro extends Exchange {
         return this.safeNumber (data, 'withdraw_nonce');
     }
 
-    hashMessage (message: any) {
+    hashMessage (message: any): string {
         const hashed: string = this.hash (message, keccak, 'hex');
         return '0x' + hashed;
     }
@@ -3164,7 +3160,7 @@ export default class woofipro extends Exchange {
             'amount': undefined,
             'total': undefined,
             'code': this.safeString (market, 'settle'),
-            'status': (success === true) ? 'ok' : 'failed',
+            'status': (success) ? 'ok' : 'failed',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         } as MarginModification;
@@ -3492,7 +3488,7 @@ export default class woofipro extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, section: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, section: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
@@ -3513,7 +3509,7 @@ export default class woofipro extends Exchange {
             this.checkRequiredCredentials ();
             if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order' || path === 'batch-order')) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-                if (isSandboxMode !== true) {
+                if (!isSandboxMode) {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList (requestParams, 'orders', []);
@@ -3554,8 +3550,9 @@ export default class woofipro extends Exchange {
                 }
             }
             let secret = this.secret;
-            if (secret.indexOf ('ed25519:') >= 0) {
-                const parts = secret.split ('ed25519:');
+            const rawSecret: string = this.secret;
+            if (rawSecret.indexOf ('ed25519:') >= 0) {
+                const parts = rawSecret.split ('ed25519:');
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);

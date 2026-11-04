@@ -61,7 +61,6 @@ include_once __DIR__ . '/test_strip.php';
 include_once __DIR__ . '/test_array_concat.php';
 include_once __DIR__ . '/test_arrays_concat.php';
 include_once __DIR__ . '/test_set_markets_from_exchange.php';
-include_once __DIR__ . '/test_sleep.php';
 include_once __DIR__ . '/test_eth_methods.php';
 include_once __DIR__ . '/test_timeframes.php';
 include_once __DIR__ . '/test_keysort.php';
@@ -72,7 +71,6 @@ include_once __DIR__ . '/test_string_to_base16.php';
 include_once __DIR__ . '/test_capitalize.php';
 include_once __DIR__ . '/test_incrementing_nonce.php';
 include_once __DIR__ . '/test_binary_concat.php';
-include_once __DIR__ . '/test_constants.php';
 include_once __DIR__ . '/test_base58_to_binary.php';
 include_once __DIR__ . '/test_is_json_encoded_object.php';
 include_once __DIR__ . '/test_is_dictionary.php';
@@ -81,7 +79,6 @@ include_once __DIR__ . '/test_encode_decode.php';
 function base_tests_init() {
     return Async\async(function () {
         \React\Async\await(test_language_specific());
-        test_constants();
         test_after_constructor();
         test_aggregate();
         test_extend();
@@ -142,7 +139,6 @@ function base_tests_init() {
         test_implode_params();
         test_unique();
         test_urlencode_nested();
-        \React\Async\await(test_sleep());
         \React\Async\await(test_fetch_history());
         test_io();
         test_is_json_encoded_object();

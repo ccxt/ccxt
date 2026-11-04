@@ -286,25 +286,27 @@ public partial class coinbase : ccxt.coinbase
         object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
         bool isCloudAPiKey = (this.apiKey.IndexOf("organizations/", StringComparison.Ordinal) >= 0) || (this.secret.StartsWith("-----BEGIN"));
+        object isV2CloudAPiKey = this.isEddsaApiKey();
         string? auth = ((string)add(add(timestamp, name), String.Join(",", ((IList<object>)productIds).ToArray())));
-        if (!isCloudAPiKey)
+        if (!isCloudAPiKey && !isTrue(isV2CloudAPiKey))
         {
             subscribe["api_key"] = this.apiKey;
             subscribe["timestamp"] = timestamp;
             subscribe["signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         } else
         {
-            if (this.apiKey.StartsWith("-----BEGIN"))
+            if (isCloudAPiKey && this.apiKey.StartsWith("-----BEGIN"))
             {
                 throw new ArgumentsRequired ((this.id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
             }
             string? currentToken = this.safeString(this.options, "wsToken");
             Int64? tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Int64 seconds = this.seconds();
-            if ((currentToken == null) || isLessThan((tokenTimestamp + 120), seconds))
+            Int64? tokenExpiry = (tokenTimestamp + 90);
+            if ((currentToken == null) || ((tokenExpiry == null || tokenExpiry < seconds)))
             {
                 // we should generate new token
-                string token = this.createAuthToken(seconds);
+                string token = this.createAuthToken(seconds, null, null, this.isEddsaApiKey());
                 this.options["wsToken"] = token;
                 this.options["wsTokenTimestamp"] = seconds;
             }
@@ -852,7 +854,7 @@ public partial class coinbase : ccxt.coinbase
             int tradesLength = currentTrades.Count;
             for (Int64 j = 0; j < tradesLength; j++)
             {
-                object item = getValue(currentTrades, ((tradesLength - j) - 1));
+                object item = (currentTrades != null && ((tradesLength - j) - 1) < currentTrades.Count ? currentTrades[(int)((tradesLength - j) - 1)] : null);
                 tradesArray.append(ccxt.BaseExchange.FromTrade(this.parseTrade(item)));
             }
         }

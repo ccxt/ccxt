@@ -179,7 +179,6 @@ class mexc(ccxt.async_support.mexc):
         #         "s": "BTCUSDT"
         #     }
         #
-        self.handle_bid_ask(client, message)
         rawTicker = self.safe_dict_n(message, ['d', 'data', 'publicAggreBookTicker'])
         marketId = self.safe_string_2(message, 's', 'symbol')
         timestamp = self.safe_integer_2(message, 't', 'sendTime')
@@ -187,6 +186,7 @@ class mexc(ccxt.async_support.mexc):
         symbol = market['symbol']
         ticker: Ticker
         if market['spot'] is True:
+            self.handle_bid_ask(client, message)  # the bids-asks channel is spot only
             ticker = self.parse_ws_ticker(rawTicker, market)
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
@@ -452,6 +452,22 @@ class mexc(ccxt.async_support.mexc):
 
     def handle_bid_ask(self, client: Client, message: dict):
         #
+        # protobuf
+        #
+        #    {
+        #        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        #        "symbol": "BTCUSDT",
+        #        "sendTime": "1792779974344",
+        #        "publicAggreBookTicker": {
+        #            "bidPrice": "81577.79",
+        #            "bidQuantity": "0.11985594",
+        #            "askPrice": "81577.8",
+        #            "askQuantity": "0.12200121"
+        #        }
+        #    }
+        #
+        # retired json channel
+        #
         #    {
         #        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         #        "d": {
@@ -473,19 +489,19 @@ class mexc(ccxt.async_support.mexc):
         client.resolve(parsedTicker, messageHash)
 
     def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
-        data = self.safe_dict(ticker, 'd')
-        marketId = self.safe_string(ticker, 's')
+        data = self.safe_dict_n(ticker, ['d', 'data', 'publicAggreBookTicker'])
+        marketId = self.safe_string_2(ticker, 's', 'symbol')
         marketResolved = self.safe_market(marketId, market)
         symbol = self.safe_string(marketResolved, 'symbol')
-        timestamp = self.safe_integer(ticker, 't')
+        timestamp = self.safe_integer_2(ticker, 't', 'sendTime')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'ask': self.safe_number(data, 'a'),
-            'askVolume': self.safe_number(data, 'A'),
-            'bid': self.safe_number(data, 'b'),
-            'bidVolume': self.safe_number(data, 'B'),
+            'ask': self.safe_number_2(data, 'a', 'askPrice'),
+            'askVolume': self.safe_number_2(data, 'A', 'askQuantity'),
+            'bid': self.safe_number_2(data, 'b', 'bidPrice'),
+            'bidVolume': self.safe_number_2(data, 'B', 'bidQuantity'),
             'info': ticker,
         }, marketResolved)
 
@@ -494,13 +510,16 @@ class mexc(ccxt.async_support.mexc):
         paramsOmitted = self.omit(params, ['unsubscribed'])
         url = self.urls['api']['ws']['spot']
         method = 'SUBSCRIPTION'
-        if unsubscribed is True:
+        if unsubscribed:
             method = 'UNSUBSCRIPTION'
         request = {
             'method': method,
             'params': [channel],
         }
-        return await self.watch(url, messageHash, self.extend(request, paramsOmitted), messageHash)
+        subscription = {
+            'channel': channel,  # the rejection frame names the channel, this maps it back to the hash
+        }
+        return await self.watch(url, messageHash, self.extend(request, paramsOmitted), messageHash, subscription)
 
     async def watch_spot_private(self, channel: str, messageHash: str, params: dict = {}):
         self.check_required_credentials()
@@ -767,12 +786,15 @@ class mexc(ccxt.async_support.mexc):
         return orderbook.limit()
 
     def handle_order_book_subscription(self, client: Client, message: dict):
-        # spot
+        # the ack echoes the subscribed channel, the market id is always its last segment
+        #
+        #     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
         #     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         #
         msg = self.safe_string(message, 'msg', '')
         parts = msg.split('@')
-        marketId = self.safe_string(parts, 2)
+        partsLength = len(parts)  # hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        marketId = self.safe_string(parts, partsLength - 1)
         symbol = self.safe_symbol(marketId)
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book({})
@@ -787,7 +809,7 @@ class mexc(ccxt.async_support.mexc):
         firstDeltaNonce = self.safe_integer_n(firstDelta, ['r', 'version', 'fromVersion'])
         if (nonce is None) or (firstDeltaNonce is None):
             return -1
-        if nonce < firstDeltaNonce - 1:
+        if (nonce is not None) and (firstDeltaNonce is not None) and (nonce < firstDeltaNonce - 1):
             return -1
         for i in range(0, len(cache)):
             delta = self.safe_dict(cache, i)
@@ -1900,7 +1922,7 @@ class mexc(ccxt.async_support.mexc):
         client = self.client(self.urls['api']['ws']['spot'])
         messageHash = 'authenticate:listenKey'
         isFetching = self.safe_bool(self.options, 'listenKeyFetching', False)
-        if isFetching is True:
+        if isFetching:
             await client.future(messageHash)
             return self.safe_string(self.options, 'listenKey')
         self.options['listenKeyFetching'] = True
@@ -1956,10 +1978,35 @@ class mexc(ccxt.async_support.mexc):
         #        "code": 0,
         #        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         #    }
+        #
+        # a rejected subscription answers with code 0 as well, the failure is only in the text
+        #
+        #    {
+        #        "id": 0,
+        #        "code": 0,
+        #        "msg": "Not Subscribed successfully! [spot@public.aggre.depth.v3.api.pb@999ms@BTCUSDT].  Reason： Blocked! "
+        #    }
+        #
         # Set the default to an empty string if the message is empty during the test.
         msg = self.safe_string(message, 'msg', '')
         if msg == 'PONG':
             self.handle_pong(client, message)
+        elif msg.find('Not Subscribed successfully') > -1:
+            # the venue names the refused channel between brackets, reject only that watcher
+            # and drop its subscription so a corrected retry sends a new frame
+            error = ExchangeError(self.id + ' ' + msg)
+            subscriptionHashes = list(client.subscriptions.keys())
+            rejected = False
+            for i in range(0, len(subscriptionHashes)):
+                subscriptionHash = subscriptionHashes[i]
+                subscribedChannel = self.safe_string(client.subscriptions[subscriptionHash], 'channel')
+                if (subscribedChannel is not None) and (msg.find('[' + subscribedChannel + ']') >= 0):
+                    del client.subscriptions[subscriptionHash]
+                    client.reject(error, subscriptionHash)
+                    rejected = True
+            if not rejected:
+                # nothing matched, the caller would hang otherwise
+                client.reject(error)
         elif msg.find('@') > -1:
             parts = msg.split('@')
             channel = self.safe_string(parts, 1)

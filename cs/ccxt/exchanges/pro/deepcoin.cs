@@ -205,7 +205,7 @@ public partial class deepcoin : ccxt.deepcoin
         try
         {
             Int64? listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
-            bool expired = isGreaterThan((subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
+            bool expired = ((time - listenKeyExpiryTimestamp) > 60000); // 1 minute before expiry
             listenKey = this.safeString(this.options, "listenKey");
             Dictionary<string, object> response = null;
             if ((listenKey == null))
@@ -234,9 +234,9 @@ public partial class deepcoin : ccxt.deepcoin
                 {
                     throw new AuthenticationError ((this.id + " authenticate() received an empty listenKey")) ;
                 }
-                listenKeyExpiryTimestamp = this.safeTimestamp(data, "expire_time");
+                Int64? newExpiryTimestamp = this.safeTimestamp(data, "expire_time");
                 this.options["listenKey"] = listenKey;
-                this.options["listenKeyExpiryTimestamp"] = listenKeyExpiryTimestamp;
+                this.options["listenKeyExpiryTimestamp"] = newExpiryTimestamp;
             }
             // settle the flight: client.resolve wakes every waiter and drops
             // the future from the registry under the client's own lock, so the
@@ -840,7 +840,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         string? type = this.safeString(message, "t");
-        if (isEqual(getValue(orderbook, "timestamp"), null))
+        if ((((object)((orderbook != null && orderbook.ContainsKey("timestamp") ? orderbook["timestamp"] : null))) == null))
         {
             if (type == "f")
             {

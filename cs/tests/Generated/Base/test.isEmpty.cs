@@ -12,22 +12,22 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            Assert(isEqual(exchange.isEmpty(null), true), "undefined should be empty");
-            Assert(isEqual(exchange.isEmpty(null), true), "null should be empty");
-            Assert(isEqual(exchange.isEmpty(new Dictionary<string, object>() {}), true), "empty object should be empty");
-            Assert(isEqual(exchange.isEmpty(new List<object>() {}), true), "empty array should be empty");
-            Assert(isEqual(exchange.isEmpty(new Dictionary<string, object>() {
+            Assert(exchange.isEmpty(null), "undefined should be empty");
+            Assert(exchange.isEmpty(null), "null should be empty");
+            Assert(exchange.isEmpty(new Dictionary<string, object>() {}), "empty object should be empty");
+            Assert(exchange.isEmpty(new List<object>() {}), "empty array should be empty");
+            Assert(!isTrue(exchange.isEmpty(new Dictionary<string, object>() {
             { "foo", 1 },
-        }), false), "non-empty object should not be empty");
-            Assert(isEqual(exchange.isEmpty(new List<object>() {1, 2}), false), "non-empty array should not be empty");
+        })), "non-empty object should not be empty");
+            Assert(!isTrue(exchange.isEmpty(new List<object>() {1, 2})), "non-empty array should not be empty");
             // below are scalars, so they are not checked.
             // @ts-expect-error
-            Assert(isEqual(exchange.isEmpty(""), false), "empty string should return false");
+            Assert(!isTrue(exchange.isEmpty("")), "empty string should return false");
             // @ts-expect-error
-            Assert(isEqual(exchange.isEmpty(0), false), "zero should return false");
+            Assert(!isTrue(exchange.isEmpty(0)), "zero should return false");
             // @ts-expect-error
-            Assert(isEqual(exchange.isEmpty(false), false), "false should return false");
+            Assert(!isTrue(exchange.isEmpty(false)), "false should return false");
             // @ts-expect-error
-            Assert(isEqual(exchange.isEmpty("non-empty string"), false), "non-empty string should not be empty");
+            Assert(!isTrue(exchange.isEmpty("non-empty string")), "non-empty string should not be empty");
         }
 }

@@ -74,10 +74,6 @@ declare abstract class Exchange extends _Exchange {
     v3PrivateGetBrokerageCfmSweeps(params?: {}): Promise<Dict>;
     v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow(params?: {}): Promise<Dict>;
     v3PrivateGetBrokerageCfmIntradayMarginSetting(params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageIntxBalancesPortfolioUuid(params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageIntxPortfolioPortfolioUuid(params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageIntxPositionsPortfolioUuid(params?: {}): Promise<Dict>;
-    v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(params?: {}): Promise<Dict>;
     v3PrivateGetBrokeragePaymentMethods(params?: {}): Promise<Dict>;
     v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(params?: {}): Promise<Dict>;
     v3PrivateGetBrokerageKeyPermissions(params?: {}): Promise<Dict>;
@@ -92,8 +88,6 @@ declare abstract class Exchange extends _Exchange {
     v3PrivatePostBrokerageConvertTradeTradeId(params?: {}): Promise<Dict>;
     v3PrivatePostBrokerageCfmSweepsSchedule(params?: {}): Promise<Dict>;
     v3PrivatePostBrokerageCfmIntradayMarginSetting(params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageIntxAllocate(params?: {}): Promise<Dict>;
-    v3PrivatePostBrokerageIntxMultiAssetCollateral(params?: {}): Promise<Dict>;
     v3PrivatePostBrokerageOrdersClosePosition(params?: {}): Promise<Dict>;
     v3PrivatePutBrokeragePortfoliosPortfolioUuid(params?: {}): Promise<Dict>;
     v3PrivateDeleteBrokeragePortfoliosPortfolioUuid(params?: {}): Promise<Dict>;

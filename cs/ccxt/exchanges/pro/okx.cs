@@ -998,7 +998,7 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string accessType = "private";
         if ((isTrigger == true))
         {
@@ -1454,7 +1454,7 @@ public partial class okx : ccxt.okx
                 depth = "books";
             }
         }
-        if ((isEqual(depth, "books-l2-tbt")) || (isEqual(depth, "books50-l2-tbt")))
+        if (((((object)(depth)) is "books-l2-tbt")) || ((((object)(depth)) is "books50-l2-tbt")))
         {
             if (!this.checkRequiredCredentials(false))
             {
@@ -1643,14 +1643,10 @@ public partial class okx : ccxt.okx
         string? symbol = this.safeSymbol(marketId, market);
         Int64? seqId = this.safeInteger(message, "seqId");
         Int64? prevSeqId = this.safeInteger(message, "prevSeqId");
-        object nonce = getValue(orderbook, "nonce");
-        InvalidNonce? error = null;
+        object nonce = (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null);
         if ((prevSeqId != null) && !(prevSeqId == -1) && !isEqual(nonce, prevSeqId))
         {
-            error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
-        }
-        if ((error != null))
-        {
+            var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
             ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
             if ((symbol != null))
             {
@@ -1775,10 +1771,21 @@ public partial class okx : ccxt.okx
             for (int i = 0; i < (data?.Count ?? 0); i++)
             {
                 object update = data[i];
-                ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
-                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-                orderbook["symbol"] = symbol;
-                this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                // reset the existing orderbook instead of replacing it: a consumer
+                // holds a reference to the old object and would never see updates
+                // after a re-subscription snapshot
+                if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+                {
+                    ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+                }
+                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+                Int64? timestamp = this.safeInteger(update, "ts");
+                // rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                // price and amount only, matching handleDelta, so countOrIdKey
+                // points past the row on purpose
+                ccxt.OrderBook snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 4);
+                snapshot.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(update, "seqId"));
+                (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
                 if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                 {
                     break;
@@ -1803,7 +1810,7 @@ public partial class okx : ccxt.okx
                     client.resolve(orderbook, messageHash);
                 }
             }
-        } else if ((isEqual(channel, "books5")) || ((channel is "bbo-tbt")))
+        } else if (((channel is "books5")) || ((channel is "bbo-tbt")))
         {
             // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             // shared order-book cache when watchOrderBook subscribed to this
@@ -1819,8 +1826,8 @@ public partial class okx : ccxt.okx
                 {
                     object update = data[i];
                     Int64? timestamp = this.safeInteger(update, "ts");
-                    ccxt.OrderBook snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
-                    (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
+                    Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1));
+                    (orderbook as IOrderBook).reset(snapshot);
                     client.resolve(orderbook, messageHash);
                 }
             }
@@ -1837,7 +1844,7 @@ public partial class okx : ccxt.okx
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string? access = this.safeString(parameters, "access", "private");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"access"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"access"}));
         string? url = this.getUrl("users", access);
         string messageHash = "authenticated";
         var client = this.client(url);
@@ -1861,9 +1868,9 @@ public partial class okx : ccxt.okx
 }} },
             };
             // Only add params['access'] to prevent sending custom parameters, such as extraParams.
-            if (inOp(paramsOmitted, "access"))
+            if (paramsOmitted.ContainsKey("access"))
             {
-                request["access"] = ((IDictionary<string,object>)paramsOmitted)["access"];
+                request["access"] = paramsOmitted["access"];
             }
             this.watch(url, messageHash, request, messageHash);
         }
@@ -1987,9 +1994,30 @@ public partial class okx : ccxt.okx
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? channel = this.safeString(arg, "channel");
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         IDictionary<string, object> balance = ((IDictionary<string, object>)this.parseTradingBalance(message));
-        Dictionary<string, object> newBalance = this.deepExtend(this.balance, balance);
-        this.balance = this.safeBalance(newBalance);
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        List<object> reserved = new List<object>() {"free", "used", "total"};
+        List<object> keys = new List<object>(balance.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            string? key = ((string)keys[i]);
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            this.balance[(string)key] = (balance != null && key != null && balance.ContainsKey(key) ? balance[key] : null);
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, channel);
     }
 
@@ -2698,7 +2726,7 @@ public partial class okx : ccxt.okx
         string? url = this.getUrl("private", "private");
         string messageHash = ((string)this.requestId());
         string? clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"}));
         Dictionary<string, object> market = this.market(symbol);
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
         Dictionary<string, object> arg = new Dictionary<string, object>() {
@@ -2961,7 +2989,7 @@ public partial class okx : ccxt.okx
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }

@@ -945,7 +945,7 @@ class foxbit(Exchange, ImplicitAPI):
                 request['post_only'] = True
             else:
                 request['time_in_force'] = timeInForce
-        if postOnly is True:
+        if postOnly:
             request['post_only'] = True
         if triggerPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
@@ -1005,7 +1005,7 @@ class foxbit(Exchange, ImplicitAPI):
                 else:
                     request['time_in_force'] = timeInForce
                 del orderParams['timeInForce']
-            if postOnly is True:
+            if postOnly:
                 request['post_only'] = True
                 del orderParams['postOnly']
             if triggerPrice is not None:
@@ -1707,7 +1707,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'PARTIALLY_CANCELED': 'open',
             'ACTIVE': 'open',
@@ -1785,7 +1785,7 @@ class foxbit(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # BOTH
             'SUBMITTING': 'pending',
@@ -1892,15 +1892,14 @@ class foxbit(Exchange, ImplicitAPI):
         }
         if amount is None:
             raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
-        if amount < 0:
-            direction = 'out'
-            if amount is None:
-                raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
-            realAmount = amount * -1
         if balance is None:
             raise ExchangeError(self.id + ' parseLedgerEntry() missing balance')
-        if amount is None:
-            raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
+        before = None
+        if amount is not None and balance is not None:
+            before = balance - amount
+            if 0 > amount:
+                direction = 'out'
+                realAmount = -amount
         return {
             'id': id,
             'info': item,
@@ -1913,13 +1912,13 @@ class foxbit(Exchange, ImplicitAPI):
             'type': type,
             'currency': currencySymbol,
             'amount': realAmount,
-            'before': balance - amount,
+            'before': before,
             'after': balance,
             'status': 'ok',
             'fee': fee,
         }
 
-    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params: dict = {}) -> dict:
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)
@@ -1937,6 +1936,7 @@ class foxbit(Exchange, ImplicitAPI):
         if method == 'GET':
             paramKeys = list(paramsOmitted.keys())
             paramKeysLength = len(paramKeys)
+            lastKeyIndex = paramKeysLength - 1
             if paramKeysLength > 0:
                 query = self.urlencode(paramsOmitted)
                 url += '?' + query
@@ -1945,7 +1945,7 @@ class foxbit(Exchange, ImplicitAPI):
                 value = self.safe_string(paramsOmitted, key)
                 if value is not None:
                     signatureQuery += key + '=' + value
-                if i < paramKeysLength - 1:
+                if i < lastKeyIndex:
                     signatureQuery += '&'
         requestBody = None
         if method == 'POST' or method == 'PUT':

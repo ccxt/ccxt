@@ -4,12 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
-import hashlib
-from ccxt.base.types import Bool, Int, Market, OrderBook, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
+from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
@@ -25,505 +23,953 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchTicker': True,
-                'watchBalance': False,
-                'watchMyTrades': False,
+                'watchBidsAsks': True,
+                'watchBalance': True,
+                'watchFundingRate': True,
+                'watchFundingRates': True,
+                'watchMyTrades': True,
                 'watchOHLCV': True,
-                'watchOHLCVForSymbols': False,
-                'watchOrders': False,
-                'watchOrdersForSymbols': False,
-                'watchPositions': False,
+                'watchOHLCVForSymbols': True,
+                'watchOrders': True,
+                'watchOrdersForSymbols': True,
+                'watchPositions': True,
                 'watchTickers': True,
-                'createOrderWs': False,
-                'editOrderWs': False,
-                'cancelOrderWs': False,
+                'watchMarkPrice': True,
+                'watchMarkPrices': True,
+                'unWatchMarkPrice': True,
+                'unWatchMarkPrices': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
+                'unWatchOHLCV': True,
+                'unWatchOHLCVForSymbols': True,
+                'unWatchOrderBook': True,
+                'unWatchOrderBookForSymbols': True,
+                'unWatchPositions': True,
+                'unWatchTickers': True,
+                'unWatchBidsAsks': True,
+                'unWatchFundingRate': True,
+                'unWatchFundingRates': True,
+                'unWatchMyTrades': True,
+                'unWatchTicker': True,
+                'createOrderWs': True,
+                'editOrderWs': True,
+                'cancelOrderWs': True,
                 'cancelOrdersWs': False,
-                'cancelAllOrdersWs': False,
-                'fetchOrderWs': False,
-                'fetchOrdersWs': False,
-                'fetchBalanceWs': False,
-                'fetchMyTradesWs': False,
+                'cancelAllOrdersWs': True,
+                'fetchOrderWs': True,
+                'fetchOpenOrdersWs': True,
+                'fetchOrdersWs': True,
+                'fetchBalanceWs': True,
+                'fetchMyTradesWs': True,
+                'fetchPositionsWs': True,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws-md.international.coinbase.com',
-                },
-                'test': {
-                    'ws': 'wss://ws-md.n5e2.coinbase.com',
+                    'ws': 'wss://streams.drb.coinbase.com/ws/api/v2',
+                    'wsPrivate': 'wss://drb.coinbase.com/ws/api/v2',
                 },
             },
+            'streaming': {
+                'keepAlive': 15000,  # idle sockets are closed (1011) after ~30s without client messages, see ping()
+            },
             'options': {
-                'watchTicker': {
-                    'channel': 'LEVEL1',  # 'INSTRUMENTS' or 'RISK'
+                'wsAuthRefreshRatio': 0.8,  # re-authenticate the private socket after 80% of the session lifetime
+                'ws': {
+                    'timeframes': {
+                        '1m': '1',
+                        '5m': '5',
+                        '15m': '15',
+                        '30m': '30',
+                        '1h': '60',
+                        '2h': '120',
+                        '6h': '360',
+                        '1d': '1D',
+                    },
+                    'watchTradesForSymbols': {
+                        'interval': '100ms',
+                    },
+                    'watchOrderBookForSymbols': {
+                        'interval': '100ms',
+                        'useDepthEndpoint': False,
+                        'depth': '20',
+                        'group': 'none',
+                    },
                 },
+                'currencies': ['BTC', 'ETH', 'SOL', 'USDC', 'USDT'],
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
-                'timeframes': {
-                    '1m': 'CANDLES_ONE_MINUTE',
-                    '5m': 'CANDLES_FIVE_MINUTES',
-                    '30m': 'CANDLES_THIRTY_MINUTES',
-                    '1h': 'CANDLES_ONE_HOUR',
-                    '2h': 'CANDLES_TWO_HOURS',
-                    '1d': 'CANDLES_ONE_DAY',
-                },
-            },
-            'exceptions': {
-                'exact': {
-                    'Unable to authenticate': AuthenticationError,
-                },
             },
         })
 
-    async def subscribe(self, name: str, symbols: Strings = None, params: dict = {}):
+    def request_id(self):
+        requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
+        self.options['requestId'] = requestId
+        return requestId
+
+    def get_ws_url(self, isPrivate=False) -> str:
+        if self.isNativeDeribitCredentials():
+            return 'wss://www.deribit.com/ws/api/v2'
+        if isPrivate:
+            return self.urls['api']['wsPrivate']
+        return self.urls['api']['ws']
+
+    def ping(self, client: Client) -> dict | Str:
+        refreshAt = self.safe_integer(self.options, 'wsAuthRefreshAt')
+        isPrivateClient = (client.url == self.get_ws_url(True))
+        if isPrivateClient and (refreshAt is not None) and (self.milliseconds() >= refreshAt):
+            # re-authenticate in-band before the session expires, also while no watch call is pending
+            # retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
+            self.options['wsAuthRefreshAt'] = self.sum(self.milliseconds(), 60000)
+            requestId = self.request_id()
+            self.options['wsAuthRequestId'] = requestId
+            params = {
+                'grant_type': 'client_credentials',
+                'client_id': self.apiKey,
+                'client_secret': self.secret,
+            }
+            if not self.isNativeDeribitCredentials():
+                params = {
+                    'grant_type': 'coinbase_cdp',
+                    'token': self.create_auth_token(self.seconds(), None, None, self.isEddsaSecret()),
+                }
+            return {
+                'jsonrpc': '2.0',
+                'id': requestId,
+                'method': 'public/auth',
+                'params': params,
+            }
+        # the gateway closes a socket after ~30s without client messages; protocol-level pings do not count
+        return {
+            'jsonrpc': '2.0',
+            'id': self.request_id(),
+            'method': 'public/test',
+            'params': {},
+        }
+
+    async def subscribe(self, channels: list[str], messageHashes: list[str], isPrivate=False, params={}):
         """
  @ignore
-        subscribes to a websocket channel
+        subscribes to websocket channels
 
-        https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-subscribe
+        https://docs.deribit.com/api-reference/subscription-management/private-subscribe
 
-        :param str name: the name of the channel
-        :param str[] [symbols]: unified market symbol
+        :param str[] channels: exchange channel names
+        :param str[] messageHashes: message hashes to resolve
+        :param boolean [isPrivate]: whether to authenticate and subscribe privately
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: subscription to a websocket channel
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the subscription result
         """
+        paramsResolved = self.handleRouteAndParams('subscribe', params)
+        url = self.get_ws_url(False)
+        method = 'public/subscribe'
+        if isPrivate:
+            url = self.get_ws_url(True)
+            method = 'private/subscribe'
+            await self.authenticate()
+        if url is None:
+            raise NotSupported(self.id + ' websocket is not supported')
+        request = {
+            'jsonrpc': '2.0',
+            'method': method,
+            'params': {
+                'channels': channels,
+            },
+            'id': self.request_id(),
+        }
+        extendedRequest = self.deep_extend(request, paramsResolved)
+        channelsLength = len(channels)
+        if channelsLength == 1:
+            return await self.watch(url, messageHashes[0], extendedRequest, channels[0], extendedRequest)
+        return await self.watch_multiple(url, messageHashes, extendedRequest, channels, extendedRequest)
+
+    async def un_subscribe(self, channels: list[str], isPrivate=False, params={}):
+        """
+ @ignore
+        unsubscribes from websocket channels
+
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+
+        :param str[] channels: exchange channel names
+        :param boolean [isPrivate]: whether to authenticate and unsubscribe privately
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns boolean: True when unsubscription has been requested
+        """
+        paramsResolved = self.handleRouteAndParams('unSubscribe', params)
+        url = self.get_ws_url(False)
+        method = 'public/unsubscribe'
+        if isPrivate:
+            url = self.get_ws_url(True)
+            method = 'private/unsubscribe'
+            await self.authenticate()
+        unWatchMessageHashes = []
+        channelsLength = len(channels)
+        for i in range(0, channelsLength):
+            unWatchMessageHashes.append('unsubscribe:' + channels[i])
+        request = {
+            'jsonrpc': '2.0',
+            'method': method,
+            'params': {
+                'channels': channels,
+            },
+            'id': self.request_id(),
+        }
+        client = self.client(url)
+        self.watch_multiple(url, unWatchMessageHashes, self.deep_extend(request, paramsResolved), unWatchMessageHashes)
+        for i in range(0, channelsLength):
+            self.clean_unsubscription(client, channels[i], unWatchMessageHashes[i])
+        return True
+
+    async def watch_balance(self, params={}) -> Balances:
+        """
+        watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userportfoliocurrency
+        https://docs.deribit.com/subscriptions/user/userportfoliocurrency
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.currency]: currency code to watch, default is any
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('watchBalance', params)
+        currency, paramsCurrency = self.handle_option_and_params(paramsResolved, 'watchBalance', 'currency', 'any')
+        channel = 'user.portfolio.' + currency
+        return await self.subscribe([channel], ['balance'], True, paramsCurrency)
+
+    def handle_balance(self, client: Client, message: dict):
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        parsed = self.parse_balance(data)
+        self.balance = self.deep_extend(self.balance, parsed)
+        client.resolve(self.balance, 'balance')
+
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+        """
+        watches trades associated with the user
+
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/usertradesinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.interval]: notification interval, default raw
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('watchMyTrades', params)
         if self.markets is None:
             await self.load_markets()
-        self.check_required_credentials()
-        market = None
-        messageHash = name
-        productIds = None
-        symbolsResolved = self.get_active_symbols() if (symbols is None) else symbols
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchMyTrades', 'interval', 'raw')
+        channel = 'user.trades.any.any.' + interval
+        symbolResolved = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbolResolved = market['symbol']
+            channel = 'user.trades.' + market['id'] + '.' + interval
+        trades = await self.subscribe([channel], [channel], True, paramsInterval)
+        return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limit, True)
+
+    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> object:
+        """
+        stops watching user trades
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchMyTrades', params)
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchMyTrades', 'interval', 'raw')
+        channel = 'user.trades.any.any.' + interval
+        if symbol is not None:
+            if self.markets is None:
+                await self.load_markets()
+            channel = 'user.trades.' + self.market_id(symbol) + '.' + interval
+        return await self.un_subscribe([channel], True, paramsInterval)
+
+    def handle_my_trades(self, client: Client, message: dict):
+        params = self.safe_dict(message, 'params', {})
+        channel = self.safe_string(params, 'channel')
+        data = self.safe_list(params, 'data', [])
+        if self.myTrades is None:
+            limit = self.safe_integer(self.options, 'myTradesLimit', 1000)
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        trades = self.parse_trades(data)
+        tradesLength = len(trades)
+        for i in range(0, tradesLength):
+            self.myTrades.append(trades[i])
+        client.resolve(self.myTrades, channel)
+
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+        """
+        watches information on orders made by the user
+
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userordersinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/user/userordersinstrument_nameinterval
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the earliest order to fetch
+        :param int [limit]: the maximum number of orders to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.interval]: notification interval, default raw
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('watchOrders', params)
+        if self.markets is None:
+            await self.load_markets()
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchOrders', 'interval', 'raw')
+        channel = 'user.orders.any.any.' + interval
+        symbolResolved = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbolResolved = market['symbol']
+            channel = 'user.orders.' + market['id'] + '.' + interval
+        orders = await self.subscribe([channel], [channel], True, paramsInterval)
+        limitResolved = limit
+        if self.newUpdates:
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
+
+    async def watch_orders_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Order]:
+        """
+        watches information on orders made by the user for multiple symbols
+
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userordersinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/user/userordersinstrument_nameinterval
+
+        :param str[] symbols: unified market symbols
+        :param int [since]: timestamp in ms of the earliest order to fetch
+        :param int [limit]: the maximum number of orders to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('watchOrdersForSymbols', params)
+        if self.markets is None:
+            await self.load_markets()
+        symbolsResolved = self.market_symbols(symbols, None, False)
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchOrders', 'interval', 'raw')
+        channels = []
         symbolsLength = len(symbolsResolved)
-        messageHashes = []
-        if symbolsLength > 1:
-            parsedSymbols = self.market_symbols(symbolsResolved)
-            marketIds = self.market_ids(parsedSymbols)
-            productIds = marketIds
-            for i in range(0, len(parsedSymbols)):
-                messageHashes.append(name + '::' + parsedSymbols[i])
-            # messageHash = messageHash + '::' + parsedSymbols.join (',');
-        elif symbolsLength == 1:
-            market = self.market(symbolsResolved[0])
-            messageHash = name + '::' + market['symbol']
-            productIds = [(market['id'])]
-        url = self.safe_string(self.urls['api'], 'ws')
-        if url is None:
-            raise NotSupported(self.id + ' is not supported in sandbox environment')
-        timestamp = str(self.nonce())
-        auth = timestamp + self.apiKey + 'CBINTLMD' + self.password
-        signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
-        subscribe = {
-            'type': 'SUBSCRIBE',
-            # 'product_ids': productIds,
-            'channels': [name],
-            'time': timestamp,
-            'key': self.apiKey,
-            'passphrase': self.password,
-            'signature': signature,
-        }
-        if productIds is not None:
-            subscribe['product_ids'] = productIds
-        if symbolsLength > 1:
-            return await self.watch_multiple(url, messageHashes, self.extend(subscribe, params), messageHashes)
-        return await self.watch(url, messageHash, self.extend(subscribe, params), messageHash)
+        for i in range(0, symbolsLength):
+            channels.append('user.orders.' + self.market_id(symbolsResolved[i]) + '.' + interval)
+        orders = await self.subscribe(channels, channels, True, paramsInterval)
+        limitResolved = limit
+        if self.newUpdates:
+            limitResolved = orders.getLimit(None, limit)
+        ordersForSymbols = self.filter_by_array(orders, 'symbol', symbolsResolved, False)
+        return self.filter_by_since_limit(ordersForSymbols, since, limitResolved, 'timestamp', True)
 
-    async def subscribe_multiple(self, name: str, symbols: Strings = None, params: dict = {}):
+    async def un_watch_orders(self, symbol: Str = None, params={}) -> object:
         """
- @ignore
-        subscribes to a websocket channel using watchMultiple
+        stops watching user orders
 
-        https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
 
-        :param str name: the name of the channel
-        :param string|str[] [symbols]: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: subscription to a websocket channel
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
         """
+        paramsResolved = self.handleRouteAndParams('unWatchOrders', params)
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchOrders', 'interval', 'raw')
+        channel = 'user.orders.any.any.' + interval
+        if symbol is not None:
+            if self.markets is None:
+                await self.load_markets()
+            channel = 'user.orders.' + self.market_id(symbol) + '.' + interval
+        return await self.un_subscribe([channel], True, paramsInterval)
+
+    def handle_orders(self, client: Client, message: dict):
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        params = self.safe_dict(message, 'params', {})
+        channel = self.safe_string(params, 'channel')
+        data = self.safe_value(params, 'data', {})
+        orders = []
+        if isinstance(data, list):
+            orders = self.parse_orders(data)
+        else:
+            orders = [self.parse_order(data)]
+        ordersLength = len(orders)
+        for i in range(0, ordersLength):
+            self.orders.append(orders[i])
+        client.resolve(self.orders, channel)
+
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+        """
+        watches all open positions
+
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userchangesinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/user/userchangesinstrument_nameinterval
+
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.interval]: notification interval, default raw
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('watchPositions', params)
         if self.markets is None:
             await self.load_markets()
-        self.check_required_credentials()
-        symbolsResolved = None
-        if self.is_empty(symbols):
-            symbolsResolved = self.symbols
+        symbolsResolved = self.market_symbols(symbols)
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchPositions', 'interval', 'raw')
+        channels = []
+        symbolsLength = 0
+        if symbolsResolved is not None:
+            symbolsLength = len(symbolsResolved)
+        if (symbolsResolved is not None) and (symbolsLength > 0):
+            for i in range(0, symbolsLength):
+                channels.append('user.changes.' + self.market_id(symbolsResolved[i]) + '.' + interval)
         else:
-            symbolsResolved = self.market_symbols(symbols)
-        messageHashes = []
-        productIds = []
-        for i in range(0, len((symbolsResolved))):
-            marketId = self.market_id((symbolsResolved)[i])
-            symbol = self.symbol(marketId)
-            productIds.append(marketId)
-            messageHashes.append(name + '::' + symbol)
-        url = self.safe_string(self.urls['api'], 'ws')
-        if url is None:
-            raise NotSupported(self.id + ' is not supported in sandbox environment')
-        timestamp = self.number_to_string(self.seconds())
-        auth = timestamp + self.apiKey + 'CBINTLMD' + self.password
-        signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
-        subscribe = {
-            'type': 'SUBSCRIBE',
-            'time': timestamp,
-            'product_ids': productIds,
-            'channels': [name],
-            'key': self.apiKey,
-            'passphrase': self.password,
-            'signature': signature,
-        }
-        return await self.watch_multiple(url, messageHashes, self.extend(subscribe, params), messageHashes)
+            channels.append('user.changes.any.any.' + interval)
+        positions = await self.subscribe(channels, channels, True, paramsInterval)
+        if self.newUpdates:
+            return positions
+        return self.filter_by_symbols_since_limit(self.positions, symbolsResolved, since, limit, True)
 
-    def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
+    async def un_watch_positions(self, symbols: Strings = None, params={}) -> object:
+        """
+        stops watching open positions
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+
+        :param str[] [symbols]: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchPositions', params)
+        if self.markets is None:
+            await self.load_markets()
+        symbolsResolved = self.market_symbols(symbols)
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchPositions', 'interval', 'raw')
+        channels = []
+        symbolsLength = 0
+        if symbolsResolved is not None:
+            symbolsLength = len(symbolsResolved)
+        if (symbolsResolved is not None) and (symbolsLength > 0):
+            for i in range(0, symbolsLength):
+                channels.append('user.changes.' + self.market_id(symbolsResolved[i]) + '.' + interval)
+        else:
+            channels.append('user.changes.any.any.' + interval)
+        return await self.un_subscribe(channels, True, paramsInterval)
+
+    def handle_positions(self, client: Client, message: dict):
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        params = self.safe_dict(message, 'params', {})
+        channel = self.safe_string(params, 'channel')
+        data = self.safe_dict(params, 'data', {})
+        rawPositions = self.safe_list(data, 'positions', [])
+        positions = self.parse_positions(rawPositions)
+        positionsLength = len(positions)
+        for i in range(0, positionsLength):
+            self.positions.append(positions[i])
+        client.resolve(self.positions, channel)
+
+    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         watch the current funding rate
 
-        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        return self.subscribe('RISK', [symbol], params)
+        paramsResolved = self.handleRouteAndParams('watchFundingRate', params)
+        ticker = await self.watch_ticker(symbol, paramsResolved)
+        return self.parse_funding_rate(ticker['info'], self.market(symbol))
 
     async def watch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         watch the funding rate for multiple markets
 
-        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
 
         :param str[] symbols: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexe by market symbols
         """
+        paramsResolved = self.handleRouteAndParams('watchFundingRates', params)
         if symbols is None:
             raise ArgumentsRequired(self.id + ' watchFundingRates() requires an array of symbols')
         if self.markets is None:
             await self.load_markets()
-        fundingRate = await self.subscribe_multiple('RISK', symbols, params)
-        symbol = self.safe_string(fundingRate, 'symbol')
-        if self.newUpdates:
-            result = {}
-            result[symbol] = fundingRate
-            return result
-        return self.filter_by_array(self.fundingRates, 'symbol', symbols)
+        tickers = await self.watch_tickers(symbols, paramsResolved)
+        result = {}
+        tickerSymbols = list(tickers.keys())
+        tickerSymbolsLength = len(tickerSymbols)
+        for i in range(0, tickerSymbolsLength):
+            symbol = tickerSymbols[i]
+            ticker = tickers[symbol]
+            result[symbol] = self.parse_funding_rate(ticker['info'], self.market(symbol))
+        return result
+
+    async def un_watch_funding_rate(self, symbol: str, params={}) -> object:
+        """
+        stops watching the funding rate for a symbol
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchFundingRate', params)
+        return await self.un_watch_ticker(symbol, paramsResolved)
+
+    async def un_watch_funding_rates(self, symbols: Strings = None, params={}) -> object:
+        """
+        stops watching funding rates for multiple symbols
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str[] [symbols]: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchFundingRates', params)
+        return await self.un_watch_tickers(symbols, paramsResolved)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
 
         :param str [symbol]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.channel]: the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.interval]: notification interval, default 100ms
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        paramsResolved = self.handleRouteAndParams('watchTicker', params)
         if self.markets is None:
             await self.load_markets()
-        channel, paramsChannel = self.handle_option_string_and_params(params, 'watchTicker', 'channel', 'LEVEL1')
-        return await self.subscribe(channel, [symbol], paramsChannel)
+        market = self.market(symbol)
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchTicker', 'interval', '100ms')
+        isPrivate = interval == 'raw'
+        channel = 'ticker.' + market['id'] + '.' + interval
+        return await self.subscribe([channel], [channel], isPrivate, paramsInterval)
 
-    def get_active_symbols(self) -> list[object]:
-        symbols = self.symbols
-        output = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
-            market = self.market(symbol)
-            if market['active'] is True:
-                output.append(symbol)
-        return output
+    async def un_watch_ticker(self, symbol: str, params={}) -> object:
+        """
+        stops watching a ticker
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchTicker', params)
+        return await self.un_watch_tickers([symbol], paramsResolved)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
 
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.channel]: the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.interval]: notification interval, default 100ms
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        paramsResolved = self.handleRouteAndParams('watchTickers', params)
         if self.markets is None:
             await self.load_markets()
-        channel, paramsChannel = self.handle_option_string_and_params(params, 'watchTickers', 'channel', 'LEVEL1')
-        ticker = await self.subscribe(channel, symbols, paramsChannel)
+        symbolsResolved = self.market_symbols(symbols, None, False)
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchTickers', 'interval', '100ms')
+        isPrivate = interval == 'raw'
+        channels = []
+        symbolsLength = len(symbolsResolved)
+        for i in range(0, symbolsLength):
+            market = self.market(symbolsResolved[i])
+            channels.append('ticker.' + market['id'] + '.' + interval)
+        ticker = await self.subscribe(channels, channels, isPrivate, paramsInterval)
         if self.newUpdates:
             result = {}
             tickerSymbol = self.safe_string(ticker, 'symbol')
             if tickerSymbol is not None:
                 result[tickerSymbol] = ticker
             return result
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return self.filter_by_array(self.tickers, 'symbol', symbolsResolved)
 
-    def handle_instrument(self, client: Client, message: dict):
-        #
-        #    {
-        #        "sequence": 1,
-        #        "product_id": "ETH-PERP",
-        #        "instrument_type": "PERP",
-        #        "base_asset_name": "ETH",
-        #        "quote_asset_name": "USDC",
-        #        "base_increment": "0.0001",
-        #        "quote_increment": "0.01",
-        #        "avg_daily_quantity": "43.0",
-        #        "avg_daily_volume": "80245.2",
-        #        "total_30_day_quantity":"1443.0",
-        #        "total_30_day_volume":"3040449.0",
-        #        "total_24_hour_quantity":"48.1",
-        #        "total_24_hour_volume":"101348.3",
-        #        "base_imf": "0.2",
-        #        "min_quantity": "0.0001",
-        #        "position_size_limit": "500",
-        #        "funding_interval": "60000000000",
-        #        "trading_state": "trading",
-        #        "last_update_time": "2023-05-04T11:16:33.016Z",
-        #        "time": "2023-05-10T14:58:47.000Z",
-        #        "channel":"INSTRUMENTS",
-        #        "type":"SNAPSHOT"
-        #    }
-        ticker = self.parse_ws_instrument(message)
-        channel = self.safe_string(message, 'channel')
-        client.resolve(ticker, channel)
-        if channel is not None:
-            client.resolve(ticker, channel + '::' + ticker['symbol'])
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> object:
+        """
+        stops watching tickers
 
-    def parse_ws_instrument(self, ticker: dict, market: Market = None) -> Ticker:
-        #
-        #    {
-        #        "sequence": 1,
-        #        "product_id": "ETH-PERP",
-        #        "instrument_type": "PERP",
-        #        "base_asset_name": "ETH",
-        #        "quote_asset_name": "USDC",
-        #        "base_increment": "0.0001",
-        #        "quote_increment": "0.01",
-        #        "avg_daily_quantity": "43.0",
-        #        "avg_daily_volume": "80245.2",
-        #        "total_30_day_quantity":"1443.0",
-        #        "total_30_day_volume":"3040449.0",
-        #        "total_24_hour_quantity":"48.1",
-        #        "total_24_hour_volume":"101348.3",
-        #        "base_imf": "0.2",
-        #        "min_quantity": "0.0001",
-        #        "position_size_limit": "500",
-        #        "funding_interval": "60000000000",
-        #        "trading_state": "trading",
-        #        "last_update_time": "2023-05-04T11:16:33.016Z",
-        #        "time": "2023-05-10T14:58:47.000Z",
-        #        "channel":"INSTRUMENTS",
-        #        "type":"SNAPSHOT"
-        #    }
-        # instruments
-        #   {
-        #       sequence: 0,
-        #       instrument_type: 'PERP',
-        #       instrument_mode: 'standard',
-        #       base_asset_name: 'BTC',
-        #       quote_asset_name: 'USDC',
-        #       base_increment: '0.0001',
-        #       quote_increment: '0.1',
-        #       avg_daily_quantity: '502.8845',
-        #       avg_daily_volume: '3.1495242961566668E7',
-        #       total30_day_quantity: '15086.535',
-        #       total30_day_volume: '9.44857288847E8',
-        #       total24_hour_quantity: '5.0',
-        #       total24_hour_volume: '337016.5',
-        #       base_imf: '0.1',
-        #       min_quantity: '0.0001',
-        #       position_size_limit: '800',
-        #       funding_interval: '3600000000000',
-        #       trading_state: 'trading',
-        #       last_updated_time: '2024-07-30T15:00:00Z',
-        #       default_initial_margin: '0.2',
-        #       base_asset_multiplier: '1.0',
-        #       channel: 'INSTRUMENTS',
-        #       type: 'SNAPSHOT',
-        #       time: '2024-07-30T15:26:56.766Z',
-        #   }
-        #
-        marketId = self.safe_string(ticker, 'product_id')
-        datetime = self.safe_string(ticker, 'time')
-        return self.safe_ticker({
-            'info': ticker,
-            'symbol': self.safe_symbol(marketId, market, '-'),
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
-            'high': None,
-            'low': None,
-            'bid': None,
-            'bidVolume': None,
-            'ask': None,
-            'askVolume': None,
-            'vwap': None,
-            'open': None,
-            'close': None,
-            'last': None,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_string_2(ticker, 'total_24_hour_quantity', 'total24_hour_quantity'),
-            'quoteVolume': self.safe_string_2(ticker, 'total_24_hour_volume', 'total24_hour_volume'),
-        })
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str[] [symbols]: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchTickers', params)
+        if self.markets is None:
+            await self.load_markets()
+        symbolsResolved = self.market_symbols(symbols, None, False)
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchTickers', 'interval', '100ms')
+        channels = []
+        symbolsLength = len(symbolsResolved)
+        for i in range(0, symbolsLength):
+            channels.append('ticker.' + self.market_id(symbolsResolved[i]) + '.' + interval)
+        return await self.un_subscribe(channels, interval == 'raw', paramsInterval)
+
+    async def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
+        """
+        watches a mark price for a specific market
+
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.interval]: notification interval, default 100ms
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('watchMarkPrice', params)
+        return await self.watch_ticker(symbol, paramsResolved)
+
+    async def watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        """
+        watches the mark price for multiple markets
+
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
+
+        :param str[] symbols: unified symbols of the markets to watch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.interval]: notification interval, default 100ms
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('watchMarkPrices', params)
+        return await self.watch_tickers(symbols, paramsResolved)
+
+    async def un_watch_mark_price(self, symbol: str, params: dict = {}) -> object:
+        """
+        stops watching the mark price for a symbol
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchMarkPrice', params)
+        return await self.un_watch_ticker(symbol, paramsResolved)
+
+    async def un_watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> object:
+        """
+        stops watching mark prices for multiple symbols
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str[] [symbols]: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchMarkPrices', params)
+        return await self.un_watch_tickers(symbols, paramsResolved)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches best bid & ask for symbols
+
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/quoteinstrument_name
+        https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
+
+        :param str[] [symbols]: unified symbols of the markets to watch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('watchBidsAsks', params)
+        if self.markets is None:
+            await self.load_markets()
+        symbolsResolved = self.market_symbols(symbols, None, False)
+        channels = []
+        symbolsLength = len(symbolsResolved)
+        for i in range(0, symbolsLength):
+            market = self.market(symbolsResolved[i])
+            channels.append('quote.' + market['id'])
+        ticker = await self.subscribe(channels, channels, False, paramsResolved)
+        if self.newUpdates:
+            result = {}
+            result[ticker['symbol']] = ticker
+            return result
+        return self.filter_by_array(self.bidsasks, 'symbol', symbolsResolved)
+
+    async def un_watch_bids_asks(self, symbols: Strings = None, params={}) -> object:
+        """
+        stops watching best bid & ask for symbols
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str[] [symbols]: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchBidsAsks', params)
+        if self.markets is None:
+            await self.load_markets()
+        symbolsResolved = self.market_symbols(symbols, None, False)
+        channels = []
+        symbolsLength = len(symbolsResolved)
+        for i in range(0, symbolsLength):
+            channels.append('quote.' + self.market_id(symbolsResolved[i]))
+        return await self.un_subscribe(channels, False, paramsResolved)
 
     def handle_ticker(self, client: Client, message: dict):
-        #
-        # snapshot
-        #    {
-        #        "sequence": 0,
-        #        "product_id": "BTC-PERP",
-        #        "time": "2023-05-10T14:58:47.000Z",
-        #        "bid_price": "28787.8",
-        #        "bid_qty": "0.466", // One side book
-        #        "channel": "LEVEL1",
-        #        "type": "SNAPSHOT"
-        #    }
-        # update
-        #    {
-        #       "sequence": 1,
-        #       "product_id": "BTC-PERP",
-        #       "time": "2023-05-10T14:58:47.547Z",
-        #       "bid_price": "28787.8",
-        #       "bid_qty": "0.466",
-        #       "ask_price": "28788.8",
-        #       "ask_qty": "1.566",
-        #       "channel": "LEVEL1",
-        #       "type": "UPDATE"
-        #    }
-        #
-        ticker = self.parse_ws_ticker(message)
-        channel = self.safe_string(message, 'channel')
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        ticker = self.parse_ticker(data)
+        channel = self.safe_string(params, 'channel')
+        symbol = ticker['symbol']
+        self.tickers[symbol] = ticker
         client.resolve(ticker, channel)
-        if channel is not None:
-            client.resolve(ticker, channel + '::' + ticker['symbol'])
 
-    def parse_ws_ticker(self, ticker: object, market: Market = None) -> Ticker:
-        #
-        #    {
-        #       "sequence": 1,
-        #       "product_id": "BTC-PERP",
-        #       "time": "2023-05-10T14:58:47.547Z",
-        #       "bid_price": "28787.8",
-        #       "bid_qty": "0.466",
-        #       "ask_price": "28788.8",
-        #       "ask_qty": "1.566",
-        #       "channel": "LEVEL1",
-        #       "type": "UPDATE"
-        #    }
-        #
-        datetime = self.safe_string(ticker, 'time')
-        marketId = self.safe_string(ticker, 'product_id')
+    def handle_bid_ask(self, client: Client, message: dict):
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        ticker = self.parse_ws_bid_ask(data)
+        symbol = ticker['symbol']
+        self.bidsasks[symbol] = ticker
+        channel = self.safe_string(params, 'channel')
+        client.resolve(ticker, channel)
+
+    def parse_ws_bid_ask(self, ticker: object, market: Market = None) -> Ticker:
+        marketId = self.safe_string(ticker, 'instrument_name')
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
         return self.safe_ticker({
             'info': ticker,
-            'symbol': self.safe_symbol(marketId, market),
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
-            'bid': self.safe_number(ticker, 'bid_price'),
-            'bidVolume': self.safe_number(ticker, 'bid_qty'),
-            'ask': self.safe_number(ticker, 'ask_price'),
-            'askVolume': self.safe_number(ticker, 'ask_qty'),
-            'high': None,
-            'low': None,
-            'open': None,
-            'close': None,
-            'last': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'vwap': None,
-            'baseVolume': None,
-            'quoteVolume': None,
-            'previousClose': None,
-        })
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'bid': self.safe_string(ticker, 'best_bid_price'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_amount'),
+            'ask': self.safe_string(ticker, 'best_ask_price'),
+            'askVolume': self.safe_string(ticker, 'best_ask_amount'),
+        }, marketResolved)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
-        https://docs.cdp.coinbase.com/intx/docs/websocket-channels#candles-channel
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/charttradesinstrument_nameresolution
+        https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
+        paramsResolved = self.handleRouteAndParams('watchOHLCV', params)
         if self.markets is None:
             await self.load_markets()
-        market = self.market(symbol)
-        symbolValue = market['symbol']
-        options = self.safe_dict(self.options, 'timeframes', {})
-        interval = self.safe_string(options, timeframe, timeframe)
-        ohlcv = await self.subscribe(interval, [symbolValue], params)
+        symbolResolved = self.symbol(symbol)
+        ohlcvs = await self.watch_ohlcv_for_symbols([[symbolResolved, timeframe]], since, limit, paramsResolved)
+        return ohlcvs[symbolResolved][timeframe]
+
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params={}):
+        """
+        watches historical candlestick data for multiple markets and timeframes
+
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/charttradesinstrument_nameresolution
+        https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
+
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: a dictionary of OHLCV arrays indexed by symbol and timeframe
+        """
+        paramsResolved = self.handleRouteAndParams('watchOHLCVForSymbols', params)
+        symbolsAndTimeframesLength = len(symbolsAndTimeframes)
+        if symbolsAndTimeframesLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
+            raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")
+        if self.markets is None:
+            await self.load_markets()
+        channels = []
+        for i in range(0, symbolsAndTimeframesLength):
+            current = symbolsAndTimeframes[i]
+            market = self.market(current[0])
+            currentTimeframe = current[1]
+            resolution = self.safe_string(self.timeframes, currentTimeframe, currentTimeframe)
+            channels.append('chart.trades.' + market['id'] + '.' + resolution)
+        resolved = await self.subscribe(channels, channels, False, paramsResolved)
+        symbol = self.safe_string(resolved, 0)
+        timeframe = self.safe_string(resolved, 1)
+        ohlcv = self.safe_value(resolved, 2)
         limitResolved = limit
         if self.newUpdates:
-            limitResolved = ohlcv.getLimit(symbolValue, limit)
-        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
+        return self.create_ohlcv_object(symbol, timeframe, filtered)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> object:
+        """
+        stops watching OHLCV data for a symbol
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str symbol: unified market symbol
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchOHLCV', params)
+        return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], paramsResolved)
+
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], params={}) -> object:
+        """
+        stops watching OHLCV data for multiple symbols and timeframes
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchOHLCVForSymbols', params)
+        if self.markets is None:
+            await self.load_markets()
+        channels = []
+        symbolsAndTimeframesLength = len(symbolsAndTimeframes)
+        for i in range(0, symbolsAndTimeframesLength):
+            current = symbolsAndTimeframes[i]
+            market = self.market(current[0])
+            timeframe = current[1]
+            resolution = self.safe_string(self.timeframes, timeframe, timeframe)
+            channels.append('chart.trades.' + market['id'] + '.' + resolution)
+        return await self.un_subscribe(channels, False, paramsResolved)
 
     def handle_ohlcv(self, client: Client, message: dict):
-        #
-        # {
-        #     "sequence": 0,
-        #     "product_id": "BTC-PERP",
-        #     "channel": "CANDLES_ONE_MINUTE",
-        #     "type": "SNAPSHOT",
-        #     "candles": [
-        #       {
-        #           "time": "2023-05-10T14:58:47.000Z",
-        #           "low": "28787.8",
-        #           "high": "28788.8",
-        #           "open": "28788.8",
-        #           "close": "28787.8",
-        #           "volume": "0.466"
-        #        },
-        #     ]
-        #  }
-        #
-        messageHash = self.safe_string(message, 'channel')
-        marketId = self.safe_string(message, 'product_id')
+        params = self.safe_dict(message, 'params', {})
+        messageHash = self.safe_string(params, 'channel', '')
+        parts = messageHash.split('.')
+        marketId = self.safe_string(parts, 2)
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        timeframe = self.find_timeframe(messageHash)
+        resolution = self.safe_string(parts, 3)
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        timeframes = self.safe_dict(wsOptions, 'timeframes', {})
+        timeframe = self.find_timeframe(resolution, timeframes)
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
-        if self.safe_dict(self.ohlcvs[symbol], timeframe) is None:
+        if self.safe_value(self.ohlcvs[symbol], timeframe) is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][timeframe]
-        data = self.safe_list(message, 'candles', [])
-        for i in range(0, len(data)):
-            tick = self.safe_dict(data, i)
-            parsed = self.parse_ohlcv(tick, market)
-            stored.append(parsed)
-        if messageHash is not None:
-            client.resolve(stored, messageHash + '::' + symbol)
+        data = self.safe_dict(params, 'data', {})
+        parsed = self.parse_ws_ohlcv(data, market)
+        stored.append(parsed)
+        resolved = [symbol, timeframe, stored]
+        client.resolve(resolved, messageHash)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:
+        return [
+            self.safe_integer(ohlcv, 'tick'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
+        ]
+
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#match-channel
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/trades/tradesinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        return self.watch_trades_for_symbols([symbol], since, limit, params)
+        paramsResolved = self.handleRouteAndParams('watchTrades', params)
+        return await self.watch_trades_for_symbols([symbol], since, limit, paramsResolved)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
+
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/trades/tradesinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
+
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        paramsResolved = self.handleRouteAndParams('watchTradesForSymbols', params)
         if self.markets is None:
             await self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
-        trades = await self.subscribe_multiple('MATCH', symbolsNormalized, params)
+        symbolsResolved = self.market_symbols(symbols, None, False)
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchTradesForSymbols', 'interval', '100ms')
+        isPrivate = interval == 'raw'
+        channels = []
+        symbolsLength = len(symbolsResolved)
+        for i in range(0, symbolsLength):
+            market = self.market(symbolsResolved[i])
+            channels.append('trades.' + market['id'] + '.' + interval)
+        trades = await self.subscribe(channels, channels, isPrivate, paramsInterval)
         limitResolved = limit
         if self.newUpdates:
             first = self.safe_dict(trades, 0)
@@ -531,263 +977,809 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             limitResolved = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    def handle_trade(self, client: Client, message: dict) -> dict:
-        #
-        #    {
-        #       "sequence": 0,
-        #       "product_id": "BTC-PERP",
-        #       "time": "2023-05-10T14:58:47.002Z",
-        #       "match_id": "177101110052388865",
-        #       "trade_qty": "0.006",
-        #       "aggressor_side": "BUY",
-        #       "trade_price": "28833.1",
-        #       "channel": "MATCH",
-        #       "type": "UPDATE"
-        #    }
-        #
-        trade = self.parse_ws_trade(message)
-        symbol = trade['symbol']
-        channel = self.safe_string(message, 'channel')
+    async def un_watch_trades(self, symbol: str, params={}) -> object:
+        """
+        stops watching trades for a symbol
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchTrades', params)
+        return await self.un_watch_trades_for_symbols([symbol], paramsResolved)
+
+    async def un_watch_trades_for_symbols(self, symbols: list[str], params={}) -> object:
+        """
+        stops watching trades for multiple symbols
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str[] symbols: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchTradesForSymbols', params)
+        if self.markets is None:
+            await self.load_markets()
+        symbolsResolved = self.market_symbols(symbols, None, False)
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchTradesForSymbols', 'interval', '100ms')
+        channels = []
+        symbolsLength = len(symbolsResolved)
+        for i in range(0, symbolsLength):
+            channels.append('trades.' + self.market_id(symbolsResolved[i]) + '.' + interval)
+        return await self.un_subscribe(channels, interval == 'raw', paramsInterval)
+
+    def handle_trades(self, client: Client, message: dict):
+        params = self.safe_dict(message, 'params', {})
+        channel = self.safe_string(params, 'channel', '')
+        data = self.safe_list(params, 'data', [])
+        parts = channel.split('.')
+        marketId = self.safe_string(parts, 1)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             tradesArrayCache = ArrayCache(limit)
             self.trades[symbol] = tradesArrayCache
         tradesArray = self.trades[symbol]
-        tradesArray.append(trade)
+        dataLength = len(data)
+        for i in range(0, dataLength):
+            trade = self.parse_trade(data[i], market)
+            tradesArray.append(trade)
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, channel)
-        if channel is not None:
-            client.resolve(tradesArray, channel + '::' + trade['symbol'])
         return message
 
-    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
-        #
-        #    {
-        #       "sequence": 0,
-        #       "product_id": "BTC-PERP",
-        #       "time": "2023-05-10T14:58:47.002Z",
-        #       "match_id": "177101110052388865",
-        #       "trade_qty": "0.006",
-        #       "aggressor_side": "BUY",
-        #       "trade_price": "28833.1",
-        #       "channel": "MATCH",
-        #       "type": "UPDATE"
-        #    }
-        marketId = self.safe_string_2(trade, 'symbol', 'product_id')
-        datetime = self.safe_string(trade, 'time')
-        return self.safe_trade({
-            'info': trade,
-            'id': self.safe_string(trade, 'match_id'),
-            'order': None,
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
-            'symbol': self.safe_symbol(marketId, market),
-            'type': None,
-            'side': self.safe_string_lower(trade, 'agressor_side'),
-            'takerOrMaker': None,
-            'price': self.safe_string(trade, 'trade_price'),
-            'amount': self.safe_string(trade, 'trade_qty'),
-            'cost': None,
-            'fee': None,
-        })
-
-    def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/orderbook/bookinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/orderbook/bookinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return self.watch_order_book_for_symbols([symbol], limit, params)
+        paramsResolved = self.handleRouteAndParams('watchOrderBook', params)
+        return await self.watch_order_book_for_symbols([symbol], limit, paramsResolved)
 
-    def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/orderbook/bookinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/orderbook/bookinstrument_nameinterval
+        https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
 
         :param str[] symbols:
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return self.subscribe_multiple('LEVEL2', symbols, params)
+        paramsResolved = self.handleRouteAndParams('watchOrderBookForSymbols', params)
+        if self.markets is None:
+            await self.load_markets()
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms')
+        isPrivate = interval == 'raw'
+        useDepthEndpoint, paramsDepthEndpoint = self.handle_option_and_params(paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', False)
+        paramsChannel = paramsDepthEndpoint
+        descriptor = interval
+        if useDepthEndpoint:
+            depth, paramsDepth = self.handle_option_and_params(paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20')
+            group, paramsGroup = self.handle_option_and_params(paramsDepth, 'watchOrderBookForSymbols', 'group', 'none')
+            paramsChannel = paramsGroup
+            descriptor = group + '.' + depth + '.' + interval
+        channels = []
+        symbolsLength = len(symbols)
+        for i in range(0, symbolsLength):
+            market = self.market(symbols[i])
+            channels.append('book.' + market['id'] + '.' + descriptor)
+        orderbook = await self.subscribe(channels, channels, isPrivate, paramsChannel)
+        return orderbook.limit()
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> object:
+        """
+        stops watching an order book
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchOrderBook', params)
+        return await self.un_watch_order_book_for_symbols([symbol], paramsResolved)
+
+    async def un_watch_order_book_for_symbols(self, symbols: list[str], params={}) -> object:
+        """
+        stops watching order books for multiple symbols
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+
+        :param str[] symbols: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unWatchOrderBookForSymbols', params)
+        if self.markets is None:
+            await self.load_markets()
+        interval, paramsInterval = self.handle_option_and_params(paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms')
+        useDepthEndpoint, paramsDepthEndpoint = self.handle_option_and_params(paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', False)
+        paramsChannel = paramsDepthEndpoint
+        descriptor = interval
+        if useDepthEndpoint:
+            depth, paramsDepth = self.handle_option_and_params(paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20')
+            group, paramsGroup = self.handle_option_and_params(paramsDepth, 'watchOrderBookForSymbols', 'group', 'none')
+            paramsChannel = paramsGroup
+            descriptor = group + '.' + depth + '.' + interval
+        channels = []
+        symbolsLength = len(symbols)
+        for i in range(0, symbolsLength):
+            channels.append('book.' + self.market_id(symbols[i]) + '.' + descriptor)
+        return await self.un_subscribe(channels, interval == 'raw', paramsChannel)
 
     def handle_order_book(self, client: Client, message: dict):
-        #
-        # snapshot
-        #    {
-        #       "sequence": 0,
-        #       "product_id": "BTC-PERP",
-        #       "time": "2023-05-10T14:58:47.000Z",
-        #       "bids": [
-        #           ["29100", "0.02"],
-        #           ["28950", "0.01"],
-        #           ["28900", "0.01"]
-        #       ],
-        #       "asks": [
-        #           ["29267.8", "18"],
-        #           ["29747.6", "18"],
-        #           ["30227.4", "9"]
-        #       ],
-        #       "channel": "LEVEL2",
-        #       "type": "SNAPSHOT",
-        #    }
-        # update
-        #    {
-        #       "sequence": 1,
-        #       "product_id": "BTC-PERP",
-        #       "time": "2023-05-10T14:58:47.375Z",
-        #       "changes": [
-        #           [
-        #               "BUY",
-        #               "28787.7",
-        #               "6"
-        #           ]
-        #       ],
-        #       "channel": "LEVEL2",
-        #       "type": "UPDATE"
-        #    }
-        #
-        type = self.safe_string(message, 'type')
-        marketId = self.safe_string(message, 'product_id')
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        type = self.safe_string(data, 'type', 'snapshot')
+        marketId = self.safe_string(data, 'instrument_name')
         symbol = self.safe_symbol(marketId)
-        datetime = self.safe_string(message, 'time')
-        channel = self.safe_string(message, 'channel')
+        timestamp = self.safe_integer(data, 'timestamp')
+        channel = self.safe_string(params, 'channel')
+        channelParts = channel.split('.')
+        channelPartsLength = len(channelParts)
+        isGrouped = channelPartsLength == 5
         if not (symbol in self.orderbooks):
             limit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
-            self.orderbooks[symbol] = self.order_book({}, limit)
+            self.orderbooks[symbol] = self.order_book({}, limit) if isGrouped else self.counted_order_book({}, limit)
         orderbook = self.orderbooks[symbol]
-        if type == 'SNAPSHOT':
-            parsedSnapshot = self.parse_order_book(message, symbol, None, 'bids', 'asks')
+        if not isGrouped and (type != 'snapshot') and (orderbook['nonce'] is None):
+            return
+        if isGrouped:
+            parsedSnapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
             orderbook.reset(parsedSnapshot)
-            orderbook['symbol'] = symbol
         else:
-            changes = self.safe_list(message, 'changes', [])
-            self.handle_book_deltas(orderbook, changes)
-        orderbook['nonce'] = self.safe_integer(message, 'sequence')
-        orderbook['datetime'] = datetime
-        orderbook['timestamp'] = self.parse8601(datetime)
+            previousChangeId = self.safe_integer(data, 'prev_change_id')
+            if (type != 'snapshot') and (orderbook['nonce'] is not None) and (previousChangeId != orderbook['nonce']):
+                # drop the stale book and reject only this channels future
+                del self.orderbooks[symbol]
+                if channel in client.subscriptions:
+                    del client.subscriptions[channel]
+                client.reject(ExchangeError(self.id + ' order book update has a nonce mismatch'), channel)
+                self.spawn(self.resubscribe_order_book, channel)
+                return
+            self.handle_deltas(orderbook['asks'], self.safe_list(data, 'asks', []))
+            self.handle_deltas(orderbook['bids'], self.safe_list(data, 'bids', []))
+        orderbook['symbol'] = symbol
+        orderbook['nonce'] = self.safe_integer(data, 'change_id')
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = self.iso8601(timestamp)
         self.orderbooks[symbol] = orderbook
         if channel is not None:
-            client.resolve(orderbook, channel + '::' + symbol)
+            client.resolve(orderbook, channel)
 
-    def handle_book_delta(self, orderbook: object, delta: object):
-        rawSide = self.safe_string_lower(delta, 0)
-        side = 'asks'
-        if rawSide == 'buy':
-            side = 'bids'
-        price = self.safe_float(delta, 1)
-        amount = self.safe_float(delta, 2)
-        bookside = orderbook[side]
-        bookside.store(price, amount)
+    async def resubscribe_order_book(self, channel: str):
+        channelParts = channel.split('.')
+        channelPartsLength = len(channelParts)
+        isPrivate = self.safe_string(channelParts, channelPartsLength - 1) == 'raw'
+        url = self.get_ws_url(isPrivate)
+        if isPrivate:
+            await self.authenticate()
+        request = {
+            'jsonrpc': '2.0',
+            'method': 'private/unsubscribe' if isPrivate else 'public/unsubscribe',
+            'params': {
+                'channels': [channel],
+            },
+            'id': self.request_id(),
+        }
+        client = self.client(url)
+        await client.send(request)
+        if channel in client.subscriptions:
+            del client.subscriptions[channel]
+        await self.subscribe([channel], [channel], isPrivate, {})
 
-    def handle_book_deltas(self, orderbook: object, deltas: object):
-        for i in range(0, len(deltas)):
-            self.handle_book_delta(orderbook, deltas[i])
+    def handle_delta(self, bookside: object, delta: object):
+        action = self.safe_string(delta, 0)
+        price = self.safe_number(delta, 1)
+        amount = self.safe_number(delta, 2)
+        if (action == 'new') or (action == 'change'):
+            bookside.storeArray([price, amount, 1])
+        elif action == 'delete':
+            bookside.storeArray([price, amount, 0])
 
-    def handle_subscription_status(self, client: Client, message: dict) -> dict:
-        #
-        #    {
-        #       "channels": [
-        #           {
-        #               "name": "MATCH",
-        #               "product_ids": [
-        #                   "BTC-PERP",
-        #                   "ETH-PERP"
-        #               ]
-        #           },
-        #           {
-        #               "name": "INSTRUMENTS",
-        #               "product_ids": [
-        #                   "BTC-PERP",
-        #                   "ETH-PERP"
-        #               ]
-        #           }
-        #       ],
-        #       "authenticated": true,
-        #       "channel": "SUBSCRIPTIONS",
-        #       "type": "SNAPSHOT",
-        #       "time": "2023-05-30T16:53:46.847Z"
-        #    }
-        #
-        return message
+    def handle_deltas(self, bookside: object, deltas: list[object]):
+        deltasLength = len(deltas)
+        for i in range(0, deltasLength):
+            self.handle_delta(bookside, deltas[i])
 
-    def handle_funding_rate(self, client: Client, message: dict):
-        #
-        # snapshot
-        #    {
-        #       "sequence": 0,
-        #       "product_id": "BTC-PERP",
-        #       "time": "2023-05-10T14:58:47.000Z",
-        #       "funding_rate": "0.001387",
-        #       "is_final": true,
-        #       "channel": "FUNDING",
-        #       "type": "SNAPSHOT"
-        #    }
-        # update
-        #    {
-        #       "sequence": 1,
-        #       "product_id": "BTC-PERP",
-        #       "time": "2023-05-10T15:00:00.000Z",
-        #       "funding_rate": "0.001487",
-        #       "is_final": false,
-        #       "channel": "FUNDING",
-        #       "type": "UPDATE"
-        #    }
-        #
-        channel = self.safe_string(message, 'channel')
-        fundingRate = self.parse_funding_rate(message)
-        self.fundingRates[fundingRate['symbol']] = fundingRate
-        if channel is not None:
-            client.resolve(fundingRate, channel + '::' + fundingRate['symbol'])
-
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
-        #
-        #    {
-        #        message: 'Failed to subscribe',
-        #        reason: 'Unable to authenticate',
-        #        channel: 'SUBSCRIPTIONS',
-        #        type: 'REJECT'
-        #    }
-        #
-        type = self.safe_string(message, 'type')
-        if type != 'REJECT':
+    def handle_error_message(self, client: Client, message: object) -> Bool:
+        error = self.safe_dict(message, 'error')
+        if error is None:
             return False
-        reason = self.safe_string(message, 'reason')
-        errMsg = self.safe_string(message, 'message')
+        errorCode = self.safe_string(error, 'code')
+        errorMessage = self.safe_string(error, 'message')
+        feedback = self.id + ' ' + self.json(message)
         try:
-            feedback = self.id + ' ' + errMsg + reason
-            self.throw_exactly_matched_exception(self.exceptions['exact'], reason, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], reason, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             raise ExchangeError(feedback)
         except Exception as e:
-            client.reject(e)
+            requestId = self.safe_string(message, 'id')
+            authRequestId = self.safe_string(self.options, 'wsAuthRequestId')
+            messageHash = 'authenticated' if (requestId == authRequestId) else requestId
+            if (messageHash == 'authenticated') and (messageHash in client.subscriptions):
+                # allow the next authenticate () call to retry
+                del client.subscriptions[messageHash]
+            client.reject(e, messageHash)
         return True
 
-    def handle_message(self, client: Client, message: dict):
+    async def handle_heartbeat(self, client: Client, message: dict):
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_string(params, 'data')
+        if data == 'test_request':
+            await client.send({
+                'jsonrpc': '2.0',
+                'id': self.request_id(),
+                'method': 'public/test',
+                'params': {},
+            })
+
+    def handle_message(self, client: Client, message: object):
         if self.handle_error_message(client, message) is True:
             return
-        channel = self.safe_string(message, 'channel', '')
-        methods = {
-            'SUBSCRIPTIONS': self.handle_subscription_status,
-            'INSTRUMENTS': self.handle_instrument,
-            'LEVEL1': self.handle_ticker,
-            'MATCH': self.handle_trade,
-            'LEVEL2': self.handle_order_book,
-            'FUNDING': self.handle_funding_rate,
-            'RISK': self.handle_ticker,
+        method = self.safe_string(message, 'method')
+        if method == 'heartbeat':
+            self.spawn(self.handle_heartbeat, client, message)
+            return
+        params = self.safe_dict(message, 'params')
+        channel = self.safe_string(params, 'channel')
+        if channel is not None:
+            parts = channel.split('.')
+            channelId = self.safe_string(parts, 0)
+            userChannel = self.safe_string(parts, 1)
+            userHandlers = {
+                'portfolio': self.handle_balance,
+                'trades': self.handle_my_trades,
+                'orders': self.handle_orders,
+                'changes': self.handle_positions,
+            }
+            handlers = {
+                'ticker': self.handle_ticker,
+                'incremental_ticker': self.handle_ticker,
+                'quote': self.handle_bid_ask,
+                'book': self.handle_order_book,
+                'trades': self.handle_trades,
+                'chart': self.handle_ohlcv,
+                'user': self.safe_value(userHandlers, userChannel),
+            }
+            handler = self.safe_value(handlers, channelId)
+            if handler is None:
+                raise NotSupported(self.id + ' no handler found for websocket channel ' + channel)
+            handler(client, message)
+            return
+        requestId = self.safe_string(message, 'id')
+        if requestId is not None:
+            result = self.safe_dict(message, 'result')
+            if self.safe_string(result, 'version') is not None:
+                client.lastPong = self.milliseconds()
+            authRequestId = self.safe_string(self.options, 'wsAuthRequestId')
+            if requestId == authRequestId:
+                self.handle_authentication_message(client, message)
+                return
+            client.resolve(self.safe_value(message, 'result', message), requestId)
+
+    def handle_authentication_message(self, client: Client, message: dict):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 1,
+        #         "result": {
+        #             "expires_in": 3000,
+        #             "scope": "...",
+        #             "sid": "...",
+        #             "token_type": "bearer"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(message, 'result', {})
+        expiresIn = self.safe_integer(result, 'expires_in', 900)
+        ratio = self.safe_number(self.options, 'wsAuthRefreshRatio')
+        refreshRatio = 0.8 if (ratio is None) else ratio
+        now = self.milliseconds()
+        self.options['wsAuthRefreshAt'] = self.sum(now, self.parse_to_int(expiresIn * 1000 * refreshRatio))
+        client.lastPong = now
+        client.resolve(result, 'authenticated')
+
+    async def authenticate(self, params={}):
+        """
+ @ignore
+        authenticates the private websocket session
+
+        https://docs.cdp.coinbase.com/api-reference/authentication/public-auth
+        https://docs.deribit.com/api-reference/authentication/public-auth
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the authentication response
+        """
+        paramsResolved = self.handleRouteAndParams('authenticate', params)
+        url = self.get_ws_url(True)
+        client = self.client(url)
+        messageHash = 'authenticated'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is not None:
+            refreshAt = self.safe_integer(self.options, 'wsAuthRefreshAt')
+            if (refreshAt is not None) and (self.milliseconds() >= refreshAt) and not (messageHash in client.futures):
+                del client.subscriptions[messageHash]
+                future = None
+        if future is None:
+            self.check_required_credentials()
+            requestId = self.request_id()
+            self.options['wsAuthRequestId'] = requestId
+            paramsAuth = {
+                'grant_type': 'client_credentials',
+                'client_id': self.apiKey,
+                'client_secret': self.secret,
+            }
+            if not self.isNativeDeribitCredentials():
+                paramsAuth = {
+                    'grant_type': 'coinbase_cdp',
+                    'token': self.create_auth_token(self.seconds(), None, None, self.isEddsaSecret()),
+                }
+            request = {
+                'jsonrpc': '2.0',
+                'id': requestId,
+                'method': 'public/auth',
+                'params': paramsAuth,
+            }
+            future = client.reusableFuture(messageHash)
+            self.watch(url, messageHash, self.extend(request, paramsResolved), messageHash)
+            client.subscriptions[messageHash] = future
+        return await future
+
+    async def request_ws(self, method: str, params={}, isPrivate=False):
+        """
+ @ignore
+        sends a websocket JSON-RPC request
+        :param str method: exchange JSON-RPC method name
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param boolean [isPrivate]: whether to authenticate before sending the request
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('requestWs', params)
+        url = self.get_ws_url(True)
+        if isPrivate:
+            await self.authenticate()
+        requestId = self.request_id()
+        messageHash = str(requestId)
+        request = {
+            'jsonrpc': '2.0',
+            'id': requestId,
+            'method': method,
+            'params': paramsResolved,
         }
-        type = self.safe_string(message, 'type')
-        if type == 'error':
-            errorMessage = self.safe_string(message, 'message')
-            raise ExchangeError(errorMessage)
-        if channel.find('CANDLES') > -1:
-            self.handle_ohlcv(client, message)
-        method = self.safe_value(methods, channel)
-        if method is not None:
-            method(client, message)
+        return await self.watch(url, messageHash, request, messageHash)
+
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+        """
+        create a trade order over websocket
+
+        https://docs.cdp.coinbase.com/api-reference/trading/private-buy
+        https://docs.cdp.coinbase.com/api-reference/trading/private-sell
+        https://docs.deribit.com/api-reference/trading/private-buy
+        https://docs.deribit.com/api-reference/trading/private-sell
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: number of contracts for native Deribit derivatives, otherwise the exchange order amount(base currency for spot)
+        :param float [price]: the price at which the order is to be fulfilled
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('createOrderWs', params)
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+            'amount': self.parse_number(self.getOrderAmount(market, amount)),
+            'type': type,
+        }
+        triggerPrice = self.safe_number_n(paramsResolved, ['triggerPrice', 'stopPrice', 'stop_price'])
+        if triggerPrice is not None:
+            request['type'] = 'stop_limit' if (type == 'limit') else 'stop_market'
+            request['trigger_price'] = triggerPrice
+        if type == 'limit':
+            if price is None:
+                raise ArgumentsRequired(self.id + ' createOrderWs() requires a price argument for limit orders')
+            request['price'] = self.parse_number(self.price_to_precision(symbol, price))
+        postOnly = self.safe_bool_2(paramsResolved, 'postOnly', 'post_only')
+        if self.isNativeDeribitCredentials():
+            reduceOnly = self.safe_bool_2(paramsResolved, 'reduceOnly', 'reduce_only')
+            if reduceOnly is not None:
+                request['reduce_only'] = reduceOnly
+        if postOnly is not None:
+            request['post_only'] = postOnly
+            request['reject_post_only'] = postOnly
+        timeInForce = self.safe_string_2(paramsResolved, 'timeInForce', 'tif')
+        if timeInForce is not None:
+            timeInForces = {
+                'GTC': 'good_til_cancelled',
+                'IOC': 'immediate_or_cancel',
+                'FOK': 'fill_or_kill',
+                'GTD': 'good_til_day',
+            }
+            request['time_in_force'] = self.safe_string(timeInForces, timeInForce, timeInForce)
+        clientOrderId = self.safe_string_2(paramsResolved, 'clientOrderId', 'client_order_id')
+        if clientOrderId is not None:
+            request['label'] = clientOrderId
+        else:
+            brokerId = self.safe_string(self.options, 'brokerId')
+            if brokerId is not None:
+                request['label'] = brokerId + '-' + self.uuid22()
+        paramsRequest = self.omit(paramsResolved, ['clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'tif', 'triggerPrice', 'stopPrice', 'stop_price'])
+        if self.isNativeDeribitCredentials():
+            paramsRequest = self.omit(paramsRequest, ['reduceOnly', 'reduce_only'])
+        result = await self.request_ws('private/' + side, self.extend(request, paramsRequest), True)
+        order = self.safe_dict(result, 'order', {})
+        order['trades'] = self.safe_list(result, 'trades', [])
+        return self.parse_order(order, market)
+
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+        """
+        edit a trade order over websocket
+
+        https://docs.cdp.coinbase.com/api-reference/trading/private-edit
+        https://docs.deribit.com/api-reference/trading/private-edit
+
+        :param str id: order id
+        :param str symbol: unified market symbol
+        :param str type: not used by coinbaseinternational editOrderWs
+        :param str side: not used by coinbaseinternational editOrderWs
+        :param float [amount]: new order amount, in contracts for native Deribit derivatives
+        :param float [price]: new order price
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('editOrderWs', params)
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {'order_id': id}
+        if amount is not None:
+            request['amount'] = self.parse_number(self.getOrderAmount(market, amount))
+        if price is not None:
+            request['price'] = self.parse_number(self.price_to_precision(symbol, price))
+        triggerPrice = self.safe_number_n(paramsResolved, ['triggerPrice', 'stopPrice', 'stop_price'])
+        if triggerPrice is not None:
+            request['trigger_price'] = triggerPrice
+        paramsRequest = self.omit(paramsResolved, ['triggerPrice', 'stopPrice', 'stop_price'])
+        result = await self.request_ws('private/edit', self.extend(request, paramsRequest), True)
+        order = self.safe_dict(result, 'order', {})
+        order['trades'] = self.safe_list(result, 'trades', [])
+        return self.parse_order(order, market)
+
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
+        """
+        cancels an open order over websocket
+
+        https://docs.cdp.coinbase.com/api-reference/trading/private-cancel
+        https://docs.deribit.com/api-reference/trading/private-cancel
+
+        :param str id: order id
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('cancelOrderWs', params)
+        if self.markets is None:
+            await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        result = await self.request_ws('private/cancel', self.extend({'order_id': id}, paramsResolved), True)
+        return self.parse_order(result, market)
+
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> list[Order]:
+        """
+        cancels all open orders over websocket
+
+        https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all
+        https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all_by_instrument
+        https://docs.deribit.com/api-reference/trading/private-cancel_all
+        https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
+
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('cancelAllOrdersWs', params)
+        method = 'private/cancel_all'
+        paramsRequest = paramsResolved
+        if symbol is not None:
+            if self.markets is None:
+                await self.load_markets()
+            market = self.market(symbol)
+            paramsRequest = self.extend({'instrument_name': market['id']}, paramsResolved)
+            method = 'private/cancel_all_by_instrument'
+        result = await self.request_ws(method, paramsRequest, True)
+        return [self.safe_order({'info': result})]
+
+    async def fetch_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
+        """
+        fetches an order over websocket
+
+        https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_state
+        https://docs.deribit.com/api-reference/trading/private-get_order_state
+
+        :param str id: order id
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('fetchOrderWs', params)
+        market = None
+        if symbol is not None:
+            if self.markets is None:
+                await self.load_markets()
+            market = self.market(symbol)
+        result = await self.request_ws('private/get_order_state', self.extend({'order_id': id}, paramsResolved), True)
+        return self.parse_order(result, market)
+
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+        """
+        fetches open orders over websocket
+
+        https://docs.cdp.coinbase.com/api-reference/trading/private-get_open_orders_by_instrument
+        https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
+
+        :param str symbol: unified market symbol
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the maximum number of orders to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('fetchOpenOrdersWs', params)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrdersWs() requires a symbol argument')
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {'instrument_name': market['id']}
+        if limit is not None:
+            request['count'] = limit
+        result = await self.request_ws('private/get_open_orders_by_instrument', self.extend(request, paramsResolved), True)
+        return self.parse_orders(result, market, since, limit)
+
+    async def fetch_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+        """
+        fetches order history over websocket
+
+        https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_history_by_instrument
+        https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
+
+        :param str symbol: unified market symbol
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the maximum number of orders to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('fetchOrdersWs', params)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrdersWs() requires a symbol argument')
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {'instrument_name': market['id']}
+        if limit is not None:
+            request['count'] = limit
+        result = await self.request_ws('private/get_order_history_by_instrument', self.extend(request, paramsResolved), True)
+        orders = self.safe_list(result, 'orders', result)
+        return self.parse_orders(orders, market, since, limit)
+
+    async def fetch_balance_ws(self, params={}) -> Balances:
+        """
+        fetches the balance over websocket
+
+        https://docs.cdp.coinbase.com/api-reference/account-management/private-get_account_summaries
+        https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
+        https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('fetchBalanceWs', params)
+        result = await self.request_ws('private/get_account_summaries', paramsResolved, True)
+        summaries = self.safe_list(result, 'summaries', [])
+        balance = {'info': result}
+        summariesLength = len(summaries)
+        for i in range(0, summariesLength):
+            balance = self.deep_extend(balance, self.parse_balance(summaries[i]))
+        return self.safe_balance(balance)
+
+    async def fetch_my_trades_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+        """
+        fetches user trades over websocket
+
+        https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by_instrument
+        https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+        https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
+
+        :param str symbol: unified market symbol
+        :param int [since]: timestamp in ms of the earliest trade
+        :param int [limit]: the maximum number of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('fetchMyTradesWs', params)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTradesWs() requires a symbol argument')
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {'instrument_name': market['id'], 'include_old': True}
+        if limit is not None:
+            request['count'] = limit
+        result = await self.request_ws('private/get_user_trades_by_instrument', self.extend(request, paramsResolved), True)
+        trades = self.safe_list(result, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
+
+    async def fetch_positions_ws(self, symbols: Strings = None, params={}) -> list[Position]:
+        """
+        fetches open positions over websocket
+
+        https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
+        https://docs.deribit.com/api-reference/account-management/private-get_positions
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        paramsResolved = self.handleRouteAndParams('fetchPositionsWs', params)
+        if self.markets is None:
+            await self.load_markets()
+        symbolsResolved = self.market_symbols(symbols)
+        result = await self.request_ws('private/get_positions', paramsResolved, True)
+        positions = self.parse_positions(result)
+        return self.filter_by_array_positions(positions, 'symbol', symbolsResolved)
+
+    async def set_heartbeat(self, interval: Int = 30, params={}):
+        """
+ @ignore
+        enables heartbeat messages for the private websocket connection
+
+        https://docs.cdp.coinbase.com/api-reference/session-management/public-set_heartbeat
+        https://docs.deribit.com/api-reference/session-management/public-set_heartbeat
+
+        :param int [interval]: heartbeat interval in seconds, minimum 10
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('setHeartbeat', params)
+        request = self.extend({'interval': interval}, paramsResolved)
+        return await self.request_ws('public/set_heartbeat', request)
+
+    async def disable_heartbeat(self, params={}):
+        """
+ @ignore
+        disables heartbeat messages for the private websocket connection
+
+        https://docs.cdp.coinbase.com/api-reference/session-management/public-disable_heartbeat
+        https://docs.deribit.com/api-reference/session-management/public-disable_heartbeat
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('disableHeartbeat', params)
+        return await self.request_ws('public/disable_heartbeat', paramsResolved)
+
+    async def set_cancel_on_disconnect(self, enabled: Bool, params={}):
+        """
+ @ignore
+        enables or disables cancel on disconnect
+
+        https://docs.cdp.coinbase.com/api-reference/session-management/private-enable_cancel_on_disconnect
+        https://docs.cdp.coinbase.com/api-reference/session-management/private-disable_cancel_on_disconnect
+        https://docs.deribit.com/api-reference/session-management/private-enable_cancel_on_disconnect
+        https://docs.deribit.com/api-reference/session-management/private-disable_cancel_on_disconnect
+
+        :param bool enabled: whether cancel on disconnect should be enabled
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.scope]: connection or account, default connection
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('setCancelOnDisconnect', params)
+        method = 'private/enable_cancel_on_disconnect' if (enabled is True) else 'private/disable_cancel_on_disconnect'
+        return await self.request_ws(method, paramsResolved, True)
+
+    async def get_cancel_on_disconnect(self, params={}):
+        """
+ @ignore
+        gets the cancel on disconnect configuration
+
+        https://docs.cdp.coinbase.com/api-reference/session-management/private-get_cancel_on_disconnect
+        https://docs.deribit.com/api-reference/session-management/private-get_cancel_on_disconnect
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.scope]: connection or account, default connection
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('getCancelOnDisconnect', params)
+        return await self.request_ws('private/get_cancel_on_disconnect', paramsResolved, True)
+
+    async def unsubscribe_all_ws(self, isPrivate=False, params={}):
+        """
+ @ignore
+        unsubscribes from all websocket channels
+
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe_all
+        https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe_all
+        https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe_all
+        https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe_all
+
+        :param bool [isPrivate]: whether to unsubscribe from private channels
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('unsubscribeAllWs', params)
+        method = 'private/unsubscribe_all' if isPrivate else 'public/unsubscribe_all'
+        return await self.request_ws(method, paramsResolved, isPrivate)
+
+    async def logout_ws(self, params={}):
+        """
+ @ignore
+        gracefully logs out of the private websocket session
+
+        https://docs.cdp.coinbase.com/api-reference/authentication/private-logout
+        https://docs.deribit.com/api-reference/authentication/private-logout
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param bool [params.invalidate_token]: whether to invalidate session tokens, default True
+        :returns dict: the exchange response
+        """
+        paramsResolved = self.handleRouteAndParams('logoutWs', params)
+        await self.authenticate()
+        url = self.get_ws_url(True)
+        client = self.client(url)
+        request = {
+            'jsonrpc': '2.0',
+            'id': self.request_id(),
+            'method': 'private/logout',
+            'params': paramsResolved,
+        }
+        await client.send(request)
+        return None

@@ -112,8 +112,8 @@ class bydfi extends \ccxt\async\bydfi {
         );
         $unsubscribe = $this->safe_bool($params, 'unsubscribe', false);
         $method = 'SUBSCRIBE';
-        $paramsOmitted = ($unsubscribe === true) ? $this->omit($params, 'unsubscribe') : $params;
-        if ($unsubscribe === true) {
+        $paramsOmitted = ($unsubscribe) ? $this->omit($params, 'unsubscribe') : $params;
+        if ($unsubscribe) {
             $method = 'UNSUBSCRIBE';
             $subscriptionParams['unsubscribe'] = true;
             $subscriptionParams['messageHashes'] = $messageHashes;
@@ -289,7 +289,7 @@ class bydfi extends \ccxt\async\bydfi {
         return Async\await($this->watch_public($messageHashes, $channels, $paramsExtended, $subscription));
     }
 
-    public function get_message_hashes_for_tickers_unsubscription() {
+    public function get_message_hashes_for_tickers_unsubscription(): array {
         $url = $this->urls['api']['ws']['public'];
         $client = $this->client($url);
         $subscriptions = $client->subscriptions;
@@ -968,7 +968,7 @@ class bydfi extends \ccxt\async\bydfi {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
+        if (($fetchBalanceSnapshot) && ($awaitBalanceSnapshot)) {
             Async\await($client->future('fetchBalanceSnapshot'));
         }
         $messageHash = 'balance';
@@ -978,7 +978,7 @@ class bydfi extends \ccxt\async\bydfi {
     public function fetch_balance_snapshot(Client $client) {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot === true) {
+        if ($fetchBalanceSnapshot) {
             $messageHash = 'fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -996,7 +996,30 @@ class bydfi extends \ccxt\async\bydfi {
             'type' => 'swap',
         );
         $response = Async\await($this->fetch_balance($params));
-        $this->balance = $this->extend($response, $this->balance);
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $reserved = array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' );
+        $keys = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->in_array($key, $reserved)) {
+                continue;
+            }
+            if (!(is_array($this->balance) && array_key_exists($key ?? '', $this->balance))) {
+                $this->balance[$key] = $response[$key];
+            }
+        }
+        if (!(is_array($this->balance) && array_key_exists('info' ?? '', $this->balance))) {
+            $this->balance['info'] = $response['info'];
+            $this->balance['timestamp'] = $response['timestamp'];
+            $this->balance['datetime'] = $response['datetime'];
+        }
+        $this->balance = $this->safe_balance($this->balance);
         // don't remove the future from the .futures cache
         $future = $client->futures[$messageHash];
         $future->resolve();
@@ -1044,31 +1067,34 @@ class bydfi extends \ccxt\async\bydfi {
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        $messageHash = 'balance';
-        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
-            $data = $this->safe_dict($message, 'a', array());
-            $balances = $this->safe_list($data, 'B', array());
-            $timestamp = $this->safe_integer($message, 'T');
-            $result = array(
-                'info' => $message,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            );
-            for ($i = 0; $i < count($balances); $i++) {
-                $balance = $this->safe_dict($balances, $i);
-                $currencyId = $this->safe_string($balance, 'a');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['total'] = $this->safe_string($balance, 'wb');
-                $account['used'] = $this->safe_string($balance, 'tfm');
-                if ($code !== null) {
-                    $result[$code] = $account;
-                }
-            }
-            $parsedBalance = $this->safe_balance($result);
-            $this->balance = $this->extend($this->balance, $parsedBalance);
-            $client->resolve($this->balance, $messageHash);
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if ($this->balance === null) {
+            $this->balance = array();
         }
+        $data = $this->safe_dict($message, 'a', array());
+        $balances = $this->safe_list($data, 'B', array());
+        $timestamp = $this->safe_integer($message, 'T');
+        $this->balance['info'] = $message;
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $this->safe_dict($balances, $i);
+            $currencyId = $this->safe_string($balance, 'a');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'wb');
+            $account['used'] = $this->safe_string($balance, 'tfm');
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
+        }
+        $this->balance = $this->safe_balance($this->balance);
+        $messageHash = 'balance';
+        $client->resolve($this->balance, $messageHash);
     }
 
     public function handle_subscription_status(Client $client, array $message): array {
@@ -1082,7 +1108,7 @@ class bydfi extends \ccxt\async\bydfi {
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage === true) {
+        if ($isUnSubMessage) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;

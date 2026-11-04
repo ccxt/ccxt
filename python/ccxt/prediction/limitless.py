@@ -210,7 +210,9 @@ class limitless(PredictionExchange, ImplicitAPI):
             requestedLimit = self.safe_integer(params, 'limit', 50)
             # the search endpoint rejects limit > 50 - cap the per-query request and let
             # maxMarkets bound the overall collection
-            limit = min(requestedLimit, 50)
+            limit = 50
+            if (requestedLimit is not None) and (requestedLimit < 50):
+                limit = requestedLimit
             searchRest = self.omit(rest, ['limit'])
             seen = {}
             for i in range(0, len(queries)):
@@ -231,15 +233,15 @@ class limitless(PredictionExchange, ImplicitAPI):
                 'limit': pageSize,
             }
             firstPageResponse = await self.limitlessPublicGetMarketsActive(self.extend(request, rest))
-            totalMarketsCount = self.safe_integer(firstPageResponse, 'totalMarketsCount')
             firstData = self.safe_list(firstPageResponse, 'data', [])
             allRaw = self.array_concat(allRaw, firstData)
             promises = []
             cappedPages = int(math.ceil(maxMarkets / pageSize))
-            knownTotal = totalMarketsCount if (totalMarketsCount is not None) else 0
-            allPages = int(math.ceil(knownTotal / pageSize))
-            totalPages = min(allPages, cappedPages)
-            for i in range(2, totalPages):
+            knownTotal = self.safe_integer(firstPageResponse, 'totalMarketsCount', 0)
+            allPages = self.parse_to_int(int(math.ceil(knownTotal / pageSize)))
+            for i in range(2, allPages):
+                if i > cappedPages:
+                    break
                 page = i
                 request['page'] = page
                 promises.append(self.limitlessPublicGetMarketsActive(self.extend(request, rest)))
@@ -261,8 +263,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     responseRows = []
                     if isinstance(response, list):
                         responseRows = response
-                    rawPageMarkets = self.safe_list(response, 'data', responseRows)
-                    page_markets = rawPageMarkets if (rawPageMarkets is not None) else []
+                    page_markets = self.safe_list(response, 'data', responseRows)
                     pageMarketsLength = len(page_markets)
                     if pageMarketsLength == 0:
                         break
@@ -396,7 +397,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # market is tradeable only while it is FUNDED and not yet expired
         isExpired = self.safe_bool(raw, 'expired', False)
         marketStatus = self.safe_string(raw, 'status')
-        active = (isExpired is not True) and (marketStatus == 'FUNDED')
+        active = (not isExpired) and (marketStatus == 'FUNDED')
         # expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         expiryTimestamp = self.safe_integer(raw, 'expirationTimestamp')
         # limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
@@ -535,7 +536,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         self.index_event_outcomes(event)
         return event
 
-    def expand_group_rows(self, rawRows: list[object]) -> list[object]:
+    def expand_group_rows(self, rawRows: list[object]) -> list[dict]:
         """
  @ignore
         flattens listing rows — a 'group' row carries no tradeable tokens itself and
@@ -562,7 +563,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 result.append(raw)
         return result
 
-    def parse_event(self, event: dict) -> object:
+    def parse_event(self, event: dict) -> PredictionEvent:
         # {
         #    "groupId":"trump-out-as-president-before-2027-1768933068297",
         #    "title":"💎 Trump out as President before 2027?",
@@ -1047,7 +1048,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         prices = self.safe_list(raw, 'prices', [])
         pricesLength = len(prices)
         if (lastStr is None) and (pricesLength > 0):
-            lastStr = self.safe_string(prices, 0) if (isYes) else self.safe_string(prices, 1)
+            if isYes:
+                lastStr = self.safe_string(prices, 0)
+            else:
+                lastStr = self.safe_string(prices, 1)
         # volume and book sizes are in USDC micro-units (6 decimals)
         rawVolume = self.safe_string(raw, 'volume')
         volumeStr = None
@@ -1113,7 +1117,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     outcomesBySlug[slug] = []
                 slugs.append(slug)
             # reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            grouped = self.safe_value(outcomesBySlug, slug)
+            grouped = self.safe_list(outcomesBySlug, slug, [])
             grouped.append(outcomeObj)
             if slug is not None:
                 outcomesBySlug[slug] = grouped
@@ -1129,7 +1133,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             detail = responses[detailIndex]
             book = responses[self.sum(detailIndex, 1)]
             tickerInput = {'market': detail, 'book': book}
-            grouped = outcomesBySlug[slug]
+            grouped = self.safe_list(outcomesBySlug, slug, [])
             for j in range(0, len(grouped)):
                 ticker = self.parse_prediction_ticker(tickerInput, grouped[j])
                 symbolKey = self.safe_string(ticker, 'outcome')
@@ -1328,8 +1332,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         responseRows = []
         if isinstance(response, list):
             responseRows = response
-        rawHistoryList = self.safe_list(response, 'data', self.safe_list(response, 'prices', responseRows))
-        rawHistory = rawHistoryList if (rawHistoryList is not None) else []
+        rawHistory = self.safe_list(response, 'data', self.safe_list(response, 'prices', responseRows))
         history = rawHistory
         rawHistoryLength = len(rawHistory)
         if rawHistoryLength > 0:
@@ -1352,13 +1355,14 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(history)):
             point = self.safe_dict(history, i)
             pointPrice = self.safe_number(point, 'price')
-            pointTs = self.safe_integer(point, 'timestamp')
-            if pointTs is None:
+            rawTs = self.safe_integer(point, 'timestamp')
+            pointTs = rawTs
+            if rawTs is None:
                 tsString = self.safe_string(point, 'timestamp')
                 pointTs = self.parse8601(tsString) if (tsString is not None and tsString != '') else None
-            elif pointTs < 1000000000000:
+            elif rawTs < 1000000000000:
                 # old responses may return unix seconds
-                pointTs = pointTs * 1000
+                pointTs = rawTs * 1000
             if (pointPrice is not None) and (pointTs is not None):
                 pseudoTrades.append({'timestamp': pointTs, 'price': pointPrice, 'amount': 0})
         # the endpoint returns points NEWEST-first, so sort ascending by timestamp before bucketing —
@@ -1375,18 +1379,22 @@ class limitless(PredictionExchange, ImplicitAPI):
             pPrice = self.safe_number(point, 'price')
             if pTs is None:
                 raise ExchangeError(self.id + ' method() missing pTs')
-            bucket = self.parse_to_int(pTs / ms) * ms
+            if pPrice is None:
+                raise ExchangeError(self.id + ' fetchOHLCV() missing pPrice')
+            bucketIndex = self.parse_to_int(pTs / ms)
+            bucket = bucketIndex * ms
             key = str(bucket)
             if not (key in candles):
                 candles[key] = [bucket, pPrice, pPrice, pPrice, pPrice, 0]
                 bucketOrder.append(key)
             else:
                 candle = candles[key]
-                pPriceOrZero = 0 if (pPrice is None) else pPrice
-                candle[2] = max(candle[2], pPriceOrZero)
-                candleLow = pPrice if (candle[3] is None) else candle[3]
-                pPriceOrCandleLow = candle[3] if (pPrice is None) else pPrice
-                candle[3] = min(candleLow, pPriceOrCandleLow)
+                prevHigh = self.safe_number(candle, 2)
+                if (prevHigh is None) or (pPrice > prevHigh):
+                    candle[2] = pPrice
+                prevLow = self.safe_number(candle, 3)
+                if (prevLow is None) or (prevLow > pPrice):
+                    candle[3] = pPrice
                 candle[4] = pPrice
                 candles[key] = candle  # php arrays are value types - write the mutation back
         result = []
@@ -2041,11 +2049,12 @@ class limitless(PredictionExchange, ImplicitAPI):
         response = await self.limitlessPrivatePostOrders(self.extend(request, paramsValue))
         parsedOrder = self.parse_prediction_order(response, outcomeObj)
         # the create-order response omits a status field; a freshly accepted order is open
-        if parsedOrder['status'] is None:
+        parsedStatus = self.safe_string(parsedOrder, 'status')
+        if parsedStatus is None:
             parsedOrder['status'] = 'open'
         return parsedOrder
 
-    def sign_order_request(self, signRequest: dict, marketSymbol: object):
+    def sign_order_request(self, signRequest: dict, marketSymbol: Str) -> str:
         self.check_required_credentials()
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders')
@@ -2078,10 +2087,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         msg = self.eth_encode_structured_data(domain, messageTypes, signRequest)
         return self.sign_message(msg, self.privateKey)
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object):
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
@@ -2091,7 +2100,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         result = '0x' + rPadded + sPadded + v
         return result.lower()
 
-    def sign_message(self, message: object, privateKey: object):
+    def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_evm_transaction(self, tx: dict, privateKey: str) -> str:
@@ -2181,9 +2190,11 @@ class limitless(PredictionExchange, ImplicitAPI):
         response = await self.limitlessPrivateDeleteOrdersOrderId(self.extend(request, params))
         # the delete response carries no order body, so backfill the id and the resulting status
         order = self.parse_prediction_order(response)
-        if order['id'] is None:
+        orderId = self.safe_string(order, 'id')
+        if orderId is None:
             order['id'] = id
-        if order['status'] is None:
+        orderStatus = self.safe_string(order, 'status')
+        if orderStatus is None:
             order['status'] = 'canceled'
         return order
 
@@ -2302,7 +2313,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             return await self.fetch_paginated_call_cursor('fetchMyTrades', outcome, since, limit, paramsValue, 'nextCursor', 'cursor', None, maxLimit)
         request = {}
         if limit is not None:
-            request['limit'] = min(limit, maxLimit)
+            request['limit'] = min(limit, 100)
         response = await self.limitlessPrivateGetPortfolioHistory(self.extend(request, paramsValue))
         #
         #     {
@@ -2728,7 +2739,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         if queriesLength > 0:
             requestedLimit = self.safe_integer(params, 'limit', 50)
             # the search endpoint rejects limit > 50 - cap the per-query request
-            limit = min(requestedLimit, 50)
+            limit = 50
+            if (requestedLimit is not None) and (requestedLimit < 50):
+                limit = requestedLimit
             seen = {}
             for i in range(0, len(queries)):
                 if queries is None:
@@ -2819,7 +2832,6 @@ class limitless(PredictionExchange, ImplicitAPI):
         rest = self.omit(params, ['query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags'])
         allRaw = []
         page = 1
-        collected = 0
         while(True):
             request = {'page': page, 'limit': pageSize}
             response = None
@@ -2833,11 +2845,12 @@ class limitless(PredictionExchange, ImplicitAPI):
             if dataLength == 0:
                 break
             for i in range(0, dataLength):
+                collected = len(allRaw)
                 if collected < maxMarkets:
                     allRaw.append(data[i])
-                    collected = self.sum(collected, 1)
             page = self.sum(page, 1)
-            if dataLength < pageSize or collected >= maxMarkets:
+            collectedTotal = len(allRaw)
+            if dataLength < pageSize or collectedTotal >= maxMarkets:
                 break
         return allRaw
 
@@ -2893,7 +2906,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # unique when two orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['limitless'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['limitless'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches the lmts authentication headers for private endpoints
@@ -2904,8 +2917,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
-        apiLength = len(api)
-        access = api[1] if (apiLength > 1) else 'public'
+        access = self.safe_string(api, 1, 'public')
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['limitless'])
         url = '/' + self.implode_params(path, params)
@@ -2917,16 +2929,14 @@ class limitless(PredictionExchange, ImplicitAPI):
         bodyValue = None
         if access == 'private':
             bodyString = ''
-            if headersValue is None:
-                headersValue = {}
+            headersValue = {}
             if method == 'POST' and (querystring != ''):
                 bodyString = self.json(query)
                 bodyValue = bodyString
-                headerDefaults = headersValue if (headersValue is not None) else {}
                 headersValue = self.extend({
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                }, headerDefaults)
+                }, headersValue)
             self.check_required_credentials()
             timestamp = self.iso8601(self.milliseconds())
             newline = "\n"  # eslint-disable-line quotes
@@ -2950,7 +2960,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         if response is None:
             return None
-        if (statusCode >= 200) and (statusCode < 300):
+        statusCodeInt = self.parse_to_int(statusCode)
+        if (statusCodeInt >= 200) and (statusCodeInt < 300):
             return None
         feedback = self.id + ' ' + responseBody
         # the API returns either a string message or an array of field-validation errors
@@ -2961,6 +2972,6 @@ class limitless(PredictionExchange, ImplicitAPI):
         # a 400 is a client-side bad request (bad params, or a business rule like "market not
         # resolved"), not a transport outage — throw BadRequest with the exchange message instead
         # of letting the base map the bare 400 to a retryable network-unavailable error
-        if statusCode == 400:
+        if statusCodeInt == 400:
             raise BadRequest(feedback)
         return None

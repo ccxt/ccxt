@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, FundingHistory } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, FundingHistory } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -73,7 +73,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */
-    calculatePricePrecision(price: number, amountPrecision: number, maxDecimals: number): number;
+    calculatePricePrecision(price: number, amountPrecision: int, maxDecimals: int): number;
     /**
      * @method
      * @name hyperliquid#fetchSpotMarkets
@@ -185,11 +185,8 @@ export default class hyperliquid extends Exchange {
     hashMessage(message: any): string;
     signHash(hash: string, privateKey: string): Dict;
     signMessage(message: any, privateKey: string): Dict;
-    constructPhantomAgent(hash: any, isTestnet?: boolean): {
-        source: string;
-        connectionId: any;
-    };
-    actionHash(action: any, vaultAddress: any, nonce: any, expiresAfter?: Int): Uint8Array<ArrayBufferLike>;
+    constructPhantomAgent(hash: any, isTestnet?: boolean): Dict;
+    actionHash(action: any, vaultAddress: Str, nonce: any, expiresAfter?: Int): Uint8Array<ArrayBufferLike>;
     signL1Action(action: any, nonce: any, vaultAdress?: Str, expiresAfter?: Int): object;
     signUserSignedAction(messageTypes: Dict, message: Dict): Dict;
     buildUsdSendSig(message: Dict): Dict;
@@ -199,7 +196,7 @@ export default class hyperliquid extends Exchange {
     buildUserDexAbstractionSig(message: Dict): Dict;
     buildUserAbstractionSig(message: Dict): Dict;
     buildApproveBuilderFeeSig(message: Dict): Dict;
-    setRef(): Promise<true | Dict | undefined>;
+    setRef(): Promise<boolean>;
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<Dict>;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
@@ -308,6 +305,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
      * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
@@ -323,6 +321,7 @@ export default class hyperliquid extends Exchange {
      * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
@@ -350,6 +349,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrdersForSymbols(orders: CancellationRequest[], params?: Dict): Promise<Order[]>;
@@ -503,7 +503,7 @@ export default class hyperliquid extends Exchange {
      */
     fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
     /**
      * @method
@@ -728,7 +728,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name hyperliquid#fetchFundingHistory
@@ -753,7 +753,7 @@ export default class hyperliquid extends Exchange {
     reserveRequestWeight(weight: Num, params?: Dict): Promise<Dict>;
     /**
      * @method
-     * @name hyperliquid#createAccount
+     * @name hyperliquid#createSubAccount
      * @description creates a sub-account under the main account
      * @param {string} name the name of the sub-account
      * @param {object} [params] extra parameters specific to the exchange API endpoint

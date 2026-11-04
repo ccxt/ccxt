@@ -629,15 +629,21 @@ class bydfi(Exchange, ImplicitAPI):
         return orderBook
 
     def get_closest_limit(self, limit: Int) -> Int:
-        limits = [5, 10, 20, 50, 100, 500, 1000]
-        result = 1000
-        for i in range(0, len(limits)):
-            if limit is None:
-                raise ArgumentsRequired(self.id + ' getClosestLimit() requires a limit argument')
-            if limit <= limits[i]:
-                result = limits[i]
-                break
-        return result
+        if limit is None:
+            raise ArgumentsRequired(self.id + ' getClosestLimit() requires a limit argument')
+        if limit <= 5:
+            return 5
+        elif limit <= 10:
+            return 10
+        elif limit <= 20:
+            return 20
+        elif limit <= 50:
+            return 50
+        elif limit <= 100:
+            return 100
+        elif limit <= 500:
+            return 500
+        return 1000
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -700,7 +706,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             maxLimit = 500
             paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
             paginatedResponse = await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit, True)
@@ -836,34 +842,35 @@ class bydfi(Exchange, ImplicitAPI):
         maxLimit = 500  # docs says max 1500, but in practice only 500 works
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'symbol': market['id'],
             'interval': interval,
         }
-        startTime = since
         numberOfCandles = maxLimit
         if limit is not None and limit is not None and limit != 0:
-            numberOfCandles = limit
-        until = None
-        paramsUntil = None
-        until, paramsUntil = self.handle_option_integer_and_params(paramsPaginate, 'fetchOHLCV', 'until')
+            numberOfCandles = self.parse_to_int(limit)
+        untilParam, paramsUntil = self.handle_option_integer_and_params(paramsPaginate, 'fetchOHLCV', 'until')
         now = self.milliseconds()
         duration = self.parse_timeframe(timeframe) * 1000
         timeDelta = duration * numberOfCandles
-        if startTime is None and until is None:
+        startTime = since
+        until = untilParam
+        if since is None and untilParam is None:
             startTime = now - timeDelta
             until = now
-        elif until is None:
-            if startTime is None:
+        elif untilParam is not None:
+            if since is None:
+                untilInt = self.parse_to_int(untilParam)
+                startTime = untilInt - timeDelta
+        else:
+            if since is None:
                 raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since or until argument')
-            until = startTime + timeDelta
-            if until > now:
-                until = now
-        elif startTime is None:
-            startTime = until - timeDelta
+            sinceInt = self.parse_to_int(since)
+            sinceEnd = sinceInt + timeDelta
+            until = now if (sinceEnd > now) else sinceEnd
         request['startTime'] = startTime
         request['endTime'] = until
         if limit is not None:
@@ -888,8 +895,7 @@ class bydfi(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = self.parse_ohlcvs(data, market, timeframe, since, limit)
-        return result
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1280,11 +1286,11 @@ class bydfi(Exchange, ImplicitAPI):
         if hedged:
             query = self.omit(query, 'reduceOnly')
             if side == 'buy':
-                request['positionSide'] = 'SHORT' if (reduceOnly is True) else 'LONG'
+                request['positionSide'] = 'SHORT' if (reduceOnly) else 'LONG'
             elif side == 'sell':
-                request['positionSide'] = 'LONG' if (reduceOnly is True) else 'SHORT'
+                request['positionSide'] = 'LONG' if (reduceOnly) else 'SHORT'
         closePosition = self.safe_bool(query, 'closePosition', False)
-        if closePosition is not True:
+        if not closePosition:
             query = self.omit(query, 'closePosition')
             request['quantity'] = self.amount_to_precision(symbol, amount)
         elif (typeValue != 'STOP_MARKET') and (typeValue != 'TAKE_PROFIT_MARKET'):
@@ -1618,7 +1624,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             maxLimit = 500
             paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
             paginatedResponse = await self.fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit, True)
@@ -1684,25 +1690,25 @@ class bydfi(Exchange, ImplicitAPI):
         return self.parse_orders(data, market, since, limit)
 
     def handle_since_and_until(self, methodName: str, since: Int = None, params: dict = {}) -> dict:
-        until = None
-        paramsUntil = None
-        until, paramsUntil = self.handle_option_integer_and_params_2(params, methodName, 'until', 'endTime')
+        untilParam, paramsUntil = self.handle_option_integer_and_params_2(params, methodName, 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
         startTime = since
-        if startTime is None:
-            if until is None:
+        until = untilParam
+        if since is None:
+            if untilParam is not None:
+                # since is undefined but until is defined
+                startTime = untilParam - sevenDays
+            else:
                 # both since and until are undefined
                 startTime = now - sevenDays
                 until = now
-            else:
-                # since is undefined but until is defined
-                startTime = until - sevenDays
-        elif until is None:
+        elif untilParam is None:
             # until is undefined but since is defined
-            delta = now - startTime
+            sinceInt = self.parse_to_int(since)
+            delta = now - sinceInt
             if delta > sevenDays:
-                until = startTime + sevenDays
+                until = sinceInt + sevenDays
             else:
                 until = now
         request = {
@@ -2526,7 +2532,7 @@ class bydfi(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             transfer['currency'] = code
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
@@ -2552,7 +2558,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             maxLimit = 50
             paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
             paginatedResponse = await self.fetch_paginated_call_dynamic('fetchTransfers', self.safe_string(currency, 'code'), since, limit, paramsPaginate, maxLimit, True)
@@ -2651,7 +2657,8 @@ class bydfi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('deposit', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('deposit', code, since, limit, params)
+        return self.to_array(transactions)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2665,9 +2672,10 @@ class bydfi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
+        return self.to_array(transactions)
 
-    async def fetch_transactions_helper(self, type: str, code: Str, since: Int, limit: Int, params: object) -> list[Transaction]:
+    async def fetch_transactions_helper(self, type: str, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         methodName = 'fetchWithdrawals'
         if type == 'deposit':
             methodName = 'fetchDeposits'
@@ -2677,7 +2685,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             maxLimit = 50
             paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
             paginatedResponse = await self.fetch_paginated_call_dynamic(methodName, self.safe_string(currency, 'code'), since, limit, paramsPaginate, maxLimit, True)
@@ -2685,25 +2693,25 @@ class bydfi(Exchange, ImplicitAPI):
         request = {
             'asset': currency['id'],
         }
-        until = None
-        paramsUntil = None
-        until, paramsUntil = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
+        untilParam, paramsUntil = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
         startTime = since
-        if startTime is None:
-            if until is None:
+        until = untilParam
+        if since is None:
+            if untilParam is not None:
+                # since is undefined but until is defined
+                startTime = untilParam - sevenDays
+            else:
                 # both since and until are undefined
                 startTime = now - sevenDays
                 until = now
-            else:
-                # since is undefined but until is defined
-                startTime = until - sevenDays
-        elif until is None:
+        elif untilParam is None:
             # until is undefined but since is defined
-            delta = now - startTime
+            sinceInt = self.parse_to_int(since)
+            delta = now - sinceInt
             if delta > sevenDays:
-                until = startTime + sevenDays
+                until = sinceInt + sevenDays
             else:
                 until = now
         request['startTime'] = startTime
@@ -2804,7 +2812,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:

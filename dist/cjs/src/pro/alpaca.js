@@ -259,7 +259,7 @@ class alpaca extends alpaca$1["default"] {
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];
-        if (isSnapshot === true) {
+        if (isSnapshot) {
             const snapshot = this.parseOrderBook(message, symbol, timestamp, 'b', 'a', 'p', 's');
             orderbook.reset(snapshot);
         }

@@ -799,8 +799,8 @@ class alpaca extends alpaca$1["default"] {
         let paginate = false;
         let query = undefined;
         [paginate, query] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
-        let paginationCalls = 10;
-        [paginationCalls, query] = this.handleOptionIntegerAndParams(query, 'fetchOHLCV', 'paginationCalls', 10);
+        const [paginationCalls, queryPagination] = this.handleOptionIntegerAndParams(query, 'fetchOHLCV', 'paginationCalls', 10);
+        query = queryPagination;
         const request = {
             'symbols': marketId,
             'loc': loc,
@@ -1058,7 +1058,7 @@ class alpaca extends alpaca$1["default"] {
             }, market);
             results.push(ticker);
         }
-        return this.filterByArray(results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(results, 'symbol', symbolsNormalized);
     }
     generateClientOrderId(params) {
         const clientOrderIdprefix = this.safeString(this.options, 'clientOrderId');
@@ -1805,7 +1805,7 @@ class alpaca extends alpaca$1["default"] {
             currency = this.currency(code);
         }
         const sandboxMode = this.isSandboxModeEnabled || this.safeBool(this.options, 'sandboxMode', false);
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -1891,7 +1891,8 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('BOTH', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('BOTH', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -1905,7 +1906,8 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('INCOMING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('INCOMING', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -1919,7 +1921,8 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('OUTGOING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('OUTGOING', code, since, limit, params);
+        return this.toArray(transactions);
     }
     parseTransaction(transaction, currency = undefined) {
         //
@@ -2239,7 +2242,8 @@ class alpaca extends alpaca$1["default"] {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             const codeAsString = code.toString();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            const statusCode = this.parseToInt(code);
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new errors.ExchangeError(feedback);
             }

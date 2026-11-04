@@ -1018,10 +1018,11 @@ class aster(Exchange, ImplicitAPI):
             spot = False
             swap = True
             settleId = self.safe_string(market, 'marginAsset')
-            settle = self.safe_currency_code(settleId)
-            symbol = base + '/' + quote + ':' + settle
-            linear = settle == quote
-            inverse = settle == base
+            settleCode = self.safe_currency_code(settleId)
+            settle = settleCode
+            symbol = base + '/' + quote + ':' + settleCode
+            linear = settleCode == quote
+            inverse = settleCode == base
             contractSize = self.safe_number_2(market, 'contractSize', 'unit', self.parse_number('1'))
         else:
             spot = True
@@ -1340,7 +1341,7 @@ class aster(Exchange, ImplicitAPI):
         if untilDefined:
             request = self.handle_until_option('endTime', request, params)
         # use historical endpoint for targeted requests
-        if 'startTime' in request:
+        if sinceDefined:
             if market['swap'] is True:
                 response = self.fapiPublicGetV3AggTrades(self.extend(request, params))
             else:
@@ -1719,7 +1720,7 @@ class aster(Exchange, ImplicitAPI):
             priceData = self.extend(self.parse_last_price(rows[i], safeMarket), paramsMarketType)
             results.append(priceData)
         symbolsNormalized2 = self.market_symbols(symbolsNormalized)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized2)
+        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized2, False), 'symbol')
 
     def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
         #
@@ -2158,7 +2159,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_trading_fee(response, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -2169,7 +2170,7 @@ class aster(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -2754,7 +2755,7 @@ class aster(Exchange, ImplicitAPI):
             priceIsRequired = True
             triggerPriceIsRequired = True
         elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
-            if closePosition is not True:
+            if not closePosition:
                 quantityIsRequired = True
             triggerPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
@@ -2780,8 +2781,7 @@ class aster(Exchange, ImplicitAPI):
         if triggerPriceIsRequired:
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
-            if stopPrice is not None:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         tifOption, paramsTifOption = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce')
         tifIsMissing = timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None) and (self.safe_string(request, 'timeInForce') is None)
         omitKeys = ['newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice']
@@ -3423,7 +3423,7 @@ class aster(Exchange, ImplicitAPI):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, bracket[0]):
+            if Precise.string_lt(notionalStringAbs, self.safe_string(bracket, 0)):
                 break
             maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         notional = self.parse_number(notionalStringAbs)
@@ -3483,7 +3483,8 @@ class aster(Exchange, ImplicitAPI):
                     collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
-        collateralString = '0' if (collateralString is None) else collateralString
+        if collateralString is None:
+            collateralString = '0'
         collateral = self.parse_number(collateralString)
         markPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'markPrice')))
         timestamp = self.safe_integer(position, 'updateTime')
@@ -3499,7 +3500,7 @@ class aster(Exchange, ImplicitAPI):
         initialMarginPercentageString = None
         leverageString = self.safe_string(position, 'leverage')
         if leverageString is not None:
-            leverage = int(leverageString)
+            leverage = self.parse_to_int(leverageString)
             rational = self.is_round_number(1000 % leverage)
             initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
             if not rational:
@@ -3648,9 +3649,10 @@ class aster(Exchange, ImplicitAPI):
             if not filterClosed or isPositionOpen:
                 # sometimes not all the codes are correctly returned...
                 if code in balances:
+                    balance = self.safe_dict(balances, code)
                     parsed = self.parse_account_position(self.extend(position, {
-                        'crossMargin': balances[code]['crossMargin'],
-                        'crossWalletBalance': balances[code]['crossWalletBalance'],
+                        'crossMargin': self.safe_string(balance, 'crossMargin'),
+                        'crossWalletBalance': self.safe_string(balance, 'crossWalletBalance'),
                     }), market)
                     result.append(parsed)
         return result
@@ -3660,14 +3662,12 @@ class aster(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, None, 'contract')
         symbol = self.safe_string(marketResolved, 'symbol')
         leverageString = self.safe_string(position, 'leverage')
-        leverage = int(leverageString) if (leverageString is not None) else None
         initialMarginString = self.safe_string(position, 'initialMargin')
         initialMargin = self.parse_number(initialMarginString)
         initialMarginPercentageString = None
         if leverageString is not None:
             initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
-            if leverage is None:
-                raise ExchangeError(self.id + ' parseAccountPosition() missing leverage')
+            leverage = self.parse_to_int(leverageString)
             rational = self.is_round_number(1000 % leverage)
             if not rational:
                 initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
@@ -3693,7 +3693,7 @@ class aster(Exchange, ImplicitAPI):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, bracket[0]):
+            if Precise.string_lt(notionalStringAbs, self.safe_string(bracket, 0)):
                 break
             maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
@@ -3702,10 +3702,13 @@ class aster(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(position, 'updateTime')
         if timestamp == 0:
             timestamp = None
-        isolated = self.safe_bool(position, 'isolated')
-        if isolated is None:
+        isolatedRaw = self.safe_bool(position, 'isolated')
+        isolated = False
+        if isolatedRaw is None:
             isolatedMarginRaw = self.safe_string(position, 'isolatedMargin')
             isolated = not Precise.string_eq(isolatedMarginRaw, '0')
+        else:
+            isolated = (isolatedRaw is True)
         marginMode = None
         collateralString = None
         walletBalance = None
@@ -3769,8 +3772,7 @@ class aster(Exchange, ImplicitAPI):
             pricePrecisionPlusOne = pricePrecision + 1
             pricePrecisionPlusOneString = str(pricePrecisionPlusOne)
             # round half up
-            rounder = Precise('5e-' + pricePrecisionPlusOneString)
-            rounderString = str(rounder)
+            rounderString = '5e-' + pricePrecisionPlusOneString
             liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
             truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
             if truncatedLiquidationPrice is None:
@@ -3880,7 +3882,7 @@ class aster(Exchange, ImplicitAPI):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    def keccak_message(self, message: object):
+    def keccak_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
     def sign_message(self, message: object, privateKey: str) -> str:
@@ -4054,7 +4056,7 @@ class aster(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def hash_message(self, binaryMessage: object):
+    def hash_message(self, binaryMessage: object) -> str:
         # const binaryMessage = this.encode (message);
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
@@ -4070,7 +4072,7 @@ class aster(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
@@ -4191,10 +4193,10 @@ class aster(Exchange, ImplicitAPI):
 
     def initialize_client(self, params: dict = {}) -> Bool:
         builderFee = self.safe_bool(params, 'builderFee', self.safe_bool(self.options, 'builderFee', True))  # we shouldn't omit here
-        if builderFee is not True:
+        if not builderFee:
             return False  # skip if builder fee is not enabled
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee is True:
+        if approvedBuilderFee:
             return True  # skip if builder fee is already approved
         result = self.fapiPrivateGetV3Builder()
         #
@@ -4210,10 +4212,11 @@ class aster(Exchange, ImplicitAPI):
         approvedBuilders = result
         length = len(approvedBuilders)
         found = False
+        builderAddress = self.safe_string(self.options, 'builder')
         for i in range(0, length):
             builderInfo = self.safe_dict(approvedBuilders, i, {})
             builderAccountId = self.safe_string(builderInfo, 'builderAddress')
-            if builderAccountId == self.safe_string(self.options, 'builder'):
+            if builderAccountId == builderAddress:
                 found = True
                 break
         if not found:

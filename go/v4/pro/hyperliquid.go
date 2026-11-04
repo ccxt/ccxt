@@ -89,12 +89,12 @@ func (this *Hyperliquid) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CreateOrdersWsAsync(orders any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Hyperliquid) CreateOrdersWsAsync(orders any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.createOrdersWsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]any], orders any, optionalArgs ...any) any {
+func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -108,7 +108,7 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]any], ord
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
 	var ordersRequest any = this.CreateOrdersRequest(orders, params)
-	var wrapped map[string]any = ccxt.MapTyped(this.WrapAsPostAction(ordersRequest))
+	var wrapped map[string]any = this.WrapAsPostAction(ordersRequest)
 	var request any = this.SafeDict(wrapped, "request", map[string]any{})
 	var requestId *string = this.SafeString(wrapped, "requestId")
 
@@ -121,7 +121,7 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]any], ord
 	var data map[string]any = ccxt.SafeMapTyped(responseOjb, "data")
 	var statuses any = this.SafeList(data, "statuses", []any{})
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.ParseOrders(statuses, nil)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.ParseOrders(statuses, nil))}
 	return nil
 }
 
@@ -145,12 +145,12 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]any], ord
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hyperliquid) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hyperliquid) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -165,19 +165,19 @@ func (this *Hyperliquid) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]a
 		}
 	}
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(nil, symbol, typeVar, side, amount, price, params)
-	var order map[string]any = ccxt.MapTyped(ccxt.GetValue(orderglobalParamsVariable, 0))
-	var globalParams map[string]any = ccxt.MapTyped(ccxt.GetValue(orderglobalParamsVariable, 1))
+	var order map[string]any = ccxt.MapTyped(orderglobalParamsVariable[0])
+	var globalParams map[string]any = ccxt.MapTyped(orderglobalParamsVariable[1])
 
 	r1 := <-this.CreateOrdersWsAsync([]any{order}, globalParams)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orders []any = r1.Value
+	var orders []any = ccxt.OrdersToList(r1.Value)
 	var ordersLength int = len(orders)
 	if ordersLength == 0 {
 
 		// not sure why but it is happening sometimes
-		ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.SafeOrder(map[string]any{}))}
+		ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.SafeOrder(map[string]any{})}
 		return nil
 	}
 	var parsedOrder any = ccxt.GetValue(orders, 0)
@@ -192,7 +192,7 @@ func (this *Hyperliquid) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]a
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(resolved)}
 	return nil
 }
 
@@ -216,12 +216,12 @@ func (this *Hyperliquid) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]a
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hyperliquid) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
+func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	amount := ccxt.GetArg(optionalArgs, 0, nil)
@@ -240,10 +240,10 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any
 	var market map[string]any = this.Market(symbol)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(id, symbol, typeVar, side, amount, price, params)
-	var order map[string]any = ccxt.MapTyped(ccxt.GetValue(orderglobalParamsVariable, 0))
-	var globalParams map[string]any = ccxt.MapTyped(ccxt.GetValue(orderglobalParamsVariable, 1))
+	var order map[string]any = ccxt.MapTyped(orderglobalParamsVariable[0])
+	var globalParams map[string]any = ccxt.MapTyped(orderglobalParamsVariable[1])
 	var postRequest any = this.EditOrdersRequest([]any{order}, globalParams)
-	var wrapped map[string]any = ccxt.MapTyped(this.WrapAsPostAction(postRequest))
+	var wrapped map[string]any = this.WrapAsPostAction(postRequest)
 	var request any = this.SafeDict(wrapped, "request", map[string]any{})
 	var requestId *string = this.SafeString(wrapped, "requestId")
 
@@ -259,7 +259,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any
 	var first any = this.SafeDict(statuses, 0, map[string]any{})
 	var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(first, market))
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: parsedOrder}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(parsedOrder)}
 	return nil
 }
 
@@ -275,12 +275,12 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any
  * @param {string} [params.vaultAddress] the vault address for order cancellation
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -297,7 +297,7 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids a
 	}
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
-	var wrapped map[string]any = ccxt.MapTyped(this.WrapAsPostAction(request))
+	var wrapped map[string]any = this.WrapAsPostAction(request)
 	var wsRequest any = this.SafeDict(wrapped, "request", map[string]any{})
 	var requestId *string = this.SafeString(wrapped, "requestId")
 
@@ -323,7 +323,7 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids a
 		})))
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: orders}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(orders)}
 	return nil
 }
 
@@ -339,12 +339,12 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids a
  * @param {string} [params.vaultAddress] the vault address for order cancellation
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hyperliquid) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id string, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -356,19 +356,9 @@ func (this *Hyperliquid) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ccxt.ListTyped(r.Value)
+	var orders []any = ccxt.OrdersToList(r.Value)
 
-	var resolved map[string]any
-	switch resolvedBox := this.SafeDict(orders, 0).(type) {
-	case map[string]any:
-		resolved = resolvedBox
-	case *sync.Map:
-		resolved = ccxt.SafeMapToMap(resolvedBox)
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
-	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(this.SafeDictMap(orders, 0))}
 	return nil
 }
 
@@ -443,12 +433,12 @@ func (this *Hyperliquid) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderB
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Hyperliquid) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hyperliquid) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -485,7 +475,19 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
@@ -545,12 +547,12 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hyperliquid) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hyperliquid) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Hyperliquid) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -602,7 +604,7 @@ func (this *Hyperliquid) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved)}
 	return nil
 }
 
@@ -615,12 +617,12 @@ func (this *Hyperliquid) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Hyperliquid) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) unWatchTickerBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hyperliquid) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -654,7 +656,19 @@ func (this *Hyperliquid) unWatchTickerBody(ch chan ccxt.AsyncResult[any], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 
@@ -668,12 +682,12 @@ func (this *Hyperliquid) unWatchTickerBody(ch chan ccxt.AsyncResult[any], symbol
  * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hyperliquid) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hyperliquid) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -730,7 +744,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]an
 	tickers := r2.Value
 	if this.NewUpdates {
 
-		ch <- ccxt.AsyncResult[map[string]any]{Value: this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized)}
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized))}
 		return nil
 	}
 
@@ -744,7 +758,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]an
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved)}
 	return nil
 }
 
@@ -757,12 +771,12 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hyperliquid) UnWatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) UnWatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) unWatchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Hyperliquid) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -791,7 +805,19 @@ func (this *Hyperliquid) unWatchTickersBody(ch chan ccxt.AsyncResult[any], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 
@@ -807,12 +833,12 @@ func (this *Hyperliquid) unWatchTickersBody(ch chan ccxt.AsyncResult[any], optio
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Hyperliquid) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -823,13 +849,8 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], opti
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("watchMyTrades", params)
-	if derefPtr := this.SafeString(userAddressResult, 0); derefPtr != nil {
-		userAddress = *derefPtr
-	} else {
-		userAddress = nil
-	}
+	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	if this.Markets == nil {
 
@@ -860,7 +881,7 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], opti
 	if userAddress == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a user address"))
 	}
-	var subscribeHash string = "subscribe:userFills::" + ccxt.ToLower(userAddress)
+	var subscribeHash string = "subscribe:userFills::" + strings.ToLower(*userAddress)
 	// unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
 
 	r1 := <-this.WaitForPendingUnsubscribeAsync(url, "myTrades")
@@ -878,7 +899,7 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], opti
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
 
@@ -894,12 +915,12 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], opti
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
-func (this *Hyperliquid) WatchMyLiquidationsAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) WatchMyLiquidationsAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Liquidation] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Liquidation], 1)
 	go this.watchMyLiquidationsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) watchMyLiquidationsBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hyperliquid) watchMyLiquidationsBody(ch chan ccxt.AsyncResult[[]ccxt.Liquidation], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -913,7 +934,7 @@ func (this *Hyperliquid) watchMyLiquidationsBody(ch chan ccxt.AsyncResult[any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[[]ccxt.Liquidation]{Value: r.Value}
 	return nil
 }
 
@@ -929,12 +950,12 @@ func (this *Hyperliquid) watchMyLiquidationsBody(ch chan ccxt.AsyncResult[any], 
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
-func (this *Hyperliquid) WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Liquidation] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Liquidation], 1)
 	go this.watchMyLiquidationsForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
+func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Liquidation], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -945,7 +966,7 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
 	_ = params
 	userAddressparamsValueVariable := this.HandlePublicAddress("watchMyLiquidationsForSymbols", params)
 	userAddress := ccxt.GetValue(userAddressparamsValueVariable, 0)
-	var paramsValue map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsValueVariable, 1))
+	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -971,7 +992,7 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
 		},
 	}
 	var message map[string]any = this.Extend(request, paramsValue)
-	if ccxt.IsEqual(userAddress, nil) {
+	if userAddress == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyLiquidationsForSymbols() requires a user address"))
 	}
 	// shares the userFills subscription with watchMyTrades
@@ -989,11 +1010,21 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
 	newLiquidations := r2.Value
 	if this.NewUpdates {
 
-		ch <- ccxt.AsyncResult[any]{Value: newLiquidations}
+		var resolved []any
+		switch resolvedBox := newLiquidations.(type) {
+		case []any:
+			resolved = resolvedBox
+		case ccxt.IArrayCache:
+			resolved = resolvedBox.ToArray()
+		case nil:
+		default:
+			panic(ccxt.ExchangeError("resolved value is not []any"))
+		}
+		ch <- ccxt.AsyncResult[[]ccxt.Liquidation]{Value: ccxt.LiquidationsFromList(resolved)}
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolsSinceLimit(this.MyLiquidations, symbolsNormalized, since, limit, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Liquidation]{Value: ccxt.LiquidationsFromList(this.FilterBySymbolsSinceLimit(this.MyLiquidations, symbolsNormalized, since, limit, true))}
 	return nil
 }
 
@@ -1007,12 +1038,12 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) UnWatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) UnWatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) unWatchMyTradesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Hyperliquid) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1029,9 +1060,8 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan ccxt.AsyncResult[any], opti
 	if symbol != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only"))
 	}
-	var userAddress *string = nil
 	var userAddressResult any = this.HandlePublicAddress("unWatchMyTrades", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	var messageHash string = "unsubscribe:myTrades"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
@@ -1048,7 +1078,19 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan ccxt.AsyncResult[any], opti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) bool {
@@ -1283,12 +1325,12 @@ func (this *Hyperliquid) HandleMyLiquidations(client any, message map[string]any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Hyperliquid) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Hyperliquid) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, optionalArgs ...any) any {
+func (this *Hyperliquid) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1337,7 +1379,7 @@ func (this *Hyperliquid) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
 
@@ -1350,12 +1392,12 @@ func (this *Hyperliquid) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Hyperliquid) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) unWatchTradesBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hyperliquid) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1390,7 +1432,19 @@ func (this *Hyperliquid) unWatchTradesBody(ch chan ccxt.AsyncResult[any], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
@@ -1520,12 +1574,12 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Hyperliquid) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Hyperliquid) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.OHLCV] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.OHLCV], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol string, optionalArgs ...any) any {
+func (this *Hyperliquid) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1577,7 +1631,7 @@ func (this *Hyperliquid) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol 
 		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbolValue, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
 
@@ -1591,12 +1645,12 @@ func (this *Hyperliquid) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Hyperliquid) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) unWatchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hyperliquid) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1634,7 +1688,19 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
@@ -1700,12 +1766,12 @@ func (this *Hyperliquid) HandleWsPost(client any, message map[string]any) {
  * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx'
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Hyperliquid) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hyperliquid) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Balances] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Balances], 1)
 	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1717,28 +1783,22 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]an
 			panic(r.Err)
 		}
 	}
-	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("watchBalance", params)
-	if derefPtr := this.SafeString(userAddressResult, 0); derefPtr != nil {
-		userAddress = *derefPtr
-	} else {
-		userAddress = nil
-	}
+	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, paramsValue)
-	var isUnifiedEnabled any = nil
 
 	r1 := <-this.IsUnifiedEnabledAsync("watchBalance", userAddress, false, paramsMarketType)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var unifiedResult []any = r1.Value
-	isUnifiedEnabled = this.SafeBool(unifiedResult, 0)
+	var isUnifiedEnabled *bool = this.SafeBool(unifiedResult, 0)
 	var paramsValue2 any = this.SafeDict(unifiedResult, 1, paramsMarketType)
 	var dex *string = this.SafeString(paramsValue2, "dex")
-	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
+	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled != nil && *isUnifiedEnabled == true)) && (dex == nil)
 	var topic string = "clearinghouseState"
-	if isSpot == true {
+	if isSpot {
 		topic = "spotState"
 	}
 	var messageHash string = topic + "::balance"
@@ -1747,8 +1807,8 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]an
 		"type": topic,
 		"user": userAddress,
 	}
-	if isSpot == true {
-		if ccxt.IsEqual(isUnifiedEnabled, true) {
+	if isSpot {
+		if isUnifiedEnabled != nil && *isUnifiedEnabled == true {
 			subscription["isPortfolioMargin"] = true
 		}
 	} else {
@@ -1784,7 +1844,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]an
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(resolved)}
 	return nil
 }
 
@@ -1796,12 +1856,12 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} status of the unwatch request
  */
-func (this *Hyperliquid) UnWatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) UnWatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1814,28 +1874,22 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[any], optio
 		}
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
-	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("unWatchBalance", params)
-	if derefPtr := this.SafeString(userAddressResult, 0); derefPtr != nil {
-		userAddress = *derefPtr
-	} else {
-		userAddress = nil
-	}
+	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("unWatchBalance", nil, paramsValue)
-	var isUnifiedEnabled any = nil
 
 	r1 := <-this.IsUnifiedEnabledAsync("unWatchBalance", userAddress, false, paramsMarketType)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var unifiedResult []any = r1.Value
-	isUnifiedEnabled = this.SafeBool(unifiedResult, 0)
+	var isUnifiedEnabled *bool = this.SafeBool(unifiedResult, 0)
 	var paramsValue2 any = this.SafeDict(unifiedResult, 1, paramsMarketType)
 	var dex *string = this.SafeString(paramsValue2, "dex")
-	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
+	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled != nil && *isUnifiedEnabled == true)) && (dex == nil)
 	var topic string = "clearinghouseState"
-	if isSpot == true {
+	if isSpot {
 		topic = "spotState"
 	}
 	var messageHash string = "unsubscribe" + ":" + topic
@@ -1852,7 +1906,19 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[any], optio
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
+	var resolved bool
+	switch resolvedBox := r2.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
@@ -2023,12 +2089,12 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
  * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
-func (this *Hyperliquid) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Hyperliquid) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Position] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Position], 1)
 	go this.watchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -2046,9 +2112,8 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]any], opt
 			panic(r.Err)
 		}
 	}
-	var userAddress *string = nil
 	var userAddressResult any = this.HandlePublicAddress("watchPositions", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	var topic string = "clearinghouseState"
 	var messageHash string = topic + "::positions"
@@ -2103,11 +2168,11 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]any], opt
 		default:
 			panic(ccxt.ExchangeError("resolved value is not []any"))
 		}
-		ch <- ccxt.AsyncResult[[]any]{Value: resolved}
+		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(resolved)}
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true))}
 	return nil
 }
 func (this *Hyperliquid) SetPositionsCache(client any, optionalArgs ...any) {
@@ -2134,7 +2199,7 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
+		var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(rawPosition)))
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
@@ -2170,12 +2235,12 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} status of the unwatch request
  */
-func (this *Hyperliquid) UnWatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) UnWatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) unWatchPositionsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Hyperliquid) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -2194,9 +2259,8 @@ func (this *Hyperliquid) unWatchPositionsBody(ch chan ccxt.AsyncResult[any], opt
 	}
 	var messageHash string = "unsubscribe:clearinghouseState"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
-	var userAddress *string = nil
 	var userAddressResult any = this.HandlePublicAddress("unWatchPositions", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -2211,7 +2275,19 @@ func (this *Hyperliquid) unWatchPositionsBody(ch chan ccxt.AsyncResult[any], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 
@@ -2227,12 +2303,12 @@ func (this *Hyperliquid) unWatchPositionsBody(ch chan ccxt.AsyncResult[any], opt
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Hyperliquid) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2250,13 +2326,8 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], option
 			panic(r.Err)
 		}
 	}
-	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("watchOrders", params)
-	if derefPtr := this.SafeString(userAddressResult, 0); derefPtr != nil {
-		userAddress = *derefPtr
-	} else {
-		userAddress = nil
-	}
+	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	var market map[string]any = nil
 	var messageHash any = "order"
@@ -2288,7 +2359,7 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], option
 	if userAddress == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a user address"))
 	}
-	var subscribeHash string = "subscribe:orderUpdates::" + ccxt.ToLower(userAddress)
+	var subscribeHash string = "subscribe:orderUpdates::" + strings.ToLower(*userAddress)
 	// unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
 
 	r1 := <-this.WaitForPendingUnsubscribeAsync(url, "order")
@@ -2306,7 +2377,7 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], option
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
 
@@ -2320,12 +2391,12 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], option
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) UnWatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) UnWatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) unWatchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Hyperliquid) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2344,9 +2415,8 @@ func (this *Hyperliquid) unWatchOrdersBody(ch chan ccxt.AsyncResult[any], option
 	}
 	var messageHash string = "unsubscribe:order"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
-	var userAddress *string = nil
 	var userAddressResult any = this.HandlePublicAddress("unWatchOrders", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	var userAddress *string = this.SafeString(userAddressResult, 0)
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -2361,7 +2431,19 @@ func (this *Hyperliquid) unWatchOrdersBody(ch chan ccxt.AsyncResult[any], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Hyperliquid) HandleOrder(client any, message map[string]any) {
@@ -2456,12 +2538,7 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message any) any {
 	var channel *string = this.SafeString(message, "channel", "")
 	if channel != nil && *channel == "error" {
 		var ret_msg *string = this.SafeString(message, "data", "")
-		if func() int {
-			if ret_msg == nil {
-				return -1
-			}
-			return strings.Index(*ret_msg, "Already subscribed")
-		}() >= 0 {
+		if strings.Index(*ret_msg, "Already subscribed") >= 0 {
 			// a duplicate subscribe is harmless - the server-side subscription is intact
 			// and data keeps flowing; rejecting all pending futures here would poison the
 			// whole connection, see https://github.com/ccxt/ccxt/issues/28369
@@ -2524,12 +2601,12 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message any) any {
  * @param {string} subHash the subscription hash the watch call is about to register
  * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
  */
-func (this *Hyperliquid) WaitForPendingUnsubscribeAsync(url any, subHash string) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) WaitForPendingUnsubscribeAsync(url any, subHash string) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.waitForPendingUnsubscribeBody(ch, url, subHash)
 	return ch
 }
-func (this *Hyperliquid) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[any], url any, subHash string) any {
+func (this *Hyperliquid) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], url any, subHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	if ccxt.InOp(this.Clients, url) {
@@ -2571,12 +2648,12 @@ func (this *Hyperliquid) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[
 
 	return nil
 }
-func (this *Hyperliquid) ExpirePendingUnsubscribeAsync(client any, subHash any, unsubHash any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hyperliquid) ExpirePendingUnsubscribeAsync(client any, subHash any, unsubHash any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.expirePendingUnsubscribeBody(ch, client, subHash, unsubHash)
 	return ch
 }
-func (this *Hyperliquid) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[any], client any, subHash any, unsubHash any) any {
+func (this *Hyperliquid) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], client any, subHash any, unsubHash any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash) {
@@ -2800,7 +2877,7 @@ func (this *Hyperliquid) HandleMessage(client any, message any) {
 		"spotState":            this.HandleBalance,
 	}
 	var exacMethod any = this.SafeValue(methods, topic)
-	if !ccxt.IsEqual(exacMethod, nil) {
+	if exacMethod != nil {
 		ccxt.CallDynamically(exacMethod, client, message)
 		return
 	}
@@ -2888,7 +2965,7 @@ func (this *Hyperliquid) CreateOrdersWs(orders []ccxt.OrderRequest, options ...c
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2923,7 +3000,7 @@ func (this *Hyperliquid) CreateOrderWs(symbol string, typeVar string, side strin
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2958,7 +3035,7 @@ func (this *Hyperliquid) EditOrderWs(id string, symbol string, typeVar string, s
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2985,7 +3062,7 @@ func (this *Hyperliquid) CancelOrdersWs(ids []string, options ...ccxt.CancelOrde
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -3012,7 +3089,7 @@ func (this *Hyperliquid) CancelOrderWs(id string, options ...ccxt.CancelOrderWsO
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -3084,7 +3161,7 @@ func (this *Hyperliquid) WatchTicker(symbol string, options ...ccxt.WatchTickerO
 	if r.Err != nil {
 		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
+	var res ccxt.Ticker = r.Value
 	return res, nil
 }
 
@@ -3132,7 +3209,7 @@ func (this *Hyperliquid) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -3182,7 +3259,7 @@ func (this *Hyperliquid) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -3209,7 +3286,7 @@ func (this *Hyperliquid) WatchMyLiquidations(symbol string, options ...ccxt.Watc
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Liquidation = ccxt.NewLiquidationArray(r.Value)
+	var res []ccxt.Liquidation = r.Value
 	return res, nil
 }
 
@@ -3236,7 +3313,7 @@ func (this *Hyperliquid) WatchMyLiquidationsForSymbols(symbols []string, options
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Liquidation = ccxt.NewLiquidationArray(r.Value)
+	var res []ccxt.Liquidation = r.Value
 	return res, nil
 }
 
@@ -3286,7 +3363,7 @@ func (this *Hyperliquid) WatchTrades(symbol string, options ...ccxt.WatchTradesO
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -3336,7 +3413,7 @@ func (this *Hyperliquid) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
+	var res []ccxt.OHLCV = r.Value
 	return res, nil
 }
 
@@ -3378,7 +3455,7 @@ func (this *Hyperliquid) WatchBalance(params ...any) (ccxt.Balances, error) {
 	if r.Err != nil {
 		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(r.Value)
+	var res ccxt.Balances = r.Value
 	return res, nil
 }
 
@@ -3421,7 +3498,7 @@ func (this *Hyperliquid) WatchPositions(options ...ccxt.WatchPositionsOptions) (
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Position = ccxt.NewPositionArray(r.Value)
+	var res []ccxt.Position = r.Value
 	return res, nil
 }
 
@@ -3471,7 +3548,7 @@ func (this *Hyperliquid) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 

@@ -824,19 +824,21 @@ public partial class coinsph : Exchange
             for (int i = 0; i < byNumberOfSymbols.Count; i++)
             {
                 object entry = byNumberOfSymbols[i];
-                if (isGreaterThanOrEqual(symbolsAmount, getValue(entry, 0)))
+                Int64? threshold = this.safeInteger(entry, 0);
+                if (!(threshold == null) && (threshold == null || symbolsAmount >= threshold))
                 {
                     return getValue(entry, 1);
                 }
             }
         } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
-            object limit = getValue(parameters, "limit");
+            Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = byLimit[i];
-                if (isGreaterThanOrEqual(limit, getValue(entry, 0)))
+                Int64? threshold = this.safeInteger(entry, 0);
+                if ((limit != null) && !(threshold == null) && (threshold == null || limit >= threshold))
                 {
                     return getValue(entry, 1);
                 }
@@ -1272,8 +1274,7 @@ public partial class coinsph : Exchange
                 request["endTime"] = until;
             } else
             {
-                Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                object endTimeByLimit = this.sum(since, multiply(duration, ((limitResolved - 1))));
+                object endTimeByLimit = this.sum(since, ((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1))));
                 Int64 now = this.milliseconds();
                 request["endTime"] = mathMin(endTimeByLimit, now);
             }
@@ -1281,11 +1282,10 @@ public partial class coinsph : Exchange
         {
             request["endTime"] = until;
             // since work properly only when it is "younger" than last "limit" candle
-            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-            request["startTime"] = subtract(until, (multiply(duration, ((limitResolved - 1)))));
+            request["startTime"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(until, (((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1)))));
         }
         request["limit"] = limitResolved;
-        object paramsOmitted = this.omit(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         List<object> response = await this.publicGetOpenapiQuoteV1Klines(this.extend(request, paramsOmitted));
         //
         //     [
@@ -1489,7 +1489,7 @@ public partial class coinsph : Exchange
         string? side = null;
         if ((isBuyer != null))
         {
-            side = ((isBuyer == true)) ? "buy" : "sell";
+            side = isBuyer == true ? "buy" : "sell";
         }
         string? isMaker = this.safeString(trade, "isMaker");
         string? takerOrMaker = null;
@@ -1608,10 +1608,10 @@ public partial class coinsph : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? testOrder = this.safeBool(parameters, "test", false);
-        object paramsOmitted = this.omit(parameters, "test");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "test"));
         string? orderType = this.safeString(paramsOmitted, "type", type);
         orderType = this.encodeOrderType(orderType);
-        object paramsType = this.omit(paramsOmitted, "type");
+        Dictionary<string, object> paramsType = this.omit(paramsOmitted, "type");
         object paramsQuote = null;
         string? orderSide = this.encodeOrderSide(side);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1747,7 +1747,7 @@ public partial class coinsph : Exchange
         {
             request["orderId"] = id;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"}));
         Dictionary<string, object> response = await this.privateGetOpenapiV1Order(this.extend(request, paramsOmitted));
         return this.parseOrder(response);
     }
@@ -1846,7 +1846,7 @@ public partial class coinsph : Exchange
         {
             request["orderId"] = id;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"}));
         Dictionary<string, object> response = await this.privateDeleteOpenapiV1Order(this.extend(request, paramsOmitted));
         return this.parseOrder(response);
     }
@@ -2512,7 +2512,7 @@ public partial class coinsph : Exchange
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "network", networkId },
         };
-        object paramsOmitted = this.omit(parameters, "network");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "network"));
         Dictionary<string, object> response = await this.privateGetOpenapiWalletV1DepositAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -2553,13 +2553,13 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (((getValue(query, key) is IList<object>) || (getValue(query, key).GetType().IsGenericType && getValue(query, key).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((((key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null) is IList<object>) || ((key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null).GetType().IsGenericType && (key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 if ((i != 0))
                 {
                     encodedArrayParams = encodedArrayParams + "&";
                 }
-                object innerArray = getValue(query, key);
+                object innerArray = (key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null);
                 remainingQuery = this.omit(remainingQuery, key);
                 string? encodedArrayParam = this.parseArrayParam(innerArray, key);
                 encodedArrayParams = encodedArrayParams + encodedArrayParam;

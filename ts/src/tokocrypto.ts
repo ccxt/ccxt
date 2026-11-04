@@ -1065,7 +1065,7 @@ export default class tokocrypto extends Exchange {
         const buyerMaker = this.safeBool2 (trade, 'm', 'isBuyerMaker');
         let takerOrMaker: Str = undefined;
         if (buyerMaker !== undefined) {
-            side = (buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
+            side = (buyerMaker) ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
@@ -1621,7 +1621,7 @@ export default class tokocrypto extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             '-2': 'open',
             '0': 'open', // NEW
@@ -1846,16 +1846,19 @@ export default class tokocrypto extends Exchange {
         const isPostOnlyTimeInForce = (requestedTimeInForce === 'GTX');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, isPostOnlyTimeInForce, params);
         // only supported for spot/margin api
-        const typeResolved: OrderType = (postOnly === true) ? 'LIMIT_MAKER' : type;
+        const typeResolved: OrderType = (postOnly) ? 'LIMIT_MAKER' : type;
         // post only is expressed by the order type here, not by a time force
-        const timeInForceResolved: Str = (postOnly === true) ? undefined : requestedTimeInForce;
+        let timeInForceResolved: Str = requestedTimeInForce;
+        if (postOnly) {
+            timeInForceResolved = undefined;
+        }
         const initialUppercaseType = typeResolved.toUpperCase ();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const triggerKeys: string[] = (triggerPrice !== undefined) ? [ 'triggerPrice', 'stopPrice' ] : [];
         let paramsRequest: Dict = this.omit (paramsPostOnly, this.arrayConcat ([ 'clientId', 'clientOrderId', 'timeInForce' ], triggerKeys));
         if (triggerPrice !== undefined) {
-            if (postOnly === true) {
+            if (postOnly) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
             }
             if (uppercaseType === 'MARKET') {
@@ -2669,7 +2672,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         if (!(apiName in this.urls['api']['rest'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
@@ -2766,7 +2769,7 @@ export default class tokocrypto extends Exchange {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool (response, 'success', true);
         let parsedMessage: NullableDict = undefined;
-        if (success !== true) {
+        if (!success) {
             const messageInner = this.safeString (response, 'msg');
             if (messageInner !== undefined) {
                 try {
@@ -2809,7 +2812,7 @@ export default class tokocrypto extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
-        if (success !== true) {
+        if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
         return undefined;
@@ -2823,11 +2826,12 @@ export default class tokocrypto extends Exchange {
         } else if (('noPoolId' in config) && !('poolId' in params)) {
             return config['noPoolId'];
         } else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger (params, 'limit');
             const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit <= entry[0]) {
+                const entryLimit = this.safeInteger (entry, 0);
+                if ((limit !== undefined) && (entryLimit !== undefined) && (limit <= entryLimit)) {
                     return entry[1];
                 }
             }

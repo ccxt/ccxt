@@ -100,7 +100,7 @@ class woo(ccxt.async_support.woo):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
-    async def unwatch_public(self, subHash: str, symbol: Str, topic: str, params={}) -> object:
+    async def unwatch_public(self, subHash: str, symbol: Str, topic: str, params: dict = {}) -> object:
         urlUid = ''
         if (self.uid is not None) and (self.uid != ''):
             urlUid = '/' + self.uid
@@ -282,7 +282,8 @@ class woo(ccxt.async_support.woo):
                 ts = self.safe_integer(messageItem, 'ts')
                 if ts is None:
                     continue
-                if ts < orderbook['timestamp']:
+                orderbookTimestamp = self.safe_integer(orderbook, 'timestamp')
+                if (orderbookTimestamp is not None) and (ts < orderbookTimestamp):
                     continue
                 else:
                     self.handle_order_book_message(client, messageItem, orderbook)
@@ -308,7 +309,7 @@ class woo(ccxt.async_support.woo):
         amount = self.safe_float_2(delta, 'quantity', 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -483,7 +484,7 @@ class woo(ccxt.async_support.woo):
         #     }
         #
         topic = self.safe_string(message, 'topic')
-        data = self.safe_value(message, 'data')
+        data = self.safe_list(message, 'data', [])
         timestamp = self.safe_integer(message, 'ts')
         result = []
         for i in range(0, len(data)):
@@ -904,11 +905,11 @@ class woo(ccxt.async_support.woo):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'executionreport'
-        if trigger is True:
+        if trigger:
             topic = 'algoexecutionreportv2'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
+        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
         if symbolResolved is not None:
             messageHash += ':' + symbolResolved
         request = {
@@ -940,11 +941,11 @@ class woo(ccxt.async_support.woo):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'executionreport'
-        if trigger is True:
+        if trigger:
             topic = 'algoexecutionreportv2'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = 'myTrades'
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
+        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
         if symbolResolved is not None:
             messageHash += ':' + symbolResolved
         request = {
@@ -1352,7 +1353,7 @@ class woo(ccxt.async_support.woo):
         #    }
         #
         data = self.safe_dict(message, 'data')
-        balances = self.safe_value(data, 'balances')
+        balances = self.safe_dict(data, 'balances', {})
         keys = list(balances.keys())
         ts = self.safe_integer(message, 'ts')
         self.balance['info'] = data

@@ -87,6 +87,8 @@ public class TestHandleMethods extends BaseTest
                     put( "marginMode", "isolated" );
                     put( "fetchX", new HashMap<String, Object>() {{
                         put( "uta", true );
+                        put( "boolString", "false" );
+                        put( "boolNumber", 1 );
                     }} );
                 }} );
             }});
@@ -97,7 +99,7 @@ public class TestHandleMethods extends BaseTest
             Pair<Boolean, Map<String, Object>> utaparams2Variable = exchange.handleOptionBoolAndParams(new HashMap<String, Object>() {{}}, "fetchX", "uta", false);
             Boolean uta = utaparams2Variable.first();
             Map<String, Object> params2 = utaparams2Variable.second();
-            Assert(java.util.Objects.equals(uta, true));
+            Assert(uta);
             Pair<String, Map<String, Object>> absentparams3Variable = exchange.handleOptionStringAndParams(new HashMap<String, Object>() {{}}, "fetchX", "absentKey", "fallback");
             String absent = absentparams3Variable.first();
             Map<String, Object> params3 = absentparams3Variable.second();
@@ -109,7 +111,28 @@ public class TestHandleMethods extends BaseTest
             Map<String, Object> params4 = fromParamsparams4Variable.second();
             Assert(java.util.Objects.equals(fromParams, "p"));
             Assert(!(((Map<?, ?>)params4).containsKey("absentKey")));
-            // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+            // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
+            Pair<Boolean, Map<String, Object>> boolStringparams5Variable = exchange.handleOptionBoolAndParams(new HashMap<String, Object>() {{}}, "fetchX", "boolString", true);
+            Boolean boolString = boolStringparams5Variable.first();
+            Map<String, Object> params5 = boolStringparams5Variable.second();
+            Assert(java.util.Objects.equals(boolString, false));
+            Pair<Boolean, Map<String, Object>> boolNumberparams6Variable = exchange.handleOptionBoolAndParams(new HashMap<String, Object>() {{
+            put( "boolNumber", 1 );
+        }}, "fetchX", "boolNumber", false);
+            Boolean boolNumber = boolNumberparams6Variable.first();
+            Map<String, Object> params6 = boolNumberparams6Variable.second();
+            Assert(java.util.Objects.equals(boolNumber, true));
+            Assert(!(((Map<?, ?>)params6).containsKey("boolNumber")));
+            Boolean caught = false;
+            try
+            {
+                exchange.checkOptionBool("fetchX", "wrongBool", "yes");
+            } catch(Exception error)
+            {
+                caught = true;
+            }
+            Assert(caught, "a non-boolean option should have thrown");
+            Assert(!java.util.Objects.equals(params5, null));
             Assert(!java.util.Objects.equals(params1, null) || !java.util.Objects.equals(params2, null) || !java.util.Objects.equals(params3, null));
         }
         public void testHandleMethods()

@@ -28,13 +28,16 @@ func testFetchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchan
 	}
 	var limit int = 10
 	var duration int64 = exchange.ParseTimeframe(chosenTimeframeKey)
-	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
+	var since int64 = (exchange.Milliseconds() - (duration * int64(limit) * 1000)) - 1000
 
-	r := <-exchange.FetchOHLCVAsync(StringArg(symbol), chosenTimeframeKey, since, limit)
+	r := <-exchange.(ccxt.IFetchOHLCV).FetchOHLCVAsync(StringArg(symbol), chosenTimeframeKey, since, limit)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ohlcvs := r.Value
+	var ohlcvs any = nil
+	if r.Value != nil {
+		ohlcvs = ccxt.OHLCVsToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol)
 	var now int64 = exchange.Milliseconds()
 	for i := 0; i < GetArrayLength(ohlcvs); i++ {

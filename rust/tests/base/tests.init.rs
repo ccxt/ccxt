@@ -6,7 +6,6 @@
 use super::*;
 
 pub async fn baseTestsInit() {
-    testConstants();
     testAfterConstructor();
     testAggregate();
     testExtend();
@@ -66,7 +65,6 @@ pub async fn baseTestsInit() {
     testImplodeParams();
     testUnique();
     testUrlencodeNested();
-    testSleep().await;
     testFetchHistory().await;
     testIo();
     testIsJsonEncodedObject();

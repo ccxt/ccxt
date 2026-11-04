@@ -4,8 +4,9 @@
 import paradexRest from '../paradex.js';
 import Precise from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
+import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { ExchangeError } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
@@ -75,6 +76,25 @@ export default class paradex extends paradexRest {
         return requestId;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name paradex#subscribeRequest
+     * @description builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+     * @param {string} channel the channel to subscribe to
+     * @returns {object} the subscribe request
+     */
+    subscribeRequest (channel: string): Dict {
+        return {
+            'jsonrpc': '2.0',
+            'id': this.requestId (),
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+    }
+
     async authenticate (params: Dict = {}) {
         const url = this.getWsUrl ();
         const client = this.client (url);
@@ -83,15 +103,19 @@ export default class paradex extends paradexRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const token = await this.authenticateRest ();
+            const requestId = this.requestId ();
             const request: Dict = {
                 'jsonrpc': '2.0',
-                'id': this.requestId (),
+                'id': requestId,
                 'method': 'auth',
                 'params': {
                     'bearer': token,
                 },
             };
-            this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+            const subscription: Dict = {
+                'id': requestId,
+            };
+            this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
         }
         return await future;
     }
@@ -104,13 +128,39 @@ export default class paradex extends paradexRest {
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
+        // the future stays resolved, so later private watches on this connection skip the auth request
+        const future = this.safeValue (client.futures, 'authenticated');
+        if (future !== undefined) {
+            future.resolve (true);
+        }
+    }
+
+    handleRequestReply (client: Client, message: Dict) {
+        //
+        // auth
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscribe
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": { "channel": "orders.ALL" }
+        //     }
+        //
+        // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
+        const requestId = this.safeString (message, 'id');
+        const authSubscription = this.safeDict (client.subscriptions, 'authenticated');
+        const authRequestId = this.safeString (authSubscription, 'id');
         const result = this.safeDict (message, 'result');
-        if (result !== undefined) {
-            // client.resolve (true, messageHash);
-            const future = this.safeValue (client.futures, 'authenticated');
-            if (future !== undefined) {
-                future.resolve (true);
-            }
+        const isAuth = ((requestId !== undefined) && (requestId === authRequestId)) || (this.safeString (result, 'node_id') !== undefined);
+        if (isAuth) {
+            this.handleAuthenticationMessage (client, message);
         }
     }
 
@@ -137,14 +187,12 @@ export default class paradex extends paradexRest {
             messageHash += 'ALL';
         }
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': messageHash,
-            },
+        const request: Dict = this.subscribeRequest (messageHash);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbol, limit);
@@ -209,14 +257,12 @@ export default class paradex extends paradexRest {
         const market = this.market (symbol);
         const messageHash = this.getOrderBookChannel (market['id']);
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': messageHash,
-            },
+        const request: Dict = this.subscribeRequest (messageHash);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        const orderbook: WsOrderBook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -304,15 +350,13 @@ export default class paradex extends paradexRest {
         // option too, thousands of messages a second, all decoded only to be filtered out
         const channel = 'markets_summary.' + market['id'];
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHash = 'markets_summary.' + market['symbol'];
-        return await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
+        };
+        return await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
     }
 
     /**
@@ -331,13 +375,6 @@ export default class paradex extends paradexRest {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const channel = 'markets_summary';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHashes: string[] = [];
         if (symbolsNormalized !== undefined && Array.isArray (symbolsNormalized)) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -347,7 +384,11 @@ export default class paradex extends paradexRest {
         } else {
             messageHashes.push (channel);
         }
-        const newTicker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+        };
+        const newTicker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, subscription);
         if (this.newUpdates) {
             const result: Dict = {};
             const newTickerSymbol = this.safeString (newTicker, 'symbol');
@@ -386,14 +427,12 @@ export default class paradex extends paradexRest {
             channel += 'ALL';
         }
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        const orders: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        const orders: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -473,14 +512,12 @@ export default class paradex extends paradexRest {
             channel += 'ALL';
         }
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -550,13 +587,6 @@ export default class paradex extends paradexRest {
         // one channel carries every market
         const channel = 'positions';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHashes: string[] = [];
         let symbolsLength = 0;
         if (symbolsNormalized !== undefined) {
@@ -569,7 +599,12 @@ export default class paradex extends paradexRest {
                 messageHashes.push (channel + ':' + (symbolsNormalized as string[])[i]);
             }
         }
-        const newPositions = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ channel ]);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': messageHashes,
+        };
+        const newPositions = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ channel ], subscription);
         if (this.newUpdates) {
             return newPositions;
         }
@@ -649,14 +684,13 @@ export default class paradex extends paradexRest {
         await this.authenticate ();
         const channel = 'account';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        const messageHash = 'balance';
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        return await this.watch (url, 'balance', this.deepExtend (request, params), channel);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
     }
 
     handleBalance (client: Client, message: Dict) {
@@ -684,7 +718,27 @@ export default class paradex extends paradexRest {
         //
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
-        this.balance = this.parseWsBalance (data);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
+        const balance = this.parseWsBalance (data);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [ 'free', 'used', 'total' ];
+        const keys = Object.keys (balance);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray (key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');
     }
 
@@ -765,15 +819,13 @@ export default class paradex extends paradexRest {
         const symbolValue: string = this.symbol (symbol);
         const channel = 'funding_data';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHash = channel + '.' + symbolValue;
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
+        };
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
     /**
@@ -792,13 +844,6 @@ export default class paradex extends paradexRest {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const channel = 'funding_data';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHashes: string[] = [];
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
@@ -813,7 +858,11 @@ export default class paradex extends paradexRest {
         } else {
             messageHashes.push (channel);
         }
-        const newFundingRates = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+        };
+        const newFundingRates = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, subscription);
         if (this.newUpdates) {
             const result: Dict = {};
             const newFundingRatesSymbol = this.safeString (newFundingRates, 'symbol');
@@ -916,9 +965,9 @@ export default class paradex extends paradexRest {
         if (frameLength < 8) {
             return undefined;
         }
-        const blockLength = this.sbeReadUint (frameHex, 0, 2);
-        const templateId = this.sbeReadUint (frameHex, 2, 2);
-        const schemaId = this.sbeReadUint (frameHex, 4, 2);
+        const blockLength = this.parseToInt (this.sbeReadUint (frameHex, 0, 2));
+        const templateId = this.parseToInt (this.sbeReadUint (frameHex, 2, 2));
+        const schemaId = this.parseToInt (this.sbeReadUint (frameHex, 4, 2));
         if ((schemaId !== 1) || (frameLength < this.sum (blockLength, 8))) {
             return undefined;
         }
@@ -969,29 +1018,32 @@ export default class paradex extends paradexRest {
         };
     }
 
-    sbeReadUint (frameHex: string, offset: number, length: number): any {
+    sbeReadUint (frameHex: string, offset: number, length: number): int {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         const digits = '0123456789abcdef';
-        let result = 0;
-        let factor = 1;
-        let position = offset * 2;
-        for (let i = 0; i < length; i++) {
+        let result: int = 0;
+        let factor: int = 1;
+        const count = this.parseToInt (length);
+        const start = this.parseToInt (offset);
+        let position: int = start * 2;
+        for (let i = 0; i < count; i++) {
             // plain variables as slice bounds, php gets end - start unparenthesized
             const middle = position + 1;
             const next = position + 2;
             const high = digits.indexOf (frameHex.slice (position, middle));
             const low = digits.indexOf (frameHex.slice (middle, next));
-            result = this.sum (result, high * 16 * factor, low * factor);
-            factor = factor * 256;
-            position = next;
+            result = this.parseToInt (this.sum (result, high * 16 * factor, low * factor));
+            factor = this.parseToInt (factor * 256);
+            position = this.parseToInt (next);
         }
-        return result;
+        // an exact integer below 2^32, parseToInt keeps it and types the return as an integer
+        return this.parseToInt (result);
     }
 
     sbeReadInt64 (frameHex: string, offset: number): Str {
         // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
-        const low = this.sbeReadUint (frameHex, offset, 4);
-        const high = this.sbeReadUint (frameHex, offset + 4, 4);
+        const low = this.parseToInt (this.sbeReadUint (frameHex, offset, 4));
+        const high = this.parseToInt (this.sbeReadUint (frameHex, this.sum (offset, 4), 4));
         if ((high === 2147483648) && (low === 0)) {
             return undefined;
         }
@@ -1025,26 +1077,31 @@ export default class paradex extends paradexRest {
     }
 
     sbeReadEnum (frameHex: string, offset: number, values: Dict): Str {
-        const value = this.sbeReadUint (frameHex, offset, 1);
+        const value = this.parseToInt (this.sbeReadUint (frameHex, offset, 1));
         return this.safeString (values, this.numberToString (value));
     }
 
     sbeReadString (frameHex: string, offset: number, length: number): string {
-        const start = offset * 2;
-        const end = this.sum (start, length * 2);
+        const first = this.parseToInt (offset);
+        const size = this.parseToInt (length);
+        const start = first * 2;
+        const end = this.sum (start, size * 2);
         return this.binaryToString (this.base16ToBinary (frameHex.slice (start, end)));
     }
 
     sbeReadAddress (frameHex: string, offset: number): string {
         // a 32-byte big-endian account address, printed without leading zeros like the JSON feed
-        const rawStart = offset * 2;
+        const first = this.parseToInt (offset);
+        const rawStart = first * 2;
         const rawEnd = rawStart + 64;
         const raw = frameHex.slice (rawStart, rawEnd);
-        let start = 0;
-        let next = 1;
-        while ((start < 63) && (raw.slice (start, next) === '0')) {
-            start = next;
-            next = start + 1;
+        let start = 63;
+        for (let i = 0; i < 63; i++) {
+            const next = i + 1;
+            if (raw.slice (i, next) !== '0') {
+                start = i;
+                break;
+            }
         }
         return '0x' + raw.slice (start, 64);
     }
@@ -1054,29 +1111,33 @@ export default class paradex extends paradexRest {
         // when the frame ends before all of them, and only the strings present when a trailing one is
         // absent, which is how a field appended to var-data reads on a frame from before it
         const result: string[] = [];
-        let position = offset;
-        for (let i = 0; i < count; i++) {
-            if (position >= frameLength) {
+        const end = this.parseToInt (frameLength);
+        const total = this.parseToInt (count);
+        let position = this.parseToInt (offset);
+        for (let i = 0; i < total; i++) {
+            if (position >= end) {
                 return result;
             }
-            const length = this.sbeReadUint (frameHex, position, 1);
-            if (this.sum (position, 1, length) > frameLength) {
+            const length = this.parseToInt (this.sbeReadUint (frameHex, position, 1));
+            const next = this.parseToInt (this.sum (position, 1, length));
+            if (next > end) {
                 return undefined;
             }
             result.push (this.sbeReadString (frameHex, position + 1, length));
-            position = this.sum (position, 1, length);
+            position = next;
         }
         return result;
     }
 
-    parseSbeTrade (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeTrade (frameHex: string, blockLength: number, frameLength: number): NullableDict {
+        const blockSize = this.parseToInt (blockLength);
         //
         // TradeEvent (templateId 1), 50-byte block
         //
         //     ts int64, seq int64, tradeId int64 (deprecated, truncated), side uint8, price int64,
         //     size int64, createdAt int64, tradeType uint8, then market and tradeIdStr strings
         //
-        if (blockLength < 50) {
+        if (blockSize < 50) {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 2, frameLength);
@@ -1098,32 +1159,34 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeOrderBook (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeOrderBook (frameHex: string, blockLength: number, frameLength: number): NullableDict {
+        const blockSize = this.parseToInt (blockLength);
         //
         // BookEvent (templateId 3), 89-byte block
         //
         //     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
         //     groups of (price int64, size int64) entries and the market string
         //
-        if (blockLength < 17) {
+        if (blockSize < 17) {
             return undefined;
         }
         // watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
-        const pkgType = this.sbeReadUint (frameHex, 24, 1);
+        const pkgType = this.parseToInt (this.sbeReadUint (frameHex, 24, 1));
         if (pkgType !== 0) {
             return undefined;
         }
         const inserts: Dict[] = [];
         const sides = [ 'BUY', 'SELL' ];
-        let position = this.sum (blockLength, 8);
+        const frameEnd = this.parseToInt (frameLength);
+        let position = this.parseToInt (this.sum (blockLength, 8));
         for (let i = 0; i < sides.length; i++) {
-            if (position + 4 > frameLength) {
+            if (position + 4 > frameEnd) {
                 return undefined;
             }
-            const entryLength = this.sbeReadUint (frameHex, position, 2);
-            const numInGroup = this.sbeReadUint (frameHex, position + 2, 2);
-            position = position + 4;
-            if ((entryLength < 16) || (this.sum (position, numInGroup * entryLength) > frameLength)) {
+            const entryLength = this.parseToInt (this.sbeReadUint (frameHex, position, 2));
+            const numInGroup = this.parseToInt (this.sbeReadUint (frameHex, position + 2, 2));
+            position = this.parseToInt (position + 4);
+            if ((entryLength < 16) || (this.parseToInt (this.sum (position, numInGroup * entryLength)) > frameEnd)) {
                 return undefined;
             }
             for (let j = 0; j < numInGroup; j++) {
@@ -1132,7 +1195,7 @@ export default class paradex extends paradexRest {
                     'price': this.sbeReadDecimal (frameHex, position),
                     'size': this.sbeReadDecimal (frameHex, position + 8),
                 });
-                position = this.sum (position, entryLength);
+                position = this.parseToInt (this.sum (position, entryLength));
             }
         }
         const strings = this.sbeReadVarStrings (frameHex, position, 1, frameLength);
@@ -1151,7 +1214,8 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeMarketSummary (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeMarketSummary (frameHex: string, blockLength: number, frameLength: number): NullableDict {
+        const blockSize = this.parseToInt (blockLength);
         //
         // MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
         // 12 int64 fields and settlementTwapEstimate are read
@@ -1160,7 +1224,7 @@ export default class paradex extends paradexRest {
         //     ask, totalVolume, priceChangeRate24h, ..., settlementTwapEstimate (1:3, at 240), then the
         //     market string
         //
-        if (blockLength < 96) {
+        if (blockSize < 96) {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
@@ -1170,7 +1234,7 @@ export default class paradex extends paradexRest {
         }
         // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
         let settlementTwapEstimate: Str = undefined;
-        if (blockLength >= 248) {
+        if (blockSize >= 248) {
             settlementTwapEstimate = this.sbeReadDecimal (frameHex, 248);
         }
         return {
@@ -1190,14 +1254,15 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeFundingData (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeFundingData (frameHex: string, blockLength: number, frameLength: number): NullableDict {
+        const blockSize = this.parseToInt (blockLength);
         //
         // FundingDataEvent (templateId 5), 66-byte block
         //
         //     ts int64, seq int64, fundingRate int64, fundingIndex int64, createdAt int64,
         //     fundingPremium int64, fundingRate8h int64, fundingPeriodHours int16, ... then the market
         //
-        if (blockLength < 58) {
+        if (blockSize < 58) {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
@@ -1216,7 +1281,8 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeOrder (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeOrder (frameHex: string, blockLength: number, frameLength: number): NullableDict {
+        const blockSize = this.parseToInt (blockLength);
         //
         // OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
         //
@@ -1225,7 +1291,7 @@ export default class paradex extends paradexRest {
         //     createdAt int64, updatedAt int64, account [32]byte, receivedAt int64, publishedAt int64,
         //     stp uint8, flags uint8, ... then the orderId, clientOrderId, market and cancelReason strings
         //
-        if (blockLength < 126) {
+        if (blockSize < 126) {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 4, frameLength);
@@ -1272,18 +1338,19 @@ export default class paradex extends paradexRest {
     sbeReadFlags (frameHex: string, offset: number, names: string[]): string[] {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         const flags: string[] = [];
-        let bits = this.sbeReadUint (frameHex, offset, 1);
+        let bits = this.parseToInt (this.sbeReadUint (frameHex, offset, 1));
         for (let i = 0; i < names.length; i++) {
             const bit = this.parseToInt (bits % 2);
             if ((bit === 1) && (names[i] !== '')) {
                 flags.push (names[i]);
             }
-            bits = this.parseToInt ((bits - bit) / 2);
+            bits = this.parseToInt (bits / 2);
         }
         return flags;
     }
 
-    parseSbeFill (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeFill (frameHex: string, blockLength: number, frameLength: number): NullableDict {
+        const blockSize = this.parseToInt (blockLength);
         //
         // FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
         //
@@ -1292,7 +1359,7 @@ export default class paradex extends paradexRest {
         //     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
         //     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
         //
-        if (blockLength < 107) {
+        if (blockSize < 107) {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 6, frameLength);
@@ -1321,7 +1388,7 @@ export default class paradex extends paradexRest {
             'size': this.sbeReadDecimal (frameHex, 35),
             'underlying_price': this.sbeReadDecimal (frameHex, 99),
         };
-        if (blockLength >= 116) {
+        if (blockSize >= 116) {
             // lowercase, as the JSON feed spells fill flags
             fill['flags'] = this.sbeReadFlags (frameHex, 115, [ 'interactive', 'rpi', 'fastfill', '', '', '', '', 'unknown' ]);
             fill['orderbook_seq_no'] = this.sbeReadInt64 (frameHex, 116);
@@ -1329,7 +1396,8 @@ export default class paradex extends paradexRest {
         return fill;
     }
 
-    parseSbePosition (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbePosition (frameHex: string, blockLength: number, frameLength: number): NullableDict {
+        const blockSize = this.parseToInt (blockLength);
         //
         // PositionEvent (templateId 22), 154-byte block
         //
@@ -1339,7 +1407,7 @@ export default class paradex extends paradexRest {
         //     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
         //     status uint8, then the market and lastFillId strings
         //
-        if (blockLength < 154) {
+        if (blockSize < 154) {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 2, frameLength);
@@ -1380,7 +1448,8 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeAccount (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeAccount (frameHex: string, blockLength: number, frameLength: number): NullableDict {
+        const blockSize = this.parseToInt (blockLength);
         //
         // AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
         //
@@ -1389,7 +1458,7 @@ export default class paradex extends paradexRest {
         //     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
         //     then the settlementAsset string
         //
-        if (blockLength < 113) {
+        if (blockSize < 113) {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
@@ -1411,7 +1480,7 @@ export default class paradex extends paradexRest {
             'total_collateral': this.sbeReadDecimal (frameHex, 24),
             'updated_at': this.sbeReadTimestamp (frameHex, 72),
         };
-        if (blockLength >= 121) {
+        if (blockSize >= 121) {
             account['last_seen_notification'] = this.sbeReadTimestamp (frameHex, 121);
         }
         return account;
@@ -1435,18 +1504,49 @@ export default class paradex extends paradexRest {
         const error = this.safeDict (message, 'error');
         if (error === undefined) {
             return true;
-        } else {
+        }
+        try {
+            const feedback = this.id + ' ' + this.json (error);
             const errorCode = this.safeString (error, 'code');
             if (errorCode !== undefined) {
-                const feedback = this.id + ' ' + this.json (error);
-                this.throwExactlyMatchedException (this.exceptions['exact'], '-32600', feedback);
-                const messageString = this.safeString (error, 'message');
-                if (messageString !== undefined) {
-                    this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            }
+            const messageString = this.safeString (error, 'message');
+            if (messageString !== undefined) {
+                this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+            }
+            throw new ExchangeError (feedback);
+        } catch (e) {
+            // the subscription of every request sent keeps its id, so the request this error answers is found
+            // by it. A failed subscribe or auth is forgotten, so that the next watch sends it again
+            const requestId = this.safeString (message, 'id');
+            let handled = false;
+            if (requestId !== undefined) {
+                const subscribeHashes = Object.keys (client.subscriptions);
+                for (let i = 0; i < subscribeHashes.length; i++) {
+                    const subscribeHash = subscribeHashes[i];
+                    const subscription = this.safeDict (client.subscriptions, subscribeHash);
+                    if (this.safeString (subscription, 'id') === requestId) {
+                        handled = true;
+                        delete client.subscriptions[subscribeHash];
+                        // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
+                        const messageHashes = this.safeList (subscription, 'messageHashes', [ subscribeHash ]);
+                        for (let j = 0; j < messageHashes.length; j++) {
+                            client.reject (e, messageHashes[j]);
+                        }
+                    }
                 }
             }
-            return false;
+            if (!handled) {
+                // not a reply to a known request, every watcher on the connection gets the error,
+                // and the next private watch authenticates again instead of waiting on a rejected future
+                if ('authenticated' in client.subscriptions) {
+                    delete client.subscriptions['authenticated'];
+                }
+                client.reject (e);
+            }
         }
+        return false;
     }
 
     override handleMessage (client: Client, message: any) {
@@ -1490,7 +1590,7 @@ export default class paradex extends paradexRest {
         //
         const result = this.safeDict (parsedMessage, 'result');
         if (result !== undefined) {
-            this.handleAuthenticationMessage (client, parsedMessage);
+            this.handleRequestReply (client, parsedMessage);
             return;
         }
         const data = this.safeDict (parsedMessage, 'params');

@@ -373,8 +373,8 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             // only supports a limit of 150 at this time
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 150 : limit;
-            String messageHash = ((("market." + market.get("id")) + ".mbp.") + String.valueOf(limitValue));
+            Integer limitValue = 150;
+            String messageHash = (("market." + market.get("id")) + ".mbp.150");
             String api = this.safeString(this.options, "api", "api");
             Map<String, Object> hostname = new HashMap<String, Object>() {{
                 put( "hostname", Bittrade.this.hostname );
@@ -499,9 +499,9 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -534,7 +534,8 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             return orderbook;
         }
-        if ((Helpers.isLessThanOrEqual(prevSeqNum, Helpers.GetValue(orderbook, "nonce"))) && (Helpers.isGreaterThan(seqNum, Helpers.GetValue(orderbook, "nonce"))))
+        Long nonce = this.safeInteger(orderbook, "nonce");
+        if ((!java.util.Objects.equals(nonce, null)) && ((prevSeqNum == null || (nonce != null && prevSeqNum <= nonce))) && ((seqNum != null && (nonce == null || seqNum > nonce))))
         {
             List<Object> asks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(tick, "bids", new ArrayList<Object>(Arrays.asList()));
@@ -573,8 +574,12 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         //     }
         //
         String messageHash = this.safeString(message, "ch");
-        Object ch = this.safeValue(message, "ch");
-        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
+        String ch = this.safeString(message, "ch");
+        if (java.util.Objects.equals(ch, null))
+        {
+            return;
+        }
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
@@ -583,7 +588,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             // no active subscription holds a book for this symbol, drop the delta
             return;
         }
-        if (java.util.Objects.equals((orderbook == null ? null : orderbook.get("nonce")), null))
+        if (java.util.Objects.equals(this.safeInteger(orderbook, "nonce"), null))
         {
             ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(message);
         } else
@@ -607,7 +612,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.put("nonce", null);
-        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
+        orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
         // watch the snapshot in a separate async call
         this.spawn(() -> { try { this.watchOrderBookSnapshot(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
@@ -682,8 +687,12 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         //         }
         //     }
         //
-        Object ch = this.safeValue(message, "ch");
-        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
+        String ch = this.safeString(message, "ch");
+        if (java.util.Objects.equals(ch, null))
+        {
+            return;
+        }
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String type = this.safeString(parts, 0);
         if (java.util.Objects.equals(type, "market"))
         {

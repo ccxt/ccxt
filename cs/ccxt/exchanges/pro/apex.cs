@@ -156,7 +156,7 @@ public partial class apex : ccxt.apex
         for (Int64 j = 0; j < length; j++)
         {
             Int64 index = ((length - j) - 1);
-            ccxt.Trade parsed = this.parseWsTrade(getValue(trades, index), market);
+            ccxt.Trade parsed = this.parseWsTrade((trades != null && index < trades.Count ? trades[(int)index] : null), market);
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         string messageHash = (("trade" + ":") + symbol);
@@ -269,17 +269,16 @@ public partial class apex : ccxt.apex
         parameters ??= new Dictionary<string, object>();
         var client = this.client(url);
         List<object> newTopics = new List<object>() {};
-        object newTopicsCount = 0;
         for (int i = 0; i < (topics?.Count ?? 0); i++)
         {
-            if (!(inOp(client.subscriptions, (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null))))
+            if (!((client.subscriptions != null && (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null) is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
             {
                 newTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
-                newTopicsCount = add(newTopicsCount, 1);
             }
         }
+        int newTopicsLength = (newTopics?.Count ?? 0);
         Dictionary<string, object> message = null;
-        if (isGreaterThan(newTopicsCount, 0))
+        if (newTopicsLength > 0)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "op", "subscribe" },
@@ -919,7 +918,7 @@ public partial class apex : ccxt.apex
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1088,7 +1087,7 @@ public partial class apex : ccxt.apex
                 throw new ExchangeError (feedback) ;
             }
             bool? success = this.safeBool(message, "success");
-            if (((success != null)) && ((success != true)))
+            if (((success != null)) && (success != true))
             {
                 string? ret_msg = this.safeString(message, "ret_msg");
                 IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});
@@ -1133,7 +1132,7 @@ public partial class apex : ccxt.apex
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -1169,7 +1168,7 @@ public partial class apex : ccxt.apex
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (getIndexOf(topic, keys[i]) >= 0)
+            if ((topic?.IndexOf((string)keys[i], StringComparison.Ordinal) ?? -1) >= 0)
             {
                 object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
