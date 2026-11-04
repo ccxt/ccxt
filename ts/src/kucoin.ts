@@ -570,7 +570,7 @@ export default class kucoin extends Exchange {
                 'utaV2': {
                     'get': {
                         'market/funding-rate': { 'cost': 6 } as Endpoint<Dict>, // 3PW
-                        'market/orderbook': { 'cost': 5 } as Endpoint<Dict>, // 5PW for depth <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, see calculateRateLimiterCost
+                        'market/orderbook': { 'cost': 10 } as Endpoint<Dict>, // 5PW for depth <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, see calculateRateLimiterCost
                     },
                 },
                 'utaPrivate': {
@@ -3854,8 +3854,8 @@ export default class kucoin extends Exchange {
         let response: Dict;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, paramsUta);
         if (utaOption) {
-            // the endpoint returns a single level when limit is omitted, so request the full book instead
-            if (limit === undefined) {
+            // the endpoint returns a single level when limit is omitted and rejects values above 1000, so request the full book instead
+            if ((limit === undefined) || (limit > 1000)) {
                 request['limit'] = 'FULL';
             } else {
                 request['limit'] = limit;
@@ -9264,17 +9264,18 @@ export default class kucoin extends Exchange {
         const version = this.safeString (params, 'version', defaultVersion);
         if ((api[0] === 'utaV2') && (path === 'market/orderbook')) {
             // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
+            // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
             const depth = this.safeInteger (params, 'limit'); // undefined for 'FULL'
             if (depth === undefined) {
-                return 250;
+                return 500;
             } else if (depth > 500) {
-                return 250;
+                return 500;
             } else if (depth > 100) {
-                return 50;
+                return 100;
             } else if (depth > 20) {
-                return 20;
+                return 40;
             }
-            return 5;
+            return 10;
         }
         if (version === 'v3' && ('v3' in config)) {
             return config['v3'];
