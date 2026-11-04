@@ -248,6 +248,10 @@ func (this *BaseExchange) GetReturnResponseHeaders() bool {
 	return this.ReturnResponseHeaders
 }
 
+func (this *BaseExchange) GetPrecisionMode() int {
+	return this.PrecisionMode
+}
+
 func (this *BaseExchange) SetReturnResponseHeaders(val any) {
 	val = derefScalar(val) // generated callers may pass typed pointers; a typed nil is an absent value
 	if val == nil {

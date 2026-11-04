@@ -170,6 +170,7 @@ type ICoreExchange interface {
 	GetFetchCache() []any
 	GetReturnResponseHeaders() bool
 	SetReturnResponseHeaders(val any)
+	GetPrecisionMode() int
 	GetHas() map[string]any
 	GetId() string
 	GetHostname() string
