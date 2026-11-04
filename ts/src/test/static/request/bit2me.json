@@ -1,0 +1,75 @@
+{
+    "exchange": "bit2me",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "spot",
+                "method": "fetchTrades",
+                "url": "https://gateway.bit2me.com/v1/trading/trade/last?symbol=BTC%2FEUR&limit=5",
+                "input": [
+                    "BTC/EUR",
+                    null,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "all",
+                "method": "fetchMarkets",
+                "url": "https://gateway.bit2me.com/v2/trading/market-config",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "all",
+                "method": "fetchTickers",
+                "url": "https://gateway.bit2me.com/v2/trading/tickers",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot",
+                "method": "fetchOHLCV",
+                "url": "https://gateway.bit2me.com/v1/trading/candle?symbol=BTC%2FEUR&interval=60&limit=3&startTime=1793600000000",
+                "input": [
+                    "BTC/EUR",
+                    "1h",
+                    1793600000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot",
+                "method": "fetchOrderBook",
+                "url": "https://gateway.bit2me.com/v2/trading/order-book?symbol=BTC%2FEUR",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot",
+                "method": "fetchTicker",
+                "url": "https://gateway.bit2me.com/v2/trading/tickers?symbol=BTC%2FEUR",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "output": null
+            }
+        ]
+    },
+    "outputType": "both"
+}
