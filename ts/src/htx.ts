@@ -6771,13 +6771,13 @@ export default class htx extends Exchange {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsNetwork, 'withdraw', 'includeFee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsNetwork, 'withdraw', 'includeFee');
         let feeString: Str = undefined;
-        let paramsFee: Dict = paramsIncludeFee;
+        let paramsFee: Dict = paramsWithoutIncludeFee;
         if (includeFee === true) {
             // htx charges the fee on top of the amount, so it is deducted in advance
-            let fee = this.safeNumber (paramsIncludeFee, 'fee');
-            paramsFee = this.omit (paramsIncludeFee, 'fee');
+            let fee = this.safeNumber (paramsWithoutIncludeFee, 'fee');
+            paramsFee = this.omit (paramsWithoutIncludeFee, 'fee');
             if (fee === undefined) {
                 const cachedNetwork = this.safeDict (currency['networks'], networkCode, {});
                 fee = this.safeNumber (cachedNetwork, 'fee');

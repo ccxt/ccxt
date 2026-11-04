@@ -335,7 +335,7 @@ export default class hyperliquid extends Exchange {
                     'extends': 'default',
                     'withdraw': {
                         // 'selectableFeeInclusion': false,
-                        'feeIncluded': false,
+                        'feeIncluded': true,
                     },
                 },
                 'forPerps': {
@@ -4563,8 +4563,8 @@ export default class hyperliquid extends Exchange {
             };
             sig = this.signL1Action (action, nonce);
         } else {
-            const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (params, 'withdraw', 'includeFee');
-            const feeOption = this.handleOptionStringAndParams (paramsIncludeFee, 'withdraw', 'fee', '1')[0]; // flat 1 USDC withdrawal fee
+            const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (params, 'withdraw', 'includeFee');
+            const feeOption = this.handleOptionStringAndParams (paramsWithoutIncludeFee, 'withdraw', 'fee', '1')[0]; // flat 1 USDC withdrawal fee
             const amountString = this.withdrawAmountByFeeInclusion ('USDC', amount, undefined, includeFee, feeOption);
             const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             const payload: Dict = {

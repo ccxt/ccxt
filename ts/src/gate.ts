@@ -4279,7 +4279,7 @@ export default class gate extends Exchange {
         }
         const currency = this.currency (code);
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
         const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, networkCode, includeFee);
         const request: Dict = {
             'currency': currency['id'], // todo: currencies have network-junctions
@@ -4292,7 +4292,7 @@ export default class gate extends Exchange {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, paramsIncludeFee));
+        const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, paramsWithoutIncludeFee));
         //
         //    {
         //        "id": "w13389675",

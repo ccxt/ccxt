@@ -6464,7 +6464,7 @@ export default class bingx extends Exchange {
         };
         const walletType = this.safeInteger (walletTypes, walletTypeOption, defaultWalletType);
         const network = this.safeStringUpper (paramsWalletType, 'network');
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsWalletType, 'withdraw', 'includeFee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsWalletType, 'withdraw', 'includeFee');
         const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, network, includeFee);
         const request: Dict = {
             'coin': currency['id'],
@@ -6478,7 +6478,7 @@ export default class bingx extends Exchange {
         if (tagWithdrawTag !== undefined) {
             request['addressTag'] = tagWithdrawTag;
         }
-        const paramsOmitted = this.omit (paramsIncludeFee, [ 'walletType', 'network' ]);
+        const paramsOmitted = this.omit (paramsWithoutIncludeFee, [ 'walletType', 'network' ]);
         const response = await this.walletsV1PrivatePostCapitalWithdrawApply (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data') as Dict;
         //    {

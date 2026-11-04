@@ -2115,7 +2115,7 @@ export default class hashkey extends Exchange {
         }
         const currency = this.currency (code);
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
         const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, networkCode, includeFee);
         const request: Dict = {
             'coin': currency['id'],
@@ -2128,7 +2128,7 @@ export default class hashkey extends Exchange {
         if (networkCode !== undefined) {
             request['chainType'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
-        const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, paramsIncludeFee));
+        const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, paramsWithoutIncludeFee));
         //
         //     {
         //         "success": true,

@@ -114,6 +114,9 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
         'fetchOHLCV': {
             'limit': 0,
         },
+        'withdraw': {
+            'feeIncluded': false,
+        },
     };
     const featureKeys = Object.keys (featureObj);
     const allMethods = Object.keys (exchange.has);

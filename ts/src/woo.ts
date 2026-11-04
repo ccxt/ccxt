@@ -3414,7 +3414,7 @@ export default class woo extends Exchange {
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter for ' + code);
         }
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsWithdrawTag, 'withdraw', 'includeFee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsWithdrawTag, 'withdraw', 'includeFee');
         const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, network, includeFee);
         const request: Dict = {
             'amount': this.parseNumber (amountAdjusted),
@@ -3423,7 +3423,7 @@ export default class woo extends Exchange {
         if (tagWithdrawTag !== undefined) {
             request['extra'] = tagWithdrawTag;
         }
-        const paramsOmitted: Dict = this.omit (paramsIncludeFee, 'network');
+        const paramsOmitted: Dict = this.omit (paramsWithoutIncludeFee, 'network');
         request['token'] = currency['id'];
         request['network'] = this.networkCodeToId (network, this.safeString (currency, 'code'));
         const response = await this.v3PrivatePostAssetWalletWithdraw (this.extend (request, paramsOmitted));

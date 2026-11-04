@@ -3264,7 +3264,7 @@ export default class bitget extends Exchange {
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsNetworkCode, 'withdraw', false);
         const currency = this.currency (code);
         const networkId = this.networkCodeToId (networkCode, code);
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsUTA, 'withdraw', 'includeFee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsUTA, 'withdraw', 'includeFee');
         const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, networkCode, includeFee);
         const request: Dict = {
             'coin': currency['id'],
@@ -3278,9 +3278,9 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         if (uta === true) {
-            response = await this.privateUtaPostV3AccountWithdrawal (this.extend (request, paramsIncludeFee));
+            response = await this.privateUtaPostV3AccountWithdrawal (this.extend (request, paramsWithoutIncludeFee));
         } else {
-            response = await this.privateSpotPostV2SpotWalletWithdrawal (this.extend (request, paramsIncludeFee));
+            response = await this.privateSpotPostV2SpotWalletWithdrawal (this.extend (request, paramsWithoutIncludeFee));
         }
         //
         //     {

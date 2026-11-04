@@ -6645,6 +6645,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -6669,11 +6670,11 @@ export default class bybit extends Exchange {
         if (tagWithdrawTag !== undefined) {
             request['tag'] = tagWithdrawTag;
         }
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsAccountType, 'withdraw', 'includeFee', false);
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsAccountType, 'withdraw', 'includeFee', false);
         if (includeFee === true) {
             request['feeType'] = 1; // only change param if inclusion needed
         }
-        const [ networkCode, query ] = this.handleNetworkCodeAndParams (paramsIncludeFee);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (paramsWithoutIncludeFee);
         const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['chain'] = networkId.toUpperCase ();

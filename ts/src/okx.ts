@@ -5714,13 +5714,13 @@ export default class okx extends Exchange {
         if (hasTag) {
             addressWithTag = address + ':' + tagWithdrawTag;
         }
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsWithdrawTag, 'withdraw', 'includeFee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsWithdrawTag, 'withdraw', 'includeFee');
         const request: Dict = {
             'ccy': currency['id'],
             'toAddr': addressWithTag,
             'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
         };
-        let network = this.safeString (paramsIncludeFee, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeString (paramsWithoutIncludeFee, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
             const networks = this.safeDict (this.options, 'networks', {});
             const networkUpper = network.toUpperCase ();
@@ -5732,7 +5732,7 @@ export default class okx extends Exchange {
         if (network !== undefined) {
             omitKeys.push ('network');
         }
-        let fee = this.safeString (paramsIncludeFee, 'fee');
+        let fee = this.safeString (paramsWithoutIncludeFee, 'fee');
         const networkCodeResolved = this.networkIdToCode (network, this.safeString (currency, 'code'));
         if (fee === undefined) {
             // the network fee comes from currencies cached by loadMarkets, the endpoint does not require it
@@ -5744,7 +5744,7 @@ export default class okx extends Exchange {
         }
         const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, networkCodeResolved, includeFee, fee);
         request['amt'] = amountAdjusted;
-        const query = this.omit (paramsIncludeFee, omitKeys);
+        const query = this.omit (paramsWithoutIncludeFee, omitKeys);
         const response = await this.privatePostAssetWithdrawal (this.extend (request, query));
         //
         //     {

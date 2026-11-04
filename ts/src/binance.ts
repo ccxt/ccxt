@@ -10761,10 +10761,10 @@ export default class binance extends Exchange {
         if (networkCode !== undefined) {
             request['network'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
         const amountAdjusted = this.withdrawAmountByFeeInclusion (currency['code'], amount, networkCode, includeFee);
         request['amount'] = amountAdjusted;
-        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, paramsIncludeFee));
+        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, paramsWithoutIncludeFee));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
     }

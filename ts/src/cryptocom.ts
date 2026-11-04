@@ -2052,7 +2052,7 @@ export default class cryptocom extends Exchange {
         }
         const currency = this.safeCurrency (code); // for instance, USDC is not inferred from markets but it's still available
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee');
         const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, networkCode, includeFee);
         const request: Dict = {
             'currency': currency['id'],
@@ -2066,7 +2066,7 @@ export default class cryptocom extends Exchange {
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }
-        const response = await this.v1PrivatePostPrivateCreateWithdrawal (this.extend (request, paramsIncludeFee));
+        const response = await this.v1PrivatePostPrivateCreateWithdrawal (this.extend (request, paramsWithoutIncludeFee));
         //
         //    {
         //        "id":-1,

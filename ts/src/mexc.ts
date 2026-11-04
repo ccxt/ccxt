@@ -5904,7 +5904,7 @@ export default class mexc extends Exchange {
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         network = this.networkCodeToId (network, this.safeString (currency, 'code'));
         this.checkAddress (address, code, tagResolved);
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsWithdrawTag, 'withdraw', 'includeFee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsWithdrawTag, 'withdraw', 'includeFee');
         const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, network, includeFee);
         const request: Dict = {
             'coin': currency['id'],
@@ -5917,7 +5917,7 @@ export default class mexc extends Exchange {
         if (network !== undefined) {
             request['netWork'] = network;
         }
-        const paramsOmitted: Dict = (network !== undefined) ? this.omit (paramsIncludeFee, [ 'network', 'netWork' ]) : paramsIncludeFee;
+        const paramsOmitted: Dict = (network !== undefined) ? this.omit (paramsWithoutIncludeFee, [ 'network', 'netWork' ]) : paramsWithoutIncludeFee;
         const response = await this.spotPrivatePostCapitalWithdraw (this.extend (request, paramsOmitted));
         //
         //     {

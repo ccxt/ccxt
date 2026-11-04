@@ -2985,8 +2985,8 @@ export default class woofipro extends Exchange {
         }
         const currency = this.currency (codeUpper);
         const verifyingContractAddress = this.safeString (this.options, 'verifyingContractAddress');
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (params, 'withdraw', 'includeFee');
-        const chainId = this.safeString (paramsIncludeFee, 'chainId');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (params, 'withdraw', 'includeFee');
+        const chainId = this.safeString (paramsWithoutIncludeFee, 'chainId');
         const currencyNetworks = this.safeDict (currency, 'networks', {});
         const coinNetwork = this.safeDict (currencyNetworks, chainId, {});
         const coinNetworkId = this.safeNumber (coinNetwork, 'id');
@@ -2994,7 +2994,7 @@ export default class woofipro extends Exchange {
             throw new BadRequest (this.id + ' withdraw() require chainId parameter');
         }
         const amountAdjusted = this.withdrawAmountByFeeInclusion (codeUpper, amount, chainId, includeFee);
-        const withdrawNonce = await this.getWithdrawNonce (paramsIncludeFee);
+        const withdrawNonce = await this.getWithdrawNonce (paramsWithoutIncludeFee);
         const nonce = this.nonce ();
         const domain: Dict = {
             'chainId': chainId,
@@ -3030,7 +3030,7 @@ export default class woofipro extends Exchange {
             'verifyingContract': verifyingContractAddress,
             'message': withdrawRequest,
         };
-        const paramsOmitted: Dict = this.omit (paramsIncludeFee, 'chainId');
+        const paramsOmitted: Dict = this.omit (paramsWithoutIncludeFee, 'chainId');
         const response = await this.v1PrivatePostWithdrawRequest (this.extend (request, paramsOmitted));
         //
         //     {
