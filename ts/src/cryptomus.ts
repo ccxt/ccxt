@@ -3,10 +3,10 @@
 
 import { md5 } from '@noble/hashes/legacy.js';
 import Exchange from './abstract/cryptomus.js';
-import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { ArgumentsRequired, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, Fee, List, Endpoint } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Ticker, Trade, TradingFees, CurrencyInterface, Fee, List, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -79,7 +79,7 @@ export default class cryptomus extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false, // v1/exchange/market/assets is nginx 404
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -120,7 +120,7 @@ export default class cryptomus extends Exchange {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': true,
-                'fetchOrderBook': true,
+                'fetchOrderBook': false, // v1/exchange/market/order-book is nginx 404
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -133,10 +133,10 @@ export default class cryptomus extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': true,
+                'fetchTicker': true,
+                'fetchTickers': false, // v1/exchange/market/tickers is nginx 404; price is per symbol
                 'fetchTime': false,
-                'fetchTrades': true,
+                'fetchTrades': false, // v1/exchange/market/trades is nginx 404
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
@@ -171,12 +171,10 @@ export default class cryptomus extends Exchange {
                 'public': {
                     'get': {
                         'v2/user-api/exchange/markets': { 'cost': 1 } as Endpoint<Dict>, // done
-                        'v2/user-api/exchange/market/price': { 'cost': 1 } as Endpoint<Dict>, // not used
-                        'v2/user-api/exchange/markets/price': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/exchange/market/assets': { 'cost': 1 } as Endpoint<Dict>, // done
-                        'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1 } as Endpoint<Dict>, // done
-                        'v1/exchange/market/tickers': { 'cost': 1 } as Endpoint<Dict>, // done
-                        'v1/exchange/market/trades/{currencyPair}': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/markets/price': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v1/exchange/market/assets': { 'cost': 1 } as Endpoint<Dict>, // nginx 404
+                        'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1 } as Endpoint<Dict>, // nginx 404
+                        'v1/exchange/market/trades/{currencyPair}': { 'cost': 1 } as Endpoint<Dict>, // nginx 404
                     },
                 },
                 'private': {
@@ -271,7 +269,9 @@ export default class cryptomus extends Exchange {
                     // {"message":"Minimum amount 15 USDT","state":1}
                     // {"message":"Insufficient funds. USDT wallet balance is 35.21617400.","state":1}
                 },
-                'broad': {},
+                'broad': {
+                    'Market ': BadSymbol, // {"code":1,"message":"Market NOPE_USDT doesn't exist."}
+                },
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
@@ -286,7 +286,7 @@ export default class cryptomus extends Exchange {
      * @method
      * @name cryptomus#fetchMarkets
      * @description retrieves data on all markets for the exchange
-     * @see https://doc.cryptomus.com/personal/market-cap/tickers
+     * @see https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -481,50 +481,40 @@ export default class cryptomus extends Exchange {
 
     /**
      * @method
-     * @name cryptomus#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://doc.cryptomus.com/personal/market-cap/tickers
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @name cryptomus#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.cryptomus.com/methods/exchange/get-current-market-price
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const response = await this.publicGetV1ExchangeMarketTickers (params);
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV2UserApiExchangeMarketsPrice (this.extend (request, params));
         //
         //     {
-        //         "data": [
-        //         {
-        //             "currency_pair": "MATIC_USDT",
-        //             "last_price": "0.342",
-        //             "base_volume": "1676.84092771",
-        //             "quote_volume": "573.48033609043"
-        //         },
-        //         ...
+        //         "price": "78450.4"
         //     }
         //
-        const data = this.safeList (response, 'data');
-        return this.parseTickers (data, symbolsNormalized);
+        return this.parseTicker (response, market);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
-        //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829772",
-        //         "base_volume": "0.35185785",
-        //         "quote_volume": "55.523761128544"
+        //         "price": "78450.4"
         //     }
         //
-        const marketId = this.safeString (ticker, 'currency_pair');
-        const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
-        const last = this.safeString (ticker, 'last_price');
+        const marketResolved: Market = this.safeMarket (undefined, market);
+        const last = this.safeString (ticker, 'price');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
             'high': undefined,
@@ -541,8 +531,8 @@ export default class cryptomus extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'base_volume'),
-            'quoteVolume': this.safeString (ticker, 'quote_volume'),
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
             'info': ticker,
         }, marketResolved);
     }
@@ -1227,8 +1217,10 @@ export default class cryptomus extends Exchange {
         }
         if ('code' in response) {
             const code = this.safeString (response, 'code');
+            const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         } else if ('message' in response) {
             //
