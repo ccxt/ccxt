@@ -110,6 +110,11 @@ export default class bitpandafusion extends Exchange {
                 '422': BadRequest,
                 '429': RateLimitExceeded,
             },
+            'fees': {
+                'trading': {
+                    'feeSide': 'quote',
+                },
+            },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
