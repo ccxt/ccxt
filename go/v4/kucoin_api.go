@@ -1637,6 +1637,11 @@ func (this *Kucoin) UtaV2GetMarketFundingRate(args ...any) <-chan EndpointResult
 	return Fetch2Result[map[string]any](this, "market/funding-rate", []string{"utaV2"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
+// UtaV2GetMarketOrderbook returns a channel that yields a JSON object.
+func (this *Kucoin) UtaV2GetMarketOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/orderbook", []string{"utaV2"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
 // UtaPrivateGetMarketOrderbook returns a channel that yields a JSON object.
 func (this *Kucoin) UtaPrivateGetMarketOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "market/orderbook", []string{"utaPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
