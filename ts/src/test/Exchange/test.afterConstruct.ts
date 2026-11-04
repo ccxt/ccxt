@@ -6,7 +6,7 @@ async function testAfterConstruct (exchange: Exchange, skippedProperties: object
     if (!('networks' in skippedProperties)) {
         testOptionsNetworks (exchange, skippedProperties);
     }
-    assert (exchange.precisionMode === SIGNIFICANT_DIGITS || exchange.precisionMode === TICK_SIZE, 'exchange.precisionMode should be either SIGNIFICANT_DIGITS or TICK_SIZE, but found: ' + exchange.precisionMode);
+    assert (exchange.precisionMode === SIGNIFICANT_DIGITS || exchange.precisionMode === TICK_SIZE, 'exchange.precisionMode should be either SIGNIFICANT_DIGITS or TICK_SIZE');
     return true;
 }
 
