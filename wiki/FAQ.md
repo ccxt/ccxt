@@ -413,7 +413,8 @@ instance = new ccxt.interactivebrokers ({
 instance = new ccxt.interactivebrokers ({
   "options": {
     "useGateway": true,
-  }
+  },
+  "validateServerSsl": false, // because it needs to connct gateway running at https://localhost:5000
 })
 ```
 
