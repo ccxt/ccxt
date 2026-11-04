@@ -57,7 +57,6 @@ pub mod bybiteu;
 #[cfg(feature = "bybitid")]
 pub mod bybitid;
 #[cfg(feature = "bydfi")]
-pub mod bydfi;
 #[cfg(feature = "cex")]
 pub mod cex;
 #[cfg(feature = "coinbase")]
