@@ -2200,6 +2200,11 @@ impl KucoinCore {
         m.insert("cost".to_string(), Value::Int(6));
     m
 }));
+        m.insert("market/orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
     m
@@ -2724,7 +2729,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("GET".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("user-info".to_string(), Value::Str("v2".into()));
+        m.insert("user-info".to_string(), Value::Str("v3".into()));
         m.insert("hf/margin/account/ledgers".to_string(), Value::Str("v3".into()));
         m.insert("sub/user".to_string(), Value::Str("v2".into()));
         m.insert("sub-accounts".to_string(), Value::Str("v2".into()));
@@ -5915,11 +5920,11 @@ impl KucoinCore {
  * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
  * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
- * @see https://www.kucoin.com/docs-new/rest/ua/get-orderbook
+ * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-orderbook
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] the maximum amount of order book entries to return, for uta any depth is accepted and the full book is returned when omitted
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false, the uta orderbook endpoint is public
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -5948,13 +5953,12 @@ impl KucoinCore {
         let mut type_var: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if utaOption.as_bool() == Some(true) {
-            let mut limitString: Value = Value::Str("20".into());
-            if (limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) >= ((100i64) as f64)) {
-                limitString = Value::Str("FULL".into());
-            }  else if limit.as_f64().unwrap_or(f64::NAN) > ((20i64) as f64) {
-                limitString = Value::Str("100".into());
+            // the endpoint returns a single level when limit is omitted and rejects values above 1000, so request the full book instead
+            if (limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64)) {
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), Value::Str("FULL".into())); }
+            }  else {
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limitString); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tradeType".into(), Value::Str("SPOT".into())); }
@@ -5962,7 +5966,7 @@ impl KucoinCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tradeType".into(), Value::Str("FUTURES".into())); }
             }
             let __ws_arg_21 = self.extend(request.clone(), &[paramsMarketType.clone()]);
-            response = self.uta_private_get_market_orderbook(&[__ws_arg_21]).await;
+            response = self.uta_v2_get_market_orderbook(&[__ws_arg_21]).await;
         }  else if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("margin")) {
             if (level.as_f64() != Some(2.0)) && (level != Value::Null) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() can only return level 2".into()))));
@@ -12225,8 +12229,23 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut defaultVersion: Value = self.safe_string(methodVersions, path, &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
-        let mut version: Option<String> = self.safe_string_k(params, "version", &[defaultVersion]).as_str().map(str::to_owned);
+        let mut defaultVersion: Value = self.safe_string(methodVersions, path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
+        let mut version: Option<String> = self.safe_string_k(params.clone(), "version", &[defaultVersion]).as_str().map(str::to_owned);
+        if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("utaV2")) && (path.as_str() == Some("market/orderbook")) {
+            // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
+            // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
+            let mut depth: Value = self.safe_integer_k(params, "limit", &[]); // undefined for 'FULL'
+            if (depth == Value::Null) {
+                return Value::Int(500);
+            }  else if depth.as_f64().unwrap_or(f64::NAN) > ((500i64) as f64) {
+                return Value::Int(500);
+            }  else if depth.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
+                return Value::Int(100);
+            }  else if depth.as_f64().unwrap_or(f64::NAN) > ((20i64) as f64) {
+                return Value::Int(40);
+            }
+            return Value::Int(10);
+        }
         if (version.as_deref() == Some("v3")) && (config.contains_key("v3")) {
             return config.get("v3").cloned().unwrap_or(Value::Null);
         }  else if (version.as_deref() == Some("v2")) && (config.contains_key("v2")) {
