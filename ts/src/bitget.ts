@@ -2307,9 +2307,13 @@ export default class bitget extends Exchange {
                 const marketId = parsedMarket['id'];
                 const instrument = this.safeDict (spotInstruments, marketId);
                 if (instrument !== undefined) {
-                    const parsedInstrument = this.parseMarket (instrument);
-                    if (parsedInstrument !== undefined) {
-                        parsedMarket['stock'] = parsedInstrument['stock'];
+                    const instrumentQuote = this.safeCurrencyCode (this.safeString (instrument, 'quoteCoin'));
+                    const instrumentBase = this.safeCurrencyCode (this.safeString (instrument, 'baseCoin'));
+                    if ((instrumentBase !== undefined) && (instrumentQuote !== undefined)) {
+                        const parsedInstrument = this.parseMarket (instrument);
+                        if (parsedInstrument !== undefined) {
+                            parsedMarket['stock'] = parsedInstrument['stock'];
+                        }
                     }
                 }
             }
