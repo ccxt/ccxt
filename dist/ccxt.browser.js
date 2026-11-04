@@ -313819,7 +313819,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
             },
             'options': {
                 'route': 'auto',
-                'brokerId': 'nfqkvdjp',
+                'brokerId': 'ccxt',
                 'portfolio': '',
                 'accessTokenRefreshRatio': 0.8,
                 'networksById': {
