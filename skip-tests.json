@@ -555,7 +555,6 @@
         }
     },
     "bitso": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active": "not provided"

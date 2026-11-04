@@ -168,6 +168,7 @@ import bitgetPro from  './src/pro/bitget.js'
 import bithumbPro from  './src/pro/bithumb.js'
 import bitoproPro from  './src/pro/bitopro.js'
 import bitruePro from  './src/pro/bitrue.js'
+import bitsoPro from  './src/pro/bitso.js'
 import bitstampPro from  './src/pro/bitstamp.js'
 import bittradePro from  './src/pro/bittrade.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
@@ -363,6 +364,7 @@ const pro = {
     'bithumb':                bithumbPro,
     'bitopro':                bitoproPro,
     'bitrue':                 bitruePro,
+    'bitso':                  bitsoPro,
     'bitstamp':               bitstampPro,
     'bittrade':               bittradePro,
     'bitvavo':                bitvavoPro,

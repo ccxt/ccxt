@@ -1,0 +1,463 @@
+{
+    "exchange": "bitso",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTrades": [
+            {
+                "description": "two public trades in one frame, t 0 is a taker buy at the ask and t 1 is a taker sell at the bid (frame shape from a live capture)",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.bitso.com",
+                "messages": [
+                    {
+                        "action": "subscribe",
+                        "response": "ok",
+                        "time": 1793817233805,
+                        "type": "trades",
+                        "book": "btc_usd"
+                    },
+                    {
+                        "book": "btc_usd",
+                        "sent": 1793817296394,
+                        "payload": [
+                            {
+                                "a": "0.01500000",
+                                "i": 203814319,
+                                "mo": "Hr1ZOVwYQLOsPFkI",
+                                "r": "80250.50",
+                                "t": 0,
+                                "to": "rQNTptaefWI0IorH",
+                                "v": "1203.75750000",
+                                "x": 1793817296322
+                            },
+                            {
+                                "a": "0.00200000",
+                                "i": 203814320,
+                                "mo": "zBUGHjew4bdaKpFq",
+                                "r": "80249.00",
+                                "t": 1,
+                                "to": "C3uGhVlQQRjxVrSE",
+                                "v": "160.49800000",
+                                "x": 1793817297946
+                            }
+                        ],
+                        "type": "trades"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "action": "subscribe",
+                        "book": "btc_usd",
+                        "type": "trades"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "a": "0.01500000",
+                                "i": 203814319,
+                                "mo": "Hr1ZOVwYQLOsPFkI",
+                                "r": "80250.50",
+                                "t": 0,
+                                "to": "rQNTptaefWI0IorH",
+                                "v": "1203.75750000",
+                                "x": 1793817296322
+                            },
+                            "id": "203814319",
+                            "order": null,
+                            "timestamp": 1793817296322,
+                            "datetime": "2026-11-04T18:34:56.322Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 80250.5,
+                            "amount": 0.015,
+                            "cost": 1203.7575,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "a": "0.00200000",
+                                "i": 203814320,
+                                "mo": "zBUGHjew4bdaKpFq",
+                                "r": "80249.00",
+                                "t": 1,
+                                "to": "C3uGhVlQQRjxVrSE",
+                                "v": "160.49800000",
+                                "x": 1793817297946
+                            },
+                            "id": "203814320",
+                            "order": null,
+                            "timestamp": 1793817297946,
+                            "datetime": "2026-11-04T18:34:57.946Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 80249.0,
+                            "amount": 0.002,
+                            "cost": 160.498,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "order-level book synchronized from the rest snapshot (sequence 101) and the buffered diff-orders frames: frame 101 is already in the snapshot, 102 cancels an ask, 103 partially fills a bid and adds an ask",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.bitso.com",
+                "options": {
+                    "watchOrderBook": {
+                        "snapshotDelay": 2
+                    }
+                },
+                "httpResponse": {
+                    "success": true,
+                    "payload": {
+                        "updated_at": "2026-11-04T18:33:53+00:00",
+                        "sequence": "101",
+                        "bids": [
+                            {
+                                "book": "btc_usd",
+                                "price": "80000",
+                                "amount": "0.30000000",
+                                "oid": "o1"
+                            },
+                            {
+                                "book": "btc_usd",
+                                "price": "79900",
+                                "amount": "1.00000000",
+                                "oid": "o2"
+                            },
+                            {
+                                "book": "btc_usd",
+                                "price": "80100",
+                                "amount": "0.50000000",
+                                "oid": "o3"
+                            }
+                        ],
+                        "asks": [
+                            {
+                                "book": "btc_usd",
+                                "price": "80300",
+                                "amount": "0.40000000",
+                                "oid": "a1"
+                            },
+                            {
+                                "book": "btc_usd",
+                                "price": "80500",
+                                "amount": "0.60000000",
+                                "oid": "a2"
+                            }
+                        ]
+                    }
+                },
+                "messages": [
+                    {
+                        "action": "subscribe",
+                        "response": "ok",
+                        "time": 1793817233805,
+                        "type": "diff-orders",
+                        "book": "btc_usd"
+                    },
+                    {
+                        "payload": [
+                            {
+                                "a": "0.50000000",
+                                "d": 1793817233790,
+                                "o": "o3",
+                                "r": "80100",
+                                "s": "open",
+                                "t": 0,
+                                "v": "0",
+                                "z": 0
+                            }
+                        ],
+                        "type": "diff-orders",
+                        "sequence": 101,
+                        "book": "btc_usd",
+                        "sent": 1793817233801
+                    },
+                    {
+                        "payload": [
+                            {
+                                "a": "0.40000000",
+                                "d": 1793817233791,
+                                "o": "a1",
+                                "r": "80300",
+                                "s": "cancelled",
+                                "t": 1,
+                                "v": "0",
+                                "z": 0
+                            }
+                        ],
+                        "type": "diff-orders",
+                        "sequence": 102,
+                        "book": "btc_usd",
+                        "sent": 1793817233802
+                    },
+                    {
+                        "payload": [
+                            {
+                                "a": "0.20000000",
+                                "d": 1793817233792,
+                                "o": "o1",
+                                "r": "80000",
+                                "s": "open",
+                                "t": 0,
+                                "v": "0",
+                                "z": 0
+                            },
+                            {
+                                "a": "0.10000000",
+                                "d": 1793817233793,
+                                "o": "a3",
+                                "r": "80400",
+                                "s": "open",
+                                "t": 1,
+                                "v": "0",
+                                "z": 0
+                            }
+                        ],
+                        "type": "diff-orders",
+                        "sequence": 103,
+                        "book": "btc_usd",
+                        "sent": 1793817233803
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "action": "subscribe",
+                        "book": "btc_usd",
+                        "type": "diff-orders"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USD",
+                    "bids": [
+                        [
+                            80100,
+                            0.5,
+                            "o3"
+                        ],
+                        [
+                            80000,
+                            0.2,
+                            "o1"
+                        ],
+                        [
+                            79900,
+                            1,
+                            "o2"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            80400,
+                            0.1,
+                            "a3"
+                        ],
+                        [
+                            80500,
+                            0.6,
+                            "a2"
+                        ]
+                    ],
+                    "timestamp": 1793817233803,
+                    "datetime": "2026-11-04T18:33:53.803Z",
+                    "nonce": 103
+                }
+            },
+            {
+                "description": "frames buffered before the rest snapshot (sequence 101): frame 100 is older than the snapshot and is skipped (the stale o9 bid must not come back), frame 101 is replayed because the snapshot labeled 101 can still hold the book at 100 (a1 partially filled to 0.25), 102 and 103 are applied on top",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.bitso.com",
+                "options": {
+                    "watchOrderBook": {
+                        "snapshotDelay": 3
+                    }
+                },
+                "httpResponse": {
+                    "success": true,
+                    "payload": {
+                        "updated_at": "2026-11-04T18:33:53+00:00",
+                        "sequence": "101",
+                        "bids": [
+                            {
+                                "book": "btc_usd",
+                                "price": "80000",
+                                "amount": "0.30000000",
+                                "oid": "o1"
+                            },
+                            {
+                                "book": "btc_usd",
+                                "price": "79900",
+                                "amount": "1.00000000",
+                                "oid": "o2"
+                            }
+                        ],
+                        "asks": [
+                            {
+                                "book": "btc_usd",
+                                "price": "80300",
+                                "amount": "0.40000000",
+                                "oid": "a1"
+                            }
+                        ]
+                    }
+                },
+                "messages": [
+                    {
+                        "action": "subscribe",
+                        "response": "ok",
+                        "time": 1793817233805,
+                        "type": "diff-orders",
+                        "book": "btc_usd"
+                    },
+                    {
+                        "payload": [
+                            {
+                                "a": "0.50000000",
+                                "d": 1793817233780,
+                                "o": "o9",
+                                "r": "79000",
+                                "s": "open",
+                                "t": 0,
+                                "v": "0",
+                                "z": 0
+                            }
+                        ],
+                        "type": "diff-orders",
+                        "sequence": 100,
+                        "book": "btc_usd",
+                        "sent": 1793817233781
+                    },
+                    {
+                        "payload": [
+                            {
+                                "a": "0.25000000",
+                                "d": 1793817233782,
+                                "o": "a1",
+                                "r": "80300",
+                                "s": "open",
+                                "t": 1,
+                                "v": "0",
+                                "z": 0
+                            }
+                        ],
+                        "type": "diff-orders",
+                        "sequence": 101,
+                        "book": "btc_usd",
+                        "sent": 1793817233783
+                    },
+                    {
+                        "payload": [
+                            {
+                                "a": "0.30000000",
+                                "d": 1793817233790,
+                                "o": "o1",
+                                "r": "80000",
+                                "s": "open",
+                                "t": 0,
+                                "v": "0",
+                                "z": 0
+                            },
+                            {
+                                "a": "0.60000000",
+                                "d": 1793817233791,
+                                "o": "a2",
+                                "r": "80500",
+                                "s": "open",
+                                "t": 1,
+                                "v": "0",
+                                "z": 0
+                            }
+                        ],
+                        "type": "diff-orders",
+                        "sequence": 102,
+                        "book": "btc_usd",
+                        "sent": 1793817233792
+                    },
+                    {
+                        "payload": [
+                            {
+                                "a": "1.00000000",
+                                "d": 1793817233793,
+                                "o": "o2",
+                                "r": "79900",
+                                "s": "completed",
+                                "t": 0,
+                                "v": "0",
+                                "z": 0
+                            },
+                            {
+                                "a": "0.45000000",
+                                "d": 1793817233794,
+                                "o": "a2",
+                                "r": "80500",
+                                "s": "open",
+                                "t": 1,
+                                "v": "0",
+                                "z": 0
+                            }
+                        ],
+                        "type": "diff-orders",
+                        "sequence": 103,
+                        "book": "btc_usd",
+                        "sent": 1793817233795
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "action": "subscribe",
+                        "book": "btc_usd",
+                        "type": "diff-orders"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USD",
+                    "bids": [
+                        [
+                            80000,
+                            0.3,
+                            "o1"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            80300,
+                            0.25,
+                            "a1"
+                        ],
+                        [
+                            80500,
+                            0.45,
+                            "a2"
+                        ]
+                    ],
+                    "timestamp": 1793817233795,
+                    "datetime": "2026-11-04T18:33:53.795Z",
+                    "nonce": 103
+                }
+            }
+        ]
+    }
+}
