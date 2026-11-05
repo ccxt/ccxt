@@ -426,7 +426,35 @@ def test_eviction_drops_the_empty_outer_bucket():
     assert sorted(list(multi.hashmap['BTC/USDT'].keys())) == ['1', '3']
 
 
+def test_remove_symbol_polling_scopes():
+    for global_poll in (False, True):
+        for symbol_poll in (False, True):
+            c = ArrayCacheBySymbolBySide()
+            a = {'symbol': 'ETH', 'side': 'long', 'contracts': 4}
+            b = {'symbol': 'ETH', 'side': 'short', 'contracts': 5}
+            c.append(a)
+            c.append({'symbol': 'LTC', 'side': 'long', 'contracts': 2})
+            c.append(b)
+            if global_poll:
+                assert c.getLimit(None, None) == 3
+            if symbol_poll:
+                assert c.getLimit('ETH', None) == 2
+                assert c.getLimit('LTC', None) == 1
+            c.remove('MISSING')
+            assert len(c) == 3
+            c.remove('LTC')
+            assert len(c) == 2 and c[0] is a and c[1] is b
+            assert c.getLimit('LTC', None) == 0
+            c.remove('LTC')
+            c.append({'symbol': 'LTC', 'side': 'both', 'contracts': 0})
+            assert c.getLimit(None, None) == (1 if global_poll else 3)
+            c.append({'symbol': 'ETH', 'side': 'long', 'contracts': 6})
+            assert c.getLimit('ETH', None) == (1 if symbol_poll else 2)
+            assert len(c) == 3
+
+
 def test_ws_cache_python_regressions():
+    test_remove_symbol_polling_scopes()
     test_max_size_zero_is_unbounded()
     test_index_token_does_not_collide_across_the_field_boundary()
     test_numeric_id_does_not_raise()
