@@ -162,6 +162,7 @@ public class Tests
                 // the client suites are timer-bound (keepalive windows, settle delays) and touch
                 // only their own WebSocketClient instances, so they overlap instead of serializing
                 await Task.WhenAll(WsClientKeepAliveLivenessTests(), WsClientKeepAliveTimeoutTests(), WsClientRetirementRaceTests(), baseTestInstance.testWsBackoffLifecycle());
+                await baseTestInstance.testWsConnectionTimeout();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
