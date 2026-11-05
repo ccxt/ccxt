@@ -3535,7 +3535,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goBlockScopedDeclPass (content);
     goTupleSlotNeverNil.file = undefined;
     content = w8ClientTableCalls (w8ClientFuturesReads (w8FuturesPairInOp (goTypedInopClientMaps (content))));
-    content = goBaseFieldReads (content);
     content = goNativeKeysAndRemove (content);
     content = goTypedTypepredIsArray (content);
     content = goTypedArrNativeRemove (content);
@@ -9888,7 +9887,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedTypepredSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (goTypedArrSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goInlineTypeChecksCheck (goCompositeKeyAligner ())).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goInlineStrCheck (goCompositeKeyAligner ())).concat (goInlineStrWiredCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goBaseFieldReadsCheck ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goMarketsByIdInOpSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
+        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedTypepredSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (goTypedArrSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goInlineTypeChecksCheck (goCompositeKeyAligner ())).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goInlineStrCheck (goCompositeKeyAligner ())).concat (goInlineStrWiredCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goMarketsByIdInOpSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -14770,7 +14769,6 @@ function goBaseNativePasses (content: string): string {
     content = goBlockScopedDeclPass (content);
     goTupleSlotNeverNil.file = undefined;
     content = goNativeKeysAndRemove (w8ClientTableCalls (w8ClientFuturesReads (w8FuturesPairInOp (goTypedInopClientMaps (content)))));
-    content = goBaseFieldReads (content);
     content = goPlainBoxIsEqual (goProvenLocalIsEqual (goIsEqualSafeLiteral (content)));
     content = goTypedLenNative (goNativeStringAdds (goIntegralBoxComparisons (goGuardedDivide (goFloatFieldComparisons (goTupleTruthyComparisons (goNativeCompare (goInt64RetypeArith (content))))))));
     content = goMarketsByIdInOp (content);
@@ -16040,103 +16038,7 @@ function goStdlibStringHelpersCheck (): string[] {
     return problems;
 }
 
-// GetValue(this.<F>, k) -> this.<F>[k] for base fields declared `map[string]any` holding plain values (Has, Features,
-// Timeframes, Urls); a nil map indexes to nil like the helper. k must be a literal or single-declared `string`.
-// A file that assigns the whole field from anything but a map literal keeps the helper for that field.
-function goBaseFieldReads (content: string): string {
-    const fieldRx = /(?<![\w.])(?:ccxt\.)?GetValue\(this\.(?:Has|Features|Timeframes|Urls), /;
-    if (!fieldRx.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    const maskedAll = masked.join ('\n');
-    const fields = [ 'Has', 'Features', 'Timeframes', 'Urls' ].filter ((f) => {
-        const writes = [ ...maskedAll.matchAll (new RegExp ('(?<![\\w.])this\\.' + f + '\\s*=(?!=)\\s*([^\\n]*)', 'g')) ];
-        return writes.every ((w) => /^map\[string\]any\{/.test (w[1]));
-    });
-    if (fields.length === 0) {
-        return content;
-    }
-    const callRx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetValue\\(this\\.(' + fields.join ('|') + '), (\\w+|"[^"\\\\\\n]*")\\)', 'g');
-    let start = -1;
-    let maskedFunc = '';
-    let offsets: number[] = [];
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = lines[k].startsWith ('func (this *') ? k : -1;
-            let end = k;
-            while ((end < lines.length) && (lines[end] !== '}')) {
-                end++;
-            }
-            maskedFunc = masked.slice (k, end + 1).join ('\n');
-            offsets = [];
-            let o = 0;
-            for (let j = k; (j <= end) && (j < lines.length); j++) {
-                offsets.push (o);
-                o += masked[j].length + 1;
-            }
-            continue;
-        }
-        if (lines[k] === '}') {
-            start = -1;
-            continue;
-        }
-        if ((start < 0) || !masked[k].includes ('GetValue(this.')) {
-            continue;
-        }
-        const line = lines[k];
-        const mk = masked[k];
-        lines[k] = line.replace (callRx, ((m: string, field: string, key: string, off: number) => {
-            if (mk.slice (off, off + m.length).indexOf ('GetValue(this.') < 0) {
-                return m; // inside a string literal or comment
-            }
-            if (!key.startsWith ('"')) {
-                const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
-                if ((decl === undefined) || (decl.type !== 'string') || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
-                    return m;
-                }
-            }
-            return 'this.' + field + '[' + key + ']';
-        }) as any);
-        masked[k] = goTextMaskLiteralsAndComments (lines[k]);
-    }
-    return lines.join ('\n');
-}
 
-function goBaseFieldReadsCheck (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('go base field reads check: ' + message); } };
-    try {
-        const f = (sig: string, body: string, extra = '') => goBaseFieldReads ('package ccxt\n' + extra + 'func (this *X) H(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
-        ok (f ('timeframe string', '\tvar r any = GetValue(this.Timeframes, timeframe)\n').includes ('\tvar r any = this.Timeframes[timeframe]\n'), 'string param key');
-        ok (f ('', '\turl := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public"))\n').includes ('GetValue(this.Urls["api"], "public")'), 'literal key, outer GetValue kept');
-        ok (f ('', '\tvar m string = "spot"\n\tif IsEqual(ccxt.GetValue(this.Features, m), nil) {\n\t}\n').includes ('IsEqual(this.Features[m], nil)'), 'string local key, ccxt prefix');
-        ok (f ('', '\tvar a any = GetValue(this.Has, "x")\n', 'func (this *X) G() {\n\tthis.Features = map[string]any{}\n}\n').includes ('this.Has["x"]'), 'map-literal field write keeps proof');
-        for (const keep of [
-            f ('source any', '\tvar r any = GetValue(this.Has, source)\n'),
-            f ('m *string', '\tvar r any = GetValue(this.Features, m)\n'),
-            f ('', '\tvar r any = GetValue(this.Options, "x")\n'),
-            f ('', '\tvar r any = GetValue(this.MarketsById, "x")\n'),
-            f ('', '\tvar r any = GetValue(this.Balance, "x")\n'),
-            f ('', '\tvar r any = GetValue(this.Orderbooks, "x")\n'),
-            f ('', '\tvar r any = GetValue(this.Urls, s)\n\tvar s string = "a"\n'),
-            f ('', '\tvar r any = GetValue(this.Urls, "api")\n', 'func (this *X) G(u any) {\n\tthis.Urls = u.(map[string]any)\n}\n'),
-            f ('', '\tvar r string = "GetValue(this.Has, \\"x\\")"\n'),
-            goBaseFieldReads ('func H(this any) any {\n\treturn GetValue(this.Urls, "a")\n}\n'),
-        ]) {
-            ok (keep.includes ('GetValue('), 'keeps GetValue: ' + keep);
-        }
-        const once = f ('t string', '\tvar r any = GetValue(this.Timeframes, t)\n');
-        ok (goBaseFieldReads (once) === once, 'idempotent');
-    } catch (e) {
-        problems.push ('go base field reads check threw: ' + e.message);
-    }
-    return problems;
-}
 
 // ===== credential fields are plain Go strings =====
 // go/v4/exchange.go declares the credential fields `string`, so an absent key is "" and never a nil box: nil tests print
