@@ -965,7 +965,27 @@ export default class polymarket extends polymarketRest {
 
     async loadBalanceSnapshot (client: Client, messageHash: string) {
         const balance = await this.fetchBalance ();
-        this.balance = this.extend (this.balance, balance);
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        const reserved = [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ];
+        const keys = Object.keys (balance);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray (key, reserved)) {
+                continue;
+            }
+            if (!(key in this.balance)) {
+                this.balance[key] = balance[key];
+            }
+        }
+        if (!('info' in this.balance)) {
+            this.balance['info'] = balance['info'];
+            this.balance['timestamp'] = balance['timestamp'];
+            this.balance['datetime'] = balance['datetime'];
+        }
+        this.balance = this.safeBalance (this.balance);
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1029,18 +1049,18 @@ export default class polymarket extends polymarketRest {
         }
         client.resolve (newPositions, 'positions');
         const margin = this.safeDict (data, 'margin', {});
-        const result: Dict = {
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        // update the held balance object in place so consumers that took the
+        // reference from an earlier resolve keep seeing the updates
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
         const account = this.account ();
         account['total'] = this.safeString (margin, 'total_account_value');
         account['free'] = this.safeString (margin, 'available_order_margin');
         account['used'] = this.safeString (margin, 'total_initial_margin');
         // pUSD is the only collateral asset on the venue
-        result['PUSD'] = account;
-        this.balance = this.safeBalance (result);
+        this.balance['PUSD'] = account;
+        this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');
     }
 

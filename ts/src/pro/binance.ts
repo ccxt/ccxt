@@ -3347,7 +3347,28 @@ export default class binance extends binanceRest {
             params['portfolioMargin'] = true;
         }
         const response = await this.fetchBalance (params);
-        this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        this.balance[type] = this.safeDict (this.balance, type, {});
+        const reserved = [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ];
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray (key, reserved)) {
+                continue;
+            }
+            if (!(key in this.balance[type])) {
+                this.balance[type][key] = response[key];
+            }
+        }
+        if (!('info' in this.balance[type])) {
+            this.balance[type]['info'] = response['info'];
+            this.balance[type]['timestamp'] = response['timestamp'];
+            this.balance[type]['datetime'] = response['datetime'];
+        }
+        this.balance[type] = this.safeBalance (this.balance[type]);
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -3705,9 +3726,7 @@ export default class binance extends binanceRest {
         const subscriptionsKeys = Object.keys (subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const messageHash = accountType + ':balance';
-        if (this.balance[accountType] === undefined) {
-            this.balance[accountType] = {};
-        }
+        this.balance[accountType] = this.safeDict (this.balance, accountType, {});
         this.balance[accountType]['info'] = message;
         const event = this.safeString (message, 'e');
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
@@ -5733,9 +5752,7 @@ export default class binance extends binanceRest {
         //
         // --- balance ---
         const accountType = 'option';
-        if (this.balance[accountType] === undefined) {
-            this.balance[accountType] = {};
-        }
+        this.balance[accountType] = this.safeDict (this.balance, accountType, {});
         this.balance[accountType]['info'] = message;
         const B: Dict[] = this.safeList (message, 'B', []);
         for (let i = 0; i < B.length; i++) {
