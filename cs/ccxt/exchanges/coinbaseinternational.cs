@@ -541,7 +541,7 @@ public partial class coinbaseinternational : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "route", "auto" },
-                { "brokerId", "nfqkvdjp" },
+                { "brokerId", "ccxt" },
                 { "portfolio", "" },
                 { "accessTokenRefreshRatio", 0.8 },
                 { "networksById", new Dictionary<string, object>() {

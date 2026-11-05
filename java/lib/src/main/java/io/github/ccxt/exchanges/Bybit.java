@@ -2289,6 +2289,68 @@ public class Bybit extends BybitApi
                     put( "deposit", new HashMap<String, Object>() {{}} );
                 }} );
             }} );
+            put( "currencies", new HashMap<String, Object>() {{
+                put( "EUR", Bybit.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    put( "id", "EUR" );
+                    put( "code", "EUR" );
+                    put( "precision", Bybit.this.parseNumber("0.01") );
+                    put( "type", "fiat" );
+                }}) );
+                put( "CHF", Bybit.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    put( "id", "CHF" );
+                    put( "code", "CHF" );
+                    put( "precision", Bybit.this.parseNumber("0.01") );
+                    put( "type", "fiat" );
+                }}) );
+                put( "PLN", Bybit.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    put( "id", "PLN" );
+                    put( "code", "PLN" );
+                    put( "precision", Bybit.this.parseNumber("0.01") );
+                    put( "type", "fiat" );
+                }}) );
+                put( "ARS", Bybit.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    put( "id", "ARS" );
+                    put( "code", "ARS" );
+                    put( "precision", Bybit.this.parseNumber("0.01") );
+                    put( "type", "fiat" );
+                }}) );
+                put( "COP", Bybit.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    put( "id", "COP" );
+                    put( "code", "COP" );
+                    put( "precision", Bybit.this.parseNumber("0.01") );
+                    put( "type", "fiat" );
+                }}) );
+                put( "USD", Bybit.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    put( "id", "USD" );
+                    put( "code", "USD" );
+                    put( "precision", Bybit.this.parseNumber("0.01") );
+                    put( "type", "fiat" );
+                }}) );
+                put( "CLP", Bybit.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    put( "id", "CLP" );
+                    put( "code", "CLP" );
+                    put( "precision", Bybit.this.parseNumber("0.01") );
+                    put( "type", "fiat" );
+                }}) );
+                put( "PEN", Bybit.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    put( "id", "PEN" );
+                    put( "code", "PEN" );
+                    put( "precision", Bybit.this.parseNumber("0.01") );
+                    put( "type", "fiat" );
+                }}) );
+                put( "BOB", Bybit.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    put( "id", "BOB" );
+                    put( "code", "BOB" );
+                    put( "precision", Bybit.this.parseNumber("0.01") );
+                    put( "type", "fiat" );
+                }}) );
+                put( "BRL", Bybit.this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    put( "id", "BRL" );
+                    put( "code", "BRL" );
+                    put( "precision", Bybit.this.parseNumber("0.01") );
+                    put( "type", "fiat" );
+                }}) );
+            }} );
             put( "rollingWindowSize", 5000 );
         }});
     }

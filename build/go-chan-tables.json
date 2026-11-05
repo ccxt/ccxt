@@ -31,7 +31,6 @@
         "Bullish.LoadAccount": "*string",
         "Bullish.SafeDeterministicCall": "[]any",
         "Bybit.GetUrlByMarketType": "*string",
-        "Bydfi.FetchTransactionsHelper": "[]Transaction",
         "CancelAllContractOrders": "[]Order",
         "CancelAllOrders": "[]Order",
         "CancelAllOrdersAfter": "map[string]any",

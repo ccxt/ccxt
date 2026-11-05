@@ -90,6 +90,7 @@ impl crate::exchange_generated::ExchangeBase for RevolutxCore {
                 "cancel_all_orders" => self.cancel_all_orders(&args[..]).await,
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "create_trigger_leg_request" => self.create_trigger_leg_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null)),
                 "edit_order" => self.edit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "fetch_balance" => self.fetch_balance(&args[..]).await,
                 "fetch_closed_orders" => self.fetch_closed_orders(&args[..]).await,
@@ -330,11 +331,11 @@ impl RevolutxCore {
         m.insert("createOrder".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
-        m.insert("triggerPrice".to_string(), Value::Bool(false));
+        m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Null);
         m.insert("triggerDirection".to_string(), Value::Bool(false));
-        m.insert("stopLossPrice".to_string(), Value::Bool(false));
-        m.insert("takeProfitPrice".to_string(), Value::Bool(false));
+        m.insert("stopLossPrice".to_string(), Value::Bool(true));
+        m.insert("takeProfitPrice".to_string(), Value::Bool(true));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -376,7 +377,7 @@ impl RevolutxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(300));
-        m.insert("trigger".to_string(), Value::Bool(false));
+        m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("trailing".to_string(), Value::Bool(false));
         m.insert("symbolRequired".to_string(), Value::Bool(false));
     m
@@ -387,7 +388,7 @@ impl RevolutxCore {
         m.insert("limit".to_string(), Value::Int(1900));
         m.insert("daysBack".to_string(), Value::Int(30));
         m.insert("untilDays".to_string(), Value::Null);
-        m.insert("trigger".to_string(), Value::Bool(false));
+        m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("trailing".to_string(), Value::Bool(false));
         m.insert("symbolRequired".to_string(), Value::Bool(false));
     m
@@ -399,7 +400,7 @@ impl RevolutxCore {
         m.insert("daysBack".to_string(), Value::Int(30));
         m.insert("daysBackCanceled".to_string(), Value::Null);
         m.insert("untilDays".to_string(), Value::Null);
-        m.insert("trigger".to_string(), Value::Bool(false));
+        m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("trailing".to_string(), Value::Bool(false));
         m.insert("symbolRequired".to_string(), Value::Bool(false));
     m
@@ -661,8 +662,8 @@ impl RevolutxCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1106: bool = true;
-            while { if !__for_first_1106 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1106 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_1103: bool = true;
+            while { if !__for_first_1103 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1103 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_dict(markets.clone(), key, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -787,8 +788,8 @@ impl RevolutxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1107: bool = true;
-            while { if !__for_first_1107 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1107 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_1104: bool = true;
+            while { if !__for_first_1104 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1104 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.safe_dict(currencies.clone(), key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -897,8 +898,8 @@ impl RevolutxCore {
             let mut marketIds: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1108: bool = true;
-                while { if !__for_first_1108 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1108 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+                let mut __for_first_1105: bool = true;
+                while { if !__for_first_1105 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1105 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.market(symbol.clone());
                 if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
@@ -934,8 +935,8 @@ impl RevolutxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1109: bool = true;
-            while { if !__for_first_1109 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1109 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1106: bool = true;
+            while { if !__for_first_1106 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1106 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut tickerData: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -956,8 +957,8 @@ impl RevolutxCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1110: bool = true;
-                while { if !__for_first_1110 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1110 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+                let mut __for_first_1107: bool = true;
+                while { if !__for_first_1107 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1107 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut s: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (matches!((&result, &s), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut filtered { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&s), result.as_map().and_then(|__m| s.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
@@ -1252,8 +1253,8 @@ impl RevolutxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1111: bool = true;
-            while { if !__for_first_1111 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1111 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1108: bool = true;
+            while { if !__for_first_1108 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1108 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1297,8 +1298,8 @@ impl RevolutxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1112: bool = true;
-            while { if !__for_first_1112 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1112 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1109: bool = true;
+            while { if !__for_first_1109 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1109 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1372,6 +1373,39 @@ impl RevolutxCore {
         let mut leavesQuantity: Value = self.safe_string_k(order.clone(), "leaves_quantity", &[]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut averageFillPrice: Value = self.safe_string_k(order.clone(), "average_fill_price", &[]);
+        //
+        // conditional and TP/SL orders carry their triggers, e.g.
+        //
+        //     "conditional": { "trigger_price": "118000.00", "type": "limit", "trigger_direction": "le", "limit_price": "117900.00", ... }
+        //     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
+        //     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
+        //
+        let mut conditional: Value = self.safe_dict_k(order.clone(), "conditional", &[]);
+        let mut takeProfit: Value = self.safe_dict_k(order.clone(), "take_profit", &[]);
+        let mut stopLoss: Value = self.safe_dict_k(order.clone(), "stop_loss", &[]);
+        let mut triggerPrice: Value = Value::Null;
+        if (orderType.as_str() == Some("conditional")) {
+            triggerPrice = self.safe_string_k(conditional.clone(), "trigger_price", &[]);
+            orderType = self.safe_string_lower_k(conditional.clone(), "type", &[]);
+            if (price == Value::Null) {
+                price = self.safe_string_k(conditional, "limit_price", &[]);
+            }
+        }  else if (orderType.as_str() == Some("tpsl")) {
+            // a single leg tells us the order type and limit price, with both legs they can differ
+            let mut leg: Value = Value::Null;
+            if (takeProfit != Value::Null) && (stopLoss == Value::Null) {
+                leg = takeProfit.clone();
+            }  else if (stopLoss != Value::Null) && (takeProfit == Value::Null) {
+                leg = stopLoss.clone();
+            }
+            orderType = Value::Null;
+            if (leg != Value::Null) {
+                orderType = self.safe_string_lower_k(leg.clone(), "type", &[]);
+                if (price == Value::Null) {
+                    price = self.safe_string_k(leg, "limit_price", &[]);
+                }
+            }
+        }
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
         let mut filledAmount: Value = self.safe_string_k(order.clone(), "filled_amount", &[]);
         let mut totalFee: Value = self.safe_string_k(order.clone(), "total_fee", &[]);
@@ -1419,6 +1453,9 @@ impl RevolutxCore {
         m.insert("remaining".to_string(), self.parse_number(remainingValue, &[]));
         m.insert("status".to_string(), status);
         m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("triggerPrice".to_string(), self.parse_number(triggerPrice, &[]));
+        m.insert("stopLossPrice".to_string(), self.parse_number(self.safe_string_k(stopLoss, "trigger_price", &[]), &[]));
+        m.insert("takeProfitPrice".to_string(), self.parse_number(self.safe_string_k(takeProfit, "trigger_price", &[]), &[]));
         m.insert("timestamp".to_string(), createdDate.clone());
         m.insert("datetime".to_string(), self.iso8601(createdDate));
         m.insert("lastUpdateTimestamp".to_string(), updatedDate);
@@ -1445,6 +1482,11 @@ impl RevolutxCore {
  * @param {float} [params.cost] the order cost in units of the quote currency (alternative to amount)
  * @param {string} [params.timeInForce] 'gtc' or 'ioc' for limit orders
  * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
+ * @param {float} [params.triggerPrice] place a conditional order that is submitted once the market reaches this price, as a limit order at `price` for type 'limit' or as a market order for type 'market'
+ * @param {float} [params.stopLossPrice] place a Take Profit/Stop Loss order with a stop loss leg that triggers at this price
+ * @param {float} [params.takeProfitPrice] place a Take Profit/Stop Loss order with a take profit leg that triggers at this price
+ * @param {object} [params.stopLoss] stop loss leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg
+ * @param {object} [params.takeProfit] take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -1461,11 +1503,64 @@ impl RevolutxCore {
         let mut cost: Value = self.safe_string2(params.clone(), Value::Str("cost".into()), Value::Str("quote_size".into()), &[]);
         let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut executionInstructions: Value = self.safe_list_k(params.clone(), "executionInstructions", &[self.safe_list(params.clone(), Value::Str("execution_instructions".into()), &[])]);
+        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
+        let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
+        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
+        let mut hasStopLoss: bool = (stopLossPrice != Value::Null) || (stopLoss != Value::Null);
+        let mut hasTakeProfit: bool = (takeProfitPrice != Value::Null) || (takeProfit != Value::Null);
+        let mut isTpsl: bool = hasStopLoss || hasTakeProfit;
+        if (triggerPrice != Value::Null) || isTpsl {
+            if (type_var.as_str() != Some("limit")) && (type_var.as_str() != Some("market")) {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));
+            }
+            if (timeInForce != Value::Null) || (executionInstructions != Value::Null) {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders".into()))));
+            }
+        }
         let mut orderConfiguration: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (type_var.as_str() == Some("limit")) {
+        if (triggerPrice != Value::Null) && isTpsl {
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice".into()))));
+        }  else if (triggerPrice != Value::Null) {
+            let mut conditionalConfig: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+            if (cost != Value::Null) {
+                if let Value::Dict(__d) = &mut conditionalConfig { std::sync::Arc::make_mut(__d).insert("quote_size".into(), self.cost_to_precision(symbol.clone(), cost.clone())); }
+            }  else {
+                if let Value::Dict(__d) = &mut conditionalConfig { std::sync::Arc::make_mut(__d).insert("base_size".into(), self.amount_to_precision(symbol.clone(), amount.clone())); }
+            }
+            if (type_var.as_str() == Some("limit")) {
+                if (price == Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit trigger orders".into()))));
+                }
+                if let Value::Dict(__d) = &mut conditionalConfig { std::sync::Arc::make_mut(__d).insert("limit_price".into(), self.price_to_precision(symbol.clone(), price.clone())); }
+            }
+            if let Value::Dict(__d) = &mut conditionalConfig { std::sync::Arc::make_mut(__d).insert("trigger_price".into(), self.price_to_precision(symbol.clone(), triggerPrice)); }
+            if let Value::Dict(__d) = &mut orderConfiguration { std::sync::Arc::make_mut(__d).insert("conditional".into(), conditionalConfig); }
+        }  else if isTpsl {
+            if (cost != Value::Null) {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() TP/SL orders are sized in the base currency only, cost is not supported".into()))));
+            }
+            let mut singleLeg: Value = Value::Bool(!(hasStopLoss && hasTakeProfit));
+            let mut tpslConfig: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                m
+            });
+            if hasTakeProfit {
+                if let Value::Dict(__d) = &mut tpslConfig { std::sync::Arc::make_mut(__d).insert("take_profit".into(), self.create_trigger_leg_request(symbol.clone(), type_var.clone(), price.clone(), takeProfitPrice, takeProfit, singleLeg.clone())); }
+            }
+            if hasStopLoss {
+                if let Value::Dict(__d) = &mut tpslConfig { std::sync::Arc::make_mut(__d).insert("stop_loss".into(), self.create_trigger_leg_request(symbol.clone(), type_var.clone(), price.clone(), stopLossPrice, stopLoss, singleLeg)); }
+            }
+            if let Value::Dict(__d) = &mut orderConfiguration { std::sync::Arc::make_mut(__d).insert("tpsl".into(), tpslConfig); }
+        }  else if (type_var.as_str() == Some("limit")) {
             let mut limitConfig: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1511,7 +1606,7 @@ impl RevolutxCore {
                 m.insert("order_configuration".to_string(), orderConfiguration);
             m
         });
-        let __ws_arg_6 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("cost".into()), Value::Str("quote_size".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("executionInstructions".into()), Value::Str("execution_instructions".into())]), &[])]);
+        let __ws_arg_6 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("cost".into()), Value::Str("quote_size".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("executionInstructions".into()), Value::Str("execution_instructions".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[])]);
         let mut response: Value = self.private_post10_orders(&[__ws_arg_6]).await;
         //
         //     {
@@ -1544,6 +1639,44 @@ impl RevolutxCore {
 })]);
         let mut order: Value = self.parse_order(__ws_arg_7, &[market]);
         return order;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name revolutx#createTriggerLegRequest
+ * @description builds the take profit or stop loss leg of a TP/SL order request
+ * @ignore
+ * @param {string} symbol unified market symbol
+ * @param {string} type 'limit' or 'market'
+ * @param {float} [price] the createOrder price, used as the limit price of a single limit leg
+ * @param {string} [triggerPrice] the stopLossPrice or takeProfitPrice param
+ * @param {object} [leg] the stopLoss or takeProfit param, *{ triggerPrice, price }*
+ * @param {boolean} singleLeg whether the order has only this leg
+ * @returns {object} the leg request
+ */
+    pub fn create_trigger_leg_request(&self, mut symbol: Value, mut type_var: Value, mut price: Value, mut triggerPrice: Value, mut leg: Value, mut singleLeg: Value) -> Value {
+        let mut legTriggerPrice: Value = self.safe_string2(leg.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[triggerPrice]);
+        if (legTriggerPrice == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice for each stopLoss and takeProfit leg".into()))));
+        }
+        let mut result: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("trigger_price".to_string(), self.price_to_precision(symbol.clone(), legTriggerPrice));
+            m
+        });
+        let mut legPrice: Value = self.safe_string_k(leg, "price", &[]);
+        if (legPrice == Value::Null) && (type_var.as_str() == Some("limit")) {
+            if !is_true(&singleLeg) || (price == Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set".into()))));
+            }
+            legPrice = self.number_to_string(price);
+        }
+        if (legPrice != Value::Null) {
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("limit_price".into(), self.price_to_precision(symbol, legPrice)); }
+        }
+        return result;
 
     Value::Null
 }
@@ -1673,6 +1806,7 @@ impl RevolutxCore {
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @param {string[]} [params.orderStates] filter by order states, e.g. ['new', 'partially_filled']
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+ * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
  * @param {string} [params.side] filter by side, 'buy' or 'sell'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1706,7 +1840,11 @@ impl RevolutxCore {
         if (orderStates != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_states".into(), join(&orderStates, &Value::Str(",".into()))); }
         }
+        let mut trigger: Value = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]);
         let mut orderTypes: Value = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]);
+        if (orderTypes == Value::Null) && trigger.as_bool() == Some(true) {
+            orderTypes = Value::from(vec![Value::Str("conditional".into()), Value::Str("tpsl".into())]);
+        }
         if (orderTypes != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_types".into(), join(&orderTypes, &Value::Str(",".into()))); }
         }
@@ -1714,7 +1852,7 @@ impl RevolutxCore {
         if (side != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), side); }
         }
-        let __ws_arg_10 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into()), Value::Str("side".into())]), &[])]);
+        let __ws_arg_10 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into()), Value::Str("side".into()), Value::Str("trigger".into())]), &[])]);
         let mut response: Value = self.private_get10_orders_active(&[__ws_arg_10]).await;
         //
         //     {
@@ -1726,8 +1864,8 @@ impl RevolutxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1113: bool = true;
-            while { if !__for_first_1113 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1113 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1110: bool = true;
+            while { if !__for_first_1110 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1110 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut order: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1753,6 +1891,7 @@ impl RevolutxCore {
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @param {string[]} [params.orderStates] filter by order states, e.g. ['filled', 'cancelled', 'rejected']
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+ * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -1799,18 +1938,22 @@ impl RevolutxCore {
         if (orderStates != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_states".into(), join(&orderStates, &Value::Str(",".into()))); }
         }
+        let mut trigger: Value = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]);
         let mut orderTypes: Value = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]);
+        if (orderTypes == Value::Null) && trigger.as_bool() == Some(true) {
+            orderTypes = Value::from(vec![Value::Str("conditional".into()), Value::Str("tpsl".into())]);
+        }
         if (orderTypes != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_types".into(), join(&orderTypes, &Value::Str(",".into()))); }
         }
-        let __ws_arg_11 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into())]), &[])]);
+        let __ws_arg_11 = self.extend(request, &[self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into()), Value::Str("trigger".into())]), &[])]);
         let mut response: Value = self.private_get10_orders_historical(&[__ws_arg_11]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1114: bool = true;
-            while { if !__for_first_1114 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1114 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1111: bool = true;
+            while { if !__for_first_1111 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1111 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut order: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1972,8 +2115,8 @@ impl RevolutxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1115: bool = true;
-            while { if !__for_first_1115 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1115 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1112: bool = true;
+            while { if !__for_first_1112 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1112 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

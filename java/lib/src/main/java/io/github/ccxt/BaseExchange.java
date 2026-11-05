@@ -307,8 +307,11 @@ public class BaseExchange {
     public Object fundingRates = new ConcurrentHashMap<String, Object>();
     public Object bidsasks = new ConcurrentHashMap<String, Object>();
     public Object balance = new ConcurrentHashMap<String, Object>();
-    public Object liquidations = new ConcurrentHashMap<String, Object>();
-    public Object myLiquidations = new ConcurrentHashMap<String, Object>();
+    // liquidations/myLiquidations are flat ArrayCache lists (TS: ArrayCache | undefined = undefined),
+    // not symbol-keyed dicts like trades/orderbooks, so they must default to null like orders/myTrades.
+    // A map default makes the `== null` guard in handle(My)Liquidation never trip and the ArrayCache cast throws.
+    public Object liquidations = null;
+    public Object myLiquidations = null;
     public Object trades = new ConcurrentHashMap<String, Object>();
     public Object orderbooks = new ConcurrentHashMap<String, Object>();
     public Object ohlcvs = new ConcurrentHashMap<String, Object>();

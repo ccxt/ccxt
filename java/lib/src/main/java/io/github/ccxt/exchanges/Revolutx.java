@@ -172,11 +172,11 @@ public class Revolutx extends RevolutxApi
                     put( "sandbox", false );
                     put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
-                        put( "triggerPrice", false );
+                        put( "triggerPrice", true );
                         put( "triggerPriceType", null );
                         put( "triggerDirection", false );
-                        put( "stopLossPrice", false );
-                        put( "takeProfitPrice", false );
+                        put( "stopLossPrice", true );
+                        put( "takeProfitPrice", true );
                         put( "attachedStopLossTakeProfit", null );
                         put( "timeInForce", new HashMap<String, Object>() {{
                             put( "GTC", true );
@@ -210,7 +210,7 @@ public class Revolutx extends RevolutxApi
                     put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 300 );
-                        put( "trigger", false );
+                        put( "trigger", true );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
@@ -219,7 +219,7 @@ public class Revolutx extends RevolutxApi
                         put( "limit", 1900 );
                         put( "daysBack", 30 );
                         put( "untilDays", null );
-                        put( "trigger", false );
+                        put( "trigger", true );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
@@ -229,7 +229,7 @@ public class Revolutx extends RevolutxApi
                         put( "daysBack", 30 );
                         put( "daysBackCanceled", null );
                         put( "untilDays", null );
-                        put( "trigger", false );
+                        put( "trigger", true );
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
@@ -1091,6 +1091,46 @@ public class Revolutx extends RevolutxApi
         String leavesQuantity = this.safeString(order, "leaves_quantity");
         String price = this.safeString(order, "price");
         String averageFillPrice = this.safeString(order, "average_fill_price");
+        //
+        // conditional and TP/SL orders carry their triggers, e.g.
+        //
+        //     "conditional": { "trigger_price": "118000.00", "type": "limit", "trigger_direction": "le", "limit_price": "117900.00", ... }
+        //     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
+        //     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
+        //
+        Map<String, Object> conditional = (Map<String, Object>) this.safeDict(order, "conditional", (Object) null);
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(order, "take_profit", (Object) null);
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(order, "stop_loss", (Object) null);
+        String triggerPrice = null;
+        if (java.util.Objects.equals(orderType, "conditional"))
+        {
+            triggerPrice = this.safeString(conditional, "trigger_price");
+            orderType = this.safeStringLower(conditional, "type");
+            if (java.util.Objects.equals(price, null))
+            {
+                price = this.safeString(conditional, "limit_price");
+            }
+        } else if (java.util.Objects.equals(orderType, "tpsl"))
+        {
+            // a single leg tells us the order type and limit price, with both legs they can differ
+            Map<String, Object> leg = null;
+            if ((!java.util.Objects.equals(takeProfit, null)) && (java.util.Objects.equals(stopLoss, null)))
+            {
+                leg = takeProfit;
+            } else if ((!java.util.Objects.equals(stopLoss, null)) && (java.util.Objects.equals(takeProfit, null)))
+            {
+                leg = stopLoss;
+            }
+            orderType = null;
+            if (!java.util.Objects.equals(leg, null))
+            {
+                orderType = this.safeStringLower(leg, "type");
+                if (java.util.Objects.equals(price, null))
+                {
+                    price = this.safeString(leg, "limit_price");
+                }
+            }
+        }
         String amount = this.safeString(order, "amount");
         String filledAmount = this.safeString(order, "filled_amount");
         String totalFee = this.safeString(order, "total_fee");
@@ -1143,6 +1183,9 @@ public class Revolutx extends RevolutxApi
         mapLiteral4.put("remaining", this.parseNumber(remainingValue));
         mapLiteral4.put("status", status);
         mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("triggerPrice", this.parseNumber(triggerPrice));
+        mapLiteral4.put("stopLossPrice", this.parseNumber(this.safeString(stopLoss, "trigger_price")));
+        mapLiteral4.put("takeProfitPrice", this.parseNumber(this.safeString(takeProfit, "trigger_price")));
         mapLiteral4.put("timestamp", createdDate);
         mapLiteral4.put("datetime", this.iso8601(createdDate));
         mapLiteral4.put("lastUpdateTimestamp", updatedDate);
@@ -1166,6 +1209,11 @@ public class Revolutx extends RevolutxApi
      * @param {float} [params.cost] the order cost in units of the quote currency (alternative to amount)
      * @param {string} [params.timeInForce] 'gtc' or 'ioc' for limit orders
      * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
+     * @param {float} [params.triggerPrice] place a conditional order that is submitted once the market reaches this price, as a limit order at `price` for type 'limit' or as a market order for type 'market'
+     * @param {float} [params.stopLossPrice] place a Take Profit/Stop Loss order with a stop loss leg that triggers at this price
+     * @param {float} [params.takeProfitPrice] place a Take Profit/Stop Loss order with a take profit leg that triggers at this price
+     * @param {object} [params.stopLoss] stop loss leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg
+     * @param {object} [params.takeProfit] take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -1182,8 +1230,69 @@ public class Revolutx extends RevolutxApi
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             List<Object> executionInstructions = (List<Object>) this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions", (Object) null));
+            String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+            String stopLossPrice = this.safeString(parameters, "stopLossPrice");
+            String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", (Object) null);
+            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
+            Boolean hasStopLoss = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(stopLoss, null));
+            Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfitPrice, null)) || (!java.util.Objects.equals(takeProfit, null));
+            Boolean isTpsl = Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit);
+            if ((!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTpsl))
+            {
+                if ((!java.util.Objects.equals(type, "limit")) && (!java.util.Objects.equals(type, "market")))
+                {
+                    throw new InvalidOrder(((this.id + " createOrder() does not support order type ") + type)) ;
+                }
+                if ((!java.util.Objects.equals(timeInForce, null)) || (!java.util.Objects.equals(executionInstructions, null)))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders")) ;
+                }
+            }
             Map<String, Object> orderConfiguration = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(type, "limit"))
+            if ((!java.util.Objects.equals(triggerPrice, null)) && Boolean.TRUE.equals(isTpsl))
+            {
+                throw new InvalidOrder((this.id + " createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice")) ;
+            } else if (!java.util.Objects.equals(triggerPrice, null))
+            {
+                Map<String, Object> conditionalConfig = new HashMap<String, Object>() {{}};
+                if (!java.util.Objects.equals(cost, null))
+                {
+                    conditionalConfig.put("quote_size", this.costToPrecision(symbol, cost));
+                } else
+                {
+                    conditionalConfig.put("base_size", this.amountToPrecision(symbol, amount));
+                }
+                if (java.util.Objects.equals(type, "limit"))
+                {
+                    if (java.util.Objects.equals(price, null))
+                    {
+                        throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
+                    }
+                    conditionalConfig.put("limit_price", this.priceToPrecision(symbol, price));
+                }
+                conditionalConfig.put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
+                orderConfiguration.put("conditional", conditionalConfig);
+            } else if (Boolean.TRUE.equals(isTpsl))
+            {
+                if (!java.util.Objects.equals(cost, null))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() TP/SL orders are sized in the base currency only, cost is not supported")) ;
+                }
+                Boolean singleLeg = !(Boolean.TRUE.equals(hasStopLoss) && Boolean.TRUE.equals(hasTakeProfit));
+                Map<String, Object> tpslConfig = new HashMap<String, Object>() {{
+                    put( "base_size", Revolutx.this.amountToPrecision(symbol, amount) );
+                }};
+                if (Boolean.TRUE.equals(hasTakeProfit))
+                {
+                    tpslConfig.put("take_profit", this.createTriggerLegRequest(symbol, (String) (type), price, takeProfitPrice, takeProfit, singleLeg));
+                }
+                if (Boolean.TRUE.equals(hasStopLoss))
+                {
+                    tpslConfig.put("stop_loss", this.createTriggerLegRequest(symbol, (String) (type), price, stopLossPrice, stopLoss, singleLeg));
+                }
+                orderConfiguration.put("tpsl", tpslConfig);
+            } else if (java.util.Objects.equals(type, "limit"))
             {
                 Map<String, Object> limitConfig = new HashMap<String, Object>() {{}};
                 if (!java.util.Objects.equals(cost, null))
@@ -1232,7 +1341,7 @@ public class Revolutx extends RevolutxApi
                 put( "side", side );
                 put( "order_configuration", orderConfiguration );
             }};
-            Map<String, Object> response = (this.privatePost10Orders(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
+            Map<String, Object> response = (this.privatePost10Orders(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")))))).join();
             //
             //     {
             //         "data": [
@@ -1254,6 +1363,44 @@ public class Revolutx extends RevolutxApi
             return order;
         }).thenApply(Order::new);
 
+    }
+
+    /**
+     * @method
+     * @name revolutx#createTriggerLegRequest
+     * @description builds the take profit or stop loss leg of a TP/SL order request
+     * @ignore
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {float} [price] the createOrder price, used as the limit price of a single limit leg
+     * @param {string} [triggerPrice] the stopLossPrice or takeProfitPrice param
+     * @param {object} [leg] the stopLoss or takeProfit param, *{ triggerPrice, price }*
+     * @param {boolean} singleLeg whether the order has only this leg
+     * @returns {object} the leg request
+     */
+    public Object createTriggerLegRequest(Object symbol, String type, Object price, String triggerPrice, Object leg, Boolean singleLeg)
+    {
+        String legTriggerPrice = this.safeString2(leg, "triggerPrice", "stopPrice", triggerPrice);
+        if (java.util.Objects.equals(legTriggerPrice, null))
+        {
+            throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice for each stopLoss and takeProfit leg")) ;
+        }
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("trigger_price", this.priceToPrecision(symbol, legTriggerPrice));
+        String legPrice = this.safeString(leg, "price");
+        if ((java.util.Objects.equals(legPrice, null)) && (java.util.Objects.equals(type, "limit")))
+        {
+            if (!Boolean.TRUE.equals(singleLeg) || (java.util.Objects.equals(price, null)))
+            {
+                throw new ArgumentsRequired((this.id + " createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set")) ;
+            }
+            legPrice = this.numberToString(price);
+        }
+        if (!java.util.Objects.equals(legPrice, null))
+        {
+            result.put("limit_price", this.priceToPrecision(symbol, legPrice));
+        }
+        return result;
     }
 
     /**
@@ -1371,6 +1518,7 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @param {string[]} [params.orderStates] filter by order states, e.g. ['new', 'partially_filled']
      * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+     * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
      * @param {string} [params.side] filter by side, 'buy' or 'sell'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1403,7 +1551,12 @@ public class Revolutx extends RevolutxApi
             {
                 request.put("order_states", String.join(",", (List<String>)orderStates));
             }
+            Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
             Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", (Object) null);
+            if ((java.util.Objects.equals(orderTypes, null)) && Boolean.TRUE.equals(trigger))
+            {
+                orderTypes = new ArrayList<Object>(Arrays.asList("conditional", "tpsl"));
+            }
             if (!java.util.Objects.equals(orderTypes, null))
             {
                 request.put("order_types", String.join(",", (List<String>)orderTypes));
@@ -1413,7 +1566,7 @@ public class Revolutx extends RevolutxApi
             {
                 request.put("side", side);
             }
-            Map<String, Object> response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side")))))).join();
+            Map<String, Object> response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side", "trigger")))))).join();
             //
             //     {
             //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1445,6 +1598,7 @@ public class Revolutx extends RevolutxApi
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @param {string[]} [params.orderStates] filter by order states, e.g. ['filled', 'cancelled', 'rejected']
      * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+     * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -1494,12 +1648,17 @@ public class Revolutx extends RevolutxApi
             {
                 request.put("order_states", String.join(",", (List<String>)orderStates));
             }
+            Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
             Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", (Object) null);
+            if ((java.util.Objects.equals(orderTypes, null)) && Boolean.TRUE.equals(trigger))
+            {
+                orderTypes = new ArrayList<Object>(Arrays.asList("conditional", "tpsl"));
+            }
             if (!java.util.Objects.equals(orderTypes, null))
             {
                 request.put("order_types", String.join(",", (List<String>)orderTypes));
             }
-            Map<String, Object> response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
+            Map<String, Object> response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types", "trigger")))))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)

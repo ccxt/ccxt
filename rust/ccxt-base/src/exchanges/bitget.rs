@@ -6028,10 +6028,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut marketId: Value = parsedMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
                 let mut instrument: Value = self.safe_dict(spotInstruments.clone(), marketId, &[]);
                 if (instrument != Value::Null) {
-                    let mut parsedInstrument: Value = self.parse_market(instrument);
-                    if (parsedInstrument != Value::Null) {
-                        add_element_to_object(&mut parsedMarket, &Value::Str("stock".into()), parsedInstrument.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null));
-                    }
+                    // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
+                    let mut assetType: Option<String> = self.safe_string_lower_k(instrument.clone(), "symbolType", &[]).as_str().map(str::to_owned);
+                    let mut isReality: bool = self.safe_string_lower_k(instrument, "isReality", &[]).as_str() == Some("yes");
+                    add_element_to_object(&mut parsedMarket, &Value::Str("stock".into()), Value::Bool((assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality)));
                 }
             }
             result.push(parsedMarket);

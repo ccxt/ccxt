@@ -2192,18 +2192,29 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String marketId = this.safeString2(liquidation, "symbol", "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "", "contract");
         Long timestamp = (Long) this.safeInteger2(liquidation, "updatedTime", "T");
-        return this.safeLiquidation(new HashMap<String, Object>() {{
-            put( "info", liquidation );
-            put( "symbol", marketResolved.get("symbol") );
-            put( "contracts", Bybit.this.safeNumber2(liquidation, "size", "v", (Object) null) );
-            put( "contractSize", Bybit.this.safeNumber(marketResolved, "contractSize", (Object) null) );
-            put( "price", Bybit.this.safeNumber2(liquidation, "price", "p", (Object) null) );
-            put( "side", Bybit.this.safeStringLower2(liquidation, "side", "S") );
-            put( "baseValue", null );
-            put( "quoteValue", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Bybit.this.iso8601(timestamp) );
-        }}, (Map<String, Object>) null);
+        // bybit sends the side of the liquidated position (Buy - a long was liquidated),
+        // the unified side is the side of the liquidation order, as on binance and okx
+        String positionSide = this.safeStringLower2(liquidation, "side", "S");
+        String side = null;
+        if (java.util.Objects.equals(positionSide, "buy"))
+        {
+            side = "sell";
+        } else if (java.util.Objects.equals(positionSide, "sell"))
+        {
+            side = "buy";
+        }
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", liquidation);
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("contracts", this.safeNumber2(liquidation, "size", "v", (Object) null));
+        mapLiteral2.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral2.put("price", this.safeNumber2(liquidation, "price", "p", (Object) null));
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("baseValue", null);
+        mapLiteral2.put("quoteValue", null);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        return this.safeLiquidation(mapLiteral2, (Map<String, Object>) null);
     }
 
     /**

@@ -2672,20 +2672,6 @@
     "zebpay": {
         "skip": "ip whitelist required"
     },
-    "bydfi": {
-        "skip": "api.bydfi.com returns 404 on every REST path incl. exchange_info; developers.bydfi.com no longer resolves",
-        "skipMethods": {
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
-            },
-            "ticker": {
-                "compareOHLC": "open higher than high from API"
-            },
-            "orderBook": {
-                "timestamp": "the depth endpoint carries no timestamp"
-            }
-        }
-    },
     "aster": {
         "skipMethods": {
             "loadMarkets": {

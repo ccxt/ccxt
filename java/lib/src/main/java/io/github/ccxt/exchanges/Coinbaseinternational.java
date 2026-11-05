@@ -575,7 +575,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }} );
             put( "options", new HashMap<String, Object>() {{
                 put( "route", "auto" );
-                put( "brokerId", "nfqkvdjp" );
+                put( "brokerId", "ccxt" );
                 put( "portfolio", "" );
                 put( "accessTokenRefreshRatio", 0.8 );
                 put( "networksById", new HashMap<String, Object>() {{
@@ -3888,7 +3888,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             baseApiUrl = "https://www.deribit.com/api/v2";
         }
         String url = ((baseApiUrl + "/") + rpcMethod);
-        Map<String, Object> requestHeaders = null;
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(isNativeDeribit) && ((java.util.Objects.equals(path, "get_leverage")) || (java.util.Objects.equals(path, "set_leverage"))))
         {
             throw new NotSupported((((this.id + " ") + rpcMethod) + " is only documented on the Coinbase gateway")) ;

@@ -576,6 +576,7 @@ class kucoin extends Exchange {
                 'utaV2' => array(
                     'get' => array(
                         'market/funding-rate' => array( 'cost' => 6 ), // 3PW
+                        'market/orderbook' => array( 'cost' => 10 ), // 5PW for depth <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, see calculateRateLimiterCost
                     ),
                 ),
                 'utaPrivate' => array(
@@ -982,7 +983,7 @@ class kucoin extends Exchange {
                     'private' => array(
                         'GET' => array(
                             // account
-                            'user-info' => 'v2',
+                            'user-info' => 'v3', // https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-summary-info-v3
                             'hf/margin/account/ledgers' => 'v3',
                             'sub/user' => 'v2',
                             'sub-accounts' => 'v2',
@@ -3925,12 +3926,12 @@ class kucoin extends Exchange {
          * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-$orderbook
          * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-$orderbook
          * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-$orderbook
-         * @see https://www.kucoin.com/docs-new/rest/ua/get-$orderbook
+         * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-$orderbook
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {int} [$limit] the maximum amount of order book entries to return, for $uta any depth is accepted and the full book is returned when omitted
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false, the $uta $orderbook endpoint is public
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
@@ -3944,20 +3945,19 @@ class kucoin extends Exchange {
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchOrderBook', 'uta', $uta);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrderBook', $market, $paramsUta);
         if ($utaOption) {
-            $limitString = '20';
-            if (($limit === null) || ($limit >= 100)) {
-                $limitString = 'FULL';
-            } elseif ($limit > 20) {
-                $limitString = '100';
+            // the endpoint returns a single level when limit is omitted and rejects values above 1000, so request the full book instead
+            if (($limit === null) || ($limit > 1000)) {
+                $request['limit'] = 'FULL';
+            } else {
+                $request['limit'] = $limit;
             }
-            $request['limit'] = $limitString;
             $request['symbol'] = $market['id'];
             if (($type === 'spot') || ($type === 'margin')) {
                 $request['tradeType'] = 'SPOT';
             } else {
                 $request['tradeType'] = 'FUTURES';
             }
-            $response = Async\await($this->utaPrivateGetMarketOrderbook($this->extend($request, $paramsMarketType)));
+            $response = Async\await($this->utaV2GetMarketOrderbook($this->extend($request, $paramsMarketType)));
             //
             //     {
             //         "code": "200000",
@@ -3972,7 +3972,8 @@ class kucoin extends Exchange {
             //             "asks": [
             //                 ["104700.1","1.4082106"],
             //                 ["104700.5","0.02866269"],
-            //             ]
+            //             ],
+            //             "ts": 1793775536210000000 // futures only
             //         }
             //     }
             //
@@ -9525,6 +9526,21 @@ class kucoin extends Exchange {
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->options['version']);
         $version = $this->safe_string($params, 'version', $defaultVersion);
+        if (($api[0] === 'utaV2') && ($path === 'market/orderbook')) {
+            // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
+            // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
+            $depth = $this->safe_integer($params, 'limit'); // undefined for 'FULL'
+            if ($depth === null) {
+                return 500;
+            } elseif ($depth > 500) {
+                return 500;
+            } elseif ($depth > 100) {
+                return 100;
+            } elseif ($depth > 20) {
+                return 40;
+            }
+            return 10;
+        }
         if ($version === 'v3' && (is_array($config) && array_key_exists('v3' ?? '', $config))) {
             return $config['v3'];
         } elseif ($version === 'v2' && (is_array($config) && array_key_exists('v2' ?? '', $config))) {
