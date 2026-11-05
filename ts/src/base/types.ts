@@ -636,6 +636,7 @@ export interface Balance {
     used: Num,
     total: Num,
     debt?: Num,
+    info?: any,
 }
 
 export interface BalanceAccount {
