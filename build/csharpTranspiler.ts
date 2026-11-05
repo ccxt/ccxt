@@ -796,7 +796,6 @@ function csharpHelperTopLevelComma (line: string, open: number, close: number): 
 // `x.ContainsKey(k)` / `x.Contains(k)` (with a null test where the emitted declaration allows a
 // null receiver) for every receiver the emitted signature / declarations type as a collection
 function nativeDeclaredHelperCallsBase (content: string, objectNull = true): string {
-    content = nativeTypedForIncrements (content);
     if (!CSHARP_HELPER_LINE_RE.test (content)) {
         return csharpNativeArithmetic (csharpDeclaredReceiverHelperCalls (content));
     }
@@ -904,6 +903,59 @@ function nativeDeclaredHelperCallsBase (content: string, objectNull = true): str
     return csharpNativeArithmetic (csharpDeclaredReceiverHelperCalls (changed ? out.join ('\n') : content));
 }
 
+export function nativeDeclaredWsCalls (content: string): string {
+    const opener = 'callDynamically('
+    let out = ''
+    let cursor = 0
+    let search = 0
+    while (true) {
+        const at = content.indexOf (opener, search)
+        if (at < 0) {
+            break
+        }
+        const receiverAt = at + opener.length
+        // statement position only: a value-position call would have to bind the helper's object
+        // result, which the void `resolve`/`reject` declarations cannot
+        const lineStart = content.lastIndexOf ('\n', at - 1) + 1
+        if (!/^[ \t]*$/.test (content.slice (lineStart, at))) {
+            search = receiverAt
+            continue
+        }
+        const head = /^(\w+)(?: as (WebSocketClient|Future))?\s*,\s*"(\w+)"\s*,\s*new object\[\]\s*\{/.exec (content.slice (receiverAt))
+        if (!head) {
+            search = receiverAt
+            continue
+        }
+        const receiver = head[1]
+        const castClass = head[2]
+        const method = head[3]
+        const argsAt = receiverAt + head[0].length
+        const argsEnd = csharpBalancedBraceEnd (content, argsAt - 1)
+        if (argsEnd < 0) {
+            search = argsAt
+            continue
+        }
+        const statementEnd = /^\s*\)\s*;/.exec (content.slice (argsEnd + 1))
+        if (!statementEnd) {
+            search = argsEnd
+            continue
+        }
+        const args = content.slice (argsAt, argsEnd)
+        const target = castClass !== undefined ? { cls: castClass, cast: true } : csharpClassOfDeclaration (content, receiver, at)
+        const arities = (target !== undefined) ? WS_DECLARED_METHODS_TYPED[target.cls]?.[method] : undefined
+        const argc = csharpArgumentCount (args)
+        if (arities === undefined || argc < arities[0] || argc > arities[1]) {
+            search = argsEnd
+            continue
+        }
+        const receiverText = target!.cast ? `(${receiver} as ${target!.cls})` : receiver
+        out += content.slice (cursor, at) + receiverText + '.' + method + '(' + args + ');'
+        cursor = argsEnd + 1 + statementEnd[0].length
+        search = cursor
+    }
+    return out + content.slice (cursor)
+}
+
 // `callDynamically(x, "append"|"getLimit", ...)` on a receiver whose C# declaration (the last one in
 // the same member) or base field names a ws cache class binds the method that class declares
 // (cs/ccxt/ws/ArrayCache.cs: `void append(object)`, `Int64? getLimit(object, object)`).
@@ -938,6 +990,34 @@ function csharpWsCacheReceiverDeclared (lines: string[], lineIndex: number, rece
 // declaration takes the class and the receiver binds the instance `append` below.
 const WS_CACHE_CLASS_PARAMS: { [venue: string]: { [method: string]: { [param: string]: string } } } = {
     bitstamp: { pruneCachedBySymbols: { newCache: 'ccxt.pro.ArrayCacheBySymbolById', cache: 'ccxt.pro.ArrayCache' } },
+}
+
+export function retypeWsCacheClassParams (content: string): string {
+    const venue = /public partial class (\w+)\s*:/.exec (content)
+    const methods = venue === null ? undefined : WS_CACHE_CLASS_PARAMS[venue[1]]
+    if (methods === undefined) {
+        return content
+    }
+    const lines = content.split ('\n')
+    for (let i = 0; i < lines.length; i++) {
+        const sig = /^(\s+public virtual ccxt\.pro\.ArrayCache )(\w+)\((.*)\)\s*$/.exec (lines[i])
+        if (sig === null || methods[sig[2]] === undefined) {
+            continue
+        }
+        const params = methods[sig[2]]
+        let args = sig[3]
+        for (const name of Object.keys (params)) {
+            args = args.replace ('object ' + name + ',', params[name] + ' ' + name + ',')
+        }
+        lines[i] = sig[1] + sig[2] + '(' + args + ')'
+        for (let j = i + 1; j < lines.length && !CSHARP_MEMBER_START_RE.test (lines[j]); j++) {
+            const ret = /^(\s+)return \(\(ccxt\.pro\.ArrayCache\)\(\(object\)\((\w+)\)\)\);$/.exec (lines[j])
+            if (ret !== null && params[ret[2]] !== undefined) {
+                lines[j] = ret[1] + 'return ' + ret[2] + ';'
+            }
+        }
+    }
+    return lines.join ('\n')
 }
 
 export function nativeWsCacheCalls (content: string): string {
@@ -7328,6 +7408,126 @@ class NewTranspiler {
         }
         return content;
     }
+    // see WS_HANDLER_IDICT_MESSAGE. Retypes admitted ws handler parameters to the interface spelling
+    // and edits no call site (every direct call already passes a dict-typed value). Self-gating: a
+    // handler with a call the gate cannot clear stays `object` whole.
+    retypeWsHandlerMessagesToInterface (content: string): string {
+        const venueMatch = /public partial class (\w+)\s*:/.exec (content);
+        if (venueMatch === null) {
+            return content;
+        }
+        const names = WS_HANDLER_IDICT_MESSAGE[venueMatch[1]];
+        if (names === undefined) {
+            return content;
+        }
+        const membership = new Set (names);
+        const sigRe = /^ {4}(?:public|protected|private|internal)[^\n]*?\b(\w+)\s*\(([^()]*)\)\s*$/gm;
+        const sigs: { at: number, name: string }[] = [];
+        let signature;
+        while ((signature = sigRe.exec (content)) !== null) {
+            sigs.push ({ at: signature.index, name: signature[1] });
+        }
+        const enclosingName = (at: number) => {
+            let found = '';
+            for (const sig of sigs) {
+                if (sig.at >= at) {
+                    break;
+                }
+                found = sig.name;
+            }
+            return found;
+        };
+        // does the method enclosing `at` declare `name` with a dict type?  (a local, a parameter,
+        // or a value an earlier pass already asserted to the concrete spelling)
+        const dictTypedInMethod = (at: number, name: string) => {
+            let start = 0;
+            let end = content.length;
+            for (const sig of sigs) {
+                if (sig.at < at) {
+                    start = sig.at;
+                } else {
+                    end = sig.at;
+                    break;
+                }
+            }
+            for (const line of content.substring (start, end).split ('\n')) {
+                const trimmed = line.trim ();
+                if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) {
+                    continue;
+                }
+                if (new RegExp ('(?:Dictionary<string, object>|IDictionary<string, object>)\\s+' + name + '\\b').test (line)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        const declRe = /^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm;
+        const declarations: { index: number, text: string, param: string }[] = [];
+        let decl;
+        while ((decl = declRe.exec (content)) !== null) {
+            if (membership.has (decl[4])) {
+                declarations.push ({ index: decl.index, text: decl[0], param: decl[5] });
+            }
+        }
+        const edits: { start: number, end: number, text: string }[] = [];
+        for (const declaration of declarations) {
+            const name = declaration.text.match (/handle\w+/)![0];
+            const needle = 'object ' + declaration.param;
+            const rel = declaration.text.lastIndexOf (needle);
+            if (rel === -1) {
+                continue;
+            }
+            const declLineStart = content.lastIndexOf ('\n', declaration.index) + 1;
+            const callRe = /(?<![\w.])(?:this\.|base\.)?(\w+)\s*\(/g;
+            let clear = true;
+            let call;
+            while ((call = callRe.exec (content)) !== null) {
+                if (call[1] !== name) {
+                    continue;
+                }
+                const open = call.index + call[0].length - 1;
+                const close = this.matchingParen (content, open);
+                if (close === -1) {
+                    clear = false;
+                    break;
+                }
+                const lineStart = content.lastIndexOf ('\n', call.index) + 1;
+                const trimmed = content.substring (lineStart, content.indexOf ('\n', call.index)).trim ();
+                if (trimmed.startsWith ('//') || trimmed.startsWith ('*') || lineStart === declLineStart) {
+                    continue;
+                }
+                const spans = this.wsArgSpans (content, open + 1, close);
+                if (spans.length < 2) {
+                    clear = false;
+                    break;
+                }
+                const arg = spans[1].text.trim ();
+                if (arg.startsWith ('(Dictionary<string, object>)') || arg.startsWith ('(IDictionary<string, object>)')) {
+                    continue;
+                }
+                if (!/^[A-Za-z_]\w*$/.test (arg)) {
+                    clear = false;
+                    break;
+                }
+                if (membership.has (enclosingName (call.index))) {
+                    continue;
+                }
+                if (!dictTypedInMethod (call.index, arg)) {
+                    clear = false;
+                    break;
+                }
+            }
+            if (!clear) {
+                continue;
+            }
+            edits.push ({ start: declaration.index + rel, end: declaration.index + rel + needle.length, text: 'IDictionary<string, object> ' + declaration.param });
+        }
+        edits.sort ((a, b) => b.start - a.start);
+        for (const edit of edits) {
+            content = content.substring (0, edit.start) + edit.text + content.substring (edit.end);
+        }
+        return content;
+    }
     // index of the `)` closing the `(` at `open`, skipping string literals and comments
     matchingParen (text: string, open: number): number {
         let depth = 0;
@@ -8497,6 +8697,7 @@ class NewTranspiler {
         if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
+            content = nativeDeclaredWsCalls (content);
             content = this.removeRedundantClientCasts (content);
             content = this.replaceImportedRestClasses (content, csharpVersion.imports);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
@@ -8508,6 +8709,7 @@ class NewTranspiler {
             // prediction exchanges merge REST + WS in one class, so the WS transforms
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
+            content = nativeDeclaredWsCalls (content);
             content = this.removeRedundantClientCasts (content);
         }
         const classDecl = /public partial class (\w+) : ([\w.]+)/.exec (content);
@@ -8522,7 +8724,7 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))))))))), venueKey)), false);
+        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey)), false);
         // the copy retypes below read `isEqual(x, null)` on `object` names; the final pass rewrites them
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeIdentifierCopies (content);
@@ -8530,7 +8732,7 @@ class NewTranspiler {
         // the copies retyped above are declarations the native helper pass could not see yet
         content = nativeDeclaredHelperCalls (retypeOrderBookCacheLocals (content));
         if (ws || this.isPrediction) {
-            content = nativeWsCacheCalls (content);
+            content = nativeWsCacheCalls (retypeWsCacheClassParams (content));
         }
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
@@ -9133,12 +9335,6 @@ async function runMain () {
 
 if (isMainEntry(metaUrl)) {
     await runMain();
-}
-
-// `for (T i = ...; ...; postFixIncrement(ref i))` with T int / Int64 / double: the typed
-// overload is exactly `i = i + 1`, so the header's own declaration proves native `i++`
-export function nativeTypedForIncrements (content: string): string {
-    return content.replace (/\bfor \(((?:int|Int64|double) ([A-Za-z_]\w*) = [^;]*;[^;]*;) postFixIncrement\(ref \2\)\)/g, 'for ($1 $2++)');
 }
 
 // `isEqual(E, const)` -> `==` / a constant pattern when the emitted text proves E's C# type: object reads
