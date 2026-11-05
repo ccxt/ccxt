@@ -47,7 +47,7 @@ public class TestTrade extends BaseTest {
         }};
         // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
         // removed side because some public endpoints return trades without side
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("fees", "fee", "symbol", "order", "id", "takerOrMaker"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("fees", "fee", "symbol", "order", "id", "takerOrMaker"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
@@ -63,14 +63,14 @@ public class TestTrade extends BaseTest {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", new ArrayList<Object>(Arrays.asList("taker", "maker", null)));
         }
         TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, method, entry, "fee");
-        if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "fees"))))
+        if (!(Helpers.inOp(skippedProperties, "fees")))
         {
             // todo: remove undefined check and probably non-empty array check later
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(entry, "fees"), null)))
+            if (!java.util.Objects.equals(((Map<String, Object>)entry).get("fees"), null))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(Helpers.GetValue(entry, "fees"))); i++)
+                for (var i = 0; i < Helpers.getArrayLength(((Map<String, Object>)entry).get("fees")); i++)
                 {
-                    TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, method, Helpers.GetValue(entry, "fees"), i);
+                    TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, method, ((Map<String, Object>)entry).get("fees"), i);
                 }
             }
         }

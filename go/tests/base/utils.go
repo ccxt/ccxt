@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -106,6 +107,13 @@ func InjectWsMessage(exchange ccxt.ICoreExchange, url any, message any) {
 	// feed one already-json-parsed frame into the exchange's ws message
 	// handler - the same entry point the real transport invokes
 	client := exchange.(wsClientProvider).Client(url)
+	// a panicking handler must fail the pending watch instead of hanging it
+	defer func() {
+		if r := recover(); r != nil {
+			client.Reject(ccxt.RecoveredError(r))
+			panic(r)
+		}
+	}()
 	client.OnMessageCallback(client, message)
 }
 
@@ -313,9 +321,9 @@ func CallMethodSync(testFiles2 any, methodName2 any, exchange any, skippedProper
 // 	return nil
 // }
 
-func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties any, args2 any) <-chan any {
+func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties any, args2 any) <-chan ccxt.AsyncResult[any] {
 	// Create the return channel
-	ch := make(chan any, 1)
+	ch := make(chan ccxt.AsyncResult[any], 1)
 
 	go func() {
 		defer close(ch)
@@ -335,7 +343,7 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 		// Retrieve the function from testFiles
 		method, exists := testFiles[methodName]
 		if !exists {
-			ch <- fmt.Errorf("panic:method %s not found in testFiles", methodName)
+			ch <- ccxt.AsyncResult[any]{Err: fmt.Errorf("panic:method %s not found in testFiles", methodName)}
 			return
 		}
 
@@ -343,7 +351,7 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 		methodVal := reflect.ValueOf(method)
 		if methodVal.Kind() != reflect.Func {
 			// Return an error if the item is not a function
-			ch <- fmt.Errorf("%s is not a function", methodName)
+			ch <- ccxt.AsyncResult[any]{Err: fmt.Errorf("%s is not a function", methodName)}
 			return
 		}
 
@@ -355,7 +363,7 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 
 		// Check if the number of arguments matches the function's requirements
 		if methodVal.Type().NumIn() != len(in) {
-			ch <- fmt.Errorf("panic:method %s requires %d arguments, but %d were provided", methodName, methodVal.Type().NumIn(), len(in))
+			ch <- ccxt.AsyncResult[any]{Err: fmt.Errorf("panic:method %s requires %d arguments, but %d were provided", methodName, methodVal.Type().NumIn(), len(in))}
 			return
 		}
 
@@ -369,14 +377,18 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 				if !ok {
 					break // result channel is closed
 				}
-				ch <- val.Interface() // pass the value to the output channel
+				if outcome, isOutcome := val.Interface().(ccxt.UntypedOutcome); isOutcome {
+					ch <- ccxt.AsyncResult[any]{Value: VacantAsNil(outcome.Untyped()), Err: outcome.Failure()}
+				} else {
+					ch <- ccxt.AsyncResult[any]{Value: val.Interface()}
+				}
 			}
 			// close(ch) // close the output channel after all values are received
 			return
 		} else if len(res) > 0 {
-			ch <- res[0].Interface()
+			ch <- ccxt.AsyncResult[any]{Value: res[0].Interface()}
 		} else {
-			ch <- nil
+			ch <- ccxt.AsyncResult[any]{}
 		}
 	}()
 
@@ -441,25 +453,225 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 // }
 
 // callExchangeMethodDynamically function to call exchange methods dynamically
-func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-chan any {
+func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-chan ccxt.AsyncResult[any] {
 	arg := args2.([]any)
-	ch := make(chan any)
+	ch := make(chan ccxt.AsyncResult[any])
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				if r != "break" {
-					ch <- "panic:" + ToString(r)
-				}
-			}
-		}()
+		defer ReturnPanicError(ch)
 		exchangeType := exchange.(ccxt.ICoreExchange)
 		exchangeType.WarmUpCache()
+		arg = coerceArgs(exchange, methodName2.(string), arg)
 		res := <-CallInternalMethod(exchangeType.GetCache(), exchange, methodName2.(string), arg...)
-		PanicOnError(res)
+		res.Value = DetypeForComparison(res.Value)
 		ch <- res
 	}()
 	return ch
+}
+
+// unified structs a core may return instead of a map (grows with each struct-typed family)
+var detypedStructs = map[reflect.Type]bool{
+	reflect.TypeOf(ccxt.Ticker{}): true,
+	reflect.TypeOf(ccxt.Order{}):  true,
+	reflect.TypeOf(ccxt.Trade{}):  true,
+	reflect.TypeOf(ccxt.Fee{}):    true,
+}
+
+// VacantAsNil reads an absent typed result (zero struct, nil or empty typed map/slice) as nil,
+// matching the undefined the static fixtures store.
+func VacantAsNil(value any) any {
+	rv := reflect.ValueOf(value)
+	switch rv.Kind() {
+	case reflect.Invalid:
+		return nil
+	case reflect.Struct:
+		if rv.IsZero() {
+			return nil
+		}
+	case reflect.Ptr, reflect.Map, reflect.Slice:
+		if rv.IsNil() {
+			return nil
+		}
+		if _, isOhlcvs := value.(map[string]map[string][]ccxt.OHLCV); isOhlcvs && rv.Len() == 0 {
+			return nil
+		}
+	}
+	return value
+}
+
+// detypedLists: list-of-struct results onto the []any of maps the fixtures store.
+var detypedLists = map[reflect.Type]func(any) any{
+	reflect.TypeOf([]ccxt.Trade(nil)):                func(v any) any { return ccxt.TradesToList(v.([]ccxt.Trade)) },
+	reflect.TypeOf([]ccxt.Order(nil)):                func(v any) any { return ccxt.OrdersToList(v.([]ccxt.Order)) },
+	reflect.TypeOf([]ccxt.OHLCV(nil)):                func(v any) any { return ccxt.OHLCVsToList(v.([]ccxt.OHLCV)) },
+	reflect.TypeOf([]ccxt.Position(nil)):             func(v any) any { return ccxt.PositionsToList(v.([]ccxt.Position)) },
+	reflect.TypeOf([]ccxt.Transaction(nil)):          func(v any) any { return ccxt.TransactionsToList(v.([]ccxt.Transaction)) },
+	reflect.TypeOf([]ccxt.LedgerEntry(nil)):          func(v any) any { return ccxt.LedgerEntriesToList(v.([]ccxt.LedgerEntry)) },
+	reflect.TypeOf([]ccxt.DepositAddress(nil)):       func(v any) any { return ccxt.DepositAddressesToList(v.([]ccxt.DepositAddress)) },
+	reflect.TypeOf([]ccxt.TransferEntry(nil)):        func(v any) any { return ccxt.TransferEntriesToList(v.([]ccxt.TransferEntry)) },
+	reflect.TypeOf([]ccxt.OpenInterest(nil)):         func(v any) any { return ccxt.OpenInterestsToList(v.([]ccxt.OpenInterest)) },
+	reflect.TypeOf([]ccxt.Conversion(nil)):           func(v any) any { return ccxt.ConversionsToList(v.([]ccxt.Conversion)) },
+	reflect.TypeOf([]ccxt.Liquidation(nil)):          func(v any) any { return ccxt.LiquidationsToList(v.([]ccxt.Liquidation)) },
+	reflect.TypeOf([]ccxt.BorrowInterest(nil)):       func(v any) any { return ccxt.BorrowInterestsToList(v.([]ccxt.BorrowInterest)) },
+	reflect.TypeOf([]ccxt.FundingHistory(nil)):       func(v any) any { return ccxt.FundingHistoriesToList(v.([]ccxt.FundingHistory)) },
+	reflect.TypeOf([]ccxt.FundingRateHistory(nil)):   func(v any) any { return ccxt.FundingRateHistoriesToList(v.([]ccxt.FundingRateHistory)) },
+	reflect.TypeOf([]ccxt.LeverageTier(nil)):         func(v any) any { return ccxt.LeverageTiersToList(v.([]ccxt.LeverageTier)) },
+	reflect.TypeOf([]ccxt.MarginModification(nil)):   func(v any) any { return ccxt.MarginModificationsToList(v.([]ccxt.MarginModification)) },
+	reflect.TypeOf([]ccxt.LongShortRatio(nil)):       func(v any) any { return ccxt.LongShortRatiosToList(v.([]ccxt.LongShortRatio)) },
+	reflect.TypeOf([]ccxt.ADL(nil)):                  func(v any) any { return ccxt.ADLsToList(v.([]ccxt.ADL)) },
+	reflect.TypeOf([]ccxt.Account(nil)):              func(v any) any { return ccxt.AccountsToList(v.([]ccxt.Account)) },
+	reflect.TypeOf([]ccxt.PredictionOrder(nil)):      func(v any) any { return ccxt.PredictionOrdersToList(v.([]ccxt.PredictionOrder)) },
+	reflect.TypeOf([]ccxt.PredictionTrade(nil)):      func(v any) any { return ccxt.PredictionTradesToList(v.([]ccxt.PredictionTrade)) },
+	reflect.TypeOf([]ccxt.PredictionPosition(nil)):   func(v any) any { return ccxt.PredictionPositionsToList(v.([]ccxt.PredictionPosition)) },
+	reflect.TypeOf([]ccxt.PredictionEvent(nil)):      func(v any) any { return ccxt.PredictionEventsToList(v.([]ccxt.PredictionEvent)) },
+	reflect.TypeOf([]ccxt.PredictionSettlement(nil)): func(v any) any { return ccxt.PredictionSettlementsToList(v.([]ccxt.PredictionSettlement)) },
+	reflect.TypeOf([]ccxt.MarketInterface(nil)):      func(v any) any { return ccxt.MarketInterfacesToList(v.([]ccxt.MarketInterface)) },
+	reflect.TypeOf([]map[string]any(nil)):            func(v any) any { return ccxt.MapSliceToList(v.([]map[string]any)) },
+	reflect.TypeOf([]string(nil)):                    func(v any) any { return ccxt.StringSliceToList(v.([]string)) },
+}
+
+// DetypeForComparison projects unified Go structs (Ticker, ...) and containers of them onto
+// the map shape the static fixtures store: lowerCamel keys, nil pointers dropped, Info as "info".
+func DetypeForComparison(value any) any {
+	if value == nil {
+		return nil
+	}
+	if ob, isOb := value.(ccxt.OrderBook); isOb {
+		return ccxt.OrderBookToMap(ob)
+	}
+	if ob3, isOb3 := value.(ccxt.OrderBookL3); isOb3 {
+		return ccxt.OrderBookL3ToMap(ob3)
+	}
+	if dwf, isDwf := value.(ccxt.DepositWithdrawFee); isDwf {
+		return ccxt.DepositWithdrawFeeToMap(dwf)
+	}
+	if bals, isBals := value.(ccxt.Balances); isBals {
+		return ccxt.BalancesToMap(bals)
+	}
+	if lt, isLt := value.(ccxt.LeverageTiers); isLt {
+		return ccxt.LeverageTiersToMap(lt)
+	}
+	if pob, isPob := value.(ccxt.PredictionOrderBook); isPob {
+		return ccxt.PredictionOrderBookToMap(pob)
+	}
+	if mi, isMi := value.(ccxt.MarketInterface); isMi {
+		return ccxt.MarketInterfaceToMap(mi)
+	}
+	if cur, isCur := value.(ccxt.Currency); isCur {
+		return ccxt.CurrencyToMap(cur)
+	}
+	if curs, isCurs := value.(ccxt.Currencies); isCurs {
+		return ccxt.CurrenciesToMap(curs)
+	}
+	if ohlcvs, isOhlcvs := value.(map[string]map[string][]ccxt.OHLCV); isOhlcvs {
+		return ccxt.OHLCVForSymbolsMapToMap(ohlcvs)
+	}
+	rv := reflect.ValueOf(value)
+	if toList, isList := detypedLists[rv.Type()]; isList && !rv.IsNil() {
+		return toList(value)
+	}
+	switch rv.Kind() {
+	case reflect.Struct:
+		if !detypedStructs[rv.Type()] {
+			return value
+		}
+		out := map[string]any{}
+		for i := 0; i < rv.NumField(); i++ {
+			field := rv.Type().Field(i)
+			if !field.IsExported() {
+				continue
+			}
+			fv := rv.Field(i)
+			if (fv.Kind() == reflect.Ptr || fv.Kind() == reflect.Map || fv.Kind() == reflect.Slice || fv.Kind() == reflect.Interface) && fv.IsNil() {
+				if field.Name != "Info" {
+					out[strings.ToLower(field.Name[:1])+field.Name[1:]] = nil
+				}
+				continue
+			}
+			if fv.Kind() == reflect.Ptr {
+				fv = fv.Elem()
+			}
+			detyped := DetypeForComparison(fv.Interface())
+			if fv.Kind() == reflect.Struct && fv.Type() == reflect.TypeOf(ccxt.Fee{}) {
+				if m, isMap := detyped.(map[string]any); isMap {
+					vacant := true
+					for _, mv := range m {
+						if mv != nil {
+							vacant = false
+							break
+						}
+					}
+					if vacant {
+						detyped = nil
+					}
+				}
+			}
+			out[strings.ToLower(field.Name[:1])+field.Name[1:]] = detyped
+		}
+		if _, isTx := value.(ccxt.Transaction); isTx {
+			out["txid"] = out["txId"]
+			delete(out, "txId")
+		}
+		if l, isLimits := value.(ccxt.Limits); isLimits && l.Market == nil {
+			delete(out, "market")
+		}
+		if _, isPos := value.(ccxt.Position); isPos {
+			for _, k := range []string{"timestamp", "lastUpdateTimestamp"} {
+				if f, isFloat := out[k].(float64); isFloat && f == float64(int64(f)) {
+					out[k] = int64(f)
+				}
+			}
+		}
+		return out
+	case reflect.Map:
+		if rv.Type().Key().Kind() != reflect.String || rv.IsNil() {
+			return value
+		}
+		out := map[string]any{}
+		for _, k := range rv.MapKeys() {
+			out[k.String()] = DetypeForComparison(rv.MapIndex(k).Interface())
+		}
+		return out
+	case reflect.Slice:
+		if k := rv.Type().Elem().Kind(); rv.IsNil() || (k != reflect.Struct && k != reflect.Interface && k != reflect.Map && k != reflect.String) {
+			return value
+		}
+		out := make([]any, rv.Len())
+		for i := 0; i < rv.Len(); i++ {
+			out[i] = DetypeForComparison(rv.Index(i).Interface())
+		}
+		return out
+	}
+	return value
+}
+
+// coerceArgs converts fixture string args to int64 where the method's parameter is int64
+// and the string is exactly an integer; the library itself rejects strings.
+func coerceArgs(exchange any, methodName string, args []any) []any {
+	name := ccxt.Capitalize(methodName)
+	method := reflect.ValueOf(exchange).MethodByName(name + "Async")
+	if !method.IsValid() {
+		method = reflect.ValueOf(exchange).MethodByName(name)
+	}
+	if !method.IsValid() {
+		return args
+	}
+	methodType := method.Type()
+	fixed := methodType.NumIn()
+	if methodType.IsVariadic() {
+		fixed--
+	}
+	result := append([]any{}, args...)
+	for k := 0; k < fixed && k < len(result); k++ {
+		str, isString := result[k].(string)
+		if !isString || methodType.In(k).Kind() != reflect.Int64 {
+			continue
+		}
+		if i, err := strconv.ParseInt(str, 10, 64); err == nil && strconv.FormatInt(i, 10) == str {
+			result[k] = i
+		}
+	}
+	return result
 }
 
 // callExchangeMethodDynamicallySync function that throws an error
@@ -505,6 +717,21 @@ func GetExchangeProp(exchange2 any, prop2 any, defaultValue ...any) any {
 	res := exchange.GetProperty(exchange, prop2)
 	if res != nil {
 		return res
+	}
+	// Go struct fields are exported PascalCase (WalletAddress, RequiredCredentials, ...) while the
+	// harness reads camelCase names — retry capitalized, like SetExchangeProp does. An empty string
+	// is the zero value of an unset string field, which the harness treats as "not set" (undefined in ts)
+	if propName, ok := prop2.(string); ok && propName != "" {
+		capitalized := strings.ToUpper(propName[:1]) + propName[1:]
+		if capitalized != propName {
+			res = exchange.GetProperty(exchange, capitalized)
+			if str, isStr := res.(string); isStr && str == "" {
+				res = nil
+			}
+			if res != nil {
+				return res
+			}
+		}
 	}
 	if len(defaultValue) > 0 {
 		return defaultValue[0]
@@ -686,8 +913,10 @@ func splitEnv(env string) [2]string {
 	return pair
 }
 
-func GetEnvVars() map[string]string {
-	envMap := make(map[string]string)
+// GetEnvVars returns the environment as map[string]any, the shape InOp/GetValue understand
+// (a map[string]string is invisible to InOp, which silently disabled --loadKeys)
+func GetEnvVars() map[string]any {
+	envMap := make(map[string]any)
 	for _, env := range os.Environ() {
 		pair := splitEnv(env)
 		envMap[pair[0]] = pair[1]

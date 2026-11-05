@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import bybit from './bybit.js';
+import bybit from './abstract/bybiteu.js';
 //  ---------------------------------------------------------------------------
 export default class bybiteu extends bybit {
     describe() {
@@ -60,6 +60,10 @@ export default class bybiteu extends bybit {
             },
             'options': {
                 'mica': true,
+                'defaultType': 'spot',
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
             },
         });
     }

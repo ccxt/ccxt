@@ -6,6 +6,7 @@ import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -61,7 +62,7 @@ export default class lighter extends lighterRest {
         });
     }
 
-    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined) {
+    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined): string {
         let hash = unifiedChannel;
         if (symbol !== undefined) {
             hash += '::' + symbol;
@@ -74,7 +75,7 @@ export default class lighter extends lighterRest {
         return hash;
     }
 
-    async subscribePublic (messageHash: any, params = {}) {
+    async subscribePublic (messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
@@ -86,7 +87,7 @@ export default class lighter extends lighterRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePublicMultiple (messageHashes: any, params = {}) {
+    async subscribePublicMultiple (messageHashes: string[], params: Dict = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
@@ -98,7 +99,7 @@ export default class lighter extends lighterRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
     }
 
-    async unsubscribe (messageHash: any, params = {}) {
+    async unsubscribe (messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'unsubscribe',
@@ -110,7 +111,7 @@ export default class lighter extends lighterRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (messageHash: any, params: Dict = {}) {
+    async subscribePrivate (messageHash: string, params: Dict = {}) {
         await this.preLoadLighterLibrary ();
         params['auth'] = this.createAuth (params);
         return await this.subscribePublic (messageHash, params);
@@ -122,13 +123,13 @@ export default class lighter extends lighterRest {
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBookMessage (client: Client, message: any, orderbook: any) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: WsOrderBook) {
         const data = this.safeDict (message, 'order_book', {});
         this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
@@ -139,7 +140,7 @@ export default class lighter extends lighterRest {
         return orderbook;
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // {
         //     "channel": "order_book:0",
@@ -198,17 +199,17 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const request: Dict = {
             'channel': 'order_book/' + market['id'],
         };
-        const messageHash = this.getMessageHash ('orderbook', symbol);
-        const orderbook = await this.subscribePublic (messageHash, this.extend (request, params));
+        const messageHash = this.getMessageHash ('orderbook', symbolValue);
+        const orderbook: WsOrderBook = await this.subscribePublic (messageHash, this.extend (request, params));
         return orderbook.limit ();
     }
 
@@ -221,21 +222,21 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const request: Dict = {
             'channel': 'order_book/' + market['id'],
         };
-        const subMessageHash = this.getMessageHash ('orderbook', symbol);
+        const subMessageHash = this.getMessageHash ('orderbook', symbolValue);
         const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         // watchTicker
         //     {
@@ -315,20 +316,23 @@ export default class lighter extends lighterRest {
      * @name lighter#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
+        if (market['swap'] !== true) {
+            throw new NotSupported (this.id + ' watchTicker() is only supported for swap markets');
+        }
         const request: Dict = {
             'channel': 'market_stats/' + market['id'],
         };
-        const messageHash = this.getMessageHash ('ticker', symbol);
+        const messageHash = this.getMessageHash ('ticker', symbolValue);
         return await this.subscribePublic (messageHash, this.extend (request, params));
     }
 
@@ -337,20 +341,23 @@ export default class lighter extends lighterRest {
      * @name lighter#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
+        if (market['swap'] !== true) {
+            throw new NotSupported (this.id + ' unWatchTicker() is only supported for swap markets');
+        }
         const request: Dict = {
             'channel': 'market_stats/' + market['id'],
         };
-        const subMessageHash = this.getMessageHash ('ticker', symbol);
+        const subMessageHash = this.getMessageHash ('ticker', symbolValue);
         const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
@@ -360,39 +367,45 @@ export default class lighter extends lighterRest {
      * @name lighter#watchTickers
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
+        if ((firstMarket !== undefined) && (firstMarket['swap'] !== true)) {
+            throw new NotSupported (this.id + ' watchTickers() is only supported for swap markets');
+        }
         const request: Dict = {
             'channel': 'market_stats/all',
         };
         const messageHashes: string[] = [];
         let symbolsLength = 0;
-        if (symbols !== undefined) {
-            symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
         }
-        if ((symbols === undefined) || (symbolsLength === 0)) {
+        if ((symbolsNormalized === undefined) || (symbolsLength === 0)) {
             messageHashes.push (this.getMessageHash ('ticker'));
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push (this.getMessageHash ('ticker', symbol));
             }
         }
         const newTicker = await this.subscribePublicMultiple (messageHashes, this.extend (request, params));
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -400,13 +413,18 @@ export default class lighter extends lighterRest {
      * @name lighter#unWatchTickers
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
+        if ((firstMarket !== undefined) && (firstMarket['swap'] !== true)) {
+            throw new NotSupported (this.id + ' unWatchTickers() is only supported for swap markets');
         }
         const request: Dict = {
             'channel': 'market_stats/all',
@@ -425,7 +443,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+    override watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
         return this.watchTicker (symbol, params);
     }
 
@@ -438,7 +456,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override watchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         return this.watchTickers (symbols, params);
     }
 
@@ -468,7 +486,7 @@ export default class lighter extends lighterRest {
         return this.unWatchTickers (symbols, params);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "trade_id": 526801155,
@@ -502,7 +520,10 @@ export default class lighter extends lighterRest {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
         const isMakerAsk = this.safeBool (trade, 'is_maker_ask');
-        const side = (isMakerAsk === true) ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (isMakerAsk === true) {
+            side = 'buy';
+        }
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,
@@ -520,7 +541,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "trade:0",
@@ -562,7 +583,7 @@ export default class lighter extends lighterRest {
         if (liquidationDataLength > 0) {
             this.handleLiquidation (client, message);
         }
-        const data = this.safeList (message, 'trades', []);
+        const data: Dict[] = this.safeList (message, 'trades', []);
         const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -595,7 +616,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -603,7 +624,7 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'trade/' + market['id'],
         };
-        const messageHash = this.getMessageHash ('trade', market['symbol']);
+        const messageHash = this.getMessageHash ('trade', this.safeString (market, 'symbol'));
         const trades = await this.subscribePublic (messageHash, this.extend (request, params));
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -617,7 +638,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -625,12 +646,12 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'trade/' + market['id'],
         };
-        const subMessageHash = this.getMessageHash ('trade', market['symbol']);
+        const subMessageHash = this.getMessageHash ('trade', this.safeString (market, 'symbol'));
         const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "trade_id": 526801155,
@@ -689,7 +710,12 @@ export default class lighter extends lighterRest {
         }
         let fee: FeeString = undefined;
         if (takerOrMaker !== undefined) {
-            const feeRateRaw = (takerOrMaker === 'maker') ? this.safeString (trade, 'maker_fee') : this.safeString (trade, 'taker_fee');
+            let feeRateRaw: Str = undefined;
+            if (takerOrMaker === 'maker') {
+                feeRateRaw = this.safeString (trade, 'maker_fee');
+            } else {
+                feeRateRaw = this.safeString (trade, 'taker_fee');
+            }
             const feeRate = (feeRateRaw !== undefined) ? Precise.stringDiv (feeRateRaw, '1000000') : '0';
             const feeAmount = Precise.stringMul (costString, feeRate);
             fee = {
@@ -715,7 +741,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleMyTrades (client: Client, message: any): boolean {
+    handleMyTrades (client: Client, message: Dict): boolean {
         //
         //     {
         //         "channel": "account_all_trades:723310",
@@ -768,7 +794,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const trades = this.safeList (data, marketId, []);
+            const trades: Dict[] = this.safeList (data, marketId, []);
             const tradesLength = trades.length;
             for (let j = 0; j < tradesLength; j++) {
                 const jReversed = tradesLength - 1 - j;
@@ -798,26 +824,27 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchMyTrades', 'accountIndex', 'account_index');
+        const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (params, 'watchMyTrades', 'accountIndex', 'account_index');
         let messageHash = this.getMessageHash ('myTrades');
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = this.getMessageHash ('myTrades', symbol);
+            symbolResolved = this.safeString (market, 'symbol');
+            messageHash = this.getMessageHash ('myTrades', symbolResolved);
         }
         const request: Dict = {
             'channel': 'account_all_trades/' + this.numberToString (accountIndex),
         };
-        const trades = await this.subscribePublic (messageHash, this.extend (request, params));
+        const trades = await this.subscribePublic (messageHash, this.extend (request, paramsAccountIndex));
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -830,21 +857,20 @@ export default class lighter extends lighterRest {
      * @param {string} [params.accountIndex] account index
      * @returns {any} status of the unwatch request
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only');
         }
-        let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'unWatchMyTrades', 'accountIndex', 'account_index');
+        const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (params, 'unWatchMyTrades', 'accountIndex', 'account_index');
         const subMessageHash = this.getMessageHash ('myTrades');
         const messageHash = 'unsubscribe:' + subMessageHash;
         const request: Dict = {
             'channel': 'account_all_trades/' + this.numberToString (accountIndex),
         };
-        return await this.unsubscribe (messageHash, this.extend (request, params));
+        return await this.unsubscribe (messageHash, this.extend (request, paramsAccountIndex));
     }
 
-    parseWsLiquidation (liquidation: any, market: Market = undefined) {
+    parseWsLiquidation (liquidation: Dict, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -875,7 +901,10 @@ export default class lighter extends lighterRest {
         //
         const timestamp = this.safeInteger (liquidation, 'timestamp');
         const isMakerAsk = this.safeBool (liquidation, 'is_maker_ask');
-        const side = (isMakerAsk === true) ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (isMakerAsk === true) {
+            side = 'buy';
+        }
         const contracts = this.safeString (liquidation, 'size');
         const contractSize = this.safeString (market, 'contractSize');
         const price = this.safeString (liquidation, 'price');
@@ -898,7 +927,7 @@ export default class lighter extends lighterRest {
         });
     }
 
-    handleLiquidation (client: Client, message: any) {
+    handleLiquidation (client: Client, message: Dict) {
         //
         //     {
         //         "channel": "trade:0",
@@ -935,7 +964,7 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const data = this.safeList (message, 'liquidation_trades', []);
+        const data: Dict[] = this.safeList (message, 'liquidation_trades', []);
         const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -968,7 +997,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    override async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Liquidation[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -989,27 +1018,25 @@ export default class lighter extends lighterRest {
      * @param {string} [params.type] 'spot' or 'swap', default is 'swap'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
-        let type: Str = undefined;
-        [ type, params ] = this.handleParamString (params, 'type', defaultType);
-        let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchBalance', 'accountIndex', 'account_index');
+        const [ type, paramsType ] = this.handleParamString (params, 'type', defaultType);
+        const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (paramsType, 'watchBalance', 'accountIndex', 'account_index');
         const messageHash = this.getMessageHash ('balances', undefined, type);
         const request: Dict = {};
         if (type === 'spot') {
             request['channel'] = 'account_all_assets/' + this.numberToString (accountIndex);
-            return await this.subscribePrivate (messageHash, this.extend (request, params));
+            return await this.subscribePrivate (messageHash, this.extend (request, paramsAccountIndex));
         } else {
             request['channel'] = 'user_stats/' + this.numberToString (accountIndex);
-            return await this.subscribePublic (messageHash, this.extend (request, params));
+            return await this.subscribePublic (messageHash, this.extend (request, paramsAccountIndex));
         }
     }
 
-    handleBalance (client: Client, message: any): boolean {
+    handleBalance (client: Client, message: Dict): boolean {
         //
         //    spot balance
         //    {
@@ -1075,7 +1102,7 @@ export default class lighter extends lighterRest {
             const assetIds = Object.keys (assets);
             for (let i = 0; i < assetIds.length; i++) {
                 const assetId = assetIds[i];
-                const asset = assets[assetId];
+                const asset = this.safeDict (assets, assetId);
                 const codeId = this.safeString (asset, 'symbol');
                 const code = this.safeCurrencyCode (codeId);
                 const account = this.account ();
@@ -1112,27 +1139,27 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchOrders', 'accountIndex', 'account_index');
+        const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (params, 'watchOrders', 'accountIndex', 'account_index');
         let messageHash: Str = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash = this.getMessageHash ('orders', market['symbol']);
+            messageHash = this.getMessageHash ('orders', this.safeString (market, 'symbol'));
             request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString (accountIndex);
         } else {
             messageHash = this.getMessageHash ('orders');
             request['channel'] = 'account_all_orders/' + this.numberToString (accountIndex);
         }
-        const orders = await this.subscribePrivate (messageHash, this.extend (request, params));
+        const orders = await this.subscribePrivate (messageHash, this.extend (request, paramsAccountIndex));
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 
     /**
@@ -1144,24 +1171,23 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'unWatchOrders', 'accountIndex', 'account_index');
+        const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (params, 'unWatchOrders', 'accountIndex', 'account_index');
         let subMessageHash: Str = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            subMessageHash = this.getMessageHash ('orders', market['symbol']);
+            subMessageHash = this.getMessageHash ('orders', this.safeString (market, 'symbol'));
             request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString (accountIndex);
         } else {
             subMessageHash = this.getMessageHash ('orders');
             request['channel'] = 'account_all_orders/' + this.numberToString (accountIndex);
         }
         const messageHash = 'unsubscribe:' + subMessageHash;
-        return await this.unsubscribe (messageHash, this.extend (request, params));
+        return await this.unsubscribe (messageHash, this.extend (request, paramsAccountIndex));
     }
 
     requestId (url: string): string {
@@ -1197,7 +1223,8 @@ export default class lighter extends lighterRest {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const messageHash = 'jsonapi/sendtx:' + requestId;
-        const [ txType, txInfo, order, market ] = await this.signAndCreateOrder ('createOrderWs', symbol, type, side, amount, price, params);
+        const [ txType, txInfo, order ] = await this.signAndCreateOrder ('createOrderWs', symbol, type, side, amount, price, params);
+        const market = this.market (symbol);
         const parsedTx = this.parseJson (txInfo);
         const message: Dict = {
             'type': 'jsonapi/sendtx',
@@ -1226,11 +1253,12 @@ export default class lighter extends lighterRest {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const messageHash = 'jsonapi/sendtx:' + requestId;
-        const [ txType, txInfo, market ] = await this.signAndCancelOrder ('cancelOrderWs', id, symbol, params);
+        const [ txType, txInfo ] = await this.signAndCancelOrder ('cancelOrderWs', id, symbol, params);
+        const market = this.market (symbol);
         const parsedTx = this.parseJson (txInfo);
         const message: Dict = {
             'type': 'jsonapi/sendtx',
@@ -1258,7 +1286,7 @@ export default class lighter extends lighterRest {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const messageHash = 'jsonapi/sendtx:' + requestId;
@@ -1279,7 +1307,7 @@ export default class lighter extends lighterRest {
         return this.parseOrders ([ rawMessage ]);
     }
 
-    handleWsSendtxApi (client: Client, message: any) {
+    handleWsSendtxApi (client: Client, message: Dict) {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
@@ -1287,7 +1315,7 @@ export default class lighter extends lighterRest {
         client.resolve (message, 'jsonapi/sendtx:' + id);
     }
 
-    handleOrders (client: Client, message: any): boolean {
+    handleOrders (client: Client, message: Dict): boolean {
         //
         //    {
         //        "account": {ACCOUNT_INDEX},
@@ -1322,7 +1350,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const orders = this.safeList (data, marketId, []);
+            const orders: Dict[] = this.safeList (data, marketId, []);
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder (orders[j], market);
                 stored.append (order);
@@ -1337,7 +1365,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    handleErrorMessage (client: Client, message: any): boolean {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "error": {
@@ -1346,7 +1374,45 @@ export default class lighter extends lighterRest {
         //         }
         //     }
         //
+        //
+        //     {
+        //         "error": {
+        //             "code": 30003,
+        //             "message": "Already Subscribed to : market_stats:all"
+        //         }
+        //     }
+        //
+        //     {
+        //         "error": {
+        //             "code": 30002,
+        //             "message": "Not Subscribed to : order_book:0"
+        //         }
+        //     }
+        //
         const error = this.safeDict (message, 'error');
+        const errorCode = this.safeString (error, 'code');
+        if (errorCode === '30003') {
+            // a duplicate subscribe is harmless - the server-side subscription is intact and
+            // data keeps flowing, while the generic reject below would hit every pending
+            // future on the connection because the venue echoes no request id,
+            // same handling for the same notice on hyperliquid, apex and krakenfutures
+            return true;
+        }
+        if (errorCode === '30002') {
+            // the requested state is already reached, so the unWatch call resolves and only
+            // its own channel gets cleaned up. The channel is available solely inside the
+            // message text, a changed text format falls through to the generic reject below
+            const notSubscribedMessage = this.safeString (error, 'message', '');
+            const messageParts = notSubscribedMessage.split (' : ');
+            const notSubscribedChannel = this.safeString (messageParts, 1);
+            if (notSubscribedChannel !== undefined) {
+                const unsubscribed: Dict = {
+                    'channel': notSubscribedChannel,
+                };
+                this.handleUnSubscription (client, unsubscribed);
+                return true;
+            }
+        }
         try {
             if (error !== undefined) {
                 const code = this.safeString (error, 'code');
@@ -1384,7 +1450,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1439,7 +1505,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",
@@ -1449,7 +1515,7 @@ export default class lighter extends lighterRest {
         return message;
     }
 
-    handleUnSubscription (client: Client, message: any) {
+    handleUnSubscription (client: Client, message: Dict) {
         //
         //     {
         //         "type": "unsubscribed",
@@ -1572,7 +1638,7 @@ export default class lighter extends lighterRest {
         this.cleanCache (ordersStructure);
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: Dict) {
         //
         //     { "type": "ping" }
         //

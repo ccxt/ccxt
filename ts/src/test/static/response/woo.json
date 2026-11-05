@@ -441,7 +441,6 @@
                     "USDT",
                     10,
                     "0x24625c5f1b6574403a0469994dea24271bfbd443",
-                    null,
                     {
                         "network": "ERC20"
                     }
@@ -802,8 +801,8 @@
                     "timestamp": 1752500555823,
                     "datetime": "2025-07-14T13:42:35.823Z",
                     "lastUpdateTimestamp": null,
-                    "initialMargin": null,
-                    "initialMarginPercentage": null,
+                    "initialMargin": 0.9683793449,
+                    "initialMarginPercentage": 0.1,
                     "maintenanceMargin": null,
                     "maintenanceMarginPercentage": null,
                     "entryPrice": 96.87,
@@ -816,10 +815,11 @@
                     "liquidationPrice": 0,
                     "markPrice": 96.83793449,
                     "lastPrice": null,
+                    "positionMargin": null,
                     "collateral": null,
                     "marginMode": "cross",
                     "side": "long",
-                    "percentage": null,
+                    "percentage": -0.33,
                     "hedged": false,
                     "stopLossPrice": null,
                     "takeProfitPrice": null
@@ -888,8 +888,8 @@
                         "timestamp": 1752500555823,
                         "datetime": "2025-07-14T13:42:35.823Z",
                         "lastUpdateTimestamp": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMargin": 0.9683793449,
+                        "initialMarginPercentage": 0.1,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 96.87,
@@ -902,10 +902,11 @@
                         "liquidationPrice": 0,
                         "markPrice": 96.83793449,
                         "lastPrice": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
-                        "percentage": null,
+                        "percentage": -0.33,
                         "hedged": false,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
@@ -1703,7 +1704,7 @@
                 "description": "fetch spot order with correct timestamp",
                 "method": "fetchOrder",
                 "input": [
-                    65902163453,
+                    "65902163453",
                     "LTC/USDT"
                 ],
                 "httpResponse": {
@@ -1756,7 +1757,7 @@
                     "amount": 0.1,
                     "filled": 0.1,
                     "remaining": 0,
-                    "cost": 10.5215,
+                    "cost": 9.566,
                     "trades": [],
                     "fee": {
                         "cost": 0.0001,
@@ -2821,8 +2822,7 @@
                             "cost": "0",
                             "currency": null
                         },
-                        "network": null,
-                        "tokenSide": "DEPOSIT"
+                        "network": null
                     }
                 ]
             }
@@ -2908,8 +2908,7 @@
                             "cost": "2",
                             "currency": "USDC"
                         },
-                        "network": null,
-                        "tokenSide": "WITHDRAW"
+                        "network": null
                     }
                 ]
             }

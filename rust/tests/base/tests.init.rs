@@ -6,7 +6,6 @@
 use super::*;
 
 pub async fn baseTestsInit() {
-    testConstants();
     testAfterConstructor();
     testAggregate();
     testExtend();
@@ -20,11 +19,13 @@ pub async fn baseTestsInit() {
     testNumberToBE();
     testDecimalToPrecision();
     testCapitalize();
+    testIncrementingNonce();
     testIsDictionary();
     testNumberToString();
     testPrecise();
     testSafeMethods();
     testSafeTicker();
+    testSafePosition();
     testMergeBalanceAccount();
     testBase58ToBinary();
     testToArray();
@@ -42,6 +43,7 @@ pub async fn baseTestsInit() {
     testInArray();
     testFilterBy();
     testHandleMethods();
+    testHandleHttpStatusCode();
     testNetworkMethods();
     testRemoveRepeatedElementsFromArray();
     testIsEmpty();
@@ -63,7 +65,6 @@ pub async fn baseTestsInit() {
     testImplodeParams();
     testUnique();
     testUrlencodeNested();
-    testSleep().await;
     testFetchHistory().await;
     testIo();
     testIsJsonEncodedObject();

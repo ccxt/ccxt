@@ -134,7 +134,7 @@ func testTrade(exchange *ccxt.Binance) {
 	Assert(*typed[0].Side != "")
 	Assert(*typed[0].Price > 0)
 	Assert(*typed[0].Amount > 0)
-	Assert(len(typed[0].Info) > 0)
+	Assert(typed[0].Info != nil)
 
 }
 
@@ -151,7 +151,7 @@ func testTicker(exchange *ccxt.Binance) {
 	Assert(*ticker.Timestamp > 0)
 	Assert(*ticker.Close > 0)
 	Assert(*ticker.Last > 0)
-	Assert(len(ticker.Info) > 0)
+	Assert(ticker.Info != nil)
 }
 
 func testOrder(exchange *ccxt.Binance) {
@@ -168,7 +168,7 @@ func testOrder(exchange *ccxt.Binance) {
 	Assert(*typed[0].Status != "")
 	Assert(*typed[0].Price > 0)
 	Assert(*typed[0].Amount > 0)
-	Assert(len(typed[0].Info) > 0)
+	Assert(typed[0].Info != nil)
 }
 
 func testPosition(exchange *ccxt.Binance) {
@@ -189,7 +189,7 @@ func testPosition(exchange *ccxt.Binance) {
 	Assert(*typed[1].Contracts > 0)
 	Assert(*typed[1].Timestamp > 0)
 	Assert(*typed[1].Datetime != "")
-	Assert(len(typed[0].Info) > 0)
+	Assert(typed[0].Info != nil)
 }
 
 func testBalance(exchange *ccxt.Binance) {

@@ -1893,17 +1893,6 @@ public class BingxApi extends Exchange
     }
 
     /**
-     * Calls the copyTradingV1PrivateGetSwapTraceCurrentTrack endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  copyTradingV1PrivateGetSwapTraceCurrentTrack (Object... optionalArgs)
-    {
-        return this.callAsync ("copyTradingV1PrivateGetSwapTraceCurrentTrack", optionalArgs);
-    }
-
-    /**
      * Calls the copyTradingV1PrivateGetPFuturesTraderDetail endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1989,17 +1978,6 @@ public class BingxApi extends Exchange
     public CompletableFuture<Map<String, Object>>  copyTradingV1PrivateGetSpotHistoryOrder (Object... optionalArgs)
     {
         return this.callAsync ("copyTradingV1PrivateGetSpotHistoryOrder", optionalArgs);
-    }
-
-    /**
-     * Calls the copyTradingV1PrivatePostSwapTraceCloseTrackOrder endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  copyTradingV1PrivatePostSwapTraceCloseTrackOrder (Object... optionalArgs)
-    {
-        return this.callAsync ("copyTradingV1PrivatePostSwapTraceCloseTrackOrder", optionalArgs);
     }
 
     /**
@@ -2091,6 +2069,17 @@ public class BingxApi extends Exchange
     }
 
     /**
+     * Calls the apiAssetV1PrivateGetTransferSupportCoins endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  apiAssetV1PrivateGetTransferSupportCoins (Object... optionalArgs)
+    {
+        return this.callAsync ("apiAssetV1PrivateGetTransferSupportCoins", optionalArgs);
+    }
+
+    /**
      * Calls the apiAssetV1PrivatePostTransfer endpoint.
      *
      * @param optionalArgs the request parameters
@@ -2099,17 +2088,6 @@ public class BingxApi extends Exchange
     public CompletableFuture<Map<String, Object>>  apiAssetV1PrivatePostTransfer (Object... optionalArgs)
     {
         return this.callAsync ("apiAssetV1PrivatePostTransfer", optionalArgs);
-    }
-
-    /**
-     * Calls the apiAssetV1PublicGetTransferSupportCoins endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  apiAssetV1PublicGetTransferSupportCoins (Object... optionalArgs)
-    {
-        return this.callAsync ("apiAssetV1PublicGetTransferSupportCoins", optionalArgs);
     }
 
     /**

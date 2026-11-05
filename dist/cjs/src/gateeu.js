@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var gate = require('./gate.js');
+var gateeu$1 = require('./abstract/gateeu.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class gateeu extends gate["default"] {
+class gateeu extends gateeu$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gateeu',
@@ -51,6 +51,9 @@ class gateeu extends gate["default"] {
             'options': {
                 'fetchMarkets': {
                     'types': ['spot'],
+                },
+                'fetchOrderBook': {
+                    'maxSpotLimit': 100, // this venue returns an empty book above 100
                 },
                 'mica': true,
             },

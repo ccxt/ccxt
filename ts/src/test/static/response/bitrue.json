@@ -523,7 +523,7 @@
                                     }
                                 }
                             },
-                            "BSC": {
+                            "BEP20": {
                                 "info": {
                                     "originCoin": "usdt_bep20",
                                     "tagType": "",
@@ -535,7 +535,7 @@
                                     "maxWithdraw": "2000000.00"
                                 },
                                 "id": "BSC",
-                                "network": "BSC",
+                                "network": "BEP20",
                                 "deposit": true,
                                 "withdraw": true,
                                 "active": null,

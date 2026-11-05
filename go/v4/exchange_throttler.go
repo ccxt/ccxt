@@ -118,7 +118,12 @@ func (t *Throttler) leakyBucketLoop() {
 			t.Mutex.Lock()
 			sumTokens := ToFloat64(t.Config["refillRate"]) * ToFloat64(elapsed)
 			tokens = ToFloat64(t.Config["tokens"]) + sumTokens
-			t.Config["tokens"] = MathMin(tokens, ToFloat64(t.Config["capacity"]))
+			capacity := ToFloat64(t.Config["capacity"])
+			if tokens < capacity {
+				t.Config["tokens"] = tokens
+			} else {
+				t.Config["tokens"] = capacity
+			}
 			t.Mutex.Unlock()
 		}
 	}

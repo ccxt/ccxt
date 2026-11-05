@@ -59,7 +59,6 @@ function shiftRowsDown (self, index) {
 const SIZE = 1024
 const SEED = new Float64Array (new Array (SIZE).fill (Number.MAX_VALUE))
 
-
 interface IOrderBookSide<T> extends Array<T> {
     store(price: any, size: any);
     storeArray(array: any[]);

@@ -96,7 +96,7 @@ public class LoomConcurrencyBench {
                 : new int[]{64, 256};
 
         FakeExchange ex = new FakeExchange();
-        ex.setMarkets(new ArrayList<>(List.of(fakeMarket())));
+        ex.setMarkets(new ArrayList<>(List.of(fakeMarket())), null);
 
         System.out.println("commonPool parallelism=" + ForkJoinPool.commonPool().getParallelism()
                 + "  latency_each=" + LATENCY_MS + "ms  ideal=~" + LATENCY_MS + "ms");

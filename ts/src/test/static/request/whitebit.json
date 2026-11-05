@@ -911,12 +911,11 @@
                     "USDT",
                     5,
                     "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
-                    null,
                     {
-                        "uniqueId": "ccxt-test-withdraw-0001",
-                        "network": "TRC20"
+                      "uniqueId": "ccxt-test-withdraw-0001",
+                      "network": "TRC20"
                     }
-                ],
+                  ],
                 "output": {
                     "request": "/api/v4/main-account/withdraw",
                     "nonce": "1786656245400",

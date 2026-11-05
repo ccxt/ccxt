@@ -26,17 +26,17 @@ func HelperTestInitThrottler() {
 	Assert(!(ccxt.InOp(tokenBucket, "maxCapacity")) || ccxt.EvalTruthy(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
 }
 func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
-	expectEnabled := ccxt.GetArg(optionalArgs, 0, true)
+	var expectEnabled bool = ccxt.GetArgBool(optionalArgs, 0, true)
 	_ = expectEnabled
 	Assert(!ccxt.IsEqual(exchange.Urls, nil))
 	Assert(ccxt.InOp(exchange.Urls, "test"))
 	var isSandboxModeEnabled any = ExchangeProp(exchange, "isSandboxModeEnabled")
-	if ccxt.EvalTruthy(expectEnabled) {
-		Assert(ccxt.IsEqual(isSandboxModeEnabled, true))
+	if expectEnabled == true {
+		Assert((isSandboxModeEnabled == true))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://testnet.org"))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "apiBackup"), "public"), "https://example.com"))
 	} else {
-		Assert(!ccxt.IsEqual(isSandboxModeEnabled, true))
+		Assert((isSandboxModeEnabled != true))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://example.com"))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "test"), "public"), "https://testnet.org"))
 	}
@@ -69,13 +69,25 @@ func HelperTestInitSandbox() {
 	//
 	// CASE B: when sandbox is enabled
 	//
-	ccxt.AddElementToObject(ccxt.GetValue(opts, "options"), "sandbox", true)
+	ccxt.AddElementToObject(opts["options"], "sandbox", true)
 	exchange4 := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange4.DerivedExchange = exchange4
 	exchange4.InitParent(opts, map[string]any{}, exchange4)
 	HelperTestSandboxState(exchange4, true)
 	exchange4.SetSandboxMode(false)
 	HelperTestSandboxState(exchange4, false)
+	//
+	// CASE C: passed 'sandbox' within userConfig
+	//
+	ccxt.AddElementToObject(opts["options"], "sandbox", false)
+	// @ts-expect-error
+	opts["sandbox"] = true
+	exchange5 := ccxt.NewExchange().(*ccxt.Exchange)
+	exchange5.DerivedExchange = exchange5
+	exchange5.InitParent(opts, map[string]any{}, exchange5)
+	HelperTestSandboxState(exchange5, true)
+	exchange5.SetSandboxMode(false)
+	HelperTestSandboxState(exchange5, false)
 }
 func HelperTestInitMarket() {
 	// ############# markets ############# //
@@ -108,22 +120,20 @@ func HelperTestProperties() {
 	//
 	var keys []any = []any{"chrome", "chrome39", "chrome100"}
 	Assert(!ccxt.IsEqual(ExchangeProp(exchange, "userAgents"), nil))
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
-		var key any = ccxt.GetValue(keys, i)
+	for i := 0; i < len(keys); i++ {
+		var key *string = ccxt.SafeStringPtr(func() any {
+			if i >= 0 && i < len(keys) {
+				return ccxt.DerefScalar(keys[i])
+			}
+			return nil
+		}())
 		var userAgent any = ccxt.GetValue(ExchangeProp(exchange, "userAgents"), key)
-		Assert(!ccxt.IsEqual(userAgent, nil))
+		Assert(userAgent != nil)
 	}
 	//
 	// options
 	//
 	Assert(!ccxt.IsEqual(exchange.Options, nil))
-	// const defaultNetworkCodeReplacements = [
-	//     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-	//     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-	//     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-	//     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-	// ];
-	// assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 	//
 	// credentials
 	//

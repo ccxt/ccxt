@@ -6,6 +6,9 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
+use ccxt\InvalidNonce;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -60,24 +63,29 @@ class luno extends \ccxt\async\luno {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $subscriptionHash = '/stream/' . $market['id'];
-        $subscription = array( 'symbol' => $symbol );
-        $url = $this->urls['api']['ws'] . $subscriptionHash;
-        $messageHash = 'trades:' . $symbol;
+        $subscription = array( 'symbol' => $symbolValue );
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
+        }
+        $url = $wsUrl . $subscriptionHash;
+        $messageHash = 'trades:' . $symbolValue;
         $subscribe = array(
             'api_key_id' => $this->apiKey,
             'api_key_secret' => $this->secret,
         );
         $request = $this->deep_extend($subscribe, $params);
         $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message, mixed $subscription) {
+    public function handle_trades(Client $client, array $message, array $subscription) {
         //
         //     {
         //         "sequence": "110980825",
@@ -116,7 +124,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_trade(mixed $trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // watchTrades (public)
         //
@@ -128,7 +136,12 @@ class luno extends \ccxt\async\luno {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        $symbol = ($market === null) ? null : $market['symbol'];
+        $symbol = null;
+        if ($market === null) {
+            $symbol = null;
+        } else {
+            $symbol = $market['symbol'];
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
@@ -168,11 +181,15 @@ class luno extends \ccxt\async\luno {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $subscriptionHash = '/stream/' . $market['id'];
-        $subscription = array( 'symbol' => $symbol );
-        $url = $this->urls['api']['ws'] . $subscriptionHash;
-        $messageHash = 'orderbook:' . $symbol;
+        $subscription = array( 'symbol' => $symbolValue );
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
+        }
+        $url = $wsUrl . $subscriptionHash;
+        $messageHash = 'orderbook:' . $symbolValue;
         $subscribe = array(
             'api_key_id' => $this->apiKey,
             'api_key_secret' => $this->secret,
@@ -182,7 +199,7 @@ class luno extends \ccxt\async\luno {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book(Client $client, array $message, array $subscription) {
         //
         //     {
         //         "sequence": "24352",
@@ -221,25 +238,30 @@ class luno extends \ccxt\async\luno {
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->indexed_order_book(array());
         }
-        $asks = $this->safe_value($message, 'asks');
+        $orderbook = $this->orderbooks[$symbol];
+        $asks = $this->safe_list($message, 'asks');
+        if ($asks === null) {
+            $inSequence = $this->is_order_book_delta_in_sequence($client, $message, $symbol);
+            if (!$inSequence) {
+                return;
+            }
+        }
         if ($asks !== null) {
             $snapshot = $this->custom_parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            $this->orderbooks[$symbol] = $this->indexed_order_book($snapshot);
+            $orderbook->reset($snapshot);
         } else {
-            $ob = $this->orderbooks[$symbol];
-            $this->handle_delta($ob, $message);
-            $ob['timestamp'] = $timestamp;
-            $ob['datetime'] = $this->iso8601($timestamp);
+            $this->handle_book_delta($orderbook, $message);
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
         }
-        $orderbook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($message, 'sequence');
         $orderbook['nonce'] = $nonce;
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function custom_parse_order_book(mixed $orderbook, mixed $symbol, ?int $timestamp = null, $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
-        $bids = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
-        $asks = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
+    public function custom_parse_order_book(array $orderbook, ?string $symbol, ?int $timestamp = null, ?string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
+        $bids = $this->parse_order_book_bids_asks($this->safe_list($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        $asks = $this->parse_order_book_bids_asks($this->safe_list($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -251,10 +273,10 @@ class luno extends \ccxt\async\luno {
     }
 
     public function parse_order_book_bids_asks(mixed $bidasks, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
-        $bidasks = $this->to_array($bidasks);
+        $bidasksValue = $this->to_array($bidasks);
         $result = array();
-        for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->custom_parse_bid_ask($bidasks[$i], $priceKey, $amountKey, $thirdKey);
+        for ($i = 0; $i < count($bidasksValue); $i++) {
+            $result[] = $this->custom_parse_bid_ask($bidasksValue[$i], $priceKey, $amountKey, $thirdKey);
         }
         return $result;
     }
@@ -270,7 +292,7 @@ class luno extends \ccxt\async\luno {
         return $result;
     }
 
-    public function handle_delta(mixed $orderbook, mixed $message) {
+    public function handle_book_delta(mixed $orderbook, mixed $message) {
         //
         //  create
         //     {
@@ -314,9 +336,26 @@ class luno extends \ccxt\async\luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        $createUpdate = $this->safe_value($message, 'create_update');
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
+        // trade updates are applied first, matching the ordering of the
+        // reference luno streaming client
+        $tradeUpdates = $this->safe_list($message, 'trade_updates', array());
+        for ($i = 0; $i < count($tradeUpdates); $i++) {
+            $tradeUpdate = $tradeUpdates[$i];
+            $makerOrderId = $this->safe_string($tradeUpdate, 'maker_order_id');
+            $tradedAmount = $this->safe_string($tradeUpdate, 'base');
+            if (($makerOrderId !== null) && ($tradedAmount !== null)) {
+                // the message does not carry the side of the maker order and
+                // order ids are unique across the book, so try the bids first
+                // and fall back to the asks only on a miss
+                $reduced = $this->reduce_order_volume($bidsOrderSide, $makerOrderId, $tradedAmount);
+                if (!$reduced) {
+                    $this->reduce_order_volume($asksOrderSide, $makerOrderId, $tradedAmount);
+                }
+            }
+        }
+        $createUpdate = $this->safe_dict($message, 'create_update');
         if ($createUpdate !== null) {
             $bidAskArray = $this->custom_parse_bid_ask($createUpdate, 'price', 'volume', 'order_id');
             $type = $this->safe_string($createUpdate, 'type');
@@ -326,7 +365,7 @@ class luno extends \ccxt\async\luno {
                 $bidsOrderSide->storeArray($bidAskArray);
             }
         }
-        $deleteUpdate = $this->safe_value($message, 'delete_update');
+        $deleteUpdate = $this->safe_dict($message, 'delete_update');
         if ($deleteUpdate !== null) {
             $orderId = $this->safe_string($deleteUpdate, 'order_id');
             $asksOrderSide->storeArray(array( 0, 0, $orderId ));
@@ -334,11 +373,98 @@ class luno extends \ccxt\async\luno {
         }
     }
 
+    public function reduce_order_volume(mixed $orderSide, string $orderId, string $tradedAmount): bool {
+        /**
+         * @ignore
+         * reduces the outstanding volume of the $order with the given id inside one side of a level-3 orderbook after a trade, deleting the $order when it is fully filled
+         * @param {array} $orderSide the bids or asks side of an indexed orderbook
+         * @param {string} $orderId the exchange-specific id of the maker $order that traded
+         * @param {string} $tradedAmount the traded amount in base currency, as a string
+         * @return {boolean} true if the $order was property_exists($this, found) side, false otherwise
+         */
+        $sideLength = count($orderSide);
+        for ($i = 0; $i < $sideLength; $i++) {
+            $order = $orderSide[$i];
+            $entryId = $this->safe_string($order, 2);
+            if ($entryId === $orderId) {
+                $price = $this->safe_number($order, 0);
+                $currentAmount = $this->safe_string($order, 1);
+                $remainingAmount = Precise::string_sub($currentAmount, $tradedAmount);
+                if (Precise::string_le($remainingAmount, '0')) {
+                    // fully filled, storing a zero amount deletes the order
+                    $orderSide->storeArray(array( $price, 0, $orderId ));
+                } else {
+                    $orderSide->storeArray(array( $price, $this->parse_number($remainingAmount), $orderId ));
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function is_order_book_delta_in_sequence(Client $client, array $message, string $symbol): bool {
+        /**
+         * @ignore
+         * checks the sequence number of an $orderbook delta frame against the stored book, and on a gap tears the connection down so that the next watch call resubscribes and receives a fresh snapshot
+         * @param {array} $client the websocket $client the frame arrived on
+         * @param {array} $message the delta frame
+         * @param {string} $symbol unified $market $symbol of the book
+         * @return {boolean} true if the delta can be applied to the stored book, false if it must be discarded
+         */
+        $orderbook = $this->orderbooks[$symbol];
+        $storedNonce = $this->safe_integer($orderbook, 'nonce');
+        if ($storedNonce === null) {
+            // no snapshot was received yet, deltas cannot be applied to an
+            // empty book: luno sends the snapshot as the first frame after
+            // the handshake, so discard the delta
+            return false;
+        }
+        $messageSequence = $this->safe_integer($message, 'sequence');
+        if ($messageSequence === null) {
+            return true;
+        }
+        if ($messageSequence <= $storedNonce) {
+            // an old or replayed frame, discard it
+            return false;
+        }
+        $expectedSequence = $storedNonce + 1;
+        if ($messageSequence !== $expectedSequence) {
+            // a gap in the sequence means a lost message and the book is
+            // unrecoverable on a live connection, because luno only sends
+            // a snapshot as the first frame after a fresh handshake:
+            // reset the client, which stops its keepalive and rejects
+            // every pending future on the connection, clear the
+            // subscription so that frames still arriving on the orphaned
+            // connection are ignored by handleMessage, and drop the
+            // client, so that the next watch call dials a new connection;
+            // the cached book is kept so references returned by earlier
+            // watchOrderBook calls stay live: clearing its nonce discards
+            // deltas until the fresh snapshot resets the book in place
+            $error = new InvalidNonce($this->id . ' watchOrderBook() received an out-of-sequence update for ' . $symbol . ', expected ' . (string) $expectedSequence . ' but got ' . (string) $messageSequence);
+            $orderbook['nonce'] = null;
+            $market = $this->market($symbol);
+            $subscriptionHash = '/stream/' . $market['id'];
+            if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
+                unset($client->subscriptions[$subscriptionHash]);
+            }
+            $client->reset($error);
+            unset($this->clients[$client->url]);
+            return false;
+        }
+        return true;
+    }
+
     public function handle_message(Client $client, mixed $message) {
         if ($message === '') {
             return;
         }
         $subscriptions = is_array($client->subscriptions) ? array_values($client->subscriptions) : array();
+        $subscriptionsLength = count($subscriptions);
+        if ($subscriptionsLength === 0) {
+            // the subscription was dropped after a sequence gap, ignore the
+            // frames still arriving until the client resubscribes
+            return;
+        }
         $handlers = array( array($this, 'handle_order_book'), array($this, 'handle_trades'));
         for ($j = 0; $j < count($handlers); $j++) {
             $handler = $handlers[$j];

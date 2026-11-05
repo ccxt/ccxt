@@ -27,7 +27,7 @@ func (this *Okxus) Describe() any {
 		"urls": map[string]any{
 			"api": map[string]any{
 				"rest": "https://{hostname}",
-				"ws":   "wss://wsus.okx.com:8443/ws/v5",
+				"ws":   "wss://wsus.okx.com:443/ws/v5",
 			},
 			"www":  "https://app.okx.com",
 			"doc":  "https://app.okx.com/docs-v5/en/#overview",
@@ -37,7 +37,7 @@ func (this *Okxus) Describe() any {
 				"discount": 0.2,
 			},
 			"test": map[string]any{
-				"ws": "wss://wsuspap.okx.com:8443/ws/v5",
+				"ws": "wss://wsuspap.okx.com:443/ws/v5",
 			},
 		},
 		"has": map[string]any{

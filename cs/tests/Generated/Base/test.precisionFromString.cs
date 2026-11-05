@@ -52,6 +52,24 @@ public partial class BaseTest
             Assert(isEqual(exchange.precisionFromString("1.0"), 0));
             // Test 20: Mixed precision
             Assert(isEqual(exchange.precisionFromString("0.12345"), 5));
+            // The mantissa's sign and digits must not become part of the exponent.
+            Assert(isEqual(exchange.precisionFromString("-1e-4"), 4));
+            Assert(isEqual(exchange.precisionFromString("-1E-05"), 5));
+            Assert(isEqual(exchange.precisionFromString("-2.5e-6"), 6));
+            Assert(isEqual(exchange.precisionFromString("-1e4"), -4));
+            Assert(isEqual(exchange.precisionFromString("-1e+4"), -4));
+            Assert(isEqual(exchange.precisionFromString("+1e-4"), 4));
+            Assert(isEqual(exchange.precisionFromString("+1E+04"), -4));
+            Assert(isEqual(exchange.precisionFromString("12.34e-5"), 5));
+            Assert(isEqual(exchange.precisionFromString("-12.34e-5"), 5));
+            Assert(isEqual(exchange.precisionFromString("+12.34E+04"), -4));
+            Assert(isEqual(exchange.precisionFromString("-.5E-04"), 4));
+            Assert(isEqual(exchange.precisionFromString("-1e0"), 0));
+            Assert(isEqual(exchange.precisionFromString("-0.00100"), 3));
+            // Zero exponents must also return zero in the typed language ports.
+            Assert(isEqual(exchange.precisionFromString("1e0"), 0));
+            Assert(isEqual(exchange.precisionFromString("1E+00"), 0));
+            Assert(isEqual(exchange.precisionFromString("1e-0"), 0));
             // Test 21: Negative mantissa with negative exponent
             Assert(isEqual(exchange.precisionFromString("-8e-8"), 8));
             // Test 22: Negative mantissa uppercase E with zero-padded exponent

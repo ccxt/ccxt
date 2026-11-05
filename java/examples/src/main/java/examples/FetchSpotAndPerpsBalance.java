@@ -21,7 +21,7 @@ public class FetchSpotAndPerpsBalance {
 
             var params = new HashMap<String, Object>();
             params.put("type", "swap");
-            var swapBalance = exchange.fetchBalance(params); // by providing type:swap in params we can easily fetch the swap balance
+            var swapBalance = exchange.fetchBalance(params).join(); // by providing type:swap in params we can easily fetch the swap balance
         } catch (Exception e) {
         }
     }

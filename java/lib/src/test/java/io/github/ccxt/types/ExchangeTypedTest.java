@@ -78,7 +78,7 @@ class ExchangeTypedTest {
         // Private endpoint without credentials throws AuthenticationError directly
         // (typed wrappers unwrap CompletionException — see Helpers.joinUnwrapped)
         ExchangeError ex = assertThrows(ExchangeError.class, () -> {
-            exchange.fetchBalance((Map<String, Object>) null);
+            exchange.fetchBalance();
         });
         assertTrue(ex instanceof AuthenticationError || ex instanceof ExchangeError,
                 "Expected AuthenticationError, got: " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
@@ -225,7 +225,7 @@ class ExchangeTypedTest {
 
     @Test
     void testFetchOHLCVWithTimeframe() {
-        List<OHLCV> candles = exchange.fetchOHLCV("BTC/USDT", "1h", null, 5L, null);
+        List<OHLCV> candles = exchange.fetchOHLCVAsync("BTC/USDT", "1h", null, 5L, null).join();
         assertNotNull(candles);
         assertFalse(candles.isEmpty());
         assertTrue(candles.size() <= 5, "Should respect limit");

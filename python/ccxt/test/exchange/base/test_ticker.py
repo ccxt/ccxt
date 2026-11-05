@@ -118,7 +118,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         # far above baseVolume * high), so the spot-derived invariant does not hold there,
         # see https://github.com/ccxt/ccxt/pull/29563
         is_inverse = exchange.safe_bool(market, 'inverse', False)
-        if (base_volume is not None) and (quote_volume is not None) and (high is not None) and (low is not None) and (is_inverse is not True):
+        if (base_volume is not None) and (quote_volume is not None) and (high is not None) and (low is not None) and (not is_inverse):
             base_low = Precise.string_mul(base_volume, low)
             base_high = Precise.string_mul(base_volume, high)
             # to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -239,7 +239,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         if percentage is not None:
             # - should be above -100 and (for non-options) below MAX
             assert Precise.string_ge(percentage, '-100'), 'percentage should be above -100% ' + log_text
-            if is_option_market is not True:
+            if not is_option_market:
                 assert Precise.string_le(percentage, Precise.string_mul('+100', max_increase)), 'percentage should be below ' + max_increase + '00% ' + log_text
         #
         # change
@@ -248,7 +248,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         if change is not None:
             # - should be above -price and (for non-options) below +price*maxIncrease
             assert Precise.string_ge(change, Precise.string_neg(approx_value)), 'change should be above -price ' + log_text
-            if is_option_market is not True:
+            if not is_option_market:
                 assert Precise.string_le(change, Precise.string_mul(approx_value, max_increase)), 'change should be below ' + max_increase + 'x price ' + log_text
     #
     # ensure all expected values are defined

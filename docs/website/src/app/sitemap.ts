@@ -2,7 +2,6 @@ import type { MetadataRoute } from 'next';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { source } from '@/lib/source';
-import { blog, getTotalPages } from '@/lib/blog';
 import { basePath, siteUrl } from '@/lib/shared';
 import { i18n } from '@/lib/i18n';
 
@@ -63,14 +62,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   }
 
-  // blog — English-only, one canonical un-prefixed URL per post (no hreflang variants)
-  entries.push({ url: `${base}/blog`, changeFrequency: 'weekly' });
-  for (let page = 2; page <= getTotalPages(); page++) {
-    entries.push({ url: `${base}/blog/page/${page}`, changeFrequency: 'weekly' });
-  }
-  for (const post of blog.getPages()) {
-    entries.push({ url: `${base}${post.url}`, lastModified: new Date(post.data.date), changeFrequency: 'monthly' });
-  }
+  // The blog is NOT listed here: its canonical home is ccxt.com/blog, and a sitemap on
+  // docs.ccxt.com may only list ccxt.com URLs if ccxt.com/robots.txt vouches for it.
+  // Blog URLs live in /blog-sitemap.xml instead, which the ccxt.com Worker serves on
+  // ccxt.com itself (same host, root path), see app/blog-sitemap.xml/route.ts.
 
   return entries;
 }

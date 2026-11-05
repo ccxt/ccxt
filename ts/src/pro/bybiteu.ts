@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import bybit from './bybit.js';
+import bybit from '../abstract/pro/bybiteu.js';
 import bybiteuRest from '../bybiteu.js';
 
 // ---------------------------------------------------------------------------

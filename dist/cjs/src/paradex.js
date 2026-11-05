@@ -31,7 +31,7 @@ class paradex extends paradex$1["default"] {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -366,6 +366,10 @@ class paradex extends paradex$1["default"] {
                     '40110': errors.AuthenticationError, // Malformed Bearer Token
                     '40111': errors.AuthenticationError, // Invalid Bearer Token
                     '40112': errors.PermissionDenied, // Geo IP blocked
+                    '40300': errors.PermissionDenied, // Permission denied
+                    '40301': errors.NotSupported, // SBE encoding required
+                    '42900': errors.OperationRejected, // Max subscriptions per connection, a retry does not help until a channel is unsubscribed
+                    '42901': errors.RateLimitExceeded, // Rate limited
                 },
                 'broad': {
                     'missing or malformed jwt': errors.AuthenticationError,
@@ -378,7 +382,16 @@ class paradex extends paradex$1["default"] {
                 'broker': 'CCXT',
             },
             'features': {
-                'spot': undefined,
+                'spot': {
+                    'extends': 'forSwap',
+                    'createOrder': {
+                        // spot takes limit and market orders only, no trigger, stop loss or take profit types
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                    },
+                },
                 'forSwap': {
                     'sandbox': true,
                     'createOrder': {
@@ -437,7 +450,7 @@ class paradex extends paradex$1["default"] {
                     },
                     'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': {
-                        'limit': undefined, // todo by from/to
+                        'limit': 1000, // todo by from/to
                     },
                 },
                 'swap': {
@@ -617,20 +630,54 @@ class paradex extends paradex$1["default"] {
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         const assetKind = this.safeString(market, 'asset_kind');
+        const isSpot = (assetKind === 'SPOT');
         const isOptionPerpetual = (assetKind === 'PERP_OPTION');
         const isOptionDelivery = (assetKind === 'OPTION');
         const isOption = isOptionPerpetual || isOptionDelivery;
-        const type = (isOption) ? 'option' : 'swap';
+        let type = 'swap';
+        if (isSpot) {
+            type = 'spot';
+        }
+        else if (isOption) {
+            type = 'option';
+        }
         const isSwap = (type === 'swap');
         const marketId = this.safeString(market, 'symbol');
-        const quoteId = this.safeString(market, 'quote_currency');
+        let quoteId = this.safeString(market, 'quote_currency');
         const baseId = this.safeString(market, 'base_currency');
+        let settleId = this.safeString(market, 'settlement_currency');
+        if (isSpot) {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId;
+            settleId = undefined;
+        }
         const quote = this.safeCurrencyCode(quoteId);
         const base = this.safeCurrencyCode(baseId);
-        const settleId = this.safeString(market, 'settlement_currency');
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode(settleId);
-        let symbol = base + '/' + quote + ':' + settle;
+        let symbol = base + '/' + quote;
+        if (!isSpot) {
+            symbol = symbol + ':' + settle;
+        }
         let expiry = this.safeInteger(market, 'expiry_at');
         const optionType = this.safeString(market, 'option_type');
         const strikePrice = this.safeString(market, 'strike_price');
@@ -656,18 +703,18 @@ class paradex extends paradex$1["default"] {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': false,
+            'spot': isSpot,
             'margin': undefined,
             'swap': isSwap,
             'future': false,
             'option': isOption,
             'active': this.safeBool(market, 'enableTrading'),
-            'contract': true,
-            'linear': true,
-            'inverse': false,
+            'contract': !isSpot,
+            'linear': (isSpot) ? undefined : true,
+            'inverse': (isSpot) ? undefined : false,
             'taker': takerFee,
             'maker': makerFee,
-            'contractSize': this.parseNumber('1'),
+            'contractSize': (isSpot) ? undefined : this.parseNumber('1'),
             'expiry': expiry,
             'expiryDatetime': expireDatetime,
             'strike': this.parseNumber(strikePrice),
@@ -719,16 +766,16 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const marketId = this.safeString(fee, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const feeConfig = this.safeDict(fee, 'fee_config', {});
         const apiFee = this.safeDict(feeConfig, 'api_fee', {});
         const makerFee = this.safeDict(apiFee, 'maker_fee', {});
         const takerFee = this.safeDict(apiFee, 'taker_fee', {});
         return {
             'info': fee,
-            'symbol': market['symbol'],
-            'maker': this.safeNumber(makerFee, 'fee', this.safeNumber(market, 'maker')),
-            'taker': this.safeNumber(takerFee, 'fee', this.safeNumber(market, 'taker')),
+            'symbol': marketResolved['symbol'],
+            'maker': this.safeNumber(makerFee, 'fee', this.safeNumber(marketResolved, 'maker')),
+            'taker': this.safeNumber(takerFee, 'fee', this.safeNumber(marketResolved, 'taker')),
             'percentage': true,
             'tierBased': false,
         };
@@ -829,7 +876,7 @@ class paradex extends paradex$1["default"] {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.price] "last", "mark", "index", default is "last"
+     * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -841,33 +888,32 @@ class paradex extends paradex$1["default"] {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         };
-        const now = this.milliseconds();
         const duration = this.parseTimeframe(timeframe);
-        const until = this.safeInteger2(params, 'until', 'till', now);
         const price = this.safeString(params, 'price');
         if (price !== undefined) {
-            request['price_kind'] = price;
+            // the exchange names the index price "underlying" and rejects "index"
+            request['price_kind'] = (price === 'index') ? 'underlying' : price;
         }
-        params = this.omit(params, ['until', 'till', 'price']);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, params);
+        const hasEnd = ('end_at' in request);
+        const paramsOmitted = this.omit(paramsUntil, ['price']);
+        // exchange has undocumented limit slightly above, but 1000 is reliable limit
+        const limitResolved = ((limit === undefined) || (limit > 1000)) ? 1000 : limit;
+        const windowLength = this.parseToInt(duration * (this.parseToInt(limitResolved) + 1) * 1000);
         if (since !== undefined) {
-            request['start_at'] = since;
-            if (limit !== undefined) {
-                request['end_at'] = this.sum(since, duration * (limit + 1) * 1000) - 1;
-            }
-            else {
-                request['end_at'] = until;
+            requestUntil['start_at'] = since;
+            if (!hasEnd) {
+                const sinceInt = this.parseToInt(since);
+                requestUntil['end_at'] = sinceInt + windowLength - 1;
             }
         }
         else {
-            request['end_at'] = until;
-            if (limit !== undefined) {
-                request['start_at'] = until - duration * (limit + 1) * 1000 + 1;
-            }
-            else {
-                request['start_at'] = until - duration * 101 * 1000 + 1;
-            }
+            const endAtRaw = hasEnd ? this.safeInteger(requestUntil, 'end_at', 0) : this.milliseconds();
+            const endAt = this.parseToInt(endAtRaw);
+            requestUntil['end_at'] = endAt;
+            requestUntil['start_at'] = endAt - windowLength + 1;
         }
-        const response = await this.publicGetMarketsKlines(this.extend(request, params));
+        const response = await this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted));
         //
         //     {
         //         "results": [
@@ -918,7 +964,7 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
             'market': 'ALL',
         };
@@ -945,7 +991,7 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'results', []);
-        return this.parseTickers(data, symbols);
+        return this.parseTickers(data, symbolsNormalized);
     }
     /**
      * @method
@@ -1014,8 +1060,8 @@ class paradex extends paradex$1["default"] {
         }
         const last = this.safeString(ticker, 'last_traded_price');
         const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger(ticker, 'created_at');
         return this.safeTicker({
             'symbol': symbol,
@@ -1039,7 +1085,7 @@ class paradex extends paradex$1["default"] {
             'quoteVolume': this.safeString(ticker, 'volume_24h'),
             'markPrice': this.safeString(ticker, 'mark_price'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1054,15 +1100,15 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         // the endpoint takes one market id, and ALL answers for every product on
         // the venue: a single symbol is asked for by name, which is 544 bytes
         // against 1.6 MB
         let target = 'ALL';
-        if (symbols !== undefined) {
-            const symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                target = this.market(symbols[0])['id'];
+                target = this.market(symbolsNormalized[0])['id'];
             }
         }
         const request = {
@@ -1070,7 +1116,7 @@ class paradex extends paradex$1["default"] {
         };
         const response = await this.publicGetMarketsSummary(this.extend(request, params));
         const data = this.safeList(response, 'results', []);
-        return this.parseFundingRates(data, symbols);
+        return this.parseFundingRates(data, symbolsNormalized);
     }
     /**
      * @method
@@ -1112,17 +1158,17 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const marketId = this.safeString(contract, 'symbol');
-        market = this.safeMarket(marketId, market, undefined, 'swap');
+        const marketResolved = this.safeMarket(marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger(contract, 'created_at');
         // the summary answers for every product, and only a perpetual funds: an
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         const rate = this.safeString(contract, 'funding_rate');
-        const funds = (market['swap'] === true) && (rate !== undefined) && (rate !== '');
+        const funds = (marketResolved['swap'] === true) && (rate !== undefined) && (rate !== '');
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
-        const hours = this.safeString(this.safeDict(market, 'info', {}), 'funding_period_hours');
+        const hours = this.safeString(this.safeDict(marketResolved, 'info', {}), 'funding_period_hours');
         // zero hours is not an interval, and a caller annualising a rate divides by it
         let interval = undefined;
         if ((hours !== undefined) && Precise["default"].stringGt(hours, '0')) {
@@ -1130,7 +1176,7 @@ class paradex extends paradex$1["default"] {
         }
         return {
             'info': contract,
-            'symbol': funds ? market['symbol'] : undefined,
+            'symbol': funds ? marketResolved['symbol'] : undefined,
             'markPrice': this.safeNumber(contract, 'mark_price'),
             'indexPrice': this.safeNumber(contract, 'underlying_price'),
             'interestRate': undefined,
@@ -1210,13 +1256,12 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchTrades', symbol, since, limit, params, 'next', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchTrades', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100);
         }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -1225,8 +1270,8 @@ class paradex extends paradex$1["default"] {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [request, params] = this.handleUntilOption('end_at', request, params);
-        const response = await this.publicGetTrades(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const response = await this.publicGetTrades(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "next": "...",
@@ -1283,7 +1328,7 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const marketId = this.safeString(trade, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const id = this.safeString(trade, 'id');
         const timestamp = this.safeInteger(trade, 'created_at');
         const priceString = this.safeString(trade, 'price');
@@ -1291,7 +1336,10 @@ class paradex extends paradex$1["default"] {
         const side = this.safeStringLower(trade, 'side');
         const liability = this.safeStringLower(trade, 'liquidity', 'taker');
         const isTaker = liability === 'taker';
-        const takerOrMaker = (isTaker) ? 'taker' : 'maker';
+        let takerOrMaker = 'maker';
+        if (isTaker) {
+            takerOrMaker = 'taker';
+        }
         const currencyId = this.safeString(trade, 'fee_currency');
         const code = this.safeCurrencyCode(currencyId);
         return this.safeTrade({
@@ -1300,7 +1348,7 @@ class paradex extends paradex$1["default"] {
             'order': this.safeString(trade, 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -1312,7 +1360,7 @@ class paradex extends paradex$1["default"] {
                 'currency': code,
                 'rate': undefined,
             },
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1380,8 +1428,8 @@ class paradex extends paradex$1["default"] {
         //
         const timestamp = this.safeInteger(interest, 'created_at');
         const marketId = this.safeString(interest, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         return this.safeOpenInterest({
             'symbol': symbol,
             'openInterestAmount': this.safeString(interest, 'open_interest'),
@@ -1389,10 +1437,11 @@ class paradex extends paradex$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
     hashMessage(message) {
-        return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
+        const hashed = this.hash(message, sha3_js.keccak_256, 'hex');
+        return '0x' + hashed;
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
@@ -1405,45 +1454,15 @@ class paradex extends paradex$1["default"] {
         return this.signHash(this.hashMessage(message), privateKey.slice(-64));
     }
     async getSystemConfig() {
-        const cachedConfig = this.safeDict(this.options, 'systemConfig');
-        if (cachedConfig !== undefined) {
-            return cachedConfig;
+        if (this.safeDict(this.options, 'systemConfig') === undefined) {
+            const response = await this.publicGetSystemConfig();
+            this.options['systemConfig'] = response;
         }
-        const response = await this.publicGetSystemConfig();
-        //
-        // {
-        //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-        //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-        //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-        //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-        //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-        //     "paraclear_decimals": 8,
-        //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-        //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-        //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-        //     "bridged_tokens": [
-        //         {
-        //             "name": "TEST USDC",
-        //             "symbol": "USDC",
-        //             "decimals": 6,
-        //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-        //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-        //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-        //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-        //         }
-        //     ],
-        //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-        //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-        //     "l1_chain_id": "11155111",
-        //     "liquidation_fee": "0.2"
-        // }
-        //
-        this.options['systemConfig'] = response;
         return this.safeDict(this.options, 'systemConfig', {});
     }
     async prepareParadexDomain(l1 = false) {
         const systemConfig = await this.getSystemConfig();
-        if (l1 === true) {
+        if (l1) {
             const l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
@@ -1459,26 +1478,24 @@ class paradex extends paradex$1["default"] {
         return domain;
     }
     async retrieveAccount() {
-        const cachedAccount = this.safeDict(this.options, 'paradexAccount');
-        if (cachedAccount !== undefined) {
-            return cachedAccount;
+        if (this.safeDict(this.options, 'paradexAccount') === undefined) {
+            this.checkRequiredCredentials();
+            const systemConfig = await this.getSystemConfig();
+            const domain = await this.prepareParadexDomain(true);
+            const messageTypes = {
+                'Constant': [
+                    { 'name': 'action', 'type': 'string' },
+                ],
+            };
+            const message = {
+                'action': 'STARK Key',
+            };
+            const msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+            const signature = this.signMessage(msg, this.privateKey);
+            const account = this.retrieveStarkAccount(signature, systemConfig['paraclear_account_hash'], systemConfig['paraclear_account_proxy_hash']);
+            this.options['paradexAccount'] = account;
         }
-        this.checkRequiredCredentials();
-        const systemConfig = await this.getSystemConfig();
-        const domain = await this.prepareParadexDomain(true);
-        const messageTypes = {
-            'Constant': [
-                { 'name': 'action', 'type': 'string' },
-            ],
-        };
-        const message = {
-            'action': 'STARK Key',
-        };
-        const msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-        const signature = this.signMessage(msg, this.privateKey);
-        const account = this.retrieveStarkAccount(signature, systemConfig['paraclear_account_hash'], systemConfig['paraclear_account_proxy_hash']);
-        this.options['paradexAccount'] = account;
-        return account;
+        return this.safeDict(this.options, 'paradexAccount', {});
     }
     async onboarding(params = {}) {
         const account = await this.retrieveAccount();
@@ -1501,7 +1518,7 @@ class paradex extends paradex$1["default"] {
     }
     async authenticateRest(params = {}) {
         const cachedToken = this.safeString(this.options, 'authToken');
-        const now = this.nonce();
+        const now = this.parseToInt(this.nonce());
         if (cachedToken !== undefined) {
             const cachedExpires = this.safeInteger(this.options, 'expires');
             if (cachedExpires === undefined) {
@@ -1579,10 +1596,14 @@ class paradex extends paradex$1["default"] {
         //
         const timestamp = this.safeInteger(order, 'created_at');
         const orderId = this.safeString(order, 'id');
-        const clientOrderId = this.omitZero(this.safeString(order, 'client_id'));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        let clientOrderId = this.safeString(order, 'client_id');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         const marketId = this.safeString(order, 'market');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'size');
         const orderType = this.safeString(order, 'type');
@@ -1635,7 +1656,7 @@ class paradex extends paradex$1["default"] {
                 'currency': undefined,
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
@@ -1761,12 +1782,12 @@ class paradex extends paradex$1["default"] {
                 'REDUCE_ONLY',
             ];
         }
-        params = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
-        return this.extend(request, params);
+        const paramsOmitted = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        return this.extend(request, paramsOmitted);
     }
     async signOrderRequest(request, modify = false) {
         const account = await this.retrieveAccount();
-        const now = this.nonce();
+        const now = this.parseToInt(this.nonce());
         const orderType = this.safeString(request, 'type');
         if (orderType === undefined) {
             throw new errors.ExchangeError(this.id + ' signOrderRequest() missing orderType');
@@ -1775,7 +1796,7 @@ class paradex extends paradex$1["default"] {
         const orderReq = {
             'timestamp': now * 1000,
             'market': this.stringToBase16(request['market']),
-            'side': (request['side'] === 'BUY') ? '1' : '2',
+            'side': (this.safeString(request, 'side') === 'BUY') ? '1' : '2',
             'orderType': this.stringToBase16(request['type']),
             'size': this.scaleNumber(request['size']),
             'price': (isMarket) ? '0' : this.scaleNumber(request['price']),
@@ -1804,9 +1825,11 @@ class paradex extends paradex$1["default"] {
         const domain = await this.prepareParadexDomain();
         const msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, account['address']);
         const signature = this.starknetSign(msg, account['privateKey']);
-        request['signature'] = signature;
-        request['signature_timestamp'] = orderReq['timestamp'];
-        return request;
+        const signedRequest = this.extend(request, {
+            'signature': signature,
+            'signature_timestamp': orderReq['timestamp'],
+        });
+        return signedRequest;
     }
     /**
      * @method
@@ -1955,7 +1978,7 @@ class paradex extends paradex$1["default"] {
         }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
@@ -1969,37 +1992,47 @@ class paradex extends paradex$1["default"] {
         }
         const response = await this.privatePostOrdersBatch(ordersRequests);
         //
-        // {
-        //     "errors": [
-        //         {
-        //             "error": "VALIDATION_ERROR",
-        //             "message": "Invalid order"
-        //         }
-        //     ],
-        //     "orders": [
-        //         {
-        //             "id": "123456",
-        //             "market": "BTC-USD-PERP",
-        //             "side": "BUY",
-        //             "type": "LIMIT",
-        //             "price": "26000",
-        //             "size": "0.05",
-        //             "status": "NEW"
-        //         }
-        //     ]
-        // }
+        // orders and errors are index-aligned with the request, null where the other array has the entry
+        //
+        //     {
+        //         "errors": [
+        //             null,
+        //             {
+        //                 "error": "DUPLICATED_CLIENT_ID",
+        //                 "message": "duplicated client order id"
+        //             }
+        //         ],
+        //         "orders": [
+        //             {
+        //                 "id": "123456",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "price": "26000",
+        //                 "size": "0.05",
+        //                 "status": "NEW"
+        //             },
+        //             null
+        //         ]
+        //     }
         //
         const responseOrders = this.safeList(response, 'orders', []);
-        const parsedOrders = this.parseOrders(responseOrders);
         const errors = this.safeList(response, 'errors', []);
-        for (let i = 0; i < errors.length; i++) {
-            const error = errors[i];
-            parsedOrders.push(this.safeOrder({
-                'info': error,
-                'status': 'rejected',
-            }));
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const responseOrder = this.safeDict(responseOrders, i);
+            if (responseOrder !== undefined) {
+                result.push(this.parseOrder(responseOrder));
+            }
+            else {
+                const error = this.safeDict(errors, i);
+                result.push(this.safeOrder({
+                    'info': error,
+                    'status': 'rejected',
+                }));
+            }
         }
-        return parsedOrders;
+        return result;
     }
     /**
      * @method
@@ -2051,7 +2084,7 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
-        params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
+        const paramsOmitted = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const hasOrderIds = (ids !== undefined) && (Array.isArray(ids));
         const hasClientOrderIds = (clientOrderIds !== undefined) && (Array.isArray(clientOrderIds));
         if (!hasOrderIds && !hasClientOrderIds) {
@@ -2064,7 +2097,7 @@ class paradex extends paradex$1["default"] {
         if (hasClientOrderIds) {
             request['client_order_ids'] = clientOrderIds;
         }
-        const response = await this.privateDeleteOrdersBatch(this.extend(request, params));
+        const response = await this.privateDeleteOrdersBatch(this.extend(request, paramsOmitted));
         //
         // {
         //     "results": [
@@ -2162,15 +2195,15 @@ class paradex extends paradex$1["default"] {
         }
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
+        const paramsOmitted = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         let response;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
-            response = await this.privateGetOrdersByClientIdClientId(this.extend(request, params));
+            response = await this.privateGetOrdersByClientIdClientId(this.extend(request, paramsOmitted));
         }
         else {
             request['order_id'] = id;
-            response = await this.privateGetOrdersOrderId(this.extend(request, params));
+            response = await this.privateGetOrdersOrderId(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -2219,12 +2252,11 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchOrders', symbol, since, limit, params, 'next', 'cursor', undefined, 50);
+            return await this.fetchPaginatedCallCursor('fetchOrders', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 50);
         }
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2236,8 +2268,8 @@ class paradex extends paradex$1["default"] {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        [request, params] = this.handleUntilOption('end_at', request, params);
-        const response = await this.privateGetOrdersHistory(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const response = await this.privateGetOrdersHistory(this.extend(requestUntil, paramsUntil));
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -2400,12 +2432,11 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, params, 'next', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100);
         }
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2417,8 +2448,8 @@ class paradex extends paradex$1["default"] {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [request, params] = this.handleUntilOption('end_at', request, params);
-        const response = await this.privateGetFills(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const response = await this.privateGetFills(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "next": null,
@@ -2480,7 +2511,7 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.privateGetPositions();
         //
         //     {
@@ -2496,9 +2527,11 @@ class paradex extends paradex$1["default"] {
         //                 "realized_pnl": "0",
         //                 "unrealized_pnl": "-2.39677214",
         //                 "unrealized_funding_pnl": "-0.11214013",
+        //                 "leverage": "5",
         //                 "cost": "648.39960537",
         //                 "cost_usd": "648.529",
         //                 "cached_funding_index": "35202.1002351",
+        //                 "created_at": 1718947571560,
         //                 "last_updated_at": 1718950074249,
         //                 "last_fill_id": "1718947571560201703986670001",
         //                 "seq_no": 1718950074249176253,
@@ -2508,7 +2541,7 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'results', []);
-        return this.parsePositions(data, symbols);
+        return this.parsePositions(data, symbolsNormalized);
     }
     parsePosition(position, market = undefined) {
         //
@@ -2523,9 +2556,11 @@ class paradex extends paradex$1["default"] {
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -2533,35 +2568,36 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const marketId = this.safeString(position, 'market');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower(position, 'side');
-        let quantity = this.safeString(position, 'size');
-        if (side !== 'long') {
-            quantity = Precise["default"].stringMul('-1', quantity);
-        }
-        const timestamp = this.safeInteger(position, 'time');
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        const quantity = Precise["default"].stringAbs(this.safeString(position, 'size'));
+        const timestamp = this.safeInteger(position, 'created_at');
         const liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, 'liquidation_price')));
+        // cost_usd is signed by side, the unified notional is a magnitude
+        const notionalString = Precise["default"].stringAbs(this.safeString(position, 'cost_usd'));
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
             'symbol': symbol,
             'entryPrice': this.safeNumber(position, 'average_entry_price'),
             'markPrice': undefined,
-            'notional': undefined,
-            'collateral': this.safeNumber(position, 'cost'),
+            'notional': this.parseNumber(notionalString),
+            'collateral': undefined, // cross margin is held at the account level, the position payload only carries its cost
             'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber(quantity),
             'contractSize': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': this.safeInteger(position, 'last_updated_at'),
             'hedged': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
-            'leverage': undefined,
+            'leverage': this.safeNumber(position, 'leverage'),
             'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
             'marginMode': undefined,
@@ -2585,7 +2621,7 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let request = {};
+        const request = {};
         if (since !== undefined) {
             request['from'] = since;
         }
@@ -2596,8 +2632,8 @@ class paradex extends paradex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        [request, params] = this.handleUntilOption('to', request, params);
-        const response = await this.privateGetLiquidations(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('to', request, params);
+        const response = await this.privateGetLiquidations(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "results": [
@@ -2650,20 +2686,19 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchDeposits', code, since, limit, params, 'next', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchDeposits', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100);
         }
-        let request = {};
+        const request = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [request, params] = this.handleUntilOption('end_at', request, params);
-        const response = await this.privateGetTransfers(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const response = await this.privateGetTransfers(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "next": null,
@@ -2689,7 +2724,7 @@ class paradex extends paradex$1["default"] {
         const deposits = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (row['kind'] === 'DEPOSIT') {
+            if (this.safeString(row, 'kind') === 'DEPOSIT') {
                 deposits.push(row);
             }
         }
@@ -2713,20 +2748,19 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchWithdrawals', code, since, limit, params, 'next', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchWithdrawals', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100);
         }
-        let request = {};
+        const request = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [request, params] = this.handleUntilOption('end_at', request, params);
-        const response = await this.privateGetTransfers(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const response = await this.privateGetTransfers(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "next": null,
@@ -2752,7 +2786,7 @@ class paradex extends paradex$1["default"] {
         const deposits = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (row['kind'] === 'WITHDRAWAL') {
+            if (this.safeString(row, 'kind') === 'WITHDRAWAL') {
                 deposits.push(row);
             }
         }
@@ -2776,12 +2810,11 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchTransfers', code, since, limit, params, 'next', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchTransfers', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100);
         }
-        let request = {};
+        const request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.safeCurrency(code);
@@ -2792,8 +2825,8 @@ class paradex extends paradex$1["default"] {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [request, params] = this.handleUntilOption('end_at', request, params);
-        const response = await this.privateGetTransfers(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const response = await this.privateGetTransfers(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "next": null,
@@ -2957,11 +2990,11 @@ class paradex extends paradex$1["default"] {
     }
     parseMarginMode(rawMarginMode, market = undefined) {
         const marketId = this.safeString(rawMarginMode, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const marginMode = this.safeStringLower(rawMarginMode, 'margin_type');
         return {
             'info': rawMarginMode,
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'marginMode': marginMode,
         };
     }
@@ -2983,14 +3016,14 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let leverage = 1;
-        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', leverage);
+        const leverage = 1;
+        const [leverageOption, paramsLeverage] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', leverage);
         const request = {
             'market': market['id'],
-            'leverage': leverage,
+            'leverage': leverageOption,
             'margin_type': this.encodeMarginMode(marginMode),
         };
-        return await this.privatePostAccountMarginMarket(this.extend(request, params));
+        return await this.privatePostAccountMarginMarket(this.extend(request, paramsLeverage));
     }
     /**
      * @method
@@ -3028,11 +3061,11 @@ class paradex extends paradex$1["default"] {
     }
     parseLeverage(leverage, market = undefined) {
         const marketId = this.safeString(leverage, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const marginMode = this.safeStringLower(leverage, 'margin_type');
         return {
             'info': leverage,
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': this.safeSymbol(marketId, marketResolved),
             'marginMode': marginMode,
             'longLeverage': this.safeInteger(leverage, 'leverage'),
             'shortLeverage': this.safeInteger(leverage, 'leverage'),
@@ -3063,14 +3096,13 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params, 'cross');
+        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('setLeverage', params, 'cross');
         const request = {
             'market': market['id'],
             'leverage': leverage,
             'margin_type': this.encodeMarginMode(marginMode),
         };
-        return await this.privatePostAccountMarginMarket(this.extend(request, params));
+        return await this.privatePostAccountMarginMarket(this.extend(request, paramsMarginMode));
     }
     /**
      * @method
@@ -3141,7 +3173,7 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true, true);
         const request = {
             'market': 'ALL',
         };
@@ -3181,7 +3213,7 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const results = this.safeList(response, 'results', []);
-        return this.parseAllGreeks(results, symbols);
+        return this.parseAllGreeks(results, symbolsNormalized);
     }
     parseGreeks(greeks, market = undefined) {
         //
@@ -3215,8 +3247,8 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const marketId = this.safeString(greeks, 'symbol');
-        market = this.safeMarket(marketId, market, undefined, 'option');
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, undefined, 'option');
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger(greeks, 'created_at');
         const greeksData = this.safeDict(greeks, 'greeks', {});
         return {
@@ -3265,13 +3297,12 @@ class paradex extends paradex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, params, 'next', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100);
         }
         const market = this.market(symbol);
-        let request = {
+        const request = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -3283,8 +3314,8 @@ class paradex extends paradex$1["default"] {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [request, params] = this.handleUntilOption('end_at', request, params);
-        const response = await this.privateGetFundingPayments(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const response = await this.privateGetFundingPayments(this.extend(requestUntil, paramsUntil));
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3318,12 +3349,12 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const marketId = this.safeString(income, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(income, 'created_at');
         return {
             'info': income,
-            'symbol': market['symbol'],
-            'code': market['settle'],
+            'symbol': marketResolved['symbol'],
+            'code': marketResolved['settle'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'id': this.safeString(income, 'id'),
@@ -3363,11 +3394,11 @@ class paradex extends paradex$1["default"] {
             request['start_at'] = since;
         }
         const until = this.safeInteger(params, 'until');
+        const paramsOmitted = (until !== undefined) ? this.omit(params, 'until') : params;
         if (until !== undefined) {
-            params = this.omit(params, 'until');
             request['end_at'] = until;
         }
-        const response = await this.publicGetFundingData(this.extend(request, params));
+        const response = await this.publicGetFundingData(this.extend(request, paramsOmitted));
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3403,49 +3434,61 @@ class paradex extends paradex$1["default"] {
             });
         }
         const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let version = this.version;
+        let pathValue = path;
+        if (path.indexOf('v2/') === 0) {
+            pathValue = path.replace('v2/', '');
+        }
         if (path.indexOf('v2/') === 0) {
             version = 'v2';
-            path = path.replace('v2/', '');
         }
-        let url = this.implodeHostname(this.urls['api'][version]) + '/' + this.implodeParams(path, params);
-        const query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
+        const baseApiUrl = this.safeString(this.urls['api'], version);
+        if (baseApiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname(baseApiUrl) + '/' + this.implodeParams(pathValue, params);
+        const query = this.omit(params, this.extractParams(pathValue));
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
-            headers = {
+        else if (apiName === 'private') {
+            const privateHeaders = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': this.safeString(this.options, 'broker', 'CCXT'),
             };
+            let privateBody = undefined;
             // TODO: optimize
-            if (path === 'auth') {
-                headers['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                headers['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                headers['PARADEX-TIMESTAMP'] = query['timestamp'].toString();
-                headers['PARADEX-SIGNATURE-EXPIRATION'] = query['expiration'].toString();
+            if (pathValue === 'auth') {
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
+                privateHeaders['PARADEX-TIMESTAMP'] = query['timestamp'].toString();
+                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = query['expiration'].toString();
             }
-            else if (path === 'onboarding') {
-                headers['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
-                headers['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                headers['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                headers['PARADEX-TIMESTAMP'] = this.nonce().toString();
-                headers['Content-Type'] = 'application/json';
-                body = this.json({
+            else if (pathValue === 'onboarding') {
+                privateHeaders['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
+                privateHeaders['PARADEX-TIMESTAMP'] = this.nonce().toString();
+                privateHeaders['Content-Type'] = 'application/json';
+                privateBody = this.json({
                     'public_key': query['public_key'],
                 });
             }
             else {
-                const token = this.options['authToken'];
-                headers['Authorization'] = 'Bearer ' + token;
-                if ((method === 'POST') || (method === 'PUT') || ((method === 'DELETE') && (path === 'orders/batch'))) {
-                    headers['Content-Type'] = 'application/json';
-                    body = this.json(query);
+                const token = this.safeString(this.options, 'authToken');
+                if (token === undefined) {
+                    throw new errors.AuthenticationError(this.id + ' sign() requires an authToken, call authenticateRest() first');
+                }
+                privateHeaders['Authorization'] = 'Bearer ' + token;
+                if ((method === 'POST') || (method === 'PUT') || ((method === 'DELETE') && (pathValue === 'orders/batch'))) {
+                    privateHeaders['Content-Type'] = 'application/json';
+                    privateBody = this.json(query);
                 }
                 else {
                     url = url + '?' + this.urlencode(query);
@@ -3463,8 +3506,10 @@ class paradex extends paradex$1["default"] {
             //         url += '?' + this.urlencode (query);
             //     }
             // }
+            const bodyResolved = privateBody;
+            return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -3477,7 +3522,25 @@ class paradex extends paradex$1["default"] {
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
-        const errorCode = this.safeString(response, 'error');
+        let errorCode = this.safeString(response, 'error');
+        if ((errorCode === undefined) && (httpCode === 400)) {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            const batchErrors = this.safeList(response, 'errors', []);
+            for (let i = 0; i < batchErrors.length; i++) {
+                const batchErrorCode = this.safeString(batchErrors[i], 'error');
+                if (batchErrorCode !== undefined) {
+                    errorCode = batchErrorCode;
+                    break;
+                }
+            }
+        }
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);

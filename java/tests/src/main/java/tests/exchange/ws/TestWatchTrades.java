@@ -7,6 +7,8 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -25,14 +27,14 @@ public class TestWatchTrades extends BaseTest {
         Object ends = Helpers.add(now, 15000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
+        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = new ArrayList<Object>(Arrays.asList());
             Boolean success = true;
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTrades", new Object[]{symbol})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTrades", new Object[]{symbol, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -42,14 +44,14 @@ public class TestWatchTrades extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if (Helpers.isTrue(Helpers.isEqual(success, true)))
+            if (Boolean.TRUE.equals(success))
             {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response);
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+                for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now, true);
+                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbol, now, true);
                 }
-                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
                 {
                     idle = true;
                 }

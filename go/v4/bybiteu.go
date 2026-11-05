@@ -60,7 +60,11 @@ func (this *Bybiteu) Describe() any {
 			"option": nil,
 		},
 		"options": map[string]any{
-			"mica": true,
+			"mica":        true,
+			"defaultType": "spot",
+			"fetchMarkets": map[string]any{
+				"types": []any{"spot"},
+			},
 		},
 	})
 }

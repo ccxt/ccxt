@@ -37,7 +37,6 @@ function testAggregate () {
     ];
     testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate (exchange.sortBy (asks, 0)), expectedAsks);
 
-
     testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate ([]), []);
 
     // Test 1: Simple aggregation - same price combined

@@ -5,6 +5,8 @@ import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -21,30 +23,30 @@ public class TestWatchOHLCV extends BaseTest {
         String method = "watchOHLCV";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
-        Assert(Helpers.isGreaterThan(Helpers.getArrayLength(timeframeKeys), 0), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
+        List<Object> timeframeKeys = Helpers.objectKeys(exchange.timeframes);
+        Assert(((List<?>)timeframeKeys).size() > 0, (((exchange.id + " ") + method) + " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";
         if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
+            chosenTimeframeKey = (timeframeKeys == null || 0 >= ((List<?>)timeframeKeys).size() ? null : ((List<?>)timeframeKeys).get(0));
         }
         Integer limit = 10;
         Object duration = exchange.parseTimeframe(chosenTimeframeKey);
         Object since = Helpers.subtract(Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(duration, limit), 1000)), 1000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
+        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = null;
             Boolean success = true;
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOHLCV", new Object[]{symbol, chosenTimeframeKey, since, limit})).join();
-                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOHLCV", new Object[]{symbol, Helpers.toStringArg(chosenTimeframeKey), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}}})).join();
+                if (java.util.Objects.equals(response, null))
                 {
-                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                    throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -55,14 +57,14 @@ public class TestWatchOHLCV extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
+            if (Boolean.TRUE.equals(success) && (!java.util.Objects.equals(response, null)))
             {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
                     TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
                 }
-                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
                 {
                     idle = true;
                 }

@@ -119,7 +119,7 @@ fn probe_method() -> String {
 
 fn extra_args(method: &str) -> Vec<Value> {
     match method {
-        "watch_ohlcv" => vec![Value::Str("1m".to_string())],
+        "watch_ohlcv" => vec![Value::Str("1m".to_string().into())],
         _ => vec![],
     }
 }
@@ -131,8 +131,8 @@ fn nonempty_list(v: &Value) -> bool {
 fn classify(method: &str, result: &Value, sym: &str) -> String {
     match method {
         "watch_order_book" => {
-            let bids = get_value(result, &Value::Str("bids".to_string()));
-            let asks = get_value(result, &Value::Str("asks".to_string()));
+            let bids = get_value(result, &Value::Str("bids".to_string().into()));
+            let asks = get_value(result, &Value::Str("asks".to_string().into()));
             let bid = get_value(&get_value(&bids, &Value::Int(0)), &Value::Int(0))
                 .as_f64()
                 .unwrap_or(0.0);
@@ -149,7 +149,7 @@ fn classify(method: &str, result: &Value, sym: &str) -> String {
         }
         "watch_ticker" => {
             let field = |k: &str| {
-                get_value(result, &Value::Str(k.to_string()))
+                get_value(result, &Value::Str(k.to_string().into()))
                     .as_f64()
                     .unwrap_or(0.0)
             };
@@ -166,7 +166,7 @@ fn classify(method: &str, result: &Value, sym: &str) -> String {
         _ => {
             if nonempty_list(result) {
                 let first = get_value(result, &Value::Int(0));
-                let px = get_value(&first, &Value::Str("price".to_string()))
+                let px = get_value(&first, &Value::Str("price".to_string().into()))
                     .as_f64()
                     .or_else(|| get_value(&first, &Value::Int(4)).as_f64())
                     .unwrap_or(0.0);
@@ -197,7 +197,7 @@ async fn watch_probe(mut ex: Box<dyn TypedExchange>) -> String {
         };
     let candidate = CANDIDATES
         .iter()
-        .find(|c| !matches!(get_value(&markets, &Value::Str(c.to_string())), Value::Null))
+        .find(|c| !matches!(get_value(&markets, &Value::Str(c.to_string().into())), Value::Null))
         .map(|s| s.to_string());
     let sym = candidate.or_else(|| match &markets {
         Value::Dict(d) => d
@@ -242,7 +242,7 @@ async fn watch_probe(mut ex: Box<dyn TypedExchange>) -> String {
                 format!("TIMEOUT   [{sym}]")
             };
         }
-        let mut args = vec![Value::Str(sym.to_string())];
+        let mut args = vec![Value::Str(sym.to_string().into())];
         args.extend(extra.iter().cloned());
         let fut = ex.call_raw(&method, args);
         match tokio::time::timeout(deadline - now, AssertUnwindSafe(fut).catch_unwind()).await {

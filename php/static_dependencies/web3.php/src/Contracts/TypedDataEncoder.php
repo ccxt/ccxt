@@ -99,13 +99,31 @@ class TypedDataEncoder
      * @param mixed $value
      * @return array
      */
+    /**
+     * keccak
+     * Utils::sha3 returns null for the hash of empty input, which later breaks the bytes32
+     * encoding; an empty string or bytes field is a valid EIP-712 value (e.g. hyperliquid's
+     * sendAsset sends "" for the default perp dex and for fromSubAccount) so keep the hash.
+     *
+     * @param string $value
+     * @return string
+     */
+    protected function keccak($value)
+    {
+        $hash = Utils::sha3($value);
+        if ($hash === null) {
+            return '0x' . Utils::SHA3_NULL_HASH;
+        }
+        return $hash;
+    }
+
     protected function encodeField(array $types, string $name, string $type, $value)
     {
         if (array_key_exists($type, $types)) {
             if (is_null($value)) {
                 return ['bytes32', '0x0000000000000000000000000000000000000000000000000000000000000000'];
             } else {
-                return ['bytes32', Utils::sha3($this->encodeData($type, $types, $value))];
+                return ['bytes32', $this->keccak($this->encodeData($type, $types, $value))];
             }
         } else if (is_null($value)) {
             if ($type === 'string' || $type === 'bytes') {
@@ -133,16 +151,16 @@ class TypedDataEncoder
                 # the keccak hash of `encode((), ())`
                 return ['bytes32', '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470'];
             }
-            return ["bytes32", Utils::sha3($this->ethabi->encodeParameters($dataTypes, $dataValues))];
+            return ["bytes32", $this->keccak($this->ethabi->encodeParameters($dataTypes, $dataValues))];
         } else if ($type === 'bool') {
             return [$type, (bool)$value];
         } else if (substr($type, 0, 5) === 'bytes') {
             if ($type === 'bytes') {
-                return ['bytes32', Utils::sha3($value)];
+                return ['bytes32', $this->keccak($value)];
             }
             return [$type, $value];
         } else if ($type === 'string') {
-            return ['bytes32', Utils::sha3('0x' . Utils::toHex($value))];
+            return ['bytes32', $this->keccak('0x' . Utils::toHex($value))];
         } else if (is_string($value) && preg_match('/^u?int/', $type) === 1) {
             $bn = Utils::toBn($value);
             return [$type, $bn->toString()];

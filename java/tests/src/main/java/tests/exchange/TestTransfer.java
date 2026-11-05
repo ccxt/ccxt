@@ -29,10 +29,10 @@ public class TestTransfer extends BaseTest {
             put( "toAccount", "swap" );
             put( "status", "ok" );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("fromAccount", "toAccount"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("fromAccount", "toAccount"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, exchange.milliseconds());
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
         //
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "status", new ArrayList<Object>(Arrays.asList("ok", "pending", "failed")));
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");

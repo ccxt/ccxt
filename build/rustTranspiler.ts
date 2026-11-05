@@ -23,10 +23,25 @@ if (platform === 'win32' && __dirname[0] === '/') {
     __dirname = __dirname.substring(1);
 }
 
+// The ast printer emits string literals as `Value::Str("lit".into())` — the
+// runtime's `Str` payload is a `Cow<'static, str>`, so a literal borrows its
+// `&'static str` instead of allocating. The post-passes below still match the
+// historical allocating spelling, so unwrap it where the transpiler output
+// enters the pipeline and restore the borrowed form at write time.
+const RUST_LITERAL_BOX_INTO = /Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)/g;
+const RUST_LITERAL_BOX_ALLOC = /Value::Str\(("(?:[^"\\]|\\.)*")\.to_string\(\)\)/g;
+function allocLiteralBoxes(content: string): string {
+    return content.replace(RUST_LITERAL_BOX_INTO, 'Value::Str($1.to_string())');
+}
+function borrowLiteralBoxes(content: string): string {
+    return content.replace(RUST_LITERAL_BOX_ALLOC, 'Value::Str($1.into())');
+}
+
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
+    content = borrowLiteralBoxes(content);
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -45,9 +60,10 @@ function toSnakeCase(s: string): string {
 
 // ── output paths ─────────────────────────────────────────────────────────────
 const RUST_BASE              = './rust/ccxt-base/src';
-const BASE_METHODS_FILE      = `${RUST_BASE}/exchange_generated.rs`;
-const PREDICTION_BASE_FILE   = `${RUST_BASE}/prediction_exchange_generated.rs`;
-const ERRORS_FILE            = `${RUST_BASE}/exchange_errors.rs`;
+const RUST_CORE              = './rust/ccxt-common/src';
+const BASE_METHODS_FILE      = `${RUST_CORE}/exchange_generated.rs`;
+const PREDICTION_BASE_FILE   = `${RUST_CORE}/prediction_exchange_generated.rs`;
+const ERRORS_FILE            = `${RUST_CORE}/exchange_errors.rs`;
 const EXCHANGES_FOLDER       = `${RUST_BASE}/exchanges`;
 // The transpiled per-venue WS exchanges live in their own crate (`ccxt-pro`)
 // so each `rustc` invocation stays under the CI runner's memory ceiling. The
@@ -58,11 +74,41 @@ const EXCHANGES_WS_FOLDER    = `${RUST_PRO_BASE}/pro`;
 // Prediction venues live in their own module so ids that also exist as a
 // regular exchange (e.g. `hyperliquid`) don't clobber each other.
 const PREDICTION_EXCHANGES_FOLDER = `${RUST_BASE}/prediction`;
+
+// Cargo feature that gates a transpiled Core in ccxt-base. Shared with
+// build/generateRustWrappers.ts, which emits the matching [features] entries.
+export function rustFeatureName (id: string, prediction = false): string {
+    return prediction ? `prediction-${id}` : id;
+}
 const BASE_TESTS_FOLDER      = './rust/tests/base';
 const BASE_TESTS_WS_FOLDER   = './rust/tests/base_ws';
 const GENERATED_TESTS_FOLDER = './rust/tests/exchange';
 
-class RustTranspilerBuilder {
+// Free fns in `rust/ccxt-base/src/runtime.rs` declared `-> bool`. A call to
+// one of them is already a Rust `bool`, so the `is_true(&…)` the ast printer
+// wraps around it is the identity (`IsTruthy for bool`). Anything not listed
+// here — `self.<method>` (generated methods return `Value`), `Precise::string*`
+// (`Option<bool>`), test helpers — keeps the helper.
+const RUST_BOOL_RUNTIME_FNS = new Set([
+    'is_equal', 'is_greater_than', 'is_greater_than_or_equal',
+    'is_less_than', 'is_less_than_or_equal', 'is_array', 'is_object',
+    'is_string', 'is_number', 'is_bool', 'is_integer', 'is_function',
+    'is_instance', 'in_op', 'starts_with', 'ends_with', 'is_true',
+]);
+
+export // rust-05: the five `safe_*_k` helpers below take `obj: Value` BY VALUE, so the
+// defensive `.clone()` `wrapVariadicCalls` adds to a bare-identifier object
+// argument is only needed when that local is read again later.
+const RUST_BY_VALUE_OBJ_CALL = /\bself\.safe_(?:number|value|bool|list|dict)_k\(/;
+
+export // The ast printer's numeric-comparison emission (`printNativeNumericComparison`
+// in ast-transpiler/src/rustTranspiler.ts) unwraps both operands with this
+// accessor chain. It disappears for an operand that is already a native `f64`:
+// a `Value::Int`/`Value::Float` box (payload type fixed by the constructor) or
+// a local narrowed to `f64` by `narrowFloatLocals` below.
+const RUST_FLOAT_NAN_UNWRAP = '.as_f64().unwrap_or(f64::NAN)';
+
+export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -1060,7 +1106,7 @@ class RustTranspilerBuilder {
         // name to the real handler. Refs passed to `spawn`/`delay` become inert
         // name strings (those are no-ops anyway).
         return content.replace(
-            /([(,\[=]\s*|\bvec!\[\s*)self\.([a-zA-Z_][a-zA-Z0-9_]*)\b(\s*)([^(\s])/g,
+            /([(,\[={]\s*|\bvec!\[\s*)self\.([a-zA-Z_][a-zA-Z0-9_]*)\b(\s*)([^(\s])/g,
             (full, pre, ident, wsGap, nextCh) => {
                 if (nextCh === '(') return full;
                 if (methods.has(toSnakeCase(ident))) {
@@ -1347,7 +1393,7 @@ class RustTranspilerBuilder {
             // Specific sync methods known to mutate self.
             [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string)\(&self,/g,
                 'pub fn $1(&mut self,'],
-            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror)\(&self\)/g,
+            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|incrementing_nonce)\(&self\)/g,
                 'pub fn $1(&mut self)'],
 
             // (`}\nimpl X {\n` collapse is applied per-call-site in
@@ -2361,14 +2407,15 @@ class RustTranspilerBuilder {
             }
             // Pattern 2: `get_value(&self.<field>, …)` — hoist the whole
             // get_value(...) call. The `&self.<field>` reborrow is what
-            // makes the outer mut-self call fail.
-            const gvRe = /\bget_value\(\s*&self\.\w+/g;
+            // makes the outer mut-self call fail. `get_value_k` (the `&str`
+            // key lookup) reborrows the same way, so it hoists too.
+            const gvRe = /\b(?:crate::value::)?get_value(?:_k)?\(\s*&self\.\w+/g;
             let gvMatch: RegExpExecArray | null;
             while ((gvMatch = gvRe.exec(args)) !== null) {
                 const s = gvMatch.index;
                 // Skip if already inside one of the above hoists.
                 if (hoists.some(h => s >= h.start && s < h.end)) continue;
-                let d = 1, k = s + 'get_value('.length, inS = false, e = false;
+                let d = 1, k = s + gvMatch[0].indexOf('(') + 1, inS = false, e = false;
                 while (k < args.length && d > 0) {
                     const c = args[k];
                     if (e) { e = false; k++; continue; }
@@ -2442,7 +2489,7 @@ class RustTranspilerBuilder {
             // `Value::<Variant>(…)` we skip; otherwise we inject one.
             const endsWithValueExpr =
                 /\bValue::Null\s*$/.test(trimmed)
-                || /\bValue::[A-Z]\w*\s*\([^()]*\)\s*$/.test(trimmed);
+                || /\bValue::(?:[A-Z]\w*|from)\s*\([^()]*\)\s*$/.test(trimmed);
             if (!endsWithValueExpr) {
                 out += content.slice(cursor, j);
                 out += '\n    Value::Null\n';
@@ -2518,6 +2565,10 @@ class RustTranspilerBuilder {
             // (parse_order/parse_trade) to `&mut self`, which then forced the
             // unsound `&`→`&mut` cast in the DerivedExchange forwarder. Left out.
             'fetch_deposit_address',
+            // incrementing_nonce mutates self.options['lastNonce'] on every call, so any
+            // REST signing builder that calls it (hyperliquid createOrdersRequest etc.) must
+            // take &mut self too, otherwise the write is cloned away and the nonce never advances
+            'incrementing_nonce',
             // WS Client / handler infra
             'client', 'get_listen_key', 'spawn', 'delay',
             'fetch_rest_order_book_safe',
@@ -2541,8 +2592,13 @@ class RustTranspilerBuilder {
             // handle_* cache handlers (and the dispatch entry points) so their
             // writes persist. Gated to WS so the REST/prediction transpile — and
             // its long-green output — is byte-for-byte unchanged.
+            // handle_errors is the one `&self` virtual where venues persist session state read
+            // from the response headers (grvt stores its auth cookie / account id in
+            // this.options there). Promote it when it writes a self field so those writes are
+            // not cloned away; the DerivedExchange forwarder already casts for mut virtuals.
             const seeded = directMutRe.test(body)
-                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)));
+                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)))
+                || (f.name === 'handle_errors' && refMutRe.test(body));
             if (seeded) mutSet.add(f.name);
         }
         // Fixed-point: any fn that calls a known-mut method joins the set.
@@ -2683,6 +2739,25 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * The ast printer emits a TS `while (true)` as `while (true) { … }`, which
+     * trips rustc's built-in `while_true` lint ("denote infinite loops with
+     * `loop { ... }`"). CI's clippy lane runs `cargo clippy … -- -D warnings`,
+     * so a single site fails the whole lane. Emit the `loop {` rustc asks for:
+     * every generated infinite loop leaves through `break`, so the two forms
+     * are equivalent.
+     *
+     * Applied to file text (strings / comments masked), so a `while (true)`
+     * inside a literal or a doc comment is left alone.
+     */
+    whileTrueToLoop(content: string): string {
+        return this.replaceOutsideStrings(
+            content,
+            /\bwhile\s*\(\s*true\s*\)\s*\{/g,
+            'loop {',
+        );
+    }
+
+    /**
      * Walks every `pub fn <name>(` body (brace-balanced) and, if the body
      * contains `.await`, prefixes `async ` to the declaration.
      */
@@ -2779,8 +2854,8 @@ class RustTranspilerBuilder {
         const abstractPath = `./ts/src/abstract/${className}.ts`;
         if (!fs.existsSync(abstractPath)) return content;
         const abstractSrc = fs.readFileSync(abstractPath, 'utf8');
-        // Interface method decls look like:
-        //   traderPrivateGetV2Clock (params?: {}): Promise<implicitReturnType>;
+        // Generated method heads look like:
+        //   traderPrivateGetV2Clock (params = {}): Promise<Dict> {
         // The name class must allow `_`: versioned endpoints carry an
         // underscore in the identifier (coinone's `v2_1PrivatePostOrderLimit`).
         // Without it the capture stops at `v2`, the full snake name never
@@ -2788,7 +2863,7 @@ class RustTranspilerBuilder {
         // bare arg never gets folded into the `&[Value]` slice the generated
         // `<id>_api.rs` method expects (E0308: expected `&[Value]`, found `Value`).
         const names = new Set<string>();
-        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise/gm;
+        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise<[^>]*>\s*\{/gm;
         let m: RegExpExecArray | null;
         while ((m = re.exec(abstractSrc)) !== null) {
             names.add(toSnakeCase(m[1]));
@@ -3395,8 +3470,77 @@ class RustTranspilerBuilder {
         return out.join('');
     }
 
+    /**
+     * rust-05: drop the `.clone()` on the by-value `obj` argument of the five
+     * `safe_*_k` helpers when that local is provably dead after the call; must
+     * run after `rewriteLiteralKeySafeCalls` so the `_k` shape exists.
+     */
+    dropDeadFirstArgClones(content: string): string {
+        const pattern = RUST_BY_VALUE_OBJ_CALL;
+        const blocks = this.rustBlocksOf(content);
+        let i = 0;
+        let out = '';
+        while (i < content.length) {
+            const rest = content.slice(i);
+            const m = rest.match(pattern);
+            if (!m || m.index === undefined) {
+                out += rest;
+                break;
+            }
+            const absStart = i + m.index;
+            out += rest.slice(0, m.index);
+            const callStart = absStart + m[0].length;
+            let depth = 1;
+            let j = callStart;
+            let inStr = false;
+            let escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\') { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')' || c === ']' || c === '}') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) {
+                out += content.slice(absStart);
+                break;
+            }
+            // First argument = up to the first top-level comma (or the closing paren).
+            let argDepth = 0;
+            let k = callStart;
+            let argEnd = j;
+            while (k < j) {
+                const c = content[k];
+                if (c === '"') { k = RustTranspilerBuilder.skipRustStringLiteral(content, k); continue; }
+                if (c === '(' || c === '[' || c === '{') argDepth++;
+                else if (c === ')' || c === ']' || c === '}') argDepth--;
+                else if (c === ',' && argDepth === 0) { argEnd = k; break; }
+                k++;
+            }
+            const rawFirst = content.slice(callStart, argEnd);
+            const firstMatch = rawFirst.match(/^\s*([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)\s*$/);
+            const movable = firstMatch !== null && firstMatch[1] !== 'self' &&
+                this.rustArgIsDeadAfter(content, blocks, absStart, argEnd, firstMatch[1]);
+            if (movable) {
+                out += content.slice(absStart, callStart) +
+                    rawFirst.replace(/\.clone\(\)(\s*)$/, '$1') +
+                    content.slice(argEnd, j + 1);
+            } else {
+                out += content.slice(absStart, j + 1);
+            }
+            i = j + 1;
+        }
+        return out;
+    }
+
     rewriteLiteralKeySafeCalls(content: string): string {
-        const variants = ['value', 'string', 'integer', 'float', 'number', 'bool', 'dict', 'list'];
+        const variants = ['value', 'string', 'integer', 'float', 'number', 'bool', 'dict', 'list',
+            'string_lower', 'string_upper', 'timestamp'];
         const variantRe = variants.join('|');
         const re = new RegExp(
             'self\\.safe_(' + variantRe + ')\\(' +
@@ -3405,8 +3549,20 @@ class RustTranspilerBuilder {
             '(&\\[[^\\]]*\\])\\)',
             'g',
         );
-        return content.replace(re, (_, name, obj, key, tail) =>
+        content = content.replace(re, (_, name, obj, key, tail) =>
             `self.safe_${name}_k(${obj}, "${key}", ${tail})`);
+        // `safe_integer_product` carries its conversion factor between the key
+        // and the defaults slice, so it needs its own shape.
+        const productRe = new RegExp(
+            'self\\.safe_integer_product\\(' +
+            '([^()]*(?:\\([^()]*\\)[^()]*)*?), ' +
+            'Value::Str\\("([^"\\\\]*)"\\.to_string\\(\\)\\), ' +
+            '([^,()]*(?:\\([^()]*\\)[^,()]*)*?), ' +
+            '(&\\[[^\\]]*\\])\\)',
+            'g',
+        );
+        return content.replace(productRe, (_, obj, key, factor, tail) =>
+            `self.safe_integer_product_k(${obj}, "${key}", ${factor}, ${tail})`);
     }
 
     rewriteExchangeMethodCalls(content: string): string {
@@ -3753,6 +3909,49 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * `is_instance(&e, &Value::Str("BadSymbol".to_string()))` -> native
+     * `matches!(&e, Value::Str(__s) if __s.contains("[BadSymbol]"))` when the
+     * tested class has no subclass in `errorHierarchy` — the table
+     * `runtime::error_parent` mirrors. The helper tests
+     * `msg.contains("[cls]")` first and then walks the hierarchy of the
+     * message's leading `[Kind]`; with no subclass that walk can never add a
+     * match, so the containment test alone is the whole helper. Classes that
+     * do have subclasses (AuthenticationError, OperationFailed, NetworkError)
+     * keep the helper — the walk is its added semantics.
+     * Runs last, so the bool-position boxing has already seen the call.
+     */
+    rewriteNativeErrorClassChecks(content: string): string {
+        return content.replace(
+            /\bis_instance\(&([A-Za-z_][A-Za-z0-9_]*), &Value::Str\("([A-Za-z0-9_]+)"\.to_string\(\)\)\)/g,
+            (whole: string, value: string, className: string) => {
+                if (this.errorClassHasSubclass(className)) {
+                    return whole;
+                }
+                return `matches!(&${value}, Value::Str(__s) if __s.contains("[${className}]"))`;
+            });
+    }
+
+    /** Classes that `errorHierarchy` gives at least one subclass. */
+    private errorClassesWithSubclasses: Set<string> | undefined;
+
+    errorClassHasSubclass(className: string): boolean {
+        if (this.errorClassesWithSubclasses === undefined) {
+            const withSubclasses = new Set<string>();
+            const walk = (node: any): void => {
+                for (const name of Object.keys(node)) {
+                    if (Object.keys(node[name]).length > 0) {
+                        withSubclasses.add(name);
+                    }
+                    walk(node[name]);
+                }
+            };
+            walk(errorHierarchy);
+            this.errorClassesWithSubclasses = withSubclasses;
+        }
+        return this.errorClassesWithSubclasses.has(className);
+    }
+
+    /**
      * Narrow `let mut X: Value = Value::Bool(<expr>);` locals to a native
      * `let mut X: bool = <expr>;` when every use of `X` in the enclosing
      * `fn` body accepts a `bool`.
@@ -3772,13 +3971,21 @@ class RustTranspilerBuilder {
      *   allowed sink       reason
      *   ------------------ ----------------------------------------------
      *   `is_true(&x)`      generic `IsTruthy`, `bool` impl exists
+     *   `is_true(&(x))`    same call, condition-position parens
      *   `x = Value::Bool(e)` re-assignment of the same concrete type;
      *                      rewritten to `x = e`
+     *   `x.as_bool() == Some(true)`  the `x === true` sink; rewritten to
+     *                      `x` (`!=` / `Some(false)` to `!x`). Only the
+     *                      bare condition form and the `Value::Bool(…)`
+     *                      box that is the whole argument of
+     *                      `is_true(&(…))` — any other box is a `Value`
+     *                      slot and stays.
      *
      * Rejected (kept as `Value`):
      *   - any other use — `x.clone()` into a `Value` slot (`m.insert`,
      *     `self.<method>(x.clone())`), `is_equal(&x, …)` (takes `&Value`),
      *     `&x`, `return x`, `x = Value::Null` / any non-bool RHS.
+     *   - an `x.as_bool() == Some(true)` box in a `Value` slot.
      *   - a use whose surrounding text we cannot classify.
      *
      * The scan is scoped to the enclosing `fn` by brace depth and skips
@@ -3790,10 +3997,12 @@ class RustTranspilerBuilder {
      *
      * `Value::Bool(<expr>)` in the declaration must span the whole RHS
      * (bracket-balanced): `Value::Bool(a) || b` is not a narrowable
-     * initializer even though it starts with the marker.
+     * initializer even though it starts with the marker. The AST keeps the
+     * source's own parens around a boxed RHS (`= (Value::Bool(…));`) — the
+     * same statement, so the paren pair is accepted and dropped here.
      */
     narrowBoolLocals(content: string): string {
-        const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = Value::Bool\(/gm;
+        const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = \(?Value::Bool\(/gm;
         // Returns the index just past the `)` that closes the paren at `open`,
         // or -1 if unbalanced. String-literal aware.
         const closeOf = (src: string, open: number): number => {
@@ -3834,18 +4043,21 @@ class RustTranspilerBuilder {
             return src.length;
         };
 
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        const rewrites: Array<{ start: number, end: number, text: string, group: number }> = [];
         let m: RegExpExecArray | null;
+        let group = 0;
         while ((m = declRe.exec(content)) !== null) {
             const declStart = m.index;
             const name = m[2];
             const boolOpen = declStart + m[0].length - 1;       // index of `(` after Value::Bool
             const boolClose = closeOf(content, boolOpen);        // index just past matching `)`
             if (boolClose < 0) continue;
-            // Whole-RHS check: `Value::Bool(<expr>);` must end the statement.
-            if (content.slice(boolClose, boolClose + 1) !== ';') continue;
+            // Whole-RHS check: `Value::Bool(<expr>);` — or `(Value::Bool(<expr>));`
+            // when the source's parens wrap the box — must end the statement.
+            const tail = /^\)?;/.exec(content.slice(boolClose, boolClose + 2));
+            if (tail === null) continue;
             const inner = content.slice(boolOpen + 1, boolClose - 1);
-            const stmtEnd = boolClose + 1;
+            const stmtEnd = boolClose + tail[0].length;
             const end = scopeEnd(content, stmtEnd);
             const body = content.slice(stmtEnd, end);
 
@@ -3853,6 +4065,7 @@ class RustTranspilerBuilder {
             const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
             let ok = true;
             const assigns: Array<{ start: number, end: number, expr: string }> = [];
+            const boolCmp: Array<{ start: number, end: number, text: string }> = [];
             let inStr = false; let esc = false; let inLineComment = false;
             // Mask strings + line comments so the identifier scan cannot see
             // them (map keys like `"swap"`, `// swap` doc lines).
@@ -3874,30 +4087,461 @@ class RustTranspilerBuilder {
             let u: RegExpExecArray | null;
             while ((u = useRe.exec(masked)) !== null) {
                 const s = u.index; const e = s + name.length;
-                const before = masked.slice(Math.max(0, s - 9), s);
+                const before = masked.slice(Math.max(0, s - 16), s);
                 const after = masked.slice(e);
-                if (before.endsWith('is_true(&')) continue;
-                // `x = Value::Bool(<expr>);` — same-type reassignment.
-                const asg = /^\s*=\s*Value::Bool\(/.exec(after);
+                // `is_true(&x)` / `is_true(&(x))` — the helper is generic over
+                // `IsTruthy`, whose `bool` impl is the identity.
+                if (before.endsWith('is_true(&') && after.startsWith(')')) continue;
+                if (before.endsWith('is_true(&(') && after.startsWith('))')) continue;
+                // `x = Value::Bool(<expr>);` — same-type reassignment (the
+                // source's parens around the box, if any, are consumed too).
+                const asg = /^\s*=\s*\(?\s*Value::Bool\(/.exec(after);
                 if (asg) {
                     const open = e + asg[0].length - 1;
                     const close = closeOf(masked, open);
-                    if (close > 0 && masked[close] === ';') {
+                    const asgTail = close > 0 ? /^\)?;/.exec(masked.slice(close, close + 2)) : null;
+                    if (asgTail !== null) {
                         assigns.push({
                             start: stmtEnd + e,
-                            end: stmtEnd + close,
+                            end: stmtEnd + close + asgTail[0].length - 1,
                             expr: body.slice(open + 1, close - 1),
                         });
                         continue;
                     }
                 }
+                // `x.as_bool() == Some(true)` — the printed `x === true`. With
+                // `x` a bool the comparison is `x` (`!=`/`Some(false)`: `!x`).
+                // Bare (condition position) or the `Value::Bool(…)` box that
+                // is the whole argument of `is_true(&(…))`; a box anywhere else
+                // is a `Value` slot.
+                const cmp = /^\.as_bool\(\)\s*(==|!=)\s*Some\((true|false)\)/.exec(after);
+                if (cmp !== null) {
+                    const truthy = (cmp[1] === '==') === (cmp[2] === 'true');
+                    const text = truthy ? name : `!${name}`;
+                    if (before.endsWith('Value::Bool(') && !/[A-Za-z0-9_:]/.test(before[before.length - 'Value::Bool('.length - 1] ?? '')) {
+                        const boxStart = s - 'Value::Bool('.length;
+                        const boxParen = s - 1;
+                        const pre = masked.slice(Math.max(0, boxStart - 16), boxStart);
+                        if (!(pre.endsWith('is_true(&(') || pre.endsWith('is_true(&'))) { ok = false; break; }
+                        const boxClose = closeOf(masked, boxParen);
+                        if (boxClose < 0) { ok = false; break; }
+                        boolCmp.push({ start: stmtEnd + boxStart, end: stmtEnd + boxClose, text });
+                    } else {
+                        boolCmp.push({ start: stmtEnd + s, end: stmtEnd + e + cmp[0].length, text });
+                    }
+                    continue;
+                }
                 ok = false;
                 break;
             }
             if (!ok) continue;
-            rewrites.push({ start: declStart, end: stmtEnd, text: `${m[1]}let mut ${name}: bool = ${inner};` });
+            group += 1;
+            rewrites.push({ start: declStart, end: stmtEnd, text: `${m[1]}let mut ${name}: bool = ${inner};`, group });
             for (const a of assigns) {
-                rewrites.push({ start: a.start, end: a.end, text: ` = ${a.expr}` });
+                rewrites.push({ start: a.start, end: a.end, text: ` = ${a.expr}`, group });
+            }
+            for (const b of boolCmp) {
+                rewrites.push({ start: b.start, end: b.end, text: b.text, group });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        // A `Value::Bool` initializer can contain another narrowed local's
+        // comparison, and the splices are position-based: drop every group
+        // that overlaps another one rather than emit a half-rewritten local.
+        const dropped = new Set<number>();
+        for (let a = 0; a < rewrites.length; a++) {
+            for (let b = a + 1; b < rewrites.length; b++) {
+                if (rewrites[a].group !== rewrites[b].group
+                    && rewrites[a].start < rewrites[b].end && rewrites[b].start < rewrites[a].end) {
+                    dropped.add(rewrites[a].group);
+                    dropped.add(rewrites[b].group);
+                }
+            }
+        }
+        const kept = rewrites.filter(r => !dropped.has(r.group));
+        if (kept.length === 0) return content;
+        kept.sort((a, b) => a.start - b.start);
+        let out = ''; let last = 0;
+        for (const r of kept) {
+            if (r.start < last) continue; // overlapping — should not happen; keep the first
+            out += content.slice(last, r.start) + r.text;
+            last = r.end;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
+    // ── numeric (f64) accessor-chain removal ─────────────────────────────────
+    // The ast printer wraps every operand of a checker-proven numeric compare in
+    // `.as_f64().unwrap_or(f64::NAN)` (`printNativeNumericComparison`). The two
+    // passes below drop that accessor where the printed text already proves an
+    // `f64`: a numeric `Value` box, or a local they retype to `f64`.
+
+    /** Index just past the `)` closing the paren at `open`; -1 if unbalanced. */
+    private closeOfParen(src: string, open: number): number {
+        let depth = 0; let inStr = false; let esc = false;
+        for (let k = open; k < src.length; k++) {
+            const c = src[k];
+            if (inStr) {
+                if (esc) esc = false;
+                else if (c === '\\') esc = true;
+                else if (c === '"') inStr = false;
+                continue;
+            }
+            if (c === '"') { inStr = true; continue; }
+            if (c === '(') depth++;
+            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
+        }
+        return -1;
+    }
+
+    /** `src` with string literals and line comments blanked out (same length). */
+    private maskStrings(src: string): string {
+        let out = ''; let inStr = false; let esc = false; let inLineComment = false;
+        for (let k = 0; k < src.length; k++) {
+            const c = src[k];
+            if (inLineComment) { out += c === '\n' ? '\n' : ' '; if (c === '\n') inLineComment = false; continue; }
+            if (inStr) {
+                out += ' ';
+                if (esc) esc = false;
+                else if (c === '\\') esc = true;
+                else if (c === '"') inStr = false;
+                continue;
+            }
+            if (c === '"') { inStr = true; out += ' '; continue; }
+            if (c === '/' && src[k + 1] === '/') { inLineComment = true; out += ' '; continue; }
+            out += c;
+        }
+        return out;
+    }
+
+    /** Index of the `}` that closes the enclosing block, from `from` onwards. */
+    private scopeEndOf(src: string, from: number): number {
+        let depth = 0; let inStr = false; let esc = false; let inLineComment = false;
+        for (let k = from; k < src.length; k++) {
+            const c = src[k];
+            if (inLineComment) { if (c === '\n') inLineComment = false; continue; }
+            if (inStr) {
+                if (esc) esc = false;
+                else if (c === '\\') esc = true;
+                else if (c === '"') inStr = false;
+                continue;
+            }
+            if (c === '"') { inStr = true; continue; }
+            if (c === '/' && src[k + 1] === '/') { inLineComment = true; continue; }
+            if (c === '{') depth++;
+            else if (c === '}') { depth--; if (depth < 0) return k; }
+        }
+        return src.length;
+    }
+
+    /** Applies non-overlapping `{start, end, text}` rewrites, left to right. */
+    private applyRewrites(content: string, rewrites: Array<{ start: number, end: number, text: string }>): string {
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = ''; let last = 0;
+        for (const r of rewrites) {
+            if (r.start < last) continue;
+            out += content.slice(last, r.start) + r.text;
+            last = r.end;
+        }
+        return out + content.slice(last);
+    }
+
+    /**
+     * Native `f64` text for the payload of a numeric `Value` box, or undefined
+     * when the box is not a shape the printer emits (`printNumericLiteral` /
+     * `printArrayLength`): a bare integer literal or an expression already cast
+     * to an integer type. Anything else keeps the accessor chain.
+     *
+     * `Value::Int` holds an `i64`, so the payload is never a float, and a bare
+     * literal must name its type — `(1000000000000) as f64` alone would default
+     * to `i32` and be denied by `overflowing_literals`.
+     */
+    private numericBoxF64Text(box: string, inner: string): string | undefined {
+        if (box === 'Value::Float') {
+            return `(${inner})`;
+        }
+        if (/^-?[0-9][0-9_]*$/.test(inner)) {
+            return `((${inner}i64) as f64)`;
+        }
+        if (/(?:^|[^A-Za-z0-9_])as\s+(?:i8|i16|i32|i64|i128|isize|u8|u16|u32|u64|u128|usize)$/.test(inner)) {
+            return `((${inner}) as f64)`;
+        }
+        return undefined;
+    }
+
+    /**
+     * `Value::Int(<expr>).as_f64().unwrap_or(f64::NAN)` -> `((<expr>) as i64) as f64`,
+     *
+     * `Value::Int` holds an `i64` and `Value::Float` an `f64` (`value.rs`), so
+     * `as_f64()` is always `Some(payload)`: the `unwrap_or(f64::NAN)` fallback
+     * is unreachable and the box only wraps a number the compare can use as is.
+     * The box must span the whole receiver (bracket-balanced) — a
+     * `Value::Int(a) + b` receiver keeps the accessor. The receiver is never
+     * re-evaluated: both forms evaluate `<expr>` exactly once. Two cast
+     * details: the whole cast is parenthesised (`as f64 <` would parse as the
+     * start of a generic argument list), and the inner cast names `i64` so a
+     * bare literal takes the box's `i64` type instead of the default `i32`
+     * (which would overflow for epoch-millis literals).
+     */
+    collapseNumericBoxAccessors(content: string): string {
+        const boxRe = /(?<![A-Za-z0-9_:])(Value::(?:Int|Float))\(/g;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = boxRe.exec(content)) !== null) {
+            const open = m.index + m[0].length - 1;
+            const close = this.closeOfParen(content, open);
+            if (close < 0 || !content.startsWith(RUST_FLOAT_NAN_UNWRAP, close)) {
+                continue;
+            }
+            const inner = content.slice(open + 1, close - 1);
+            const text = this.numericBoxF64Text(m[1], inner);
+            if (text === undefined) continue;
+            rewrites.push({ start: m.index, end: close + RUST_FLOAT_NAN_UNWRAP.length, text });
+        }
+        return this.applyRewrites(content, rewrites);
+    }
+
+    /**
+     * Narrows `let mut X: Value = Value::Int(<expr>);` (and the `Value::Float`
+     * twin) to `let mut X: f64 = <expr>;` when every later use of `X` in the
+     * enclosing `fn` reads it as a number. Same shape of proof as
+     * `narrowBoolLocals`: the initializer already holds the exact f64 payload
+     * (`Value::Int` ≤ 2^53), so no `as_f64()`/`NaN` path can be reached.
+     *
+     * Allowed uses (all rewritten, so the accessor chain disappears):
+     *   `X.as_f64().unwrap_or(f64::NAN)` -> `X`
+     *   `X.as_f64() == / != Some(<lit>)`  -> `X == / != <lit>`
+     * Anything else — an argument, `&X`, `X = …`, `X.clone()`, a field-like
+     * `y.X`, a redeclaration of the name, a use we cannot classify — keeps the
+     * `Value` local (D2 scan). Uses are scanned to the end of the fn body, so a
+     * nested-block use still counts as a use.
+     */
+    narrowFloatLocals(content: string): string {
+        const declRe = /^([ \t]*)let mut ([A-Za-z_][A-Za-z0-9_]*): Value = \(?(Value::(?:Int|Float))\(/gm;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(content)) !== null) {
+            const name = m[2];
+            const open = m.index + m[0].length - 1;
+            const close = this.closeOfParen(content, open);
+            if (close < 0) continue;
+            const tail = /^\)?;/.exec(content.slice(close, close + 2));
+            if (tail === null) continue;
+            const inner = content.slice(open + 1, close - 1);
+            const init = this.numericBoxF64Text(m[3], inner);
+            if (init === undefined) continue;
+            const stmtEnd = close + tail[0].length;
+            const end = this.scopeEndOf(content, stmtEnd);
+            const masked = this.maskStrings(content.slice(stmtEnd, end));
+            // Any other binding of the same name — a `let`, an `if let`, a loop
+            // pattern or a closure parameter — would make later uses a different
+            // local, so the whole declaration keeps `Value`.
+            const rebindRe = new RegExp(
+                `\\blet\\s+(?:mut\\s+)?${name}\\b|\\bfor\\s+(?:mut\\s+)?${name}\\b|\\|\\s*(?:mut\\s+)?${name}\\s*[:|,]`);
+            if (rebindRe.test(masked)) continue;
+            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
+            const uses: Array<{ start: number, end: number, text: string }> = [];
+            let ok = true; let u: RegExpExecArray | null;
+            while ((u = useRe.exec(masked)) !== null) {
+                const after = masked.slice(u.index + name.length);
+                if (after.startsWith(RUST_FLOAT_NAN_UNWRAP)) {
+                    uses.push({
+                        start: stmtEnd + u.index,
+                        end: stmtEnd + u.index + name.length + RUST_FLOAT_NAN_UNWRAP.length,
+                        text: name,
+                    });
+                    continue;
+                }
+                const numEq = /^\.as_f64\(\)\s*(==|!=)\s*Some\(([0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9]+)?)\)/.exec(after);
+                if (numEq !== null) {
+                    uses.push({
+                        start: stmtEnd + u.index,
+                        end: stmtEnd + u.index + name.length + numEq[0].length,
+                        text: `${name} ${numEq[1]} ${numEq[2]}`,
+                    });
+                    continue;
+                }
+                ok = false;
+                break;
+            }
+            if (!ok || uses.length === 0) continue;
+            rewrites.push({ start: m.index, end: stmtEnd, text: `${m[1]}let mut ${name}: f64 = ${init};` });
+            for (const use of uses) rewrites.push(use);
+        }
+        return this.applyRewrites(content, rewrites);
+    }
+
+    /**
+     * Types `let [mut] X: Value = self.safe_number[_k](…)` /
+     * `self.safe_integer[_k](…)` as `Option<f64>` / `Option<i64>` when every
+     * later use of `X` in the enclosing fn is one of the two Option-native
+     * shapes: a `Value::Null` test (`X != Value::Null` -> `X.is_some()`) or an
+     * `X.as_f64() [!=]= Some(<integral literal>)` comparison. Both readers
+     * return a `Value::Float`/`Value::Int` or their `Value::Null`/numeric
+     * default, so the `Option` carries the same value with `None` for `Null`
+     * (`as_f64()`/`as_i64()` on those two variants is exact).
+     *
+     * Rejected (kept as `Value`): any other use — `.clone()` into a `Value`
+     * slot, arithmetic, `return X`, `is_true(&X)` — and any later write of a
+     * different printed type (`X = Value::Null`), per the D2 rule: typing a
+     * local whose every sink re-boxes it only moves the boxing to the use
+     * site. A non-literal or non-numeric default (`&[until.clone()]`,
+     * `Value::Str(…)`) is rejected too: the default flows into the local as a
+     * `Value` the `Option` accessor would drop.
+     *
+     * The scan is scoped to the enclosing fn by brace depth and masks string
+     * literals + line comments, so map keys never count as uses. A nested
+     * `let`/`for`/`fn`/closure binding of the same name rejects the site (the
+     * scan cannot tell the two apart). Idempotent.
+     */
+    narrowOptionalSafeLocals(content: string): string {
+        const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_(number|integer)(_k)?\(/gm;
+        // Index just past the `)` matching the `(` at `open`, string/comment aware.
+        const closeOf = (src: string, open: number): number => {
+            let depth = 0; let inStr = false; let esc = false; let inLine = false;
+            for (let k = open; k < src.length; k++) {
+                const c = src[k];
+                if (inLine) { if (c === '\n') inLine = false; continue; }
+                if (inStr) {
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; continue; }
+                if (c === '/' && src[k + 1] === '/') { inLine = true; continue; }
+                if (c === '(') depth++;
+                else if (c === ')') { depth--; if (depth === 0) return k + 1; }
+            }
+            return -1;
+        };
+        // End of the enclosing fn body: from `from`, walk braces until the
+        // depth goes below zero (the fn's closing `}`).
+        const scopeEnd = (src: string, from: number): number => {
+            let depth = 0; let inStr = false; let esc = false; let inLine = false;
+            for (let k = from; k < src.length; k++) {
+                const c = src[k];
+                if (inLine) { if (c === '\n') inLine = false; continue; }
+                if (inStr) {
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; continue; }
+                if (c === '/' && src[k + 1] === '/') { inLine = true; continue; }
+                if (c === '{') depth++;
+                else if (c === '}') { depth--; if (depth < 0) return k; }
+            }
+            return src.length;
+        };
+        // Same-length copy with string bodies + line comments blanked, so an
+        // identifier scan cannot see `"k"` keys or commented-out code.
+        const mask = (src: string): string => {
+            let out = ''; let inStr = false; let esc = false; let inLine = false;
+            for (let k = 0; k < src.length; k++) {
+                const c = src[k];
+                if (inLine) { out += c === '\n' ? '\n' : ' '; if (c === '\n') inLine = false; continue; }
+                if (inStr) {
+                    out += ' ';
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; out += ' '; continue; }
+                if (c === '/' && src[k + 1] === '/') { inLine = true; out += ' '; continue; }
+                out += c;
+            }
+            return out;
+        };
+        const splitArgs = (src: string): string[] => {
+            const out: string[] = []; let cur = ''; let depth = 0;
+            let inStr = false; let esc = false;
+            for (const c of src) {
+                if (inStr) {
+                    cur += c;
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; cur += c; continue; }
+                if (c === '(' || c === '[' || c === '{') depth++;
+                else if (c === ')' || c === ']' || c === '}') depth--;
+                if (c === ',' && depth === 0) { out.push(cur); cur = ''; continue; }
+                cur += c;
+            }
+            out.push(cur);
+            return out;
+        };
+        // Ends the statement — `self.safe_number_k(a, b, &[])` and nothing else.
+        const stmtTailRe = /^\s*;/;
+
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(content)) !== null) {
+            const name = m[3]; const isInt = m[4] === 'integer';
+            const acc = isInt ? 'i64' : 'f64';
+            const callOpen = m.index + m[0].length - 1;
+            const callClose = closeOf(content, callOpen);
+            if (callClose < 0) continue;
+            const tail = stmtTailRe.exec(content.slice(callClose, callClose + 3));
+            if (tail === null) continue;
+            const stmtEnd = callClose + tail[0].length;
+            const args = splitArgs(content.slice(callOpen + 1, callClose - 1));
+            if (args.length !== 3) continue;
+            const def = args[2].trim();
+            const defaultIsNative = /^&\[\s*\]$/.test(def)
+                || /^&\[\s*Value::Null\s*\]$/.test(def)
+                || /^&\[\s*Value::Int\(-?\d+\)\s*\]$/.test(def)
+                || (!isInt && /^&\[\s*Value::Float\(-?\d+(?:\.\d+)?\)\s*\]$/.test(def));
+            if (!defaultIsNative) continue;
+            const end = scopeEnd(content, stmtEnd);
+            const body = content.slice(stmtEnd, end);
+            const masked = mask(body);
+            // A nested binding of the same name makes the use scan ambiguous.
+            if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(masked)) continue;
+            if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(masked)) continue;
+            // The allowed shapes, with the text each one prints as.
+            const shapes: Array<{ re: RegExp, text: (g: RegExpExecArray) => string }> = [
+                { re: new RegExp(`\\b${name}\\s*!=\\s*Value::Null`, 'g'), text: () => `${name}.is_some()` },
+                { re: new RegExp(`\\b${name}\\s*==\\s*Value::Null`, 'g'), text: () => `${name}.is_none()` },
+                {
+                    re: new RegExp(`\\b${name}\\.as_f64\\(\\)\\s*(==|!=)\\s*Some\\((-?\\d+)\\.0\\)`, 'g'),
+                    text: (g) => `${name} ${g[1]} Some(${isInt ? g[2] : `${g[2]}.0`})`,
+                },
+            ];
+            const spans: Array<{ start: number, end: number, text: string }> = [];
+            const covered: Array<[number, number]> = [];
+            for (const shape of shapes) {
+                shape.re.lastIndex = 0;
+                let g: RegExpExecArray | null;
+                while ((g = shape.re.exec(masked)) !== null) {
+                    const e = g.index + g[0].length;
+                    spans.push({ start: g.index, end: e, text: shape.text(g) });
+                    covered.push([g.index, e]);
+                }
+            }
+            // Every printed use of `name` in the fn must be one of those spans.
+            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
+            let ok = true;
+            let u: RegExpExecArray | null;
+            while ((u = useRe.exec(masked)) !== null) {
+                const at = u.index;
+                if (!covered.some(([s, e]) => at >= s && at < e)) { ok = false; break; }
+            }
+            if (!ok) continue;
+            rewrites.push({
+                start: m.index,
+                end: stmtEnd,
+                text: `${content.slice(m.index, callOpen).replace(': Value =', `: Option<${acc}> =`)}`
+                    + `${content.slice(callOpen, callClose)}.as_${acc}()${content.slice(callClose, stmtEnd)}`,
+            });
+            for (const sp of spans) {
+                rewrites.push({ start: stmtEnd + sp.start, end: stmtEnd + sp.end, text: sp.text });
             }
         }
         if (rewrites.length === 0) return content;
@@ -3910,6 +4554,1062 @@ class RustTranspilerBuilder {
         }
         out += content.slice(last);
         return out;
+    }
+
+    /**
+     * Native-typed `safe_list` locals: `let mut X: Value = self.safe_list_k(..)`
+     * becomes `let mut X: Vec<Value>`, and every index read of X becomes the
+     * `.get()` the runtime's array branch takes.
+     *
+     * `safe_list_k`/`safe_list` yield the stored `Value::Arr` or their default,
+     * so the local holds an array (or the default) on every path. The local is
+     * retyped only when the declaration is its only writer and every later use
+     * is either `.len()` / `.is_empty()` — identical on `Vec<Value>` — or an
+     * index read `get_value(&X, &K)`. Any other use keeps it boxed: a
+     * `.clone()` into a `Value` sink, `as_array()`, `&mut X`, a second
+     * binding of the name, an assignment (the D2 later-write scan).
+     *
+     * A rewritten read keeps the runtime's exact semantics for every key
+     * kind — Int by value (a negative or out-of-range index misses), a numeric
+     * string, anything else misses — and a miss is `Value::Null`.
+     */
+    typeSafeListLocals(content: string): string {
+        const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = (self\.safe_list(?:_k)?\()/gm;
+
+        // Blank strings and line comments; same length as the input, so every
+        // index found below also addresses the original text.
+        const maskText = (src: string): string => {
+            let out = ''; let i = 0;
+            while (i < src.length) {
+                const c = src[i];
+                if (c === '/' && src[i + 1] === '/') {
+                    while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
+                    continue;
+                }
+                if (c === '"') {
+                    out += ' '; i++;
+                    while (i < src.length && src[i] !== '"') {
+                        if (src[i] === '\\') { out += '  '; i += 2; continue; }
+                        out += src[i] === '\n' ? '\n' : ' ';
+                        i++;
+                    }
+                    if (i < src.length) { out += ' '; i++; }
+                    continue;
+                }
+                out += c; i++;
+            }
+            return out;
+        };
+        // Index just past the `)` matching the `(` at `open`, or -1.
+        const closeParen = (src: string, open: number): number => {
+            let depth = 0;
+            for (let k = open; k < src.length; k++) {
+                const c = src[k];
+                if (c === '(') depth++;
+                else if (c === ')') { depth--; if (depth === 0) return k + 1; }
+            }
+            return -1;
+        };
+        // End of the enclosing fn body: the first `}` that takes the depth below 0.
+        const braceEnd = (src: string, from: number): number => {
+            let depth = 0;
+            for (let k = from; k < src.length; k++) {
+                const c = src[k];
+                if (c === '{') depth++;
+                else if (c === '}') { depth--; if (depth < 0) return k; }
+            }
+            return src.length;
+        };
+
+        const masked = maskText(content);
+        const jobs: Array<{
+            declStart: number, callClose: number, stmtEnd: number, indent: string, name: string,
+            reads: Array<{ start: number, end: number, text: string }>,
+        }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(masked)) !== null) {
+            const declStart = m.index;
+            const name = m[2];
+            const callStart = declStart + m[0].length - m[3].length; // `self.safe_list…(`
+            const callClose = closeParen(masked, callStart + m[3].length - 1);
+            if (callClose < 0) continue;
+            const tail = /^\)?;/.exec(masked.slice(callClose, callClose + 2));
+            if (tail === null) continue; // the call is not the whole initializer
+            const stmtEnd = callClose + tail[0].length;
+            const initText = content.slice(callStart, callClose);
+            // The reader's default must be the empty slice or a list literal:
+            // any other default (a dict, a scalar) would be lost by the
+            // `Vec` conversion, and `safe_list*` returns it verbatim when the
+            // stored value is not an array.
+            if (!/,\s*&\[\s*\]\s*\)$/.test(initText) && !/,\s*&\[\s*Value::List\(/.test(initText)) continue;
+            const body = masked.slice(stmtEnd, braceEnd(masked, stmtEnd));
+
+            let ok = true;
+            // 1. index reads `get_value(&name, &KEY)` — the only rewritable use.
+            const reads: Array<{ start: number, end: number, key: string }> = [];
+            const readRe = new RegExp(`get_value\\(&${name}(?![A-Za-z0-9_])`, 'g');
+            let r: RegExpExecArray | null;
+            while ((r = readRe.exec(body)) !== null) {
+                const gv = r.index;
+                if (body.slice(Math.max(0, gv - 2), gv) === '::') { ok = false; break; } // crate::value::get_value
+                if (/&mut\s*$/.test(body.slice(Math.max(0, gv - 6), gv))) { ok = false; break; } // `&mut get_value(..)`
+                const identEnd = gv + 'get_value(&'.length + name.length;
+                const rest = /^\s*,\s*&/.exec(body.slice(identEnd));
+                if (rest === null) { ok = false; break; }
+                const keyStart = identEnd + rest[0].length;
+                // The key is the call's last argument: walk to the `)` that
+                // closes `get_value(` at depth 0.
+                let depth = 0; let keyEnd = -1;
+                for (let k = keyStart; k < body.length; k++) {
+                    const c = body[k];
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')') { if (depth === 0) { keyEnd = k; break; } depth--; }
+                    else if (c === ']' || c === '}') depth--;
+                    else if (depth === 0 && (c === ';' || c === '\n')) break;
+                }
+                if (keyEnd < 0) { ok = false; break; }
+                reads.push({ start: gv, end: keyEnd + 1, key: content.slice(stmtEnd + keyStart, stmtEnd + keyEnd) });
+            }
+            if (!ok) continue;
+
+            // 2. every other use of the name must be a length sink; anything
+            //    else (clone, as_array, &mut, re-binding, assignment) keeps the box.
+            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
+            let u: RegExpExecArray | null;
+            while ((u = useRe.exec(body)) !== null) {
+                const s = u.index; const e = s + name.length;
+                if (reads.some(rd => s >= rd.start && e <= rd.end)) continue;
+                if (/^\s*\.\s*(len|is_empty)\s*\(\s*\)/.test(body.slice(e))) continue;
+                ok = false; break;
+            }
+            if (!ok) continue;
+
+            const readText = (rd: { key: string }) =>
+                `match &${rd.key} { Value::Int(__n) => ${name}.get(*__n as usize), `
+                + `Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| ${name}.get(__n)), _ => None }`
+                + `.cloned().unwrap_or(Value::Null)`;
+            jobs.push({
+                declStart,
+                callClose,
+                stmtEnd,
+                indent: m[1],
+                name,
+                reads: reads.map(rd => ({
+                    start: stmtEnd + rd.start,
+                    end: stmtEnd + rd.end,
+                    text: readText(rd),
+                })),
+            });
+        }
+
+        // A read can sit inside another retyped local's initializer
+        // (`self.safe_list_k(get_value(&data, &i), "data", ..)`), so the
+        // declaration text is rebuilt with those reads already spliced in —
+        // otherwise the outer call would keep a `get_value` on a `Vec` local.
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        const allReads = jobs.flatMap(j => j.reads);
+        for (const job of jobs) {
+            let init = content.slice(job.declStart, job.callClose);
+            const inner = allReads
+                .filter(rd => rd.start >= job.declStart && rd.end <= job.callClose)
+                .sort((a, b) => b.start - a.start);
+            for (const rd of inner) {
+                init = init.slice(0, rd.start - job.declStart) + rd.text + init.slice(rd.end - job.declStart);
+            }
+            // `init` still carries the `= ` head; keep everything up to the call.
+            const callIdx = init.indexOf('self.safe_list');
+            rewrites.push({
+                start: job.declStart,
+                end: job.stmtEnd,
+                text: `${job.indent}let mut ${job.name}: Vec<Value> = `
+                    + `${init.slice(callIdx)}.as_array().cloned().unwrap_or_default();`,
+            });
+        }
+        for (const rd of allReads) {
+            // Covered by the retyped declaration that contains it.
+            if (jobs.some(j => rd.start >= j.declStart && rd.end <= j.callClose)) continue;
+            rewrites.push({ start: rd.start, end: rd.end, text: rd.text });
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = ''; let last = 0;
+        for (const r of rewrites) {
+            if (r.start < last) continue; // overlapping — keep the first
+            out += content.slice(last, r.start) + r.text;
+            last = r.end;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
+    /**
+     * Drops `is_true(&X)` where `X` is already a native Rust `bool`:
+     * a local narrowed to `let mut X: bool` by `narrowBoolLocals`, a
+     * `!` / `&&` / `||` over such expressions, or a call to one of the
+     * `-> bool` runtime helpers in `rust/ccxt-base/src/runtime.rs`.
+     * `is_true` is `IsTruthy::truthy` and its `bool` impl is the
+     * identity, so the wrapper is a no-op there. Every other shape — a
+     * `Value`, `Option<bool>`, `&str`, a `self.<method>` call, a
+     * qualified `crate::…::is_true` — keeps the helper.
+     *
+     * Runs after `narrowBoolLocals` so the `: bool` locals are visible.
+     * Bindings are tracked per block while walking, so a later `let`
+     * of the same name (or a sibling block's) is never treated as the
+     * narrowed one. Idempotent.
+     */
+    dropRedundantIsTrue(content: string): string {
+        return this.rewriteRedundantIsTrue(content, 0, content.length, []);
+    }
+
+    /**
+     * Payload accessors on a local whose printed declaration pins its variant:
+     * `let mut X: Value = Value::Map(..)` / `Value::List(..)` / `Value::Str(..)`
+     * / `Value::Bool(..)` and no reassignment of `X` in the fn. The variant is
+     * then fixed on every path — the runtime's `&mut Value` helpers
+     * (`set_value`, `get_value_mut`, `add_element_to_object`, `append_to_array`,
+     * `Value::append/clear/reduce`) mutate in place and never swap a variant —
+     * so the accessor's `Option` is always `Some(payload)` and the payload read
+     * goes native:
+     *
+     *   X.as_map().and_then(|__m| __m.get("k")).cloned().unwrap_or(Value::Null)
+     *     -> match &X { Value::Dict(__m15) => __m15.get("k").cloned().unwrap_or(Value::Null), _ => Value::Null }
+     *   X.as_array().and_then(|__arr| __arr.get(N)).cloned().unwrap_or(Value::Null)
+     *     -> match &X { Value::Arr(__a15) => __a15.get(N).cloned().unwrap_or(Value::Null), _ => Value::Null }
+     *   X.as_str() (==|!=) Some("k") -> matches!(&X, Value::Str(__s15) if __s15 == "k")  (negated on `!=`)
+     *   X.as_bool() (==|!=) Some(b)  -> matches!(&X, Value::Bool(b))                     (negated on `!=`)
+     *
+     * A second declaration of the name, any reassignment, or another use shape
+     * keeps the accessor: the variant is then unprovable (D2). Reads only — the
+     * `__`-tagged cache/ws write-throughs live in the write helpers, which
+     * `as_map`/`as_array`/`as_str`/`as_bool` never reach. Idempotent.
+     */
+    nativePayloadAccessorDrops(content: string): string {
+        const CTOR_KIND: Record<string, string> = {
+            Map: 'dict', List: 'list', Arr: 'list', Str: 'str', Bool: 'bool',
+        };
+        const masked = this.maskStringsAndComments(content);
+        // Fn regions: from each header to the next one (a local of one fn is
+        // never in scope in another, so a region is the exact scope to scan).
+        const headers: number[] = [];
+        const headerRe = /\n[ \t]*(?:pub )?(?:async )?fn /g;
+        let hm: RegExpExecArray | null;
+        while ((hm = headerRe.exec(masked)) !== null) {
+            headers.push(hm.index + 1);
+        }
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const to = headers[h + 1];
+            const region = masked.slice(from, to);
+            const declRe = /let mut ([A-Za-z_][A-Za-z0-9_]*): Value = \(?Value::(Map|List|Arr|Str|Bool)\(/g;
+            const candidates = new Map<string, string>();
+            let dm: RegExpExecArray | null;
+            while ((dm = declRe.exec(region)) !== null) {
+                candidates.set(dm[1], CTOR_KIND[dm[2]]);
+            }
+            for (const [name, kind] of candidates) {
+                // One declaration only, and never reassigned: otherwise a later
+                // write could hand the local another variant (D2).
+                const declCount = (region.match(new RegExp(`let (?:mut )?${name}\\b`, 'g')) ?? []).length;
+                if (declCount !== 1) continue;
+                if (new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=[^=]`).test(region)) continue;
+                const rx = this.payloadAccessorRewrite(kind, name);
+                let am: RegExpExecArray | null;
+                while ((am = rx.exec(region)) !== null) {
+                    const start = from + am.index;
+                    const end = start + am[0].length;
+                    const text = this.payloadAccessorReplacement(kind, name, am, from, content);
+                    if (text === undefined) continue;
+                    rewrites.push({ start, end, text });
+                }
+            }
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = '';
+        let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue; // overlapping match: keep the first
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    /** The accessor shape this local's pinned variant makes native. Group 1 is
+     *  the comparand (dict/list: the key; str: the operator). */
+    private payloadAccessorRewrite(kind: string, name: string): RegExp {
+        const guard = `(?<![A-Za-z0-9_.])${name}`;
+        if (kind === 'dict') {
+            return new RegExp(
+                `${guard}\\.as_map\\(\\)\\.and_then\\(\\|__m\\| __m\\.get\\((.*?)\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(((?:crate::)?Value::Null)\\)`, 'gd');
+        }
+        if (kind === 'list') {
+            return new RegExp(
+                `${guard}\\.as_array\\(\\)\\.and_then\\(\\|__arr\\| __arr\\.get\\((.*?)\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(((?:crate::)?Value::Null)\\)`, 'gd');
+        }
+        if (kind === 'str') {
+            return new RegExp(
+                `${guard}\\.as_str\\(\\)\\s*(==|!=)\\s*Some\\((.*?)\\)`, 'gd');
+        }
+        return new RegExp(
+            `${guard}\\.as_bool\\(\\)\\s*(==|!=)\\s*Some\\((true|false)\\)`, 'gd');
+    }
+
+    /** Replacement text for one match, or undefined to keep the accessor. The
+     *  comparand is read out of the original text (the mask blanks literals);
+     *  `regionStart` is where the matched region begins in `content`. */
+    private payloadAccessorReplacement(kind: string, name: string, m: RegExpExecArray, regionStart: number, content: string): string | undefined {
+        const group = (i: number): string => {
+            const span = (m as any).indices[i];
+            return span === undefined ? '' : content.slice(regionStart + span[0], regionStart + span[1]);
+        };
+        if (kind === 'dict' || kind === 'list') {
+            const key = group(1);
+            const nul = group(2);
+            if (key.trim() === '') return undefined;
+            const arm = kind === 'dict' ? `Value::Dict(__m15) => __m15.get(${key})` : `Value::Arr(__a15) => __a15.get(${key})`;
+            return `match &${name} { ${arm}.cloned().unwrap_or(${nul}), _ => ${nul} }`;
+        }
+        if (kind === 'str') {
+            const op = group(1);
+            const literal = group(2);
+            if (!literal.startsWith('"')) return undefined; // only literal compares
+            const test = `matches!(&${name}, Value::Str(__s15) if __s15 == ${literal})`;
+            return op === '==' ? test : `!${test}`;
+        }
+        const op = group(1);
+        const value = group(2);
+        const test = `matches!(&${name}, Value::Bool(${value}))`;
+        return op === '==' ? test : `!${test}`;
+    }
+
+    /** Blank string bodies and line comments, keeping every index in place. */
+    private maskStringsAndComments(src: string): string {
+        let out = '';
+        let i = 0;
+        while (i < src.length) {
+            const c = src[i];
+            if (c === '/' && src[i + 1] === '/') {
+                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
+                continue;
+            }
+            if (c === '"') {
+                out += ' '; i++;
+                while (i < src.length && src[i] !== '"') {
+                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
+                    out += src[i] === '\n' ? '\n' : ' ';
+                    i++;
+                }
+                if (i < src.length) { out += ' '; i++; }
+                continue;
+            }
+            out += c; i++;
+        }
+        return out;
+    }
+
+    /** True when `raw` is a Rust expression the generator types as `bool`. */
+    private isRustBoolExpr(raw: string, boolLocals: string[]): boolean {
+        const s = this.stripOuterParens(raw.trim());
+        if (s === '') return false;
+        if (s.startsWith('!')) return this.isRustBoolExpr(s.slice(1), boolLocals);
+        const parts = this.splitTopLevelBoolOperators(s);
+        if (parts.length > 1) return parts.every(p => this.isRustBoolExpr(p, boolLocals));
+        if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(s)) return boolLocals.includes(s);
+        const call = /^([A-Za-z_][A-Za-z0-9_]*)\s*\(/.exec(s);
+        if (call) return RUST_BOOL_RUNTIME_FNS.has(call[1]);
+        // D-32: the printer's native ordered/equality compares
+        // (`x.as_f64().unwrap_or(f64::NAN) > y…`, `x == Value::Null`,
+        // `x.as_str() == Some(..)`), `matches!` predicates and the
+        // `Option` tests the narrowing passes emit are Rust `bool`s too.
+        if (/^matches!\(/.test(s) || /^!\s*matches!\(/.test(s)) return true;
+        if (/\.(?:is_some|is_none)\(\)$/.test(s)) return true;
+        return this.topLevelRustComparisonIndex(s) >= 0;
+    }
+
+    /**
+     * Index of a top-level Rust comparison operator in `s` (`==`, `!=`, `<=`,
+     * `>=`, `<`, `>`), or -1. Skips string bodies, bracketed sub-expressions,
+     * `->`/`=>` arrows, `<<`/`>>` shifts and `::<` generics; `<`/`>` count
+     * only with the printer's spacing (`a > b`, `a >= b`) so a `Vec<Value>`
+     * in the text is never read as a compare.
+     */
+    private topLevelRustComparisonIndex(s: string): number {
+        let depth = 0; let i = 0;
+        while (i < s.length) {
+            const c = s[i];
+            if (c === '"') {
+                i += 1;
+                while (i < s.length && s[i] !== '"') {
+                    if (s[i] === '\\') i += 1;
+                    i += 1;
+                }
+            } else if (c === '(' || c === '[' || c === '{') {
+                depth += 1;
+            } else if (c === ')' || c === ']' || c === '}') {
+                depth -= 1;
+            } else if (depth === 0) {
+                const nxt = i + 1 < s.length ? s[i + 1] : '';
+                const prv = i > 0 ? s[i - 1] : '';
+                if ((c === '=' && nxt === '=') || (c === '!' && nxt === '=')) return i;
+                if (c === '<' || c === '>') {
+                    if (nxt === '=') return i;                       // <= / >=
+                    if (nxt === c) { i += 2; continue; }             // << / >>
+                    if (prv === '-' || nxt === '-' || prv === '=' || prv === ':') { i += 1; continue; }
+                    if (prv === ' ' && nxt === ' ') return i;
+                }
+            }
+            i += 1;
+        }
+        return -1;
+    }
+
+    /** Bodies of `fn <name>(…)` in `src` (brace-matched, string-aware). */
+    private rustFnBodies(src: string, name: string): string[] {
+        const out: string[] = [];
+        const rx = new RegExp(`\\bfn\\s+${name}\\s*(?:<[^>{}()]*>)?\\s*\\(`, 'g');
+        let m: RegExpExecArray | null;
+        while ((m = rx.exec(src)) !== null) {
+            const open = src.indexOf('{', m.index + m[0].length);
+            if (open < 0) continue;
+            let depth = 0; let i = open;
+            while (i < src.length) {
+                const c = src[i];
+                if (c === '"') { i = this.endOfRustStringLiteral(src, i); continue; }
+                if (c === '{') depth += 1;
+                else if (c === '}') { depth -= 1; if (depth === 0) break; }
+                i += 1;
+            }
+            out.push(src.slice(open, i + 1));
+        }
+        return out;
+    }
+
+    /** True when every return path of `body` is a `Value::Bool(..)` box or
+     *  `Value::Null`. Those two variants are exactly the ones `is_truthy`
+     *  reads by payload (`Bool(b) -> b`, `Null -> false`) and `as_bool()`
+     *  maps to `Some(b)` / `None`, so a call to such a method satisfies
+     *  `is_true(&m(…)) == (m(…).as_bool() == Some(true))`. */
+    private rustBodyReturnsBoolNullOnly(body: string): boolean {
+        const masked = this.maskStringsAndComments(body);
+        const inner = masked.slice(1, masked.lastIndexOf('}'));
+        for (const r of inner.matchAll(/\breturn\s+([^;]*);/g)) {
+            const t = r[1].trim();
+            if (!(t.startsWith('Value::Bool(') || t === 'Value::Null')) return false;
+        }
+        let depth = 0; let lastSemi = -1;
+        for (let i = 0; i < inner.length; i++) {
+            const c = inner[i];
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') depth -= 1;
+            else if (c === ';' && depth === 0) lastSemi = i;
+        }
+        const tail = inner.slice(lastSemi + 1).trim();
+        return tail === '' || tail.startsWith('Value::Bool(') || tail === 'Value::Null';
+    }
+
+    /** Emitted signature index for the D-32 call fold: method names whose Rust
+     *  declaration returns a native `bool` / `Option<bool>` — plus, in
+     *  `boolBoxed`, the names whose every body returns only `Value::Bool(..)` /
+     *  `Value::Null` (so `is_true(&m(…))` is `m(…).as_bool() == Some(true)`).
+     *  The generated base files are written before the per-exchange pass, so
+     *  they are read once (memoized); names DEFINED in the file being
+     *  post-processed win over a same-named base method — an inherent `fn`
+     *  shadows the trait method. */
+    private rustEmittedBoolReturnMethods(content: string, candidates: string[]): { bool: Set<string>, optionBool: Set<string>, boolBoxed: Set<string> } {
+        const bool = new Set<string>();
+        const optionBool = new Set<string>();
+        const own = new Set<string>();
+        const collect = (src: string, into: Set<string>, intoOpt: Set<string>, exclude: Set<string>) => {
+            const rx = /\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(([^()]*)\)\s*->\s*(Option<bool>|bool)(?![A-Za-z0-9_])/g;
+            let m: RegExpExecArray | null;
+            while ((m = rx.exec(src)) !== null) {
+                // `async fn` returns a future, not the declared type.
+                if (/(?:^|[^\w])async\s+$/.test(src.slice(Math.max(0, m.index - 8), m.index))) continue;
+                if (exclude.has(m[1])) continue;
+                if (m[3] === 'bool') into.add(m[1]);
+                else intoOpt.add(m[1]);
+            }
+        };
+        // Own-file definitions first: everything it declares is either bool or
+        // excluded from the base index below.
+        const ownRx = /\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g;
+        let om: RegExpExecArray | null;
+        while ((om = ownRx.exec(content)) !== null) own.add(om[1]);
+        if (this._rustBoolReturnMethods === null) {
+            const cached = { bool: new Set<string>(), optionBool: new Set<string>(), src: [] as string[] };
+            for (const file of [BASE_METHODS_FILE, `${RUST_CORE}/exchange_stubs.rs`, `${RUST_CORE}/exchange.rs`]) {
+                try {
+                    const src = fs.readFileSync(file, 'utf8');
+                    cached.src.push(src);
+                    collect(src, cached.bool, cached.optionBool, new Set<string>());
+                } catch (e: any) {
+                    if (file === BASE_METHODS_FILE && e.code === 'ENOENT') {
+                        /* base not generated yet */
+                    } else {
+                        throw e;
+                    }
+                }
+            }
+            this._rustBoolReturnMethods = cached;
+        }
+        const base = this._rustBoolReturnMethods;
+        collect(content, bool, optionBool, new Set<string>());
+        for (const n of base.bool) if (!own.has(n)) bool.add(n);
+        for (const n of base.optionBool) if (!own.has(n)) optionBool.add(n);
+        // Bool-only-returning callees, probed per candidate name (whole-file
+        // scans would be O(names × size) on every exchange).
+        const boolBoxed = new Set<string>();
+        for (const name of candidates) {
+            if (name === undefined || boolBoxed.has(name)) continue;
+            const bodies = own.has(name)
+                ? this.rustFnBodies(content, name)
+                : base.src.flatMap(src => this.rustFnBodies(src, name));
+            if (bodies.length === 0) continue;
+            if (bodies.every(b => this.rustBodyReturnsBoolNullOnly(b))) boolBoxed.add(name);
+        }
+        return { bool, optionBool, boolBoxed };
+    }
+
+    /** The method called by an `is_true(&…)` argument — `self.<m>(…)` or
+     *  `<m>(…)`, optionally parenthesised — else undefined. The call must span
+     *  the whole argument, so a logical/compare text is never mistaken for it. */
+    private rustCalledMethodName(inner: string): string | undefined {
+        const s = this.stripOuterParens(inner.trim());
+        const m = /^(?:self\.)?([A-Za-z_][A-Za-z0-9_]*)\s*\(/.exec(s);
+        if (m === null) return undefined;
+        const open = m[0].length - 1;
+        if (this.closeParenAt(s, open) !== s.length - 1) return undefined;
+        return m[1];
+    }
+
+    /**
+     * The `is_true(&…)` site at [start, end) sits in a provably `bool` slot:
+     * an operand of `&&`/`||`, a `!` operand (returns 'negated'), a
+     * `Value::Bool(…)` box, an assert body, or a whole if/while/ternary
+     * condition. Any other position (a `Value` argument, `let x: Value = …`,
+     * `return`) keeps the helper — the `is_true(` marker is what the boxing
+     * passes key on.
+     */
+    private rustIsTrueBoolSlot(content: string, start: number, end: number): 'bool' | 'negated' | undefined {
+        const before = content.slice(Math.max(0, start - 400), start);
+        const after = content.slice(end, end + 40);
+        if (/(?:&&|\|\|)\s*$/.test(before)) return 'bool';
+        if (/Value::Bool\(\s*$/.test(before)) return 'bool';
+        if (/assert!?\(\s*$/.test(before)) return 'bool';
+        if (/!\s*$/.test(before)) return 'negated';
+        const back = before.replace(/[\s(]+$/, '');
+        if (/(?:^|[^\w])(?:if|while)$/.test(back) && /^\s*\)*\s*\{/.test(after)) return 'bool';
+        return undefined;
+    }
+
+    /**
+     * D-32: `is_true(&<call>)` over a call whose emitted Rust signature returns
+     * a native `bool` prints bare (the wrapper is the identity through
+     * `IsTruthy for bool`); over a call returning `Option<bool>` it prints
+     * `<call> == Some(true)` (`is_truthy` on the boxed variant is exactly that
+     * comparison — `None` is `Value::Null` and `Some(b)` is `Value::Bool(b)`).
+     * The callee types come from `rustEmittedBoolReturnMethods`, so the fold
+     * fires in the same regen that retypes the method (typed-return unit) and
+     * covers the hand-written `-> bool` base methods today. Sites outside a
+     * proven bool slot keep the helper. Runs after the boxing passes.
+     */
+    dropNativeCallIsTrue(content: string): string {
+        // Collect the `is_true(&…)` sites first: the callee probe is run only
+        // for the names actually called here.
+        const sites: Array<{ start: number, end: number, inner: string, name: string | undefined, slot: string | undefined }> = [];
+        let i = 0;
+        while (i < content.length) {
+            const c = content[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(content, i); continue; }
+            if (c === '/' && content[i + 1] === '/') {
+                const nl = content.indexOf('\n', i);
+                i = nl < 0 ? content.length : nl;
+                continue;
+            }
+            if (c === 'i' && content.startsWith('is_true(&', i) && !/[A-Za-z0-9_:]/.test(content[i - 1] ?? '')) {
+                const open = i + 'is_true('.length - 1;
+                const close = this.closeParenAt(content, open);
+                if (close < 0) { i += 1; continue; }
+                const inner = content.slice(open + 2, close);
+                sites.push({
+                    start: i,
+                    end: close + 1,
+                    inner,
+                    name: this.rustCalledMethodName(inner),
+                    slot: this.rustIsTrueBoolSlot(content, i, close + 1),
+                });
+                i = close + 1;
+                continue;
+            }
+            i += 1;
+        }
+        if (sites.length === 0) return content;
+        const index = this.rustEmittedBoolReturnMethods(content, sites.map(s => s.name));
+        if (index.bool.size === 0 && index.optionBool.size === 0 && index.boolBoxed.size === 0) return content;
+        let out = ''; let at = 0; let changed = false;
+        for (const s of sites) {
+            const name = s.name;
+            if (name === undefined || s.slot === undefined) continue;
+            let text: string | undefined;
+            const call = this.stripOuterParens(s.inner.trim());
+            if (index.bool.has(name)) {
+                text = call;
+            } else if (index.optionBool.has(name)) {
+                text = `${call} == Some(true)`;
+            } else if (index.boolBoxed.has(name)) {
+                text = `${call}.as_bool() == Some(true)`;
+            }
+            if (text === undefined) continue;
+            // A comparison binds looser than `!`: keep it parenthesised there.
+            if (s.slot === 'negated' && !index.bool.has(name)) text = `(${text})`;
+            out += content.slice(at, s.start) + text;
+            at = s.end;
+            changed = true;
+        }
+        if (!changed) return content;
+        return out + content.slice(at);
+    }
+
+    private _rustBoolReturnMethods: { bool: Set<string>, optionBool: Set<string>, src: string[] } | null = null;
+
+    /**
+     * D-32: `is_true(&x)` over a local the printer declares with an `Option`
+     * payload type — the typed shadows the batch-D param/return units emit
+     * (`let x: Option<bool> = …`, `let x: Option<f64> = ….as_f64()`). The
+     * runtime's `is_truthy` on the boxed value is exactly these native tests:
+     *
+     *   Option<bool>  ->  x == Some(true)                (None = Value::Null)
+     *   Option<f64>   ->  x.is_some_and(|v| v != 0.0)    (Float(f) truthy iff f != 0)
+     *   Option<i64>   ->  x.is_some_and(|v| v != 0)
+     *
+     * A name qualifies only with exactly ONE `: Option<…>` declaration in its
+     * fn and no other `let` binding of the name (scope ambiguity keeps the
+     * helper), and only in a proven bool slot. Sites before the declaration are
+     * left alone. Idempotent.
+     */
+    dropOptionShadowIsTrue(content: string): string {
+        if (!content.includes(': Option<')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [];
+        const headerRe = /\n[ \t]*(?:pub )?(?:async )?fn /g;
+        let hm: RegExpExecArray | null;
+        while ((hm = headerRe.exec(masked)) !== null) headers.push(hm.index + 1);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const to = headers[h + 1];
+            const region = masked.slice(from, to);
+            const declRe = /let (?:mut )?([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(Option<bool>|Option<f64>|Option<i64>)\s*=/g;
+            const declared = new Map<string, string>();
+            let dm: RegExpExecArray | null;
+            while ((dm = declRe.exec(region)) !== null) declared.set(dm[1], dm[2]);
+            for (const [name, kind] of declared) {
+                const declCount = (region.match(new RegExp(`let (?:mut )?${name}\\b`, 'g')) ?? []).length;
+                if (declCount !== 1) continue;
+                const declAt = region.search(new RegExp(`let (?:mut )?${name}\\s*:`));
+                const siteRe = new RegExp(`is_true\\(&\\s*\\(?\\s*${name}\\s*\\)?\\s*\\)`, 'g');
+                let sm: RegExpExecArray | null;
+                while ((sm = siteRe.exec(region)) !== null) {
+                    if (sm.index < declAt) continue;
+                    const start = from + sm.index;
+                    const end = start + sm[0].length;
+                    const slot = this.rustIsTrueBoolSlot(content, start, end);
+                    if (slot === undefined) continue;
+                    const native = kind === 'Option<bool>'
+                        ? `${name} == Some(true)`
+                        : kind === 'Option<f64>'
+                            ? `${name}.is_some_and(|v| v != 0.0)`
+                            : `${name}.is_some_and(|v| v != 0)`;
+                    rewrites.push({ start, end, text: slot === 'negated' ? `(${native})` : native });
+                }
+            }
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    /**
+     * Copies `text[from, to)` while tracking visible `let` bindings, so an
+     * `is_true(&X)` over a `bool` local can be unwrapped. `stack` holds the
+     * enclosing bindings as {name, isBool, depth}, innermost last.
+     */
+    private rewriteRedundantIsTrue(
+        text: string,
+        from: number,
+        to: number,
+        stack: Array<{ name: string, isBool: boolean, depth: number }>,
+    ): string {
+        const declRe = /let\s+(?:mut\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([A-Za-z_][A-Za-z0-9_:<>]*)/y;
+        // Innermost binding wins: a later non-bool `let` of the same name shadows a bool one.
+        const boolLocals = (): string[] => {
+            const seen = new Map<string, boolean>();
+            for (let k = stack.length - 1; k >= 0; k--) {
+                if (!seen.has(stack[k].name)) seen.set(stack[k].name, stack[k].isBool);
+            }
+            return [...seen.entries()].filter(([, b]) => b).map(([n]) => n);
+        };
+        let out = '';
+        let i = from;
+        let depth = 0;
+        while (i < to) {
+            const c = text[i];
+            if (c === '"') {
+                const end = this.endOfRustStringLiteral(text, i);
+                out += text.slice(i, end);
+                i = end;
+                continue;
+            }
+            if (c === '/' && text[i + 1] === '/') {
+                const nl = text.indexOf('\n', i);
+                const end = nl < 0 || nl > to ? to : nl;
+                out += text.slice(i, end);
+                i = end;
+                continue;
+            }
+            if (c === '{') {
+                depth += 1;
+                out += c;
+                i += 1;
+                continue;
+            }
+            if (c === '}') {
+                depth -= 1;
+                while (stack.length > 0 && stack[stack.length - 1].depth > depth) stack.pop();
+                out += c;
+                i += 1;
+                continue;
+            }
+            if (c === 'l' && text[i - 1] !== undefined && !/[A-Za-z0-9_]/.test(text[i - 1])) {
+                declRe.lastIndex = i;
+                const decl = declRe.exec(text);
+                if (decl !== null && decl.index === i) {
+                    stack.push({ name: decl[1], isBool: decl[2] === 'bool', depth });
+                    out += decl[0];
+                    i += decl[0].length;
+                    continue;
+                }
+            }
+            // Other binding forms shadow a narrowed local too: a closure's
+            // params, `for <pat> in`, `if let <pat> =`. Their names are pushed
+            // as non-bool so an outer `let mut x: bool` can never be applied
+            // past a shadowing binding.
+            if (c === '|' && text[i + 1] !== '|' && text[i - 1] !== '|' && text[i - 1] !== '=') {
+                const params = this.matchClosureParams(text, i);
+                if (params !== null) {
+                    for (const name of params.names) stack.push({ name, isBool: false, depth });
+                    out += text.slice(i, params.end);
+                    i = params.end;
+                    continue;
+                }
+            }
+            if ((c === 'f' || c === 'i' || c === 'w') && text[i - 1] !== undefined && !/[A-Za-z0-9_]/.test(text[i - 1])) {
+                const pattern = this.matchBindingPattern(text, i);
+                if (pattern !== null) {
+                    for (const name of pattern.names) stack.push({ name, isBool: false, depth });
+                    out += text.slice(i, pattern.end);
+                    i = pattern.end;
+                    continue;
+                }
+            }
+            if (c === 'i' && text.startsWith('is_true(&', i) && !/[A-Za-z0-9_:]/.test(text[i - 1] ?? '')) {
+                const open = i + 'is_true('.length - 1;
+                const close = this.closeParenAt(text, open);
+                if (close < 0 || close > to) {
+                    out += c;
+                    i += 1;
+                    continue;
+                }
+                const snapshot = boolLocals();
+                const inner = this.rewriteRedundantIsTrue(text, open + 2, close, stack);
+                out += this.isRustBoolExpr(inner, snapshot) ? inner : `is_true(&${inner})`;
+                i = close + 1;
+                continue;
+            }
+            out += c;
+            i += 1;
+        }
+        return out;
+    }
+
+    /**
+     * `is_true(&X)` -> `X.as_bool() == Some(true)` when `X` is a `Value` local
+     * that can only hold a bool-valued payload: one declaration in its fn, and
+     * the initializer plus every later assignment a `Value::Bool(..)` box or a
+     * `safe_bool*` call whose default is a bool/null literal. Exact for every
+     * admitted value — `is_truthy` is false for Null and `as_bool()` is None
+     * there — and `safe_bool*` only ever returns a bool member or that
+     * default. A negated site keeps its comparison parenthesised.
+     */
+    dropBoolValuedIsTrue(content: string): string {
+        const masked = this.maskStringsAndComments(content);
+        // Fn regions: a local of one fn is never in scope in another.
+        const headers: number[] = [];
+        const headerRe = /\n[ \t]*(?:pub )?(?:async )?fn /g;
+        let hm: RegExpExecArray | null;
+        while ((hm = headerRe.exec(masked)) !== null) {
+            headers.push(hm.index + 1);
+        }
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const to = headers[h + 1];
+            const region = masked.slice(from, to);
+            const declRe = /let (?:mut )?([A-Za-z_][A-Za-z0-9_]*)\s*:\s*Value\s*=\s*/g;
+            const proven = new Set<string>();
+            let dm: RegExpExecArray | null;
+            while ((dm = declRe.exec(region)) !== null) {
+                const name = dm[1];
+                if (proven.has(name)) continue;
+                const initEnd = this.endOfRustStatement(region, dm.index + dm[0].length);
+                if (initEnd < 0 || !this.isBoolValuedRhs(region.slice(dm.index + dm[0].length, initEnd))) continue;
+                // One declaration only: a second `let` of the name makes the
+                // variant unprovable at the read (D2).
+                if ((region.match(new RegExp(`let (?:mut )?${name}\\b`, 'g')) ?? []).length !== 1) continue;
+                // A closure param / `for` pattern of the same name rebinds it.
+                if (new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(region)) continue;
+                if (new RegExp(`(?:for|if let|while let)\\s+${name}\\s+(?:in|=)`).test(region)) continue;
+                // Every later assignment must keep the bool-valued variant.
+                const asgRe = new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=\\s*(?!=)`, 'g');
+                let ok = true;
+                let am: RegExpExecArray | null;
+                while ((am = asgRe.exec(region)) !== null) {
+                    if (am.index < dm.index + dm[0].length) continue; // the declaration's own `=`
+                    const asgEnd = this.endOfRustStatement(region, am.index + am[0].length);
+                    if (asgEnd < 0 || !this.isBoolValuedRhs(region.slice(am.index + am[0].length, asgEnd))) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok) proven.add(name);
+            }
+            for (const name of proven) {
+                const siteRe = new RegExp(`(?<![A-Za-z0-9_:])is_true\\(&(?:\\(${name}\\)|${name})\\)`, 'g');
+                let sm: RegExpExecArray | null;
+                while ((sm = siteRe.exec(region)) !== null) {
+                    const start = from + sm.index;
+                    const end = start + sm[0].length;
+                    // A comparison cannot feed a postfix use; keep the helper.
+                    if (/^\s*\./.test(content.slice(end, end + 4))) continue;
+                    // `!is_true(&X)` -> `!(X.as_bool() == Some(true))`: the `!`
+                    // stays in place, but `!` binds tighter than `==`.
+                    let k = start - 1;
+                    while (k >= 0 && /\s/.test(content[k])) k--;
+                    const negated = k >= 0 && content[k] === '!' && content[k - 1] !== '=';
+                    const cmp = `${name}.as_bool() == Some(true)`;
+                    rewrites.push({ start, end, text: negated ? `(${cmp})` : cmp });
+                }
+            }
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = '';
+        let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue; // overlapping match: keep the first
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    /** Index of the `;` closing the statement whose RHS starts at `start`, or -1. */
+    private endOfRustStatement(text: string, start: number): number {
+        let depth = 0;
+        for (let i = start; i < text.length; i++) {
+            const c = text[i];
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') {
+                if (depth === 0) return -1;
+                depth -= 1;
+            } else if (c === ';' && depth === 0) return i;
+        }
+        return -1;
+    }
+
+    /** True when a printed RHS can only evaluate to `Value::Bool(..)` / Null. */
+    private isBoolValuedRhs(raw: string): boolean {
+        const e = this.stripOuterParens(raw.trim());
+        if (e === 'Value::Null' || e === 'crate::Value::Null') return true;
+        if (/^(?:crate::)?Value::Bool\(/.test(e)) {
+            // The box must span the whole RHS: its `(` closes at the last char.
+            return e.endsWith(')') && this.closeParenAt(e, e.indexOf('(')) === e.length - 1;
+        }
+        const call = /^self\.safe_bool\w*\(/.exec(e);
+        if (call === null) return false;
+        const open = call[0].length - 1;
+        if (this.closeParenAt(e, open) !== e.length - 1) return false;
+        // `safe_bool*` returns the member only when it is a Bool, else the
+        // trailing default; only a bool/null literal keeps the variant.
+        const args = this.splitTopLevelCommas(e.slice(open + 1, e.length - 1));
+        return args.length > 0 && this.isBoolValuedDefault(args[args.length - 1].trim());
+    }
+
+    /** True when a `safe_bool*` default argument (`&[<literal>, ..]`) is bool/null-valued. */
+    private isBoolValuedDefault(arg: string): boolean {
+        if (!arg.startsWith('&')) return false;
+        const bracket = arg.indexOf('[', 1);
+        if (bracket < 0) return false;
+        let depth = 0;
+        for (let i = bracket; i < arg.length; i++) {
+            if (arg[i] === '[') depth += 1;
+            else if (arg[i] === ']') {
+                depth -= 1;
+                if (depth === 0) {
+                    if (i !== arg.length - 1) return false;
+                    const inner = arg.slice(bracket + 1, i).trim();
+                    if (inner === '') return true;
+                    const first = this.splitTopLevelCommas(inner)[0]?.trim() ?? '';
+                    return this.isBoolValuedRhs(first);
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Splits `s` on its depth-0 commas (strings/parens/brackets/braces aware). */
+    private splitTopLevelCommas(s: string): string[] {
+        const parts: string[] = [];
+        let depth = 0;
+        let start = 0;
+        for (let i = 0; i < s.length; i++) {
+            const c = s[i];
+            if (c === '"') {
+                i = this.endOfRustStringLiteral(s, i) - 1;
+                continue;
+            }
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') depth -= 1;
+            else if (c === ',' && depth === 0) {
+                parts.push(s.slice(start, i));
+                start = i + 1;
+            }
+        }
+        parts.push(s.slice(start));
+        return parts;
+    }
+
+    /** Closure-param list at `open` (`|a: Value, b|`), or null. */
+    private matchClosureParams(text: string, open: number): { names: string[], end: number } | null {
+        const close = text.indexOf('|', open + 1);
+        if (close < 0 || close - open > 160) return null;
+        const inner = text.slice(open + 1, close);
+        if (inner.includes('\n') || inner.includes('<') || inner.includes('(')) return null;
+        const names: string[] = [];
+        for (const part of inner.split(',')) {
+            const m = /^\s*(?:mut\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*(?::\s*[A-Za-z_][A-Za-z0-9_:\[\] ]*)?$/.exec(part);
+            if (m === null) return null;
+            names.push(m[1]);
+        }
+        return { names, end: close + 1 };
+    }
+
+    /** Names bound by `for <pat> in` / `if let <pat> =` at `i`, or null. */
+    private matchBindingPattern(text: string, i: number): { names: string[], end: number } | null {
+        const kw = /^(?:for|if let|while let)\s+/.exec(text.slice(i, i + 24));
+        if (kw === null) return null;
+        const rest = text.slice(i + kw[0].length, i + kw[0].length + 120);
+        const stop = kw[0].startsWith('for') ? /\s+in\s/.exec(rest) : /\s*=\s/.exec(rest);
+        if (stop === null || stop.index === 0) return null;
+        const pattern = rest.slice(0, stop.index);
+        if (pattern.includes('\n')) return null;
+        // Over-collecting is harmless: every name is pushed as non-bool, which
+        // can only hide an outer `: bool` local, never expose one.
+        const names = (pattern.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [])
+            .filter(name => !['for', 'if', 'let', 'while', 'in', 'mut', 'ref', 'Some', 'None'].includes(name));
+        return { names, end: i + kw[0].length + pattern.length + stop[0].length };
+    }
+
+    /** Index of the `)` matching the `(` at `open`, or -1. String-aware. */
+    private closeParenAt(text: string, open: number): number {
+        let depth = 0;
+        for (let i = open; i < text.length; i++) {
+            const c = text[i];
+            if (c === '"') {
+                i = this.endOfRustStringLiteral(text, i) - 1;
+                continue;
+            }
+            if (c === '(') depth += 1;
+            else if (c === ')') {
+                depth -= 1;
+                if (depth === 0) return i;
+            }
+        }
+        return -1;
+    }
+
+    /** Index just past the string literal that starts at `start`. */
+    private endOfRustStringLiteral(text: string, start: number): number {
+        for (let i = start + 1; i < text.length; i++) {
+            if (text[i] === '\\') {
+                i += 1;
+                continue;
+            }
+            if (text[i] === '"') return i + 1;
+        }
+        return text.length;
+    }
+
+    /** Removes balanced redundant parentheses around a printed expression. */
+    private stripOuterParens(s: string): string {
+        let out = s;
+        while (out.startsWith('(') && out.endsWith(')')) {
+            let depth = 0;
+            let balanced = true;
+            for (let i = 0; i < out.length; i++) {
+                if (out[i] === '(') depth += 1;
+                else if (out[i] === ')') {
+                    depth -= 1;
+                    if (depth === 0 && i < out.length - 1) {
+                        balanced = false;
+                        break;
+                    }
+                }
+            }
+            if (!balanced || depth !== 0) break;
+            out = out.slice(1, -1).trim();
+        }
+        return out;
+    }
+
+    /** Splits an expression on its depth-0 `||` / `&&` operators. */
+    private splitTopLevelBoolOperators(s: string): string[] {
+        const parts: string[] = [];
+        let depth = 0;
+        let start = 0;
+        let inStr = false;
+        let esc = false;
+        for (let i = 0; i < s.length; i++) {
+            const c = s[i];
+            if (inStr) {
+                if (esc) esc = false;
+                else if (c === '\\') esc = true;
+                else if (c === '"') inStr = false;
+                continue;
+            }
+            if (c === '"') { inStr = true; continue; }
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') depth -= 1;
+            else if (depth === 0 && ((c === '|' && s[i + 1] === '|') || (c === '&' && s[i + 1] === '&'))) {
+                parts.push(s.slice(start, i));
+                start = i + 2;
+                i += 1;
+            }
+        }
+        if (parts.length === 0) return [s];
+        parts.push(s.slice(start));
+        return parts;
     }
 
     /**
@@ -4133,6 +5833,86 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    /**
+     * Undo the `&self` encoding of a nested-key write once the enclosing method
+     * has become `&mut self`. `this.options['k1'][k2] = v` in a `&self` method
+     * is emitted as a forged borrow —
+     * `get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &k1)` —
+     * while the same write in a `&mut self` method can borrow the real field:
+     * `get_value_mut(&mut self.options, &k1)`. Same field, same `get_value_mut`
+     * (both reach `Arc::make_mut` for a dict), no cast. Receiver promotion runs
+     * before this pass, so handlers that `stripMutSelfFieldClones` saw as `&self`
+     * are covered too.
+     * Stays a cast when an arg after the receiver of the same
+     * `add_element_to_object` call mentions `self`: `&mut self.<field>` plus a
+     * whole-`self` borrow in the same call is E0502.
+     */
+    nativeMutSelfCoerceMutSites(content: string): string {
+        const rx = /get_value_mut\(\s*unsafe \{ crate::runtime::coerce_value_to_mut\(&self\.([a-zA-Z_][a-zA-Z0-9_]*)\) \}\s*,/g;
+        const rewriteBody = (body: string): string => body.replace(rx, (match: string, field: string, offset: number) => {
+            // Walk back to the opener of the enclosing `add_element_to_object(…)`.
+            let depth = 0;
+            let opener = -1;
+            for (let k = offset - 1; k >= 0; k--) {
+                const c = body[k];
+                if (c === ')') depth++;
+                else if (c === '(') {
+                    if (depth > 0) depth--;
+                    else if (body.slice(Math.max(0, k - 21), k) === 'add_element_to_object') { opener = k; break; }
+                }
+            }
+            if (opener < 0) return match;
+            // Balance to that call's closing `)`.
+            let d = 1, j = opener + 1, inStr = false, escape = false;
+            while (j < body.length && d > 0) {
+                const c = body[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(') d++;
+                    else if (c === ')') d--;
+                }
+                if (d === 0) break;
+                j++;
+            }
+            if (d !== 0) return match;
+            // Args after the receiver: a bare `self` there (method call, field
+            // read) collides with `&mut self.<field>`.
+            if (/\bself\b/.test(body.slice(offset + match.length, j))) return match;
+            return `get_value_mut(&mut self.${field},`;
+        });
+        const fnRe = /\bpub\s+(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*&mut self\b/g;
+        let out = '';
+        let last = 0;
+        let m: RegExpExecArray | null;
+        while ((m = fnRe.exec(content)) !== null) {
+            const braceIdx = content.indexOf('{', m.index + m[0].length);
+            if (braceIdx < 0) break;
+            let depth = 1, j = braceIdx + 1, inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr && c === '/' && content[j + 1] === '/') {
+                    const nl = content.indexOf('\n', j);
+                    j = nl < 0 ? content.length : nl + 1;
+                    continue;
+                }
+                if (!inStr) { if (c === '{') depth++; else if (c === '}') depth--; }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) break;
+            out += content.slice(last, braceIdx) + rewriteBody(content.slice(braceIdx, j + 1));
+            last = j + 1;
+            fnRe.lastIndex = last;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
     splitAddElementBorrowConflicts(content: string): string {
         const pattern = /\badd_element_to_object\(/;
         let i = 0;
@@ -4262,6 +6042,107 @@ class RustTranspilerBuilder {
             }
             out += `{ let __be_tmp = ${expr.trim()}; add_element_to_object(${args[0]}, ${args[1]}, __be_tmp); }`;
             i = j + 2; // include `;`
+        }
+        return out;
+    }
+
+    /**
+     * `fn` item headers of `content` (offset of the header line, its text and
+     * the offset where its body region starts). Generated code has no nested
+     * `fn` items, so the region between one header and the next is exactly one
+     * fn body — used to attribute a call site to the fn it sits in.
+     */
+    fnItemHeaders(content: string): Array<{ start: number; end: number; header: string }> {
+        const headers: Array<{ start: number; end: number; header: string }> = [];
+        const re = /^[ \t]*(?:pub(?:\s*\([^)]*\))?\s+)?(?:async\s+)?fn\s+[A-Za-z_][A-Za-z0-9_]*\s*[(<]/gm;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(content)) !== null) {
+            const nl = content.indexOf('\n', m.index);
+            headers.push({ start: m.index, end: -1, header: content.slice(m.index, nl < 0 ? content.length : nl) });
+        }
+        for (let i = 0; i < headers.length; i++) {
+            headers[i].end = i + 1 < headers.length ? headers[i + 1].start : content.length;
+        }
+        return headers;
+    }
+
+    /**
+     * `add_element_to_object(&mut request, &Value::Str("k".to_string()), v)`
+     * → `if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("k".to_string(), v); }`
+     * when `request` is a fresh object-literal dict local: exactly one
+     * `let mut request: Value = Value::Map({…})` declaration in the enclosing
+     * fn, no `request = …` reassignment and no `"__…"` key literal in that fn.
+     *
+     * `Value::Map(…)` builds a new dict, so such a local can never carry the
+     * runtime tag keys (`__book_id` / `__cache_backref` / `__ws_subs_url` /
+     * `__ws_sub_ref` — inserted only into dicts the runtime itself builds),
+     * which makes the helper's four write-through branches provably dead. The
+     * `if let` reproduces the helper's `_ => {}` arm for a non-Dict receiver.
+     * A computed key keeps the helper (`stringify_simple` semantics).
+     */
+    nativeRequestDictInserts(content: string): string {
+        const call = 'add_element_to_object(';
+        const spans = this.fnItemHeaders(content);
+        const verdict = new Map<number, boolean>();
+        const fnAllowsNativeInsert = (span: { start: number; end: number; header: string }): boolean => {
+            const cached = verdict.get(span.start);
+            if (cached !== undefined) return cached;
+            const body = content.slice(span.start, span.end);
+            const ok = !/\bfn\s+\w+\s*\([^)]*\brequest\b/.test(span.header)
+                && (body.match(/^\s*let\s+mut\s+request\s*:\s*Value\s*=\s*Value::Map\(/gm) ?? []).length === 1
+                && !/(^|[^.\w])request\s*=(?!=)/m.test(body.replace(/"(?:[^"\\]|\\.)*"/g, '""'))
+                && !body.includes('"__');
+            verdict.set(span.start, ok);
+            return ok;
+        };
+
+        let out = '';
+        let i = 0;
+        while (i < content.length) {
+            const at = content.indexOf(call, i);
+            if (at < 0) { out += content.slice(i); break; }
+            out += content.slice(i, at);
+            // Paren-balanced walk to the closing `)` of this call.
+            const openParen = at + call.length - 1;
+            let depth = 1;
+            let j = openParen + 1;
+            let inStr = false;
+            let escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(') depth++;
+                    else if (c === ')') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) { out += content.slice(at); break; }
+            const args = this.splitArgs(content.slice(openParen + 1, j));
+            const keyMatch = args && args.length === 3 && args[0].trim() === '&mut request'
+                ? args[1].trim().match(/^&Value::Str\("((?:[^"\\]|\\.)*)"\.to_string\(\)\)$/)
+                : null;
+            const value = args ? args[2].trim() : '';
+            if (!keyMatch || /\brequest\b/.test(value)) {
+                out += content.slice(at, j + 1);
+                i = j + 1;
+                continue;
+            }
+            const span = spans.find(sp => sp.start <= at && at < sp.end);
+            if (!span || !fnAllowsNativeInsert(span)) {
+                out += content.slice(at, j + 1);
+                i = j + 1;
+                continue;
+            }
+            let end = j + 1;
+            let k = end;
+            while (k < content.length && (content[k] === ' ' || content[k] === '\t')) k++;
+            if (content[k] === ';') end = k + 1;
+            out += `if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("${keyMatch[1]}".to_string(), ${value}); }`;
+            i = end;
         }
         return out;
     }
@@ -4453,9 +6334,10 @@ class RustTranspilerBuilder {
      * args (paren-balanced — handles nested calls in element positions).
      */
     cloneInArrayLiterals(content: string): string {
-        // The AST transpiler emits `Value::List(vec![...])` (a fn alias
-        // for Array). Match either spelling.
-        const markers = ['Value::Array(vec![', 'Value::List(vec!['];
+        // The AST transpiler emits `Value::from(vec![...])` (the
+        // `From<Vec<Value>>` impl; older builds emitted the `Value::List`
+        // fn alias). Match either spelling.
+        const markers = ['Value::Array(vec![', 'Value::List(vec![', 'Value::from(vec!['];
         let i = 0;
         let out = '';
         while (i < content.length) {
@@ -4504,6 +6386,175 @@ class RustTranspilerBuilder {
             if (content[i] === ')') i++; // outer `)` of Value::List/Array(...)
         }
         return out;
+    }
+
+    /**
+     * rust-05: brace-balanced block index of `content` — string/char/comment
+     * aware (a `{` in a comment or panic message must not skew the nesting),
+     * `parent` linking each `{` to its enclosing block.
+     */
+    rustBlocksOf(content: string): Array<{ open: number, end: number, kind: string, parent: number, headerStart: number }> {
+        const blocks: Array<any> = [];
+        const stack: number[] = [];
+        let headerStart = 0;
+        let lineStart = 0;
+        let i = 0;
+        const n = content.length;
+        while (i < n) {
+            const c = content[i];
+            if (c === '"') {
+                i = RustTranspilerBuilder.skipRustStringLiteral(content, i);
+                continue;
+            }
+            if (c === '\'' && (content[i + 1] === '\\' || content[i + 2] === '\'')) {
+                i += 3;
+                continue;
+            }
+            if (c === '/' && content[i + 1] === '/') {
+                const nl = content.indexOf('\n', i + 2);
+                i = nl === -1 ? n : nl + 1;
+                headerStart = i;
+                continue;
+            }
+            if (c === '/' && content[i + 1] === '*') {
+                const close = content.indexOf('*/', i + 2);
+                i = close === -1 ? n : close + 2;
+                headerStart = i;
+                continue;
+            }
+            if (c === '\n') {
+                headerStart = i + 1;
+                lineStart = i + 1;
+                i += 1;
+                continue;
+            }
+            if (c === '{') {
+                // Header = line start to `{`: a generated `while { ..cond..;.. } {`
+                // body carries a `;` inside its condition, which a
+                // statement-start header would lose along with the `while`.
+                const header = content.slice(Math.min(headerStart, lineStart), i);
+                // A block is a closure only when its header ENDS with the
+                // parameter list (`|…|`, optionally followed by a `-> Type`
+                // return annotation). `||` conditions and the printer's read
+                // shadows (`|__m| …` / `|__arr| …` inside an if/let header) are
+                // not closure bodies: the enclosing block captures nothing, so
+                // mentions inside it must not block a move (B-32 rule).
+                const kind = /\b(?:while|for|loop)\b/.test(header) ? 'loop'
+                    : /\|\s*(?:->\s*[A-Za-z_][A-Za-z0-9_:<>&,\[\]\s]*)?$/.test(header) ? 'closure'
+                        : /\bfn\b/.test(header) ? 'fn' : 'plain';
+                blocks.push({ open: i, end: -1, kind, parent: stack.length ? stack[stack.length - 1] : -1, headerStart });
+                stack.push(blocks.length - 1);
+                i += 1;
+                continue;
+            }
+            if (c === '}') {
+                const top = stack.pop();
+                if (top !== undefined) {
+                    blocks[top].end = i + 1;
+                }
+                i += 1;
+                continue;
+            }
+            if (c === ';') {
+                headerStart = i + 1;
+            }
+            i += 1;
+        }
+        return blocks;
+    }
+
+    static skipRustStringLiteral(content: string, start: number): number {
+        let i = start + 1;
+        const n = content.length;
+        while (i < n) {
+            if (content[i] === '\\') {
+                i += 2;
+                continue;
+            }
+            if (content[i] === '"') {
+                return i + 1;
+            }
+            i += 1;
+        }
+        return n;
+    }
+
+    /**
+     * rust-05: index of the binding the call at `callIdx` would move, or -1.
+     * Either a `let` visible before the call or a parameter of the enclosing fn.
+     */
+    rustArgDeclIndex(content: string, blocks: any[], fnBlock: number, callIdx: number, ident: string): number {
+        const fn = blocks[fnBlock];
+        const word = new RegExp(`\\b${ident}\\b`);
+        if (word.test(content.slice(fn.headerStart, fn.open))) {
+            return fn.headerStart;
+        }
+        const re = new RegExp(`\\blet\\s+(?:mut\\s+)?${ident}\\b`, 'g');
+        const before = content.slice(fn.open, callIdx);
+        let m;
+        let last = -1;
+        while ((m = re.exec(before)) !== null) {
+            last = fn.open + m.index;
+        }
+        return last;
+    }
+
+    /**
+     * rust-05: true when the local `ident` can be MOVED into the call at
+     * `callStart` instead of cloned — never read after `callEnd` (the end of the
+     * first argument, so a later argument of the same call counts), declared
+     * inside every enclosing loop/closure body, and no closure body starting
+     * before the call mentions it.
+     */
+    rustArgIsDeadAfter(content: string, blocks: any[], callStart: number, callEnd: number, ident: string): boolean {
+        const word = new RegExp(`\\b${ident}\\b`);
+        let inner = -1;
+        for (let k = blocks.length - 1; k >= 0; k--) {
+            if (blocks[k].open < callStart) {
+                inner = k;
+                break;
+            }
+        }
+        while (inner !== -1 && !(blocks[inner].open < callStart && blocks[inner].end > callStart)) {
+            inner = blocks[inner].parent;
+        }
+        if (inner === -1) {
+            return false;
+        }
+        let fnBlock = -1;
+        for (let b = inner; b !== -1; b = blocks[b].parent) {
+            if (blocks[b].kind === 'fn') {
+                fnBlock = b;
+                break;
+            }
+        }
+        if (fnBlock === -1) {
+            return false;
+        }
+        if (word.test(content.slice(callEnd, blocks[fnBlock].end))) {
+            return false;
+        }
+        const declIdx = this.rustArgDeclIndex(content, blocks, fnBlock, callStart, ident);
+        if (declIdx < 0) {
+            return false;
+        }
+        for (let b = inner; b !== fnBlock; b = blocks[b].parent) {
+            const kind = blocks[b].kind;
+            if ((kind === 'loop' || kind === 'closure') && declIdx < blocks[b].open) {
+                return false;
+            }
+        }
+        for (let k = 0; k < blocks.length; k++) {
+            const blk = blocks[k];
+            if (blk.kind !== 'closure' || blk.open > callStart) {
+                continue;
+            }
+            const stop = blk.end === -1 ? content.length : Math.min(blk.end, callStart);
+            if (word.test(content.slice(blk.open, stop))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -4562,6 +6613,246 @@ class RustTranspilerBuilder {
             i = j + 1;
         }
         return out;
+    }
+
+    /**
+     * Drop `.clone()` on the value arg of `self.extend/omit/market/parse_number`.
+     * Those callees take their `Value` argument BY VALUE (see the hand-written
+     * stubs `Exchange::extend/omit/parse_number` and the generated `market`), so
+     * the clone is only needed when the local is still read after the call —
+     * `autoCloneCallArgs` adds it unconditionally. Drop it when the name is dead
+     * after the call in the enclosing fn: the value moves instead of being
+     * copied, and `Value::clone()` is a COW refcount bump, so nothing else about
+     * the emitted program changes. Conservative — any later mention of the name
+     * (the call's own trailing `&[..]` slice included) keeps the clone.
+     */
+    dropDeadLastUseArgClones(content: string): string {
+        const callees = 'extend|omit|market|parse_number';
+        const callRe = new RegExp(`\\bself\\.(?:${callees})\\(([a-zA-Z_][a-zA-Z0-9_]*)\\.clone\\(\\)`, 'g');
+        if (!callRe.test(content)) return content;
+        callRe.lastIndex = 0;
+        // Body span of every `fn` (line-anchored so a mention inside a comment
+        // or doc block can't start a bogus span) — the "later in the same fn"
+        // test must not see a use in a following method.
+        const bodies: Array<[number, number]> = [];
+        const fnRe = /^[ \t]*(?:pub\s+)?(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*[(<]/gm;
+        let fm: RegExpExecArray | null;
+        while ((fm = fnRe.exec(content)) !== null) {
+            const open = content.indexOf('{', fm.index);
+            if (open < 0) continue;
+            bodies.push([fm.index, this.findMatchingBrace(content, open)]);
+        }
+        const bodyEndFor = (pos: number): number => {
+            for (const [a, b] of bodies) {
+                if (a <= pos && pos <= b) return b;
+            }
+            return -1;
+        };
+        // A move inside a loop is only legal when the local is re-created each
+        // iteration. If the last loop keyword before the call comes after the
+        // name's last `let` declaration, the value would be moved on a second
+        // iteration — keep the clone.
+        const loops: number[] = [];
+        {
+            const r = /\b(?:while|loop|for)\b/g;
+            let x: RegExpExecArray | null;
+            while ((x = r.exec(content)) !== null) loops.push(x.index);
+        }
+        const lastBefore = (sorted: number[], pos: number): number => {
+            let lo = 0, hi = sorted.length - 1, at = -1;
+            while (lo <= hi) {
+                const mid = (lo + hi) >> 1;
+                if (sorted[mid] < pos) { at = sorted[mid]; lo = mid + 1; } else hi = mid - 1;
+            }
+            return at;
+        };
+        const declCache = new Map<string, number[]>();
+        const declsFor = (ident: string): number[] => {
+            let v = declCache.get(ident);
+            if (!v) {
+                v = [];
+                const r = new RegExp(`\\blet\\s+(?:mut\\s+)?${ident}\\b`, 'g');
+                let x: RegExpExecArray | null;
+                while ((x = r.exec(content)) !== null) v.push(x.index);
+                declCache.set(ident, v);
+            }
+            return v;
+        };
+        let out = '';
+        let last = 0;
+        let m: RegExpExecArray | null;
+        while ((m = callRe.exec(content)) !== null) {
+            // Never touch a call that sits in a comment.
+            const lineAt = content.lastIndexOf('\n', m.index) + 1;
+            if (content.slice(lineAt, m.index).includes('//')) continue;
+            if (content.lastIndexOf('/*', m.index) > content.lastIndexOf('*/', m.index)) continue;
+            const ident = m[1];
+            const identAt = m.index + m[0].length - ident.length - '.clone()'.length;
+            const end = bodyEndFor(m.index);
+            if (end < 0) continue;
+            const rest = content.slice(identAt + ident.length, end);
+            if (new RegExp(`(?<![A-Za-z0-9_])${ident}(?![A-Za-z0-9_])`).test(rest)) continue;
+            if (lastBefore(loops, identAt) > lastBefore(declsFor(ident), identAt)) continue;
+            out += content.slice(last, m.index) + m[0].slice(0, m[0].length - '.clone()'.length);
+            last = m.index + m[0].length;
+        }
+        if (last === 0) return content;
+        return out + content.slice(last);
+    }
+
+    /**
+     * B-32: the liveness proof of `rustArgIsDeadAfter`, with the closure index
+     * hoisted (that version walks every block per call site). True when the
+     * local `ident` can be MOVED at `pos` instead of cloned: never read after
+     * the end of its own slot, declared inside every enclosing loop/closure
+     * body, and no earlier closure mentions it.
+     */
+    rustLocalMovesAfter(
+        content: string,
+        blocks: any[],
+        closures: any[],
+        pos: number,
+        endPos: number,
+        ident: string,
+    ): boolean {
+        const word = new RegExp(`\\b${ident}\\b`);
+        let inner = -1;
+        for (let k = blocks.length - 1; k >= 0; k--) {
+            if (blocks[k].open < pos) { inner = k; break; }
+        }
+        while (inner !== -1 && !(blocks[inner].open < pos && blocks[inner].end > pos)) {
+            inner = blocks[inner].parent;
+        }
+        if (inner === -1) return false;
+        let fnBlock = -1;
+        for (let b = inner; b !== -1; b = blocks[b].parent) {
+            if (blocks[b].kind === 'fn') { fnBlock = b; break; }
+        }
+        if (fnBlock === -1) return false;
+        if (word.test(content.slice(endPos, blocks[fnBlock].end))) return false;
+        const declIdx = this.rustArgDeclIndex(content, blocks, fnBlock, pos, ident);
+        if (declIdx < 0) return false;
+        for (let b = inner; b !== fnBlock; b = blocks[b].parent) {
+            const kind = blocks[b].kind;
+            if ((kind === 'loop' || kind === 'closure') && declIdx < blocks[b].open) {
+                return false;
+            }
+        }
+        for (const blk of closures) {
+            if (blk.open > pos) continue;
+            const stop = blk.end === -1 ? content.length : Math.min(blk.end, pos);
+            if (word.test(content.slice(blk.open, stop))) return false;
+        }
+        return true;
+    }
+
+    /**
+     * B-32: a `.clone()` whose result is consumed by a by-value slot is dead as
+     * soon as the local is never read again — the value can move instead of
+     * being copied (`Value::clone()` is a COW refcount bump). Slots: a call
+     * argument, a slice/vec element, a block tail, a `let`/assignment value or a
+     * `return` operand. A clone behind `&`/`&mut` is a borrow, and
+     * `self.<field>` can never move out of `&self`, so both keep the clone.
+     */
+    dropDeadValueSlotClones(content: string): string {
+        if (!content.includes('.clone()')) return content;
+        const masked = this.maskStrings(content);
+        const blocks = this.rustBlocksOf(masked);
+        const closures = blocks.filter(b => b.kind === 'closure');
+        let out = '';
+        let last = 0;
+        let stmtStart = 0;
+        const stack: number[] = [];
+        const n = content.length;
+        let i = 0;
+        while (i < n) {
+            const c = content[i];
+            if (c === '"') { i = RustTranspilerBuilder.skipRustStringLiteral(content, i); continue; }
+            if (c === '\'' && (content[i + 1] === '\\' || content[i + 2] === '\'')) { i += 3; continue; }
+            if (c === '/' && content[i + 1] === '/') {
+                const nl = content.indexOf('\n', i);
+                i = nl < 0 ? n : nl + 1;
+                continue;
+            }
+            if (c === '/' && content[i + 1] === '*') {
+                const cl = content.indexOf('*/', i + 2);
+                i = cl < 0 ? n : cl + 2;
+                continue;
+            }
+            if (c === '{' || c === '(' || c === '[') {
+                stack.push(i);
+                if (c === '{') stmtStart = i + 1;
+                i++;
+                continue;
+            }
+            if (c === '}' || c === ')' || c === ']') {
+                if (stack.length) stack.pop();
+                stmtStart = i + 1;
+                i++;
+                continue;
+            }
+            if (c === ';') { stmtStart = i + 1; i++; continue; }
+            if (c !== '.' || !content.startsWith('.clone()', i)) { i++; continue; }
+            const end = i + 8;
+            let rs = i;
+            while (rs > 0 && /[A-Za-z0-9_]/.test(content[rs - 1])) rs--;
+            const ident = content.slice(rs, i);
+            i = end;
+            // Only a plain local can move; a field/chain receiver or `self`
+            // stays cloned.
+            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(ident) || ident === 'self') continue;
+            if (rs > 0 && content[rs - 1] === '.') continue;
+            // The clone must END its slot.
+            let q = end;
+            while (q < n && (content[q] === ' ' || content[q] === '\t' || content[q] === '\n' || content[q] === '\r')) q++;
+            const nxt = q < n ? content[q] : '';
+            if (nxt !== '' && ',)]};'.indexOf(nxt) < 0) continue;
+            // The clone must START its slot: an arg/element/tail boundary or a
+            // complete `let`/assignment/`return` value.
+            let p = rs - 1;
+            while (p >= 0 && (content[p] === ' ' || content[p] === '\t' || content[p] === '\n' || content[p] === '\r')) p--;
+            const prev = p >= 0 ? content[p] : '';
+            const headStart = Math.max(stmtStart, stack.length ? stack[stack.length - 1] : 0);
+            const head = masked.slice(headStart, rs);
+            const isValueHead = /^\s*(?:let\s+(?:mut\s+)?[A-Za-z_][A-Za-z0-9_]*\s*(?::[^;={}()]*)?=|(?:self\.[A-Za-z_][A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*)\s*=|return)\s*$/.test(head);
+            const slotOk = prev === '(' || prev === ',' || prev === '[' || prev === '{' ||
+                (prev === '=' && p > 0 && '=!<>'.indexOf(content[p - 1]) < 0 && isValueHead) ||
+                (prev !== '' && /[A-Za-z_]/.test(prev) && /^\s*return\s*$/.test(head));
+            if (!slotOk) continue;
+            // A move in a statement that already mentions the name is a borrow
+            // or a re-use; only a `let x = x.clone()` shadow may move.
+            const word = new RegExp(`\\b${ident}\\b`);
+            const borrow = new RegExp(`&\\s*(?:mut\\s+)?${ident}\\b`);
+            const stmtHead = masked.slice(stmtStart, rs);
+            if (word.test(stmtHead) &&
+                !new RegExp(`^\\s*let\\s+(?:mut\\s+)?${ident}\\s*(?::[^;={}()]*)?=\\s*$`).test(stmtHead)) continue;
+            // A live borrow of the name kills the move: an earlier argument of
+            // an enclosing call (`f(&x, g(x))`), or the header of an enclosing
+            // block (`if let P = &mut x { … }`, `match &x { … }`).
+            let blocked = false;
+            for (let k = stack.length - 1; k >= 0 && !blocked; k--) {
+                if (content[stack[k]] !== '(') continue;
+                const inner = k + 1 < stack.length ? stack[k + 1] : rs;
+                if (borrow.test(masked.slice(stack[k] + 1, inner))) blocked = true;
+            }
+            if (blocked) continue;
+            let inner = -1;
+            for (let k = blocks.length - 1; k >= 0; k--) {
+                if (blocks[k].open < rs) { inner = k; break; }
+            }
+            while (inner !== -1 && !(blocks[inner].open < rs && blocks[inner].end > rs)) {
+                inner = blocks[inner].parent;
+            }
+            for (let b = inner; b !== -1; b = blocks[b].parent) {
+                if (borrow.test(masked.slice(blocks[b].headerStart, blocks[b].open))) { blocked = true; break; }
+            }
+            if (blocked) continue;
+            if (!this.rustLocalMovesAfter(masked, blocks, closures, rs, end, ident)) continue;
+            out += content.slice(last, rs) + ident;
+            last = end;
+        }
+        if (last === 0) return content;
+        return out + content.slice(last);
     }
 
     /**
@@ -4789,10 +7080,10 @@ class RustTranspilerBuilder {
         if (this._discoveredVariadicsCache) return this._discoveredVariadicsCache;
         const out: Record<string, number> = {};
         const baseFiles = [
-            './rust/ccxt-base/src/exchange_generated.rs',
-            './rust/ccxt-base/src/exchange_stubs.rs',
+            './rust/ccxt-common/src/exchange_generated.rs',
+            './rust/ccxt-common/src/exchange_stubs.rs',
             // ExchangeRuntime dispatchers + super_* shims (review #1).
-            './rust/ccxt-base/src/exchange.rs',
+            './rust/ccxt-common/src/exchange.rs',
         ];
         for (const f of baseFiles) {
             const m = this.extractVariadicsFromFile(f);
@@ -4818,7 +7109,7 @@ class RustTranspilerBuilder {
         const id = exchangeId.toLowerCase();
         if (!this._predictionVariadicsCache) {
             this._predictionVariadicsCache = this.extractVariadicsFromFile(
-                './rust/ccxt-base/src/prediction_exchange_generated.rs',
+                './rust/ccxt-common/src/prediction_exchange_generated.rs',
             );
         }
         return {
@@ -4843,6 +7134,7 @@ class RustTranspilerBuilder {
         // `test.fetchHistory` drives `exchange.fetch2(path)`) and whose
         // trailing optional args must be wrapped into the `&[Value]` slice.
         out['fetch2'] = 1;
+        out['build_ohlcvc'] = 1;
         return out;
     }
 
@@ -4954,6 +7246,12 @@ class RustTranspilerBuilder {
             handle_margin_mode_and_params: 1,
             handle_option_and_params: 3,
             handle_option_and_params2: 4,
+            handle_option_string_and_params: 3,
+            handle_option_string_and_params2: 4,
+            handle_option_bool_and_params: 3,
+            handle_option_bool_and_params2: 4,
+            handle_option_integer_and_params: 3,
+            handle_option_integer_and_params2: 4,
             binary_concat: 1,
             hmac:          3,
             ecdsa:         3,
@@ -5032,6 +7330,8 @@ class RustTranspilerBuilder {
             send:                       0,
             lock_id:                    0,
             unlock_id:                  0,
+            lock_last_nonce:            0,
+            unlock_last_nonce:          0,
             extend_exchange_options:    0,
             on_error:                   0,
             on_close:                   0,
@@ -5185,7 +7485,7 @@ class RustTranspilerBuilder {
         // optional `pub` — `ExchangeBase` trait methods are emitted as
         // `async fn` (trait methods can't be `pub`), so a `pub`-only regex would
         // miss every base async method and drop the `.await` at call sites.
-        for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
+        for (const file of [BASE_METHODS_FILE, `${RUST_CORE}/exchange_stubs.rs`, `${RUST_CORE}/exchange.rs`]) {
             try {
                 const src = fs.readFileSync(file, 'utf8');
                 const re = /\b(?:pub )?async fn ([a-z_][a-z0-9_]*)\(/g;
@@ -5197,7 +7497,13 @@ class RustTranspilerBuilder {
                 // async methods; call sites need their `.await`.
                 const futRe = /\b(?:pub\s+)?fn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>]*>)?\s*\(([^)]*)\)\s*->\s*(?:impl ::std::future::Future|::std::pin::Pin<Box<dyn ::std::future::Future)/g;
                 while ((m = futRe.exec(src)) !== null) s.add(m[1]);
-            } catch (_) { /* base not generated yet — fall back to empty */ }
+            } catch (e: any) {
+                if (file === BASE_METHODS_FILE && e.code === 'ENOENT') {
+                    /* base not generated yet — fall back to empty */
+                } else {
+                    throw e;
+                }
+            }
         }
         return s;
     }
@@ -5215,13 +7521,19 @@ class RustTranspilerBuilder {
     allBaseMethodNames(): Set<string> {
         if (this._allBaseMethodNames) return this._allBaseMethodNames;
         const s = new Set<string>();
-        for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
+        for (const file of [BASE_METHODS_FILE, `${RUST_CORE}/exchange_stubs.rs`, `${RUST_CORE}/exchange.rs`]) {
             try {
                 const src = fs.readFileSync(file, 'utf8');
                 const re = /\b(?:pub\s+)?(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)\s*[(<]/g;
                 let m: RegExpExecArray | null;
                 while ((m = re.exec(src)) !== null) s.add(m[1]);
-            } catch (_) { /* base not generated yet */ }
+            } catch (e: any) {
+                if (file === BASE_METHODS_FILE && e.code === 'ENOENT') {
+                    /* base not generated yet */
+                } else {
+                    throw e;
+                }
+            }
         }
         for (const n of Object.keys(this.traitMethodSignatures())) s.add(n);
         this._allBaseMethodNames = s;
@@ -5409,12 +7721,25 @@ class RustTranspilerBuilder {
             const preamble =
                 `\n        // virtual-dispatch (static: DerivedExchange::${name}(self, ...))\n` +
                 `        { let __v = ${callExpr}; if !matches!(__v, crate::Value::Null) { return __v; } }\n`;
+            if (this.superShimmedVirtualMethods().has(name)) {
+                // overrides that call super.X() reach `X_non_virtual`, so the virtual hop cannot recurse
+                const fwd = paramInfo.map(p => p.name).join(', ');
+                const wrapper = `pub fn ${name}(${argList}) ${retType} {${preamble}        self.${name}_non_virtual(${fwd})\n    }\n\n    `;
+                out += content.slice(last, m.index) + wrapper + m[0].replace(`fn ${name}(`, `fn ${name}_non_virtual(`);
+                last = m.index + m[0].length;
+                continue;
+            }
             const matchEnd = m.index + m[0].length;
             out += content.slice(last, matchEnd) + preamble;
             last = matchEnd;
         }
         out += content.slice(last);
         return out;
+    }
+
+    /** Trait methods whose overrides call `super.X()`; their base body is emitted as `X_non_virtual`. */
+    superShimmedVirtualMethods(): Set<string> {
+        return new Set([ 'market' ]);
     }
 
     /**
@@ -5470,6 +7795,7 @@ class RustTranspilerBuilder {
             parse_prediction_order:     ['order', 'market'],
             parse_prediction_position:  ['position', 'market'],
             create_expired_option_market: ['symbol'],
+            market:                     ['symbol'],
             sign:                       ['path', 'api', 'method', 'params', 'headers', 'body'],
             handle_errors:              ['code', 'reason', 'url', 'method', 'headers', 'body', 'response', 'request_headers', 'request_body'],
         };
@@ -5602,6 +7928,13 @@ class RustTranspilerBuilder {
 `;
     }
 
+    /// Tail of a dynamic-dispatch `args` list as a slice: `&args[..]` for the
+    /// whole list, `&args[N.min(args.len())..]` for the tail. Same slice the
+    /// old `&args.get(N..).unwrap_or(&[]).to_vec()[..]` passed, without the copy.
+    dispatchSliceArg(index: number): string {
+        return index === 0 ? '&args[..]' : `&args[${index}.min(args.len())..]`;
+    }
+
     /// The prediction-only `call_dynamic_prediction_base` trait default: a
     /// `match` over prediction base method names, falling through to the
     /// Exchange `call_dynamic_base`. A prediction Core's `call_dynamic` ends
@@ -5627,7 +7960,7 @@ class RustTranspilerBuilder {
                 if (paramKinds[i] === 'value') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(`&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`);
+                    callArgs.push(this.dispatchSliceArg(i));
                 }
             }
             // Every arm is a prediction base method; several override an
@@ -5676,7 +8009,7 @@ ${arms.join('\n')}
                 if (paramKinds[i] === 'value') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(`&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`);
+                    callArgs.push(this.dispatchSliceArg(i));
                 }
             }
             const recv = collide.has(name)
@@ -5711,7 +8044,7 @@ ${arms.join('\n')}
                         self.build_implicit_api();
                     }
                     if self.internals.implicit_api.contains_key(method) {
-                        self.call_method(crate::Value::Str(method.to_string()), &args[..]).await
+                        self.call_method(crate::Value::Str(method.to_string().into()), &args[..]).await
                     } else {
                         self.internals.dynamic_dispatch_miss = Some(method.to_string());
                         crate::Value::Null
@@ -5753,10 +8086,8 @@ ${arms.join('\n')}
                     // Pull args[i] (cloned), defaulting to Null.
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'slice') {
-                    // Pass the remaining args as a slice. We make a
-                    // local Vec to avoid lifetime issues against `args`.
-                    const start = i;
-                    callArgs.push(`&args.get(${start}..).unwrap_or(&[]).to_vec()[..]`);
+                    // Pass the remaining args as a slice of `args` itself.
+                    callArgs.push(this.dispatchSliceArg(i));
                 }
             }
             const callExpr = `self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`;
@@ -5795,7 +8126,7 @@ ${isBase
                 if (paramKinds[i] === 'value') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(`&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`);
+                    callArgs.push(this.dispatchSliceArg(i));
                 }
             }
             arms.push(`                "${name}" => ${isVoid ? `{ self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}; crate::Value::Null }` : `self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`},`);
@@ -5873,7 +8204,7 @@ ${fallthrough}
             if (kinds.some(k => k === 'other')) continue;
             seen.add(name);
             const callArgs = kinds.map((k, i) => k === 'slice'
-                ? `&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`
+                ? this.dispatchSliceArg(i)
                 : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
             const call = `self.${name}(${callArgs.join(', ')})`;
             arms.push(isVoid
@@ -5890,7 +8221,7 @@ ${fallthrough}
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
 ${arms.join('\n')}
             _ => crate::Value::Null,
@@ -6047,7 +8378,7 @@ ${arms.join('\n')}
         );
 
         // Base content from ast-transpiler
-        let content: string = rustResult.content ?? '';
+        let content: string = allocLiteralBoxes(rustResult.content ?? '');
 
         // Apply Rust-specific post-processing
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
@@ -6178,7 +8509,7 @@ ${arms.join('\n')}
             const predAsync: string[] = isPrediction
                 ? Object.keys({
                     ...this.extractAsyncFnNames(`./rust/ccxt-base/src/prediction/${className}_api.rs`),
-                    ...this.extractAsyncFnNames('./rust/ccxt-base/src/prediction_exchange_generated.rs'),
+                    ...this.extractAsyncFnNames('./rust/ccxt-common/src/prediction_exchange_generated.rs'),
                   })
                 : [];
             let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'call_dynamic', 'call_dynamic_checked', 'fetch', 'load_markets', 'throttle']);
@@ -6226,15 +8557,15 @@ ${arms.join('\n')}
             } catch (_) { /* REST parent not generated yet */ }
         }
         content = this.promoteSelfMutMethods(content, parentMutSeeds, ws);
-        if (ws) {
-            // Re-strip `&mut self.<field>.clone()` casts: WS handlers just
-            // promoted to `&mut self` above had their field mutations cloned-away
-            // by the earlier `stripMutSelfFieldClones` (which ran while they were
-            // still `&self`). Now that they're `&mut self`, drop the clone so the
-            // write lands on the real field (the orderbook cache persists, so
-            // `watch` resolves a populated book). REST/prediction unaffected.
-            content = this.stripMutSelfFieldClones(content);
-        }
+        // Re-strip `&mut self.<field>.clone()` casts: methods just promoted to
+        // `&mut self` above had their field mutations cloned-away by the earlier
+        // `stripMutSelfFieldClones` (which ran while they were still `&self`). Now
+        // that they're `&mut self`, drop the clone so the write lands on the real
+        // field: WS handlers keep their orderbook cache (so `watch` resolves a
+        // populated book) and a REST `handle_errors` keeps the session state it
+        // stores in this.options (grvt's auth cookie / account id). The pass only
+        // touches `&mut self` methods, so unpromoted REST output is unchanged.
+        content = this.stripMutSelfFieldClones(content);
         // Normalize async receivers: in this codebase every `pub async fn`
         // that touches self takes `&mut self` (they call load_markets / watch
         // / fetch, which cache on self). The regex that stamps this (near the
@@ -6249,6 +8580,9 @@ ${arms.join('\n')}
             /\bpub async fn ([a-zA-Z_][a-zA-Z0-9_]*)\(\s*&self\b/g,
             'pub async fn $1(&mut self',
         );
+        // Receivers are final now: a nested-key write the clone-strip had to
+        // encode as `coerce_value_to_mut(&self.<field>)` can use the real field.
+        content = this.nativeMutSelfCoerceMutSites(content);
         // Some transpiled WS methods (`fetch_order_book_snapshot`,
         // `keep_alive_listen_key`, …) have a `-> Value` signature but
         // a `()` body — TS used `Promise<void>` / no explicit return.
@@ -6527,7 +8861,9 @@ impl ${coreName} {
     pub fn init(&mut self) {
         let described = ${coreName}::describe(self);
         self.exchange.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -6625,10 +8961,61 @@ impl std::ops::DerefMut for ${coreName} {
                 result = this.transpiler.transpileRustByPath(tsPath);
                 rustContent = this.createRustExchange(exchangeName, result, ws, isPrediction);
                 rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
+                rustContent = this.dropDeadFirstArgClones(rustContent);
                 rustContent = this.rewriteJavaReqAliases(rustContent);
+                // Then type the `safe_number[_k]` / `safe_integer[_k]` locals
+                // whose every sink is Option-native.
+                rustContent = this.narrowOptionalSafeLocals(rustContent);
                 // Last: narrow `Value::Bool` locals whose every sink takes
                 // a `bool`. Must see the final shape of the file.
                 rustContent = this.narrowBoolLocals(rustContent);
+                // Then retype `Value::Int/Float` locals read only as numbers and
+                // collapse the `as_f64()` boxes the compares wrap them in.
+                rustContent = this.narrowFloatLocals(rustContent);
+                rustContent = this.collapseNumericBoxAccessors(rustContent);
+                // Then drop the `is_true(&x)` those locals no longer need.
+                rustContent = this.dropRedundantIsTrue(rustContent);
+                // Then `is_true(&x)` over a local that can only hold a
+                // bool-valued `Value` (one decl, every assignment a
+                // `Value::Bool` box / `safe_bool*` default).
+                rustContent = this.dropBoolValuedIsTrue(rustContent);
+                // D-32: bool/`Option<bool>` callees and `Option`-typed shadow
+                // locals make the remaining `is_true` sites native.
+                rustContent = this.dropNativeCallIsTrue(rustContent);
+                rustContent = this.dropOptionShadowIsTrue(rustContent);
+                rustContent = this.hx4R24BoolParamIsTrue(rustContent);
+                rustContent = this.hx4R03DropBoolBoxedIsTrue(rustContent);
+                rustContent = this.hx4R19NativeBoolEquals(rustContent);
+                rustContent = this.hx4R19NativeBoolIsTrue(rustContent);
+                rustContent = this.hx4R25InlineLiteralIsEqual(rustContent);
+                // Last: drop `.clone()` on the value arg of
+                // extend/omit/market/parse_number when the local is dead
+                // afterwards (those callees take the Value by value).
+                rustContent = this.dropDeadLastUseArgClones(rustContent);
+                // Last: element writes into a fresh dict local go native.
+                rustContent = this.nativeRequestDictInserts(rustContent);
+                // Last: payload accessors on a local whose declaration pins its
+                // variant (`Value::Map`/`List`/`Str`/`Bool`, never reassigned).
+                rustContent = this.nativePayloadAccessorDrops(rustContent);
+                // Last: retype `safe_list` locals whose every later use is a
+                // length sink or an index read. Must see the final text (the
+                // write-back pass appends `set_value(&mut X, ..)` lines those
+                // locals must keep the box for).
+                rustContent = this.typeSafeListLocals(rustContent);
+                // And `instanceof <errorClass>` whose class has no subclass.
+                rustContent = this.rewriteNativeErrorClassChecks(rustContent);
+                // Last: a `.clone()` in a by-value slot whose local is dead
+                // afterwards moves instead of copying (B-32).
+                rustContent = this.dropDeadValueSlotClones(rustContent);
+                // And `while (true)` → `loop {` (rustc's `while_true` lint is
+                // an error under the CI clippy lane's `-D warnings`).
+                rustContent = this.whileTrueToLoop(rustContent);
+                rustContent = this.x45Native(rustContent); // hx5 X45
+                rustContent = this.r28Truth(rustContent); // hx4 R28
+                rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
+                rustContent = this.r31Str(rustContent); // hx4 R31
+                rustContent = this.r32Native(rustContent); // hx4 R32
+                rustContent = this.x46Incr(rustContent); // hx5 X46
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -6819,10 +9206,11 @@ impl std::ops::DerefMut for ${coreName} {
                 '// Re-export the hand-written pro infra (cache / order_book /',
                 '// ws_client and their public items) from the base crate so the',
                 "// venue files' `crate::pro::*` paths resolve. The venue modules",
-                '// themselves live in this crate.',
+                '// themselves live in this crate, one per `<id>` cargo feature',
+                '// (see the generated [features] block in ccxt-pro/Cargo.toml).',
                 'pub use ccxt_base::pro::*;',
                 '',
-                ...venues.map(n => `pub mod ${n};`),
+                ...venues.map(n => `#[cfg(feature = "${n}")]\npub mod ${n};`),
             ];
             const wsContent = [
                 ...this.createGeneratedHeader(),
@@ -6860,12 +9248,16 @@ impl std::ops::DerefMut for ${coreName} {
                 lines.push(`pub mod ${sibling};`);
             }
         }
-        // WS per-exchange files are still WIP — gate them behind the
-        // `transpiled-ws` feature so the default build (REST + hand-
-        // written pro::cache / order_book) keeps compiling.
-        const isProFolder = folder.endsWith('/pro');
-        const gate = isProFolder ? '#[cfg(feature = "transpiled-ws")]\n' : '';
+        // Every Core sits behind its own cargo feature so a consumer that
+        // asks for `features = ["binance"]` compiles one venue, not 200+.
+        // REST features are the bare id; prediction Cores share ids with REST
+        // venues (binance, hyperliquid, …) so theirs carry a `prediction-`
+        // prefix. The feature lists themselves are emitted into each crate's
+        // Cargo.toml by build/generateRustWrappers.ts (rustFeatureName is the
+        // shared naming rule).
+        const isPredictionFolder = folder === PREDICTION_EXCHANGES_FOLDER;
         for (const n of baseNames) {
+            const gate = `#[cfg(feature = "${rustFeatureName(n, isPredictionFolder)}")]\n`;
             lines.push(`${gate}pub mod ${n};`);
             if (fs.existsSync(`${folder}/${n}_api.rs`)) {
                 lines.push(`${gate}pub mod ${n}_api;`);
@@ -6974,7 +9366,7 @@ impl std::ops::DerefMut for ${coreName} {
         } else {
             result = this.transpiler.transpileRustByPath(baseFile);
         }
-        let content: string = result.content ?? '';
+        let content: string = allocLiteralBoxes(result.content ?? '');
 
         // ── 1. take only the slice below the marker ────────────────────────────
         const jsDelimiter = '// ' + delimiter;
@@ -7211,6 +9603,11 @@ impl std::ops::DerefMut for ${coreName} {
             }
         }
 
+        // Drop `.clone()` on the value arg of extend/omit/market/parse_number
+        // when the local is dead afterwards (those callees take the Value by
+        // value). Runs last, once every other pass has fixed the final shape.
+        basePart = this.dropDeadLastUseArgClones(basePart);
+
         // Drop base methods we keep as hand-written stubs in `exchange_stubs.rs`.
         // `loadOrderBook` is a WS-only helper (its body uses the WS `client`,
         // `stored['cache'].length = 0`, etc.) that the prediction merge moved
@@ -7318,8 +9715,37 @@ impl std::ops::DerefMut for ${coreName} {
             .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
 
         let finalFile = this.rewriteLiteralKeySafeCalls(file);
+        finalFile = this.dropDeadFirstArgClones(finalFile);
         finalFile = this.rewriteJavaReqAliases(finalFile);
+        finalFile = this.narrowOptionalSafeLocals(finalFile);
         finalFile = this.narrowBoolLocals(finalFile);
+        finalFile = this.narrowFloatLocals(finalFile);
+        finalFile = this.collapseNumericBoxAccessors(finalFile);
+        finalFile = this.dropRedundantIsTrue(finalFile);
+        finalFile = this.dropBoolValuedIsTrue(finalFile);
+        // D-32: bool/`Option<bool>` callees and `Option`-typed shadow locals.
+        finalFile = this.dropNativeCallIsTrue(finalFile);
+        finalFile = this.dropOptionShadowIsTrue(finalFile);
+        finalFile = this.hx4R24BoolParamIsTrue(finalFile);
+        finalFile = this.hx4R03DropBoolBoxedIsTrue(finalFile);
+        finalFile = this.hx4R19NativeBoolEquals(finalFile);
+        finalFile = this.hx4R19NativeBoolIsTrue(finalFile);
+        finalFile = this.hx4R25InlineLiteralIsEqual(finalFile);
+        finalFile = this.nativeRequestDictInserts(finalFile);
+        finalFile = this.nativePayloadAccessorDrops(finalFile);
+        finalFile = this.typeSafeListLocals(finalFile);
+        finalFile = this.rewriteNativeErrorClassChecks(finalFile);
+        // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
+        finalFile = this.dropDeadValueSlotClones(finalFile);
+        // And `while (true)` → `loop {` (rustc's `while_true` lint is an error
+        // under the CI clippy lane's `-D warnings`).
+        finalFile = this.whileTrueToLoop(finalFile);
+        finalFile = this.x45Native(finalFile); // hx5 X45
+        finalFile = this.r28Truth(finalFile); // hx4 R28
+        finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
+        finalFile = this.r31Str(finalFile); // hx4 R31
+        finalFile = this.r32Native(finalFile); // hx4 R32
+        finalFile = this.x46Incr(finalFile); // hx5 X46
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -7341,7 +9767,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, finalFile);
+        fs.writeFileSync(outFile, borrowLiteralBoxes(finalFile));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
@@ -7426,25 +9852,21 @@ impl std::ops::DerefMut for ${coreName} {
             // its own Rust module. We emit our own run_all() in
             // writeBaseTestsModFile instead.
             if (testName === 'tests.init') continue;
+            // BaseCore exposes checkAddress only through the variadic &[Value] entry
+            if (testName === 'test.checkAddress') continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
             // `test.cryptography` is marked NO_AUTO_TRANSPILE (it's
             // hand-transpiled per-language, cf. Go's transpileCryptoTests)
             // but the Rust base-test pipeline handles it fine — include it.
             if (tsContent.includes('// NO_AUTO_TRANSPILE') && testName !== 'test.cryptography') continue;
-            // the Rust base has no handleHttpStatusCode yet — its HTTP layer
-            // classifies statuses inline (ccxt-base/src/exchange.rs), so the
-            // contract that test pins does not exist on the Rust side; skip it
-            // here (the tests.init call is dropped automatically) until the
-            // method lands on BaseCore
-            if (testName === 'test.handleHttpStatusCode') continue;
 
             const outFile = `${outDir}/${testName}.rs`;
             log.magenta('Transpiling from', (tsFile as any).yellow);
 
             try {
                 const result = this.transpiler.transpileRustByPath(tsFile);
-                let content = result.content ?? '';
+                let content = allocLiteralBoxes(result.content ?? '');
                 // Reuse the per-exchange pipeline so async, variadic
                 // wraps, bool-Value coercion, etc. apply uniformly.
                 const asyncMethods = new Set<string>(
@@ -7459,8 +9881,8 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.rewriteDynamicThrows(content);
                 content = this.normalizeJwtCalls(content);
                 content = this.wrapBoolValueArgs(content);
-                content = this.stripCatchBlocks(content);
-                content = this.unwrapCatchUnwind(content);
+                // catch_unwind keeps the catch body, so a test can assert that a call throws
+                content = this.rewriteTryCatchAsync(content);
                 content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
                 content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
                 // `Precise::stringDiv(a, b, precision)` (3 args) →
@@ -7811,7 +10233,7 @@ impl std::ops::DerefMut for ${coreName} {
         const tsFile = './ts/src/test/base/tests.init.ts';
         if (!fs.existsSync(tsFile)) return;
         const result = this.transpiler.transpileRustByPath(tsFile);
-        let content = (result.content ?? '').trim();
+        let content = allocLiteralBoxes((result.content ?? '').trim());
         // Keep only calls to base tests we actually transpiled — e.g.
         // `testLanguageSpecific()` lives in a subfolder we don't emit.
         const validFns = new Set(written.map(n => this.testEntryPointFor(n)));
@@ -7933,7 +10355,7 @@ impl std::ops::DerefMut for ${coreName} {
 
             try {
                 const result = this.transpiler.transpileRustByPath(tsFile);
-                let content = result.content ?? '';
+                let content = allocLiteralBoxes(result.content ?? '');
                 const asyncMethods = new Set<string>(
                     (result.methodsTypes || [])
                         .filter((m: any) => m.async)
@@ -8521,6 +10943,7 @@ impl std::ops::DerefMut for ${coreName} {
      * base-test and exchange-test transpilation so they stay in sync.
      */
     runExchangeTestPipeline(content: string, asyncMethods: Set<string>): string {
+        content = allocLiteralBoxes(content);
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
         content = this.rewriteHashAlgoConstants(content);
         content = this.rewriteBareErrorClassRefs(content);
@@ -8613,6 +11036,8 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.rewriteExchangeMethodCalls(content);
         content = this.stripAssertSecondArg(content);
         content = this.wrapAssertInIsTrue(content);
+        content = this.dropRedundantIsTrue(content);
+        content = this.rewriteNativeErrorClassChecks(content);
         return content;
     }
 
@@ -8924,7 +11349,7 @@ impl std::ops::DerefMut for ${coreName} {
         log.magenta('Transpiling tests.ts from', (tsFile as any).yellow);
         try {
             const result = this.transpiler.transpileRustByPath(tsFile);
-            let content = result.content ?? '';
+            let content = allocLiteralBoxes(result.content ?? '');
             // Reuse the per-exchange pipeline so we get the same
             // post-processing as the transpiled exchanges. `methodsTypes`
             // carries camelCase names; the transpiled call sites are
@@ -9057,6 +11482,9 @@ impl std::ops::DerefMut for ${coreName} {
             // `continue` inside a transpiled `for`→`while` must still run
             // the manual loop increment — labelled-block rewrite.
             content = this.fixForLoopContinue(content);
+            // `while (true)` → `loop {` (rustc's `while_true` lint; the file
+            // header's `clippy::all` allow does not cover rustc lints).
+            content = this.whileTrueToLoop(content);
             // Methods that assign to `self.<field>` need `&mut self`.
             content = this.promoteSelfMutMethods(content);
             // `init` is a thin wrapper around `init_inner` — drop the
@@ -9095,20 +11523,24 @@ impl std::ops::DerefMut for ${coreName} {
             // reads, so each frame routes correctly and the final asserted
             // structure reflects all deltas.
             content = content.replace(
-                /let mut promises: Value = Value::List\(vec!\[callExchangeMethodDynamically\(&mut exchange, (.+?)\), (self\.inject_ws_messages\(.+?\))\.await\]\);/,
+                /let mut promises: Value = Value::(?:List|from)\(vec!\[callExchangeMethodDynamically\(&mut exchange, (.+?)\), (self\.inject_ws_messages\(.+?\))\.await\]\);/,
                 'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); '
                 + 'let mut __w = callExchangeMethodDynamically(&mut exchange, $1).await; '
                 + 'let mut __g = 0; '
+                // an unWatch* call must not be repeated: every repeat re-sends the
+                // unsubscribe and the sentMessages assertion counts it, so its
+                // leftover frames (per-symbol acks) are replayed into handle_message
+                + 'if matches!(&method, Value::Str(__m) if __m.starts_with("unWatch")) { drainWsMessages(&mut exchange, url.clone()).await; } else { '
                 + 'while is_true(&wsHasQueuedMessages(exchange.clone(), url.clone())) && __g < 500 { '
-                + '__w = callExchangeMethodDynamically(&mut exchange, $1).await; __g += 1; } '
-                + 'let mut promises: Value = Value::List(vec![__w, Value::Bool(true)]);',
+                + '__w = callExchangeMethodDynamically(&mut exchange, $1).await; __g += 1; } } '
+                + 'let mut promises: Value = Value::from(vec![__w, Value::Bool(true)]);',
             );
             // Static-WS-test parsedResponses (sequence) case: inject + watch-loop
             // are both `&mut self` and can't join. Pre-load the mock queue, then
             // run the sequence watcher which drains one frame per watch call.
             content = content.replace(
-                /let mut promises: Value = Value::List\(vec!\[self\.inject_ws_messages\(.+?\)\.await, (self\.watch_and_assert_sequence\(.+?\))\.await\]\);/,
-                'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::List(vec![Value::Bool(true), $1.await]);',
+                /let mut promises: Value = Value::(?:List|from)\(vec!\[self\.inject_ws_messages\(.+?\)\.await, (self\.watch_and_assert_sequence\(.+?\))\.await\]\);/,
+                'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::from(vec![Value::Bool(true), $1.await]);',
             );
             // `extend_exchange_options` takes `&mut self` — hoist any arg
             // that also reads the receiver out of the call.
@@ -9139,7 +11571,7 @@ impl std::ops::DerefMut for ${coreName} {
                            `                self.${flag} = Value::Bool(true);\n` +
                            `                let __m = __e.downcast_ref::<String>().map(|s| s.as_str())\n` +
                            `                    .or_else(|| __e.downcast_ref::<&str>().copied()).unwrap_or("panic");\n` +
-                           `                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m))]);\n` +
+                           `                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m).into())]);\n` +
                            `            }\n` +
                            `        }`;
                 },
@@ -9162,6 +11594,9 @@ impl std::ops::DerefMut for ${coreName} {
             content = content.replace(
                 /&mut get_value\(&([a-zA-Z_][a-zA-Z0-9_]*)\s*,/g,
                 'get_value_mut(&mut $1,');
+
+            content = this.dropRedundantIsTrue(content);
+            content = this.rewriteNativeErrorClassChecks(content);
 
             const file = [
                 ...this.createGeneratedHeader(),
@@ -9222,12 +11657,17 @@ impl std::ops::DerefMut for ${coreName} {
         });
 
         if (!baseOnly) {
-            await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
-            // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
-            await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
+            const predictionOnly = process.argv.includes('--prediction');
+            if (!predictionOnly) {
+                await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
+            }
+            if (predictionOnly || exchanges.length === 0) {
+                // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
+                await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
+            }
         }
 
-        if (child || transpilingSingle || baseOnly) return;
+        if (child || exchanges.length > 0 || baseOnly) return;
 
         this.transpileErrorHierarchy();
         this.transpileTests();
@@ -9266,6 +11706,1326 @@ impl std::ops::DerefMut for ${coreName} {
             );
         }
     }
+
+    // hx4 R03 — `is_true(&X)` -> `X.as_bool() == Some(true)` when X can only hold
+    // `Value::Bool(..)` / `Value::Null` (exact: `is_truthy` reads Bool by payload, Null false).
+
+    /** Every return path is a `Value::Bool(..)` box or `Value::Null`: explicit
+     *  `return`s plus the fn's tail expression (after the last top-level `;`/`}`). */
+    hx4R03BodyReturnsBoolNullOnly(body: string): boolean {
+        const masked = this.maskStringsAndComments(body);
+        const inner = masked.slice(1, masked.lastIndexOf('}'));
+        if (/\?\s*[;)}\n]/.test(inner)) return false;
+        for (const r of inner.matchAll(/\breturn\b\s*([^;]*);/g)) {
+            const t = r[1].trim();
+            if (!(t === 'Value::Null' || t === 'crate::Value::Null' ||
+                (/^(?:crate::)?Value::Bool\(/.test(t) && this.closeParenAt(t, t.indexOf('(')) === t.length - 1))) return false;
+        }
+        let depth = 0; let last = -1;
+        for (let i = 0; i < inner.length; i++) {
+            const c = inner[i];
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']') depth -= 1;
+            else if (c === '}') { depth -= 1; if (depth === 0) last = i; }
+            else if (c === ';' && depth === 0) last = i;
+        }
+        const tail = inner.slice(last + 1).trim();
+        // An empty tail may be a value-producing `if`/`match` block: keep the helper.
+        if (tail === 'Value::Null' || tail === 'crate::Value::Null') return true;
+        return /^(?:crate::)?Value::Bool\(/.test(tail) && this.closeParenAt(tail, tail.indexOf('(')) === tail.length - 1;
+    }
+
+    /** Hand-written base fields whose every write in the runtime is a `Value::Bool(..)` box. */
+    hx4R03BoolFields(): Set<string> {
+        const cache = this as any;
+        if (cache._hx4R03BoolFields !== undefined) return cache._hx4R03BoolFields;
+        const out = new Set<string>();
+        let srcs: string[] = [];
+        try {
+            const core = fs.readdirSync(RUST_CORE).filter(f => f.endsWith('.rs') && f !== 'exchange.rs').map(f => `${RUST_CORE}/${f}`);
+            srcs = [`${RUST_CORE}/exchange.rs`, ...core].map(f => this.maskStringsAndComments(fs.readFileSync(f, 'utf8')));
+        } catch {
+            cache._hx4R03BoolFields = out;
+            return out;
+        }
+        const decl = srcs[0];
+        for (const m of decl.matchAll(/^\s*pub ([A-Za-z_][A-Za-z0-9_]*)\s*:\s*Value\s*,/gm)) {
+            const name = m[1];
+            let ok = true; let inits = 0;
+            for (const src of srcs) {
+                // struct-literal init `name: <rhs>,` and assignments `.name = <rhs>;`
+                const re = new RegExp(`(?:^\\s*${name}\\s*:(?!:)|\\.${name}\\s*=(?!=))\\s*([^\\n]*)`, 'gm');
+                for (const w of src.matchAll(re)) {
+                    if (/^\s*pub\s/.test(w[0])) continue;
+                    if (!/^(?:crate::)?Value::Bool\((?:true|false)\)\s*[,;]/.test(w[1].trim())) { ok = false; break; }
+                    inits += 1;
+                }
+                // `&mut self.name` / `get_value_mut(&mut self.name` style writers.
+                if (new RegExp(`&mut\\s+self\\.${name}\\b`).test(src)) ok = false;
+                if (!ok) break;
+            }
+            if (ok && inits > 0 && !this.hx4R03TsWritesField(name)) out.add(name);
+        }
+        cache._hx4R03BoolFields = out;
+        return out;
+    }
+
+    /** A venue source (ts/src, ts/src/pro, ts/src/prediction) assigns `this.<field>`. */
+    hx4R03TsWritesField(field: string): boolean {
+        const re = new RegExp(`\\bthis\\.${field}\\s*=(?!=)`);
+        for (const dir of ['./ts/src', './ts/src/pro', './ts/src/prediction']) {
+            let files: string[] = [];
+            try { files = fs.readdirSync(dir).filter(f => f.endsWith('.ts')); } catch { continue; }
+            for (const f of files) if (re.test(fs.readFileSync(`${dir}/${f}`, 'utf8'))) return true;
+        }
+        return false;
+    }
+
+    /** `crate::precise::Precise::stringX` comparators returning only `Bool(false)` / `vbool(..)`. */
+    hx4R03PreciseBoolFns(): Set<string> {
+        const cache = this as any;
+        if (cache._hx4R03PreciseBoolFns !== undefined) return cache._hx4R03PreciseBoolFns;
+        const out = new Set<string>();
+        try {
+            const src = fs.readFileSync(`${RUST_CORE}/precise.rs`, 'utf8');
+            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &crate::Value, b: &crate::Value\)\s*-> crate::Value \{([^\n]*)\}\s*$/gm)) {
+                const body = m[2].trim();
+                if (/^if Self::any_null\(a, b\) \{ return crate::Value::Bool\(false\); \} Self::vbool\([^;{}]*\)$/.test(body)) out.add(m[1]);
+            }
+            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &crate::Value, b: &crate::Value\)\s*-> crate::Value \{ Self::(string[A-Z][A-Za-z]*)\(a, b\) \}/g)) {
+                if (out.has(m[2])) out.add(m[1]);
+            }
+        } catch { /* precise.rs absent: keep the helper */ }
+        cache._hx4R03PreciseBoolFns = out;
+        return out;
+    }
+
+    /** True when the printed expression can only be a `Value::Bool(..)` / Null box. */
+    hx4R03IsBoolBoxedExpr(raw: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const e = this.stripOuterParens(raw.trim());
+        if (this.isBoolValuedRhs(e)) return true;
+        if (this.hx4X03IsBoolTupleHead(e, content, own, memo)) return true;
+        const field = /^self\.([A-Za-z_][A-Za-z0-9_]*)(?:\.clone\(\))?$/.exec(e);
+        if (field !== null) return this.hx4R03BoolFields().has(field[1]) && this.hx4R03FieldWritesBoxed(content, field[1]);
+        const precise = /^crate::precise::Precise::([A-Za-z]+)\(/.exec(e);
+        if (precise !== null) {
+            return this.closeParenAt(e, precise[0].length - 1) === e.length - 1 && this.hx4R03PreciseBoolFns().has(precise[1]);
+        }
+        const call = /^self\.([a-z_][a-z0-9_]*)\(/.exec(e);
+        if (call === null || this.closeParenAt(e, call[0].length - 1) !== e.length - 1) return false;
+        const name = call[1];
+        if (memo.has(name)) return memo.get(name) as boolean;
+        let ok = false;
+        if (!(name in this.traitMethodSignatures())) {
+            const srcs = own.has(name) ? [content] : (this._rustBoolReturnMethods?.src ?? []);
+            const sigRe = new RegExp(`\\b(async\\s+)?fn\\s+${name}\\s*\\(`, 'g');
+            // Every declaration must be sync and print `-> Value` (a native `bool` has no `.as_bool()`).
+            const asyncDecl = srcs.some(s => [...s.matchAll(sigRe)].some(m => m[1] !== undefined ||
+                !/->\s*(?:crate::)?Value\s*$/.test(s.slice(m.index, m.index + 400).split('{')[0].trim())));
+            const bodies = srcs.flatMap(s => this.rustFnBodies(s, name));
+            ok = !asyncDecl && bodies.length > 0 && bodies.every(b => this.hx4R03BodyReturnsBoolNullOnly(b));
+        }
+        memo.set(name, ok);
+        return ok;
+    }
+
+    /** No write in this file can put a non-bool box in `self.<field>`. */
+    hx4R03FieldWritesBoxed(content: string, field: string): boolean {
+        const masked = this.maskStringsAndComments(content);
+        if (new RegExp(`&mut\\s+self\\.${field}\\b`).test(masked)) return false;
+        for (const w of masked.matchAll(new RegExp(`\\.${field}\\s*=(?!=)\\s*`, 'g'))) {
+            const end = this.endOfRustStatement(masked, w.index + w[0].length);
+            if (end < 0 || !this.isBoolValuedRhs(masked.slice(w.index + w[0].length, end))) return false;
+        }
+        return true;
+    }
+
+    /** Rewrites `is_true(&X)` in a proven bool slot when X is bool-boxed (call/field/local). */
+    hx4R03DropBoolBoxedIsTrue(content: string): string {
+        if (!content.includes('is_true(&')) return content;
+        // Prime the base-source cache shared with the D-32 call fold.
+        this.rustEmittedBoolReturnMethods(content, []);
+        const masked = this.maskStringsAndComments(content);
+        const own = new Set<string>();
+        for (const om of masked.matchAll(/\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g)) own.add(om[1]);
+        const memo = new Map<string, boolean>();
+        const headers: number[] = [];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.unshift(0);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const region = masked.slice(from, headers[h + 1]);
+            const localOk = new Map<string, boolean>();
+            const provenLocal = (name: string): boolean => {
+                if (localOk.has(name)) return localOk.get(name) as boolean;
+                let ok = false;
+                const decls = [...region.matchAll(new RegExp(`let (?:mut )?${name}\\b(\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
+                if (decls.length === 1 && decls[0][1] !== undefined &&
+                    !new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(region) &&
+                    !new RegExp(`(?:for|if let|while let)\\s+${name}\\s+(?:in|=)`).test(region) &&
+                    !new RegExp(`&mut\\s+${name}\\b`).test(region) &&
+                    !new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)=`).test(region) &&
+                    // Pattern bindings (`Some(x) =>`) and in-place methods can swap the variant.
+                    !new RegExp(`\\b${name}\\s*\\)\\s*(?:=>|if\\b)`).test(region) &&
+                    !new RegExp(`(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`).test(region)) {
+                    const initAt = (decls[0].index as number) + decls[0][0].length;
+                    const initEnd = this.endOfRustStatement(region, initAt);
+                    ok = initEnd >= 0 && this.hx4R03IsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo);
+                    for (const w of ok ? region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=(?!=)\\s*`, 'g')) : []) {
+                        const rhsAt = (w.index as number) + w[0].length;
+                        const end = this.endOfRustStatement(region, rhsAt);
+                        const rhs = end < 0 ? '' : content.slice(from + rhsAt, from + end);
+                        if (end < 0 || !this.hx4R03IsBoolBoxedExpr(rhs, content, own, memo)) { ok = false; break; }
+                    }
+                }
+                localOk.set(name, ok);
+                return ok;
+            };
+            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_true\(&/g)) {
+                const start = from + (sm.index as number);
+                const open = start + 'is_true('.length - 1;
+                const close = this.closeParenAt(content, open);
+                if (close < 0 || close >= headers[h + 1]) continue;
+                const end = close + 1;
+                if (/^\s*\./.test(content.slice(end, end + 4))) continue;
+                // A compare after the site would chain with the emitted `==`.
+                if (/^\s*(?:==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+                // A left operand of `&&`/`||` is a bool slot too.
+                const lead = content.slice(Math.max(0, start - 12), start);
+                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+                if (slot === undefined) continue;
+                const inner = this.stripOuterParens(content.slice(open + 2, close).trim());
+                const ident = /^[A-Za-z_][A-Za-z0-9_]*$/.test(inner);
+                // A read before the sole `let` names a parameter / outer binding.
+                const declAt = ident ? region.search(new RegExp(`let (?:mut )?${inner}\\b`)) : -1;
+                if (ident && (declAt < 0 || declAt > (sm.index as number))) continue;
+                if (ident ? !provenLocal(inner) : !this.hx4R03IsBoolBoxedExpr(inner, content, own, memo)) continue;
+                const cmp = `${inner}.as_bool() == Some(true)`;
+                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 X03 — element 0 of a tuple returned by a sync `self.m(..)` whose every
+    // return is `Value::from(vec![<bool-boxed head>, ..])` or Null (handleOptionBoolAndParams[2]).
+
+    /** `R.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)` with R a proven tuple call or tuple local. */
+    hx4X03IsBoolTupleHead(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const suffix = '.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)';
+        if (!e.endsWith(suffix)) return false;
+        const recv = e.slice(0, e.length - suffix.length).trim();
+        if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(recv)) {
+            // Every `let` of the tuple local in this file binds a proven call; no other write.
+            const masked = this.maskStringsAndComments(content);
+            if (new RegExp(`&mut\\s+${recv}\\b|(?<![A-Za-z0-9_.])(?<!let (?:mut )?)${recv}\\s*=(?!=)|\\|[^|\\n]*\\b${recv}\\b[^|\\n]*\\||(?:for|if let|while let)\\s+${recv}\\s`).test(masked)) return false;
+            const decls = [...masked.matchAll(new RegExp(`let (?:mut )?${recv}(?:\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
+            if (decls.length === 0) return false;
+            for (const d of decls) {
+                const at = (d.index as number) + d[0].length;
+                const end = this.endOfRustStatement(masked, at);
+                if (end < 0 || !this.hx4X03IsBoolTupleCall(content.slice(at, end).trim(), content, own, memo)) return false;
+            }
+            return true;
+        }
+        return this.hx4X03IsBoolTupleCall(recv, content, own, memo);
+    }
+
+    /** `self.m(..)` (whole expression) where m is sync, prints `-> Value`, and only returns bool-headed tuples / Null. */
+    hx4X03IsBoolTupleCall(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const call = /^self\.([a-z_][a-z0-9_]*)\(/.exec(e);
+        if (call === null || this.closeParenAt(e, call[0].length - 1) !== e.length - 1) return false;
+        const key = `tuple:${call[1]}`;
+        if (memo.has(key)) return memo.get(key) as boolean;
+        memo.set(key, false);
+        let ok = false;
+        if (!(call[1] in this.traitMethodSignatures())) {
+            const srcs = own.has(call[1]) ? [content] : (this._rustBoolReturnMethods?.src ?? []);
+            const sigRe = new RegExp(`\\b(async\\s+)?fn\\s+${call[1]}\\s*\\(`, 'g');
+            const badDecl = srcs.some(s => [...s.matchAll(sigRe)].some(m => m[1] !== undefined ||
+                !/->\s*(?:crate::)?Value\s*$/.test(s.slice(m.index, m.index + 400).split('{')[0].trim())));
+            const bodies = srcs.flatMap(s => this.rustFnBodies(s, call[1]));
+            ok = !badDecl && bodies.length > 0 && bodies.every(b => this.hx4X03BodyReturnsBoolTuples(b, content, own, memo));
+        }
+        memo.set(key, ok);
+        return ok;
+    }
+
+    /** Every explicit return is `Value::from(vec![H, ..])` (H bool-boxed) or Null; the tail is Null. */
+    hx4X03BodyReturnsBoolTuples(body: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const masked = this.maskStringsAndComments(body);
+        const inner = masked.slice(1, masked.lastIndexOf('}'));
+        if (/\?\s*[;)}\n]/.test(inner)) return false;
+        let returns = 0;
+        for (const r of inner.matchAll(/\breturn\b\s*([^;]*);/g)) {
+            const at = (r.index as number) + r[0].length - r[1].length - 1;
+            const t = body.slice(1 + at, 1 + at + r[1].length).trim();
+            if (t === 'Value::Null' || t === 'crate::Value::Null') continue;
+            const head = /^(?:crate::)?Value::from\(vec!\[/.exec(t);
+            if (head === null || !t.endsWith('])')) return false;
+            const parts = this.splitTopLevelCommas(t.slice(head[0].length, t.length - 2));
+            if (parts.length < 2 || !this.hx4R03IsBoolBoxedExpr(parts[0], content, own, memo)) return false;
+            returns += 1;
+        }
+        const lastStmt = Math.max(inner.lastIndexOf(';'), inner.lastIndexOf('}'));
+        const tail = inner.slice(lastStmt + 1).trim();
+        return returns > 0 && (tail === 'Value::Null' || tail === 'crate::Value::Null');
+    }
+
+    // hx4 R19 — `is_equal(&X, &Value::Bool(b))` -> `X.as_bool() == Some(b)` when X can only hold
+    // `Value::Bool(..)` / `Value::Null` (R03 proof): Bool compares by payload, Null never equals a Bool.
+
+    /** R03's local proof for `name` inside one fn region (single typed `let`, every write bool-boxed). */
+    hx4R19BoolBoxedLocal(name: string, region: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const decls = [...region.matchAll(new RegExp(`let (?:mut )?${name}\\b(\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
+        if (decls.length !== 1 || decls[0][1] === undefined) return false;
+        const vetoes = [
+            `\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`,
+            `(?:for|if let|while let)\\s+${name}\\s+(?:in|=)`,
+            `&mut\\s+${name}\\b`,
+            `(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)=`,
+            `\\b${name}\\s*\\)\\s*(?:=>|if\\b)`,
+            `(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`,
+        ];
+        if (vetoes.some(v => new RegExp(v).test(region))) return false;
+        const initAt = (decls[0].index as number) + decls[0][0].length;
+        const initEnd = this.endOfRustStatement(region, initAt);
+        if (initEnd < 0 || !this.hx4R03IsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo)) return false;
+        for (const w of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=(?!=)\\s*`, 'g'))) {
+            const rhsAt = (w.index as number) + w[0].length;
+            const end = this.endOfRustStatement(region, rhsAt);
+            const rhs = end < 0 ? '' : content.slice(from + rhsAt, from + end);
+            if (end < 0 || !(this.hx4R03IsBoolBoxedExpr(rhs, content, own, memo) ||
+                this.hx4R19DestrTmpBoolHead(rhs, region.slice(0, w.index as number), from, content, own, memo))) return false;
+        }
+        return true;
+    }
+
+    /** `__destr_tmp.as_array()..get(0)..` whose nearest preceding `let __destr_tmp = C;` binds a proven bool-tuple call C. */
+    hx4R19DestrTmpBoolHead(rhs: string, before: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const m = /^(__destr_tmp[A-Za-z0-9_]*)\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\(0\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
+        if (m === null) return false;
+        const decls = [...before.matchAll(new RegExp(`let (?:mut )?${m[1]}\\s*=\\s*`, 'g'))];
+        if (decls.length === 0) return false;
+        const d = decls[decls.length - 1];
+        const at = (d.index as number) + d[0].length;
+        const end = this.endOfRustStatement(before, at);
+        if (end < 0 || new RegExp(`(?<![A-Za-z0-9_.])${m[1]}\\s*=(?!=)`).test(before.slice(end))) return false;
+        return this.hx4X03IsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
+    }
+
+    /** Rewrites `is_equal(&X, &Value::Bool(b))` in a proven bool slot when X is bool-boxed. */
+    hx4R19NativeBoolEquals(content: string): string {
+        if (!content.includes('is_equal(&') && !content.includes('is_true(&')) return content;
+        this.rustEmittedBoolReturnMethods(content, []);
+        const masked = this.maskStringsAndComments(content);
+        const own = new Set<string>();
+        for (const om of masked.matchAll(/\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g)) own.add(om[1]);
+        const memo = new Map<string, boolean>();
+        const headers: number[] = [0];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const region = masked.slice(from, headers[h + 1]);
+            const localOk = new Map<string, boolean>();
+            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_(?:equal|true)\(&/g)) {
+                const start = from + (sm.index as number);
+                const isTrue = sm[0].startsWith('is_true');
+                const open = start + (isTrue ? 'is_true(' : 'is_equal(').length - 1;
+                const close = this.closeParenAt(content, open);
+                if (close < 0 || close >= headers[h + 1]) continue;
+                const end = close + 1;
+                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+                const args = isTrue ? [content.slice(open + 1, close), '&Value::Bool(true)'] : this.splitTopLevelCommas(content.slice(open + 1, close));
+                if (args.length !== 2) continue;
+                const lit = /^&(?:crate::)?Value::Bool\((true|false)\)$/.exec(args[1].trim());
+                if (lit === null || !args[0].trim().startsWith('&')) continue;
+                // `is_true` sites over non-locals stay with R03 (already rewritten when proven).
+                if (isTrue && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(this.stripOuterParens(args[0].trim().slice(1).trim()))) continue;
+                const lead = content.slice(Math.max(0, start - 12), start);
+                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+                if (slot === undefined) continue;
+                const inner = this.stripOuterParens(args[0].trim().slice(1).trim());
+                if (inner.includes('is_equal(')) continue;
+                if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(inner)) {
+                    const declAt = region.search(new RegExp(`let (?:mut )?${inner}\\b`));
+                    if (declAt < 0 || declAt > (sm.index as number)) continue;
+                    if (!localOk.has(inner)) localOk.set(inner, this.hx4R19BoolBoxedLocal(inner, region, from, content, own, memo));
+                    if (!localOk.get(inner)) continue;
+                } else if (!this.hx4R03IsBoolBoxedExpr(inner, content, own, memo)) continue;
+                const recv = /^[A-Za-z_][A-Za-z0-9_.]*$/.test(inner) ? inner : `(${inner})`;
+                const cmp = `${recv}.as_bool() == Some(${lit[1]})`;
+                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    /** A printed expression that is a native Rust `bool`: `&&`/`||`/`!` over `X.as_str().is_some_and(|__s| __s.starts_with|ends_with("lit"))`
+     *  and `X.as_bool() == Some(b)` atoms (`is_true` on a `bool` is the identity). */
+    hx4R19IsNativeBoolExpr(raw: string, depth = 0): boolean {
+        const e = this.stripOuterParens(raw.trim());
+        if (depth > 6 || e === '') return false;
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.as_str\(\)\.is_some_and\(\|__s\| __s\.(?:starts_with|ends_with)\("(?:[^"\\]|\\.)*"\)\)$/.test(e)) return true;
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.as_bool\(\) == Some\((?:true|false)\)$/.test(e)) return true;
+        const parts: string[] = [];
+        let d = 0; let startAt = 0;
+        for (let i = 0; i < e.length; i++) {
+            const c = e[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(e, i) - 1; continue; }
+            if (c === '(' || c === '[' || c === '{') d += 1;
+            else if (c === ')' || c === ']' || c === '}') d -= 1;
+            else if (d === 0 && (e.startsWith('||', i) || e.startsWith('&&', i)) && e[i - 1] === ' ') {
+                parts.push(e.slice(startAt, i)); startAt = i + 2; i += 1;
+            }
+        }
+        parts.push(e.slice(startAt));
+        if (parts.length > 1) return parts.every(pt => this.hx4R19IsNativeBoolExpr(pt, depth + 1));
+        if (e.startsWith('!') && e[1] === '(') return this.hx4R19IsNativeBoolExpr(e.slice(1), depth + 1);
+        return false;
+    }
+
+    /** `is_true(&(E))` with E a native bool expression in a proven bool slot -> `(E)`. */
+    hx4R19NativeBoolIsTrue(content: string): string {
+        if (!content.includes('is_true(&(')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:])is_true\(&\(/g)) {
+            const start = sm.index as number;
+            const open = start + 'is_true('.length - 1;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const end = close + 1;
+            if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+            const lead = content.slice(Math.max(0, start - 12), start);
+            const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                 /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+            if (slot === undefined) continue;
+            const inner = content.slice(open + 2, close).trim();
+            if (!inner.startsWith('(') || !this.hx4R19IsNativeBoolExpr(inner)) continue;
+            rewrites.push({ start, end, text: `(${this.stripOuterParens(inner)})` });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R24 — `is_true(&p)` -> `p.as_bool() == Some(true)` for a never-reassigned parameter
+    // whose every TS caller passes `true`/`false`/`undefined`/omits it (or forwards a parameter
+    // proven the same way), so its Value is only ever `Bool(..)` or Null.
+
+    private hx4R24Ts: { files: string[], heads: Array<{ file: number, at: number, end: number, name: string, params: Array<[string, string | undefined]> }> } | undefined;
+
+    /** Method headers of every ts/src source (venues, pro, prediction, base, tests). */
+    hx4R24TsIndex() {
+        if (this.hx4R24Ts !== undefined) return this.hx4R24Ts;
+        const files: string[] = [];
+        const walk = (dir: string) => {
+            let entries: fs.Dirent[] = [];
+            try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+            for (const e of entries) {
+                if (e.isDirectory()) walk(`${dir}/${e.name}`);
+                else if (e.name.endsWith('.ts')) files.push(fs.readFileSync(`${dir}/${e.name}`, 'utf8'));
+            }
+        };
+        walk('./ts/src');
+        const heads: any[] = [];
+        const re = /\n[ \t]+(?:(?:override|async|public|private|protected|static)\s+)*([A-Za-z_]\w*)\s*\(([^()]*)\)\s*(?::[^{;]*)?\{/g;
+        files.forEach((text, file) => {
+            const own: any[] = [];
+            for (const m of text.matchAll(re)) {
+                if (/^(?:if|for|while|switch|catch|function|return)$/.test(m[1])) continue;
+                const params: Array<[string, string | undefined]> = [];
+                for (const raw of m[2].split(',')) {
+                    const p = /^\s*(\w+)\s*\??\s*(?::[^=]*)?(?:=\s*(.*?))?\s*$/s.exec(raw);
+                    if (p !== null) params.push([p[1], p[2]]);
+                }
+                own.push({ file, at: m.index as number, end: text.length, name: m[1], params });
+            }
+            for (let i = 0; i + 1 < own.length; i++) own[i].end = own[i + 1].at;
+            heads.push(...own);
+        });
+        this.hx4R24Ts = { files, heads };
+        return this.hx4R24Ts;
+    }
+
+    /** Top-level comma-split argument list starting after a `(`; undefined when unbalanced. */
+    hx4R24Args(text: string, from: number): string[] | undefined {
+        const out: string[] = []; let depth = 0; let cur = '';
+        for (let i = from; i < text.length; i++) {
+            const c = text[i];
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') {
+                if (depth === 0) { if (cur.trim() !== '') out.push(cur.trim()); return out; }
+                depth -= 1;
+            }
+            if (c === ',' && depth === 0) { out.push(cur.trim()); cur = ''; } else cur += c;
+        }
+        return undefined;
+    }
+
+    private hx4R24Memo = new Map<string, boolean>();
+
+    /** Every value the TS parameter `param` of every `method` declaration can receive is a bool or nullish. */
+    hx4R24BoolOnlyParam(method: string, param: string, stack: Set<string> = new Set()): boolean {
+        const key = `${method}:${param}`;
+        if (this.hx4R24Memo.has(key)) return this.hx4R24Memo.get(key) as boolean;
+        if (stack.has(key)) return true; // a self-forward adds no new value
+        stack.add(key);
+        const { files, heads } = this.hx4R24TsIndex();
+        let ok = true;
+        const slots = new Set<number>();
+        for (const h of heads) {
+            if (h.name !== method) continue;
+            const i = h.params.findIndex(p => p[0] === param);
+            if (i < 0) { ok = false; break; }
+            slots.add(i);
+            const d = h.params[i][1];
+            if (d !== undefined && !/^(?:true|false|undefined)$/.test(d.trim())) { ok = false; break; }
+        }
+        if (slots.size !== 1) ok = false;
+        const slot = [...slots][0];
+        if (ok && !this.hx4R27StaticInputsBool(method, slot)) ok = false;
+        for (let f = 0; ok && f < files.length; f++) {
+            const text = files[f];
+            // Dynamic dispatch (`this[name]`, option-named methods) and unbound references.
+            if (!this.hx4R27MentionsSafe(method, f) || new RegExp(`\\.${method}\\b(?!\\s*\\()`).test(text)) { ok = false; break; }
+            for (const c of text.matchAll(new RegExp(`\\.${method}\\s*\\(`, 'g'))) {
+                const args = this.hx4R24Args(text, (c.index as number) + c[0].length);
+                if (args === undefined || args.some(a => a.startsWith('...'))) { ok = false; break; }
+                if (args.length <= slot) continue;
+                const arg = args[slot];
+                if (/^(?:true|false|undefined)$/.test(arg)) continue;
+                const encl = heads.filter(h => h.file === f && h.at < (c.index as number)).pop();
+                const body = encl === undefined ? '' : text.slice(encl.at, encl.end);
+                if (encl !== undefined && /^\w+$/.test(arg) && encl.params.some(p => p[0] === arg)
+                    && !new RegExp(`(?<![\\w.])${arg}\\s*(?:[-+*/%|&^]|\\?\\?|\\|\\||&&)?=(?!=)`).test(body.slice(body.indexOf('{')))
+                    && this.hx4R24BoolOnlyParam(encl.name, arg, stack)) continue;
+                ok = false; break;
+            }
+        }
+        stack.delete(key);
+        this.hx4R24Memo.set(key, ok);
+        return ok;
+    }
+
+    // hx4 R27 — a quoted method name only vetoes the R24 proof when it can reach dynamic dispatch:
+    // object keys, non-call indexes and args of non-dispatching `this.f(` calls are inert.
+    // Static request/response/ws fixtures call methods by name, so their inputs must be bool/null.
+    private hx4R27Dispatchers: Set<string> | undefined;
+
+    hx4R27MentionsSafe(method: string, file: number): boolean {
+        const { files, heads } = this.hx4R24TsIndex();
+        if (this.hx4R27Dispatchers === undefined) {
+            const disp = new Set<string>();
+            const fwd: Array<{ name: string, callees: string[] }> = [];
+            for (const h of heads) {
+                const body = files[h.file].slice(h.at, h.end).replace(/\/\/[^\n]*/g, '');
+                if (/(?:this|exchange)\s*\[\s*\w+\s*\]\s*\(/.test(body)) disp.add(h.name);
+                const callees: string[] = [];
+                for (const c of body.matchAll(/this\.(\w+)\s*\(/g)) {
+                    const args = this.hx4R24Args(body, (c.index as number) + c[0].length) ?? [];
+                    if (args.some(a => h.params.some(p => p[0] === a))) callees.push(c[1]);
+                }
+                if (callees.length > 0) fwd.push({ name: h.name, callees });
+            }
+            // a method forwarding one of its own parameters into a dispatcher dispatches too
+            for (let grew = true; grew;) {
+                grew = false;
+                for (const f of fwd) {
+                    if (!disp.has(f.name) && f.callees.some(c => disp.has(c))) { disp.add(f.name); grew = true; }
+                }
+            }
+            this.hx4R27Dispatchers = disp;
+        }
+        const text = files[file];
+        for (const m of text.matchAll(new RegExp(`['"\`]${method}['"\`]`, 'g'))) {
+            const at = m.index as number;
+            const after = text.slice(at + m[0].length, at + m[0].length + 8);
+            const before = text.slice(Math.max(0, at - 160), at);
+            const lineStart = before.lastIndexOf('\n');
+            if (/^\s*\/\//.test(before.slice(lineStart + 1))) continue;
+            if (/^\s*:/.test(after) && !/\?\s*$/.test(before)) continue;
+            if (/\[\s*$/.test(before) && /^\s*\](?!\s*\()/.test(after)) continue;
+            const call = /this\.(\w+)\s*\(([^()]|\([^()]*\))*$/.exec(before);
+            if (call !== null && !this.hx4R27Dispatchers.has(call[1]) && /^\s*[,)]/.test(after)) continue;
+            return false;
+        }
+        return true;
+    }
+
+    private hx4R27Static: any[] | undefined;
+
+    hx4R27StaticInputsBool(method: string, slot: number): boolean {
+        if (this.hx4R27Static === undefined) {
+            this.hx4R27Static = [];
+            for (const kind of ['request', 'response', 'ws']) {
+                const dir = `./ts/src/test/static/${kind}`;
+                let names: string[] = [];
+                try { names = fs.readdirSync(dir).filter(n => n.endsWith('.json')); } catch { continue; }
+                for (const n of names) {
+                    try { this.hx4R27Static.push(JSON.parse(fs.readFileSync(`${dir}/${n}`, 'utf8'))); } catch { this.hx4R27Static.push(undefined); }
+                }
+            }
+        }
+        for (const d of this.hx4R27Static) {
+            if (d === undefined) return false; // unreadable fixture: assume the worst
+            const cases = d?.methods?.[method];
+            if (cases === undefined) continue;
+            for (const c of cases) {
+                const input = c?.input;
+                if (input === undefined || input === null) continue;
+                if (!Array.isArray(input)) return false;
+                const v = input[slot];
+                if (v !== undefined && v !== null && typeof v !== 'boolean') return false;
+            }
+        }
+        return true;
+    }
+
+    /** Snake-case fns the hand-written runtime calls (their callers are outside ts/src). */
+    private hx4R24Hand: string | undefined;
+
+    hx4R24BoolParamIsTrue(content: string): string {
+        if (!content.includes('is_true(&')) return content;
+        if (this.hx4R24Hand === undefined) {
+            const parts: string[] = [];
+            const walk = (dir: string) => {
+                let entries: fs.Dirent[] = [];
+                try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+                for (const e of entries) {
+                    if (e.isDirectory()) walk(`${dir}/${e.name}`);
+                    else if (e.name.endsWith('.rs') && !e.name.includes('generated')) parts.push(fs.readFileSync(`${dir}/${e.name}`, 'utf8'));
+                }
+            };
+            walk(RUST_CORE);
+            this.hx4R24Hand = parts.join('\n');
+        }
+        const hand = this.hx4R24Hand;
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const region = masked.slice(from, headers[h + 1]);
+            const fm = /fn ([a-z_][a-z0-9_]*)\s*\(/.exec(region);
+            const brace = region.indexOf('{');
+            if (fm === null || brace < 0) continue;
+            const snake = fm[1];
+            const header = region.slice(0, brace);
+            const body = region.slice(brace);
+            if (new RegExp(`\\b${snake}\\s*\\(`).test(hand)) continue;
+            const method = snake.replace(/_([a-z0-9])/g, (_m, c) => c.toUpperCase());
+            const proven = new Map<string, boolean>();
+            const isParam = (name: string): boolean => {
+                if (proven.has(name)) return proven.get(name) as boolean;
+                const declared = new RegExp(`\\bmut ${name}: Value\\b`).test(header)
+                    || new RegExp(`let mut ${name} = get_arg\\(optional_args, \\d+, Value::(?:Bool\\((?:true|false)\\)|Null)\\);`).test(body);
+                const ok = declared
+                    && (body.match(new RegExp(`\\blet (?:mut )?${name}\\b`, 'g')) ?? []).length <= 1
+                    && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)?=(?!=)`).test(body.replace(/let mut \w+ = get_arg\(/g, ''))
+                    && !new RegExp(`&mut\\s+${name}\\b`).test(body)
+                    && !new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(body)
+                    && !new RegExp(`(?:for|if let|while let)\\s+[^=]*\\b${name}\\b[^=]*\\s+(?:in|=)`).test(body)
+                    && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`).test(body)
+                    && this.hx4R24BoolOnlyParam(method, name);
+                proven.set(name, ok);
+                return ok;
+            };
+            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_true\(&([A-Za-z_][A-Za-z0-9_]*)\)/g)) {
+                const start = from + (sm.index as number);
+                const end = start + sm[0].length;
+                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+                const lead = content.slice(Math.max(0, start - 12), start);
+                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+                if (slot === undefined || !isParam(sm[1])) continue;
+                const cmp = `${sm[1]}.as_bool() == Some(true)`;
+                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R25 — `is_equal(&X, &Value::Bool|Int(lit))` / `&Value::Str("<number>")` prints the helper's
+    // dispatch inline: same-variant payload compare, else the f64 coercion (Int/Float, Str parse, Bool 1/0).
+    hx4R25InlineLiteralIsEqual(content: string): string {
+        if (!content.includes('is_equal(&')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const loose = '(match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })';
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:])is_equal\(&/g)) {
+            const start = sm.index as number;
+            const open = start + 'is_equal'.length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const args = this.splitTopLevelCommas(content.slice(open + 1, close));
+            if (args.length !== 2 || !args[0].trim().startsWith('&')) continue;
+            const x = args[0].trim().slice(1).trim();
+            if (x.includes('is_equal(') || x.includes('\n')) continue;
+            const lit = args[1].trim();
+            let same: string | undefined;
+            let f64: string | undefined;
+            const b = /^&(?:crate::)?Value::Bool\((true|false)\)$/.exec(lit);
+            const n = /^&(?:crate::)?Value::Int\((-?[0-9]{1,15})\)$/.exec(lit);
+            const t = /^&(?:crate::)?Value::Str\("(-?[0-9]{1,15})"\.into\(\)\)$/.exec(lit);
+            if (b !== null) { same = `Value::Bool(__x) => *__x == ${b[1]}`; f64 = b[1] === 'true' ? '1.0' : '0.0'; }
+            else if (n !== null) { same = `Value::Int(__x) => *__x == ${n[1]}`; f64 = `${n[1]}.0`; }
+            else if (t !== null) { same = `Value::Str(__x) => __x == "${t[1]}"`; f64 = `${t[1]}.0`; }
+            if (same === undefined) continue;
+            rewrites.push({ start, end: close + 1, text: `(match &(${x}) { ${same}, __v => matches!(${loose}, Some(__y) if __y == ${f64}) })` });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R28 — last pass: `is_equal(&A, &B)` prints `runtime::is_equal`'s own match inline; `is_true(&E)`
+    // (hx5 X38) stays the helper unless E is a proven bool:
+    // `(E)` when E is a top-level bool expression, a `: bool` local or a `-> bool` callee; else the helper stays.
+    private _r28Rets: Map<string, Set<string>> | null = null;
+    private r28Rets(content: string): Map<string, Set<string>> {
+        const scan = (src: string, into: Map<string, Set<string>>) => {
+            for (const m of src.matchAll(/\bfn ([a-z_][a-z0-9_]*)\s*(?:<[^>]*>)?\(([^)]*)\)\s*(?:->\s*([A-Za-z_][A-Za-z0-9_:<>]*))?/g)) {
+                const set = into.get(m[1]) ?? new Set<string>();
+                set.add(m[3] ?? '()');
+                into.set(m[1], set);
+            }
+        };
+        if (this._r28Rets === null) {
+            const base = new Map<string, Set<string>>();
+            const dirs = [`${RUST_BASE}/exchanges`, `${RUST_BASE}/prediction`, './rust/ccxt-common/src', './rust/ccxt-pro/src/pro', './rust/ccxt-pro/src'];
+            for (const d of dirs) {
+                if (!fs.existsSync(d)) continue;
+                for (const f of fs.readdirSync(d)) if (f.endsWith('.rs')) scan(fs.readFileSync(`${d}/${f}`, 'utf8'), base);
+            }
+            this._r28Rets = base;
+        }
+        const out = new Map<string, Set<string>>();
+        for (const [k, v] of this._r28Rets) out.set(k, new Set(v));
+        scan(content, out);
+        return out;
+    }
+
+    private _r28Fields: Set<string> | null = null;
+    private r28Fields(): Set<string> {
+        if (this._r28Fields === null) {
+            const f = './rust/ccxt-common/src/exchange.rs';
+            const src = fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+            const at = src.indexOf('pub struct Exchange {');
+            const body = at < 0 ? '' : src.slice(at, src.indexOf('\n}', at));
+            this._r28Fields = new Set([...body.matchAll(/^\s*pub ([A-Za-z_][A-Za-z0-9_]*):\s*Value,/gm)].map(m => m[1]));
+        }
+        return this._r28Fields;
+    }
+
+    private r28BoolExpr(e: string): boolean {
+        let depth = 0;
+        for (let i = 0; i < e.length; i++) {
+            const c = e[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(e, i) - 1; continue; }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') depth--;
+            else if (depth === 0) {
+                const two = e.slice(i, i + 2);
+                if (two === '&&' || two === '||' || two === '==' || two === '!=' || two === '>=' || two === '<=') return true;
+                if ((c === '<' || c === '>') && e[i - 1] === ' ' && e[i + 1] === ' ') return true;
+            }
+        }
+        return false;
+    }
+
+    r28Truth(content: string): string {
+        if (!content.includes('is_true(&') && !content.includes('is_equal(&')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [0];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const regionOf = (pos: number): [number, number] => {
+            let lo = 0;
+            for (let h = 0; h + 1 < headers.length; h++) if (headers[h] <= pos) lo = h;
+            return [headers[lo], headers[lo + 1]];
+        };
+        const identType = (name: string, pos: number): 'Value' | 'bool' | undefined => {
+            const [from, to] = regionOf(pos);
+            const region = masked.slice(from, to);
+            const types = new Set<string>();
+            const header = region.slice(0, Math.max(0, region.indexOf('{')));
+            const pm = new RegExp(`\\b(?:mut )?${name}:\\s*([A-Za-z_][A-Za-z0-9_<>]*)`).exec(header);
+            if (pm !== null) types.add(pm[1]);
+            for (const m of region.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b\\s*(:\\s*([A-Za-z_][A-Za-z0-9_<>]*))?\\s*=\\s*(get_arg\\()?`, 'g'))) {
+                if (m[2] !== undefined) types.add(m[2]);
+                else if (m[3] !== undefined) types.add('Value');
+                else types.add('?');
+            }
+            const rebind = new RegExp(`(?<!\\|)\\|(?!\\|)[^|\\n]*\\b${name}\\b[^|\\n]*(?<!\\|)\\|(?!\\|)|\\bfor [^\\n]*\\b${name}\\b[^\\n]* in |Some\\((?:mut )?${name}\\)|Err\\((?:mut )?${name}\\)|\\blet \\([^)]*\\b${name}\\b`);
+            if (rebind.test(region) || types.size !== 1) return undefined;
+            const t = [...types][0];
+            return t === 'Value' ? 'Value' : t === 'bool' ? 'bool' : undefined;
+        };
+        let fnReturns: Map<string, Set<string>> | null = null;
+        const fields = this.r28Fields();
+        const helperRe = /(?<![A-Za-z0-9_:.])is_(?:equal|true)\(/;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:.])(is_true|is_equal)\(&/g)) {
+            const start = sm.index as number;
+            const open = start + sm[1].length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const inner = content.slice(open + 1, close);
+            if (sm[1] === 'is_equal') {
+                const args = this.splitTopLevelCommas(inner);
+                if (args.length !== 2) continue;
+                const a = args[0].trim(); const b = args[1].trim();
+                if (!a.startsWith('&') || !b.startsWith('&') || helperRe.test(a + b)) continue;
+                this._x37Src = content;
+                const eq = this.x37Eq(a.slice(1).trim(), b.slice(1).trim(), masked, regionOf(start)); // hx5 X37
+                if (eq !== undefined) rewrites.push({ start, end: close + 1, text: eq });
+                continue;
+            }
+            const e0 = inner.slice(1).trim();
+            if (helperRe.test(e0)) continue;
+            const e = this.stripOuterParens(e0).trim();
+            let text: string | undefined;
+            if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
+                const t = identType(e, start);
+                // hx5 X38: a `Value` local is not a proven bool -> helper stays,
+                // unless its only binding is a `Value::Bool(..)` box never reassigned.
+                if (t === 'bool') text = e;
+                else if (t === 'Value' && this.x38BoolBoxedLocal(masked.slice(...regionOf(start)), e)) text = `${e}.as_bool() == Some(true)`;
+            } else if (/^self\.[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
+                // hx5 X38: base `Value` fields are not proven bools -> `is_true(&self.f)` stays.
+            } else if (this.r28BoolExpr(e)) {
+                text = `(${e})`;
+            } else {
+                const cm = /^(?:self\.(?:parent\.)?)?([a-z_][a-z0-9_]*)\(/.exec(e);
+                if (cm !== null && this.closeParenAt(e, cm[0].length - 1) === e.length - 1) {
+                    fnReturns ??= this.r28Rets(content);
+                    const rets = fnReturns.get(cm[1]);
+                    // hx5 X38: `-> Value` callees keep the helper; only `-> bool` is native.
+                    if (rets !== undefined && rets.size === 1 && rets.has('bool')) text = `(${e})`;
+                }
+            }
+            if (text !== undefined) rewrites.push({ start, end: close + 1, text });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R29 — `in_op` / `object_keys` / `get_array_length` / `remove` print the runtime fn's own
+    // dispatch inline (public `Value::len`, `value::side_entries_as_value`, `ws_client::value_subs_remove`).
+    // Not for rust/tests (no `crate::value`); innermost-first so nested calls rewrite too.
+    hx4R29InlineCollectionHelpers(content: string): string {
+        const names = [ 'in_op', 'object_keys', 'remove' ]; // hx5 X35
+        if (!names.some(n => content.includes(n + '('))) return content;
+        const build = (name: string, args: string[]): string | undefined => {
+            const a = args.map(s => s.trim());
+            // hx5 X33 — in_op: no inline `match`. Native `contains_key` only on a local declared as a
+            // concrete map (`Arc<IndexMap<String, Value>>` / `IndexMap<String, Value>`) with a literal
+            // string key; every other site keeps the `in_op(..)` helper call (Null / non-map / array).
+            if (name === 'in_op') return hx5X33InOp(a, content);
+            // hx5 X34 — no inline `match` for `object_keys`: every generated receiver is a `Value` (no
+            // typed map binding exists), and the runtime fn also drops the `__ws_subs_url`/`__ws_sub_ref`
+            // tags, so no site is proven; `runtime::object_keys(..)` stays exactly as master emitted it.
+            if (name === 'object_keys') return undefined;
+            // hx5 X35 — no inline `get_array_length` match: the call text is left untouched, so an
+            // unproven operand keeps master's helper call (`Value::len` counts chars, and the helper also
+            // unwraps book/cache/side markers, so no plain `.len()` on a `&Value` matches it).
+            // hx5 X36 — `remove` is never inlined. Every generated receiver is a `Value` (no typed
+            // `IndexMap` local exists in emitted Rust), so no site proves a plain map and the native
+            // `shift_remove` would also skip `try_ws_subs_remove`; `remove(...)` stays the helper call.
+            if (name === 'remove') return undefined;
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|remove)\(/g; // hx5 X35: get_array_length dropped
+        // Repeat until no rewrite applies: each round replaces calls whose args hold no further helper call.
+        for (let round = 0; round < 8; round++) {
+            const masked = this.maskStringsAndComments(content);
+            const rewrites: Array<{ start: number, end: number, text: string }> = [];
+            for (const m of masked.matchAll(re)) {
+                const start = m.index as number;
+                const name = m[1];
+                // `fn remove(` declarations / `.remove(` methods never match (lookbehind + `fn ` check).
+                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+                const open = start + name.length;
+                const close = this.closeParenAt(content, open);
+                if (close < 0) continue;
+                const inner = content.slice(open + 1, close);
+                // hx5 X33: a retained `in_op(` helper call inside the args no longer blocks the outer rewrite.
+                // hx5 X35: get_array_length is no longer rewritten by this pass, so it never blocks either.
+                if (/(?<![A-Za-z0-9_:.])(object_keys|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
+                const text = build(name, this.splitTopLevelCommas(inner));
+                if (text === undefined) continue;
+                if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
+                rewrites.push({ start, end: close + 1, text });
+            }
+            if (rewrites.length === 0) break;
+            let out = ''; let at = 0;
+            for (const r of rewrites) {
+                if (r.start < at) continue;
+                out += content.slice(at, r.start) + r.text;
+                at = r.end;
+            }
+            content = out + content.slice(at);
+        }
+        return content;
+    }
+
+    // hx4 R31 — string helpers print `runtime.rs`'s own body inline (each arg bound once, innermost-first).
+    // `stringify_simple` is private: scalars inline, the `__precise` dict goes through the public
+    // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
+    r31Str(content: string): string {
+        content = this.x39Affix(content); // hx5 X39
+        // hx5 X41: pad_start/pad_end/to_fixed (and slice) are not r31 targets: no site has a proven `&str`/number
+        // operand with in-range bounds, so the master `runtime::` helper call stays. Never print their bodies inline.
+        const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // hx5 X39: starts_with/ends_with via x39Affix
+        if (!names.some(n => content.includes(n + '('))) return content;
+        const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
+        const build = (name: string, args: string[]): string | undefined => {
+            const a = args.map(s => s.trim());
+            if (name === 'to_string_val') return this.x42ToStr(a); // hx5 X42: proven native or helper
+            // hx5 X40: split/join/replace_str are never inlined. Every r31 site reaches this pass as a
+            // `&Value` operand that no emitted declaration proves to be a `Value::Str` / `Value::Arr` of
+            // strings (and the runtime differs from a bare `.split`/`.join`/`.replace` on non-Str, null and
+            // element type), so the plain `runtime::*` helper call master emitted stays.
+            if (name === 'join' || name === 'split' || name === 'replace_str') return undefined;
+            // hx5 X39: starts_with/ends_with tier-2 arm deleted (x39Affix handles proven Str boxes).
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str)\(/g; // hx5 X39/X41
+        for (let round = 0; round < 8; round++) {
+            const masked = this.maskStringsAndComments(content);
+            const rewrites: Array<{ start: number, end: number, text: string }> = [];
+            for (const m of masked.matchAll(re)) {
+                const start = m.index as number;
+                const name = m[1];
+                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+                const open = start + name.length;
+                const close = this.closeParenAt(content, open);
+                if (close < 0) continue;
+                const inner = content.slice(open + 1, close);
+                if (/(?<![A-Za-z0-9_:.])(to_string_val)\(/.test(this.maskStringsAndComments(inner))) continue; // hx5 X40: helper-call args do not block the outer site (X39/X41: affix/pad/to_fixed no longer rewritten here)
+                const text = build(name, this.splitTopLevelCommas(inner));
+                if (text === undefined) continue;
+                rewrites.push({ start, end: close + 1, text });
+            }
+            if (rewrites.length === 0) break;
+            let out = ''; let at = 0;
+            for (const r of rewrites) {
+                if (r.start < at) continue;
+                out += content.slice(at, r.start) + r.text;
+                at = r.end;
+            }
+            content = out + content.slice(at);
+        }
+        return content;
+    }
+
+    // hx5 X43 — the hx4 R32 inline bodies (is_instance / is_function / object_values / shift) are deleted.
+    // No call site has a type proof that makes a plain native op equivalent to the helper:
+    //   is_instance  needs the `[Cls]` / leading-`[Kind]` + errorHierarchy subtree walk (only the helper is concise);
+    //   is_function  is `false` but must still evaluate its argument (the helper does);
+    //   object_values drops the two ws tag keys, which only the helper knows;
+    //   shift        is a by-value pop of the arg (see the ndax `shift(stored.clone())` note in the X43 report).
+    // So every site keeps master's `runtime::*` helper call. The pass is kept (wired in both pipelines) as an
+    // identity so the call sites stay stable; it is trivially idempotent.
+    r32Native(content: string): string {
+        return content;
+    }
+
+    // hx5 X37 — r28 `is_equal(&A, &B)`: native only where both operands are proven to hold one scalar
+    // variant or Null (`S`=Str, `B`=Bool, `I`=Int, `N`=Null). `runtime::is_equal` on such a pair is exactly
+    // `as_str()/as_bool()/as_i64()` equality: same-variant arms compare the payload, Null∘Null is true and a
+    // Null∘scalar pair (also Bool∘Bool / Int∘Int only) reaches `as_f64(Null) = None` → false. Mixed scalar
+    // kinds (`"1" == 1`, `true == 1`) coerce at runtime, so they keep the helper. The hx4 inline replay of
+    // the runtime match is gone: an unproven pair keeps `is_equal(&a, &b)` exactly as master printed it.
+    private x37Kind(e: string, masked: string, region: [number, number], depth = 0): Set<string> | undefined {
+        e = this.stripOuterParens(e.trim()).trim();
+        if (e === 'Value::Null') return new Set(['N']);
+        if (/^Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\)$/.test(e)) return new Set(['S']);
+        if (/^Value::Bool\((?:true|false)\)$/.test(e)) return new Set(['B']);
+        if (/^Value::Int\(-?[0-9]+\)$/.test(e)) return new Set(['I']);
+        // base readers whose result is one variant or the (single) default
+        const call = /^self\.(safe_string(?:_k|2|_lower_k|_upper_k|_lower|_upper)?|safe_bool(?:_k|2)?|safe_integer(?:_k|2)?)\(/.exec(e);
+        if (call !== null && this.closeParenAt(e, call[0].length - 1) === e.length - 1) {
+            const own = call[1].startsWith('safe_string') ? 'S' : call[1].startsWith('safe_bool') ? 'B' : 'I';
+            const args = this.splitTopLevelCommas(e.slice(call[0].length, -1)).map(x => x.trim());
+            const dflt = args[args.length - 1] ?? '';
+            if (dflt === '&[]') return new Set([own, 'N']);
+            const dm = /^&\[(.*)\]$/.exec(dflt);
+            if (dm === null || this.splitTopLevelCommas(dm[1]).length !== 1) return undefined;
+            const k = this.x37Kind(dm[1], masked, region, depth + 1);
+            return k === undefined ? undefined : new Set([own, ...k]);
+        }
+        if (depth > 2 || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) return undefined;
+        // a local: one `let`, every `let` / plain `=` write in its fn region proven; no `&mut`, no rebinding.
+        const [from, to] = region;
+        const body = masked.slice(from, to);
+        const header = body.slice(0, Math.max(0, body.indexOf('{')));
+        if (new RegExp(`\\b${e}\\s*:`).test(header)) return undefined;
+        if (new RegExp(`&mut ${e}\\b|(?<!\\|)\\|(?!\\|)[^|\\n]*\\b${e}\\b[^|\\n]*(?<!\\|)\\|(?!\\|)|\\bfor [^\\n]*\\b${e}\\b[^\\n]* in |Some\\((?:mut )?${e}\\)|Ok\\((?:mut )?${e}\\)|Err\\((?:mut )?${e}\\)|\\blet \\([^)]*\\b${e}\\b|\\b${e}\\s*(?:\\+|-|\\*|/|%)=|\\b${e}\\.(?:push|insert|clear|take)\\(`).test(body)) return undefined;
+        const out = new Set<string>(); let decls = 0; let writes = 0;
+        for (const m of body.matchAll(new RegExp(`(?:\\blet (?:mut )?${e}(?:\\s*:\\s*Value)?|(?<![A-Za-z0-9_.:&])${e})\\s*=(?![=>])`, 'g'))) {
+            if (/^let /.test(m[0])) decls++;
+            const s = (m.index as number) + m[0].length;
+            let d = 0; let i = s;
+            for (; i < body.length; i++) {
+                const c = body[i];
+                if (c === '(' || c === '[' || c === '{') d++;
+                else if (c === ')' || c === ']' || c === '}') { if (d === 0) break; d--; }
+                else if (c === ';' && d === 0) break;
+            }
+            if (body[i] !== ';') return undefined;
+            const k = this.x37Kind(this._x37Src.slice(from + s, from + i), masked, region, depth + 1);
+            if (k === undefined) return undefined;
+            writes++;
+            for (const x of k) out.add(x);
+        }
+        if (decls !== 1 || writes === 0) return undefined;
+        return out;
+    }
+
+    private _x37Src = '';
+
+    private x37Eq(a: string, b: string, masked: string, region: [number, number]): string | undefined {
+        const ka = this.x37Kind(a, masked, region);
+        if (ka === undefined) return undefined;
+        const kb = this.x37Kind(b, masked, region);
+        if (kb === undefined) return undefined;
+        const kinds = new Set([...ka, ...kb]); kinds.delete('N');
+        if (kinds.size !== 1) return undefined; // mixed scalar kinds coerce, or both sides are Null
+        const kind = [...kinds][0];
+        const acc = kind === 'S' ? 'as_str' : kind === 'B' ? 'as_bool' : 'as_i64';
+        const lit = (e: string) => {
+            const t = this.stripOuterParens(e.trim()).trim();
+            return /^Value::Str\(("(?:[^"\\]|\\.)*")\.(?:into|to_string)\(\)\)$/.exec(t)?.[1]
+                ?? /^Value::Bool\((true|false)\)$/.exec(t)?.[1] ?? /^Value::Int\((-?[0-9]+)\)$/.exec(t)?.[1];
+        };
+        const la = lit(a); const lb = lit(b);
+        if (la !== undefined && lb !== undefined) return undefined; // constant compare: leave it
+        const onlyNull = (k: Set<string>) => k.size === 1 && k.has('N');
+        if (onlyNull(ka)) return `${b}.is_null()`;
+        if (onlyNull(kb)) return `${a}.is_null()`;
+        if (lb !== undefined) return `(${a}.${acc}() == Some(${lb}))`;
+        if (la !== undefined) return `(${b}.${acc}() == Some(${la}))`;
+        return `(${a}.${acc}() == ${b}.${acc}())`;
+    }
+
+    // hx5 X38 — `let [mut ]x[: Value] = Value::Bool(..)` as the only binding, never reassigned
+    // (no `x = `, no `&mut x`, no `set_value(&mut x`): x can only hold a bool.
+    x38BoolBoxedLocal(region: string, name: string): boolean {
+        const decls = [...region.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b\\s*(?::\\s*Value\\s*)?=\\s*([^;]*);`, 'g'))];
+        if (decls.length !== 1) return false;
+        const rhs = decls[0][1].trim();
+        if (!/^Value::Bool\(/.test(rhs) || this.closeParenAt(rhs, 'Value::Bool'.length) !== rhs.length - 1) return false;
+        if (new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:=(?!=)|\\+=|-=)|&mut ${name}\\b|\\b${name}\\.(?:set|insert|push)`).test(region.replace(decls[0][0], ''))) return false;
+        return true;
+    }
+
+
+    // hx5 X45 — proven-variant `Value` locals. A `let x: Value` local whose every binding and every
+    // `x = ..` write is an always-Dict / always-Arr / always-Str source (never Null), and whose only
+    // `&mut x` uses are the variant-preserving runtime writers, is proven to hold that variant at every
+    // use. `x45Variant` is the marker the emission passes may consult; `x45Native` (run just before the
+    // hx4 R28..R32 tail) prints the plain native op on those locals so the tail never sees them:
+    //   get_array_length(&x)            Arr/Str -> Value::Int(x.len() as i64)   (Value::len == runtime fn)
+    //   in_op(&x, &Value::Str("k"..))   Dict    -> x.as_map().is_some_and(|__m| __m.contains_key("k"))
+    //   is_equal(&x, &Value::Str("k"..)) Str    -> (x.as_str() == Some("k"))   (either operand order)
+    //   is_equal(&x, &y)                both Str -> (x.as_str() == y.as_str())
+    //   to_string_val(&x)               Str     -> x.clone()
+    // Mixed or unproven writes keep the helper call.
+    x45Source(e: string): 'Dict' | 'Arr' | 'Str' | undefined {
+        e = e.trim();
+        while (e.startsWith('(') && this.closeParenAt(e, 0) === e.length - 1) e = e.slice(1, -1).trim();
+        const whole = (prefix: RegExp): boolean => {
+            const m = prefix.exec(e);
+            if (m === null) return false;
+            return this.closeParenAt(e, m[0].length - 1) === e.length - 1;
+        };
+        if (whole(/^Value::Map\(/) || whole(/^self\.extend\(/)) return 'Dict';
+        if (/^Value::(?:from|List|Array)\(vec!\[/.test(e) && this.closeParenAt(e, e.indexOf('(')) === e.length - 1) return 'Arr';
+        if (whole(/^self\.(?:to_array|array_concat)\(/) || whole(/^split\(/)) return 'Arr';
+        if (whole(/^Value::Str\(/)) return 'Str';
+        const sm = /^self\.safe_(dict|list|string)(?:_k|2)?\(/.exec(e);
+        if (sm !== null && this.closeParenAt(e, sm[0].length - 1) === e.length - 1) {
+            const args = this.splitTopLevelCommas(e.slice(sm[0].length, -1));
+            const last = args[args.length - 1].trim();
+            if (!last.startsWith('&[') || !last.endsWith(']')) return undefined;
+            const inner = this.splitTopLevelCommas(last.slice(2, -1));
+            if (inner.length !== 1) return undefined;
+            const want = sm[1] === 'dict' ? 'Dict' : sm[1] === 'list' ? 'Arr' : 'Str';
+            return this.x45Source(inner[0]) === want ? want : undefined;
+        }
+        return undefined;
+    }
+
+    x45StmtEnd(text: string, i: number): number {
+        let depth = 0;
+        for (; i < text.length; i++) {
+            const c = text[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(text, i) - 1; continue; }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') { depth--; if (depth < 0) return -1; }
+            else if (c === ';' && depth === 0) return i;
+        }
+        return -1;
+    }
+
+    x45Variant(content: string): (name: string, pos: number) => 'Dict' | 'Arr' | 'Str' | undefined {
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [0];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const memo = new Map<string, 'Dict' | 'Arr' | 'Str' | undefined>();
+        const okMut = /(?:(?<![A-Za-z0-9_:.])(?:add_element_to_object|set_value|append_to_array|remove)\(|if let Value::(?:Arr|Dict)\(__[a-z]+\) = )$/;
+        const readMethods = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_array', 'as_str', 'as_i64', 'as_f64', 'as_bool', 'is_truthy', 'is_null', 'is_str', 'is_map', 'is_array', 'to_string', 'to_json' ]);
+        const prove = (name: string, from: number, to: number): 'Dict' | 'Arr' | 'Str' | undefined => {
+            const region = masked.slice(from, to);
+            const real = content.slice(from, to);
+            const header = region.slice(0, Math.max(0, region.indexOf('{')));
+            if (new RegExp(`\\b${name}\\s*:`).test(header)) return undefined;
+            const rebind = new RegExp(`(?<!\\|)\\|(?!\\|)[^|\\n]*\\b${name}\\b[^|\\n]*(?<!\\|)\\|(?!\\|)|\\bfor [^\\n]*\\b${name}\\b[^\\n]* in |[A-Za-z_:]\\((?:ref |mut )*${name}\\)|\\blet \\([^)]*\\b${name}\\b|\\b${name}\\s*@|\\b${name}\\b[^;\\n]*\\)\\s*=>|\\b${name}\\s*[-+*/%|&^]=`);
+            if (rebind.test(region) || new RegExp(`\\*\\s*${name}\\b\\s*=(?!=)`).test(region)) return undefined;
+            const variants = new Set<string>();
+            let lets = 0;
+            let allLit = true;
+            for (const m of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.*])(let (?:mut )?)?${name}\\b(\\s*:\\s*([A-Za-z_][A-Za-z0-9_<>]*))?\\s*=(?!=)`, 'g'))) {
+                if (m[1] !== undefined) lets++;
+                else if (m[2] !== undefined) return undefined;
+                if (m[3] !== undefined && m[3] !== 'Value') return undefined;
+                const rs = (m.index as number) + m[0].length;
+                const end = this.x45StmtEnd(region, rs);
+                if (end < 0) return undefined;
+                const v = this.x45Source(real.slice(rs, end));
+                if (v === undefined) return undefined;
+                if (!/^\s*Value::Map\(/.test(real.slice(rs, end))) allLit = false;
+                variants.add(v);
+            }
+            if (lets === 0 || variants.size !== 1) return undefined;
+            for (const m of region.matchAll(new RegExp(`&mut ${name}\\b`, 'g'))) {
+                if (!okMut.test(region.slice(Math.max(0, (m.index as number) - 48), m.index as number))) return undefined;
+            }
+            for (const m of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\.([A-Za-z_][A-Za-z0-9_]*)`, 'g'))) {
+                if (!readMethods.has(m[1])) return undefined;
+            }
+            const v0 = [...variants][0] as 'Dict' | 'Arr' | 'Str';
+            // A Dict built only from `Value::Map({..})` literals can never carry the ws-subscription tag keys
+            // `object_keys` filters out, so its plain key list equals the helper's.
+            return v0 === 'Dict' && allLit && !real.includes('__ws_sub') && !new RegExp(`&mut ${name}\\b`).test(region) ? 'DictLit' as any : v0;
+        };
+        const lookup = (name: string, pos: number) => {
+            if (!/^[a-z_][A-Za-z0-9_]*$/.test(name) || name === 'self') return undefined;
+            let lo = 0;
+            for (let h = 0; h + 1 < headers.length; h++) if (headers[h] <= pos) lo = h;
+            const key = `${lo}:${name}`;
+            if (!memo.has(key)) memo.set(key, prove(name, headers[lo], headers[lo + 1]));
+            const r = memo.get(key) as string | undefined;
+            if (r === 'DictLit') return 'Dict';
+            return r as 'Dict' | 'Arr' | 'Str' | undefined;
+        };
+        const fn = lookup as ((name: string, pos: number) => 'Dict' | 'Arr' | 'Str' | undefined) & { literal?: (name: string, pos: number) => boolean };
+        fn.literal = (name: string, pos: number) => {
+            if (lookup(name, pos) !== 'Dict') return false;
+            let lo = 0;
+            for (let h = 0; h + 1 < headers.length; h++) if (headers[h] <= pos) lo = h;
+            return memo.get(`${lo}:${name}`) === ('DictLit' as any);
+        };
+        return fn;
+    }
+
+    x45Native(content: string): string {
+        if (!/(?:get_array_length|in_op|is_equal|to_string_val|object_keys)\(&/.test(content)) return content;
+        const variant = this.x45Variant(content);
+        const masked = this.maskStringsAndComments(content);
+        const ident = /^&([a-z_][A-Za-z0-9_]*)$/;
+        const strLit = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.(?:into|to_string)\(\)\)$/;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const m of masked.matchAll(/(?<![A-Za-z0-9_:.])(get_array_length|in_op|is_equal|to_string_val|object_keys)\(&/g)) {
+            const start = m.index as number;
+            const open = start + m[1].length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const args = this.splitTopLevelCommas(content.slice(open + 1, close)).map(s => s.trim());
+            let text: string | undefined;
+            if ((m[1] === 'get_array_length' || m[1] === 'to_string_val') && args.length === 1) {
+                const x = ident.exec(args[0]);
+                const v = x === null ? undefined : variant(x[1], start);
+                if (m[1] === 'get_array_length' && (v === 'Arr' || v === 'Str')) text = `Value::Int(${x![1]}.len() as i64)`;
+                if (m[1] === 'to_string_val' && v === 'Str') text = `${x![1]}.clone()`;
+            } else if (m[1] === 'in_op' && args.length === 2) {
+                const x = ident.exec(args[0]); const k = strLit.exec(args[1]);
+                const kv = ident.exec(args[1]);
+                const v = x === null ? undefined : variant(x[1], start);
+                if (x !== null && k !== null && v === 'Dict') text = `${x[1]}.as_map().is_some_and(|__m| __m.contains_key(${k[1]}))`;
+                else if (x !== null && kv !== null && kv[1] !== x[1] && v === 'Dict') text = `${x[1]}.as_map().is_some_and(|__m| ${kv[1]}.as_str().is_some_and(|__k| __m.contains_key(__k)))`;
+            } else if (m[1] === 'object_keys' && args.length === 1) {
+                const x = ident.exec(args[0]);
+                if (x !== null && variant.literal!(x[1], start)) text = `Value::Array(${x[1]}.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default())`;
+            } else if (m[1] === 'is_equal' && args.length === 2) {
+                const [a, b] = args;
+                const xa = ident.exec(a); const xb = ident.exec(b);
+                const sa = xa !== null && variant(xa[1], start) === 'Str';
+                const sb = xb !== null && variant(xb[1], start) === 'Str';
+                const la = strLit.exec(a); const lb = strLit.exec(b);
+                if (sa && sb) text = `(${xa![1]}.as_str() == ${xb![1]}.as_str())`;
+                else if (sa && lb !== null) text = `(${xa![1]}.as_str() == Some(${lb[1]}))`;
+                else if (sb && la !== null) text = `(${xb![1]}.as_str() == Some(${la[1]}))`;
+            }
+            if (text !== undefined) rewrites.push({ start, end: close + 1, text });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx5 X46 — `for (let i = 0; ...; i++)` over a `Value` counter. The ast
+    // printer emits the incrementor as the full `printNativeNumeric` match
+    // (`i = (match (&(i), &(Value::Int(1))) { 5 arms })`), ~300 chars per loop.
+    // Proof: the counter is declared `let mut i: Value = Value::Int(N);` right
+    // before the loop flag, and inside that `for` block the only write to `i`
+    // is this incrementor. Int ± Int stays Int, so `i` is always `Value::Int`
+    // and the match only ever takes its Int/Int arm: emit that arm natively.
+    // Unproven counters are left exactly as printed.
+    x46Incr(content: string): string {
+        const incrRe = /while \{ if !(__for_first_\d+) \{ (\w+) = \(match \(&\(\2\), &\(Value::Int\(1\)\)\) \{ \(Value::Int\(x\), Value::Int\(y\)\) => Value::Int\(x ([+-]) y\), \(Value::Int\(x\), Value::Float\(y\)\) => Value::Float\(\*x as f64 \3 \*y\), \(Value::Float\(x\), Value::Int\(y\)\) => Value::Float\(\*x \3 \*y as f64\), \(Value::Float\(x\), Value::Float\(y\)\) => Value::Float\(x \3 y\), _ => Value::Null \}\); \}/g;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = incrRe.exec(content)) !== null) {
+            const [whole, flag, v, sign] = m;
+            const flagDecl = content.lastIndexOf(`let mut ${flag}: bool = true;`, m.index);
+            if (flagDecl < 0) continue;
+            const declRe = new RegExp(`let mut ${v}: Value = Value::Int\\(-?\\d+\\);\\s*$`);
+            if (!declRe.test(content.slice(Math.max(0, flagDecl - 200), flagDecl))) continue;
+            // The `{` printForStatement opened before the declaration.
+            const blockOpen = content.lastIndexOf('{', content.lastIndexOf(`let mut ${v}: Value`, flagDecl));
+            let depth = 0, end = -1;
+            for (let k = blockOpen; k < content.length; k++) {
+                const c = content[k];
+                if (c === '"') { k++; while (k < content.length && content[k] !== '"') { if (content[k] === '\\') k++; k++; } continue; }
+                if (c === '{') depth++;
+                else if (c === '}' && --depth === 0) { end = k; break; }
+            }
+            if (end < 0) continue;
+            const block = content.slice(blockOpen, end).replace(whole, '');
+            const esc = v.replace(/[$]/g, '\\$');
+            const writes = new RegExp(`(?<![\\w.])${esc}\\s*(=(?!=)|[-+*/%]=)|&mut\\s+${esc}\\b|let\\s+(mut\\s+)?${esc}\\b`, 'g');
+            const hits = block.match(writes) || [];
+            // Exactly one hit: the declaration itself.
+            if (hits.length !== 1) continue;
+            const text = `while { if !${flag} { if let Value::Int(n) = &mut ${v} { *n ${sign}= 1; } }`;
+            rewrites.push({ start: m.index, end: m.index + whole.length, text });
+        }
+        if (rewrites.length === 0) return content;
+        let out = '', at = 0;
+        for (const r of rewrites) { out += content.slice(at, r.start) + r.text; at = r.end; }
+        return out + content.slice(at);
+    }
+
+    // hx5 X39 — case/affix helpers: `starts_with`/`ends_with` go native ONLY when both
+    // args are a proven `&Value::Str(E.into())` box (E is then a &str/String, evaluated once,
+    // and the helper's `(Str, Str)` arm is exactly `h.starts_with(p)`); every other site keeps
+    // the plain `runtime` helper call. `to_upper`/`to_lower` are never inlined here: a native
+    // `to_uppercase()` needs a proven `&str` receiver, and no such site reaches this pass.
+    x39Affix(content: string): string {
+        if (!content.includes('starts_with(') && !content.includes('ends_with(')) return content;
+        const strBox = (arg: string): string | undefined => {
+            const t = arg.trim();
+            if (!t.startsWith('&Value::Str(')) return undefined;
+            const open = t.indexOf('(');
+            const close = this.closeParenAt(t, open);
+            if (close !== t.length - 1) return undefined;
+            const m = /^([\s\S]+)\.(?:into|to_string)\(\)$/.exec(t.slice(open + 1, close).trim());
+            if (m === null) return undefined;
+            const e = m[1].trim();
+            if (/^"(?:[^"\\]|\\.)*"$/.test(e)) return e;
+            if (/^format!\(/.test(e) && this.closeParenAt(e, e.indexOf('(')) === e.length - 1) return e;
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(starts_with|ends_with)\(/g;
+        const masked = this.maskStringsAndComments(content);
+        let out = ''; let at = 0;
+        for (const m of masked.matchAll(re)) {
+            const start = m.index as number;
+            if (start < at) continue;
+            if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+            const open = start + m[1].length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const args = this.splitTopLevelCommas(content.slice(open + 1, close));
+            if (args.length !== 2) continue;
+            const h = strBox(args[0]); const n = strBox(args[1]);
+            if (h === undefined || n === undefined) continue;
+            out += content.slice(at, start) + `(${h}).${m[1]}(&*${n})`;
+            at = close + 1;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
+    // (helper = `Value::Str(stringify_simple(..))`, identity on Str, so the box itself is
+    // the result and E is evaluated once). Every other operand keeps the helper call verbatim:
+    // `Display` differs from `stringify_simple` on Arr/Dict and the `__precise` dict.
+    // parse_int/parse_float are emitted as `crate::runtime::parse_*`, never inlined by r31: left alone.
+    x42ToStr(a: string[]): string | undefined {
+        if (a.length !== 1) return undefined;
+        const m = /^&\s*(Value::Str\(([\s\S]*)\))$/.exec(a[0]);
+        if (m === null || this.closeParenAt(m[1], 'Value::Str'.length) !== m[1].length - 1) return undefined;
+        return m[1];
+    }
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────────
@@ -9277,10 +13037,20 @@ if (isMainEntry(import.meta.url)) {
     const baseOnly  = process.argv.includes('--baseClass') || process.argv.includes('--baseOnly');
     const testsOnly = process.argv.includes('--tests') || process.argv.includes('--test');
     const testsMain = process.argv.includes('--testsMain') || process.argv.includes('--testMain');
+    const modFiles  = process.argv.includes('--modFiles');
 
     const t = new RustTranspilerBuilder();
 
-    if (baseOnly) {
+    if (modFiles) {
+        for (const folder of [ EXCHANGES_FOLDER, EXCHANGES_WS_FOLDER, PREDICTION_EXCHANGES_FOLDER ]) {
+            if (!fs.existsSync(folder)) continue;
+            const onDisk = fs.readdirSync(folder)
+                .filter(f => f.endsWith('.rs') && f !== 'mod.rs')
+                .map(f => basename(f, '.rs'))
+                .sort();
+            t.writeModFile(folder, onDisk);
+        }
+    } else if (baseOnly) {
         t.transpileBaseMethods('./ts/src/base/Exchange.ts');
         t.transpileErrorHierarchy();
     } else if (ws) {
@@ -9292,4 +13062,21 @@ if (isMainEntry(import.meta.url)) {
     } else {
         await t.transpileEverything(force, child, false);
     }
+}
+
+// hx5 X33 — `in_op` arm of the r29 pass: plain native op on a proven map, else the helper call.
+function hx5X33InOp (a: string[], content: string): string | undefined {
+    if (a.length !== 2) return undefined;
+    const recv = /^&([A-Za-z_][A-Za-z0-9_]*)$/.exec(a[0]);
+    const key = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/.exec(a[1]);
+    if (recv === null || key === null) return undefined;
+    const x = recv[1];
+    const declRe = new RegExp('\\blet\\s+(?:mut\\s+)?' + x + '\\s*:\\s*([^=;]+?)\\s*=', 'g');
+    const types = [ ...content.matchAll(declRe) ].map(m => m[1].replace(/\s+/g, ''));
+    const mapTy = /^(?:(?:std::sync::)?Arc<)?(?:indexmap::)?IndexMap<String,Value>>?$/;
+    if (types.length === 0 || !types.every(t => mapTy.test(t))) return undefined;
+    // A parameter / closure binding of the same name could shadow the proven local: require no `x:` binder outside `let`.
+    const binder = new RegExp('(?<!let\\s(?:mut\\s)?)[(,|]\\s*(?:mut\\s+)?' + x + '\\s*:');
+    if (binder.test(content)) return undefined;
+    return `${x}.contains_key(${key[1]})`;
 }

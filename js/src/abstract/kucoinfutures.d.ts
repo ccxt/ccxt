@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import _kucoin from '../kucoin.js';
-interface kucoin {
+declare abstract class kucoin extends _kucoin {
     publicGetCurrencies(params?: {}): Promise<Dict>;
     publicGetCurrenciesCurrency(params?: {}): Promise<Dict>;
     publicGetSymbols(params?: {}): Promise<Dict>;
@@ -327,6 +327,7 @@ interface kucoin {
     utaGetUserMyIp(params?: {}): Promise<Dict>;
     utaGetMarketFiatPrice(params?: {}): Promise<Dict>;
     utaV2GetMarketFundingRate(params?: {}): Promise<Dict>;
+    utaV2GetMarketOrderbook(params?: {}): Promise<Dict>;
     utaPrivateGetMarketOrderbook(params?: {}): Promise<Dict>;
     utaPrivateGetAccountBalance(params?: {}): Promise<Dict>;
     utaPrivateGetAccountTransferQuota(params?: {}): Promise<Dict>;
@@ -362,7 +363,5 @@ interface kucoin {
     utaPrivatePostSubAccountCanTransferOut(params?: {}): Promise<Dict>;
     utaPrivatePostDcpSet(params?: {}): Promise<Dict>;
     utaPrivatePostAccountModeAccountModifyLeverageMarginCross(params?: {}): Promise<Dict>;
-}
-declare abstract class kucoin extends _kucoin {
 }
 export default kucoin;

@@ -2,15 +2,15 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var bybit = require('./bybit.js');
-var bybiteu$1 = require('../bybiteu.js');
+var bybiteu$1 = require('../abstract/pro/bybiteu.js');
+var bybiteu$2 = require('../bybiteu.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class bybiteu extends bybit["default"] {
+class bybiteu extends bybiteu$1["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new bybiteu$1["default"]();
+        const restInstance = new bybiteu$2["default"]();
         const restDescribe = restInstance.describe();
         const parentWsDescribe = super.describeData();
         const extended = this.deepExtend(restDescribe, parentWsDescribe);

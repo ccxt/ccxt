@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Liquidation, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -578,33 +578,34 @@ class bitfinex(Exchange, ImplicitAPI):
         })
 
     def is_fiat(self, code: object) -> bool:
-        return(code in self.options['fiat'])
+        fiat = self.safe_dict(self.options, 'fiat', {})
+        return(code in fiat)
 
-    def get_currency_name(self, code: object):
+    def get_currency_name(self, code: str) -> str:
         # temporary fix for transpiler recognition, even though this is in parent class
         if code in self.options['currencyNames']:
             return self.options['currencyNames'][code]
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
 
-    def amount_to_precision(self, symbol: Str, amount: object):
+    def amount_to_precision(self, symbol: Str, amount: object) -> str:
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
         # Anything exceeding this will be rounded to the 8th decimal.
-        symbol = self.safe_symbol(symbol)
-        market = self.market(symbol)
+        symbolValue = self.safe_symbol(symbol)
+        market = self.market(symbolValue)
         return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
 
-    def price_to_precision(self, symbol: Str, price: object):
-        symbol = self.safe_symbol(symbol)
-        market = self.market(symbol)
-        price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
+    def price_to_precision(self, symbol: Str, price: object) -> str:
+        symbolValue = self.safe_symbol(symbol)
+        market = self.market(symbolValue)
+        priceValue = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
         # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         # Prices submit with a precision larger than 5 will be cut by the API.
-        return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
+        return self.decimal_to_precision(priceValue, TRUNCATE, 8, DECIMAL_PLACES)
 
-    async def fetch_status(self, params={}) -> Status:
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -627,7 +628,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bitfinex
 
@@ -653,14 +654,13 @@ class bitfinex(Exchange, ImplicitAPI):
         response = await self.publicGetConfConfig(self.extend(request, params))
         spotMarketsInfo = self.safe_list(response, 0, [])
         futuresMarketsInfo = self.safe_list(response, 1, [])
-        securitiesMarketsIds = self.safe_list(response, 2, [])
         marginIds = self.safe_list(response, 3, [])
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
         result = []
         for i in range(0, len(markets)):
-            pairObj = markets[i]
+            pairObj = self.safe_list(markets, i)
             id = self.safe_string_upper(pairObj, 0)
-            market = self.safe_value(pairObj, 1, {})
+            market = self.safe_list(pairObj, 1, [])
             spot = True
             type = None
             if id.find('F0') >= 0:
@@ -684,6 +684,8 @@ class bitfinex(Exchange, ImplicitAPI):
             splitQuote = quote.split('F0')
             base = self.safe_string(splitBase, 0)
             quote = self.safe_string(splitQuote, 0)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             # baseId = 'f' + baseId;
             # quoteId = 'f' + quoteId;
@@ -706,7 +708,6 @@ class bitfinex(Exchange, ImplicitAPI):
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'tradfi': self.in_array(id, securitiesMarketsIds),
                 'margin': (spot and self.in_array(id, marginIds)),
                 'swap': swap,
                 'future': False,
@@ -747,7 +748,7 @@ class bitfinex(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -857,6 +858,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
+        networks = self.safe_list(response, 8, [])
         indexed = {
             'sym': self.index_by(self.safe_list(response, 1, []), 0),
             'label': self.index_by(self.safe_list(response, 2, []), 0),
@@ -865,13 +867,13 @@ class bitfinex(Exchange, ImplicitAPI):
             'pool': self.index_by(self.safe_list(response, 5, []), 0),
             'explorer': self.index_by(self.safe_list(response, 6, []), 0),
             'fees': self.index_by(self.safe_list(response, 7, []), 0),
-            'networks': self.safe_list(response, 8, []),
+            'networks': networks,
             'statuses': self.index_by(self.safe_list(response, 9, []), 0),
             'marginables': self.safe_list(response, 10, []),
         }
         indexedNetworks = {}
-        for i in range(0, len(indexed['networks'])):
-            networkObj = indexed['networks'][i]
+        for i in range(0, len(networks)):
+            networkObj = self.safe_list(networks, i)
             networkId = self.safe_string(networkObj, 0)
             valuesList = self.safe_list(networkObj, 1)
             networkName = self.safe_string(valuesList, 0)
@@ -882,7 +884,7 @@ class bitfinex(Exchange, ImplicitAPI):
         ids = self.safe_list(response, 0, [])
         return self.parse_currencies_custom(ids, indexed, indexedNetworks)
 
-    def parse_currencies_custom(self, ids: object, indexed: object, indexedNetworks: object):
+    def parse_currencies_custom(self, ids: list[object], indexed: dict, indexedNetworks: dict) -> dict:
         allowedIds = []
         for i in range(0, len(ids)):
             id = ids[i]
@@ -898,13 +900,14 @@ class bitfinex(Exchange, ImplicitAPI):
             result[code] = parsed
         return result
 
-    def parse_currency_custom(self, id: object, indexed: object, indexedNetworks: object) -> Currency:
+    def parse_currency_custom(self, id: object, indexed: dict, indexedNetworks: dict) -> Currency:
         code = self.safe_currency_code(id)
         label = self.safe_list(indexed['label'], id, [])
         name = self.safe_string(label, 1)
         pool = self.safe_list(indexed['pool'], id, [])
         rawType = self.safe_string(pool, 1)
-        isCryptoCoin = (rawType is not None) or (id in indexed['explorer'])  # "hacky" solution
+        explorer = self.safe_dict(indexed, 'explorer', {})
+        isCryptoCoin = (rawType is not None) or (id in explorer)  # "hacky" solution
         type = 'crypto' if isCryptoCoin else None
         feeValues = self.safe_list(indexed['fees'], id, [])
         fees = self.safe_list(feeValues, 1, [])
@@ -930,7 +933,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 networks[network] = {
                     'info': networkId,
                     'id': networkId.lower(),
-                    'network': networkId,
+                    'network': network,
                     'active': None,
                     'deposit': self.safe_integer(dwStatuses, 1) == 1,
                     'withdraw': self.safe_integer(dwStatuses, 2) == 1,
@@ -968,7 +971,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'margin': self.in_array(id, indexed['marginables']),
         })
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -993,15 +996,14 @@ class bitfinex(Exchange, ImplicitAPI):
         balances = self.to_array(response)
         result = {'info': response}
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_list(balances, i)
             account = self.account()
             interest = self.safe_string(balance, 3)
             if interest != '0':
                 account['debt'] = interest
             type = self.safe_string(balance, 0)
             currencyId = self.safe_string_lower(balance, 1, '')
-            start = len(currencyId) - 2
-            isDerivativeCode = currencyId[start:] == 'f0'
+            isDerivativeCode = (currencyId is not None) and (currencyId.endswith('f0') is True)
             # this will only filter the derivative codes if the requestedType is 'derivatives'
             derivativeCondition = (not isDerivative or isDerivativeCode)
             if (accountType == type) and derivativeCondition:
@@ -1012,7 +1014,7 @@ class bitfinex(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -1106,7 +1108,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         result = self.safe_list(transfer, 'result')
         timestamp = self.safe_integer(result, 0)
-        info = self.safe_value(result, 4)
+        info = self.safe_list(result, 4)
         fromAccount = self.safe_string(info, 1)
         toAccount = self.safe_string(info, 2)
         currencyId = self.safe_string(info, 5)
@@ -1131,20 +1133,19 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def convert_derivatives_id(self, currency: object, type: object):
+    def convert_derivatives_id(self, currency: dict, type: str) -> Str:
         # there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         # {
         #   "id": "fUSTF0",
         #   "code": "USTF0",
         #   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-        info = self.safe_value(currency, 'info')
+        info = self.safe_list(currency, 'info')
         transferId = self.safe_string(info, 0)
-        underlying = self.safe_value(info, 4, [])
+        underlying = self.safe_list(info, 4, [])
         currencyId = None
         if type == 'derivatives':
             currencyId = self.safe_string(underlying, 0, transferId)
-            start = len(currencyId) - 2
-            isDerivativeCode = currencyId[start:] == 'F0'
+            isDerivativeCode = currencyId.endswith('F0')
             if not isDerivativeCode:
                 currencyId = currencyId + 'F0'
         elif type != 'margin':
@@ -1153,7 +1154,7 @@ class bitfinex(Exchange, ImplicitAPI):
             currencyId = transferId
         return currencyId
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1185,20 +1186,22 @@ class bitfinex(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'nonce': None,
         }
-        priceIndex = 1 if (fullRequest['precision'] == 'R0') else 0
+        priceIndex = 1 if (self.safe_string(fullRequest, 'precision') == 'R0') else 0
         orders = self.to_array(orderbook)
         for i in range(0, len(orders)):
             order = orders[i]
             price = self.safe_number(order, priceIndex)
             signedAmount = self.safe_string(order, 2)
             amount = Precise.string_abs(signedAmount)
-            side = 'bids' if Precise.string_gt(signedAmount, '0') else 'asks'
+            side = 'asks'
+            if Precise.string_gt(signedAmount, '0'):
+                side = 'bids'
             result[side].append([price, self.parse_number(amount)])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: list, market: Market = None) -> Ticker:
         #
         # on trading pairs (ex. tBTCUSD)
         #
@@ -1251,11 +1254,14 @@ class bitfinex(Exchange, ImplicitAPI):
         minusIndex = 0
         if isFetchTicker:
             minusIndex = 1
+        marketId = self.safe_string(ticker, 0)
+        marketResolved = None
+        if isFetchTicker:
+            marketResolved = market
         else:
-            marketId = self.safe_string(ticker, 0)
-            market = self.safe_market(marketId, market)
+            marketResolved = self.safe_market(marketId, market)
         isFundingCurrency = length >= 17
-        symbol = self.safe_symbol(None, market)
+        symbol = self.safe_symbol(None, marketResolved)
         last = None
         bid = None
         ask = None
@@ -1270,9 +1276,7 @@ class bitfinex(Exchange, ImplicitAPI):
             bid = self.safe_string(ticker, 2 - minusIndex)
             ask = self.safe_string(ticker, 5 - minusIndex)
             change = self.safe_string(ticker, 8 - minusIndex)
-            # DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-            # branch reads at index 6 and scales
-            percentage = Precise.string_mul(self.safe_string(ticker, 9 - minusIndex), '100')
+            # funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
             volume = self.safe_string(ticker, 11 - minusIndex)
             high = self.safe_string(ticker, 12 - minusIndex)
             low = self.safe_string(ticker, 13 - minusIndex)
@@ -1308,9 +1312,9 @@ class bitfinex(Exchange, ImplicitAPI):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1322,10 +1326,10 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         request = {}
-        if symbols is not None:
-            ids = self.market_ids(symbols)
+        if symbolsNormalized is not None:
+            ids = self.market_ids(symbolsNormalized)
             request['symbols'] = ','.join(ids)
         else:
             request['symbols'] = 'ALL'
@@ -1369,9 +1373,9 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_tickers(tickers, symbols)
+        return self.parse_tickers(tickers, symbolsNormalized)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1471,7 +1475,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'info': tradeList,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1487,10 +1491,9 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, 10000)
+            return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, paramsPaginate, 10000)
         market = self.market(symbol)
         sort = '-1'
         request = {
@@ -1502,8 +1505,8 @@ class bitfinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 10000)  # default 120, max 10000
         request['sort'] = sort
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.publicGetTradesSymbolHist(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.publicGetTradesSymbolHist(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         [
@@ -1521,7 +1524,7 @@ class bitfinex(Exchange, ImplicitAPI):
             tradesList.append({'result': trades[i]})  # convert to array of dicts to match parseOrder signature
         return self.parse_trades(tradesList, market, None, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = 100, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = 100, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1538,25 +1541,21 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 10000)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000)
         market = self.market(symbol)
-        if limit is None:
-            limit = 10000
-        else:
-            limit = min(limit, 10000)
+        limitResolved = 10000 if (limit is None) else min(limit, 10000)
         request = {
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitResolved,
         }
         if since is not None:
             request['start'] = since
             request['sort'] = 1
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
@@ -1564,7 +1563,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         #     ]
         #
-        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limitResolved)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1586,7 +1585,7 @@ class bitfinex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is None:
             return None
         parts = status.split(' ')
@@ -1605,7 +1604,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, state, status)
 
-    def parse_order_flags(self, flags: object):
+    def parse_order_flags(self, flags: Str) -> Strings:
         # flags can be added to each other...
         flagValues = {
             '1024': ['reduceOnly'],
@@ -1616,9 +1615,9 @@ class bitfinex(Exchange, ImplicitAPI):
             # '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             # '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         }
-        return self.safe_value(flagValues, flags, None)
+        return self.safe_list(flagValues, flags, None)
 
-    def parse_time_in_force(self, orderType: object):
+    def parse_time_in_force(self, orderType: Str) -> str:
         orderTypes = {
             'EXCHANGE IOC': 'IOC',
             'EXCHANGE FOK': 'FOK',
@@ -1638,9 +1637,11 @@ class bitfinex(Exchange, ImplicitAPI):
         remaining = Precise.string_abs(self.safe_string(orderList, 6))
         signedAmount = self.safe_string(orderList, 7)
         amount = Precise.string_abs(signedAmount)
-        side = 'sell' if Precise.string_lt(signedAmount, '0') else 'buy'
+        side = 'buy'
+        if Precise.string_lt(signedAmount, '0'):
+            side = 'sell'
         orderType = self.safe_string(orderList, 8)
-        type = self.safe_string(self.safe_value(self.options, 'exchangeTypes'), orderType)
+        type = self.safe_string(self.safe_dict(self.options, 'exchangeTypes'), orderType)
         timeInForce = self.parse_time_in_force(orderType)
         rawFlags = self.safe_string(orderList, 12)
         flags = self.parse_order_flags(rawFlags)
@@ -1687,7 +1688,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1739,7 +1740,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 orderType = 'STOP'
         ioc = (timeInForce == 'IOC')
         fok = (timeInForce == 'FOK')
-        postOnly = ((postOnlyParam is True) or (timeInForce == 'PO'))
+        postOnly = ((postOnlyParam) or (timeInForce == 'PO'))
         if (ioc or fok) and (price is None):
             raise InvalidOrder(self.id + ' createOrder() requires a price argument with IOC and FOK orders')
         if (ioc or fok) and (type == 'market'):
@@ -1750,26 +1751,27 @@ class bitfinex(Exchange, ImplicitAPI):
             orderType = 'IOC'
         elif fok:
             orderType = 'FOK'
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('createOrder', params)
         if (market['spot'] is True) and (marginMode is None):
             # The EXCHANGE prefix is only required for non margin spot markets
             orderType = 'EXCHANGE ' + orderType
         request['type'] = orderType
         # flag values may be summed to combine flags
         flags = 0
-        if postOnly:
-            flags = self.sum(flags, 4096)
-        if reduceOnly is True:
-            flags = self.sum(flags, 1024)
+        if postOnly and reduceOnly:
+            flags = 5120
+        elif postOnly:
+            flags = 4096
+        elif reduceOnly:
+            flags = 1024
         if flags != 0:
             request['flags'] = flags
         if clientOrderId is not None:
             request['cid'] = clientOrderId
-        params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
-        return self.extend(request, params)
+        paramsOmitted = self.omit(paramsMarginMode, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
+        return self.extend(request, paramsOmitted)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create an order on the exchange
 
@@ -1854,7 +1856,7 @@ class bitfinex(Exchange, ImplicitAPI):
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)
 
-    async def create_orders(self, orders: list[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -1868,7 +1870,7 @@ class bitfinex(Exchange, ImplicitAPI):
             await self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -1914,7 +1916,7 @@ class bitfinex(Exchange, ImplicitAPI):
             results.append({'result': individualOrder[0]})
         return self.parse_orders(results)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -1936,7 +1938,7 @@ class bitfinex(Exchange, ImplicitAPI):
             ordersList.append({'result': orders[i]})
         return self.parse_orders(ordersList)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1955,24 +1957,24 @@ class bitfinex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         if cid is not None:
-            cidDate = self.safe_value(params, 'cidDate')  # client order id date
+            cidDate = self.safe_string(params, 'cidDate')  # client order id date
             if cidDate is None:
                 raise InvalidOrder(self.id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')")
             request = {
                 'cid': cid,
                 'cid_date': cidDate,
             }
-            params = self.omit(params, ['cid', 'clientOrderId'])
         else:
             request = {
                 'id': int(id),
             }
-        response = await self.privatePostAuthWOrderCancel(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['cid', 'clientOrderId']) if (cid is not None) else params
+        response = await self.privatePostAuthWOrderCancel(self.extend(request, paramsOmitted))
         order = self.safe_value(response, 4)
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)
 
-    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders at the same time
 
@@ -2052,7 +2054,7 @@ class bitfinex(Exchange, ImplicitAPI):
             ordersList.append({'result': orders[i]})
         return self.parse_orders(ordersList, market)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetch an open order by it's id
 
@@ -2068,12 +2070,12 @@ class bitfinex(Exchange, ImplicitAPI):
             'id': [int(id)],
         }
         orders = await self.fetch_open_orders(symbol, None, None, self.extend(request, params))
-        order = self.safe_value(orders, 0)
+        order = self.safe_dict(orders, 0)
         if order is None:
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_closed_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetch an open order by it's id
 
@@ -2089,12 +2091,12 @@ class bitfinex(Exchange, ImplicitAPI):
             'id': [int(id)],
         }
         orders = await self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
-        order = self.safe_value(orders, 0)
+        order = self.safe_dict(orders, 0)
         if order is None:
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2161,7 +2163,7 @@ class bitfinex(Exchange, ImplicitAPI):
             ordersList.append({'result': response[i]})
         return self.parse_orders(ordersList, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2179,24 +2181,23 @@ class bitfinex(Exchange, ImplicitAPI):
         # returns the most recent closed or canceled orders up to circa two weeks ago
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
+            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, paramsPaginate)
         request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # default 25, max 2500
-        request, params = self.handle_until_option('end', request, params)
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
         market = None
         response: dict
         if symbol is None:
-            response = await self.privatePostAuthROrdersHist(self.extend(request, params))
+            response = await self.privatePostAuthROrdersHist(self.extend(requestUntil, paramsUntil))
         else:
             market = self.market(symbol)
-            request['symbol'] = market['id']
-            response = await self.privatePostAuthROrdersSymbolHist(self.extend(request, params))
+            requestUntil['symbol'] = market['id']
+            response = await self.privatePostAuthROrdersSymbolHist(self.extend(requestUntil, paramsUntil))
         #
         #      [
         #          [
@@ -2240,7 +2241,7 @@ class bitfinex(Exchange, ImplicitAPI):
             ordersList.append({'result': response[i]})
         return self.parse_orders(ordersList, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -2271,7 +2272,7 @@ class bitfinex(Exchange, ImplicitAPI):
             tradesList.append({'result': rawTrades[i]})  # convert to array of dicts to match parseOrder signature
         return self.parse_trades(tradesList, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2306,7 +2307,7 @@ class bitfinex(Exchange, ImplicitAPI):
             tradesList.append({'result': response[i]})  # convert to array of dicts to match parseOrder signature
         return self.parse_trades(tradesList, market, since, limit)
 
-    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -2323,7 +2324,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -2337,20 +2338,21 @@ class bitfinex(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         # if not provided explicitly we will try to match using the currency name
-        network = self.safe_string(params, 'network', code)
-        currencyNetworks = self.safe_value(currency, 'networks', {})
-        currencyNetwork = self.safe_value(currencyNetworks, network)
+        networkParam = self.safe_string(params, 'network', code)
+        network = self.safe_string(self.networkAliases, networkParam, networkParam)
+        currencyNetworks = self.safe_dict(currency, 'networks', {})
+        currencyNetwork = self.safe_dict(currencyNetworks, network)
         networkId = self.safe_string(currencyNetwork, 'id')
         if networkId is None:
             raise ArgumentsRequired(self.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
         wallet = self.safe_string(params, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        params = self.omit(params, 'network', 'wallet')
+        paramsOmitted = self.omit(params, 'network', 'wallet')
         request = {
             'method': networkId,
             'wallet': wallet,
             'op_renew': 0,  # a value of 1 will generate a new address
         }
-        response = await self.privatePostAuthWDepositAddress(self.extend(request, params))
+        response = await self.privatePostAuthWDepositAddress(self.extend(request, paramsOmitted))
         #
         #     [
         #         1582269616687, // MTS Millisecond Time Stamp of the update
@@ -2370,7 +2372,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         "success", // TEXT Text of the notification
         #     ]
         #
-        result = self.safe_value(response, 4, [])
+        result = self.safe_list(response, 4, [])
         poolAddress = self.safe_string(result, 5)
         address = self.safe_string(result, 4) if (poolAddress is None) else poolAddress
         tag = None if (poolAddress is None) else self.safe_string(result, 4)
@@ -2383,7 +2385,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'SUCCESS': 'ok',
             'COMPLETED': 'ok',
@@ -2399,7 +2401,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: list, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -2466,17 +2468,18 @@ class bitfinex(Exchange, ImplicitAPI):
         network = None
         comment = None
         if transactionLength == 8:
-            data = self.safe_value(transaction, 4, [])
+            data = self.safe_list(transaction, 4, [])
             timestamp = self.safe_integer(transaction, 0)
             if currency is not None:
-                code = currency['code']
+                code = self.safe_string(currency, 'code')
             feeCost = self.safe_string(data, 8)
             if feeCost is not None:
                 feeCost = Precise.string_abs(feeCost)
             amount = self.safe_number(data, 5)
-            id = self.safe_integer(data, 0)
+            withdrawId = self.safe_integer(data, 0)
+            id = withdrawId
             status = 'ok'
-            if id == 0:
+            if withdrawId == 0:
                 id = None
                 status = 'failed'
             tag = self.safe_string(data, 3)
@@ -2532,7 +2535,7 @@ class bitfinex(Exchange, ImplicitAPI):
             },
         }
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -2613,9 +2616,9 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         result = {}
         fiat = self.safe_dict(self.options, 'fiat', {})
-        feeData = self.safe_value(response, 4, [])
-        makerData = self.safe_value(feeData, 0, [])
-        takerData = self.safe_value(feeData, 1, [])
+        feeData = self.safe_list(response, 4, [])
+        makerData = self.safe_list(feeData, 0, [])
+        takerData = self.safe_list(feeData, 1, [])
         makerFee = self.safe_number(makerData, 0)
         makerFeeFiat = self.safe_number(makerData, 2)
         makerFeeDeriv = self.safe_number(makerData, 5)
@@ -2643,7 +2646,7 @@ class bitfinex(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2703,7 +2706,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2712,24 +2715,26 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         self.check_address(address)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
         # if not provided explicitly we will try to match using the currency name
-        network = self.safe_string(params, 'network', code)
-        params = self.omit(params, 'network')
-        currencyNetworks = self.safe_value(currency, 'networks', {})
-        currencyNetwork = self.safe_value(currencyNetworks, network)
+        networkParam = self.safe_string(paramsWithdrawTag, 'network', code)
+        network = self.safe_string(self.networkAliases, networkParam, networkParam)
+        paramsOmitted = self.omit(paramsWithdrawTag, 'network')
+        currencyNetworks = self.safe_dict(currency, 'networks', {})
+        currencyNetwork = self.safe_dict(currencyNetworks, network)
         networkId = self.safe_string(currencyNetwork, 'id')
         if networkId is None:
             raise ArgumentsRequired(self.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
-        wallet = self.safe_string(params, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        params = self.omit(params, 'network', 'wallet')
+        wallet = self.safe_string(paramsOmitted, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+        paramsOmitted2 = self.omit(paramsOmitted, 'network', 'wallet')
         request = {
             'method': networkId,
             'wallet': wallet,
@@ -2738,11 +2743,11 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['payment_id'] = tag
-        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        withdrawOptions = self.safe_dict(self.options, 'withdraw', {})
         includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
-        if includeFee is True:
+        if includeFee:
             request['fee_deduct'] = 1
-        response = await self.privatePostAuthWWithdraw(self.extend(request, params))
+        response = await self.privatePostAuthWWithdraw(self.extend(request, paramsOmitted2))
         #
         #     [
         #         1582271520931, // MTS Millisecond Time Stamp of the update
@@ -2786,7 +2791,7 @@ class bitfinex(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], text, text)
         return self.parse_transaction(response, currency)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2798,7 +2803,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         response = await self.privatePostAuthRPositions(params)
         #
         #     [
@@ -2838,9 +2843,9 @@ class bitfinex(Exchange, ImplicitAPI):
         positionsList = []
         for i in range(0, len(rawPositions)):
             positionsList.append({'result': rawPositions[i]})
-        return self.parse_positions(positionsList, symbols)
+        return self.parse_positions(positionsList, symbolsNormalized)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         #    [
         #        "tBTCUSD",                    // SYMBOL
@@ -2910,35 +2915,44 @@ class bitfinex(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'v1':
-            request = api + request
+        if apiName == 'v1':
+            request = apiName + request
         else:
             request = self.version + request
-        url = self.urls['api'][api] + '/' + request
-        if api == 'public':
+        apiUrl = self.safe_string(self.urls['api'], apiName)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + request
+        requestBody = None
+        requestHeaders = None
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
-            nonce = str(self.nonce())
-            body = self.json(query)
-            auth = '/api/' + request + nonce + body
+            # bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
+            nonce = str(self.incrementing_nonce())
+            requestBody = self.json(query)
+            auth = '/api/' + request + nonce + requestBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha384)
-            headers = {
+            requestHeaders = {
                 'bfx-nonce': nonce,
                 'bfx-apikey': self.apiKey,
                 'bfx-signature': signature,
                 'Content-Type': 'application/json',
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, statusCode: int, statusText: object, url: object, method: object, headers: object, body: object, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         # ["error", 11010, "ratelimit: error"]
         if response is not None:
             if not isinstance(response, list):
@@ -2962,7 +2976,7 @@ class bitfinex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + errorText + ' (#' + errorCode + ')')
         return response
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         if type is None:
             return None
         elif type.find('fee') >= 0 or type.find('charged') >= 0:
@@ -3001,7 +3015,7 @@ class bitfinex(Exchange, ImplicitAPI):
         id = self.safe_string(itemList, 0)
         currencyId = self.safe_string(itemList, 1)
         code = self.safe_currency_code(currencyId, currency)
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(itemList, 3)
         amount = self.safe_number(itemList, 5)
         after = self.safe_number(itemList, 6)
@@ -3026,9 +3040,9 @@ class bitfinex(Exchange, ImplicitAPI):
             'after': after,
             'status': None,
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -3044,24 +3058,23 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, 2500)
+            return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, paramsPaginate, 2500)
         currency = None
         request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        request, params = self.handle_until_option('end', request, params)
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
         response: dict
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id']
-            response = await self.privatePostAuthRLedgersCurrencyHist(self.extend(request, params))
+            requestUntil['currency'] = currency['id']
+            response = await self.privatePostAuthRLedgersCurrencyHist(self.extend(requestUntil, paramsUntil))
         else:
-            response = await self.privatePostAuthRLedgersHist(self.extend(request, params))
+            response = await self.privatePostAuthRLedgersHist(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         [
@@ -3083,7 +3096,7 @@ class bitfinex(Exchange, ImplicitAPI):
             ledgerObjects.append({'result': item})
         return self.parse_ledger(ledgerObjects, currency, since, limit)
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    async def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the current funding rate for multiple symbols
 
@@ -3134,7 +3147,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingRateHistory]:
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -3152,18 +3165,17 @@ class bitfinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000)
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 5000)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
         if since is not None:
             request['start'] = since
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.publicGetStatusDerivSymbolHist(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.publicGetStatusDerivSymbolHist(self.extend(requestUntil, paramsUntil))
         #
         #   [
         #       [
@@ -3262,7 +3274,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
         #
         # [
         #     1691165494000,
@@ -3291,28 +3303,15 @@ class bitfinex(Exchange, ImplicitAPI):
         # ]
         #
         timestamp = self.safe_integer(contract, 0)
-        nextFundingTimestamp = self.safe_integer(contract, 7)
         return {
             'info': contract,
             'symbol': self.safe_symbol(None, market),
-            'markPrice': self.safe_number(contract, 14),
-            'indexPrice': self.safe_number(contract, 2),
-            'interestRate': None,
-            'estimatedSettlePrice': None,
+            'fundingRate': self.safe_number(contract, 11),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': self.safe_number(contract, 11),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': self.safe_number(contract, 8),
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
-            'previousFundingRate': None,
-            'previousFundingTimestamp': None,
-            'previousFundingDatetime': None,
         }
 
-    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+    async def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:
         """
         Retrieves the open interest for a list of symbols
 
@@ -3324,10 +3323,10 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         marketIds = ['ALL']
-        if symbols is not None:
-            marketIds = self.market_ids(symbols)
+        if symbolsNormalized is not None:
+            marketIds = self.market_ids(symbolsNormalized)
         request = {
             'keys': ','.join(marketIds),
         }
@@ -3362,9 +3361,9 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        return self.parse_open_interests(response, symbols)
+        return self.parse_open_interests(response, symbolsNormalized)
 
-    async def fetch_open_interest(self, symbol: str, params={}):
+    async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
         retrieves the open interest of a contract trading pair
 
@@ -3414,7 +3413,7 @@ class bitfinex(Exchange, ImplicitAPI):
         oi = self.safe_list(response, 0)
         return self.parse_open_interest(oi, market)
 
-    async def fetch_open_interest_history(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_interest_history(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}):
         """
         retrieves the open interest history of a currency
 
@@ -3431,10 +3430,9 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenInterestHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, '8h', params, 5000)
+            return await self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, '8h', paramsPaginate, 5000)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3443,8 +3441,8 @@ class bitfinex(Exchange, ImplicitAPI):
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.publicGetStatusDerivSymbolHist(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.publicGetStatusDerivSymbolHist(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         [
@@ -3476,7 +3474,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_open_interests_history(response, market, since, limit)
 
-    def parse_open_interest(self, interest: object, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
         #
         # fetchOpenInterest:
         #
@@ -3548,7 +3546,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         retrieves the public liquidations of a trading pair
 
@@ -3564,18 +3562,17 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLiquidations', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchLiquidations', symbol, since, limit, '8h', params, 500)
+            return await self.fetch_paginated_call_deterministic('fetchLiquidations', symbol, since, limit, '8h', paramsPaginate, 500)
         market = self.market(symbol)
         request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        request, params = self.handle_until_option('end', request, params)
-        response = await self.publicGetLiquidationsHist(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
+        response = await self.publicGetLiquidationsHist(self.extend(requestUntil, paramsUntil))
         #
         #     [
         #         [
@@ -3598,7 +3595,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_liquidations(self.to_array(response), market, since, limit)
 
-    def parse_liquidation(self, liquidation: object, market: Market = None):
+    def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:
         #
         #     [
         #         [
@@ -3617,7 +3614,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        entry = liquidation[0]
+        entry = self.safe_list(liquidation, 0)
         timestamp = self.safe_integer(entry, 2)
         marketId = self.safe_string(entry, 4)
         contracts = Precise.string_abs(self.safe_string(entry, 5))
@@ -3625,7 +3622,9 @@ class bitfinex(Exchange, ImplicitAPI):
         baseValue = Precise.string_mul(contracts, contractSize)
         price = self.safe_string(entry, 11)
         sideFlag = self.safe_integer(entry, 8)
-        side = 'buy' if (sideFlag == 1) else 'sell'
+        side = 'sell'
+        if sideFlag == 1:
+            side = 'buy'
         return self.safe_liquidation({
             'info': entry,
             'symbol': self.safe_symbol(marketId, market, None, 'contract'),
@@ -3639,7 +3638,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    async def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    async def set_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         either adds or reduces margin in a swap position in order to set the margin to a specific value
 
@@ -3670,7 +3669,7 @@ class bitfinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 0)
         return self.parse_margin_modification(data, market)
 
-    def parse_margin_modification(self, data: object, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: list, market: Market = None) -> MarginModification:
         #
         # setMargin
         #
@@ -3680,8 +3679,10 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        marginStatusRaw = data[0]
-        marginStatus = 'ok' if (marginStatusRaw == 1) else 'failed'
+        marginStatusRaw = self.safe_integer(data, 0)
+        marginStatus = 'failed'
+        if marginStatusRaw == 1:
+            marginStatus = 'ok'
         return {
             'info': data,
             'symbol': self.safe_string(market, 'symbol'),
@@ -3695,7 +3696,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -3762,7 +3763,7 @@ class bitfinex(Exchange, ImplicitAPI):
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -3807,15 +3808,17 @@ class bitfinex(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, triggerPrice)
             if type == 'limit':
                 request['price_aux_limit'] = self.price_to_precision(symbol, price)
-        postOnly = ((postOnlyParam is True) or (timeInForce == 'PO'))
+        postOnly = ((postOnlyParam) or (timeInForce == 'PO'))
         if (type != 'market') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
         # flag values may be summed to combine flags
         flags = 0
-        if postOnly:
-            flags = self.sum(flags, 4096)
-        if reduceOnly is True:
-            flags = self.sum(flags, 1024)
+        if postOnly and reduceOnly:
+            flags = 5120
+        elif postOnly:
+            flags = 4096
+        elif reduceOnly:
+            flags = 1024
         if flags != 0:
             request['flags'] = flags
         if clientOrderId is not None:
@@ -3823,8 +3826,8 @@ class bitfinex(Exchange, ImplicitAPI):
         leverage = self.safe_integer_2(params, 'leverage', 'lev')
         if leverage is not None:
             request['lev'] = leverage
-        params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId', 'leverage'])
-        response = await self.privatePostAuthWOrderUpdate(self.extend(request, params))
+        paramsOmitted = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId', 'leverage'])
+        response = await self.privatePostAuthWOrderUpdate(self.extend(request, paramsOmitted))
         #
         #     [
         #         1706845376402,

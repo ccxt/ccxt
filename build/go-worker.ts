@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCcxtGoLocalTypes } from './go-local-types.js';
+import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes } from './go-local-types.js';
 import log from 'ololog'
 
 // task payload posted by goTranspiler.ts#webworkerTranspile (structured clone)
@@ -18,6 +18,7 @@ type GoComments = { [exchange: string]: { [method: string]: string } };
 let cachedTranspiler: Transpiler | null = null;
 let cachedConfigKey: string | null = null;
 let goComments: GoComments = {};
+let programCache: ReturnType<typeof Transpiler.createProgramCache> | null = null;
 
 function transformLeadingComment (comment: string): string {
     const commentNameRegex = /@name\s(\w+)#(\w+)/;
@@ -40,10 +41,14 @@ const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
 export default async ({ transpilerConfig, configKey, file, files, roots }: GoWorkerTask) => {
     const key = configKey || JSON.stringify (transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
-        cachedTranspiler = new Transpiler (transpilerConfig);
+        if (!programCache) {
+            programCache = Transpiler.createProgramCache ();
+        }
+        cachedTranspiler = new Transpiler (transpilerConfig, programCache);
         cachedTranspiler.setVerboseMode (false);
         cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
-        installCcxtGoLocalTypes(cachedTranspiler.goTranspiler);
+        installCcxtGoLocalTypes(cachedTranspiler.goTranspiler, transpilerConfig?.go?.unifiedInt64Params);
+        installCcxtGoIndexableTypes(cachedTranspiler.goTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

@@ -54,10 +54,10 @@ class okx extends okx$1["default"] {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws.okx.com:8443/ws/v5',
+                    'ws': 'wss://ws.okx.com:443/ws/v5',
                 },
                 'test': {
-                    'ws': 'wss://wspap.okx.com:8443/ws/v5',
+                    'ws': 'wss://wspap.okx.com:443/ws/v5',
                 },
             },
             'options': {
@@ -108,7 +108,10 @@ class okx extends okx$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' getUrl() requires a channel argument');
         }
         const isSandbox = this.options['sandboxMode'];
-        const sandboxSuffix = (isSandbox === true) ? '?brokerId=9999' : '';
+        let sandboxSuffix = '';
+        if (isSandbox === true) {
+            sandboxSuffix = '?brokerId=9999';
+        }
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
         const url = this.urls['api']['ws'];
@@ -124,30 +127,31 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        let symbolsRequested = symbols;
         if (symbols === undefined) {
-            symbols = this.symbols;
+            symbolsRequested = this.symbols;
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbolsRequested);
         const url = this.getUrl(channel, access);
         const messageHashes = [];
         const args = [];
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' subscribeMultiple() symbols is required');
         }
-        for (let i = 0; i < symbols.length; i++) {
-            if (symbols === undefined) {
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            if (symbolsNormalized === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' subscribeMultiple() symbols is required');
             }
-            const marketId = this.marketId(symbols[i]);
+            const marketId = this.marketId(symbolsNormalized[i]);
             const arg = {
                 'channel': channel,
                 'instId': marketId,
             };
             args.push(this.extend(arg, params));
-            if (symbols === undefined) {
+            if (symbolsNormalized === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' subscribeMultiple() symbols is required');
             }
-            messageHashes.push(channel + '::' + symbols[i]);
+            messageHashes.push(channel + '::' + symbolsNormalized[i]);
         }
         const request = {
             'op': 'subscribe',
@@ -163,9 +167,10 @@ class okx extends okx$1["default"] {
         const firstArgument = {
             'channel': channel,
         };
+        let messageHashResolved = messageHash;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHash += ':' + market['id'];
+            messageHashResolved += ':' + market['id'];
             firstArgument['instId'] = market['id'];
         }
         const request = {
@@ -174,7 +179,7 @@ class okx extends okx$1["default"] {
                 this.deepExtend(firstArgument, params),
             ],
         };
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watch(url, messageHashResolved, request, messageHashResolved);
     }
     /**
      * @method
@@ -212,13 +217,12 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
-        let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchTrades', 'channel', 'trades');
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const channel = this.handleOptionStringAndParams(params, 'watchTrades', 'channel', 'trades')[0];
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             messageHashes.push(channel + ':' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -238,12 +242,13 @@ class okx extends okx$1["default"] {
         }
         const url = this.getUrl(channel, access);
         const trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        const first = this.safeDict(trades, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -258,13 +263,12 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
-        let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchTrades', 'channel', 'trades');
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const channel = this.handleOptionStringAndParams(params, 'watchTrades', 'channel', 'trades')[0];
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             messageHashes.push('unsubscribe:' + channel + ':' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -329,7 +333,7 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const marketId = this.safeString(arg, 'instId');
         const symbol = this.safeSymbol(marketId);
@@ -337,14 +341,16 @@ class okx extends okx$1["default"] {
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade(data[i]);
-            const messageHash = channel + ':' + symbol;
             let stored = this.safeValue(this.trades, symbol);
             if (stored === undefined) {
                 stored = new Cache.ArrayCache(tradesLimit);
                 this.trades[symbol] = stored;
             }
             stored.append(trade);
-            client.resolve(stored, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + symbol;
+                client.resolve(stored, messageHash);
+            }
         }
     }
     /**
@@ -357,9 +363,12 @@ class okx extends okx$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate(symbol, params = {}) {
-        symbol = this.symbol(symbol);
-        const fr = await this.watchFundingRates([symbol], params);
-        return fr[symbol];
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolValue = this.symbol(symbol);
+        const fr = await this.watchFundingRates([symbolValue], params);
+        return fr[symbolValue];
     }
     /**
      * @method
@@ -377,12 +386,12 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const channel = 'funding-rate';
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             messageHashes.push(channel + ':' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -405,7 +414,7 @@ class okx extends okx$1["default"] {
             }
             return result;
         }
-        return this.filterByArray(this.fundingRates, 'symbol', symbols);
+        return this.filterByArray(this.fundingRates, 'symbol', symbolsNormalized);
     }
     handleFundingRate(client, message) {
         //
@@ -429,7 +438,7 @@ class okx extends okx$1["default"] {
         //
         const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const rawfr = data[i];
+            const rawfr = this.safeDict(data, i);
             const fundingRate = this.parseFundingRate(rawfr);
             const symbol = fundingRate['symbol'];
             if (symbol !== undefined) {
@@ -449,13 +458,15 @@ class okx extends okx$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchTicker', 'channel', 'tickers');
-        params['channel'] = channel;
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchTicker', 'channel', 'tickers');
+        paramsChannel['channel'] = channel;
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const ticker = await this.watchTickers([symbol], params);
-        return this.safeValue(ticker, symbol);
+        const symbolValue = market['symbol'];
+        const ticker = await this.watchTickers([symbolValue], paramsChannel);
+        return this.safeValue(ticker, symbolValue);
     }
     /**
      * @method
@@ -484,14 +495,13 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
-        let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'tickers');
-        const newTickers = await this.subscribeMultiple('public', channel, symbols, params);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchTickers', 'channel', 'tickers');
+        const newTickers = await this.subscribeMultiple('public', channel, symbolsNormalized, paramsChannel);
         if (this.newUpdates) {
             return newTickers;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -504,13 +514,15 @@ class okx extends okx$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchMarkPrice(symbol, params = {}) {
-        let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchMarkPrice', 'channel', 'mark-price');
-        params['channel'] = channel;
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchMarkPrice', 'channel', 'mark-price');
+        paramsChannel['channel'] = channel;
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const ticker = await this.watchMarkPrices([symbol], params);
-        return ticker[symbol];
+        const symbolValue = market['symbol'];
+        const ticker = await this.watchMarkPrices([symbolValue], paramsChannel);
+        return ticker[symbolValue];
     }
     /**
      * @method
@@ -526,14 +538,13 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
-        let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'channel', 'mark-price');
-        const newTickers = await this.subscribeMultiple('public', channel, symbols, params);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchMarkPrices', 'channel', 'mark-price');
+        const newTickers = await this.subscribeMultiple('public', channel, symbolsNormalized, paramsChannel);
         if (this.newUpdates) {
             return newTickers;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -549,13 +560,12 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
-        let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'tickers');
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const channel = this.handleOptionStringAndParams(params, 'watchTickers', 'channel', 'tickers')[0];
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             messageHashes.push('unsubscribe:ticker:' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -597,12 +607,16 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        this.handleBidAsk(client, message);
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString(arg, 'channel');
+        if (channel === 'tickers') {
+            // of the five feeds routed here, only the plain one carries bidPx/askPx —
+            // mark-price and index frames lack them and must not overwrite the bid-ask cache
+            this.handleBidAsk(client, message);
+        }
         const data = this.safeList(message, 'data', []);
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
@@ -610,8 +624,10 @@ class okx extends okx$1["default"] {
             this.tickers[symbol] = ticker;
             newTickers[symbol] = ticker;
         }
-        const messageHash = channel + '::' + symbol;
-        client.resolve(newTickers, messageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + '::' + symbol;
+            client.resolve(newTickers, messageHash);
+        }
     }
     /**
      * @method
@@ -628,20 +644,19 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
-        let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchBidsAsks', 'channel', 'bbo-tbt');
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchBidsAsks', 'channel', 'bbo-tbt');
         const url = this.getUrl(channel, 'public');
         const messageHashes = [];
         const args = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const marketId = this.marketId(symbols[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const marketId = this.marketId(symbolsNormalized[i]);
             const arg = {
                 'channel': channel,
                 'instId': marketId,
             };
-            args.push(this.extend(arg, params));
-            messageHashes.push('bidask::' + symbols[i]);
+            args.push(this.extend(arg, paramsChannel));
+            messageHashes.push('bidask::' + symbolsNormalized[i]);
         }
         const request = {
             'op': 'subscribe',
@@ -650,10 +665,13 @@ class okx extends okx$1["default"] {
         const newTickers = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const tickers = {};
-            tickers[newTickers['symbol']] = newTickers;
+            const newTickersSymbol = this.safeString(newTickers, 'symbol');
+            if (newTickersSymbol !== undefined) {
+                tickers[newTickersSymbol] = newTickers;
+            }
             return tickers;
         }
-        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);
     }
     handleBidAsk(client, message) {
         //
@@ -711,8 +729,8 @@ class okx extends okx$1["default"] {
     }
     parseWsBidAsk(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 'instId');
-        market = this.safeMarket(marketId, market);
-        const symbol = this.safeString(market, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(ticker, 'ts');
         let ask = this.safeString(ticker, 'askPx');
         let askVolume = this.safeString(ticker, 'askSz');
@@ -739,7 +757,7 @@ class okx extends okx$1["default"] {
             'bid': bid,
             'bidVolume': bidVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -756,26 +774,26 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         const messageHash = 'liquidations';
         const messageHashes = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push(messageHash + '::' + symbol);
             }
         }
         else {
             messageHashes.push(messageHash);
         }
-        const market = this.getMarketFromSymbols(symbols);
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', market, params);
+        const market = this.getMarketFromSymbols(symbolsNormalized);
+        const marketType = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', market, params)[0];
         const channel = 'liquidation-orders';
-        if (type === 'spot') {
+        let type = marketType;
+        if (marketType === 'spot') {
             type = 'SWAP';
         }
-        else if (type === 'future') {
+        else if (marketType === 'future') {
             type = 'futures';
         }
         if (type === undefined) {
@@ -796,7 +814,7 @@ class okx extends okx$1["default"] {
         if (this.newUpdates) {
             return newLiquidations;
         }
-        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbolsNormalized, since, limit, true);
     }
     handleLiquidation(client, message) {
         //
@@ -856,16 +874,19 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const isTrigger = this.safeValue2(params, 'stop', 'trigger', false);
-        params = this.omit(params, ['stop', 'trigger']);
-        const accessType = (isTrigger === true) ? 'business' : 'private';
+        const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
+        let accessType = 'private';
+        if (isTrigger) {
+            accessType = 'business';
+        }
         await this.authenticate({ 'access': accessType });
-        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         const messageHash = 'myLiquidations';
         const messageHashes = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push(messageHash + '::' + symbol);
             }
         }
@@ -882,11 +903,11 @@ class okx extends okx$1["default"] {
             ],
         };
         const url = this.getUrl(channel, 'private');
-        const newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
+        const newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsOmitted), messageHashes);
         if (this.newUpdates) {
             return newLiquidations;
         }
-        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbolsNormalized, since, limit, true);
     }
     handleMyLiquidation(client, message) {
         //
@@ -974,13 +995,13 @@ class okx extends okx$1["default"] {
         const posData = this.safeList(liquidation, 'posData', []);
         const firstPosData = this.safeDict(posData, 0, {});
         const marketId = this.safeString(firstPosData, 'instId');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(firstPosData, 'uTIme');
         return this.safeLiquidation({
             'info': liquidation,
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': this.safeSymbol(marketId, marketResolved),
             'contracts': this.safeNumber(firstPosData, 'pos'),
-            'contractSize': this.safeNumber(market, 'contractSize'),
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'price': this.safeNumber(liquidation, 'avgPx'),
             'baseValue': undefined,
             'quoteValue': undefined,
@@ -1012,13 +1033,13 @@ class okx extends okx$1["default"] {
         const details = this.safeList(liquidation, 'details', []);
         const liquidationDetails = this.safeDict(details, 0, {});
         const marketId = this.safeString(liquidation, 'instId');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(liquidationDetails, 'ts');
         return this.safeLiquidation({
             'info': liquidation,
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': this.safeSymbol(marketId, marketResolved),
             'contracts': this.safeNumber(liquidationDetails, 'sz'),
-            'contractSize': this.safeNumber(market, 'contractSize'),
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'price': this.safeNumber(liquidationDetails, 'bkPx'),
             'side': this.safeString(liquidationDetails, 'side'),
             'baseValue': undefined,
@@ -1043,14 +1064,15 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
+        const symbolValue = this.symbol(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const name = 'candle' + interval;
-        const ohlcv = await this.subscribe('public', name, name, symbol, params);
+        const ohlcv = await this.subscribe('public', name, name, symbolValue, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     /**
      * @method
@@ -1106,10 +1128,11 @@ class okx extends okx$1["default"] {
         };
         const url = this.getUrl('candle', 'public');
         const [symbol, timeframe, candles] = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = candles.getLimit(symbol, limit);
+            limitResolved = candles.getLimit(symbol, limit);
         }
-        const filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
     /**
@@ -1169,7 +1192,7 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         if (channel === undefined) {
             return;
@@ -1183,8 +1206,8 @@ class okx extends okx$1["default"] {
         const timeframe = this.findTimeframe(interval);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV(data[i], market);
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+            let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
@@ -1235,9 +1258,9 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
-        let depth = undefined;
-        [depth, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'depth', 'books');
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const depthOption = this.handleOptionStringAndParams(params, 'watchOrderBook', 'depth', 'books')[0];
+        let depth = depthOption;
         if (limit !== undefined) {
             if (limit === 1) {
                 depth = 'bbo-tbt';
@@ -1260,8 +1283,8 @@ class okx extends okx$1["default"] {
         }
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             messageHashes.push(depth + ':' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -1275,6 +1298,25 @@ class okx extends okx$1["default"] {
             'args': topics,
         };
         const url = this.getUrl(depth, 'public');
+        const client = this.client(url);
+        const resyncTopics = [];
+        const resyncHashes = [];
+        let resyncNeeded = false;
+        for (let i = 0; i < messageHashes.length; i++) {
+            if (this.safeString(client.subscriptions, messageHashes[i]) === 'resync') {
+                // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                resyncTopics.push(topics[i]);
+                resyncHashes.push('unsubscribe:orderbook:' + symbolsNormalized[i]);
+                resyncNeeded = true;
+            }
+        }
+        if (resyncNeeded) {
+            const unsubscribeRequest = {
+                'op': 'unsubscribe',
+                'args': resyncTopics,
+            };
+            await this.watchMultiple(url, resyncHashes, unsubscribeRequest, resyncHashes);
+        }
         const orderbook = await this.watchMultiple(url, messageHashes, request, messageHashes);
         return orderbook.limit();
     }
@@ -1293,10 +1335,11 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         let depth = undefined;
-        [depth, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'depth', 'books');
-        const limit = this.safeInteger(params, 'limit');
+        let paramsDepth = undefined;
+        [depth, paramsDepth] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'depth', 'books');
+        const limit = this.safeInteger(paramsDepth, 'limit');
         if (limit !== undefined) {
             if (limit === 1) {
                 depth = 'bbo-tbt';
@@ -1313,8 +1356,8 @@ class okx extends okx$1["default"] {
         }
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             messageHashes.push('unsubscribe:orderbook:' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
@@ -1382,8 +1425,8 @@ class okx extends okx$1["default"] {
         //         "seqId": 123457
         //     }
         //
-        const asks = this.safeValue(message, 'asks', []);
-        const bids = this.safeValue(message, 'bids', []);
+        const asks = this.safeList(message, 'asks', []);
+        const bids = this.safeList(message, 'bids', []);
         const storedAsks = orderbook['asks'];
         const storedBids = orderbook['bids'];
         this.handleDeltas(storedAsks, asks);
@@ -1393,11 +1436,8 @@ class okx extends okx$1["default"] {
         const seqId = this.safeInteger(message, 'seqId');
         const prevSeqId = this.safeInteger(message, 'prevSeqId');
         const nonce = orderbook['nonce'];
-        let error = undefined;
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
-            error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
-        }
-        if (error !== undefined) {
+            const error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
             delete client.subscriptions[messageHash];
             if (symbol !== undefined) {
                 delete this.orderbooks[symbol];
@@ -1517,10 +1557,20 @@ class okx extends okx$1["default"] {
         if (action === 'snapshot') {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
-                const orderbook = this.orderBook({}, limit);
-                this.orderbooks[symbol] = orderbook;
-                orderbook['symbol'] = symbol;
-                this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                // reset the existing orderbook instead of replacing it: a consumer
+                // holds a reference to the old object and would never see updates
+                // after a re-subscription snapshot
+                if (!(symbol in this.orderbooks)) {
+                    this.orderbooks[symbol] = this.orderBook({}, limit);
+                }
+                const orderbook = this.orderbooks[symbol];
+                const timestamp = this.safeInteger(update, 'ts');
+                // rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                // price and amount only, matching handleDelta, so countOrIdKey
+                // points past the row on purpose
+                const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1, 4);
+                snapshot['nonce'] = this.safeInteger(update, 'seqId');
+                orderbook.reset(snapshot);
                 if (!(messageHash in client.subscriptions)) {
                     break;
                 }
@@ -1534,8 +1584,8 @@ class okx extends okx$1["default"] {
                     const update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
                     if (!(messageHash in client.subscriptions)) {
-                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        client.subscriptions[messageHash] = 'resync';
                         break;
                     }
                     client.resolve(orderbook, messageHash);
@@ -1568,7 +1618,7 @@ class okx extends okx$1["default"] {
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const access = this.safeString(params, 'access', 'private');
-        params = this.omit(params, ['access']);
+        const paramsOmitted = this.omit(params, ['access']);
         const url = this.getUrl('users', access);
         const messageHash = 'authenticated';
         const client = this.client(url);
@@ -1593,8 +1643,8 @@ class okx extends okx$1["default"] {
                 ],
             };
             // Only add params['access'] to prevent sending custom parameters, such as extraParams.
-            if ('access' in params) {
-                request['access'] = params['access'];
+            if ('access' in paramsOmitted) {
+                request['access'] = paramsOmitted['access'];
             }
             this.watch(url, messageHash, request, messageHash);
         }
@@ -1708,15 +1758,33 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         const balance = this.parseTradingBalance(message);
-        const newBalance = this.deepExtend(this.balance, balance);
-        this.balance = this.safeBalance(newBalance);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = ['free', 'used', 'total'];
+        const keys = Object.keys(balance);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, channel);
     }
     orderToTrade(order, market = undefined) {
-        const info = this.safeValue(order, 'info', {});
+        const info = this.safeDict(order, 'info', {});
         const timestamp = this.safeInteger(info, 'fillTime');
         const feeMarketId = this.safeString(info, 'fillFeeCcy');
         const isTaker = this.safeString(info, 'execType', '') === 'T';
@@ -1755,23 +1823,30 @@ class okx extends okx$1["default"] {
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // By default, receive order updates from any instrument type
-        let type = undefined;
-        [type, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'type', 'ANY');
-        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
-        params = this.omit(params, ['trigger', 'stop']);
+        const [typeOption, paramsType] = this.handleOptionStringAndParams(params, 'watchMyTrades', 'type', 'ANY');
+        const isTrigger = this.safeBool2(paramsType, 'trigger', 'stop', false);
+        const paramsOmitted = this.omit(paramsType, ['trigger', 'stop']);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const access = (isTrigger === true) ? 'business' : 'private';
+        let access = 'private';
+        if (isTrigger) {
+            access = 'business';
+        }
         await this.authenticate({ 'access': access });
-        const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
+        let channel = 'orders';
+        if (isTrigger) {
+            channel = 'orders-algo';
+        }
         let messageHash = channel + '::myTrades';
         let market = undefined;
+        let symbolResolved = undefined;
+        let type = typeOption;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
-            type = market['type'];
-            messageHash = messageHash + '::' + symbol;
+            symbolResolved = market['symbol'];
+            type = this.safeString(market, 'type');
+            messageHash = messageHash + '::' + symbolResolved;
         }
         if (type === 'future') {
             type = 'futures';
@@ -1780,8 +1855,7 @@ class okx extends okx$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() type is required');
         }
         let uppercaseType = type.toUpperCase();
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('watchMyTrades', params);
+        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('watchMyTrades', paramsOmitted);
         if (uppercaseType === 'SPOT') {
             if (marginMode !== undefined) {
                 uppercaseType = 'MARGIN';
@@ -1790,11 +1864,12 @@ class okx extends okx$1["default"] {
         const request = {
             'instType': uppercaseType,
         };
-        const orders = await this.subscribe('private', messageHash, channel, undefined, this.extend(request, params));
+        const orders = await this.subscribe('private', messageHash, channel, undefined, this.extend(request, paramsMarginMode));
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -1812,13 +1887,13 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         await this.authenticate(params);
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
             'instType': 'ANY',
         };
         const channel = 'positions';
         let newPositions = undefined;
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             const arg = {
                 'channel': 'positions',
                 'instType': 'ANY',
@@ -1832,12 +1907,12 @@ class okx extends okx$1["default"] {
             newPositions = await this.watch(url, channel, nonSymbolRequest, channel);
         }
         else {
-            newPositions = await this.subscribeMultiple('private', channel, symbols, this.extend(request, params));
+            newPositions = await this.subscribeMultiple('private', channel, symbolsNormalized, this.extend(request, params));
         }
         if (this.newUpdates) {
             return (newPositions === undefined) ? [] : newPositions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
     handlePositions(client, message) {
         //
@@ -1906,7 +1981,7 @@ class okx extends okx$1["default"] {
         //        }]
         //    }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
@@ -1920,7 +1995,7 @@ class okx extends okx$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
-            if (position['contracts'] === 0 && rawPosition['posSide'] === 'net') {
+            if (position['contracts'] === 0 && this.safeString(rawPosition, 'posSide') === 'net') {
                 position['side'] = 'long';
                 const shortPosition = this.clone(position);
                 shortPosition['side'] = 'short';
@@ -1951,21 +2026,25 @@ class okx extends okx$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let type = undefined;
         // By default, receive order updates from any instrument type
-        [type, params] = this.handleOptionAndParams(params, 'watchOrders', 'type', 'ANY');
-        const isTrigger = this.safeValue2(params, 'stop', 'trigger', false);
-        params = this.omit(params, ['stop', 'trigger']);
+        const [typeOption, paramsType] = this.handleOptionStringAndParams(params, 'watchOrders', 'type', 'ANY');
+        const isTrigger = this.safeBool2(paramsType, 'stop', 'trigger', false);
+        const paramsOmitted = this.omit(paramsType, ['stop', 'trigger']);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const accessType = (isTrigger === true) ? 'business' : 'private';
+        let accessType = 'private';
+        if (isTrigger) {
+            accessType = 'business';
+        }
         await this.authenticate({ 'access': accessType });
         let market = undefined;
+        let symbolResolved = undefined;
+        let type = typeOption;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
-            type = market['type'];
+            symbolResolved = this.safeString(market, 'symbol');
+            type = this.safeString(market, 'type');
         }
         if (type === 'future') {
             type = 'futures';
@@ -1974,8 +2053,7 @@ class okx extends okx$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' watchOrders() type is required');
         }
         let uppercaseType = type.toUpperCase();
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
+        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('watchOrders', paramsOmitted);
         if (uppercaseType === 'SPOT') {
             if (marginMode !== undefined) {
                 uppercaseType = 'MARGIN';
@@ -1984,12 +2062,16 @@ class okx extends okx$1["default"] {
         const request = {
             'instType': uppercaseType,
         };
-        const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
-        const orders = await this.subscribe('private', channel, channel, symbol, this.extend(request, params));
-        if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+        let channel = 'orders';
+        if (isTrigger) {
+            channel = 'orders-algo';
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        const orders = await this.subscribe('private', channel, channel, symbolResolved, this.extend(request, paramsMarginMode));
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit(symbolResolved, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     handleOrders(client, message) {
         //
@@ -2047,7 +2129,7 @@ class okx extends okx$1["default"] {
         //     }
         //
         this.handleMyTrades(client, message);
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const orders = this.safeList(message, 'data', []);
         const ordersLength = orders.length;
@@ -2069,8 +2151,10 @@ class okx extends okx$1["default"] {
             }
             client.resolve(stored, channel);
             for (let i = 0; i < marketIds.length; i++) {
-                const messageHash = channel + ':' + marketIds[i];
-                client.resolve(stored, messageHash);
+                if (channel !== undefined) {
+                    const messageHash = channel + ':' + marketIds[i];
+                    client.resolve(stored, messageHash);
+                }
             }
         }
     }
@@ -2129,7 +2213,7 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const rawOrders = this.safeList(message, 'data', []);
         const filteredOrders = [];
@@ -2161,12 +2245,14 @@ class okx extends okx$1["default"] {
                 symbols[symbol] = true;
             }
         }
-        const messageHash = channel + '::myTrades';
-        client.resolve(this.myTrades, messageHash);
-        const tradeSymbols = Object.keys(symbols);
-        for (let i = 0; i < tradeSymbols.length; i++) {
-            const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
-            client.resolve(this.myTrades, symbolMessageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + '::myTrades';
+            client.resolve(this.myTrades, messageHash);
+            const tradeSymbols = Object.keys(symbols);
+            for (let i = 0; i < tradeSymbols.length; i++) {
+                const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
+                client.resolve(this.myTrades, symbolMessageHash);
+            }
         }
     }
     requestId() {
@@ -2196,9 +2282,8 @@ class okx extends okx$1["default"] {
         await this.authenticate();
         const url = this.getUrl('private', 'private');
         const messageHash = this.requestId();
-        let op = undefined;
-        [op, params] = this.handleOptionAndParams(params, 'createOrderWs', 'op', 'batch-orders');
-        const args = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const [op, paramsOp] = this.handleOptionStringAndParams(params, 'createOrderWs', 'op', 'batch-orders');
+        const args = this.createOrderRequest(symbol, type, side, amount, price, paramsOp);
         const market = this.market(symbol);
         const instIdCode = this.safeInteger(market, 'instIdCode');
         if (instIdCode !== undefined) {
@@ -2239,7 +2324,7 @@ class okx extends okx$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        let args = this.safeValue(message, 'data', []);
+        let args = this.safeList(message, 'data', []);
         // filter out partial errors
         args = this.filterBy(args, 'sCode', '0');
         // if empty means request failed and handle error
@@ -2274,9 +2359,8 @@ class okx extends okx$1["default"] {
         await this.authenticate();
         const url = this.getUrl('private', 'private');
         const messageHash = this.requestId();
-        let op = undefined;
-        [op, params] = this.handleOptionAndParams(params, 'editOrderWs', 'op', 'amend-order');
-        const args = this.editOrderRequest(id, symbol, type, side, amount, price, params);
+        const [op, paramsOp] = this.handleOptionStringAndParams(params, 'editOrderWs', 'op', 'amend-order');
+        const args = this.editOrderRequest(id, symbol, type, side, amount, price, paramsOp);
         const market = this.market(symbol);
         const instIdCode = this.safeInteger(market, 'instIdCode');
         if (instIdCode !== undefined) {
@@ -2288,7 +2372,7 @@ class okx extends okx$1["default"] {
             'op': op,
             'args': [args],
         };
-        return await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        return await this.watch(url, messageHash, this.extend(request, paramsOp), messageHash);
     }
     /**
      * @method
@@ -2312,7 +2396,7 @@ class okx extends okx$1["default"] {
         const url = this.getUrl('private', 'private');
         const messageHash = this.requestId();
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
-        params = this.omit(params, ['clientOrderId', 'clOrdId']);
+        const paramsOmitted = this.omit(params, ['clientOrderId', 'clOrdId']);
         const market = this.market(symbol);
         const instIdCode = this.safeInteger(market, 'instIdCode');
         const arg = {
@@ -2327,7 +2411,7 @@ class okx extends okx$1["default"] {
         const request = {
             'id': messageHash,
             'op': 'cancel-order',
-            'args': [this.extend(arg, params)],
+            'args': [this.extend(arg, paramsOmitted)],
         };
         return await this.watch(url, messageHash, request, messageHash);
     }
@@ -2407,6 +2491,34 @@ class okx extends okx$1["default"] {
         };
         return await this.watch(url, messageHash, request, messageHash);
     }
+    handleCancelOrders(client, message) {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        const messageHash = this.safeString(message, 'id');
+        let args = this.safeList(message, 'data', []);
+        args = this.filterBy(args, 'sCode', '0');
+        if (this.isEmpty(args)) {
+            const method = this.safeString(message, 'op');
+            const stringMsg = this.json(message);
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, {});
+        }
+        const orders = this.parseOrders(args, undefined, undefined, undefined);
+        client.resolve(orders, messageHash);
+    }
     handleCancelAllOrders(client, message) {
         //
         //    {
@@ -2422,7 +2534,7 @@ class okx extends okx$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         client.resolve(data, messageHash);
     }
     handleSubscriptionStatus(client, message) {
@@ -2462,19 +2574,19 @@ class okx extends okx$1["default"] {
                 if (errorCode !== '1') {
                     this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 }
-                let messageString = this.safeValue(message, 'msg');
+                let messageString = this.safeString(message, 'msg');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }
                 else {
                     const data = this.safeList(message, 'data', []);
                     for (let i = 0; i < data.length; i++) {
-                        const d = data[i];
+                        const d = this.safeDict(data, i);
                         errorCode = this.safeString(d, 'sCode');
                         if (errorCode !== undefined) {
                             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                         }
-                        messageString = this.safeValue(d, 'sMsg');
+                        messageString = this.safeString(d, 'sMsg');
                         if (messageString !== undefined) {
                             this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                         }
@@ -2548,8 +2660,10 @@ class okx extends okx$1["default"] {
         //
         //
         //
-        if (message === 'pong') {
-            this.handlePong(client, message);
+        if (typeof message === 'string') {
+            if (message === 'pong') {
+                this.handlePong(client, message);
+            }
             return;
         }
         // const table = this.safeString (message, 'table');
@@ -2567,6 +2681,7 @@ class okx extends okx$1["default"] {
                 'amend-order': this.handlePlaceOrders,
                 'batch-amend-orders': this.handlePlaceOrders,
                 'cancel-order': this.handlePlaceOrders,
+                'batch-cancel-orders': this.handleCancelOrders,
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue(methods, event);
@@ -2575,7 +2690,7 @@ class okx extends okx$1["default"] {
             }
         }
         else {
-            const arg = this.safeValue(message, 'arg', {});
+            const arg = this.safeDict(message, 'arg', {});
             const channel = this.safeString(arg, 'channel');
             if (channel === undefined) {
                 return;
@@ -2639,6 +2754,10 @@ class okx extends okx$1["default"] {
         const subMessageHash = 'multi:' + channel + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if (symbol !== undefined) {
+            this.cleanUnsubscription(client, channel + ':' + this.marketId(symbol), undefined);
+        }
         if ((symbol !== undefined) && (timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
             delete this.ohlcvs[symbol][timeframe];
         }

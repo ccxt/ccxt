@@ -42,7 +42,7 @@ class mudrex(ccxt.async_support.mudrex):
             'method': 'PING',
         }
 
-    def request_id(self):
+    def request_id(self) -> float:
         reqid = self.sum(self.safe_integer(self.options, 'correlationId', 0), 1)
         self.options['correlationId'] = reqid
         return reqid
@@ -63,12 +63,12 @@ class mudrex(ccxt.async_support.mudrex):
         wsOptions['options'] = innerOptions
         self.options['ws'] = wsOptions
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'ticker:' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'ticker:' + symbolValue
         url = self.urls['api']['ws']
         self.set_broker_headers()
         baseIdString = market['baseId'] if (market['baseId'] is not None) else ''
@@ -83,15 +83,15 @@ class mudrex(ccxt.async_support.mudrex):
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         messageHashes = []
         assets = []
-        if symbols is not None:
-            for i in range(0, len(symbols)):
-                market = self.market(symbols[i])
+        if symbolsNormalized is not None:
+            for i in range(0, len(symbolsNormalized)):
+                market = self.market(symbolsNormalized[i])
                 messageHashes.append('ticker:' + market['symbol'])
                 baseIdString = market['baseId'] if (market['baseId'] is not None) else ''
                 quoteIdString = market['quoteId'] if (market['quoteId'] is not None) else ''
@@ -108,17 +108,19 @@ class mudrex(ccxt.async_support.mudrex):
         ticker = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
             result = {}
-            result[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                result[tickerSymbol] = ticker
             return result
-        return self.filter_by_array_tickers(self.tickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(self.tickers, 'symbol', symbolsNormalized)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         priceType = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
+        paramsOmitted = self.omit(params, 'price')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         if interval != '1s' and interval != '1m':
             raise NotSupported(self.id + ' watchOHLCV() supports 1s and 1m timeframes only')
@@ -136,13 +138,14 @@ class mudrex(ccxt.async_support.mudrex):
             'method': 'SUBSCRIBE',
             'params': [stream],
         }
-        request = self.extend(subscribe, params)
+        request = self.extend(subscribe, paramsOmitted)
         ohlcv = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
-    def handle_message(self, client: object, message: object):
+    def handle_message(self, client: Client, message: object):
         if self.safe_string(message, 'method') == 'PONG':
             return
         error = self.safe_dict(message, 'error')
@@ -156,7 +159,7 @@ class mudrex(ccxt.async_support.mudrex):
             elif stream.find('ticker') >= 0:
                 self.handle_ticker(client, message)
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: dict):
         error = self.safe_dict(message, 'error', {})
         code = self.safe_string(error, 'code')
         msg = self.safe_string(error, 'msg')
@@ -165,7 +168,7 @@ class mudrex(ccxt.async_support.mudrex):
             raise RateLimitExceeded(feedback)
         raise ExchangeError(feedback)
 
-    def handle_ohlcv(self, client: object, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         stream = self.safe_string(message, 'stream')
         if stream is None:
             return
@@ -186,8 +189,8 @@ class mudrex(ccxt.async_support.mudrex):
             self.safe_number(data, 'c'),
             self.safe_number(data, 'v'),
         ]
-        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), tf)
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), tf)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
@@ -197,7 +200,7 @@ class mudrex(ccxt.async_support.mudrex):
         messageHash = stream
         client.resolve(stored, messageHash)
 
-    def handle_ticker(self, client: object, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             t = data[i]

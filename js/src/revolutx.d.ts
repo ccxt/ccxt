@@ -6,7 +6,7 @@ import type { Balances, Currencies, Currency, Dict, Int, int, Market, MarketInte
  */
 export default class revolutx extends Exchange {
     describe(): any;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     /**
      * @method
      * @name revolutx#parseMarket
@@ -25,7 +25,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to filter markets by (e.g. EEA, UK)
      * @returns {object[]} an array of [market structures]{@link https://docs.ccxt.com/?id=market-structure}
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     /**
      * @method
      * @name revolutx#parseCurrency
@@ -44,7 +44,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to filter currencies by
      * @returns {object} a dictionary of [currency structures]{@link https://docs.ccxt.com/?id=currency-structure}
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
     /**
      * @method
      * @name revolutx#parseTicker
@@ -65,7 +65,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to fetch tickers for (e.g. EEA, UK)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name revolutx#fetchTicker
@@ -76,7 +76,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to fetch the ticker for
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name revolutx#fetchOrderBook
@@ -88,7 +88,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to fetch the order book for
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name revolutx#parseOHLCV
@@ -113,7 +113,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.region] the region to fetch candles for
      * @returns {int[][]} a list of [OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name revolutx#parseTrade
@@ -131,13 +131,13 @@ export default class revolutx extends Exchange {
      * @see https://developer.revolut.com/docs/api/revolut-x-crypto-exchange#tag-public-market-data
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum number of trades to return (1-1900, default 1900)
+     * @param {int} [limit] the maximum number of trades to return (1-100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name revolutx#fetchBalance
@@ -146,7 +146,7 @@ export default class revolutx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     /**
      * @method
      * @name revolutx#parseOrderStatus
@@ -181,9 +181,28 @@ export default class revolutx extends Exchange {
      * @param {float} [params.cost] the order cost in units of the quote currency (alternative to amount)
      * @param {string} [params.timeInForce] 'gtc' or 'ioc' for limit orders
      * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
+     * @param {float} [params.triggerPrice] place a conditional order that is submitted once the market reaches this price, as a limit order at `price` for type 'limit' or as a market order for type 'market'
+     * @param {float} [params.stopLossPrice] place a Take Profit/Stop Loss order with a stop loss leg that triggers at this price
+     * @param {float} [params.takeProfitPrice] place a Take Profit/Stop Loss order with a take profit leg that triggers at this price
+     * @param {object} [params.stopLoss] stop loss leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg
+     * @param {object} [params.takeProfit] take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
+    /**
+     * @method
+     * @name revolutx#createTriggerLegRequest
+     * @description builds the take profit or stop loss leg of a TP/SL order request
+     * @ignore
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {float} [price] the createOrder price, used as the limit price of a single limit leg
+     * @param {string} [triggerPrice] the stopLossPrice or takeProfitPrice param
+     * @param {object} [leg] the stopLoss or takeProfit param, *{ triggerPrice, price }*
+     * @param {boolean} singleLeg whether the order has only this leg
+     * @returns {object} the leg request
+     */
+    createTriggerLegRequest(symbol: string, type: OrderType, price: Num, triggerPrice: Str, leg: NullableDict, singleLeg: boolean): Dict;
     /**
      * @method
      * @name revolutx#cancelOrder
@@ -194,7 +213,7 @@ export default class revolutx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name revolutx#cancelAllOrders
@@ -204,7 +223,7 @@ export default class revolutx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an empty [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name revolutx#fetchOrder
@@ -215,7 +234,7 @@ export default class revolutx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name revolutx#fetchOpenOrders
@@ -228,10 +247,11 @@ export default class revolutx extends Exchange {
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @param {string[]} [params.orderStates] filter by order states, e.g. ['new', 'partially_filled']
      * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+     * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
      * @param {string} [params.side] filter by side, 'buy' or 'sell'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name revolutx#fetchOrders
@@ -245,9 +265,10 @@ export default class revolutx extends Exchange {
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @param {string[]} [params.orderStates] filter by order states, e.g. ['filled', 'cancelled', 'rejected']
      * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+     * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name revolutx#fetchClosedOrders
@@ -259,7 +280,7 @@ export default class revolutx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name revolutx#parseMyTrade
@@ -283,7 +304,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name revolutx#editOrder
@@ -302,6 +323,6 @@ export default class revolutx extends Exchange {
      * @param {string[]} [params.executionInstructions] e.g. ['post_only']
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }
