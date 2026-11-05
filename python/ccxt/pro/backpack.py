@@ -1056,7 +1056,7 @@ class backpack(ccxt.async_support.backpack):
             storedOrderBook.cache.append(data)
             # stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             market = self.market(symbol)
-            isStockMarket = (market['stock'] is True) or ((marketId is not None) and ((marketId.find('.US_') != -1) or (marketId.find('.HK_') != -1)))
+            isStockMarket = (market['stock'] is True) or ((marketId is not None) and ((marketId.find('.US_') >= 0) or (marketId.find('.HK_') >= 0)))
             defaultSnapshotDelay = 0 if isStockMarket else 10
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay)
             if cacheLength == snapshotDelay:
@@ -1068,7 +1068,8 @@ class backpack(ccxt.async_support.backpack):
         client.resolve(storedOrderBook, messageHash)
 
     def handle_book_delta(self, orderbook: object, delta: object):
-        timestamp = self.parse_to_int(self.safe_integer(delta, 'T', 0) / 1000)
+        microseconds = self.safe_integer(delta, 'T', 0)
+        timestamp = self.parse_to_int(microseconds / 1000)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['nonce'] = self.safe_integer(delta, 'u')
@@ -1234,7 +1235,8 @@ class backpack(ccxt.async_support.backpack):
         """
         event = self.safe_string(data, 'e', '')
         quoteEvent = event.find('quote') == 0
-        timestamp = self.parse_to_int(self.safe_integer(data, 'E', 0) / 1000)
+        microseconds = self.safe_integer(data, 'E', 0)
+        timestamp = self.parse_to_int(microseconds / 1000)
         request = {
             'rfqId': self.safe_string(data, 'R'),
             'clientId': self.safe_string(data, 'C'),
@@ -1255,7 +1257,8 @@ class backpack(ccxt.async_support.backpack):
         parsed = self.parse_order(request, marketResolved)
         parsed['info'] = data
         if event == 'rfqFilled':
-            parsed['lastTradeTimestamp'] = self.parse_to_int(self.safe_integer(data, 'T', 0) / 1000)
+            tradeMicroseconds = self.safe_integer(data, 'T', 0)
+            parsed['lastTradeTimestamp'] = self.parse_to_int(tradeMicroseconds / 1000)
         return parsed
 
     async def watch_balance(self, params: dict = {}) -> Balances:
@@ -1318,7 +1321,8 @@ class backpack(ccxt.async_support.backpack):
         self.options['wsBalanceAssets'] = assets
         response = self.parse_balance(assets)
         parsed = self.safe_dict({'balances': response}, 'balances', {})
-        timestamp = self.parse_to_int(self.safe_integer(data, 'E', 0) / 1000)
+        microseconds = self.safe_integer(data, 'E', 0)
+        timestamp = self.parse_to_int(microseconds / 1000)
         parsed['timestamp'] = timestamp
         parsed['datetime'] = self.iso8601(timestamp)
         parsed['info'] = assets
@@ -1549,7 +1553,7 @@ class backpack(ccxt.async_support.backpack):
         hedged = False
         side = 'long'
         if netQuantity is not None:
-            if netQuantity < 0:
+            if 0 > netQuantity:
                 side = 'short'
         else:
             hedged = None

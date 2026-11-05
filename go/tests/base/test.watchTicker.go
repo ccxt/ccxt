@@ -46,20 +46,20 @@ func testWatchTickerBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				if r.Value == nil {
+				if ccxt.StructAbsent(r.Value) {
 					response = nil
 				} else {
-					response = r.Value
+					response = ccxt.StructBox(r.Value, ccxt.TickerToMap)
 				}
 				return nil
 			}()
 
 		}
 		now = exchange.Milliseconds()
-		if (success == true) && (!IsEqual(response, nil)) {
+		if (success) && (!IsEqual(response, nil)) {
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dictionary. "), exchange.Json(response)))
 			TestTicker(exchange, skippedProperties, method, response, symbol)
-			if IsGreaterThan((now - startTime), maxIdleTime) {
+			if (now - startTime) > int64(maxIdleTime) {
 				idle = true
 			}
 		}

@@ -39,8 +39,8 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
             const withdraw = exchange.safeBool (currency, 'withdraw');
             const deposit = exchange.safeBool (currency, 'deposit');
             const isMicaCompliant = exchange.safeBool (exchange.options, 'mica', false);
-            const skipUsdtForMica = (isMicaCompliant === true) && (code === 'USDT');
-            if (exchange.inArray (code, requiredActiveCurrencies) && !skipMajorCurrencyCheck && (skipUsdtForMica !== true)) {
+            const skipUsdtForMica = (isMicaCompliant) && (code === 'USDT');
+            if (exchange.inArray (code, requiredActiveCurrencies) && !skipMajorCurrencyCheck && (!skipUsdtForMica)) {
                 assert ((withdraw === true) && (deposit === true), 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json (currency));
             }
         }

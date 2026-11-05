@@ -2317,7 +2317,7 @@ public partial class bitrue : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"}));
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2586,7 +2586,7 @@ public partial class bitrue : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"}));
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2727,9 +2727,10 @@ public partial class bitrue : Exchange
         {
             request["startTime"] = since;
         }
-        object limitResolved = ((limit == null)) ? null : mathMin(limit, 1000);
-        if (!(limitResolved == null))
+        Int64? limitResolved = null;
+        if ((limit != null))
         {
+            limitResolved = ((limit > 1000)) ? 1000 : limit;
             request["limit"] = limitResolved;
         }
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
@@ -2939,7 +2940,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency));
     }
 
-    public virtual object parseTransactionStatusByType(string? status, string? type = null)
+    public virtual string? parseTransactionStatusByType(string? status, string? type = null)
     {
         Dictionary<string, object> statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
@@ -2953,7 +2954,7 @@ public partial class bitrue : Exchange
             } },
         };
         IDictionary<string, object> statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
-        return this.safeString(statuses, status, status);
+        return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -3049,7 +3050,7 @@ public partial class bitrue : Exchange
         {
             type = "withdrawal";
         }
-        object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
+        string? status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         double? amount = this.safeNumber(transaction, "amount");
         string? network = null;
         string? currencyId = this.safeString2(transaction, "symbol", "coin");
@@ -3308,9 +3309,10 @@ public partial class bitrue : Exchange
         {
             request["beginTime"] = since;
         }
-        object limitResolved = ((limit == null)) ? null : mathMin(limit, 200);
-        if (!(limitResolved == null))
+        Int64? limitResolved = null;
+        if ((limit != null))
         {
+            limitResolved = ((limit > 200)) ? 200 : limit;
             request["limit"] = limitResolved;
         }
         Int64? until = this.safeInteger(parameters, "until");
@@ -3558,7 +3560,7 @@ public partial class bitrue : Exchange
                     int keysLength = keys.Count;
                     if (keysLength > 0)
                     {
-                        signMessage = add(signMessage, ("?" + this.urlencode(paramsOmitted)));
+                        signMessage = (signMessage + (("?" + this.urlencode(paramsOmitted))));
                     }
                     string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     requestHeaders = new Dictionary<string, object>() {
@@ -3573,7 +3575,7 @@ public partial class bitrue : Exchange
                         { "recvWindow", recvWindow },
                     }, paramsOmitted);
                     requestBody = this.json(query);
-                    signMessage = add(signMessage, requestBody);
+                    signMessage = (signMessage + (requestBody));
                     string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     requestHeaders = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },
@@ -3609,7 +3611,8 @@ public partial class bitrue : Exchange
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (isGreaterThanOrEqual(code, 400))
+        Int64? statusCode = this.parseToInt(code);
+        if ((statusCode >= 400))
         {
             if (((string)body).IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
             {
@@ -3632,7 +3635,7 @@ public partial class bitrue : Exchange
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
         object parsedMessage = null;
-        if ((success != true))
+        if (success != true)
         {
             string? messageInner = this.safeString(response, "msg");
             if ((messageInner != null))
@@ -3675,7 +3678,7 @@ public partial class bitrue : Exchange
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }
-        if ((success != true))
+        if (success != true)
         {
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
@@ -3690,12 +3693,13 @@ public partial class bitrue : Exchange
             return ((IDictionary<string,object>)config)["noSymbol"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
-            object limit = getValue(parameters, "limit");
+            Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = byLimit[i];
-                if (isLessThanOrEqual(limit, getValue(entry, 0)))
+                Int64? threshold = this.safeInteger(entry, 0);
+                if ((limit != null) && (threshold != null) && (limit == null || limit <= threshold))
                 {
                     return getValue(entry, 1);
                 }

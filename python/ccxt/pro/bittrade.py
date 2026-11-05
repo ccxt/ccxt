@@ -279,8 +279,8 @@ class bittrade(ccxt.async_support.bittrade):
         market = self.market(symbol)
         symbolValue = market['symbol']
         # only supports a limit of 150 at this time
-        limitValue = 150 if (limit is None) else limit
-        messageHash = 'market.' + market['id'] + '.mbp.' + str(limitValue)
+        limitValue = 150
+        messageHash = 'market.' + market['id'] + '.mbp.150'
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
@@ -378,7 +378,7 @@ class bittrade(ccxt.async_support.bittrade):
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -408,7 +408,8 @@ class bittrade(ccxt.async_support.bittrade):
         prevSeqNum = self.safe_integer(tick, 'prevSeqNum')
         if (prevSeqNum is None) or (seqNum is None):
             return orderbook
-        if (prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce']):
+        nonce = self.safe_integer(orderbook, 'nonce')
+        if (nonce is not None) and (prevSeqNum <= nonce) and (seqNum > nonce):
             asks = self.safe_list(tick, 'asks', [])
             bids = self.safe_list(tick, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
@@ -443,7 +444,9 @@ class bittrade(ccxt.async_support.bittrade):
         #     }
         #
         messageHash = self.safe_string(message, 'ch')
-        ch = self.safe_value(message, 'ch')
+        ch = self.safe_string(message, 'ch')
+        if ch is None:
+            return
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         symbol = self.safe_symbol(marketId)
@@ -451,7 +454,7 @@ class bittrade(ccxt.async_support.bittrade):
         if orderbook is None:
             # no active subscription holds a book for this symbol, drop the delta
             return
-        if orderbook['nonce'] is None:
+        if self.safe_integer(orderbook, 'nonce') is None:
             orderbook.cache.append(message)
         else:
             self.handle_order_book_message(client, message, orderbook)
@@ -527,7 +530,9 @@ class bittrade(ccxt.async_support.bittrade):
         #         }
         #     }
         #
-        ch = self.safe_value(message, 'ch')
+        ch = self.safe_string(message, 'ch')
+        if ch is None:
+            return
         parts = ch.split('.')
         type = self.safe_string(parts, 0)
         if type == 'market':

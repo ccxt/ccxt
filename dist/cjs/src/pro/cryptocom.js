@@ -258,8 +258,7 @@ class cryptocom extends cryptocom$1["default"] {
         const marketId = this.safeString(message, 'instrument_name');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        let data = this.safeValue(message, 'data');
-        data = this.safeDict(data, 0);
+        const data = this.safeDict(this.safeList(message, 'data'), 0);
         const timestamp = this.safeInteger(data, 't');
         if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger(message, 'depth');
@@ -788,7 +787,7 @@ class cryptocom extends cryptocom$1["default"] {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
         }
-        const data = this.safeValue(message, 'data');
+        const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const tick = this.safeDict(data, i);
             const parsed = this.parseOHLCV(tick, market);
@@ -1387,7 +1386,7 @@ class cryptocom extends cryptocom$1["default"] {
         // handle unsubscribe
         // {"id":1725448572836,"method":"unsubscribe","code":0}
         //
-        if (this.handleErrorMessage(client, message) === true) {
+        if (this.handleErrorMessage(client, message)) {
             return;
         }
         const method = this.safeString(message, 'method');

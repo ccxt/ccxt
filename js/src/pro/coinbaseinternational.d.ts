@@ -47,7 +47,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
+    handleBalance(client: Client, message: Dict): void;
     /**
      * @method
      * @name coinbaseinternational#watchMyTrades
@@ -75,7 +75,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
-    handleMyTrades(client: Client, message: any): void;
+    handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name coinbaseinternational#watchOrders
@@ -117,7 +117,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
-    handleOrders(client: Client, message: any): void;
+    handleOrders(client: Client, message: Dict): void;
     /**
      * @method
      * @name coinbaseinternational#watchPositions
@@ -145,7 +145,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
-    handlePositions(client: Client, message: any): void;
+    handlePositions(client: Client, message: Dict): void;
     /**
      * @method
      * @name coinbaseinternational#watchFundingRate
@@ -318,8 +318,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): void;
-    handleBidAsk(client: Client, message: any): void;
+    handleTicker(client: Client, message: Dict): void;
+    handleBidAsk(client: Client, message: Dict): void;
     parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
@@ -375,7 +375,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -429,7 +429,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): any;
+    handleTrades(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name coinbaseinternational#watchOrderBook
@@ -482,14 +482,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
-    handleOrderBook(client: any, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     resubscribeOrderBook(channel: string): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleErrorMessage(client: Client, message: any): Bool;
-    handleHeartbeat(client: Client, message: any): Promise<void>;
+    handleHeartbeat(client: Client, message: Dict): Promise<void>;
     handleMessage(client: Client, message: any): void;
-    handleAuthenticationMessage(client: Client, message: any): void;
+    handleAuthenticationMessage(client: Client, message: Dict): void;
     /**
      * @ignore
      * @method

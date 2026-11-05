@@ -398,7 +398,7 @@ class polymarket(Exchange, ImplicitAPI):
         #
         cancelOnly = self.safe_bool(response, 'cancel_only', False)
         return {
-            'status': 'maintenance' if (cancelOnly is True) else 'ok',
+            'status': 'maintenance' if (cancelOnly) else 'ok',
             'updated': None,
             'eta': None,
             'url': None,
@@ -876,7 +876,7 @@ class polymarket(Exchange, ImplicitAPI):
         isTaker = self.safe_bool(trade, 'taker')
         takerOrMaker = None
         if isTaker is not None:
-            takerOrMaker = 'taker' if (isTaker is True) else 'maker'
+            takerOrMaker = 'taker' if (isTaker) else 'maker'
         feeCost = self.safe_string(trade, 'fee')
         fee = None
         if feeCost is not None:
@@ -1004,7 +1004,7 @@ class polymarket(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         response = self.publicGetInfoTickers(params)
         result = self.parse_funding_rates(response)
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
@@ -1139,9 +1139,9 @@ class polymarket(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         response = self.publicGetInfoTickers(params)
         result = self.parse_open_interests(response)
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
-    def parse_open_interest(self, interest: object, market: Market = None):
+    def parse_open_interest(self, interest: dict, market: Market = None):
         #
         #     {
         #         "instrument_id": 1,
@@ -1215,7 +1215,7 @@ class polymarket(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order_request(self, market: Market, type: OrderType, side: OrderSide, amount: object, price: object = None, params={}) -> dict:
+    def create_order_request(self, market: Market, type: OrderType, side: OrderSide, amount: object, price: object = None, params: dict = {}) -> dict:
         """
  @ignore
         builds one order for the createOrders operation, returning the compact signable row next to the structured body entry
@@ -1258,7 +1258,7 @@ class polymarket(Exchange, ImplicitAPI):
         priceString = None
         if price is not None:
             priceString = self.price_to_precision(symbol, price)
-        reduceOnlyValue = True if (reduceOnly is True) else None
+        reduceOnlyValue = True if (reduceOnly) else None
         # the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         # trigger - undefined entries are removed and later entries shift left,
         # the venue rebuilds the same compact array from the body to verify
@@ -1652,7 +1652,7 @@ class polymarket(Exchange, ImplicitAPI):
         isBuy = self.safe_bool(order, 'buy')
         side = None
         if isBuy is not None:
-            side = 'buy' if (isBuy is True) else 'sell'
+            side = 'buy' if (isBuy) else 'sell'
         price = self.omit_zero(self.safe_string_2(order, 'price', 'p'))
         type = None
         tif = self.safe_string(order, 'tif')
@@ -1804,7 +1804,7 @@ class polymarket(Exchange, ImplicitAPI):
         isCross = self.safe_bool(position, 'cross')
         marginMode = None
         if isCross is not None:
-            marginMode = 'cross' if (isCross is True) else 'isolated'
+            marginMode = 'cross' if (isCross) else 'isolated'
         timestamp = self.safe_integer(position, 'timestamp')
         roe = self.safe_string(position, 'return_on_equity')
         percentage = None
@@ -2299,7 +2299,7 @@ class polymarket(Exchange, ImplicitAPI):
         isCross = self.safe_bool(leverage, 'cross')
         marginMode = None
         if isCross is not None:
-            marginMode = 'cross' if (isCross is True) else 'isolated'
+            marginMode = 'cross' if (isCross) else 'isolated'
         value = self.safe_integer(leverage, 'leverage')
         return {
             'info': leverage,
@@ -2388,7 +2388,7 @@ class polymarket(Exchange, ImplicitAPI):
         leverageInt = self.parse_to_int(leverage)
         return self.set_leverage(leverageInt, symbol, self.extend(request, paramsOmitted))
 
-    def modify_margin_helper(self, symbol: str, amount: object, type: str, params={}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: object, type: str, params: dict = {}) -> MarginModification:
         """
  @ignore
         adds margin to an isolated position or removes some, the amount is a signed decimal in the collateral asset
@@ -2472,7 +2472,7 @@ class polymarket(Exchange, ImplicitAPI):
     def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey)
 
-    def create_proxy_credentials(self, params={}) -> dict:
+    def create_proxy_credentials(self, params: dict = {}) -> dict:
         """
         provisions fresh trading session credentials - generates a proxy keypair, registers it with an EIP-712 CreateProxy message signed by the wallet key and caches the returned secret, the venue keeps the session valid for the requested lifetime
 
@@ -2542,7 +2542,7 @@ class polymarket(Exchange, ImplicitAPI):
         self.options['proxyCredentials'] = credentials
         return credentials
 
-    def load_proxy_credentials(self, params={}) -> dict:
+    def load_proxy_credentials(self, params: dict = {}) -> dict:
         """
  @ignore
         returns the cached trading session credentials, provisioning fresh ones when none are cached or the cached session is close to its expiry
@@ -2560,7 +2560,7 @@ class polymarket(Exchange, ImplicitAPI):
                 return credentials
         return self.create_proxy_credentials(params)
 
-    def sign_perps_op(self, signable: object, bodyOp: object, params={}) -> dict:
+    def sign_perps_op(self, signable: object, bodyOp: object, params: dict = {}) -> dict:
         """
  @ignore
         signs a trading operation with the session proxy key - the compact signable array is msgpack-encoded and keccak-hashed, the hash is signed inside an EIP-712 Op struct and the structured operation travels next to the signature
@@ -2665,7 +2665,7 @@ class polymarket(Exchange, ImplicitAPI):
             return 20
         return self.safe_value(config, 'cost', 1)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiType = api[0]
         url = self.urls['api'][apiType] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))

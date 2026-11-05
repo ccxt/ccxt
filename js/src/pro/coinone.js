@@ -349,7 +349,7 @@ export default class coinone extends coinoneRest {
         const isSellerMaker = this.safeBool(trade, 'is_seller_maker');
         let side = undefined;
         if (isSellerMaker !== undefined) {
-            side = (isSellerMaker === true) ? 'sell' : 'buy';
+            side = (isSellerMaker) ? 'sell' : 'buy';
         }
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'qty');

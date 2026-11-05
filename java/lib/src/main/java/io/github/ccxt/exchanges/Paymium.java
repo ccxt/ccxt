@@ -237,14 +237,14 @@ public class Paymium extends PaymiumApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> currencies = Helpers.objectKeys(this.currencies);
+        List<Object> currencies = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
             Object code = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
             Map<String, Object> currency = this.currency((String) (code));
             String currencyId = (String) currency.get("id");
             String free = ("balance_" + currencyId);
-            if (Helpers.inOp(response, free))
+            if ((switch ((Object)(response)) { case List<?> j39v2 -> ((Object)(free)) != null && j39v2.contains(free); case Map<?, ?> j39v1 -> ((Object)(free)) instanceof String && j39v1.containsKey(free); case null, default -> false; }))
             {
                 Map<String, Object> account = this.account();
                 String used = ("locked_" + currencyId);
@@ -800,7 +800,7 @@ public class Paymium extends PaymiumApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "public"))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -813,7 +813,7 @@ public class Paymium extends PaymiumApi
             Map<String, Object> signedHeaders = new HashMap<String, Object>();
             signedHeaders.put("Api-Key", this.apiKey);
             signedHeaders.put("Api-Nonce", nonce);
-            Boolean hasQuery = Helpers.objectKeys(query).size() > 0;
+            Boolean hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0;
             String signedBody = null;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && Boolean.TRUE.equals(hasQuery))
             {

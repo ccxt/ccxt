@@ -704,8 +704,8 @@ class ndax extends Exchange {
     }
 
     public function parse_order_book(mixed $orderbook, mixed $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
-        $nonce = null;
-        $latestTimestamp = $timestamp;
+        $nonce = $this->safe_integer($this->safe_list($orderbook, 0), 0);
+        $latestTimestamp = $this->safe_integer(array( $timestamp ), 0);
         $result = array(
             'symbol' => $symbol,
             'bids' => array(),
@@ -716,21 +716,13 @@ class ndax extends Exchange {
         );
         for ($i = 0; $i < count($orderbook); $i++) {
             $level = $orderbook[$i];
-            if ($latestTimestamp === null) {
-                $latestTimestamp = $this->safe_integer($level, 2);
-            } else {
-                $newTimestamp = $this->safe_integer($level, 2);
-                if ($newTimestamp !== null) {
-                    $latestTimestamp = max($latestTimestamp, $newTimestamp);
-                }
+            $newTimestamp = $this->safe_integer($level, 2);
+            if (($newTimestamp !== null) && (($latestTimestamp === null) || ($newTimestamp > $latestTimestamp))) {
+                $latestTimestamp = $newTimestamp;
             }
-            if ($nonce === null) {
-                $nonce = $this->safe_integer($level, 0);
-            } else {
-                $newNonce = $this->safe_integer($level, 0);
-                if ($newNonce !== null) {
-                    $nonce = max($nonce, $newNonce);
-                }
+            $newNonce = $this->safe_integer($level, 0);
+            if (($newNonce !== null) && (($nonce === null) || ($newNonce > $nonce))) {
+                $nonce = $newNonce;
             }
             $bidask = $this->parse_order_book_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
@@ -1523,7 +1515,7 @@ class ndax extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'Accepted' => 'open',
             'Rejected' => 'rejected',
@@ -1687,7 +1679,7 @@ class ndax extends Exchange {
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity' => ($amountString === null) ? null : floatval($amountString),
+            'Quantity' => ($amountString === null) ? null : $this->parse_number($amountString),
             'OrderType' => $orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
@@ -1698,7 +1690,7 @@ class ndax extends Exchange {
             if ($limitPriceString === null) {
                 $limitPriceString = '0';
             }
-            $request['LimitPrice'] = floatval($limitPriceString);
+            $request['LimitPrice'] = $this->parse_number($limitPriceString);
         }
         if ($clientOrderId !== null) {
             $request['ClientOrderId'] = $clientOrderId;
@@ -1749,7 +1741,7 @@ class ndax extends Exchange {
         $orderSide = ($side === 'buy') ? 0 : 1;
         $amountString = $this->amount_to_precision($symbol, $amount);
         $request = array(
-            'OrderIdToReplace' => intval($id),
+            'OrderIdToReplace' => $this->parse_to_int($id),
             'InstrumentId' => $this->parse_to_int($market['id']),
             'omsId' => $omsId,
             'AccountId' => $accountId,
@@ -1762,7 +1754,7 @@ class ndax extends Exchange {
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity' => ($amountString === null) ? null : floatval($amountString),
+            'Quantity' => ($amountString === null) ? null : $this->parse_number($amountString),
             'OrderType' => $this->safe_integer($this->options['orderTypes'], $this->capitalize($type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
@@ -1773,7 +1765,7 @@ class ndax extends Exchange {
             if ($limitPriceString === null) {
                 $limitPriceString = '0';
             }
-            $request['LimitPrice'] = floatval($limitPriceString);
+            $request['LimitPrice'] = $this->parse_number($limitPriceString);
         }
         if ($clientOrderId !== null) {
             $request['ClientOrderId'] = $clientOrderId;
@@ -1967,7 +1959,7 @@ class ndax extends Exchange {
         if ($clientOrderId !== null) {
             $request['ClOrderId'] = $clientOrderId;
         } else {
-            $request['OrderId'] = intval($id);
+            $request['OrderId'] = $this->parse_to_int($id);
         }
         $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'ClOrderId' ));
         $response = Async\await($this->privatePostCancelOrder($this->extend($request, $paramsOmitted)));
@@ -2196,7 +2188,7 @@ class ndax extends Exchange {
         $request = array(
             'omsId' => $omsId,
             'AccountId' => $accountId,
-            'OrderId' => intval($id),
+            'OrderId' => $this->parse_to_int($id),
         );
         $response = Async\await($this->privateGetGetOrderStatus($this->extend($request, $paramsOmitted)));
         //
@@ -2282,7 +2274,7 @@ class ndax extends Exchange {
         $request = array(
             'OMSId' => $this->parse_to_int($omsId),
             // 'AccountId': accountId,
-            'OrderId' => intval($id),
+            'OrderId' => $this->parse_to_int($id),
         );
         $response = Async\await($this->privatePostGetOrderHistoryByOrderId($this->extend($request, $params)));
         //
@@ -2562,7 +2554,7 @@ class ndax extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status_by_type(?string $status = null, ?string $type = null) {
+    public function parse_transaction_status_by_type(?string $status = null, ?string $type = null): ?string {
         $statusesByType = array(
             'deposit' => array(
                 'New' => 'pending', // new ticket awaiting operator review
@@ -2817,7 +2809,7 @@ class ndax extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $bodySigned = null;
         $headersSigned = null;

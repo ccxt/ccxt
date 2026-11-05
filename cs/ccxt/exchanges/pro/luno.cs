@@ -120,7 +120,7 @@ public partial class luno : ccxt.luno
             stored.append(ccxt.BaseExchange.FromTrade(trade));
         }
         this.trades[(string)symbol] = stored;
-        client.resolve(getValue(this.trades, symbol), messageHash);
+        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey((string)symbol) ? this.trades[(string)symbol] : null), messageHash);
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)

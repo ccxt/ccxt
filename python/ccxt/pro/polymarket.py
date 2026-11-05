@@ -73,7 +73,7 @@ class polymarket(ccxt.async_support.polymarket):
         self.options['requestId'] = requestId
         return requestId
 
-    def send_subscription(self, action: str, channels: list[str], messageHashes: list[str], subMessageHashes: list[str], context: dict = {}, params={}, checkHashes: Strings = None):
+    def send_subscription(self, action: str, channels: list[str], messageHashes: list[str], subMessageHashes: list[str], context: dict = {}, params: dict = {}, checkHashes: Strings = None):
         """
  @ignore
         sends a subscribe or unsubscribe request and records the request id so the ack can be matched back
@@ -159,7 +159,7 @@ class polymarket(ccxt.async_support.polymarket):
         url = self.urls['api']['ws']
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "ch": "book::1",
@@ -265,7 +265,7 @@ class polymarket(ccxt.async_support.polymarket):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     {
         #         "ch": "tickers::1",
@@ -330,7 +330,7 @@ class polymarket(ccxt.async_support.polymarket):
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 
-    def handle_bid_ask(self, client: Client, message: object):
+    def handle_bid_ask(self, client: Client, message: dict):
         #
         #     {
         #         "ch": "bbo::1",
@@ -413,7 +413,7 @@ class polymarket(ccxt.async_support.polymarket):
         url = self.urls['api']['ws']
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         #     {
         #         "ch": "trades::1",
@@ -553,7 +553,7 @@ class polymarket(ccxt.async_support.polymarket):
         url = self.urls['api']['ws']
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #         "ch": "klines::1::1h",
@@ -593,7 +593,7 @@ class polymarket(ccxt.async_support.polymarket):
         messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(ohlcv, messageHash)
 
-    async def authenticate(self, params={}) -> object:
+    async def authenticate(self, params: dict = {}) -> object:
         """
  @ignore
         authenticates the websocket connection with the session proxy credentials, provisioning them first when needed
@@ -657,7 +657,7 @@ class polymarket(ccxt.async_support.polymarket):
             limitResolved = orders.getLimit(symbolResolved, limitResolved)
         return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         #     {
         #         "ch": "orders",
@@ -736,7 +736,7 @@ class polymarket(ccxt.async_support.polymarket):
             limitResolved = trades.getLimit(symbolResolved, limitResolved)
         return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         #     {
         #         "ch": "fills",
@@ -893,7 +893,7 @@ class polymarket(ccxt.async_support.polymarket):
             future.resolve(self.balance)
         client.resolve(self.balance, 'balance')
 
-    def handle_portfolio(self, client: Client, message: object):
+    def handle_portfolio(self, client: Client, message: dict):
         #
         #     {
         #         "ch": "portfolio",

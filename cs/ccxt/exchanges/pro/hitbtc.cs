@@ -27,6 +27,8 @@ public partial class hitbtc : ccxt.hitbtc
                 { "watchOrders", true },
                 { "watchOHLCV", true },
                 { "watchMyTrades", false },
+                { "unWatchTrades", true },
+                { "unWatchOHLCV", true },
                 { "createOrderWs", true },
                 { "cancelOrderWs", true },
                 { "fetchOpenOrdersWs", true },
@@ -164,6 +166,47 @@ public partial class hitbtc : ccxt.hitbtc
     /**
      * @ignore
      * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name websocket endpoint name
+     * @param {string} messageHashPrefix prefix of the message hashes the matching watch method subscribed with
+     * @param {string[]} symbols unified CCXT symbols
+     * @param {object} subscription the topic and symbols of the caches to clean once the unsubscribe is acknowledged
+     * @param {object} [params] extra parameters specific to the hitbtc api
+     * @returns {boolean} true once the exchange acknowledges the unsubscribe
+     */
+    public async virtual Task<object> unSubscribePublic(object name, object messageHashPrefix, object symbols, IDictionary<string, object> subscription, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
+        List<object> subMessageHashes = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        for (int i = 0; i < getArrayLength(symbols); i++)
+        {
+            object subMessageHash = add(add(messageHashPrefix, "::"), getValue(symbols, i));
+            subMessageHashes.Add(subMessageHash);
+            messageHashes.Add(("unsubscribe:" + (subMessageHash)));
+        }
+        Int64? requestId = this.incrementingNonce();
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "unsubscribe" },
+            { "id", requestId },
+            { "ch", name },
+            { "params", new Dictionary<string, object>() {
+                { "symbols", this.marketIds(symbols) },
+            } },
+        };
+        Dictionary<string, object> unsubscription = this.extend(subscription, new Dictionary<string, object>() {
+            { "id", requestId },
+            { "unsubscribe", true },
+            { "subMessageHashes", subMessageHashes },
+            { "messageHashes", messageHashes },
+        });
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, unsubscription);
+    }
+
+    /**
+     * @ignore
+     * @method
      * @param {string} name websocket endpoint name
      * @param {string} [symbol] unified CCXT symbol
      * @param {object} [params] extra parameters specific to the hitbtc api
@@ -181,7 +224,7 @@ public partial class hitbtc : ccxt.hitbtc
         object messageHash = this.safeString(splitName, 0, "");
         if ((symbol != null))
         {
-            messageHash = add(add(messageHash, "::"), symbol);
+            messageHash = ((messageHash + "::") + symbol);
         }
         Int64? requestId = this.incrementingNonce();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -244,7 +287,7 @@ public partial class hitbtc : ccxt.hitbtc
         string? name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         string? depthValue = this.safeString(parameters, "depth", "20"); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
         string? speedValue = this.safeString(parameters, "speed", "100"); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
-        object paramsOmitted = this.omit(parameters, new List<object>() {"method", "defaultMethod", "depth", "speed"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"method", "defaultMethod", "depth", "speed"}));
         if (name == "orderbook/{depth}/{speed}")
         {
             name = (((("orderbook/D" + depthValue) + "/") + speedValue) + "ms");
@@ -596,7 +639,7 @@ public partial class hitbtc : ccxt.hitbtc
         string? name = this.implodeParams(method, new Dictionary<string, object>() {
             { "speed", speedValue },
         });
-        object paramsOmitted = this.omit(parameters, new List<object>() {"method", "defaultMethod", "speed"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"method", "defaultMethod", "speed"}));
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
@@ -710,6 +753,27 @@ public partial class hitbtc : ccxt.hitbtc
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp"));
+    }
+
+    /**
+     * @method
+     * @name hitbtc#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api.hitbtc.com/#subscribe-to-trades
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} true once hitbtc acknowledges the unsubscribe
+     */
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "topic", "trades" },
+            { "symbols", new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)} },
+        };
+        return await this.unSubscribePublic("trades", "trades", new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, subscription, parameters);
     }
 
     public virtual object handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -851,13 +915,39 @@ public partial class hitbtc : ccxt.hitbtc
         {
             ((IDictionary<string,object>)request["params"])["limit"] = limit;
         }
-        object ohlcv = await this.subscribePublic(name, "candles", new List<object>() {symbol}, this.deepExtend(request, parameters));
+        object ohlcv = await this.subscribePublic(name, name, new List<object>() {symbol}, this.deepExtend(request, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0));
+    }
+
+    /**
+     * @method
+     * @name hitbtc#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.hitbtc.com/#subscribe-to-candles
+     * @param {string} symbol unified symbol of the market to unwatch the OHLCV data for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} true once hitbtc acknowledges the unsubscribe
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    {
+        string timeframeVar = timeframe;
+        timeframeVar ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string name = ("candles/" + period);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "topic", "ohlcv" },
+            { "symbolsAndTimeframes", new List<object>() {new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null), timeframeVar}} },
+        };
+        return await this.unSubscribePublic(name, name, new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, subscription, parameters);
     }
 
     public virtual object handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -897,7 +987,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(data.Keys);
-        string? channel = this.safeString(message, "ch", "");
+        string channel = this.safeString(message, "ch", "");
         List<object> splitChannel = channel.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         string? period = this.safeString(splitChannel, 1);
         string? timeframe = this.findTimeframe(period);
@@ -918,12 +1008,14 @@ public partial class hitbtc : ccxt.hitbtc
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
-            List<object> ohlcvs = this.parseWsOHLCVs((data != null && marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
-            for (int j = 0; j < (ohlcvs?.Count ?? 0); j++)
+            // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
+            List<object> rawOhlcvs = this.safeList(data, marketId, new List<object>() {});
+            for (int j = 0; j < rawOhlcvs.Count; j++)
             {
-                stored.append(ohlcvs[j]);
+                List<object> parsed = this.parseWsOHLCV(rawOhlcvs[j], market);
+                stored.append(parsed);
             }
-            string messageHash = ("candles::" + symbol);
+            string messageHash = ((channel + "::") + symbol);
             client.resolve(stored, messageHash);
         }
         return message;
@@ -1456,8 +1548,30 @@ public partial class hitbtc : ccxt.hitbtc
         //
         string? messageHash = this.safeString(message, "method");
         List<object> parameters = this.safeList(message, "params", new List<object>() {});
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         Dictionary<string, object> balance = this.parseBalance(parameters);
-        this.balance = this.deepExtend(this.balance, balance);
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        List<object> reserved = new List<object>() {"free", "used", "total"};
+        List<object> keys = new List<object>(balance.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            string? key = ((string)keys[i]);
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            this.balance[(string)key] = (balance != null && key != null && balance.ContainsKey(key) ? balance[key] : null);
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
 
@@ -1559,6 +1673,12 @@ public partial class hitbtc : ccxt.hitbtc
         } else
         {
             object result = this.safeValue(message, "result");
+            string? resultChannel = this.safeString(result, "ch");
+            if ((resultChannel != null))
+            {
+                this.handleUnSubscription(client, message);
+                return;
+            }
             string? clientOrderId = this.safeString(result, "client_order_id");
             if ((clientOrderId != null))
             {
@@ -1577,6 +1697,42 @@ public partial class hitbtc : ccxt.hitbtc
                 {
                     this.handleOrderRequest(client, message);
                 }
+            }
+        }
+    }
+
+    public virtual void handleUnSubscription(WebSocketClient client, object message)
+    {
+        //
+        // hitbtc answers subscribe and unsubscribe requests alike, listing the symbols still subscribed on the channel
+        //
+        //    {
+        //        "result": {
+        //            "ch": "trades",
+        //            "subscriptions": [ "ETHUSDT" ]
+        //        },
+        //        "id": 1793679985268
+        //    }
+        //
+        // the answers can arrive in a different order than the requests, so they are matched by id
+        //
+        string? id = this.safeString(message, "id");
+        List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+        for (int i = 0; i < subscriptionHashes.Count; i++)
+        {
+            object subscription = getValue(client.subscriptions, subscriptionHashes[i]);
+            bool? isUnSubscription = this.safeBool(subscription, "unsubscribe", false);
+            string? subscriptionId = this.safeString(subscription, "id");
+            if ((isUnSubscription == true) && ((subscriptionId != null)) && ((subscriptionId == id)))
+            {
+                List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
+                List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+                for (int j = 0; j < subMessageHashes.Count; j++)
+                {
+                    this.cleanUnsubscription(client, subMessageHashes[j], (messageHashes != null && j < messageHashes.Count ? messageHashes[j] : null));
+                }
+                this.cleanCache(subscription);
+                return;
             }
         }
     }
@@ -1654,7 +1810,7 @@ public partial class hitbtc : ccxt.hitbtc
                 for (int i = 0; i < subscriptionHashes.Count; i++)
                 {
                     string? subscriptionHash = ((string)subscriptionHashes[i]);
-                    string? subscriptionId = this.safeString(getValue(client.subscriptions, subscriptionHash), "id");
+                    string? subscriptionId = this.safeString((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null), "id");
                     if (((subscriptionId != null)) && ((subscriptionId == id)))
                     {
                         client.reject(e, subscriptionHash);

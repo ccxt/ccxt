@@ -238,7 +238,7 @@ export default class kalshi extends Exchange {
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
      */
-    parseSettlement(settlement: Dict, market?: Market): any;
+    parseSettlement(settlement: Dict, market?: Market): Dict;
     /**
      * @ignore
      * @method
@@ -401,7 +401,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the events endpoint
      * @returns {object} the raw kalshi event object with nested markets
      */
-    fetchRawEventByTicker(ticker: string, params?: Dict): Promise<any>;
+    fetchRawEventByTicker(ticker: string, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -441,7 +441,7 @@ export default class kalshi extends Exchange {
      * @param {object} rawEvent the raw event object
      * @returns {object} an event structure
      */
-    parseEvent(rawEvent: Dict): any;
+    parseEvent(rawEvent: Dict): PredictionEvent;
     /**
      * @ignore
      * @method

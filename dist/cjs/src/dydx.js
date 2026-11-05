@@ -1251,7 +1251,7 @@ class dydx extends dydx$1["default"] {
         await this.loadDydxProtos();
         const dydxAccount = this.safeDict(this.options, 'dydxAccount');
         if (dydxAccount !== undefined) {
-            return dydxAccount;
+            return this.safeDict(this.options, 'dydxAccount', {});
         }
         if (this.walletAddress === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
@@ -1282,7 +1282,7 @@ class dydx extends dydx$1["default"] {
             'key': account['pub_key']['key'],
         };
         this.options['dydxAccount'] = account;
-        return account;
+        return this.safeDict(this.options, 'dydxAccount', {});
     }
     pow(n, m) {
         let r = Precise["default"].stringMul(n, '1');
@@ -1310,8 +1310,8 @@ class dydx extends dydx$1["default"] {
         const subaccountId = 0;
         const [subaccountIdOption, paramsSubAccountId] = this.handleOptionIntegerAndParams(params, 'createOrder', 'subAccountId', subaccountId);
         const triggerPrice = this.safeString2(paramsSubAccountId, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue(paramsSubAccountId, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue(paramsSubAccountId, 'takeProfitPrice');
+        const stopLossPrice = this.safeString(paramsSubAccountId, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString(paramsSubAccountId, 'takeProfitPrice');
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper(paramsSubAccountId, 'timeInForce', 'GTT');
@@ -1548,7 +1548,7 @@ class dydx extends dydx$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['trigger', 'stop']);
-        if ((isTrigger !== true) && (symbol === undefined)) {
+        if ((!isTrigger) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1563,11 +1563,12 @@ class dydx extends dydx$1["default"] {
         if (idString.indexOf('-') > -1) {
             throw new errors.NotSupported(this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
-        let goodTillBlock = this.safeInteger(paramsOmitted, 'goodTillBlock');
+        const goodTillBlockOption = this.safeInteger(paramsOmitted, 'goodTillBlock');
+        let goodTillBlock = goodTillBlockOption;
         const goodTillBlockTimeInSeconds = 2592000;
         const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime = undefined;
-        const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
+        const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
         const subAccountId = 0;
         const subAccountIdOption = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0];
@@ -1578,7 +1579,7 @@ class dydx extends dydx$1["default"] {
             if (goodTillBlockTimeInSecondsOption === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
-            if (goodTillBlock !== undefined && goodTillBlock > 0) {
+            if (goodTillBlockOption !== undefined && goodTillBlockOption > 0) {
                 throw new errors.InvalidOrder(this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
             goodTillBlockTime = this.seconds() + goodTillBlockTimeInSecondsOption;
@@ -2273,7 +2274,8 @@ class dydx extends dydx$1["default"] {
         //     ]
         // }
         //
-        return this.safeList(response, 'transfers', []);
+        const transfers = this.safeList(response, 'transfers', []);
+        return transfers;
     }
     /**
      * @method
@@ -2505,7 +2507,7 @@ class dydx extends dydx$1["default"] {
             errorCode = this.safeString(response, 'code');
         }
         if ((errorCode !== undefined) && (errorCode !== '')) {
-            const errorCodeNum = this.parseToNumeric(errorCode);
+            const errorCodeNum = this.parseToInt(errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json(response);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

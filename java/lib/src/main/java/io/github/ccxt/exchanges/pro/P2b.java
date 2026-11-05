@@ -180,7 +180,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Map<String, Object> market = this.market(symbol);
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("tickerSubs")), ((String)market.get("id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
             Object tickerSubs = this.options.get("tickerSubs");
-            List<Object> request = Helpers.objectKeys(tickerSubs);
+            List<Object> request = ((List<Object>) switch ((Object)(tickerSubs)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             String messageHash = ((nameOption + "::") + market.get("symbol"));
             return (this.subscribe((nameOption + ".subscribe"), messageHash, request, paramsName)).join();
         }).thenApply(Ticker::new);
@@ -355,8 +355,8 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         //        "id": null
         //    }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "params", (Object) null);
-        data = (List<Object>) this.safeList(data, 0, (Object) null);
+        List<Object> parameters = (List<Object>) this.safeList(message, "params", (Object) null);
+        List<Object> data = (List<Object>) this.safeList(parameters, 0, (Object) null);
         String method = this.safeString(message, "method");
         List<Object> splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("."))));
         String channel = this.safeString(splitMethod, 0);
@@ -531,7 +531,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         }
-        if (java.util.Objects.equals(isFullUpdate, true))
+        if (Boolean.TRUE.equals(isFullUpdate))
         {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,

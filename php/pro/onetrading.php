@@ -143,7 +143,27 @@ class onetrading extends \ccxt\async\onetrading {
         //         ]
         //     }
         //
-        $this->balance = $this->parse_balance($message);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
+        $balance = $this->parse_balance($message);
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $reserved = array( 'free', 'used', 'total' );
+        $keys = is_array($balance) ? array_keys($balance) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->in_array($key, $reserved)) {
+                continue;
+            }
+            $this->balance[$key] = $balance[$key];
+        }
+        $this->balance = $this->safe_balance($this->balance);
         $messageHash = 'balance';
         $client->resolve($this->balance, $messageHash);
     }
@@ -1131,7 +1151,7 @@ class onetrading extends \ccxt\async\onetrading {
             if ($subscription !== null) {
                 $ohlcvMarket = $this->safe_dict($subscription, $marketId, array());
                 $marketSubscribed = $this->safe_bool($ohlcvMarket, $timeframe, false);
-                if ($marketSubscribed !== true) {
+                if (!$marketSubscribed) {
                     $type = 'UPDATE_SUBSCRIPTION';
                     $client->subscriptions[$subscriptionHash] = null;
                 }
@@ -1397,7 +1417,7 @@ class onetrading extends \ccxt\async\onetrading {
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];
                     $marketSubscribed = $this->safe_bool($subscription, $marketId, false);
-                    if ($marketSubscribed !== true) {
+                    if (!$marketSubscribed) {
                         $type = 'UPDATE_SUBSCRIPTION';
                         $client->subscriptions[$subscriptionHash] = null;
                     }

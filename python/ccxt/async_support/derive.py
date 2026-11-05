@@ -781,11 +781,8 @@ class derive(Exchange, ImplicitAPI):
         :returns dict[]: an array of raw instrument entries
         """
         allInstruments = []
-        maxPages = 25
-        paramsOmitted = {}
-        maxPages, paramsOmitted = self.handle_option_and_params(params, 'getMarketsPaginated', 'maxMarketPages', maxPages)
-        pageSize = 1000
-        pageSize, paramsOmitted = self.handle_option_and_params(paramsOmitted, 'getMarketsPaginated', 'maxMarketsPerPage', pageSize)
+        maxPages, paramsMaxPages = self.handle_option_integer_and_params(params, 'getMarketsPaginated', 'maxMarketPages', 25)
+        pageSize, paramsOmitted = self.handle_option_and_params(paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000)
         page = 1
         for i in range(0, maxPages):
             requestExtension = {
@@ -1009,7 +1006,7 @@ class derive(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         timestamp = self.safe_integer(interest, 't')
         stats = self.safe_dict(interest, 'stats', {})
         amount = self.safe_string(stats, 'oi')
@@ -1383,11 +1380,9 @@ class derive(Exchange, ImplicitAPI):
         limitResolved = limit
         if limit is not None and limit > 1000:
             limitResolved = 1000
-        if limitResolved is not None:
+        if limit is not None:
             # the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-            pageSize = limitResolved * 2
-            if pageSize > 1000:
-                pageSize = 1000  # default 100, max 1000
+            pageSize = 1000 if (limit > 500) else limit * 2  # default 100, max 1000
             request['page_size'] = pageSize
         if since is not None:
             request['from_timestamp'] = since
@@ -1547,26 +1542,26 @@ class derive(Exchange, ImplicitAPI):
         until = self.safe_integer(paramsPrice, 'until')
         paramsOmitted = self.omit(paramsPrice, ['until'])
         duration = self.parse_timeframe(timeframe)
-        end = None
+        untilSeconds = self.seconds()
         if until is not None:
-            end = self.parse_to_int(until / 1000)
-        else:
-            end = self.seconds()
-        limitResolved = limit
-        if limitResolved is None:
-            limitResolved = 5000 if (since is not None) else 1000
+            untilSeconds = self.parse_to_int(until / 1000)
+        # the venue keeps only the latest 5000 buckets of the requested window
+        defaultLimit = 1000 if (since is None) else 5000
+        limitResolved = self.parse_to_int(defaultLimit)
+        if limit is not None:
+            limitResolved = self.parse_to_int(limit)
         if limitResolved > 5000:
-            limitResolved = 5000  # the venue keeps only the latest 5000 buckets of the requested window
-        start = None
+            limitResolved = self.parse_to_int(5000)
+        span = self.parse_to_int(limitResolved * duration)
+        windowStart = self.parse_to_int(untilSeconds - span)
+        start = windowStart
+        end = untilSeconds
         if since is not None:
-            start = self.parse_to_int(since / 1000)
+            sinceSeconds = self.parse_to_int(since / 1000)
+            start = sinceSeconds
             # the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-            calculatedEnd = limitResolved * duration
-            maxEnd = self.sum(start, calculatedEnd)
-            if maxEnd < end:
-                end = maxEnd
-        else:
-            start = end - limitResolved * duration
+            if sinceSeconds < windowStart:
+                end = self.sum(sinceSeconds, span)
         request = {
             'period': period,
             'start_timestamp': start,
@@ -1845,14 +1840,14 @@ class derive(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def hash_order_message(self, order: object):
+    def hash_order_message(self, order: object) -> str:
         accountHash = self.hash(self.eth_abi_encode([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), 'keccak', 'binary')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         # EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         DOMAIN_SEPARATOR = 'da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19'
-        if sandboxMode is True:
+        if sandboxMode:
             DOMAIN_SEPARATOR = '24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85'
         binaryDomainSeparator = self.base16_to_binary(DOMAIN_SEPARATOR)
         prefix = self.base16_to_binary('1901')
@@ -1877,7 +1872,7 @@ class derive(Exchange, ImplicitAPI):
         padded = suffix.rjust(6, '0')
         return milliseconds + padded
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: str) -> str:
         binaryMessage = self.encode(message)
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
@@ -1893,7 +1888,7 @@ class derive(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message: object, privateKey: str) -> str:
+    def sign_message(self, message: str, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def parse_units(self, num: str, dec: str = '1000000000000000000') -> Str:
@@ -2012,7 +2007,7 @@ class derive(Exchange, ImplicitAPI):
         request['signature'] = signature
         paramsOmitted = self.omit(paramsDeriveWalletAddress, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type'])
         response: dict
-        if test is True:
+        if test:
             response = await self.privatePostOrderDebug(self.extend(request, paramsOmitted))
         else:
             response = await self.privatePostOrder(self.extend(request, paramsOmitted))
@@ -2274,7 +2269,7 @@ class derive(Exchange, ImplicitAPI):
             response = await self.privatePostCancelByLabel(self.extend(request, paramsLabel))
         else:
             request['order_id'] = id
-            if isTrigger is True:
+            if isTrigger:
                 response = await self.privatePostCancelTriggerOrder(self.extend(request, paramsOmitted))
             else:
                 response = await self.privatePostCancel(self.extend(request, paramsOmitted))
@@ -2516,7 +2511,7 @@ class derive(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         response: dict
-        if isTrigger is True:
+        if isTrigger:
             response = await self.privatePostGetTriggerOrders(self.extend(request, paramsDeriveSubaccountId))
         else:
             response = await self.privatePostGetOpenOrders(self.extend(request, paramsDeriveSubaccountId))
@@ -2608,7 +2603,7 @@ class derive(Exchange, ImplicitAPI):
         orders = await self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'canceled')
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -2617,7 +2612,7 @@ class derive(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is not None:
             statuses = {
                 'open': 'open',
@@ -3494,7 +3489,7 @@ class derive(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' transfer() ' + code + ' has no deposit-enabled spot asset')
         fromId = self.parse_to_int(fromAccount)
         # the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
-        toId = 0 if (toAccount is None) else self.parse_to_int(toAccount)
+        toId = self.parse_to_int(0 if (toAccount is None) else toAccount)
         amountString = self.number_to_string(amount)
         maxFeeUsd = self.safe_string(params, 'max_fee_usd', '0')
         newSubaccountManager = self.safe_integer(params, 'new_subaccount_manager', 0)
@@ -4033,7 +4028,7 @@ class derive(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'Batching': 'pending',
             'Executing': 'pending',
@@ -4095,7 +4090,7 @@ class derive(Exchange, ImplicitAPI):
         # signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
@@ -4108,9 +4103,9 @@ class derive(Exchange, ImplicitAPI):
             if apiName == 'private':
                 now = self.number_to_string(self.nonce())
                 signature = self.sign_message(now, self.privateKey)
-                deriveWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
-                if (deriveWalletAddress is None) or (deriveWalletAddress == ''):
-                    deriveWalletAddress = self.walletAddress  # v3: the owner wallet is the user's own EOA
+                configuredWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
+                # v3: the owner wallet is the user's own EOA
+                deriveWalletAddress = self.walletAddress if ((configuredWalletAddress is None) or (configuredWalletAddress == '')) else configuredWalletAddress
                 postHeaders['X-DeriveWallet'] = deriveWalletAddress
                 postHeaders['X-DeriveTimestamp'] = now
                 postHeaders['X-DeriveSignature'] = signature

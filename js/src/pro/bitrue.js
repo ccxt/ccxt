@@ -458,6 +458,9 @@ export default class bitrue extends bitrueRest {
             return rawQuantity;
         }
         const contractSize = this.safeNumber(market, 'contractSize', 1);
+        if (contractSize === undefined) {
+            return rawQuantity;
+        }
         return rawQuantity * contractSize;
     }
     /**

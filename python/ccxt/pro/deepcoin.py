@@ -209,9 +209,9 @@ class deepcoin(ccxt.async_support.deepcoin):
                     # below rejects the flight instead, so the waiters throw
                     # and the next caller re-leads
                     raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
-                listenKeyExpiryTimestamp = self.safe_timestamp(data, 'expire_time')
+                newExpiryTimestamp = self.safe_timestamp(data, 'expire_time')
                 self.options['listenKey'] = listenKey
-                self.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp
+                self.options['listenKeyExpiryTimestamp'] = newExpiryTimestamp
             # settle the flight: client.resolve wakes every waiter and drops
             # the future from the registry under the client's own lock, so the
             # next refresh cycle elects a fresh leader

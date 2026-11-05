@@ -1349,17 +1349,21 @@ class bullish(Exchange, ImplicitAPI):
             '_pageSize': maxLimit,
         }
         requestUntil, paramsUntil = self.handle_until_option('createdAtDatetime[lte]', request, paramsPaginate)
-        until = self.safe_integer(requestUntil, 'createdAtDatetime[lte]')
+        untilParam = self.safe_integer(requestUntil, 'createdAtDatetime[lte]')
+        until = None
+        if untilParam is not None:
+            until = untilParam
         duration = self.parse_timeframe(timeframe)
-        maxDelta = 1000 * duration * maxLimit
+        maxDelta = duration * maxLimit * 1000
         startTime = since
         # both of since and until are required
-        if startTime is None and until is None:
-            until = self.milliseconds()
-            startTime = until - maxDelta
-        elif startTime is None:
-            startTime = until - maxDelta
-        elif until is None:
+        if since is None and untilParam is None:
+            now = self.milliseconds()
+            until = now
+            startTime = now - maxDelta
+        elif (since is None) and (untilParam is not None):
+            startTime = untilParam - maxDelta
+        elif untilParam is None:
             until = self.sum(startTime, maxDelta)
         requestUntil['createdAtDatetime[gte]'] = self.iso8601(startTime)
         requestUntil['createdAtDatetime[lte]'] = self.iso8601(until)
@@ -1471,7 +1475,7 @@ class bullish(Exchange, ImplicitAPI):
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             paramsPagination = self.handle_pagination_params('fetchOrders', since, params)
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, paramsPagination, 100)
         market = None
@@ -1539,21 +1543,26 @@ class bullish(Exchange, ImplicitAPI):
         return paramsExtended
 
     def handle_since_and_until(self, since: Int = None, params: dict = {}, sinceKey: Str = 'createdAtDatetime[gte]', untilKey: Str = 'createdAtDatetime[lte]') -> dict:
-        until = self.safe_integer(params, 'until')
-        sinceFromUntil = (since is None) and (until is not None)
+        untilParam = self.safe_integer(params, 'until')
+        until = None
+        if untilParam is not None:
+            until = untilParam
+        sinceFromUntil = (since is None) and (untilParam is not None)
         paramsResult = params
         if sinceFromUntil:
             paramsResult = self.omit(params, 'until')
-        if (since is not None) or (until is not None):
+        if (since is not None) or (untilParam is not None):
             timeDelta = 7 * 24 * 60 * 60 * 1000  # 7 days
             sinceResolved = since
-            if since is None:
-                sinceResolved = until - timeDelta
-            if (since is not None) and (until is None):
-                until = self.sum(since, timeDelta)
+            if (since is None) and (untilParam is not None):
+                sinceResolved = untilParam - timeDelta
+            if (since is not None) and (untilParam is None):
                 now = self.milliseconds()
-                if until > now:
+                latestSince = now - timeDelta
+                if since > latestSince:
                     until = now
+                else:
+                    until = self.sum(since, timeDelta)
             sinceDate = self.iso8601(sinceResolved)
             untilDate = self.iso8601(until)
             paramsResult[sinceKey] = sinceDate
@@ -1562,6 +1571,8 @@ class bullish(Exchange, ImplicitAPI):
 
     def get_closest_limit(self, limit: Int) -> Int:
         pageSize = 5
+        if limit is None:
+            return pageSize
         if (limit > 5) and (limit < 26):
             pageSize = 25
         elif (limit > 25) and (limit < 51):
@@ -1786,13 +1797,13 @@ class bullish(Exchange, ImplicitAPI):
         if type is not None:
             request['type'] = type.upper()
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if postOnly is True:
+        if postOnly:
             request['type'] = 'POST_ONLY'
         if amount is not None:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        paramsOmitted = self.omit(params, 'postOnly') if (postOnly is True) else params
+        paramsOmitted = self.omit(params, 'postOnly') if (postOnly) else params
         response = self.privatePostV2Command(self.extend(request, paramsOmitted))
         return self.parse_order(response, market)
 
@@ -1962,7 +1973,7 @@ class bullish(Exchange, ImplicitAPI):
             'average': average,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'OPEN': 'open',
             'CLOSED': 'closed',
@@ -1971,7 +1982,7 @@ class bullish(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LMT': 'limit',
             'MKT': 'market',
@@ -2159,14 +2170,14 @@ class bullish(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_type(self, type: Str):
+    def parse_transaction_type(self, type: Str) -> Str:
         types = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'COMPLETE': 'ok',
             'FAILED': 'failed',
@@ -2175,10 +2186,9 @@ class bullish(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def load_account(self, params: dict = {}) -> str:
-        tradingAccountId = None
-        paramsTradingAccountId = None
-        tradingAccountId, paramsTradingAccountId = self.handle_option_string_and_params(params, 'loadAccount', 'tradingAccountId')
+    def load_account(self, params: dict = {}) -> Str:
+        tradingAccountIdOption, paramsTradingAccountId = self.handle_option_string_and_params(params, 'loadAccount', 'tradingAccountId')
+        tradingAccountId = tradingAccountIdOption
         if tradingAccountId is None:
             response = self.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)
             accounts = self.to_array(response)
@@ -2191,7 +2201,7 @@ class bullish(Exchange, ImplicitAPI):
         if tradingAccountId is None:
             raise ArgumentsRequired(self.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account')
         self.options['tradingAccountId'] = tradingAccountId
-        return tradingAccountId
+        return self.safe_string(self.options, 'tradingAccountId')
 
     def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
@@ -2322,9 +2332,10 @@ class bullish(Exchange, ImplicitAPI):
         safeResponse = self.to_array(response)
         length = len(safeResponse)
         data = self.safe_dict(safeResponse, 0, {})
-        network = None
-        network = self.handle_network_code_and_params(params)[0]
-        networkDefinedByUser = network is not None
+        networkAndParams = self.handle_network_code_and_params(params)
+        networkParam = networkAndParams[0]
+        networkDefinedByUser = networkParam is not None
+        network = networkParam
         if (length > 1) or (networkDefinedByUser):
             # some currencies have multiple networks
             if network is None:
@@ -2518,7 +2529,7 @@ class bullish(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def parse_position_side(self, side: Str):
+    def parse_position_side(self, side: Str) -> Str:
         sides = {
             'BUY': 'long',
             'SELL': 'short',
@@ -2614,7 +2625,7 @@ class bullish(Exchange, ImplicitAPI):
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         transfer = self.parse_transfer(response, currency)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount
@@ -2660,7 +2671,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def parse_transfer_status(self, status: Str):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'CLOSED': 'ok',
             'OPEN': 'pending',
@@ -2695,7 +2706,7 @@ class bullish(Exchange, ImplicitAPI):
         requestUntil, paramsUntil = self.handle_until_option('createdAtDatetime[lte]', request, params)
         until = self.safe_integer(requestUntil, 'createdAtDatetime[lte]')
         # current endpoint requires both since and until parameters
-        if startTimestamp is None:
+        if since is None:
             startTimestamp = now - 1000 * 60 * 60 * 24 * 90  # Only the last 90 days of data is available for querying
         if until is None:
             until = now
@@ -2738,7 +2749,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def get_timestamp(self):
+    def get_timestamp(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
@@ -2798,7 +2809,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2849,7 +2860,7 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         requestHeaders = None
         requestBody = None

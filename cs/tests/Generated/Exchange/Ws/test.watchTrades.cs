@@ -32,7 +32,7 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            if ((success == true))
+            if (success)
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response);
                 for (int i = 0; i < getArrayLength(response); i++)

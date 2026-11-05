@@ -607,7 +607,11 @@ export default class bitbank extends Exchange {
         const windowLimit = (limit === undefined) ? 1000 : limit;
         const limitResolved = (since === undefined) ? windowLimit : limit;
         const duration = this.parseTimeframe(timeframe);
-        const sinceResolved = (since === undefined) ? this.milliseconds() - duration * 1000 * windowLimit : since;
+        let windowMs = duration * 1000 * 1000;
+        if (limit !== undefined) {
+            windowMs = duration * 1000 * limit;
+        }
+        const sinceResolved = (since === undefined) ? this.milliseconds() - windowMs : since;
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1070,7 +1074,7 @@ export default class bitbank extends Exchange {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
-        let query = this.omit(params, this.extractParams(path));
+        const query = this.omit(params, this.extractParams(path));
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -1101,15 +1105,16 @@ export default class bitbank extends Exchange {
             }
             url += this.version + '/' + this.implodeParams(path, params);
             if (method === 'POST') {
-                requestBody = this.json(query);
-                auth += requestBody;
+                const jsonBody = this.json(query);
+                requestBody = jsonBody;
+                auth += jsonBody;
             }
             else {
                 auth += '/' + this.version + '/' + path;
                 if (Object.keys(query).length > 0) {
-                    query = this.urlencode(query);
-                    url += '?' + query;
-                    auth += '?' + query;
+                    const queryString = this.urlencode(query);
+                    url += '?' + queryString;
+                    auth += '?' + queryString;
                 }
             }
             requestHeaders = {

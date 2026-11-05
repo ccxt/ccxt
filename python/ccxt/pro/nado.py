@@ -1094,10 +1094,9 @@ class nado(ccxt.async_support.nado):
         }
         return await self.watch(url, unsubscribeHash, request, unsubscribeHash, subscription)
 
-    async def un_watch_public_multiple(self, streamType: Str, markets: list[Market], messageHashes: list[str], params: dict = {}, subscriptionParams: list[dict] | None = None) -> list[object]:
+    async def un_watch_public_multiple(self, streamType: Str, markets: list[Market], messageHashes: list[str], params: dict = {}, subscriptionParams: list[dict] | None = None) -> bool:
         url = self.urls['api']['ws']['subscriptions']
         client = self.client(url)
-        results = []
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
             id = self.request_id()
@@ -1112,8 +1111,8 @@ class nado(ccxt.async_support.nado):
                 'messageHash': messageHash,
                 'unsubscribeHash': unsubscribeHash,
             }
-            results.append(await self.watch_multiple(url, [unsubscribeHash], request, [unsubscribeHash], subscription))
-        return results
+            await self.watch_multiple(url, [unsubscribeHash], request, [unsubscribeHash], subscription)
+        return True
 
     def parse_ws_timestamp(self, message: dict, key: str) -> Int:
         value = self.safe_string(message, key)
@@ -1615,7 +1614,7 @@ class nado(ccxt.async_support.nado):
             if messageHash is not None:
                 self.clean_unsubscription(client, messageHash, unsubscribeHash)
                 self.handle_unsubscription_cache(messageHash)
-            client.resolve(message, unsubscribeHash)
+            client.resolve(True, unsubscribeHash)
             return
         subscriptions = list(client.subscriptions.keys())
         for i in range(0, len(subscriptions)):
@@ -1628,7 +1627,7 @@ class nado(ccxt.async_support.nado):
             if messageHash is not None:
                 self.clean_unsubscription(client, messageHash, unsubscribeHash)
                 self.handle_unsubscription_cache(messageHash)
-            client.resolve(message, unsubscribeHash)
+            client.resolve(True, unsubscribeHash)
             return
 
     def handle_unsubscription_cache(self, messageHash: Str):

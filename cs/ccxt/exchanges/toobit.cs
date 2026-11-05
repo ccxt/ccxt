@@ -736,7 +736,6 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -916,7 +915,7 @@ public partial class toobit : Exchange
             Dictionary<string, object> parsed = this.parseCurrency(coin);
             if ((parsed != null))
             {
-                string? code = ((string)GetValue(parsed, "code"));
+                string? code = ((string)(parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null));
                 result[(string)code] = parsed;
             }
         }
@@ -996,8 +995,9 @@ public partial class toobit : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IDictionary<string, object> response = this.safeDict(this.options, "exchangeInfo");
-        if ((response != null))
+        IDictionary<string, object> cachedInfo = this.safeDict(this.options, "exchangeInfo");
+        IDictionary<string, object> response = cachedInfo;
+        if ((cachedInfo != null))
         {
             this.options["exchangeInfo"] = null; // reset it to avoid using old cached data
         } else
@@ -1376,23 +1376,13 @@ public partial class toobit : Exchange
         bool? isBuyer = this.safeBool(trade, "isBuyer");
         string? side = null;
         bool? isBuyerMaker = this.safeBool(trade, "ibm");
-        if ((isBuyerMaker == null))
-        {
-            bool? isBuyerTaker = this.safeBool(trade, "m");
-            if ((isBuyerTaker != null))
-            {
-                isBuyerMaker = isBuyerTaker != true;
-            }
-        }
+        bool? isBuyerTaker = this.safeBool(trade, "m");
         if ((isBuyerMaker != null))
         {
-            if ((isBuyerMaker == true))
-            {
-                side = "sell";
-            } else
-            {
-                side = "buy";
-            }
+            side = ((isBuyerMaker == true)) ? "sell" : "buy";
+        } else if ((isBuyerTaker != null))
+        {
+            side = ((isBuyerTaker == true)) ? "buy" : "sell";
         } else
         {
             if ((isBuyer == true))
@@ -1493,8 +1483,13 @@ public partial class toobit : Exchange
         {
             // mark and index klines walk backwards from `to` and ignore a lone `from`
             int duration = this.parseTimeframe(timeframeVar);
-            Int64? requestedLimit = ((limit == null)) ? 2000 : limit; // exchange default
-            request["to"] = this.sum(since, ((duration * requestedLimit) * 1000));
+            if ((limit == null))
+            {
+                request["to"] = this.sum(since, ((duration * 2000L) * 1000)); // exchange default limit
+            } else
+            {
+                request["to"] = this.sum(since, ((duration * limit) * 1000));
+            }
         }
         if ((limit != null))
         {
@@ -1608,10 +1603,11 @@ public partial class toobit : Exchange
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? last = this.safeString(ticker, "c");
         string? baseVolume = this.safeString(ticker, "v");
-        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && (!isEqual((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null), null)))
+        double? contractSize = this.safeNumber(marketResolved, "contractSize");
+        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && ((contractSize != null)))
         {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul(baseVolume, this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -1642,7 +1638,7 @@ public partial class toobit : Exchange
      * @name toobit#fetchLastPrices
      * @description fetches the last price for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
@@ -1696,7 +1692,7 @@ public partial class toobit : Exchange
      * @name toobit#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1745,7 +1741,7 @@ public partial class toobit : Exchange
             results.Add(ticker);
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArray(results, "symbol", symbolsNormalized);
+        return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
     }
 
     public virtual Dictionary<string, object> parseBidAskCustom(object ticker)
@@ -2052,7 +2048,7 @@ public partial class toobit : Exchange
         IList<object> isPostOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsCost);
         bool isPostOnly = (bool)isPostOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)isPostOnlyparamsPostOnlyVariable[1]);
-        if ((isPostOnly == true))
+        if (isPostOnly)
         {
             request["type"] = "LIMIT_MAKER";
         } else
@@ -2107,7 +2103,7 @@ public partial class toobit : Exchange
         IList<object> isPostOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsReduceOnly);
         bool isPostOnly = (bool)isPostOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)isPostOnlyparamsPostOnlyVariable[1]);
-        if ((isPostOnly == true))
+        if (isPostOnly)
         {
             request["timeInForce"] = "LIMIT_MAKER";
         }
@@ -2129,7 +2125,7 @@ public partial class toobit : Exchange
         if (hasStopLoss)
         {
             request["stopLoss"] = this.safeValue(stopLoss, "triggerPrice");
-            object limitPrice = this.safeValue(stopLoss, "price");
+            string? limitPrice = this.safeString(stopLoss, "price");
             if ((limitPrice != null))
             {
                 request["slOrderType"] = "LIMIT";
@@ -2144,7 +2140,7 @@ public partial class toobit : Exchange
         if (hasTakeProfit)
         {
             request["takeProfit"] = this.safeValue(takeProfit, "triggerPrice");
-            object limitPrice = this.safeValue(takeProfit, "price");
+            string? limitPrice = this.safeString(takeProfit, "price");
             if ((limitPrice != null))
             {
                 request["tpOrderType"] = "LIMIT";
@@ -2243,11 +2239,8 @@ public partial class toobit : Exchange
             }
             rawSideLower = this.safeString(sideParts, 0);
         }
+        // omitZero already maps '0.0' to undefined
         string? triggerPrice = ((string)this.omitZero(this.safeString(order, "stopPrice")));
-        if (triggerPrice == "0.0")
-        {
-            triggerPrice = null;
-        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString(order, "orderId") },
@@ -3030,7 +3023,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(sorted,((string)currencyCode), since, limit));
     }
 
-    public virtual object parseTransactionWithType(object transaction, object currency = null, object transactType = null)
+    public virtual object parseTransactionWithType(object transaction, object currency = null, string? transactType = null)
     {
         Dictionary<string, object> result = this.parseTransaction(transaction, currency);
         if ((transactType != null))
@@ -3126,7 +3119,7 @@ public partial class toobit : Exchange
         };
     }
 
-    public virtual string? parseTransactionStatus(string? status, object type = null)
+    public virtual string? parseTransactionStatus(string? status, string? type = null)
     {
         Dictionary<string, object> statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {

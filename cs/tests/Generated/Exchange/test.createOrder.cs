@@ -24,15 +24,15 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testCreateOrder(BaseExchange exchange, object skippedProperties, object symbol)
     {
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
-        bool hasCancelOrder = (!isEqual(getValue(exchange.has, "cancelOrder"), null)) && (!isEqual(getValue(exchange.has, "cancelOrder"), false));
-        bool hasCancelOrders = (!isEqual(getValue(exchange.has, "cancelOrders"), null)) && (!isEqual(getValue(exchange.has, "cancelOrders"), false));
-        bool hasCancelAllOrders = (!isEqual(getValue(exchange.has, "cancelAllOrders"), null)) && (!isEqual(getValue(exchange.has, "cancelAllOrders"), false));
+        bool hasCancelOrder = (!(getValue(exchange.has, "cancelOrder") == null)) && (!(getValue(exchange.has, "cancelOrder") is false));
+        bool hasCancelOrders = (!(getValue(exchange.has, "cancelOrders") == null)) && (!(getValue(exchange.has, "cancelOrders") is false));
+        bool hasCancelAllOrders = (!(getValue(exchange.has, "cancelAllOrders") == null)) && (!(getValue(exchange.has, "cancelAllOrders") is false));
         assert(hasCancelOrder || hasCancelOrders || hasCancelAllOrders, add(logPrefix, " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         // pre-define some coefficients, which will be used down below
         double limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
         object market = exchange.market(symbol);
-        bool isSwapFuture = (isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true));
-        bool hasFetchBalance = (!isEqual(getValue(exchange.has, "fetchBalance"), null)) && (!isEqual(getValue(exchange.has, "fetchBalance"), false));
+        bool isSwapFuture = ((getValue(market, "swap") is true)) || ((getValue(market, "future") is true));
+        bool hasFetchBalance = (!(getValue(exchange.has, "fetchBalance") == null)) && (!(getValue(exchange.has, "fetchBalance") is false));
         assert(hasFetchBalance, add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         object balance = await invokeExchangeDynamically(exchange, "fetchBalance");
         object initialBaseBalance = getValue(getValue(balance, getValue(market, "base")), "free");
@@ -119,7 +119,7 @@ public partial class testMainClass : BaseTest
     {
         try
         {
-            bool isSwapFuture = (isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true));
+            bool isSwapFuture = ((getValue(market, "swap") is true)) || ((getValue(market, "future") is true));
             bool isBuy = ((buyOrSellString is "buy"));
             string entrySide = isBuy ? "buy" : "sell";
             string exitSide = isBuy ? "sell" : "buy";
@@ -145,7 +145,7 @@ public partial class testMainClass : BaseTest
             {
                 parameters["reduceOnly"] = true;
             }
-            object exitorderPriceArg = (isEqual(getValue(market, "spot"), true)) ? null : exitorderPrice;
+            object exitorderPriceArg = ((getValue(market, "spot") is true)) ? null : exitorderPrice;
             object exitorderFilled = await tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties);
             object exitorderFetched = await testSharedMethods.fetchOrder(exchange, symbol, getValue(exitorderFilled, "id"), skippedProperties);
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
@@ -182,15 +182,15 @@ public partial class testMainClass : BaseTest
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
         string usedMethod = "";
         object cancelResult = null;
-        if ((!isEqual(getValue(exchange.has, "cancelOrder"), null)) && (!isEqual(getValue(exchange.has, "cancelOrder"), false)) && ((orderId != null)))
+        if ((!(getValue(exchange.has, "cancelOrder") == null)) && (!(getValue(exchange.has, "cancelOrder") is false)) && ((orderId != null)))
         {
             usedMethod = "cancelOrder";
             cancelResult = await invokeExchangeDynamically(exchange, "cancelOrder", orderId, symbol);
-        } else if ((!isEqual(getValue(exchange.has, "cancelAllOrders"), null)) && (!isEqual(getValue(exchange.has, "cancelAllOrders"), false)))
+        } else if ((!(getValue(exchange.has, "cancelAllOrders") == null)) && (!(getValue(exchange.has, "cancelAllOrders") is false)))
         {
             usedMethod = "cancelAllOrders";
             cancelResult = await invokeExchangeDynamically(exchange, "cancelAllOrders", symbol);
-        } else if ((!isEqual(getValue(exchange.has, "cancelOrders"), null)) && (!isEqual(getValue(exchange.has, "cancelOrders"), false)))
+        } else if ((!(getValue(exchange.has, "cancelOrders") == null)) && (!(getValue(exchange.has, "cancelOrders") is false)))
         {
             throw new Exception ((string)add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
         }

@@ -72,7 +72,7 @@ export default class predictfun extends Exchange {
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    parseEvent(rawTopic: Dict): any;
+    parseEvent(rawTopic: Dict): Dict;
     /**
      * @ignore
      * @method
@@ -663,7 +663,7 @@ export default class predictfun extends Exchange {
      * @param {object} details the event's details block
      * @returns {object} the outcome object, or a stub when the market is not cached
      */
-    walletEventOutcome(details: Dict): any;
+    walletEventOutcome(details: Dict): Dict;
     /**
      * @ignore
      * @method

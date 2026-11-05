@@ -617,10 +617,11 @@ class hyperliquid extends Exchange {
         //     ]
         //
         $perpDexesOffset = array();
-        for ($i = 1; $i < count($fetchDexes); $i++) {
+        $dexesCount = count($fetchDexes);
+        for ($i = 1; $i < $dexesCount; $i++) {
             // builder-deployed perp dexs start at 110000
             $dex = $this->safe_dict($fetchDexes, $i, array());
-            $secondPart = ($i - 1) * 10000;
+            $secondPart = $i * 10000 - 10000;
             $offset = $this->sum(110000, $secondPart);
             $perpDexesOffset[$dex['name']] = $offset;
         }
@@ -800,7 +801,7 @@ class hyperliquid extends Exchange {
         return $this->parse_markets($result);
     }
 
-    public function calculate_price_precision(float $price, float $amountPrecision, float $maxDecimals) {
+    public function calculate_price_precision(float $price, int $amountPrecision, int $maxDecimals): float {
         /**
          * Helper function to calculate the Hyperliquid DECIMAL_PLACES $price precision
          * @param {float} $price the $price to use in the calculation
@@ -814,13 +815,13 @@ class hyperliquid extends Exchange {
             return 0;
         }
         $priceSplitted = explode('.', $priceStr);
+        $maxDecimalsInt = $this->parse_to_int($maxDecimals);
+        $amountPrecisionInt = $this->parse_to_int($amountPrecision);
+        $decimalsLeft = $maxDecimalsInt - $amountPrecisionInt;
         if (Precise::string_eq($priceStr, '0')) {
             // Significant digits is always 5 in this case
-            $significantDigits = 5;
-            // Integer digits is always 0 in this case (0 doesn't count)
-            $integerDigits = 0;
-            // Calculate the price precision
-            $pricePrecision = min($maxDecimals - $amountPrecision, $significantDigits - $integerDigits);
+            // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
+            $pricePrecision = min($decimalsLeft, 5);
         } elseif (Precise::string_gt($priceStr, '0') && Precise::string_lt($priceStr, '1')) {
             // Significant digits, always 5 in this case
             $significantDigits = 5;
@@ -834,14 +835,17 @@ class hyperliquid extends Exchange {
             // Calculate price precision based on leading zeros and significant digits
             $pricePrecision = $leadingZeros . $significantDigits;
             // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            $pricePrecision = min($maxDecimals - $amountPrecision, $pricePrecision);
+            $pricePrecision = min($decimalsLeft, $pricePrecision);
         } else {
             // Count the numbers before the decimal separator
             $integerPart = $this->safe_string($priceSplitted, 0, '');
             // Get significant digits, take the max() of 5 and the integer digits count
-            $significantDigits = max(5, strlen($integerPart));
-            // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
-            $pricePrecision = min($maxDecimals - $amountPrecision, $significantDigits - strlen($integerPart));
+            // significantDigits - integerPart.length, with significantDigits = max (5, integerPart.length)
+            $digitsLeft = 0;
+            if (strlen($integerPart) <= 5) {
+                $digitsLeft = 5 - (strlen($integerPart));
+            }
+            $pricePrecision = min($decimalsLeft, $digitsLeft);
         }
         return $this->parse_to_int($pricePrecision);
     }
@@ -948,7 +952,7 @@ class hyperliquid extends Exchange {
             $innerBaseTokenInfo = $this->safe_dict($baseTokenInfo, 'spec', $baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             $amountPrecisionStr = $this->safe_string($innerBaseTokenInfo, 'szDecimals');
-            $amountPrecision = intval($amountPrecisionStr);
+            $amountPrecision = $this->parse_to_int($amountPrecisionStr);
             $price = $this->safe_number($extraData, 'midPx');
             $pricePrecision = 0;
             if ($price !== null) {
@@ -1082,7 +1086,7 @@ class hyperliquid extends Exchange {
         $taker = $this->safe_number($fees, 'taker');
         $maker = $this->safe_number($fees, 'maker');
         $amountPrecisionStr = $this->safe_string($market, 'szDecimals');
-        $amountPrecision = intval($amountPrecisionStr);
+        $amountPrecision = $this->parse_to_int($amountPrecisionStr);
         $price = $this->safe_number($market, 'markPx', 0);
         $pricePrecision = 0;
         if ($price !== null) {
@@ -1185,7 +1189,7 @@ class hyperliquid extends Exchange {
         $dex = $this->safe_string($paramsValue, 'dex');
         $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);
         $request = array(
-            'type' => ($isSpot === true) ? 'spotClearinghouseState' : 'clearinghouseState',
+            'type' => ($isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user' => $userAddress,
         );
         $response = Async\await($this->publicPostInfo($this->extend($request, $paramsValue)));
@@ -1230,7 +1234,7 @@ class hyperliquid extends Exchange {
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $this->safe_dict($balances, $i);
                 $unifiedCode = $this->safe_currency_code($this->safe_string($balance, 'coin'));
-                $code = ($isSpot === true) ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
+                $code = ($isSpot) ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
                 $account = $this->account();
                 $total = $this->safe_string($balance, 'total');
                 $used = $this->safe_string($balance, 'hold');
@@ -1497,7 +1501,8 @@ class hyperliquid extends Exchange {
         $funding = $this->safe_number($info, 'funding');
         $markPx = $this->safe_number($info, 'markPx');
         $oraclePx = $this->safe_number($info, 'oraclePx');
-        $fundingTimestamp = ((int) floor($this->milliseconds() / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        $currentHour = $this->parse_to_int($this->milliseconds() / 60 / 60 / 1000);
+        $fundingTimestamp = ($currentHour + 1) * 60 * 60 * 1000;
         return array(
             'info' => $info,
             'symbol' => $symbol,
@@ -1741,12 +1746,15 @@ class hyperliquid extends Exchange {
         $integerPart = explode('.', $priceStr)[0];
         $significantDigits = max(5, strlen($integerPart));
         $result = $this->decimal_to_precision($price, ROUND, $significantDigits, SIGNIFICANT_DIGITS, $this->paddingMode);
-        $maxDecimals = ($market['spot'] === true) ? 8 : 6;
+        $maxDecimals = 6;
+        if ($market['spot'] === true) {
+            $maxDecimals = 8;
+        }
         $subtractedValue = $maxDecimals - $this->precision_from_string($this->safe_string($market['precision'], 'amount'));
         return $this->decimal_to_precision($result, ROUND, $subtractedValue, DECIMAL_PLACES, $this->paddingMode);
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
@@ -1763,7 +1771,7 @@ class hyperliquid extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function construct_phantom_agent(mixed $hash, $isTestnet = true) {
+    public function construct_phantom_agent(mixed $hash, $isTestnet = true): array {
         $source = ($isTestnet) ? 'b' : 'a';
         return array(
             'source' => $source,
@@ -1771,7 +1779,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function action_hash(mixed $action, mixed $vaultAddress, mixed $nonce, ?int $expiresAfter = null) {
+    public function action_hash(mixed $action, ?string $vaultAddress, mixed $nonce, ?int $expiresAfter = null) {
         $dataBinary = $this->packb($action);
         $dataHex = bin2hex($dataBinary);
         $data = $dataHex;
@@ -1956,14 +1964,14 @@ class hyperliquid extends Exchange {
             'nonce' => $nonce,
             'signature' => $signature,
         );
-        $response = null;
+        $success = false;
         try {
-            $response = Async\await($this->privatePostExchange($request));
-            return $response;
+            Async\await($this->privatePostExchange($request));
+            $success = true;
         } catch (Exception $e) {
-            $response = null; // ignore this
+            $success = false; // ignore this
         }
-        return $response;
+        return $success;
     }
 
     public function approve_builder_fee(string $builder, string $maxFeeRate) {
@@ -1974,7 +1982,7 @@ class hyperliquid extends Exchange {
         $nonce = $this->incrementing_nonce();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $payload = array(
-            'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain' => ($isSandboxMode) ? 'Testnet' : 'Mainnet',
             'maxFeeRate' => $maxFeeRate,
             'builder' => $builder,
             'nonce' => $nonce,
@@ -2025,7 +2033,7 @@ class hyperliquid extends Exchange {
     private function do_handle_builder_fee_approval() {
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee === true) {
+        if ($approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -2033,7 +2041,7 @@ class hyperliquid extends Exchange {
             // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
             // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             $maxFeeRate = $this->safe_string($this->options, 'feeRate', '0.01%');
-            if ($buildFee !== true) {
+            if (!$buildFee) {
                 $maxFeeRate = '0%';
             }
             Async\await($this->approve_builder_fee($builder, $maxFeeRate));
@@ -2122,7 +2130,7 @@ class hyperliquid extends Exchange {
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $type = $this->safe_string($paramsPublicAddress, 'type', 'userSetAbstraction');
         $payload = array(
-            'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain' => ($isSandboxMode) ? 'Testnet' : 'Mainnet',
             'user' => $userAddress,
             'abstraction' => $abstraction,
             'nonce' => $nonce,
@@ -2170,7 +2178,7 @@ class hyperliquid extends Exchange {
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $type = $this->safe_string($paramsPublicAddress, 'type', 'userDexAbstraction');
         $payload = array(
-            'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain' => ($isSandboxMode) ? 'Testnet' : 'Mainnet',
             'user' => $userAddress,
             'enabled' => $enabled,
             'nonce' => $nonce,
@@ -2411,7 +2419,7 @@ class hyperliquid extends Exchange {
             $defaultTimeInForce = 'ioc';
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $defaultTimeInForce = 'alo';
         }
         $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
@@ -2614,6 +2622,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->vaultAddress] the vault address for order
          * @param {string} [$params->subAccountAddress] sub account user address
          * @param {boolean} [$params->twap] whether the order to cancel is a twap order, (default is false)
+         * @param {boolean} [$params->fast] whether to send the cancel with the fast flag, rejected for trigger $orders, prioritized in the mempool in a future network upgrade, (default is false)
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($this->safe_bool($params, 'twap', false)) {
@@ -2641,6 +2650,7 @@ class hyperliquid extends Exchange {
          * @param {string|string[]} [$params->clientOrderId] client order $ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @param {string} [$params->vaultAddress] the vault address
          * @param {string} [$params->subAccountAddress] sub account user address
+         * @param {boolean} [$params->fast] whether to send the cancel with the fast flag, rejected for trigger $orders, prioritized in the mempool in a future network upgrade, (default is false)
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->check_required_credentials();
@@ -2756,11 +2766,13 @@ class hyperliquid extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params]
+         * @param {boolean} [$params->fast] whether to send the cancel with the $fast flag, rejected for trigger orders, (default is false)
          * @return {array} the raw $request object to be sent to the exchange
          */
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
-        $params2 = $this->omit($params, array( 'clientOrderId', 'client_id' ));
+        $fast = $this->safe_bool($params, 'fast', false);
+        $params2 = $this->omit($params, array( 'clientOrderId', 'client_id', 'fast' ));
         $nonce = $this->incrementing_nonce();
         $request = array(
             'nonce' => $nonce,
@@ -2794,6 +2806,10 @@ class hyperliquid extends Exchange {
             }
         }
         $cancelAction['cancels'] = $cancelReq;
+        if ($fast) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            $cancelAction['f'] = true;
+        }
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
@@ -2822,6 +2838,7 @@ class hyperliquid extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->vaultAddress] the vault address
          * @param {string} [$params->subAccountAddress] sub account user address
+         * @param {boolean} [$params->fast] whether to send the cancel with the $fast flag, rejected for trigger $orders, prioritized in the mempool in a future network upgrade, (default is false)
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structures~
          */
         $this->check_required_credentials();
@@ -2864,6 +2881,11 @@ class hyperliquid extends Exchange {
         }
         $cancelAction['type'] = $cancelByCloid ? 'cancelByCloid' : 'cancel';
         $cancelAction['cancels'] = $cancelReq;
+        $fast = $this->safe_bool($params, 'fast', false);
+        if ($fast) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            $cancelAction['f'] = true;
+        }
         $vaultAddressOption = $this->handle_option_string_and_params_2($params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress')[0];
         $vaultAddress = $this->format_vault_address($vaultAddressOption);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
@@ -2980,7 +3002,7 @@ class hyperliquid extends Exchange {
                 $defaultTimeInForce = 'ioc';
             }
             $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
-            if ($postOnly === true) {
+            if ($postOnly) {
                 $defaultTimeInForce = 'alo';
             }
             $timeInForce = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
@@ -3279,7 +3301,7 @@ class hyperliquid extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function get_dex_from_hip3_symbol(array $market) {
+    public function get_dex_from_hip3_symbol(array $market): ?string {
         $baseName = $this->safe_string($market, 'baseName', '');
         $part = explode(':', $baseName);
         $partsLength = count($part);
@@ -3484,10 +3506,7 @@ class hyperliquid extends Exchange {
         }
         for ($i = 0; $i < count($historicalOrders); $i++) {
             $rawOrder = $historicalOrders[$i];
-            $entry = $this->safe_dict($rawOrder, 'order');
-            if ($entry === null) {
-                $entry = $rawOrder;
-            }
+            $entry = $this->safe_dict($rawOrder, 'order', $rawOrder);
             $oid = $this->safe_string($entry, 'oid');
             if ($oid !== null) {
                 if (!(is_array($deduplicatedByOid) && array_key_exists($oid ?? '', $deduplicatedByOid))) {
@@ -3682,10 +3701,7 @@ class hyperliquid extends Exchange {
                 'status' => 'rejected',
             ));
         }
-        $entry = $this->safe_dict_n($order, array( 'order', 'resting', 'filled' ));
-        if ($entry === null) {
-            $entry = $order;
-        }
+        $entry = $this->safe_dict_n($order, array( 'order', 'resting', 'filled' ), $order);
         $filled = $this->safe_dict($order, 'filled', array());
         $coin = $this->safe_string($entry, 'coin');
         $marketId = null;
@@ -3756,7 +3772,7 @@ class hyperliquid extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status === null) {
             return null;
         }
@@ -4050,7 +4066,7 @@ class hyperliquid extends Exchange {
         return $this->safe_dict($positions, 0, array());
     }
 
-    public function get_dex_from_symbols(string $methodName, ?array $symbols = null) {
+    public function get_dex_from_symbols(string $methodName, ?array $symbols = null): ?string {
         if ($symbols === null) {
             return null;
         }
@@ -4415,10 +4431,8 @@ class hyperliquid extends Exchange {
         }
         $market = $this->market($symbol);
         $asset = $this->parse_to_int($market['baseId']);
-        $sz = $this->parse_to_int(Precise::string_mul($this->amount_to_precision($symbol, $amount), '1000000'));
-        if ($type === 'reduce') {
-            $sz = -$sz;
-        }
+        $szAbs = $this->parse_to_int(Precise::string_mul($this->amount_to_precision($symbol, $amount), '1000000'));
+        $sz = ($type === 'reduce') ? -$szAbs : $szAbs;
         $nonce = $this->incrementing_nonce();
         $updateAction = array(
             'type' => 'updateIsolatedMargin',
@@ -4726,7 +4740,7 @@ class hyperliquid extends Exchange {
         } else {
             $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $payload = array(
-                'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain' => ($isSandboxMode) ? 'Testnet' : 'Mainnet',
                 'destination' => $address,
                 'amount' => (string) $amount,
                 'time' => $nonce,
@@ -5076,19 +5090,19 @@ class hyperliquid extends Exchange {
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'fetchDepositsWithdrawals', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
+        if ($vaultAddress === null) {
+            $filtered = $this->filter_by_array($records, 'type', array( 'deposit' ), false);
+            return $this->parse_transactions($filtered, null, $since, $limit);
+        }
         $deposits = array();
-        if ($vaultAddress !== null) {
-            for ($i = 0; $i < count($records); $i++) {
-                $record = $records[$i];
-                if ($this->safe_string($record, 'type') === 'vaultDeposit') {
-                    $delta = $this->safe_dict($record, 'delta', array());
-                    if ($delta['vault'] === '0x' . $vaultAddress) {
-                        $deposits[] = $record;
-                    }
+        for ($i = 0; $i < count($records); $i++) {
+            $record = $records[$i];
+            if ($this->safe_string($record, 'type') === 'vaultDeposit') {
+                $delta = $this->safe_dict($record, 'delta', array());
+                if ($this->safe_string($delta, 'vault') === '0x' . $vaultAddress) {
+                    $deposits[] = $record;
                 }
             }
-        } else {
-            $deposits = $this->filter_by_array($records, 'type', array( 'deposit' ), false);
         }
         return $this->parse_transactions($deposits, null, $since, $limit);
     }
@@ -5149,19 +5163,19 @@ class hyperliquid extends Exchange {
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'fetchDepositsWithdrawals', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
+        if ($vaultAddress === null) {
+            $filtered = $this->filter_by_array($records, 'type', array( 'withdraw' ), false);
+            return $this->parse_transactions($filtered, null, $since, $limit);
+        }
         $withdrawals = array();
-        if ($vaultAddress !== null) {
-            for ($i = 0; $i < count($records); $i++) {
-                $record = $records[$i];
-                if ($this->safe_string($record, 'type') === 'vaultWithdraw') {
-                    $delta = $this->safe_dict($record, 'delta', array());
-                    if ($delta['vault'] === '0x' . $vaultAddress) {
-                        $withdrawals[] = $record;
-                    }
+        for ($i = 0; $i < count($records); $i++) {
+            $record = $records[$i];
+            if ($this->safe_string($record, 'type') === 'vaultWithdraw') {
+                $delta = $this->safe_dict($record, 'delta', array());
+                if ($this->safe_string($delta, 'vault') === '0x' . $vaultAddress) {
+                    $withdrawals[] = $record;
                 }
             }
-        } else {
-            $withdrawals = $this->filter_by_array($records, 'type', array( 'withdraw' ), false);
         }
         return $this->parse_transactions($withdrawals, null, $since, $limit);
     }
@@ -5211,7 +5225,7 @@ class hyperliquid extends Exchange {
         return $openInterest;
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //  {
         //      szDecimals: '2',
@@ -5396,7 +5410,7 @@ class hyperliquid extends Exchange {
         return $response;
     }
 
-    public function extract_type_from_delta(array $data = array()) {
+    public function extract_type_from_delta(array $data = array()): array {
         $records = array();
         for ($i = 0; $i < count($data); $i++) {
             $record = $data[$i];
@@ -5504,7 +5518,7 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
@@ -5529,7 +5543,7 @@ class hyperliquid extends Exchange {
     public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
             $type = $params['type'];
-            $byType = $config['byType'];
+            $byType = $this->safe_dict($config, 'byType', array());
             if (is_array($byType) && array_key_exists($type ?? '', $byType)) {
                 return $byType[$type];
             }

@@ -427,7 +427,7 @@ class upbit(ccxt.async_support.upbit):
             limitResolved = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limitResolved, True)
 
-    def parse_ws_order_status(self, status: Str):
+    def parse_ws_order_status(self, status: Str) -> Str:
         statuses = {
             'wait': 'open',
             'done': 'closed',

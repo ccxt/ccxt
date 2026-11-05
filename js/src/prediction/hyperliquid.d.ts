@@ -358,7 +358,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} raw a dict with parentSymbol and markets entries
      * @returns {object} an event structure
      */
-    parseEvent(raw: Dict): any;
+    parseEvent(raw: Dict): PredictionEvent;
     amountToPrecision(outcome: Str, amount: any): string;
     priceToPrecision(outcome: Str, price: any): string;
     hashMessage(message: any): string;

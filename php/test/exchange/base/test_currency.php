@@ -22,7 +22,7 @@ function test_currency($exchange, $skipped_properties, $method, $entry) {
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
     $is_native = ($exchange->has['fetchCurrencies'] !== null) && ($exchange->has['fetchCurrencies'] !== false) && ($exchange->has['fetchCurrencies'] !== 'emulated');
     $currency_type = $exchange->safe_string($entry, 'type');
-    if ($is_native === true) {
+    if ($is_native) {
         $format['info'] = array();
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
         $format['withdraw'] = true; // withdraw enabled

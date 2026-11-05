@@ -304,7 +304,7 @@ class pacifica extends pacifica$1["default"] {
             const orderId = this.safeString(order, 'i');
             const clientOrderId = this.safeString(order, 'I');
             let status = undefined;
-            if ((error !== undefined) || (success !== true)) {
+            if ((error !== undefined) || (!success)) {
                 status = 'closed';
             }
             else {

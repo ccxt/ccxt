@@ -47,7 +47,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
+            if (Boolean.TRUE.equals(success) && (!java.util.Objects.equals(response, null)))
             {
                 Assert((response instanceof List), ((logText + "must return an array. ") + exchange.json(response)));
                 for (var i = 0; i < ((List<?>)response).size(); i++)

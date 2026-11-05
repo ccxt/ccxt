@@ -228,10 +228,10 @@ export default class binance extends binanceRest {
         const streamBySubscriptionsHash = this.safeDict(this.options, 'streamBySubscriptionsHash', this.createSafeDictionary());
         let stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
-            let streamIndex = this.safeInteger(this.options, 'streamIndex', -1);
+            const previousStreamIndex = this.safeInteger(this.options, 'streamIndex', -1);
             const streamLimits = this.safeDict(this.options, 'streamLimits');
             const streamLimit = this.safeInteger(streamLimits, type);
-            streamIndex = streamIndex + 1;
+            const streamIndex = previousStreamIndex + 1;
             const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString(normalizedIndex);
@@ -248,7 +248,7 @@ export default class binance extends binanceRest {
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new BadRequest(this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
-            this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
+            this.options['numSubscriptionsByStream'][stream] = newNumSubscriptions;
         }
         return stream;
     }
@@ -944,8 +944,9 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleFetchOrderBook,
         };
-        const orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
-        orderbook['symbol'] = market['symbol'];
+        const snapshot = await this.watch(url, messageHash, message, messageHash, subscription);
+        snapshot['symbol'] = market['symbol'];
+        const orderbook = this.orderBook(snapshot);
         return orderbook;
     }
     handleFetchOrderBook(client, message) {
@@ -1008,23 +1009,31 @@ export default class binance extends binanceRest {
                     continue;
                 }
                 const pu = this.safeInteger(messageItem, 'pu');
+                const snapshotNonce = this.safeInteger(orderbook, 'nonce');
+                if (snapshotNonce === undefined) {
+                    // every comparison against an undefined nonce is false, only pu === undefined matches
+                    if ((type === 'linear') && (pu === undefined)) {
+                        this.handleOrderBookMessage(client, messageItem, orderbook);
+                    }
+                    continue;
+                }
                 if (type === 'linear') {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (u < orderbook['nonce']) {
+                    if (u < snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || (pu === orderbook['nonce'])) {
+                    if ((U <= snapshotNonce) && (u >= snapshotNonce) || (pu === snapshotNonce)) {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 }
                 else {
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (u <= orderbook['nonce']) {
+                    if (u <= snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
+                    if (((U - 1) <= snapshotNonce) && ((u - 1) >= snapshotNonce)) {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 }
@@ -1136,7 +1145,8 @@ export default class binance extends binanceRest {
                         }
                         if (conditional) {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (nonce < this.safeInteger(orderbook, 'nonce', 0)) {
+                            const newNonce = this.safeInteger(orderbook, 'nonce', 0);
+                            if (nonce < newNonce) {
                                 client.resolve(orderbook, messageHash);
                             }
                         }
@@ -1157,7 +1167,8 @@ export default class binance extends binanceRest {
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if ((U <= nonce) || (pu === nonce)) {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (nonce <= this.safeInteger(orderbook, 'nonce', 0)) {
+                            const newNonce = this.safeInteger(orderbook, 'nonce', 0);
+                            if (nonce <= newNonce) {
                                 client.resolve(orderbook, messageHash);
                             }
                         }
@@ -1217,7 +1228,7 @@ export default class binance extends binanceRest {
             method.call(this, client, message, subscription);
         }
         const isUnSubMessage = this.safeBool(subscription, 'unsubscribe', false);
-        if (isUnSubMessage === true) {
+        if (isUnSubMessage) {
             this.handleUnSubscription(client, subscription);
         }
         return message;
@@ -2396,7 +2407,7 @@ export default class binance extends binanceRest {
         const unsubscribeMessageHashes = [];
         let suffix = '';
         if (isMarkPrice && !isOptionMarkPrice) {
-            suffix = (use1sFreq === true) ? '@1s' : '';
+            suffix = (use1sFreq) ? '@1s' : '';
         }
         let unifiedPrefix = undefined;
         if (isBidAsk) {
@@ -2980,7 +2991,7 @@ export default class binance extends binanceRest {
                 const isIsolated = this.safeBool(params, 'isIsolated', false);
                 const validity = this.safeInteger(params, 'validity');
                 const request = {};
-                if (isIsolated === true) {
+                if (isIsolated) {
                     if (symbol === undefined) {
                         throw new ArgumentsRequired(this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
                     }
@@ -3050,7 +3061,7 @@ export default class binance extends binanceRest {
         if (symbol !== undefined) {
             renewParams['symbol'] = symbol;
         }
-        if (isIsolated === true) {
+        if (isIsolated) {
             renewParams['isIsolated'] = isIsolated;
         }
         if (validity !== undefined) {
@@ -3302,7 +3313,7 @@ export default class binance extends binanceRest {
         }
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -3317,7 +3328,7 @@ export default class binance extends binanceRest {
         const params = {
             'type': type,
         };
-        if (isPortfolioMargin === true) {
+        if (isPortfolioMargin) {
             params['portfolioMargin'] = true;
         }
         const response = await this.fetchBalance(params);
@@ -3582,7 +3593,7 @@ export default class binance extends binanceRest {
             }
             else if (type === 'option') {
                 const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new NotSupported(this.id + ' watchBalance() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -3595,7 +3606,7 @@ export default class binance extends binanceRest {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
@@ -3824,8 +3835,8 @@ export default class binance extends binanceRest {
             'method': 'order.place',
             'params': this.signParams(this.extend(payload, paramsOmitted2)),
         };
-        if (test === true) {
-            if (sor === true) {
+        if (test) {
+            if (sor) {
                 message['method'] = 'sor.order.test';
             }
             else {
@@ -4137,7 +4148,7 @@ export default class binance extends binanceRest {
         const clientOrderId = this.safeStringN(paramsReturnRateLimits, ['clientAlgoId', 'origClientOrderId', 'clientOrderId']);
         const shouldUseAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true);
         if (clientOrderId !== undefined) {
-            if (shouldUseAlgoOrder === true) {
+            if (shouldUseAlgoOrder) {
                 payload['clientAlgoId'] = clientOrderId;
             }
             else {
@@ -4145,7 +4156,7 @@ export default class binance extends binanceRest {
             }
         }
         else {
-            if (shouldUseAlgoOrder === true) {
+            if (shouldUseAlgoOrder) {
                 payload['algoId'] = this.numberToString(id);
             }
             else {
@@ -4158,7 +4169,7 @@ export default class binance extends binanceRest {
             'method': 'order.cancel',
             'params': this.signParams(this.extend(payload, paramsOmitted)),
         };
-        if (shouldUseAlgoOrder === true) {
+        if (shouldUseAlgoOrder) {
             message['method'] = 'algoOrder.cancel';
         }
         const subscription = {
@@ -4459,7 +4470,7 @@ export default class binance extends binanceRest {
             }
             else if (type === 'option') {
                 const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new NotSupported(this.id + ' watchOrders() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -5091,7 +5102,7 @@ export default class binance extends binanceRest {
         }
         else if (type === 'option') {
             const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-            if ((demoMode === true) || this.isSandboxModeEnabled) {
+            if ((demoMode) || this.isSandboxModeEnabled) {
                 throw new NotSupported(this.id + ' watchPositions() does not support option markets in demo/testnet mode');
             }
             urlType = 'optionPrivate';
@@ -5139,7 +5150,7 @@ export default class binance extends binanceRest {
         const params = {
             'type': type,
         };
-        if (isPortfolioMargin === true) {
+        if (isPortfolioMargin) {
             params['portfolioMargin'] = true;
         }
         const positions = await this.fetchPositions(undefined, params);
@@ -5528,7 +5539,7 @@ export default class binance extends binanceRest {
             }
             else if (type === 'option') {
                 const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new NotSupported(this.id + ' watchMyTrades() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -5552,8 +5563,7 @@ export default class binance extends binanceRest {
         if (executionType === 'TRADE') {
             const trade = this.parseWsTrade(message);
             const orderId = this.safeString(trade, 'order');
-            let tradeFee = this.safeDict(trade, 'fee', {});
-            tradeFee = this.extend({}, tradeFee);
+            const tradeFee = this.extend({}, this.safeDict(trade, 'fee', {}));
             const symbol = this.safeString(trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
@@ -5562,9 +5572,9 @@ export default class binance extends binanceRest {
                     const order = this.safeDict(orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
-                        const fees = this.safeValue(order, 'fees');
+                        const fees = this.safeList(order, 'fees');
                         const fee = this.safeDict(order, 'fee');
-                        if (!this.isEmpty(fees)) {
+                        if ((fees !== undefined) && !this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
                                 const orderFee = fees[i];

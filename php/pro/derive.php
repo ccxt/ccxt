@@ -586,10 +586,9 @@ class derive extends \ccxt\async\derive {
             $requestId = $this->request_id($url);
             $now = $this->number_to_string($this->nonce());
             $signature = $this->signMessage($now, $this->privateKey);
-            $deriveWalletAddress = $this->safe_string($this->options, 'deriveWalletAddress');
-            if (($deriveWalletAddress === null) || ($deriveWalletAddress === '')) {
-                $deriveWalletAddress = $this->walletAddress; // v3: the owner wallet is the user's own EOA
-            }
+            $configuredWalletAddress = $this->safe_string($this->options, 'deriveWalletAddress');
+            // v3: the owner wallet is the user's own EOA
+            $deriveWalletAddress = (($configuredWalletAddress === null) || ($configuredWalletAddress === '')) ? $this->walletAddress : $configuredWalletAddress;
             $request = array(
                 'id' => $requestId,
                 'method' => 'public/login',
@@ -1090,11 +1089,7 @@ class derive extends \ccxt\async\derive {
         if ($this->balance === null) {
             $this->balance = array();
         }
-        $subBalance = $this->safe_dict($this->balance, $subaccountIdKey);
-        if ($subBalance === null) {
-            $emptySubBalance = array();
-            $subBalance = $emptySubBalance;
-        }
+        $subBalance = $this->safe_dict($this->balance, $subaccountIdKey, array());
         $updated = false;
         $positionUpdates = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -1134,7 +1129,7 @@ class derive extends \ccxt\async\derive {
         }
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         // {
         //     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',

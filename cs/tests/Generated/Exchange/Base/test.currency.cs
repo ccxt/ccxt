@@ -20,9 +20,9 @@ public partial class testMainClass : BaseTest
         // todo: remove fee from empty
         List<object> emptyAllowedFor = new List<object>() {"name", "fee"};
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-        bool isNative = (!isEqual(getValue(exchange.has, "fetchCurrencies"), null)) && (!isEqual(getValue(exchange.has, "fetchCurrencies"), false)) && (!isEqual(getValue(exchange.has, "fetchCurrencies"), "emulated"));
+        bool isNative = (!(getValue(exchange.has, "fetchCurrencies") == null)) && (!(getValue(exchange.has, "fetchCurrencies") is false)) && (!(getValue(exchange.has, "fetchCurrencies") is "emulated"));
         string? currencyType = exchange.safeString(entry, "type");
-        if ((isNative == true))
+        if (isNative)
         {
             format["info"] = new Dictionary<string, object>() {};
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters

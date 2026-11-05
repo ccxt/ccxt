@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
             // refresh the deadline on every path, otherwise a stream of temporary
             // failures would loop forever
             now = exchange.milliseconds();
-            if (((success == true)) && ((response != null)))
+            if ((success) && ((response != null)))
             {
                 testOrderBook(exchange, skippedProperties, method, response, symbol);
                 Int64 elapsed = (now - startTime);

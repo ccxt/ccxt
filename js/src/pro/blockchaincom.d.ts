@@ -82,7 +82,7 @@ export default class blockchaincom extends blockchaincomRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleMessage(client: Client, message: any): void;
     handleAuthenticationMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<any>;

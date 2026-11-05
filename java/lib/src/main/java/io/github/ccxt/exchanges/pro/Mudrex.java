@@ -63,9 +63,9 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 
     public Long requestId()
     {
-        Object reqid = this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
+        Long reqid = (Long) this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
         Helpers.addElementToObject(this.options, "correlationId", reqid);
-        return Helpers.toLongOrNull(reqid);
+        return reqid;
     }
 
     /**
@@ -105,7 +105,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             this.setBrokerHeaders();
             Object baseIdString = (((!java.util.Objects.equals(market.get("baseId"), null)))) ? market.get("baseId") : "";
             Object quoteIdString = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
-            Object assetId = Helpers.add(((String)baseIdString).toLowerCase(), ((String)quoteIdString).toLowerCase());
+            Object assetId = (((String)baseIdString).toLowerCase() + ((String)quoteIdString).toLowerCase());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", Mudrex.this.requestId() );
                 put( "method", "SUBSCRIBE" );
@@ -138,7 +138,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                     messageHashes.add(("ticker:" + market.get("symbol")));
                     Object baseIdString = (((!java.util.Objects.equals(market.get("baseId"), null)))) ? market.get("baseId") : "";
                     Object quoteIdString = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
-                    ((List<Object>)assets).add(Helpers.add(((String)baseIdString).toLowerCase(), ((String)quoteIdString).toLowerCase()));
+                    ((List<Object>)assets).add((((String)baseIdString).toLowerCase() + ((String)quoteIdString).toLowerCase()));
                 }
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");

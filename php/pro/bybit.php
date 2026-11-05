@@ -222,7 +222,7 @@ class bybit extends \ccxt\async\bybit {
             $unified = Async\await($this->isUnifiedEnabled());
             $isUnifiedMargin = $this->safe_bool($unified, 0, false);
             $isUnifiedAccount = $this->safe_bool($unified, 1, false);
-            if ($isUsdcSettled && ($isUnifiedMargin !== true) && ($isUnifiedAccount !== true)) {
+            if ($isUsdcSettled && (!$isUnifiedMargin) && (!$isUnifiedAccount)) {
                 $url = $url[$accessibility]['usdc'];
             } else {
                 $url = $url[$accessibility]['contract'];
@@ -882,7 +882,7 @@ class bybit extends \ccxt\async\bybit {
         //         "type": "snapshot"
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $topic = $this->safe_string($message, 'topic', '');
         $topicParts = explode('.', $topic);
         $topicLength = count($topicParts);
@@ -1035,12 +1035,14 @@ class bybit extends \ccxt\async\bybit {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $channel = 'orderbook.';
-        $limit = $this->safe_integer($params, 'limit');
-        $paramsOmitted = ($limit !== null) ? $this->omit($params, 'limit') : $params;
-        if ($limit === null) {
+        $limitParam = $this->safe_integer($params, 'limit');
+        $paramsOmitted = ($limitParam !== null) ? $this->omit($params, 'limit') : $params;
+        $defaultLimit = 500;
+        if ($limitParam === null) {
             $firstMarket = $this->market($symbolsNormalized[0]);
-            $limit = ($firstMarket['spot'] === true) ? 50 : 500;
+            $defaultLimit = ($firstMarket['spot'] === true) ? 50 : 500;
         }
+        $limit = ($limitParam === null) ? $defaultLimit : $limitParam;
         $channel .= (string) $limit;
         $subMessageHashes = array();
         $messageHashes = array();
@@ -1107,7 +1109,7 @@ class bybit extends \ccxt\async\bybit {
         //     }
         //
         $topic = $this->safe_string($message, 'topic', '');
-        $limit = explode('.', $topic)[1];
+        $limit = $this->safe_string(explode('.', $topic), 1);
         $isSpot = mb_strpos($client->url, 'spot') !== false;
         $type = $this->safe_string($message, 'type');
         $isSnapshot = ($type === 'snapshot');
@@ -1153,7 +1155,7 @@ class bybit extends \ccxt\async\bybit {
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -1287,7 +1289,7 @@ class bybit extends \ccxt\async\bybit {
         //         ]
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $topic = $this->safe_string($message, 'topic', '');
         $trades = $data;
         $parts = explode('.', $topic);
@@ -1953,13 +1955,22 @@ class bybit extends \ccxt\async\bybit {
         $marketId = $this->safe_string_2($liquidation, 'symbol', 's');
         $marketResolved = $this->safe_market($marketId, $market, '', 'contract');
         $timestamp = $this->safe_integer_2($liquidation, 'updatedTime', 'T');
+        // bybit sends the side of the liquidated position (Buy - a long was liquidated),
+        // the unified side is the side of the liquidation order, as on binance and okx
+        $positionSide = $this->safe_string_lower_2($liquidation, 'side', 'S');
+        $side = null;
+        if ($positionSide === 'buy') {
+            $side = 'sell';
+        } elseif ($positionSide === 'sell') {
+            $side = 'buy';
+        }
         return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $marketResolved['symbol'],
             'contracts' => $this->safe_number_2($liquidation, 'size', 'v'),
             'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'price' => $this->safe_number_2($liquidation, 'price', 'p'),
-            'side' => $this->safe_string_lower_2($liquidation, 'side', 'S'),
+            'side' => $side,
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -2219,7 +2230,7 @@ class bybit extends \ccxt\async\bybit {
             'spot' => 'outboundAccountInfo',
             'unified' => 'wallet',
         );
-        if ($isUnifiedAccount === true) {
+        if ($isUnifiedAccount) {
             // unified account
             if ($subType === 'inverse') {
                 $messageHash .= ':contract';
@@ -2227,7 +2238,7 @@ class bybit extends \ccxt\async\bybit {
                 $messageHash .= ':unified';
             }
         }
-        if (($isUnifiedMargin !== true) && ($isUnifiedAccount !== true)) {
+        if ((!$isUnifiedMargin) && (!$isUnifiedAccount)) {
             // normal account using v5
             if ($type === 'spot') {
                 $messageHash .= ':spot';
@@ -2235,7 +2246,7 @@ class bybit extends \ccxt\async\bybit {
                 $messageHash .= ':contract';
             }
         }
-        if ($isUnifiedMargin === true) {
+        if ($isUnifiedMargin) {
             // unified margin account using v5
             if ($type === 'spot') {
                 $messageHash .= ':spot';
@@ -2664,7 +2675,7 @@ class bybit extends \ccxt\async\bybit {
                 throw new ExchangeError($feedback);
             }
             $success = $this->safe_bool($message, 'success');
-            if (($success !== null) && ($success !== true)) {
+            if (($success !== null) && (!$success)) {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
                 $request = $this->safe_dict($message, 'request', array());
                 $op = $this->safe_string($request, 'op');
