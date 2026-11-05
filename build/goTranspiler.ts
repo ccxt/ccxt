@@ -3305,7 +3305,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = w8ClientTableCalls (w8ClientFuturesReads (w8FuturesPairInOp (goTypedInopClientMaps (content))));
     content = goNativeKeysAndRemove (content);
     content = goTypedTypepredIsArray (content);
-    content = goTypedArrNativeRemove (content);
     content = nativeDerefArgMapReads (content);
     content = nativeDerefOnlyListReads (content);
     content = goTernaryInt64Closure (content);
@@ -9645,7 +9644,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedTypepredSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (goTypedArrSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goInlineTypeChecksCheck (goCompositeKeyAligner ())).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goInlineStrCheck (goCompositeKeyAligner ())).concat (goInlineStrWiredCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goMarketsByIdInOpSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
+        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedTypepredSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goInlineTypeChecksCheck (goCompositeKeyAligner ())).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goInlineStrCheck (goCompositeKeyAligner ())).concat (goInlineStrWiredCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goMarketsByIdInOpSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12849,195 +12848,10 @@ function goTypedInopSelfTest (): string[] {
     return problems;
 }
 
-// ===== native delete for Remove on typed receivers =====
-// Remove(R, k) where R is a *sync.Map base field -> R.Delete(k), or a
-// map[string]any (this.Clients, GetRejections()) -> delete(R, k); k must be a proven non-nil string.
-function goTypedArrReceiverKind (recv: string): string | undefined {
-    if (/^this\.(?:Tickers|Bidsasks|Orderbooks|FundingRates|Ohlcvs|Trades)$/.test (recv)) {
-        return 'map';
-    }
-    if ((recv === 'this.Clients') || (recv === 'this.Options') || /^\w+\.\((?:ccxt\.)?ClientInterface\)\.GetRejections\(\)$/.test (recv)) {
-        return 'map';
-    }
-    return undefined;
-}
 
-// a `*string` key redeclared in sibling scopes: the declaration in scope at the Remove is the nearest earlier open
-// `var key *string`; the key is non-nil when it is a literal-default SafeString or an enclosing `if` tests `key != nil`,
-// and no other line writes or addresses it.
-function w8ScopedPtrKeyText (key: string, lines: string[], start: number, k: number): string | undefined {
-    const n = goAccessEscape (key);
-    const indentOf = (l: string) => l.length - l.trimStart ().length;
-    const declRx = new RegExp ('^\\s*var ' + n + ' \\*string = (.*)$');
-    const writeRx = new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:?=[^=]|&' + n + '\\b');
-    let end = k;
-    while ((end < lines.length) && (lines[end] !== '}')) {
-        end++;
-    }
-    for (let j = start + 1; j < end; j++) {
-        if (!declRx.test (lines[j]) && (writeRx.test (lines[j]) || new RegExp ('\\bfunc\\b[^{\\n]*[(,]\\s*' + n + ' ').test (lines[j]))) {
-            return undefined;
-        }
-    }
-    const cur = indentOf (lines[k]);
-    let minIndent = cur;
-    let decl: RegExpExecArray | null = null;
-    for (let j = k - 1; j > start; j--) {
-        if (lines[j].trim () === '') {
-            continue;
-        }
-        const d = indentOf (lines[j]);
-        const m = declRx.exec (lines[j]);
-        if (m && (d <= minIndent)) {
-            decl = m;
-            break;
-        }
-        if (d < minIndent) {
-            minIndent = d;
-        }
-    }
-    if (decl === null) {
-        return undefined;
-    }
-    if (/^this\.SafeString(?:Lower|Upper)?\((?:[^(),]|\([^()]*\))+, (?:[^(),]|\([^()]*\))+, "(?:[^"\\\n]|\\.)*"\)\s*$/.test (decl[1])) {
-        return '*' + key;
-    }
-    // the closest enclosing `if` must conjoin `key != nil`
-    for (let j = k - 1; j > start; j--) {
-        if ((lines[j].trim () === '') || (indentOf (lines[j]) >= cur)) {
-            continue;
-        }
-        const m = /^\s*if (.*) \{$/.exec (lines[j]);
-        if (m === null) {
-            return undefined;
-        }
-        const terms = m[1].split (' && ').map ((t) => t.trim ().replace (/^\((.*)\)$/, '$1'));
-        return terms.includes (key + ' != nil') ? '*' + key : undefined;
-    }
-    return undefined;
-}
 
-// the Go text of a non-nil string key, or undefined (the helper panics on a nil/non-string key)
-function goTypedArrKeyText (key: string, lines: string[], start: number, maskedFunc: string, offset: number, k?: number): string | undefined {
-    if (/^"(?:[^"\\\n]|\\.)*"$/.test (key)) {
-        return key;
-    }
-    const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
-    if (decl === undefined) {
-        return (k === undefined) ? undefined : w8ScopedPtrKeyText (key, lines, start, k);
-    }
-    if ((decl.index !== undefined) && (decl.index >= offset)) {
-        return undefined;
-    }
-    if (decl.type === 'string') {
-        return key;
-    }
-    if ((decl.type !== '*string') || (decl.index === undefined)) {
-        return undefined;
-    }
-    // SafeString* with a literal default returns &v or &default: never nil, if never re-written
-    const n = goAccessEscape (key);
-    if (new RegExp ('(?:^|[^\\w.])' + n + '\\s*=[^=]|&' + n + '\\b', 'm').test (maskedFunc.replace (new RegExp ('\\bvar ' + n + ' \\*string ='), ''))) {
-        return undefined;
-    }
-    const declLine = lines[start + maskedFunc.substring (0, decl.index).split ('\n').length - 1];
-    return /\bvar \w+ \*string = this\.SafeString(?:Lower|Upper)?\((?:[^(),]|\([^()]*\))+, (?:[^(),]|\([^()]*\))+, "(?:[^"\\\n]|\\.)*"\)\s*$/.test (declLine) ? '*' + key : ((k === undefined) ? undefined : w8ScopedPtrKeyText (key, lines, start, k));
-}
 
-function goTypedArrNativeRemove (content: string): string {
-    if (!/\bRemove\(/.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    let start = -1;
-    let maskedFunc = '';
-    let offsets: number[] = [];
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-            let end = k;
-            while ((end < lines.length) && (lines[end] !== '}')) {
-                end++;
-            }
-            maskedFunc = masked.slice (k, end + 1).join ('\n');
-            offsets = [];
-            let o = 0;
-            for (let j = k; (j <= end) && (j < lines.length); j++) {
-                offsets.push (o);
-                o += masked[j].length + 1;
-            }
-            continue;
-        }
-        if (lines[k] === '}') {
-            start = -1;
-            continue;
-        }
-        if (start < 0) {
-            continue;
-        }
-        const rm = /^(\s*)(?:ccxt\.)?Remove\((\w+\.\((?:ccxt\.)?ClientInterface\)\.Get\w+\(\)|this\.\w+|\w+), (\w+|"(?:[^"\\\n]|\\.)*")\)(\s*)$/.exec (lines[k]);
-        if ((rm === null) || !/^\s*(?:ccxt\.)?Remove\(/.test (masked[k])) {
-            continue;
-        }
-        let kind = goTypedArrReceiverKind (rm[2]);
-        if ((kind === undefined) && /^\w+$/.test (rm[2])) {
-            // a local declared once as a plain map[string]any is the map the helper's default arm deletes from
-            const rd = goAccessSingleDeclaration (maskedFunc, lines[start], rm[2]);
-            if ((rd !== undefined) && (rd.type === 'map[string]any') && (rd.index < offsets[k - start]) && !new RegExp ('&\\s*' + rm[2] + '\\b').test (maskedFunc)) {
-                kind = 'map';
-            }
-        }
-        const key = (kind === undefined) ? undefined : goTypedArrKeyText (rm[3], lines, start, maskedFunc, offsets[k - start], k);
-        if (key === undefined) {
-            continue;
-        }
-        lines[k] = rm[1] + 'delete(' + rm[2] + ', ' + key + ')' + rm[4];
-    }
-    return lines.join ('\n');
-}
 
-function goTypedArrSelfTest (): string[] {
-    const problems: string[] = [];
-    const src = [
-        'func (this *X) A(client any, symbol string, p any) {',
-        '\tvar h *string = this.SafeString(p, "k", "")',
-        '\tvar n *string = this.SafeString(p, "k")',
-        '\tvar g *string = this.SafeString(p, "k", "")',
-        '\tg = this.SafeString(p, "j")',
-        '\tccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), symbol)',
-        '\tccxt.Remove(this.Tickers, h)',
-        '\tccxt.Remove(this.Tickers, n)',
-        '\tccxt.Remove(this.Tickers, g)',
-        '\tccxt.Remove(this.Clients, "u")',
-        '\tccxt.Remove(this.Trades, symbol)',
-        '\tccxt.Remove(this.Tickers, p)',
-        '\tvar m map[string]any = this.SafeDictMap(p, "m", map[string]any{})',
-        '\tif true {',
-        '\t\tvar sk *string = this.SafeString(p, "k", "")',
-        '\t\tRemove(this.Orderbooks, sk)',
-        '\t}',
-        '\tvar fid *string = this.SafeString(p, "id")',
-        '\tif (fid != nil) && (InOp(m, fid)) {',
-        '\t\tccxt.Remove(m, fid)',
-        '\t}',
-        '\tccxt.Remove(m, fid)',
-        '}',
-    ].join ('\n');
-    const out = goTypedArrNativeRemove (src);
-    const want = [ 'ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), symbol)', 'delete(this.Tickers, *h)', 'delete(this.Clients, "u")',
-        'ccxt.Remove(this.Tickers, n)', 'ccxt.Remove(this.Tickers, g)', 'delete(this.Trades, symbol)', 'ccxt.Remove(this.Tickers, p)',
-        'delete(this.Orderbooks, *sk)', 'delete(m, *fid)\n\t}\n\tccxt.Remove(m, fid)' ];
-    for (const w of want) {
-        if (out.indexOf (w) < 0) {
-            problems.push ('go-typed-deref-self-test-arr: missing ' + w);
-        }
-    }
-    return problems;
-}
 
 // ===== bare `x := GetValue(s, N)` on a `[]any` local -> native element read =====
 // Every read of x is a whole argument a helper derefScalars at entry, so GetValue's own deref is
