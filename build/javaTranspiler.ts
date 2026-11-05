@@ -3144,6 +3144,9 @@ class NewTranspiler {
             for (const name of JAVA_HAND_WRITTEN_PAIR_METHODS) {
                 baseMethods = this.removeJavaMethod(baseMethods, name);
             }
+            // Base cache readers need the same Object-to-cache dispatch as WS methods.
+            baseMethods = this.replaceDynamicMethodCall(baseMethods, 'getLimit',
+                (varName, args) => `io.github.ccxt.ws.ArrayCache.getLimitOf(${varName}, ${args})`);
             baseMethods = typeCoreReturns(baseMethods, typedReturnTable('rest'));
             log.magenta('→', (javaExchangeBase as any).yellow)
             this.spliceTranspiledJavaBody(javaExchangeBase, javaDelimiter, restOfFile, baseMethods.trim() + '\n', false);

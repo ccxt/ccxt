@@ -175,11 +175,9 @@ export default class alpaca extends alpacaRest {
         };
         const messageHash = 'ohlcv:' + symbolValue;
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -321,11 +319,9 @@ export default class alpaca extends alpacaRest {
             'trades': [ market['id'] ],
         };
         const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -384,11 +380,9 @@ export default class alpaca extends alpacaRest {
             },
         };
         const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -421,11 +415,9 @@ export default class alpaca extends alpacaRest {
             },
         };
         const orders: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleTradeUpdate (client: Client, message: Dict) {

@@ -731,11 +731,9 @@ export default class backpack extends backpackRest {
             messageHashes.push ('candles:' + market['symbol'] + ':' + interval);
         }
         const [ symbol, timeframe, candles ] = await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]));
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = candles.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (candles, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -910,11 +908,9 @@ export default class backpack extends backpackRest {
         const trades = await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]));
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const result = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
         return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
     }
 
@@ -1277,11 +1273,9 @@ export default class backpack extends backpackRest {
             topics.push ('account.rfqUpdate');
         }
         const orders = await this.watchPrivate (topics, [ messageHash ], this.omit (query, 'stock'));
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        const filtered = this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
         if (this.safeBool (query, 'stock', false)) {
             return this.filterStockStructures (filtered) as Order[];
         }

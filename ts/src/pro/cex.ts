@@ -515,11 +515,9 @@ export default class cex extends cexRest {
         };
         const request = this.deepExtend (message, params);
         const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash, request);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolValue, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolValue, since, limitResolved, true);
     }
 
     /**
@@ -1162,11 +1160,9 @@ export default class cex extends cexRest {
             ],
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     handleInitOHLCV (client: Client, message: Dict) {

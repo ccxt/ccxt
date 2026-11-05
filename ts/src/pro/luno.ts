@@ -71,11 +71,9 @@ export default class luno extends lunoRest {
         };
         const request = this.deepExtend (subscribe, params);
         const trades: ArrayCache = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict, subscription: Dict) {

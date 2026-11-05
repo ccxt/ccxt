@@ -111,11 +111,9 @@ export default class p2b extends p2bRest {
         ];
         const messageHash = 'kline::' + market['symbol'];
         const ohlcv = await this.subscribe ('kline.subscribe', messageHash, request, params);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -228,11 +226,9 @@ export default class p2b extends p2bRest {
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, query, messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**

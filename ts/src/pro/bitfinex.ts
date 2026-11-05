@@ -146,11 +146,9 @@ export default class bitfinex extends bitfinexRest {
         const url = this.urls['api']['ws']['public'];
         // not using subscribe here because this message has a different format
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -287,11 +285,9 @@ export default class bitfinex extends bitfinexRest {
      */
     override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.subscribe ('trades', symbol, params);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -326,11 +322,9 @@ export default class bitfinex extends bitfinexRest {
             messageHash += ':' + market['id'];
         }
         const trades = await this.subscribePrivate (messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbol, since, limitResolved, true);
     }
 
     /**
@@ -1104,11 +1098,9 @@ export default class bitfinex extends bitfinexRest {
             messageHash += ':' + market['id'];
         }
         const orders = await this.subscribePrivate (messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbol, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: any[], subscription: Dict) {

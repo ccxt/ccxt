@@ -92,11 +92,9 @@ export default class whitebit extends whitebitRest {
         const reqParams = [ marketId, interval ];
         const method = 'candles_subscribe';
         const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict): Dict {
@@ -377,11 +375,9 @@ export default class whitebit extends whitebitRest {
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -452,11 +448,9 @@ export default class whitebit extends whitebitRest {
         const messageHash = 'myTrades:' + symbolValue;
         const method = 'deals_subscribe';
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, true, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolValue, since, limitResolved, true);
     }
 
     handleMyTrades (client: Client, message: Dict , subscription: Dict | undefined = undefined) {
@@ -585,11 +579,9 @@ export default class whitebit extends whitebitRest {
         const messageHash = 'orders:' + symbolValue;
         const method = 'ordersPending_subscribe';
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolValue, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict , subscription: Dict | undefined = undefined) {

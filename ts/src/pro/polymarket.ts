@@ -403,11 +403,9 @@ export default class polymarket extends polymarketRest {
         const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.urls['api']['ws'];
         const trades = await this.watch (url, messageHash, request, messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limitResolved);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -550,11 +548,9 @@ export default class polymarket extends polymarketRest {
         const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.urls['api']['ws'];
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolResolved, limitResolved);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -696,11 +692,9 @@ export default class polymarket extends polymarketRest {
         const request = this.sendSubscription ('sub', [ 'orders' ], [ messageHash ], subscribeHashes, {}, params, subscribeHashes);
         const url = this.urls['api']['ws'];
         const orders = await this.watch (url, messageHash, request, 'orders');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limitResolved);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -785,11 +779,9 @@ export default class polymarket extends polymarketRest {
         const request = this.sendSubscription ('sub', [ 'fills' ], [ messageHash ], subscribeHashes, {}, params, subscribeHashes);
         const url = this.urls['api']['ws'];
         const trades = await this.watch (url, messageHash, request, 'fills');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limitResolved);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrades (client: Client, message: Dict) {

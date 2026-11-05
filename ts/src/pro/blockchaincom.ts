@@ -164,11 +164,9 @@ export default class blockchaincom extends blockchaincomRest {
         request = this.deepExtend (request, params);
         const url = this.urls['api']['ws'];
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash, request);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -460,11 +458,9 @@ export default class blockchaincom extends blockchaincomRest {
         const messageHash = 'orders';
         const request = this.deepExtend (message, params);
         const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: Dict) {

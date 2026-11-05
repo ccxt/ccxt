@@ -145,11 +145,9 @@ export default class hollaex extends hollaexRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'trade' + ':' + market['id'];
         const trades = await this.watchPublic (messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -214,11 +212,9 @@ export default class hollaex extends hollaexRest {
             messageHash += ':' + market['id'];
         }
         const trades = await this.watchPrivate (messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrades (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
@@ -305,11 +301,9 @@ export default class hollaex extends hollaexRest {
             messageHash += ':' + market['id'];
         }
         const orders = await this.watchPrivate (messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict, subscription: Dict | undefined = undefined) {

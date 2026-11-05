@@ -8,6 +8,21 @@ public abstract class BaseCache : SlimConcurrentList<object>
 
     public abstract void append(object item);
 
+    public Dictionary<string, object> getLimitAndSnapshot(object symbol, object limit)
+    {
+        // append() uses this same lock for both the update counters and the rows.
+        // Capturing only the rows under SlimConcurrentList's lock is too late:
+        // an intervening append could already belong to the next update window.
+        lock (this.lockObject)
+        {
+            var limitResolved = this.getLimit(symbol, limit);
+            return new Dictionary<string, object>() {
+                { "data", this.ToArray() },
+                { "limit", limitResolved },
+            };
+        }
+    }
+
     // typed entry points for receivers only known as object; a null or non-cache receiver
     // throws NullReferenceException, as the reflective callDynamically lookup did
     public static Int64? getLimitOf(object cache, object symbol, object limit)

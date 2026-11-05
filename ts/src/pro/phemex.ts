@@ -637,11 +637,9 @@ export default class phemex extends phemexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -727,11 +725,9 @@ export default class phemex extends phemexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     customHandleDelta (bookside: any, delta: any[], market: Market = undefined) {
@@ -860,11 +856,9 @@ export default class phemex extends phemexRest {
             messageHash = (settle === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
         }
         const trades = await this.subscribePrivate (type, messageHash, paramsType);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrades (client: Client, message: any[]) {
@@ -1031,11 +1025,9 @@ export default class phemex extends phemexRest {
             messageHash = (isUSDTSettled) ? (messageHash + 'perpetual') : (messageHash + type);
         }
         const orders = await this.subscribePrivate (type, messageHash, paramsType);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: any) {
