@@ -575,7 +575,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }} );
             put( "options", new HashMap<String, Object>() {{
                 put( "route", "auto" );
-                put( "brokerId", "nfqkvdjp" );
+                put( "brokerId", "ccxt" );
                 put( "portfolio", "" );
                 put( "accessTokenRefreshRatio", 0.8 );
                 put( "networksById", new HashMap<String, Object>() {{

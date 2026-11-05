@@ -4544,7 +4544,7 @@ public class TestMain extends BaseTest
             Object tokenExpires = Helpers.add(exchange.milliseconds(), 100000);
             ((Map<String, Object>)exchange.options).put("v2TokenExpires", tokenExpires);
             ((Map<String, Object>)exchange.options).put("portfolio", "random");
-            String id = "nfqkvdjp";
+            String id = "ccxt";
             Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("brokerId"), id), "id not in options");
             Object clientOrderId = null;
             try
@@ -4559,7 +4559,8 @@ public class TestMain extends BaseTest
                 Object query = this.urlencodedToDict((String) (Helpers.GetValue(urlParts, 1)));
                 clientOrderId = ((Map<String, Object>)query).get("label");
             }
-            Assert(!java.util.Objects.equals(clientOrderId, null) && java.util.Objects.equals(((String)clientOrderId).startsWith(((String)String.valueOf(id))), true), "clientOrderId does not start with id");
+            // the label is built as "<brokerId>-<uuid22>", so Assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+            Assert(!java.util.Objects.equals(clientOrderId, null) && java.util.Objects.equals(((String)clientOrderId).startsWith((id + "-")), true), (((("clientOrderId " + clientOrderId) + " does not start with the brokerId prefix ") + id) + "-"));
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();

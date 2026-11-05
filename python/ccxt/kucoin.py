@@ -587,6 +587,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'utaV2': {
                     'get': {
                         'market/funding-rate': {'cost': 6},  # 3PW
+                        'market/orderbook': {'cost': 10},  # 5PW for depth <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, see calculateRateLimiterCost
                     },
                 },
                 'utaPrivate': {
@@ -993,7 +994,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'private': {
                         'GET': {
                             # account
-                            'user-info': 'v2',
+                            'user-info': 'v3',  # https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-summary-info-v3
                             'hf/margin/account/ledgers': 'v3',
                             'sub/user': 'v2',
                             'sub-accounts': 'v2',
@@ -3707,12 +3708,12 @@ class kucoin(Exchange, ImplicitAPI):
         https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
         https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
         https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
-        https://www.kucoin.com/docs-new/rest/ua/get-orderbook
+        https://www.kucoin.com/docs-new/v2/rest/ua/get-orderbook
 
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
+        :param int [limit]: the maximum amount of order book entries to return, for uta any depth is accepted and the full book is returned when omitted
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False, the uta orderbook endpoint is public
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
@@ -3726,18 +3727,17 @@ class kucoin(Exchange, ImplicitAPI):
         response: dict
         type, paramsMarketType = self.handle_market_type_and_params('fetchOrderBook', market, paramsUta)
         if utaOption:
-            limitString = '20'
-            if (limit is None) or (limit >= 100):
-                limitString = 'FULL'
-            elif limit > 20:
-                limitString = '100'
-            request['limit'] = limitString
+            # the endpoint returns a single level when limit is omitted and rejects values above 1000, so request the full book instead
+            if (limit is None) or (limit > 1000):
+                request['limit'] = 'FULL'
+            else:
+                request['limit'] = limit
             request['symbol'] = market['id']
             if (type == 'spot') or (type == 'margin'):
                 request['tradeType'] = 'SPOT'
             else:
                 request['tradeType'] = 'FUTURES'
-            response = self.utaPrivateGetMarketOrderbook(self.extend(request, paramsMarketType))
+            response = self.utaV2GetMarketOrderbook(self.extend(request, paramsMarketType))
             #
             #     {
             #         "code": "200000",
@@ -3752,7 +3752,8 @@ class kucoin(Exchange, ImplicitAPI):
             #             "asks": [
             #                 ["104700.1","1.4082106"],
             #                 ["104700.5","0.02866269"],
-            #             ]
+            #             ],
+            #             "ts": 1793775536210000000 // futures only
             #         }
             #     }
             #
@@ -8688,6 +8689,19 @@ class kucoin(Exchange, ImplicitAPI):
         methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
         version = self.safe_string(params, 'version', defaultVersion)
+        if (api[0] == 'utaV2') and (path == 'market/orderbook'):
+            # https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
+            # 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
+            depth = self.safe_integer(params, 'limit')  # undefined for 'FULL'
+            if depth is None:
+                return 500
+            elif depth > 500:
+                return 500
+            elif depth > 100:
+                return 100
+            elif depth > 20:
+                return 40
+            return 10
         if version == 'v3' and ('v3' in config):
             return config['v3']
         elif version == 'v2' and ('v2' in config):

@@ -551,7 +551,7 @@ func (this *Coinbaseinternational) Describe() map[string]any {
 		},
 		"options": map[string]any{
 			"route":                   "auto",
-			"brokerId":                "nfqkvdjp",
+			"brokerId":                "ccxt",
 			"portfolio":               "",
 			"accessTokenRefreshRatio": 0.8,
 			"networksById": map[string]any{

@@ -121,11 +121,11 @@ class revolutx extends Exchange {
                     'sandbox' => false,
                     'createOrder' => array(
                         'marginMode' => false,
-                        'triggerPrice' => false,
+                        'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
-                        'stopLossPrice' => false,
-                        'takeProfitPrice' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
                             'GTC' => true,
@@ -159,7 +159,7 @@ class revolutx extends Exchange {
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 300,
-                        'trigger' => false,
+                        'trigger' => true,
                         'trailing' => false,
                         'symbolRequired' => false,
                     ),
@@ -168,7 +168,7 @@ class revolutx extends Exchange {
                         'limit' => 1900,
                         'daysBack' => 30,
                         'untilDays' => null,
-                        'trigger' => false,
+                        'trigger' => true,
                         'trailing' => false,
                         'symbolRequired' => false,
                     ),
@@ -178,7 +178,7 @@ class revolutx extends Exchange {
                         'daysBack' => 30,
                         'daysBackCanceled' => null,
                         'untilDays' => null,
-                        'trigger' => false,
+                        'trigger' => true,
                         'trailing' => false,
                         'symbolRequired' => false,
                     ),
@@ -897,6 +897,39 @@ class revolutx extends Exchange {
         $leavesQuantity = $this->safe_string($order, 'leaves_quantity');
         $price = $this->safe_string($order, 'price');
         $averageFillPrice = $this->safe_string($order, 'average_fill_price');
+        //
+        // conditional and TP/SL orders carry their triggers, e.g.
+        //
+        //     "conditional": { "trigger_price": "118000.00", "type": "limit", "trigger_direction": "le", "limit_price": "117900.00", ... }
+        //     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
+        //     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
+        //
+        $conditional = $this->safe_dict($order, 'conditional');
+        $takeProfit = $this->safe_dict($order, 'take_profit');
+        $stopLoss = $this->safe_dict($order, 'stop_loss');
+        $triggerPrice = null;
+        if ($orderType === 'conditional') {
+            $triggerPrice = $this->safe_string($conditional, 'trigger_price');
+            $orderType = $this->safe_string_lower($conditional, 'type');
+            if ($price === null) {
+                $price = $this->safe_string($conditional, 'limit_price');
+            }
+        } elseif ($orderType === 'tpsl') {
+            // a single leg tells us the order type and limit price, with both legs they can differ
+            $leg = null;
+            if (($takeProfit !== null) && ($stopLoss === null)) {
+                $leg = $takeProfit;
+            } elseif (($stopLoss !== null) && ($takeProfit === null)) {
+                $leg = $stopLoss;
+            }
+            $orderType = null;
+            if ($leg !== null) {
+                $orderType = $this->safe_string_lower($leg, 'type');
+                if ($price === null) {
+                    $price = $this->safe_string($leg, 'limit_price');
+                }
+            }
+        }
         $amount = $this->safe_string($order, 'amount');
         $filledAmount = $this->safe_string($order, 'filled_amount');
         $totalFee = $this->safe_string($order, 'total_fee');
@@ -941,6 +974,9 @@ class revolutx extends Exchange {
             'remaining' => $this->parse_number($remainingValue),
             'status' => $status,
             'timeInForce' => $timeInForce,
+            'triggerPrice' => $this->parse_number($triggerPrice),
+            'stopLossPrice' => $this->parse_number($this->safe_string($stopLoss, 'trigger_price')),
+            'takeProfitPrice' => $this->parse_number($this->safe_string($takeProfit, 'trigger_price')),
             'timestamp' => $createdDate,
             'datetime' => $this->iso8601($createdDate),
             'lastUpdateTimestamp' => $updatedDate,
@@ -965,6 +1001,11 @@ class revolutx extends Exchange {
          * @param {float} [$params->cost] the $order $cost in units of the quote currency (alternative to $amount)
          * @param {string} [$params->timeInForce] 'gtc' or 'ioc' for limit orders
          * @param {string[]} [$params->executionInstructions] limit $order instructions, e.g. ['post_only'] or ['allow_taker']
+         * @param {float} [$params->triggerPrice] place a conditional $order that is submitted once the $market reaches this $price, as a limit $order at `$price` for $type 'limit' or as a $market $order for $type 'market'
+         * @param {float} [$params->stopLossPrice] place a Take Profit/Stop Loss $order with a stop loss leg that triggers at this $price
+         * @param {float} [$params->takeProfitPrice] place a Take Profit/Stop Loss $order with a take profit leg that triggers at this $price
+         * @param {array} [$params->stopLoss] stop loss leg as *array( $triggerPrice, $price )*, a leg `$price` makes it a limit leg
+         * @param {array} [$params->takeProfit] take profit leg as *array( $triggerPrice, $price )*, a leg `$price` makes it a limit leg; with a single leg, $type 'limit' and `$price` do the same
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
@@ -975,8 +1016,56 @@ class revolutx extends Exchange {
         $cost = $this->safe_string_2($params, 'cost', 'quote_size');
         $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
         $executionInstructions = $this->safe_list($params, 'executionInstructions', $this->safe_list($params, 'execution_instructions'));
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $hasStopLoss = ($stopLossPrice !== null) || ($stopLoss !== null);
+        $hasTakeProfit = ($takeProfitPrice !== null) || ($takeProfit !== null);
+        $isTpsl = $hasStopLoss || $hasTakeProfit;
+        if (($triggerPrice !== null) || $isTpsl) {
+            if (($type !== 'limit') && ($type !== 'market')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support order type ' . $type);
+            }
+            if (($timeInForce !== null) || ($executionInstructions !== null)) {
+                throw new InvalidOrder($this->id . ' createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders');
+            }
+        }
         $orderConfiguration = array();
-        if ($type === 'limit') {
+        if (($triggerPrice !== null) && $isTpsl) {
+            throw new InvalidOrder($this->id . ' createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice');
+        } elseif ($triggerPrice !== null) {
+            $conditionalConfig = array();
+            if ($cost !== null) {
+                $conditionalConfig['quote_size'] = $this->cost_to_precision($symbol, $cost);
+            } else {
+                $conditionalConfig['base_size'] = $this->amount_to_precision($symbol, $amount);
+            }
+            if ($type === 'limit') {
+                if ($price === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for limit trigger orders');
+                }
+                $conditionalConfig['limit_price'] = $this->price_to_precision($symbol, $price);
+            }
+            $conditionalConfig['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $orderConfiguration['conditional'] = $conditionalConfig;
+        } elseif ($isTpsl) {
+            if ($cost !== null) {
+                throw new InvalidOrder($this->id . ' createOrder() TP/SL orders are sized in the base currency only, cost is not supported');
+            }
+            $singleLeg = !($hasStopLoss && $hasTakeProfit);
+            $tpslConfig = array(
+                'base_size' => $this->amount_to_precision($symbol, $amount),
+            );
+            if ($hasTakeProfit) {
+                $tpslConfig['take_profit'] = $this->create_trigger_leg_request($symbol, $type, $price, $takeProfitPrice, $takeProfit, $singleLeg);
+            }
+            if ($hasStopLoss) {
+                $tpslConfig['stop_loss'] = $this->create_trigger_leg_request($symbol, $type, $price, $stopLossPrice, $stopLoss, $singleLeg);
+            }
+            $orderConfiguration['tpsl'] = $tpslConfig;
+        } elseif ($type === 'limit') {
             $limitConfig = array();
             if ($cost !== null) {
                 $limitConfig['quote_size'] = $this->cost_to_precision($symbol, $cost);
@@ -1014,7 +1103,7 @@ class revolutx extends Exchange {
             'side' => $side,
             'order_configuration' => $orderConfiguration,
         );
-        $response = $this->privatePost10Orders($this->extend($request, $this->omit($params, array( 'cost', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' ))));
+        $response = $this->privatePost10Orders($this->extend($request, $this->omit($params, array( 'cost', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ))));
         //
         //     {
         //         "data": [
@@ -1034,6 +1123,38 @@ class revolutx extends Exchange {
             'type' => $type,
         )), $market);
         return $order;
+    }
+
+    public function create_trigger_leg_request(string $symbol, string $type, ?float $price, ?string $triggerPrice, ?array $leg, bool $singleLeg): array {
+        /**
+         * builds the take profit or stop loss $leg of a TP/SL order request
+         * @ignore
+         * @param {string} $symbol unified market $symbol
+         * @param {string} $type 'limit' or 'market'
+         * @param {float} [$price] the createOrder $price, used as the limit $price of a single limit $leg
+         * @param {string} [$triggerPrice] the stopLossPrice or takeProfitPrice param
+         * @param {array} [$leg] the stopLoss or takeProfit param, *array( $triggerPrice, $price )*
+         * @param {boolean} $singleLeg whether the order has only this $leg
+         * @return {array} the $leg request
+         */
+        $legTriggerPrice = $this->safe_string_2($leg, 'triggerPrice', 'stopPrice', $triggerPrice);
+        if ($legTriggerPrice === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a triggerPrice for each stopLoss and takeProfit leg');
+        }
+        $result = array(
+            'trigger_price' => $this->price_to_precision($symbol, $legTriggerPrice),
+        );
+        $legPrice = $this->safe_string($leg, 'price');
+        if (($legPrice === null) && ($type === 'limit')) {
+            if (!$singleLeg || ($price === null)) {
+                throw new ArgumentsRequired($this->id . ' createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set');
+            }
+            $legPrice = $this->number_to_string($price);
+        }
+        if ($legPrice !== null) {
+            $result['limit_price'] = $this->price_to_precision($symbol, $legPrice);
+        }
+        return $result;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -1130,6 +1251,7 @@ class revolutx extends Exchange {
          * @param {string} [$params->cursor] pagination $cursor from the previous $response
          * @param {string[]} [$params->orderStates] filter by $order states, e.g. ['new', 'partially_filled']
          * @param {string[]} [$params->orderTypes] filter by $order types, e.g. ['limit', 'market']
+         * @param {boolean} [$params->trigger] set to true to fetch only conditional and TP/SL orders
          * @param {string} [$params->side] filter by $side, 'buy' or 'sell'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
@@ -1152,7 +1274,11 @@ class revolutx extends Exchange {
         if ($orderStates !== null) {
             $request['order_states'] = implode(',', $orderStates);
         }
+        $trigger = $this->safe_bool($params, 'trigger', false);
         $orderTypes = $this->safe_list_2($params, 'orderTypes', 'order_types');
+        if (($orderTypes === null) && $trigger) {
+            $orderTypes = array( 'conditional', 'tpsl' );
+        }
         if ($orderTypes !== null) {
             $request['order_types'] = implode(',', $orderTypes);
         }
@@ -1160,7 +1286,7 @@ class revolutx extends Exchange {
         if ($side !== null) {
             $request['side'] = $side;
         }
-        $response = $this->privateGet10OrdersActive($this->extend($request, $this->omit($params, array( 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side' ))));
+        $response = $this->privateGet10OrdersActive($this->extend($request, $this->omit($params, array( 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side', 'trigger' ))));
         //
         //     {
         //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1190,6 +1316,7 @@ class revolutx extends Exchange {
          * @param {string} [$params->cursor] pagination $cursor from the previous $response
          * @param {string[]} [$params->orderStates] filter by $order states, e.g. ['filled', 'cancelled', 'rejected']
          * @param {string[]} [$params->orderTypes] filter by $order types, e.g. ['limit', 'market']
+         * @param {boolean} [$params->trigger] set to true to fetch only conditional and TP/SL orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
         if ($this->markets === null) {
@@ -1225,11 +1352,15 @@ class revolutx extends Exchange {
         if ($orderStates !== null) {
             $request['order_states'] = implode(',', $orderStates);
         }
+        $trigger = $this->safe_bool($params, 'trigger', false);
         $orderTypes = $this->safe_list_2($params, 'orderTypes', 'order_types');
+        if (($orderTypes === null) && $trigger) {
+            $orderTypes = array( 'conditional', 'tpsl' );
+        }
         if ($orderTypes !== null) {
             $request['order_types'] = implode(',', $orderTypes);
         }
-        $response = $this->privateGet10OrdersHistorical($this->extend($request, $this->omit($params, array( 'until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types' ))));
+        $response = $this->privateGet10OrdersHistorical($this->extend($request, $this->omit($params, array( 'until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'trigger' ))));
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {

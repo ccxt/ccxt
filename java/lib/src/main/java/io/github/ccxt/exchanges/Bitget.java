@@ -3979,11 +3979,10 @@ public class Bitget extends BitgetApi
                     Map<String, Object> instrument = (Map<String, Object>) this.safeDict(spotInstruments, marketId, (Object) null);
                     if (!java.util.Objects.equals(instrument, null))
                     {
-                        MarketInterface parsedInstrument = this.parseMarket(instrument);
-                        if (!java.util.Objects.equals(parsedInstrument, null))
-                        {
-                            Helpers.addElementToObject(parsedMarket, "stock", ((Map<String, Object>)parsedInstrument).get("stock"));
-                        }
+                        // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
+                        String assetType = this.safeStringLower(instrument, "symbolType");
+                        Boolean isReality = (java.util.Objects.equals(this.safeStringLower(instrument, "isReality"), "yes"));
+                        Helpers.addElementToObject(parsedMarket, "stock", (java.util.Objects.equals(assetType, "stock")) || ((java.util.Objects.equals(assetType, null)) && Boolean.TRUE.equals(isReality)));
                     }
                 }
                 ((List<Object>)result).add(parsedMarket);

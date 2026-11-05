@@ -1176,6 +1176,9 @@ public partial class kucoin : Exchange
                         { "market/funding-rate", new Dictionary<string, object>() {
                             { "cost", 6 },
                         } },
+                        { "market/orderbook", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
                     } },
                 } },
                 { "utaPrivate", new Dictionary<string, object>() {
@@ -1563,7 +1566,7 @@ public partial class kucoin : Exchange
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "GET", new Dictionary<string, object>() {
-                            { "user-info", "v2" },
+                            { "user-info", "v3" },
                             { "hf/margin/account/ledgers", "v3" },
                             { "sub/user", "v2" },
                             { "sub-accounts", "v2" },
@@ -4401,11 +4404,11 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-orderbook
+     * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, for uta any depth is accepted and the full book is returned when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false, the uta orderbook endpoint is public
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
@@ -4431,15 +4434,14 @@ public partial class kucoin : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         if ((utaOption == true))
         {
-            string limitString = "20";
-            if (((limit == null)) || ((limit >= 100)))
+            // the endpoint returns a single level when limit is omitted and rejects values above 1000, so request the full book instead
+            if (((limit == null)) || ((limit > 1000)))
             {
-                limitString = "FULL";
-            } else if ((limit > 20))
+                request["limit"] = "FULL";
+            } else
             {
-                limitString = "100";
+                request["limit"] = limit;
             }
-            request["limit"] = limitString;
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             if (((type == "spot")) || ((type == "margin")))
             {
@@ -4448,7 +4450,7 @@ public partial class kucoin : Exchange
             {
                 request["tradeType"] = "FUTURES";
             }
-            response = await this.utaPrivateGetMarketOrderbook(this.extend(request, paramsMarketType));
+            response = await this.utaV2GetMarketOrderbook(this.extend(request, paramsMarketType));
         } else if ((!(type == "spot")) && (!(type == "margin")))
         {
             if ((level != 2) && (level != null))
@@ -10545,6 +10547,26 @@ public partial class kucoin : Exchange
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, (this.options != null && this.options.ContainsKey("version") ? this.options["version"] : null));
         string? version = this.safeString(parameters, "version", defaultVersion);
+        if (((getValue(api, 0) is "utaV2")) && ((path is "market/orderbook")))
+        {
+            // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
+            // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
+            Int64? depth = this.safeInteger(parameters, "limit"); // undefined for 'FULL'
+            if ((depth == null))
+            {
+                return 500;
+            } else if ((depth > 500))
+            {
+                return 500;
+            } else if ((depth > 100))
+            {
+                return 100;
+            } else if ((depth > 20))
+            {
+                return 40;
+            }
+            return 10;
+        }
         if (version == "v3" && (((IDictionary<string, object>)config).ContainsKey("v3")))
         {
             return ((IDictionary<string,object>)config)["v3"];

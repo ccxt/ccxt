@@ -6163,7 +6163,7 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 	var tokenExpires int64 = exchange.Milliseconds() + 100000
 	AddElementToObject(exchange.GetOptions(), "v2TokenExpires", tokenExpires)
 	AddElementToObject(exchange.GetOptions(), "portfolio", "random")
-	var id string = "nfqkvdjp"
+	var id string = "ccxt"
 	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
 	var clientOrderId any = nil
 
@@ -6201,7 +6201,8 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 		}(this)
 
 	}
-	Assert(!IsEqual(clientOrderId, nil) && IsEqual(StartsWith(clientOrderId, id), true), "clientOrderId does not start with id")
+	// the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+	Assert(!IsEqual(clientOrderId, nil) && IsEqual(StartsWith(clientOrderId, id+"-"), true), Add(Add(Add(Add("clientOrderId ", clientOrderId), " does not start with the brokerId prefix "), id), "-"))
 	if !EvalTruthy(IsSync()) {
 
 		<-Close(exchange)

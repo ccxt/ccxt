@@ -2327,10 +2327,10 @@ class bitget extends Exchange {
                 $marketId = $parsedMarket['id'];
                 $instrument = $this->safe_dict($spotInstruments, $marketId);
                 if ($instrument !== null) {
-                    $parsedInstrument = $this->parse_market($instrument);
-                    if ($parsedInstrument !== null) {
-                        $parsedMarket['stock'] = $parsedInstrument['stock'];
-                    }
+                    // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
+                    $assetType = $this->safe_string_lower($instrument, 'symbolType');
+                    $isReality = ($this->safe_string_lower($instrument, 'isReality') === 'yes');
+                    $parsedMarket['stock'] = ($assetType === 'stock') || (($assetType === null) && $isReality);
                 }
             }
             $result[] = $parsedMarket;

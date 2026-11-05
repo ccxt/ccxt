@@ -570,6 +570,7 @@ class kucoin extends kucoin$1["default"] {
                 'utaV2': {
                     'get': {
                         'market/funding-rate': { 'cost': 6 }, // 3PW
+                        'market/orderbook': { 'cost': 10 }, // 5PW for depth <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, see calculateRateLimiterCost
                     },
                 },
                 'utaPrivate': {
@@ -976,7 +977,7 @@ class kucoin extends kucoin$1["default"] {
                     'private': {
                         'GET': {
                             // account
-                            'user-info': 'v2',
+                            'user-info': 'v3', // https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-summary-info-v3
                             'hf/margin/account/ledgers': 'v3',
                             'sub/user': 'v2',
                             'sub-accounts': 'v2',
@@ -3821,11 +3822,11 @@ class kucoin extends kucoin$1["default"] {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-orderbook
+     * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, for uta any depth is accepted and the full book is returned when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false, the uta orderbook endpoint is public
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -3841,14 +3842,13 @@ class kucoin extends kucoin$1["default"] {
         let response;
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrderBook', market, paramsUta);
         if (utaOption) {
-            let limitString = '20';
-            if ((limit === undefined) || (limit >= 100)) {
-                limitString = 'FULL';
+            // the endpoint returns a single level when limit is omitted and rejects values above 1000, so request the full book instead
+            if ((limit === undefined) || (limit > 1000)) {
+                request['limit'] = 'FULL';
             }
-            else if (limit > 20) {
-                limitString = '100';
+            else {
+                request['limit'] = limit;
             }
-            request['limit'] = limitString;
             request['symbol'] = market['id'];
             if ((type === 'spot') || (type === 'margin')) {
                 request['tradeType'] = 'SPOT';
@@ -3856,7 +3856,7 @@ class kucoin extends kucoin$1["default"] {
             else {
                 request['tradeType'] = 'FUTURES';
             }
-            response = await this.utaPrivateGetMarketOrderbook(this.extend(request, paramsMarketType));
+            response = await this.utaV2GetMarketOrderbook(this.extend(request, paramsMarketType));
             //
             //     {
             //         "code": "200000",
@@ -3871,7 +3871,8 @@ class kucoin extends kucoin$1["default"] {
             //             "asks": [
             //                 ["104700.1","1.4082106"],
             //                 ["104700.5","0.02866269"],
-            //             ]
+            //             ],
+            //             "ts": 1793775536210000000 // futures only
             //         }
             //     }
             //
@@ -9345,6 +9346,24 @@ class kucoin extends kucoin$1["default"] {
         const methodVersions = this.safeDict(apiVersions, method, {});
         const defaultVersion = this.safeString(methodVersions, path, this.options['version']);
         const version = this.safeString(params, 'version', defaultVersion);
+        if ((api[0] === 'utaV2') && (path === 'market/orderbook')) {
+            // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
+            // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
+            const depth = this.safeInteger(params, 'limit'); // undefined for 'FULL'
+            if (depth === undefined) {
+                return 500;
+            }
+            else if (depth > 500) {
+                return 500;
+            }
+            else if (depth > 100) {
+                return 100;
+            }
+            else if (depth > 20) {
+                return 40;
+            }
+            return 10;
+        }
         if (version === 'v3' && ('v3' in config)) {
             return config['v3'];
         }

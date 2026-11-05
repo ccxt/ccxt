@@ -1436,6 +1436,18 @@ export default class bybit extends Exchange {
                     'deposit': {},
                 },
             },
+            'currencies': {
+                'EUR': this.safeCurrencyStructure({ 'id': 'EUR', 'code': 'EUR', 'precision': this.parseNumber('0.01'), 'type': 'fiat' }),
+                'CHF': this.safeCurrencyStructure({ 'id': 'CHF', 'code': 'CHF', 'precision': this.parseNumber('0.01'), 'type': 'fiat' }),
+                'PLN': this.safeCurrencyStructure({ 'id': 'PLN', 'code': 'PLN', 'precision': this.parseNumber('0.01'), 'type': 'fiat' }),
+                'ARS': this.safeCurrencyStructure({ 'id': 'ARS', 'code': 'ARS', 'precision': this.parseNumber('0.01'), 'type': 'fiat' }),
+                'COP': this.safeCurrencyStructure({ 'id': 'COP', 'code': 'COP', 'precision': this.parseNumber('0.01'), 'type': 'fiat' }),
+                'USD': this.safeCurrencyStructure({ 'id': 'USD', 'code': 'USD', 'precision': this.parseNumber('0.01'), 'type': 'fiat' }),
+                'CLP': this.safeCurrencyStructure({ 'id': 'CLP', 'code': 'CLP', 'precision': this.parseNumber('0.01'), 'type': 'fiat' }),
+                'PEN': this.safeCurrencyStructure({ 'id': 'PEN', 'code': 'PEN', 'precision': this.parseNumber('0.01'), 'type': 'fiat' }),
+                'BOB': this.safeCurrencyStructure({ 'id': 'BOB', 'code': 'BOB', 'precision': this.parseNumber('0.01'), 'type': 'fiat' }),
+                'BRL': this.safeCurrencyStructure({ 'id': 'BRL', 'code': 'BRL', 'precision': this.parseNumber('0.01'), 'type': 'fiat' }),
+            },
             'rollingWindowSize': 5000.0, // According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         });
     }

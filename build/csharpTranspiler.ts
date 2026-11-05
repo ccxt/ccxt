@@ -1636,7 +1636,6 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
 // through their parent. An empty string opts a venue out of a name-keyed entry.
 const VENUE_TYPED_CORES: Record<string, Record<string, string>> = {
     'alpaca': { 'fetchTransactionsHelper': 'List<Transaction>' },
-    'bydfi': { 'fetchTransactionsHelper': 'List<Transaction>' },
     'hitbtc': { 'fetchTransactionsHelper': 'List<Transaction>' },
     'dydx': { 'fetchTransactionsHelper': 'List<Dictionary<string, object>>' },
     'poloniex': { 'fetchTransactionsHelper': 'Dictionary<string, object>' },
@@ -1797,7 +1796,6 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'btse': { 'CreateContractOrder': [ 0, 1, 2 ], 'CreateSpotOrder': [ 0, 1, 2 ], 'parseLedgerEntryDirection': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseMarginModeType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parsePositionSide': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
     'bullish': { 'parseMarketType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parsePositionSide': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
     'bybit': { 'FetchDerivativesOpenInterestHistory': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'FetchMySettlementHistory': [ 0 ], 'FetchOrderClassic': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'cancelOrderRequest': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'editOrderRequest': [ 0, 2, 3 ], 'parseLedgerEntryType': [ 0 ], 'parseMarginModeType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
-    'bydfi': { 'FetchTransactionsHelper': [ 0, 1 ], 'createEditOrderRequest': [ 0, 2, 3 ], 'createOrderRequest': [ 0, 1, 2 ], 'paraseTransferStatus': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parsePositionSide': [ 0 ], 'parseTradeType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'cex': { 'FetchOrdersByStatus': [ 0, 1 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'coinbase': { 'FetchDepositMethodId': [ 0 ], 'FetchOrdersByStatus': [ 0, 1 ], 'deposit': [ 2 ], 'findAccountId': [ 0 ], 'parseLedgerEntryStatus': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'coinbaseexchange': { 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ] },
@@ -2179,7 +2177,6 @@ const WS_HANDLER_DICT_MESSAGE: Record<string, string[]> = {
     blofin: [ 'handleBalance', 'handleBidAsk', 'handleFundingRate', 'handleOHLCV', 'handleOrderBook', 'handleOrders', 'handlePong', 'handlePositions', 'handleTicker', 'handleTrades' ],
     bullish: [ 'handleBalance', 'handleErrorMessage', 'handleMyTrades', 'handleOrderBook', 'handleOrders', 'handlePong', 'handlePositions', 'handleTicker', 'handleTrades' ],
     bybit: [ 'handleAuthenticate', 'handleBalance', 'handleLiquidation', 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleOrderWs', 'handlePong', 'handlePositions', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades', 'handleUnSubscribe' ],
-    bydfi: [ 'handleBalance', 'handleErrorMessage', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePong', 'handlePositions', 'handleSubscriptionStatus', 'handleTicker' ],
     cex: [ 'handleAuthenticationMessage', 'handleBalance', 'handleConnected', 'handleErrorMessage', 'handleInitOHLCV', 'handleMyTrades', 'handleOHLCV', 'handleOHLCV1m', 'handleOHLCV24', 'handleOrderBookSnapshot', 'handleOrderBookUpdate', 'handleOrderUpdate', 'handleOrdersSnapshot', 'handleTicker', 'handleTrade', 'handleTradesInner', 'handleTradesSnapshot', 'handleTransaction' ],
     coinbase: [ 'handleHeartbeats', 'handleOrder', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTickers', 'handleTrade' ],
     coinbaseexchange: [ 'handleErrorMessage', 'handleMyTrade', 'handleOrder', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTicker', 'handleTrade' ],
@@ -2222,7 +2219,6 @@ const WS_HANDLER_DICT_MESSAGE: Record<string, string[]> = {
 const WS_HANDLER_IDICT_MESSAGE: Record<string, string[]> = {
     aster: [ 'handleBalanceAndPosition', 'handleBidAsk', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePositions', 'handleTicker', 'handleTrade' ],
     bingx: [ 'handleUnSubscription' ],
-    bydfi: [ 'handleUnSubscription' ],
     deepcoin: [ 'handleUnSubscription' ],
     htx: [ 'handleUnSubscription' ],
     hyperliquid: [ 'handleMyTradesUnsubscription', 'handleOHLCVUnsubscription', 'handleOrderBookUnsubscription', 'handleOrderUnsubscription', 'handlePositionsUnsubscription', 'handleSpotBalanceUnsubscription', 'handleTickerUnsubscription', 'handleTickersUnsubscription', 'handleTradesUnsubscription' ],

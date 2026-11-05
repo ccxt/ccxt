@@ -3913,11 +3913,10 @@ public partial class bitget : Exchange
                 IDictionary<string, object> instrument = this.safeDict(spotInstruments, marketId);
                 if ((instrument != null))
                 {
-                    Dictionary<string, object> parsedInstrument = this.parseMarket(instrument);
-                    if ((parsedInstrument != null))
-                    {
-                        parsedMarket["stock"] = (parsedInstrument != null && parsedInstrument.ContainsKey("stock") ? parsedInstrument["stock"] : null);
-                    }
+                    // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
+                    string? assetType = this.safeStringLower(instrument, "symbolType");
+                    bool isReality = ((this.safeStringLower(instrument, "isReality") == "yes"));
+                    parsedMarket["stock"] = (assetType == "stock") || (((assetType == null)) && isReality);
                 }
             }
             result.Add(parsedMarket);

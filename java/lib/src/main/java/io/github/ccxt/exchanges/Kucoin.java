@@ -1230,6 +1230,9 @@ public class Kucoin extends KucoinApi
                         put( "market/funding-rate", new HashMap<String, Object>() {{
                             put( "cost", 6 );
                         }} );
+                        put( "market/orderbook", new HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
                     }} );
                 }} );
                 put( "utaPrivate", new HashMap<String, Object>() {{
@@ -1617,7 +1620,7 @@ public class Kucoin extends KucoinApi
                     }} );
                     put( "private", new HashMap<String, Object>() {{
                         put( "GET", new HashMap<String, Object>() {{
-                            put( "user-info", "v2" );
+                            put( "user-info", "v3" );
                             put( "hf/margin/account/ledgers", "v3" );
                             put( "sub/user", "v2" );
                             put( "sub-accounts", "v2" );
@@ -4557,11 +4560,11 @@ public class Kucoin extends KucoinApi
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-orderbook
+     * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, for uta any depth is accepted and the full book is returned when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false, the uta orderbook endpoint is public
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
@@ -4589,15 +4592,14 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             if (Boolean.TRUE.equals(utaOption))
             {
-                String limitString = "20";
-                if ((java.util.Objects.equals(limit, null)) || ((limit >= 100)))
+                // the endpoint returns a single level when limit is omitted and rejects values above 1000, so request the full book instead
+                if ((java.util.Objects.equals(limit, null)) || ((limit > 1000)))
                 {
-                    limitString = "FULL";
-                } else if ((limit > 20))
+                    request.put("limit", "FULL");
+                } else
                 {
-                    limitString = "100";
+                    request.put("limit", limit);
                 }
-                request.put("limit", limitString);
                 request.put("symbol", market.get("id"));
                 if ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin")))
                 {
@@ -4606,7 +4608,7 @@ public class Kucoin extends KucoinApi
                 {
                     request.put("tradeType", "FUTURES");
                 }
-                response = (this.utaPrivateGetMarketOrderbook(this.extend(request, paramsMarketType))).join();
+                response = (this.utaV2GetMarketOrderbook(this.extend(request, paramsMarketType))).join();
             } else if ((!java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(type, "margin")))
             {
                 if ((level == null || level != 2) && !java.util.Objects.equals(level, null))
@@ -10928,6 +10930,26 @@ public class Kucoin extends KucoinApi
         Map<String, Object> methodVersions = (Map<String, Object>) this.safeDict(apiVersions, method, new HashMap<String, Object>() {{}});
         String defaultVersion = this.safeString(methodVersions, path, this.options.get("version"));
         String version = this.safeString(parameters, "version", defaultVersion);
+        if ((java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "utaV2")) && (java.util.Objects.equals(path, "market/orderbook")))
+        {
+            // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
+            // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
+            Long depth = this.safeInteger(parameters, "limit"); // undefined for 'FULL'
+            if (java.util.Objects.equals(depth, null))
+            {
+                return 500;
+            } else if ((depth != null && depth > 500))
+            {
+                return 500;
+            } else if ((depth != null && depth > 100))
+            {
+                return 100;
+            } else if ((depth != null && depth > 20))
+            {
+                return 40;
+            }
+            return 10;
+        }
         if (java.util.Objects.equals(version, "v3") && (config.containsKey("v3")))
         {
             return config.get("v3");

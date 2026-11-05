@@ -2293,9 +2293,10 @@ class bitget(Exchange, ImplicitAPI):
                 marketId = parsedMarket['id']
                 instrument = self.safe_dict(spotInstruments, marketId)
                 if instrument is not None:
-                    parsedInstrument = self.parse_market(instrument)
-                    if parsedInstrument is not None:
-                        parsedMarket['stock'] = parsedInstrument['stock']
+                    # only the stock flag is needed, read it directly instead of re-parsing the whole instrument
+                    assetType = self.safe_string_lower(instrument, 'symbolType')
+                    isReality = (self.safe_string_lower(instrument, 'isReality') == 'yes')
+                    parsedMarket['stock'] = (assetType == 'stock') or ((assetType is None) and isReality)
             result.append(parsedMarket)
         return result
 

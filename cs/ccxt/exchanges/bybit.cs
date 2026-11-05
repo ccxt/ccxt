@@ -2232,6 +2232,68 @@ public partial class bybit : Exchange
                     { "deposit", new Dictionary<string, object>() {} },
                 } },
             } },
+            { "currencies", new Dictionary<string, object>() {
+                { "EUR", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "EUR" },
+                    { "code", "EUR" },
+                    { "precision", this.parseNumber("0.01") },
+                    { "type", "fiat" },
+                }) },
+                { "CHF", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "CHF" },
+                    { "code", "CHF" },
+                    { "precision", this.parseNumber("0.01") },
+                    { "type", "fiat" },
+                }) },
+                { "PLN", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "PLN" },
+                    { "code", "PLN" },
+                    { "precision", this.parseNumber("0.01") },
+                    { "type", "fiat" },
+                }) },
+                { "ARS", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "ARS" },
+                    { "code", "ARS" },
+                    { "precision", this.parseNumber("0.01") },
+                    { "type", "fiat" },
+                }) },
+                { "COP", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "COP" },
+                    { "code", "COP" },
+                    { "precision", this.parseNumber("0.01") },
+                    { "type", "fiat" },
+                }) },
+                { "USD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "USD" },
+                    { "code", "USD" },
+                    { "precision", this.parseNumber("0.01") },
+                    { "type", "fiat" },
+                }) },
+                { "CLP", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "CLP" },
+                    { "code", "CLP" },
+                    { "precision", this.parseNumber("0.01") },
+                    { "type", "fiat" },
+                }) },
+                { "PEN", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "PEN" },
+                    { "code", "PEN" },
+                    { "precision", this.parseNumber("0.01") },
+                    { "type", "fiat" },
+                }) },
+                { "BOB", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "BOB" },
+                    { "code", "BOB" },
+                    { "precision", this.parseNumber("0.01") },
+                    { "type", "fiat" },
+                }) },
+                { "BRL", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "BRL" },
+                    { "code", "BRL" },
+                    { "precision", this.parseNumber("0.01") },
+                    { "type", "fiat" },
+                }) },
+            } },
             { "rollingWindowSize", 5000 },
         });
     }

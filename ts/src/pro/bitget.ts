@@ -1984,7 +1984,7 @@ export default class bitget extends bitgetRest {
         //                   #### in case order had a partial fill: ####
         //         fillPrice: '35123',
         //         tradeId: '1171775539946528779',
-        //         baseVolume: '7', // field present in market order
+        //         baseVolume: '7', // amount filled by this incoming update/trade only, not cumulative (see accBaseVolume)
         //         fillTime: '1715098979937',
         //         fillFee: '-0.0069987',
         //         fillFeeCoin: 'BTC',
@@ -2021,7 +2021,7 @@ export default class bitget extends bitgetRest {
         //         uTime: '1715065875539'
         //                   #### when filled order is incoming, these additional fields are present too: ###
         //         baseVolume: '9', // amount filled for the incoming update/trade
-        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
+        //         accBaseVolume: '13', // cumulative amount filled during the order's lifetime; equals 'size' only once fully filled
         //         fillFee: '-0.0062712',
         //         fillFeeCoin: 'SUSDT',
         //         fillNotionalUsd: '10.452',
@@ -2162,12 +2162,7 @@ export default class bitget extends bitgetRest {
                 totalFilled = this.safeString2 (order, 'baseVolume', 'cumExecQty');
                 cost = this.safeString2 (order, 'fillTotalAmount', 'cumExecValue');
             } else {
-                const partialFillAmount = this.safeString (order, 'baseVolume');
-                if (partialFillAmount !== undefined) {
-                    filledAmount = partialFillAmount;
-                } else {
-                    filledAmount = totalFilled;
-                }
+                filledAmount = totalFilled;
                 if (isMarketOrder) {
                     if (isBuy) {
                         totalAmount = accBaseVolume;
@@ -2182,10 +2177,18 @@ export default class bitget extends bitgetRest {
                 }
             }
         } else {
-            // baseVolume should not be used for "amount" for contracts !
-            filledAmount = this.safeString2 (order, 'baseVolume', 'cumExecQty');
+            // baseVolume and fillNotionalUsd describe the incoming fill only, so filled is the cumulative accBaseVolume
+            // and cost is priceAvg * cumulative filled, quote-denominated for linear and inverse alike (same as quoteVolume in REST parseOrder);
+            // the channel has no cumulative notional field, so without a priceAvg no cost is set (cumExecValue stays the first read)
+            filledAmount = totalFilled;
             totalAmount = this.safeString2 (order, 'size', 'qty');
-            cost = this.safeString2 (order, 'fillNotionalUsd', 'cumExecValue');
+            cost = this.safeString (order, 'cumExecValue');
+            if (cost === undefined) {
+                const priceAvgString = this.omitZero (this.safeString (order, 'priceAvg'));
+                if ((priceAvgString !== undefined) && (totalFilled !== undefined)) {
+                    cost = Precise.stringMul (totalFilled, priceAvgString);
+                }
+            }
         }
         remaining = Precise.stringSub (totalAmount, totalFilled);
         return this.safeOrder ({

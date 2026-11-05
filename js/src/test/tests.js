@@ -3620,7 +3620,7 @@ class testMainClass {
         const tokenExpires = exchange.milliseconds() + 100000;
         exchange.options['v2TokenExpires'] = tokenExpires;
         exchange.options['portfolio'] = 'random';
-        const id = 'nfqkvdjp';
+        const id = 'ccxt';
         assert(exchange.options['brokerId'] === id, 'id not in options');
         let clientOrderId = undefined;
         try {
@@ -3634,7 +3634,8 @@ class testMainClass {
             const query = this.urlencodedToDict(urlParts[1]);
             clientOrderId = query['label'];
         }
-        assert(clientOrderId !== undefined && clientOrderId.startsWith(id.toString()) === true, 'clientOrderId does not start with id');
+        // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+        assert(clientOrderId !== undefined && clientOrderId.startsWith(id + '-') === true, 'clientOrderId ' + clientOrderId + ' does not start with the brokerId prefix ' + id + '-');
         if (!isSync()) {
             await close(exchange);
         }

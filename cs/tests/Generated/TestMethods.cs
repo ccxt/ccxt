@@ -4313,7 +4313,7 @@ public partial class testMainClass
         object tokenExpires = add(exchange.milliseconds(), 100000);
         ((IDictionary<string,object>)exchange.options)["v2TokenExpires"] = tokenExpires;
         ((IDictionary<string,object>)exchange.options)["portfolio"] = "random";
-        string id = "nfqkvdjp";
+        string id = "ccxt";
         assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
         object clientOrderId = null;
         try
@@ -4328,7 +4328,8 @@ public partial class testMainClass
             object query = this.urlencodedToDict((urlParts != null && 1 < urlParts.Count ? urlParts[1] : null));
             clientOrderId = getValue(query, "label");
         }
-        assert((clientOrderId != null) && (((string)clientOrderId).StartsWith(((string)((object)id).ToString())) == true), "clientOrderId does not start with id");
+        // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+        assert((clientOrderId != null) && (((string)clientOrderId).StartsWith((id + "-")) == true), (((("clientOrderId " + (clientOrderId)) + " does not start with the brokerId prefix ") + id) + "-"));
         if (!isTrue(isSync()))
         {
             await close(exchange);

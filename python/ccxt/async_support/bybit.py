@@ -1452,6 +1452,18 @@ class bybit(Exchange, ImplicitAPI):
                     'deposit': {},
                 },
             },
+            'currencies': {
+                'EUR': self.safe_currency_structure({'id': 'EUR', 'code': 'EUR', 'precision': self.parse_number('0.01'), 'type': 'fiat'}),
+                'CHF': self.safe_currency_structure({'id': 'CHF', 'code': 'CHF', 'precision': self.parse_number('0.01'), 'type': 'fiat'}),
+                'PLN': self.safe_currency_structure({'id': 'PLN', 'code': 'PLN', 'precision': self.parse_number('0.01'), 'type': 'fiat'}),
+                'ARS': self.safe_currency_structure({'id': 'ARS', 'code': 'ARS', 'precision': self.parse_number('0.01'), 'type': 'fiat'}),
+                'COP': self.safe_currency_structure({'id': 'COP', 'code': 'COP', 'precision': self.parse_number('0.01'), 'type': 'fiat'}),
+                'USD': self.safe_currency_structure({'id': 'USD', 'code': 'USD', 'precision': self.parse_number('0.01'), 'type': 'fiat'}),
+                'CLP': self.safe_currency_structure({'id': 'CLP', 'code': 'CLP', 'precision': self.parse_number('0.01'), 'type': 'fiat'}),
+                'PEN': self.safe_currency_structure({'id': 'PEN', 'code': 'PEN', 'precision': self.parse_number('0.01'), 'type': 'fiat'}),
+                'BOB': self.safe_currency_structure({'id': 'BOB', 'code': 'BOB', 'precision': self.parse_number('0.01'), 'type': 'fiat'}),
+                'BRL': self.safe_currency_structure({'id': 'BRL', 'code': 'BRL', 'precision': self.parse_number('0.01'), 'type': 'fiat'}),
+            },
             'rollingWindowSize': 5000.0,  # According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         })
 

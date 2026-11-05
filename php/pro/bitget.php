@@ -2038,7 +2038,7 @@ class bitget extends \ccxt\async\bitget {
         //                   #### in case order had a partial fill: ####
         //         fillPrice: '35123',
         //         tradeId: '1171775539946528779',
-        //         baseVolume: '7', // field present in market order
+        //         baseVolume: '7', // amount filled by this incoming update/trade only, not cumulative (see accBaseVolume)
         //         fillTime: '1715098979937',
         //         fillFee: '-0.0069987',
         //         fillFeeCoin: 'BTC',
@@ -2075,7 +2075,7 @@ class bitget extends \ccxt\async\bitget {
         //         uTime: '1715065875539'
         //                   #### when filled order is incoming, these additional fields are present too: ###
         //         baseVolume: '9', // amount filled for the incoming update/trade
-        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
+        //         accBaseVolume: '13', // cumulative amount filled during the order's lifetime; equals 'size' only once fully filled
         //         fillFee: '-0.0062712',
         //         fillFeeCoin: 'SUSDT',
         //         fillNotionalUsd: '10.452',
@@ -2216,12 +2216,7 @@ class bitget extends \ccxt\async\bitget {
                 $totalFilled = $this->safe_string_2($order, 'baseVolume', 'cumExecQty');
                 $cost = $this->safe_string_2($order, 'fillTotalAmount', 'cumExecValue');
             } else {
-                $partialFillAmount = $this->safe_string($order, 'baseVolume');
-                if ($partialFillAmount !== null) {
-                    $filledAmount = $partialFillAmount;
-                } else {
-                    $filledAmount = $totalFilled;
-                }
+                $filledAmount = $totalFilled;
                 if ($isMarketOrder) {
                     if ($isBuy) {
                         $totalAmount = $accBaseVolume;
@@ -2236,10 +2231,18 @@ class bitget extends \ccxt\async\bitget {
                 }
             }
         } else {
-            // baseVolume should not be used for "amount" for contracts !
-            $filledAmount = $this->safe_string_2($order, 'baseVolume', 'cumExecQty');
+            // baseVolume and fillNotionalUsd describe the incoming fill only, so filled is the cumulative accBaseVolume
+            // and cost is priceAvg * cumulative filled, quote-denominated for linear and inverse alike (same as quoteVolume in REST parseOrder);
+            // the channel has no cumulative notional field, so without a priceAvg no cost is set (cumExecValue stays the first read)
+            $filledAmount = $totalFilled;
             $totalAmount = $this->safe_string_2($order, 'size', 'qty');
-            $cost = $this->safe_string_2($order, 'fillNotionalUsd', 'cumExecValue');
+            $cost = $this->safe_string($order, 'cumExecValue');
+            if ($cost === null) {
+                $priceAvgString = $this->omit_zero($this->safe_string($order, 'priceAvg'));
+                if (($priceAvgString !== null) && ($totalFilled !== null)) {
+                    $cost = Precise::string_mul($totalFilled, $priceAvgString);
+                }
+            }
         }
         $remaining = Precise::string_sub($totalAmount, $totalFilled);
         return $this->safe_order(array(
