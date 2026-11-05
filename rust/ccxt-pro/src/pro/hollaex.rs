@@ -289,8 +289,8 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Bearer or HMAC authentication required".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("Error: wrong input".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("Bearer or HMAC authentication required".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("Error: wrong input".to_string(), Value::Str("BadRequest".into()));
     m
 }));
     m

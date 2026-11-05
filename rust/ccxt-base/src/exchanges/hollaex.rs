@@ -573,23 +573,23 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("API request is expired".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("Invalid token".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Insufficient balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order.".to_string(), Value::Str("OrderImmediatelyFillable".into()).clone());
+        m.insert("API request is expired".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("Invalid token".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("Insufficient balance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order.".to_string(), Value::Str("OrderImmediatelyFillable".into()));
     m
 }));
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("400".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("403".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("404".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("405".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("410".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("429".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("500".to_string(), Value::Str("NetworkError".into()).clone());
-        m.insert("503".to_string(), Value::Str("NetworkError".into()).clone());
+        m.insert("400".to_string(), Value::Str("BadRequest".into()));
+        m.insert("403".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("404".to_string(), Value::Str("BadRequest".into()));
+        m.insert("405".to_string(), Value::Str("BadRequest".into()));
+        m.insert("410".to_string(), Value::Str("BadRequest".into()));
+        m.insert("429".to_string(), Value::Str("BadRequest".into()));
+        m.insert("500".to_string(), Value::Str("NetworkError".into()));
+        m.insert("503".to_string(), Value::Str("NetworkError".into()));
     m
 }));
     m

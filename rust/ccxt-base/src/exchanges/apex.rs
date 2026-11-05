@@ -505,7 +505,7 @@ impl ApexCore {
 }));
         m.insert("httpExceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("403".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("403".to_string(), Value::Str("RateLimitExceeded".into()));
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
@@ -514,14 +514,14 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("20006".to_string(), Value::Str("apikey sign error".into()));
         m.insert("20016".to_string(), Value::Str("request para error".into()));
-        m.insert("10001".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10001".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ORDER_PRICE_MUST_GREETER_ZERO".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("ORDER_POSSIBLE_LEAD_TO_ACCOUNT_LIQUIDATED".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("ORDER_WITH_THIS_PRICE_CANNOT_REDUCE_POSITION_ONLY".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("ORDER_PRICE_MUST_GREETER_ZERO".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("ORDER_POSSIBLE_LEAD_TO_ACCOUNT_LIQUIDATED".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("ORDER_WITH_THIS_PRICE_CANNOT_REDUCE_POSITION_ONLY".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

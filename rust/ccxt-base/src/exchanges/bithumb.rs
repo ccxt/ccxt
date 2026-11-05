@@ -797,21 +797,21 @@ impl BithumbCore {
 }));
         m.insert("exceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("400".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Bad Request(SSL)".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Bad Request(Bad Method)".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Bad Request.(Auth Data)".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Not Member".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Invalid Apikey".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Method Not Allowed.(Access IP)".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("Method Not Allowed.(BTC Adress)".to_string(), Value::Str("InvalidAddress".into()).clone());
-        m.insert("Method Not Allowed.(Access)".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("Database Fail".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("Invalid Parameter".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("5600".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("Unknown Error".to_string(), Value::Str("ExchangeError".into()).clone());
+        m.insert("400".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Bad Request(SSL)".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Bad Request(Bad Method)".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Bad Request.(Auth Data)".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Not Member".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Invalid Apikey".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Method Not Allowed.(Access IP)".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("Method Not Allowed.(BTC Adress)".to_string(), Value::Str("InvalidAddress".into()));
+        m.insert("Method Not Allowed.(Access)".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("Database Fail".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("Invalid Parameter".to_string(), Value::Str("BadRequest".into()));
+        m.insert("5600".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("Unknown Error".to_string(), Value::Str("ExchangeError".into()));
         m.insert("After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions".to_string(), Value::Str("ExchangeError".into()));
-        m.insert("Missing request parameter error. Check the required parameters!".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("Missing request parameter error. Check the required parameters!".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("timeframes".to_string(), Value::Map({

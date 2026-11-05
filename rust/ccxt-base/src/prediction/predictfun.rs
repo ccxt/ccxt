@@ -416,27 +416,27 @@ impl PredictfunCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("unauthorized".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("bad_request".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("not_found".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("create_order_hash_mismatch".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("create_order_insufficient_collateral_allowance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("create_order_insufficient_shares_allowance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("create_order_min_order_value_not_met".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("create_order_price_out_of_range".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("create_order_market_not_trading".to_string(), Value::Str("MarketClosed".into()).clone());
+        m.insert("unauthorized".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("bad_request".to_string(), Value::Str("BadRequest".into()));
+        m.insert("not_found".to_string(), Value::Str("BadRequest".into()));
+        m.insert("create_order_hash_mismatch".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("create_order_insufficient_collateral_allowance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("create_order_insufficient_shares_allowance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("create_order_min_order_value_not_met".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("create_order_price_out_of_range".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("create_order_market_not_trading".to_string(), Value::Str("MarketClosed".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("do not belong to".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("order hash must be a".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Orderbook not found".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("market not found".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("not currently trading".to_string(), Value::Str("MarketClosed".into()).clone());
-        m.insert("allowance is less than".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("price per share must be".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("must have a value of at least".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("do not belong to".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("order hash must be a".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Orderbook not found".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("market not found".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("not currently trading".to_string(), Value::Str("MarketClosed".into()));
+        m.insert("allowance is less than".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("price per share must be".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("must have a value of at least".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

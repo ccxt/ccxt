@@ -389,19 +389,19 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("30001".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("30002".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("30003".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("30004".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("30005".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("30006".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("30007".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("30011".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("30012".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("30013".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("30014".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("30015".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("30016".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("30001".to_string(), Value::Str("BadRequest".into()));
+        m.insert("30002".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("30003".to_string(), Value::Str("BadRequest".into()));
+        m.insert("30004".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("30005".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("30006".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("30007".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("30011".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("30012".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("30013".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("30014".to_string(), Value::Str("BadRequest".into()));
+        m.insert("30015".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("30016".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({

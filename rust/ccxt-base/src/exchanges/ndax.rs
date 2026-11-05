@@ -985,15 +985,15 @@ impl NdaxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Not_Enough_Funds".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Server Error".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("Resource Not Found".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("Not_Enough_Funds".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Server Error".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("Resource Not Found".to_string(), Value::Str("OrderNotFound".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Invalid InstrumentId".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("This endpoint requires 2FACode along with the payload".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("Invalid InstrumentId".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("This endpoint requires 2FACode along with the payload".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
     m

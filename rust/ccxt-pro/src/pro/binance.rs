@@ -7647,7 +7647,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut msg: Option<String> = self.safe_string_k_opt(error.clone(), "msg", &[]);
         let mut codeValue: Value = (if (code == Value::Null) { Value::Int(0) } else { code });
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(codeValue.clone(), msg.clone().map(Value::from).unwrap_or(Value::Null), client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null), Value::Str("".into()), Value::Map({
+            self.handle_errors(codeValue.clone(), msg.clone().map(Value::from).unwrap_or(Value::Null), client.url(), Value::Str("".into()), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), json_stringify(&error), error.clone(), Value::Map({

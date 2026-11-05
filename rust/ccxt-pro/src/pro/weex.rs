@@ -2484,7 +2484,7 @@ impl WeexCore {
         //         ]
         //     }
         //
-        let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
+        let mut url: Value = client.url();
         let mut accountType: Value = Value::Str("spot".into());
         if url.as_str().unwrap_or("").contains("contract") {
             accountType = Value::Str("swap".into());
@@ -2739,7 +2739,7 @@ impl WeexCore {
     pub fn get_market_from_client_and_message(&self, mut client: Value, mut message: Value) -> Value {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
+        let mut url: Value = client.url();
         let mut marketType: String = "spot".to_string();
         if url.as_str().unwrap_or("").contains("contract") {
             marketType = "swap".to_string();

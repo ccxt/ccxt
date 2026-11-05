@@ -926,39 +926,39 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("two_factor_required".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("param_required".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("validation_error".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("invalid_request".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("personal_details_required".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("identity_verification_required".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("jumio_verification_required".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("jumio_face_match_verification_required".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("unverified_email".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("authentication_error".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("unauthorized".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("invalid_authentication_method".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("invalid_token".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("revoked_token".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("expired_token".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("invalid_scope".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("not_found".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("rate_limit_exceeded".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("resource_exhausted".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("internal_server_error".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("UNSUPPORTED_ORDER_CONFIGURATION".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("INSUFFICIENT_FUND".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("PERMISSION_DENIED".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("INVALID_ARGUMENT".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("PREVIEW_INSUFFICIENT_FUND".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("two_factor_required".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("param_required".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("validation_error".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("invalid_request".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("personal_details_required".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("identity_verification_required".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("jumio_verification_required".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("jumio_face_match_verification_required".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("unverified_email".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("authentication_error".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("unauthorized".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("invalid_authentication_method".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("invalid_token".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("revoked_token".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("expired_token".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("invalid_scope".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("not_found".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("rate_limit_exceeded".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("resource_exhausted".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("internal_server_error".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("UNSUPPORTED_ORDER_CONFIGURATION".to_string(), Value::Str("BadRequest".into()));
+        m.insert("INSUFFICIENT_FUND".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("PERMISSION_DENIED".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("INVALID_ARGUMENT".to_string(), Value::Str("BadRequest".into()));
+        m.insert("PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("PREVIEW_INSUFFICIENT_FUND".to_string(), Value::Str("InsufficientFunds".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Insufficient balance in source account".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("request timestamp expired".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("order with this orderID was not found".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("Insufficient balance in source account".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("request timestamp expired".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("order with this orderID was not found".to_string(), Value::Str("OrderNotFound".into()));
     m
 }));
     m

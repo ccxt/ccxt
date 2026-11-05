@@ -33,7 +33,7 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("withdraw".into(), Value::Bool(true)); }; // withdraw enabled
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("deposit".into(), Value::Bool(true)); }; // deposit enabled
-        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("precision".into(), exchange.parse_number(Value::Str("0.0001".into()), &[])); }; // in case of Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS) it will be 4 - number of digits "after the dot"
+        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("precision".into(), exchange.parse_number(Value::Str("0.0001".into()), &[])); }; // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("fee".into(), exchange.parse_number(Value::Str("0.001".into()), &[])); }
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("networks".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();

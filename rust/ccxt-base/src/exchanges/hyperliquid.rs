@@ -472,25 +472,25 @@ impl HyperliquidCore {
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Price must be divisible by tick size.".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Order must have minimum value of $10".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Insufficient margin to place order.".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Reduce only order would increase position.".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Price must be divisible by tick size.".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Order must have minimum value of $10".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Insufficient margin to place order.".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Reduce only order would increase position.".to_string(), Value::Str("InvalidOrder".into()));
         m.insert("Post only order would have immediately matched,".to_string(), Value::Str("InvalidOrder".into()));
-        m.insert("Order could not immediately match against any resting orders.".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Invalid TP/SL price.".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("No liquidity available for market order.".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Order could not immediately match against any resting orders.".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Invalid TP/SL price.".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("No liquidity available for market order.".to_string(), Value::Str("InvalidOrder".into()));
         m.insert("Order was never placed, already canceled, or filled.".to_string(), Value::Str("OrderNotFound".into()));
-        m.insert("User or API Wallet ".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Order has invalid size".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Order price cannot be more than 80% away from the reference price".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Order has zero size.".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Insufficient spot balance asset".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Insufficient balance for withdrawal".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Insufficient balance for token transfer".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("User or API Wallet ".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Order has invalid size".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Order price cannot be more than 80% away from the reference price".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Order has zero size.".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Insufficient spot balance asset".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Insufficient balance for withdrawal".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Insufficient balance for token transfer".to_string(), Value::Str("InsufficientFunds".into()));
         m.insert("TWAP order value too small. Min is $1200, which is $10 per minute.".to_string(), Value::Str("InvalidOrder".into()));
         m.insert("TWAP was never placed, already canceled, or filled.".to_string(), Value::Str("OrderNotFound".into()));
-        m.insert("Too many cumulative requests sent".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("Too many cumulative requests sent".to_string(), Value::Str("RateLimitExceeded".into()));
     m
 }));
     m
@@ -1226,7 +1226,7 @@ impl HyperliquidCore {
 /*
  * @method
  * @name hyperliquid#calculatePricePrecision
- * @description Helper function to calculate the Hyperliquid Value::Int(crate::runtime::DECIMAL_PLACES) price precision
+ * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
  * @param {float} price the price to use in the calculation
  * @param {int} amountPrecision the amountPrecision to use in the calculation
  * @param {int} maxDecimals the maxDecimals to use in the calculation

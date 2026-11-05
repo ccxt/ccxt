@@ -1489,7 +1489,8 @@ impl ApexCore {
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed"): the original subscription
                 // is still active and delivering data on this socket. Without
-                // this short-circuit the catch-clause's `client.reject(&[Value::from(error.clone()), // messageHash])` rejects every in-flight future on the connection
+                // this short-circuit the catch-clause's `client.reject(error,
+                // messageHash)` rejects every in-flight future on the connection
                 // because apex doesn't echo a `reqId` on these warnings.
                 if (ret_msg != Value::Null) && ret_msg.as_str().unwrap_or("").contains("already subscribed") {
                     return Value::Bool(false);

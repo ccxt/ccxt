@@ -372,37 +372,37 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("INSUFFICIENT_BALANCE".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("INVALID_MARKET".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("ORDERS_ALREADY_EXIST".to_string(), Value::Str("DuplicateOrderId".into()).clone());
-        m.insert("TOO_MANY_DIFFERENT_MARKETS".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("ORDERS_MUST_HAVE_IDENTICAL_MARKET".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("BAD_BASE_TOKEN".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("INSUFFICIENT_KYC".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("PROXY_NOT_DEPLOYED".to_string(), Value::Str("AccountNotEnabled".into()).clone());
-        m.insert("INVALID_USER".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("BAD_AUTH".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("ERC20_PERMIT_BAD_SPENDER".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("BASE_TOKENS_NOT_SAME".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("MARKETS_NOT_SAME".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("DIRECTIONS_NOT_SAME".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("INVALID_ORDERS".to_string(), Value::Str("OrderNotFillable".into()).clone());
-        m.insert("INVALID_ODDS".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("PERCENTAGEODDS_UNDEFINED_OR_MALFORMED".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("TOTAL_BET_SIZE_TOO_LOW".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("MATCH_STATE_INVALID".to_string(), Value::Str("MarketClosed".into()).clone());
-        m.insert("PROXY_ACCOUNT_INVALID".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("RATE_LIMIT_ORDER_REQUEST_MARKET_COUNT".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("BOTH_SPORTXEVENTID_MARKETHASHES_PRESENT".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("BAD_MARKET_HASHES".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("INSUFFICIENT_BALANCE".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("INVALID_MARKET".to_string(), Value::Str("BadRequest".into()));
+        m.insert("ORDERS_ALREADY_EXIST".to_string(), Value::Str("DuplicateOrderId".into()));
+        m.insert("TOO_MANY_DIFFERENT_MARKETS".to_string(), Value::Str("BadRequest".into()));
+        m.insert("ORDERS_MUST_HAVE_IDENTICAL_MARKET".to_string(), Value::Str("BadRequest".into()));
+        m.insert("BAD_BASE_TOKEN".to_string(), Value::Str("BadRequest".into()));
+        m.insert("INSUFFICIENT_KYC".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("PROXY_NOT_DEPLOYED".to_string(), Value::Str("AccountNotEnabled".into()));
+        m.insert("INVALID_USER".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("BAD_AUTH".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("ERC20_PERMIT_BAD_SPENDER".to_string(), Value::Str("BadRequest".into()));
+        m.insert("BASE_TOKENS_NOT_SAME".to_string(), Value::Str("BadRequest".into()));
+        m.insert("MARKETS_NOT_SAME".to_string(), Value::Str("BadRequest".into()));
+        m.insert("DIRECTIONS_NOT_SAME".to_string(), Value::Str("BadRequest".into()));
+        m.insert("INVALID_ORDERS".to_string(), Value::Str("OrderNotFillable".into()));
+        m.insert("INVALID_ODDS".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("PERCENTAGEODDS_UNDEFINED_OR_MALFORMED".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("TOTAL_BET_SIZE_TOO_LOW".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("MATCH_STATE_INVALID".to_string(), Value::Str("MarketClosed".into()));
+        m.insert("PROXY_ACCOUNT_INVALID".to_string(), Value::Str("BadRequest".into()));
+        m.insert("RATE_LIMIT_ORDER_REQUEST_MARKET_COUNT".to_string(), Value::Str("BadRequest".into()));
+        m.insert("BOTH_SPORTXEVENTID_MARKETHASHES_PRESENT".to_string(), Value::Str("BadRequest".into()));
+        m.insert("BAD_MARKET_HASHES".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("no longer supported".to_string(), Value::Str("NotSupported".into()).clone());
-        m.insert("must be".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Insufficient available balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("no longer supported".to_string(), Value::Str("NotSupported".into()));
+        m.insert("must be".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Insufficient available balance".to_string(), Value::Str("InsufficientFunds".into()));
     m
 }));
     m

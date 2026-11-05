@@ -879,26 +879,26 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("24".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("31".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("36".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("44".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("49".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("194".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("195".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("199".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("100010".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("unsupportedAction".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("localIDNotExist".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("24".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("31".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("36".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("44".to_string(), Value::Str("BadRequest".into()));
+        m.insert("49".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("194".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("195".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("199".to_string(), Value::Str("BadRequest".into()));
+        m.insert("100010".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("unsupportedAction".to_string(), Value::Str("BadRequest".into()));
+        m.insert("localIDNotExist".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("no available".to_string(), Value::Str("NotSupported".into()).clone());
-        m.insert("field is required".to_string(), Value::Str("ArgumentsRequired".into()).clone());
-        m.insert("not in acceptable range".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("subscription cluster does not \"exist\"".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("must be equal or lesser than".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("no available".to_string(), Value::Str("NotSupported".into()));
+        m.insert("field is required".to_string(), Value::Str("ArgumentsRequired".into()));
+        m.insert("not in acceptable range".to_string(), Value::Str("BadRequest".into()));
+        m.insert("subscription cluster does not \"exist\"".to_string(), Value::Str("BadRequest".into()));
+        m.insert("must be equal or lesser than".to_string(), Value::Str("BadRequest".into()));
     m
 }));
     m

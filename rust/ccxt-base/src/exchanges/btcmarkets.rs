@@ -581,14 +581,14 @@ impl BtcmarketsCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("InsufficientFund".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("InvalidPrice".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("InvalidAmount".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("MissingArgument".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("OrderAlreadyCancelled".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("OrderNotFound".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("OrderStatusIsFinal".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("InvalidPaginationParameter".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("InsufficientFund".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("InvalidPrice".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("InvalidAmount".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("MissingArgument".to_string(), Value::Str("BadRequest".into()));
+        m.insert("OrderAlreadyCancelled".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("OrderNotFound".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("OrderStatusIsFinal".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("InvalidPaginationParameter".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({

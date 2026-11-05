@@ -1308,21 +1308,21 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("11010".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("10001".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("10020".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("10100".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("10114".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("20060".to_string(), Value::Str("OnMaintenance".into()).clone());
-        m.insert("temporarily_unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
+        m.insert("11010".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("10001".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("10020".to_string(), Value::Str("BadRequest".into()));
+        m.insert("10100".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("10114".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("20060".to_string(), Value::Str("OnMaintenance".into()));
+        m.insert("temporarily_unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("available balance is only".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("not enough exchange balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("symbol: invalid".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("available balance is only".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("not enough exchange balance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("symbol: invalid".to_string(), Value::Str("BadSymbol".into()));
     m
 }));
     m

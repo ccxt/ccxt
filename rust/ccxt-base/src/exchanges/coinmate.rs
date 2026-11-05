@@ -735,17 +735,17 @@ impl CoinmateCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("No order with given ID".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("No order with given ID".to_string(), Value::Str("OrderNotFound".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Not enough account balance available".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Incorrect order ID".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Minimum Order Size ".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("max allowed precision".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("TOO MANY REQUESTS".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("Access denied.".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("Not enough account balance available".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Incorrect order ID".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Minimum Order Size ".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("max allowed precision".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("TOO MANY REQUESTS".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("Access denied.".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
     m

@@ -598,9 +598,9 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("2".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("3".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("4".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("2".to_string(), Value::Str("BadRequest".into()));
+        m.insert("3".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("4".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({

@@ -430,23 +430,23 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("400 Invalid trade currency".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("400 Invalid trade currency".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Invalid trade currency".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Params error".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("invalid trigger type".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("invalid order type".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("order price out of permissible range".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("quantity not a multiple of the quantity step".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("leverage out of permissible range".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("insufficient balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("asset not found".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("leverage not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("order not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Rate limit exceeded".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("Invalid trade currency".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Params error".to_string(), Value::Str("BadRequest".into()));
+        m.insert("invalid trigger type".to_string(), Value::Str("BadRequest".into()));
+        m.insert("invalid order type".to_string(), Value::Str("BadRequest".into()));
+        m.insert("order price out of permissible range".to_string(), Value::Str("BadRequest".into()));
+        m.insert("quantity not a multiple of the quantity step".to_string(), Value::Str("BadRequest".into()));
+        m.insert("leverage out of permissible range".to_string(), Value::Str("BadRequest".into()));
+        m.insert("insufficient balance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("asset not found".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("leverage not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("order not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("Rate limit exceeded".to_string(), Value::Str("RateLimitExceeded".into()));
     m
 }));
     m

@@ -606,19 +606,19 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Unsupported currency.".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Unsupported order type".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Invalid body".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Invalid Signature".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Address not in whitelist.".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("Unsupported currency.".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Unsupported order type".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Invalid body".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Invalid Signature".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Address not in whitelist.".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Invalid amount".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Balance for ".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Invalid ".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Wrong parameter".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("Invalid amount".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Balance for ".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Invalid ".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Wrong parameter".to_string(), Value::Str("BadRequest".into()));
     m
 }));
     m

@@ -471,24 +471,24 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Market not found".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("Invalid order payload".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("Market not found".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("Invalid order payload".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Insufficient".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("allowance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Unauthorized".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Forbidden".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("rate limit".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("Too many requests".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("expired".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("closed".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("resolved".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Invalid".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Insufficient".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("allowance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("Unauthorized".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Forbidden".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("rate limit".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("Too many requests".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("expired".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("closed".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("resolved".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Invalid".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

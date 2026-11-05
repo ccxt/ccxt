@@ -532,21 +532,21 @@ impl BitbankCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("20001".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("20002".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("20003".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("20005".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("20004".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("40020".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("40021".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("40025".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("40013".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("40014".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("50008".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("50009".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("50010".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("60001".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("60005".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("20001".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("20002".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("20003".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("20005".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("20004".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("40020".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("40021".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("40025".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("40013".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("40014".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("50008".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("50009".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("50010".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("60001".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("60005".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

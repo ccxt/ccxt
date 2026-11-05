@@ -549,15 +549,15 @@ impl CexCore {
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("You have negative balance on following accounts".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("You have negative balance on following accounts".to_string(), Value::Str("InsufficientFunds".into()));
         m.insert("Mandatory parameter side should be one of BUY,SELL".to_string(), Value::Str("BadRequest".into()));
-        m.insert("API orders from Main account are not allowed".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("check failed".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Insufficient funds".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Get deposit address for main account is not allowed".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("Market Trigger orders are not allowed".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("key not passed or incorrect".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("API rate limit reached".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("API orders from Main account are not allowed".to_string(), Value::Str("BadRequest".into()));
+        m.insert("check failed".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Insufficient funds".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Get deposit address for main account is not allowed".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("Market Trigger orders are not allowed".to_string(), Value::Str("BadRequest".into()));
+        m.insert("key not passed or incorrect".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("API rate limit reached".to_string(), Value::Str("RateLimitExceeded".into()));
     m
 }));
     m

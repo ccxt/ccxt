@@ -530,10 +530,10 @@ impl CryptomusCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("500".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("6".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Insufficient funds.".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Minimum amount 15 USDT".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("500".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("6".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Insufficient funds.".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Minimum amount 15 USDT".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({

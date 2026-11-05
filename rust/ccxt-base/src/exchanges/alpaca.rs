@@ -1024,21 +1024,21 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("forbidden.".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("40410000".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("40010001".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("40110000".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("42210000".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("42910000".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("forbidden.".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("40410000".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("40010001".to_string(), Value::Str("BadRequest".into()));
+        m.insert("40110000".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("42210000".to_string(), Value::Str("BadRequest".into()));
+        m.insert("42910000".to_string(), Value::Str("RateLimitExceeded".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Invalid format for parameter".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Invalid symbol".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("cost basis must be".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("insufficient balance for".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("orders are rejected by user request".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("Invalid format for parameter".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Invalid symbol".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("cost basis must be".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("insufficient balance for".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("orders are rejected by user request".to_string(), Value::Str("PermissionDenied".into()));
     m
 }));
     m

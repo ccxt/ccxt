@@ -533,10 +533,10 @@ impl BitbnsCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("400".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("409".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("416".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("417".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("400".to_string(), Value::Str("BadRequest".into()));
+        m.insert("409".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("416".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("417".to_string(), Value::Str("OrderNotFound".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({

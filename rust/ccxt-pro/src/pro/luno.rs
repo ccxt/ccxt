@@ -764,7 +764,7 @@ impl LunoCore {
             let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() received an out-of-sequence update for ".into())).into()), symbolValue).into()),
                 Value::Str(", expected ".into())).into()), Value::Str(format!("{}", expectedSequence).into())).into()), Value::Str(" but got ".into())).into()), Value::Str(format!("{}", messageSequence).into()))));
             client.reset(error);
-            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &client.url()) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             return Value::Bool(false);
         }
         return Value::Bool(true);

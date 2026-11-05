@@ -1803,30 +1803,30 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("No permission found".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("API key not found".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("IP address not allowed".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("Invalid nonce".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("Invalid signature".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Authentication failed".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("No permission found".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("API key not found".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("IP address not allowed".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("Invalid nonce".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("Invalid signature".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Authentication failed".to_string(), Value::Str("AuthenticationError".into()));
         m.insert("Missing key, signature and nonce parameters".to_string(), Value::Str("AuthenticationError".into()));
-        m.insert("Wrong API key format".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Your account is frozen".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("Wrong API key format".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Your account is frozen".to_string(), Value::Str("PermissionDenied".into()));
         m.insert("Please update your profile with your FATCA information, before using API.".to_string(), Value::Str("PermissionDenied".into()));
-        m.insert("Order not found.".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Bitstamp.net is under scheduled maintenance. We'll be back soon.".to_string(), Value::Str("OnMaintenance".into()).clone());
-        m.insert("Order could not be placed.".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("Invalid offset.".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Trading is currently unavailable for your account.".to_string(), Value::Str("AccountSuspended".into()).clone());
+        m.insert("Order not found.".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("Bitstamp.net is under scheduled maintenance. We'll be back soon.".to_string(), Value::Str("OnMaintenance".into()));
+        m.insert("Order could not be placed.".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("Invalid offset.".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Trading is currently unavailable for your account.".to_string(), Value::Str("AccountSuspended".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Minimum order size is".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Price is more than".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Check your account balance for details.".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Ensure this value has at least".to_string(), Value::Str("InvalidAddress".into()).clone());
-        m.insert("Ensure that there are no more than".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Minimum order size is".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Price is more than".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Check your account balance for details.".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Ensure this value has at least".to_string(), Value::Str("InvalidAddress".into()));
+        m.insert("Ensure that there are no more than".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

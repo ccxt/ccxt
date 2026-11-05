@@ -787,19 +787,19 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("insufficient_margin".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("order_size_exceed_available".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("risk_limits_breached".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("invalid_contract".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("immediate_liquidation".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("out_of_bankruptcy".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("self_matching_disrupted_post_only".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("immediate_execution_post_only".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("bad_schema".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("invalid_api_key".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("invalid_signature".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("open_order_not_found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
+        m.insert("insufficient_margin".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("order_size_exceed_available".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("risk_limits_breached".to_string(), Value::Str("BadRequest".into()));
+        m.insert("invalid_contract".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("immediate_liquidation".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("out_of_bankruptcy".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("self_matching_disrupted_post_only".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("immediate_execution_post_only".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("bad_schema".to_string(), Value::Str("BadRequest".into()));
+        m.insert("invalid_api_key".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("invalid_signature".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("open_order_not_found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({

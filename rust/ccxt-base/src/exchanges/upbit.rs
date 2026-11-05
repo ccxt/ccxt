@@ -689,23 +689,23 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("This key has expired.".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Missing request parameter error. Check the required parameters!".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("This key has expired.".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Missing request parameter error. Check the required parameters!".to_string(), Value::Str("BadRequest".into()));
         m.insert("side is missing, side does not have a valid value".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("thirdparty_agreement_required".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("out_of_scope".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("order_not_found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("insufficient_funds".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("invalid_access_key".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("jwt_verification".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("create_ask_error".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("create_bid_error".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("volume_too_large".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("invalid_funds".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("thirdparty_agreement_required".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("out_of_scope".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("order_not_found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("insufficient_funds".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("invalid_access_key".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("jwt_verification".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("create_ask_error".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("create_bid_error".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("volume_too_large".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("invalid_funds".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

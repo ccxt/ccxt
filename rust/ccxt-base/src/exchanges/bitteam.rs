@@ -621,26 +621,26 @@ impl BitteamCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("400002".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("401000".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("403002".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("404200".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("400002".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("401000".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("403002".to_string(), Value::Str("BadRequest".into()));
+        m.insert("404200".to_string(), Value::Str("BadSymbol".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("is not allowed".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Insufficient funds".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Invalid request params input".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("must be a number".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("must be a string".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("must be of type".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("must be one of".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Pair with pair name".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("pairName".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("Service Unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("Symbol ".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("is not allowed".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Insufficient funds".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Invalid request params input".to_string(), Value::Str("BadRequest".into()));
+        m.insert("must be a number".to_string(), Value::Str("BadRequest".into()));
+        m.insert("must be a string".to_string(), Value::Str("BadRequest".into()));
+        m.insert("must be of type".to_string(), Value::Str("BadRequest".into()));
+        m.insert("must be one of".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("Pair with pair name".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("pairName".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("Service Unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("Symbol ".to_string(), Value::Str("BadSymbol".into()));
     m
 }));
     m

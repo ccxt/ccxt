@@ -1046,26 +1046,26 @@ impl CoinbaseexchangeCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Insufficient funds".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("NotFound".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Invalid API Key".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("invalid signature".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Invalid Passphrase".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Invalid order id".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Private rate limit exceeded".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("Trading pair not available".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("Product not found".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Insufficient funds".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("NotFound".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("Invalid API Key".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("invalid signature".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Invalid Passphrase".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Invalid order id".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Private rate limit exceeded".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("Trading pair not available".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("Product not found".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Order already done".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("order not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("price too small".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("price too precise".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("under maintenance".to_string(), Value::Str("OnMaintenance".into()).clone());
-        m.insert("size is too small".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Cancel only mode".to_string(), Value::Str("OnMaintenance".into()).clone());
+        m.insert("Order already done".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("order not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("price too small".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("price too precise".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("under maintenance".to_string(), Value::Str("OnMaintenance".into()));
+        m.insert("size is too small".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Cancel only mode".to_string(), Value::Str("OnMaintenance".into()));
     m
 }));
     m

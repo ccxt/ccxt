@@ -305,17 +305,17 @@ impl HyperliquidCore {
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("Order was never placed, already canceled, or filled.".to_string(), Value::Str("OrderNotFound".into()));
-        m.insert("Insufficient spot balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Too many cumulative requests sent".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("Order has zero size.".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Order has invalid size".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Order price cannot be more than 80% away from the reference price".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("No liquidity available for market order.".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Insufficient spot balance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Too many cumulative requests sent".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("Order has zero size.".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Order has invalid size".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Order price cannot be more than 80% away from the reference price".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("No liquidity available for market order.".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Insufficient".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("Insufficient".to_string(), Value::Str("InsufficientFunds".into()));
     m
 }));
     m

@@ -362,57 +362,57 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Event(s) not found".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("Event(s) not found".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Already subscribed".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Currency pair not in ISO 4217-A3 format".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("Currency pair not supported".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("Malformed request".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Pair field must be an array".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Pair field unsupported for this subscription type".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Pair(s) not found".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("Subscription book depth must be an integer".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Subscription depth not supported".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Subscription field must be an object".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Subscription name invalid".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Subscription object unsupported field".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Subscription ohlc interval must be an integer".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Subscription ohlc interval not supported".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Subscription ohlc requires interval".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("EAccount:Invalid permissions".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("EAuth:Account temporary disabled".to_string(), Value::Str("AccountSuspended".into()).clone());
-        m.insert("EAuth:Account unconfirmed".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("EAuth:Rate limit exceeded".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("EAuth:Too many requests".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("EDatabase: Internal error (to be deprecated)".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("EGeneral:Internal error[:<code>]".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("EGeneral:Invalid arguments".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("EOrder:Cannot open opposing position".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EOrder:Cannot open position".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EOrder:Insufficient funds (insufficient user funds)".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("EOrder:Insufficient margin (exchange does not have sufficient funds to allow margin trading)".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("EOrder:Invalid price".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EOrder:Margin allowance exceeded".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EOrder:Margin level too low".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EOrder:Margin position size exceeded (client would exceed the maximum position size for this pair)".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EOrder:Order minimum not met (volume too low)".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EOrder:Orders limit exceeded".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EOrder:Positions limit exceeded".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EOrder:Rate limit exceeded".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("EOrder:Scheduled orders limit exceeded".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EOrder:Unknown position".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("EOrder:Unknown order".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("EOrder:Invalid order".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("EService:Deadline elapsed".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("EService:Market in cancel_only mode".to_string(), Value::Str("NotSupported".into()).clone());
-        m.insert("EService:Market in limit_only mode".to_string(), Value::Str("NotSupported".into()).clone());
-        m.insert("EService:Market in post_only mode".to_string(), Value::Str("NotSupported".into()).clone());
-        m.insert("EService:Unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("ETrade:Invalid request".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("ESession:Invalid session".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("Already subscribed".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Currency pair not in ISO 4217-A3 format".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("Currency pair not supported".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("Malformed request".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Pair field must be an array".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Pair field unsupported for this subscription type".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Pair(s) not found".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("Subscription book depth must be an integer".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Subscription depth not supported".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Subscription field must be an object".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Subscription name invalid".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Subscription object unsupported field".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Subscription ohlc interval must be an integer".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Subscription ohlc interval not supported".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Subscription ohlc requires interval".to_string(), Value::Str("BadRequest".into()));
+        m.insert("EAccount:Invalid permissions".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("EAuth:Account temporary disabled".to_string(), Value::Str("AccountSuspended".into()));
+        m.insert("EAuth:Account unconfirmed".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("EAuth:Rate limit exceeded".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("EAuth:Too many requests".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("EDatabase: Internal error (to be deprecated)".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("EGeneral:Internal error[:<code>]".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("EGeneral:Invalid arguments".to_string(), Value::Str("BadRequest".into()));
+        m.insert("EOrder:Cannot open opposing position".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EOrder:Cannot open position".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EOrder:Insufficient funds (insufficient user funds)".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("EOrder:Insufficient margin (exchange does not have sufficient funds to allow margin trading)".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("EOrder:Invalid price".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EOrder:Margin allowance exceeded".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EOrder:Margin level too low".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EOrder:Margin position size exceeded (client would exceed the maximum position size for this pair)".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EOrder:Order minimum not met (volume too low)".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EOrder:Orders limit exceeded".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EOrder:Positions limit exceeded".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EOrder:Rate limit exceeded".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("EOrder:Scheduled orders limit exceeded".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EOrder:Unknown position".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("EOrder:Unknown order".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("EOrder:Invalid order".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("EService:Deadline elapsed".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("EService:Market in cancel_only mode".to_string(), Value::Str("NotSupported".into()));
+        m.insert("EService:Market in limit_only mode".to_string(), Value::Str("NotSupported".into()));
+        m.insert("EService:Market in post_only mode".to_string(), Value::Str("NotSupported".into()));
+        m.insert("EService:Unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("ETrade:Invalid request".to_string(), Value::Str("BadRequest".into()));
+        m.insert("ESession:Invalid session".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
     m
@@ -1493,7 +1493,7 @@ impl KrakenCore {
 }
 
     pub fn ping(&self, mut client: Value) -> Value {
-        let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
+        let mut url: Value = client.url();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

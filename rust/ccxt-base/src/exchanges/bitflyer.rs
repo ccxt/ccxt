@@ -521,7 +521,7 @@ impl BitflyerCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("-2".to_string(), Value::Str("OnMaintenance".into()).clone());
+        m.insert("-2".to_string(), Value::Str("OnMaintenance".into()));
     m
 }));
     m

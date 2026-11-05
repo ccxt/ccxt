@@ -1280,34 +1280,34 @@ impl WhitebitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Unauthorized request.".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("The market format is invalid.".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("Market is not available".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("Invalid payload.".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Amount must be greater than 0".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Not enough balance.".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("The order id field is required.".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Not enough balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("This action is unauthorized.".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("This API Key is not authorized to perform this action.".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("Unexecuted order was not found.".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("The selected from is invalid.".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("503".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("422".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("Unauthorized request.".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("The market format is invalid.".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("Market is not available".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("Invalid payload.".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Amount must be greater than 0".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Not enough balance.".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("The order id field is required.".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Not enough balance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("This action is unauthorized.".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("This API Key is not authorized to perform this action.".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("Unexecuted order was not found.".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("The selected from is invalid.".to_string(), Value::Str("BadRequest".into()));
+        m.insert("503".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("422".to_string(), Value::Str("OrderNotFound".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("limit must be less than or equal to".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("The Price should be less than or equal to".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("The Price should be greater than or equal to".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("This action is unauthorized".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("Given amount is less than min amount".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Min amount step".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Total is less than".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("fee must be no less than".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Enable your key in API settings".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("You don't have such amount for transfer".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("limit must be less than or equal to".to_string(), Value::Str("BadRequest".into()));
+        m.insert("The Price should be less than or equal to".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("The Price should be greater than or equal to".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("This action is unauthorized".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("Given amount is less than min amount".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Min amount step".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Total is less than".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("fee must be no less than".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Enable your key in API settings".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("You don't have such amount for transfer".to_string(), Value::Str("InsufficientFunds".into()));
     m
 }));
     m

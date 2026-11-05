@@ -548,7 +548,7 @@ impl IndependentreserveCore {
     pub fn value_to_checksum(&self, mut value: Value) -> Value {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
-        // Value::Int(crate::runtime::PAD_WITH_ZERO) is string-typed everywhere and emits the same digits.
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
         let mut result: Value = self.decimal_to_precision(value, Value::Int(crate::runtime::ROUND), Value::Int(8), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::PAD_WITH_ZERO)]);
         result = replace_str(&result, &Value::Str(".".into()), &Value::Str("".into()));
         // remove leading zeros

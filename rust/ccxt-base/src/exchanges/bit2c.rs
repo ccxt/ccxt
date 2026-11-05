@@ -562,14 +562,14 @@ impl Bit2cCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Please provide valid APIkey".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("No order found.".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("Please provide valid APIkey".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("No order found.".to_string(), Value::Str("OrderNotFound".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Please provide valid nonce".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("please approve new terms of use on site".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("Please provide valid nonce".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("please approve new terms of use on site".to_string(), Value::Str("PermissionDenied".into()));
     m
 }));
     m

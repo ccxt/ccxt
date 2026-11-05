@@ -479,7 +479,7 @@ impl CoinbaseinternationalCore {
 
     pub fn ping(&mut self, mut client: Value) -> Value {
         let mut refreshAt: Value = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]);
-        let mut isPrivateClient: bool = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null).as_str() == self.get_ws_url(&[Value::Bool(true)]).as_str();
+        let mut isPrivateClient: bool = client.url().as_str() == self.get_ws_url(&[Value::Bool(true)]).as_str();
         if isPrivateClient && (refreshAt != Value::Null) && (self.milliseconds().as_f64().unwrap_or(f64::NAN) >= refreshAt.as_f64().unwrap_or(f64::NAN)) {
             // re-authenticate in-band before the session expires, also while no watch call is pending
             // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage

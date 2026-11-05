@@ -611,26 +611,26 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("77".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("400".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("401".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("403".to_string(), Value::Str("NotSupported".into()).clone());
-        m.insert("404".to_string(), Value::Str("NotSupported".into()).clone());
-        m.insert("429".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("500".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("503".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("3013".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Order quantity is out of range".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Invalid trade order type".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Insufficient margin".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("insufficient balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("77".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("400".to_string(), Value::Str("BadRequest".into()));
+        m.insert("401".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("403".to_string(), Value::Str("NotSupported".into()));
+        m.insert("404".to_string(), Value::Str("NotSupported".into()));
+        m.insert("429".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("500".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("503".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("3013".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("Order quantity is out of range".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Invalid trade order type".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Insufficient margin".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("insufficient balance".to_string(), Value::Str("InsufficientFunds".into()));
         m.insert("leverage must be in [1,8]".to_string(), Value::Str("BadRequest".into()));
-        m.insert("the request you sent is invalid".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("the request you sent is invalid".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("InvalidOrder".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("InvalidOrder".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

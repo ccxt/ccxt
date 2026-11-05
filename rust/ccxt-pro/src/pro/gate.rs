@@ -490,11 +490,11 @@ impl GateCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("1".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("2".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("4".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("6".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("11".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("1".to_string(), Value::Str("BadRequest".into()));
+        m.insert("2".to_string(), Value::Str("BadRequest".into()));
+        m.insert("4".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("6".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("11".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
@@ -2315,7 +2315,7 @@ impl GateCore {
         //        }]
         //    }
         //
-        let mut type_var: Value = self.get_market_type_by_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null));
+        let mut type_var: Value = self.get_market_type_by_url(client.url());
         let mut data: Vec<Value> = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut cache: Value = (if let (Some(__m), Some(__k)) = (self.positions.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut newPositions: Value = Value::from(vec![]);

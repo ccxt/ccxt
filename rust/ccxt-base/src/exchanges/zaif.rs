@@ -523,7 +523,7 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("unsupported currency_pair".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("unsupported currency_pair".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({

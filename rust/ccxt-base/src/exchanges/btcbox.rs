@@ -419,16 +419,16 @@ impl BtcboxCore {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("exceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("104".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("105".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("106".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("107".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("200".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("201".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("202".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("203".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("401".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("402".to_string(), Value::Str("DDoSProtection".into()).clone());
+        m.insert("104".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("105".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("106".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("107".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("200".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("201".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("202".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("203".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("401".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("402".to_string(), Value::Str("DDoSProtection".into()));
     m
 }));
     m

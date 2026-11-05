@@ -667,9 +667,9 @@ impl KalshiCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("not_found".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("invalid_order".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("fill_or_kill_insufficient_resting_volume".to_string(), Value::Str("OrderNotFillable".into()).clone());
+        m.insert("not_found".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("invalid_order".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("fill_or_kill_insufficient_resting_volume".to_string(), Value::Str("OrderNotFillable".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({

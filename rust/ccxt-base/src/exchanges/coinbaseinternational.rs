@@ -975,12 +975,12 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("13004".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("13004".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("invalid_credentials".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("invalid_credentials".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
     m

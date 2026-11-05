@@ -3285,7 +3285,7 @@ impl OkxCore {
         if self.is_empty(args.clone()).as_bool() == Some(true) {
             let mut method: Option<String> = match __pro_message.get("op").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
             let mut stringMsg: Value = json_stringify(&message);
-            self.handle_errors(Value::Int(1), Value::Str("".into()), client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null), method.map(Value::from).unwrap_or(Value::Null), Value::Map({
+            self.handle_errors(Value::Int(1), Value::Str("".into()), client.url(), method.map(Value::from).unwrap_or(Value::Null), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), stringMsg, message, Value::Map({
@@ -3537,7 +3537,7 @@ impl OkxCore {
         if self.is_empty(args.clone()).as_bool() == Some(true) {
             let mut method: Option<String> = match __pro_message.get("op").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
             let mut stringMsg: Value = json_stringify(&message);
-            self.handle_errors(Value::Int(1), Value::Str("".into()), client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null), method.map(Value::from).unwrap_or(Value::Null), Value::Map({
+            self.handle_errors(Value::Int(1), Value::Str("".into()), client.url(), method.map(Value::from).unwrap_or(Value::Null), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), stringMsg, message, Value::Map({

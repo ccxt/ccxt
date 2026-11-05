@@ -427,17 +427,17 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("invalid_pair".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("Insufficient balance.".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("invalid order.".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Invalid credentials. API not found or session has expired.".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("Invalid credentials. Bad sign.".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("invalid_pair".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("Insufficient balance.".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("invalid order.".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("Invalid credentials. API not found or session has expired.".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Invalid credentials. Bad sign.".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Minimum price".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("Minimum order".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Minimum price".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Minimum order".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

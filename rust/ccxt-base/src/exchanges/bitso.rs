@@ -639,9 +639,9 @@ impl BitsoCore {
 }));
         m.insert("exceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("0201".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("104".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("0304".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("0201".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("104".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("0304".to_string(), Value::Str("BadRequest".into()));
     m
 }));
     m

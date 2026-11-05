@@ -985,25 +985,25 @@ impl PolymarketCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("not enough balance / allowance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("invalid signature".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("api key not found".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("not enough balance / allowance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("invalid signature".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("api key not found".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("No orderbook exists".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("invalid clob token ids".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("not enough balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("allowance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("invalid amount".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("invalid price".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("minimum tick size".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("no orders found to match".to_string(), Value::Str("OrderNotFillable".into()).clone());
-        m.insert("could not be fully filled".to_string(), Value::Str("OrderNotFillable".into()).clone());
-        m.insert("geoblocked".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("restricted jurisdiction".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("Unauthorized".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("No orderbook exists".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("invalid clob token ids".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("not enough balance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("allowance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("invalid amount".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("invalid price".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("minimum tick size".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("no orders found to match".to_string(), Value::Str("OrderNotFillable".into()));
+        m.insert("could not be fully filled".to_string(), Value::Str("OrderNotFillable".into()));
+        m.insert("geoblocked".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("restricted jurisdiction".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("Unauthorized".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
     m

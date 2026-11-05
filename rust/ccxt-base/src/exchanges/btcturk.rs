@@ -499,9 +499,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("FAILED_ORDER_WITH_OPEN_ORDERS".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("FAILED_LIMIT_ORDER".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("FAILED_MARKET_ORDER".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("FAILED_ORDER_WITH_OPEN_ORDERS".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("FAILED_LIMIT_ORDER".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("FAILED_MARKET_ORDER".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

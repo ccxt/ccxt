@@ -325,21 +325,21 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("-1003".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("-1021".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("-1022".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-1102".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("-1121".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("-2008".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-2014".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("-2015".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("-2010".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("-1003".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("-1021".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("-1022".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("-1102".to_string(), Value::Str("BadRequest".into()));
+        m.insert("-1121".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("-2008".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("-2014".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("-2015".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("-2010".to_string(), Value::Str("InsufficientFunds".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("insufficient balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Order does not exist".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("insufficient balance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Order does not exist".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

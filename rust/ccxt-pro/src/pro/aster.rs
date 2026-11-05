@@ -816,7 +816,7 @@ impl AsterCore {
         //             "T": 1754668800000
         //     }
         //
-        let mut marketType: Value = self.get_account_type_from_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut marketType: Value = self.get_account_type_from_url(client.url()).map(Value::from).unwrap_or(Value::Null);
         let mut ticker: Value = message;
         let mut parsed: Value = self.parse_ws_ticker(ticker, marketType);
         let mut symbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
@@ -1009,7 +1009,7 @@ impl AsterCore {
         //             "E": 1754896692926
         //     }
         //
-        let mut marketType: Value = self.get_account_type_from_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut marketType: Value = self.get_account_type_from_url(client.url()).map(Value::from).unwrap_or(Value::Null);
         let mut data: Value = message;
         let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, marketType]);
@@ -1234,7 +1234,7 @@ impl AsterCore {
         //         "m": false
         //     }
         //
-        let mut marketType: Value = self.get_account_type_from_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut marketType: Value = self.get_account_type_from_url(client.url()).map(Value::from).unwrap_or(Value::Null);
         let mut trade: Value = message;
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, marketType]);
@@ -1618,7 +1618,7 @@ impl AsterCore {
         //             ]
         //     }
         //
-        let mut marketType: Value = self.get_account_type_from_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut marketType: Value = self.get_account_type_from_url(client.url()).map(Value::from).unwrap_or(Value::Null);
         let mut data: Value = message;
         let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "s", &[]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "T", &[]);
@@ -1858,7 +1858,7 @@ impl AsterCore {
         //             }
         //     }
         //
-        let mut marketType: Value = self.get_account_type_from_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut marketType: Value = self.get_account_type_from_url(client.url()).map(Value::from).unwrap_or(Value::Null);
         let mut data: Value = message;
         let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, marketType]);
@@ -2175,7 +2175,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //         }
         //     }
         //
-        let mut accountType: Value = self.get_account_type_from_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut accountType: Value = self.get_account_type_from_url(client.url()).map(Value::from).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", accountType, Value::Str(":balance".into())).into());
         if ((if let (Some(__m), Some(__k)) = (self.balance.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) == Value::Null) {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
@@ -2832,7 +2832,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let __order_empty = indexmap::IndexMap::new();
         let order = order.as_map().unwrap_or(&__order_empty);
         let mut marketId: Value = (match order.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut marketType: Value = self.get_account_type_from_url(client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut marketType: Value = self.get_account_type_from_url(client.url()).map(Value::from).unwrap_or(Value::Null);
         return self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
 
     Value::Null

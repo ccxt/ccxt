@@ -441,13 +441,13 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("bad-request".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("2002".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("2021".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("2001".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("2011".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("2040".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("4007".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("bad-request".to_string(), Value::Str("BadRequest".into()));
+        m.insert("2002".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("2021".to_string(), Value::Str("BadRequest".into()));
+        m.insert("2001".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("2011".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("2040".to_string(), Value::Str("BadRequest".into()));
+        m.insert("4007".to_string(), Value::Str("BadRequest".into()));
     m
 }));
     m
@@ -2336,7 +2336,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         ]
         //     }
         //
-        let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
+        let mut url: Value = client.url();
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
         let mut defaultMarginMode: String = "isolated".to_string();
         if (topic.as_deref() == Some("positions_cross")) {

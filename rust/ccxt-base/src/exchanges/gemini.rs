@@ -884,14 +884,14 @@ impl GeminiCore {
 }));
         m.insert("httpExceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("400".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("403".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("404".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("406".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("429".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("500".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("502".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("503".to_string(), Value::Str("OnMaintenance".into()).clone());
+        m.insert("400".to_string(), Value::Str("BadRequest".into()));
+        m.insert("403".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("404".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("406".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("429".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("500".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("502".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("503".to_string(), Value::Str("OnMaintenance".into()));
     m
 }));
         m.insert("timeframes".to_string(), Value::Map({
@@ -909,44 +909,44 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("AuctionNotOpen".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("ClientOrderIdTooLong".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("ClientOrderIdMustBeString".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("ConflictingOptions".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("EndpointMismatch".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("EndpointNotFound".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("IneligibleTiming".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("InsufficientFunds".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("InvalidJson".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("InvalidNonce".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("InvalidApiKey".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("InvalidOrderType".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("InvalidPrice".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("InvalidQuantity".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("InvalidSide".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("InvalidSignature".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("InvalidSymbol".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("InvalidTimestampInPayload".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Maintenance".to_string(), Value::Str("OnMaintenance".into()).clone());
-        m.insert("MarketNotOpen".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("MissingApikeyHeader".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("MissingOrderField".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("MissingRole".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("MissingPayloadHeader".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("MissingSignatureHeader".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("NoSSL".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("OptionsMustBeArray".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("OrderNotFound".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("RateLimit".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("System".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("UnsupportedOption".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("AuctionNotOpen".to_string(), Value::Str("BadRequest".into()));
+        m.insert("ClientOrderIdTooLong".to_string(), Value::Str("BadRequest".into()));
+        m.insert("ClientOrderIdMustBeString".to_string(), Value::Str("BadRequest".into()));
+        m.insert("ConflictingOptions".to_string(), Value::Str("BadRequest".into()));
+        m.insert("EndpointMismatch".to_string(), Value::Str("BadRequest".into()));
+        m.insert("EndpointNotFound".to_string(), Value::Str("BadRequest".into()));
+        m.insert("IneligibleTiming".to_string(), Value::Str("BadRequest".into()));
+        m.insert("InsufficientFunds".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("InvalidJson".to_string(), Value::Str("BadRequest".into()));
+        m.insert("InvalidNonce".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("InvalidApiKey".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("InvalidOrderType".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("InvalidPrice".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("InvalidQuantity".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("InvalidSide".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("InvalidSignature".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("InvalidSymbol".to_string(), Value::Str("BadRequest".into()));
+        m.insert("InvalidTimestampInPayload".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Maintenance".to_string(), Value::Str("OnMaintenance".into()));
+        m.insert("MarketNotOpen".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("MissingApikeyHeader".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("MissingOrderField".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("MissingRole".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("MissingPayloadHeader".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("MissingSignatureHeader".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("NoSSL".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("OptionsMustBeArray".to_string(), Value::Str("BadRequest".into()));
+        m.insert("OrderNotFound".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("RateLimit".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("System".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("UnsupportedOption".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("The Gemini Exchange is currently undergoing maintenance.".to_string(), Value::Str("OnMaintenance".into()).clone());
-        m.insert("We are investigating technical issues with the Gemini Exchange.".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("Internal Server Error".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
+        m.insert("The Gemini Exchange is currently undergoing maintenance.".to_string(), Value::Str("OnMaintenance".into()));
+        m.insert("We are investigating technical issues with the Gemini Exchange.".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("Internal Server Error".to_string(), Value::Str("ExchangeNotAvailable".into()));
     m
 }));
     m

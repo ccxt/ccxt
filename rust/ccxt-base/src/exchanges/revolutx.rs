@@ -417,11 +417,11 @@ impl RevolutxCore {
 }));
         m.insert("httpExceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("400".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("403".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("404".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("409".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("429".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("400".to_string(), Value::Str("BadRequest".into()));
+        m.insert("403".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("404".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("409".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("429".to_string(), Value::Str("RateLimitExceeded".into()));
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
@@ -432,10 +432,10 @@ impl RevolutxCore {
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("insufficient".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("invalid order".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("timestamp is in the future".to_string(), Value::Str("InvalidNonce".into()).clone());
+        m.insert("insufficient".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("invalid order".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("timestamp is in the future".to_string(), Value::Str("InvalidNonce".into()));
     m
 }));
     m

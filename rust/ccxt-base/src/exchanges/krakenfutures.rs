@@ -631,33 +631,33 @@ impl KrakenfuturesCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("apiLimitExceeded".to_string(), Value::Str("RateLimitExceeded".into()).clone());
-        m.insert("marketUnavailable".to_string(), Value::Str("ContractUnavailable".into()).clone());
-        m.insert("requiredArgumentMissing".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("authenticationError".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("accountInactive".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("invalidAccount".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("invalidAmount".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("insufficientFunds".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("INSUFFICIENT_MARGIN".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("Bad Request".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-        m.insert("invalidUnit".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Json Parse Error".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("nonceBelowThreshold".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("nonceDuplicate".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("notFound".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Server Error".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("unknownError".to_string(), Value::Str("ExchangeError".into()).clone());
-        m.insert("contractNotFound".to_string(), Value::Str("BadSymbol".into()).clone());
+        m.insert("apiLimitExceeded".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("marketUnavailable".to_string(), Value::Str("ContractUnavailable".into()));
+        m.insert("requiredArgumentMissing".to_string(), Value::Str("BadRequest".into()));
+        m.insert("unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("authenticationError".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("accountInactive".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("invalidAccount".to_string(), Value::Str("BadRequest".into()));
+        m.insert("invalidAmount".to_string(), Value::Str("BadRequest".into()));
+        m.insert("insufficientFunds".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("INSUFFICIENT_MARGIN".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("Bad Request".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Unavailable".to_string(), Value::Str("ExchangeNotAvailable".into()));
+        m.insert("invalidUnit".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Json Parse Error".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("nonceBelowThreshold".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("nonceDuplicate".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("notFound".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Server Error".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("unknownError".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("contractNotFound".to_string(), Value::Str("BadSymbol".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("invalidArgument".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("nonceBelowThreshold".to_string(), Value::Str("InvalidNonce".into()).clone());
-        m.insert("nonceDuplicate".to_string(), Value::Str("InvalidNonce".into()).clone());
+        m.insert("invalidArgument".to_string(), Value::Str("BadRequest".into()));
+        m.insert("nonceBelowThreshold".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("nonceDuplicate".to_string(), Value::Str("InvalidNonce".into()));
     m
 }));
     m
@@ -2776,26 +2776,26 @@ impl KrakenfuturesCore {
         let mut omit = get_arg(optional_args, 0, Value::from(vec![]));
         let mut errors: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("invalidOrderType".to_string(), Value::Str("InvalidOrder".into()).clone());
-                m.insert("invalidSide".to_string(), Value::Str("InvalidOrder".into()).clone());
-                m.insert("invalidSize".to_string(), Value::Str("InvalidOrder".into()).clone());
-                m.insert("invalidPrice".to_string(), Value::Str("InvalidOrder".into()).clone());
-                m.insert("insufficientAvailableFunds".to_string(), Value::Str("InsufficientFunds".into()).clone());
-                m.insert("selfFill".to_string(), Value::Str("ExchangeError".into()).clone());
-                m.insert("tooManySmallOrders".to_string(), Value::Str("ExchangeError".into()).clone());
-                m.insert("maxPositionViolation".to_string(), Value::Str("BadRequest".into()).clone());
-                m.insert("marketSuspended".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-                m.insert("marketInactive".to_string(), Value::Str("ExchangeNotAvailable".into()).clone());
-                m.insert("clientOrderIdAlreadyExist".to_string(), Value::Str("DuplicateOrderId".into()).clone());
-                m.insert("clientOrderIdTooLong".to_string(), Value::Str("BadRequest".into()).clone());
-                m.insert("outsidePriceCollar".to_string(), Value::Str("InvalidOrder".into()).clone());
-                m.insert("postWouldExecute".to_string(), Value::Str("OrderImmediatelyFillable".into()).clone());
-                m.insert("iocWouldNotExecute".to_string(), Value::Str("OrderNotFillable".into()).clone());
-                m.insert("wouldNotReducePosition".to_string(), Value::Str("ExchangeError".into()).clone());
-                m.insert("orderForEditNotFound".to_string(), Value::Str("OrderNotFound".into()).clone());
-                m.insert("orderForEditNotAStop".to_string(), Value::Str("InvalidOrder".into()).clone());
-                m.insert("filled".to_string(), Value::Str("OrderNotFound".into()).clone());
-                m.insert("notFound".to_string(), Value::Str("OrderNotFound".into()).clone());
+                m.insert("invalidOrderType".to_string(), Value::Str("InvalidOrder".into()));
+                m.insert("invalidSide".to_string(), Value::Str("InvalidOrder".into()));
+                m.insert("invalidSize".to_string(), Value::Str("InvalidOrder".into()));
+                m.insert("invalidPrice".to_string(), Value::Str("InvalidOrder".into()));
+                m.insert("insufficientAvailableFunds".to_string(), Value::Str("InsufficientFunds".into()));
+                m.insert("selfFill".to_string(), Value::Str("ExchangeError".into()));
+                m.insert("tooManySmallOrders".to_string(), Value::Str("ExchangeError".into()));
+                m.insert("maxPositionViolation".to_string(), Value::Str("BadRequest".into()));
+                m.insert("marketSuspended".to_string(), Value::Str("ExchangeNotAvailable".into()));
+                m.insert("marketInactive".to_string(), Value::Str("ExchangeNotAvailable".into()));
+                m.insert("clientOrderIdAlreadyExist".to_string(), Value::Str("DuplicateOrderId".into()));
+                m.insert("clientOrderIdTooLong".to_string(), Value::Str("BadRequest".into()));
+                m.insert("outsidePriceCollar".to_string(), Value::Str("InvalidOrder".into()));
+                m.insert("postWouldExecute".to_string(), Value::Str("OrderImmediatelyFillable".into()));
+                m.insert("iocWouldNotExecute".to_string(), Value::Str("OrderNotFillable".into()));
+                m.insert("wouldNotReducePosition".to_string(), Value::Str("ExchangeError".into()));
+                m.insert("orderForEditNotFound".to_string(), Value::Str("OrderNotFound".into()));
+                m.insert("orderForEditNotAStop".to_string(), Value::Str("InvalidOrder".into()));
+                m.insert("filled".to_string(), Value::Str("OrderNotFound".into()));
+                m.insert("notFound".to_string(), Value::Str("OrderNotFound".into()));
             m
         });
         if (matches!((&errors, &status), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && !(self.in_array(status.clone(), omit).as_bool() == Some(true)) {

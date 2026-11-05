@@ -705,10 +705,10 @@ impl CoinoneCore {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("exceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("104".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("107".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("108".to_string(), Value::Str("BadSymbol".into()).clone());
-        m.insert("405".to_string(), Value::Str("OnMaintenance".into()).clone());
+        m.insert("104".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("107".to_string(), Value::Str("BadRequest".into()));
+        m.insert("108".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("405".to_string(), Value::Str("OnMaintenance".into()));
     m
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({

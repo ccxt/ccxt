@@ -576,11 +576,11 @@ impl LimitlessCore {
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("Orders not found".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("already canceled".to_string(), Value::Str("OrderNotFound".into()).clone());
-        m.insert("must be a UUIDv4".to_string(), Value::Str("BadRequest".into()).clone());
-        m.insert("Invalid signature".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("Orders not found".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("already canceled".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("must be a UUIDv4".to_string(), Value::Str("BadRequest".into()));
+        m.insert("Invalid signature".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

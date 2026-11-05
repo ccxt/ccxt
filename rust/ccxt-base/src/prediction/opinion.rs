@@ -365,26 +365,26 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("10014".to_string(), Value::Str("AccountNotEnabled".into()).clone());
-        m.insert("10403".to_string(), Value::Str("PermissionDenied".into()).clone());
-        m.insert("11001".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("11002".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("10605".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("10610".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("11004".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("11005".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("11009".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("11010".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("11011".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("11012".to_string(), Value::Str("AuthenticationError".into()).clone());
-        m.insert("11013".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("10014".to_string(), Value::Str("AccountNotEnabled".into()));
+        m.insert("10403".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("11001".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("11002".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("10605".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("10610".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("11004".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("11005".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("11009".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("11010".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("11011".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("11012".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("11013".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Insufficient token balance".to_string(), Value::Str("InsufficientFunds".into()).clone());
-        m.insert("below the minimum required value".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("must be the current multi-signature wallet".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("Insufficient token balance".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("below the minimum required value".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("must be the current multi-signature wallet".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m
