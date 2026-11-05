@@ -388,7 +388,7 @@ CCXT provides sensible defaults for the most common use cases; however, you may 
 
 ### How to use the InteractiveBrokers in CCXT?
 
-As opposed to typical exchanges in CCXT, InteractiveBrokers has a different kind of API infrastructure. Users can use IBKR Web-Api with either Oauth or a special Gateway app.
+As opposed to typical exchanges in CCXT, InteractiveBrokers has a different kind of API infrastructure. Users can use IBKR Web-Api with either Oauth or a special Gateway app. However note, due to the IBKR limitations, user can only have one active session - if you login the ibkr website, your running ibkr instance might switch off. Users can add addition profiles ("users") in account management, however each of them would need separate data-subscriptions or whatever, like a separate account.
 
 #### Use IBKR Web-Api with Oauth 1.0
 
@@ -420,9 +420,7 @@ instance = new ccxt.interactivebrokers ({
 })
 ```
 
-#### Notes about IBKR
-
-Due to the IBKR limitations, user can only have one active session - if you login the ibkr website, your running ibkr instance might switch off. Users can add addition profiles ("users") in account management, however each of them would need separate data-subscriptions or whatever, like a separate account.
+Note, Client-Portal gateway needs slighly more maintenance, specifically it might need you to manaully login once in every 24 hours at https://localhost:5000
 
 ### How to use the GRVT Exchange in CCXT?
 
