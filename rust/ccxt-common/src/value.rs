@@ -263,6 +263,8 @@ impl Value {
     // `Value::Null` and are placeholders for richer dispatch.
 
     pub fn describe(&self) -> Value { Value::Null }
+    /// `client.url` on a ws client handle (`Value::Null` on any other Value).
+    pub fn url(&self) -> Value { get_value_k(self, "url") }
     /// `client.reject(error, messageHash)` — stores a rejection the `watch`
     /// drive loop delivers to the awaiting caller. Routes by the client
     /// handle's `url` to the WS registry (no-op on a non-client Value).

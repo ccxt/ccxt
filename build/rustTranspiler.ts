@@ -303,19 +303,6 @@ export class RustTranspilerBuilder {
         return segments.join('');
     }
 
-    /**
-     * Rewrite bare CCXT error-class references (used as dictionary
-     * values to tag status codes) into `Value::Str("ClassName".…)`.
-     * Skips string literals and comments — otherwise the key
-     * `'OrderNotFound'` would also get rewritten, producing
-     * `"Value::Str("OrderNotFound".to_string())".to_string()`.
-     */
-    rewriteBareErrorClassRefs(text: string): string {
-        const errorClasses = 'NotSupported|ArgumentsRequired|InvalidOrder|InvalidAddress|BadRequest|BadResponse|AuthenticationError|ExchangeError|ExchangeNotAvailable|NetworkError|DDoSProtection|RateLimitExceeded|InsufficientFunds|OrderNotFound|InvalidNonce|PermissionDenied|AccountNotEnabled|AccountSuspended|NotImplemented|OperationFailed|OperationRejected|RequestTimeout|MarginModeAlreadySet|ManualInteractionNeeded|UnsubscribeError|ContractUnavailable|MarketClosed|ExchangeClosedByUser|NullResponse|InvalidProxySettings|ChecksumError|OnMaintenance|BadSymbol|NoChange|CancelPending|OrderNotCached|OrderImmediatelyFillable|OrderNotFillable|DuplicateOrderId|RestrictedLocation|AddressPending|BaseError';
-        const rx = new RegExp(`\\b(${errorClasses})\\b(?![\\w:(])`, 'g');
-        return this.replaceOutsideStrings(text, rx,
-            (_: string, n: string) => `Value::Str("${n}".to_string())`);
-    }
 
     /**
      * `throw new <Class>(msg)` where the class is a runtime value — either
@@ -451,47 +438,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * `jwt(...)` is a free-function stub with a fixed 3-arg signature
-     * `(request, secret, algorithm)`, but CCXT's `this.jwt(...)` is
-     * called with 3, 4 or 5 args (trailing `isRsa` / `opts` are
-     * optional). Normalize every free-function call to exactly 3 args.
-     */
-    normalizeJwtCalls(content: string): string {
-        const re = /(^|[^.\w])jwt\(/g;
-        let out = '';
-        let last = 0;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(content)) !== null) {
-            const callOpen = m.index + m[0].length;
-            let depth = 1;
-            let j = callOpen;
-            let inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) { if (c === '(') depth++; else if (c === ')') depth--; }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) continue;
-            const inside = content.slice(callOpen, j);
-            const args = this.splitArgs(inside) || [];
-            // Runtime `jwt(request, secret, algorithm, isRsa, opts)` —
-            // 5 fixed params. Normalize every call to exactly 5 args.
-            const jwtDefaults = ['Value::Null', 'Value::Null', 'Value::Null',
-                'Value::Bool(false)', 'Value::Null'];
-            const norm = args.slice(0, 5).map(a => a.trim());
-            while (norm.length < 5) norm.push(jwtDefaults[norm.length]);
-            out += content.slice(last, callOpen) + norm.join(', ') + ')';
-            last = j + 1;
-            re.lastIndex = last;
-        }
-        out += content.slice(last);
-        return out;
-    }
 
     // Writes index-mutations back to their source array. TS does
     // `const x = arr[i]; x['k'] = v;` relying on `x` being a *reference*
@@ -1434,21 +1380,6 @@ export class RustTranspilerBuilder {
                 (_: string, obj: string, name: string) =>
                     `${obj}.${toSnakeCase(name)}(`],
 
-            // Bare error references emitted by the transpiler. We only
-            // rewrite when followed by `(` (function-call position); the
-            // `::new(...)` form was already converted by the transpiler's
-            // `printNewExpression`. Skipping `::` ensures we don't double-
-            // rewrite.
-            [/\b(NotSupported|ArgumentsRequired|InvalidOrder|InvalidAddress|BadRequest|BadResponse|AuthenticationError|ExchangeError|ExchangeNotAvailable|NetworkError|DDoSProtection|RateLimitExceeded|InsufficientFunds|OrderNotFound|InvalidNonce|PermissionDenied|AccountNotEnabled|AccountSuspended|NotImplemented|OperationFailed|OperationRejected|RequestTimeout|MarginModeAlreadySet|ManualInteractionNeeded|UnsubscribeError|ContractUnavailable|MarketClosed|ExchangeClosedByUser|NullResponse|InvalidProxySettings|ChecksumError|OnMaintenance|BadSymbol|NoChange|CancelPending|OrderNotCached|OrderImmediatelyFillable|OrderNotFillable|DuplicateOrderId|RestrictedLocation|AddressPending|BaseError)\b(?=\s*\()/g, (_: string, n: string) => {
-                const snake = toSnakeCase(n);
-                return `crate::exchange_errors::${snake}`;
-            }],
-            // Clean up legacy `crate::exchange_errors::X::new(...)` patterns
-            // (the transpiler emitted `X::new(...)`, our post-proc converted
-            // X to a fn path → drop the trailing `::new`).
-            [/crate::exchange_errors::([a-z_][a-z_0-9]*)::new\(/g,
-                'crate::exchange_errors::$1('],
-
             // (Dynamic error construction `get_value(...)::new(msg)` and
             // `<localVar>::new(msg)` is handled by the paren-balanced
             // `rewriteDynamicThrows` pass — a plain regex truncates a
@@ -1463,15 +1394,6 @@ export class RustTranspilerBuilder {
             // (Dynamic method call `get_value(&self, &name)(args)` is
             // handled by a paren-balanced walker after this regex pass —
             // see `rewriteDynamicSelfCalls` in transpileBaseMethods.)
-            // `BadRequest::new(...)` style references that escaped the
-            // earlier regex (because lookahead saw `::` not `(`). Route them
-            // through the runtime constructors.
-            [/\b(NotSupported|ArgumentsRequired|InvalidOrder|InvalidAddress|BadRequest|BadResponse|AuthenticationError|ExchangeError|ExchangeNotAvailable|NetworkError|DDoSProtection|RateLimitExceeded|InsufficientFunds|OrderNotFound|InvalidNonce|PermissionDenied|AccountNotEnabled|AccountSuspended|NotImplemented|OperationFailed|OperationRejected|RequestTimeout|MarginModeAlreadySet|ManualInteractionNeeded|UnsubscribeError|ContractUnavailable|MarketClosed|ExchangeClosedByUser|NullResponse|InvalidProxySettings|ChecksumError|OnMaintenance|BadSymbol|NoChange|CancelPending|OrderNotCached|OrderImmediatelyFillable|OrderNotFillable|DuplicateOrderId|RestrictedLocation|AddressPending|BaseError)::new\(/g,
-                (_: string, n: string) => `crate::exchange_errors::${toSnakeCase(n)}(`],
-
-            // (Bare error-class refs are handled separately via
-            // `rewriteBareErrorClassRefs`, which skips string literals.)
-
             // Mark async methods with async keyword (transpiler strips it)
             ...(asyncPattern.length
                 ? [[new RegExp(`pub fn (${asyncPattern})\\(`, 'g'), 'pub async fn $1(']]
@@ -1511,9 +1433,6 @@ export class RustTranspilerBuilder {
             // but takes `&str`. Route to `parse_json_value`.
             [/\bself\.parse_json\(/g, 'self.parse_json_value('],
 
-            // `binaryConcat()` with no args — the base method is shaped
-            // `(first, ...rest)`; supply an empty first chunk.
-            [/\bself\.binary_concat\(\s*\)/g, 'self.binary_concat(Value::Null, &[])'],
 
             // `setProperty(this, key, value)` transpiles to
             // `self.set_property(self, key, value)` — but `self` is a typed
@@ -1548,10 +1467,6 @@ export class RustTranspilerBuilder {
                 'self.$1_fn('],
 
 
-            // `Precise::stringDiv(a, b, precision)` — drop the trailing
-            // precision arg (our Precise wrappers take 2 args only).
-            [/(crate::precise::Precise::string(?:Div|Mul|Add|Sub|Mod|Eq|Gt|Ge|Lt|Le)\([^()]*(?:\([^()]*\)[^()]*)*?\)),\s*[^,)]+(?=\))/g,
-                '$1'],
 
             // Convert JSDoc-style `/** */` block comments to plain `/* */`
             // — `/**` is parsed as a doc-attribute when it precedes
@@ -1570,25 +1485,12 @@ export class RustTranspilerBuilder {
             // We do this with a separate paren-balanced pass after the
             // regex list runs (see `stripCatchBlocks`).
 
-            // Numeric / precision constants imported from CCXT (TICK_SIZE,
-            // ROUND, TRUNCATE, …). Route bare references to `crate::runtime`.
-            // Match only when used as a value (not preceded by `::` or `.`).
-            [/(?<![:.\w])\b(TICK_SIZE|TRUNCATE|ROUND|ROUND_UP|ROUND_DOWN|NO_PADDING|PAD_WITH_ZERO|SIGNIFICANT_DIGITS|DECIMAL_PLACES)\b/g,
-                'Value::Int(crate::runtime::$1)'],
 
-            // (Hash-algorithm name constants are rewritten by the
-            // string-aware `rewriteHashAlgoConstants` post-processor —
-            // a plain regex here corrupts `sha256` inside string
-            // literals, e.g. deribit's `'deri-hmac-sha256 id='`.)
 
 
             // Trailing `};` after blocks
             [/\};(\s*\n)/g, '}$1'],
 
-            // `let mut x: Value = ...` is fine, but transpiler sometimes emits
-            // `let mut : Value = X;` (missing identifier from spread / destructure).
-            // Strip those broken declarations to keep the file syntactically valid.
-            [/let mut\s+:\s+Value\s*=\s*[^;]+;\s*\n/g, '// stripped: invalid let mut\n'],
 
             // `self.X = self.Y(...)` causes borrow conflicts. Split into a
             // temp + assignment.
@@ -1600,16 +1502,9 @@ export class RustTranspilerBuilder {
             // Make all function parameters `mut` — transpiled bodies reassign
             // params frequently (`params = self.omit(params, ...)` etc).
             [/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*Value\b(?=\s*[,)])/g, 'mut $1: Value'],
-            [/\bmut\s+mut\s+/g, 'mut '],
-            // Don't apply `mut` to slice params (optional_args: &[Value]).
-            [/\bmut\s+optional_args\s*:/g, 'optional_args:'],
 
-            // `let x: Value = ...` → `let mut x: Value = ...` so transpiled
-            // bodies can reassign locals.
-            [/\blet\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*Value\s*=/g, 'let mut $1: Value ='],
             // `let params = get_arg(...)` (no annotation) — also make mut.
             [/\blet\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*get_arg\(/g, 'let mut $1 = get_arg('],
-            [/\blet\s+mut\s+mut\s+/g, 'let mut '],
 
             // Strip outer parens around bool helper calls used as full-expr
             // RHS so the wrap below catches them. `(is_X(...))` → `is_X(...)`.
@@ -1659,13 +1554,6 @@ export class RustTranspilerBuilder {
                     return `${indent}let mut ${lhs}: Value = ${rhs}.clone();`;
                 }],
 
-            // `ternary(<cond>, <a>, <bare_ident>)` — clone the trailing
-            // identifier arg.
-            [/\bternary\(([^,]+?,\s*[^,]+?,\s*)([a-zA-Z_][a-zA-Z0-9_]*)\)/g,
-                (whole: string, prefix: string, ident: string) => {
-                    if (ident === 'self') return whole;
-                    return `ternary(${prefix}${ident}.clone())`;
-                }],
 
             // `set_value(...)`, `append_to_array(...)`, and
             // `add_element_to_object(...)` take the value arg by move.
@@ -1684,37 +1572,6 @@ export class RustTranspilerBuilder {
                 (_: string, indent: string, lhs: string, expr: string) =>
                     `${indent}${lhs} = Value::Bool(${expr});`],
 
-            // Bool expressions inside `&[...]` slice literals — wrap each
-            // bool element in `Value::Bool(...)`. Match only after `, &[`
-            // (call-arg position). Element is `is_X(...)`.
-            [/([,(])\s*&\[([^;]*?)\]\)/g,
-                (whole: string, prefix: string, inside: string) => {
-                    // Only operate if inside has any `is_X(` bool call.
-                    if (!/\b(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer)\(/.test(inside)) {
-                        return whole;
-                    }
-                    // Split by commas at depth 0
-                    const parts: string[] = [];
-                    let depth = 0;
-                    let start = 0;
-                    for (let i = 0; i < inside.length; i++) {
-                        const c = inside[i];
-                        if (c === '(' || c === '[' || c === '{') depth++;
-                        else if (c === ')' || c === ']' || c === '}') depth--;
-                        else if (c === ',' && depth === 0) {
-                            parts.push(inside.slice(start, i).trim());
-                            start = i + 1;
-                        }
-                    }
-                    parts.push(inside.slice(start).trim());
-                    const wrapped = parts.map(p => {
-                        if (/^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer)\(/.test(p)) {
-                            return `Value::Bool(${p})`;
-                        }
-                        return p;
-                    }).join(', ');
-                    return `${prefix} &[${wrapped}])`;
-                }],
 
             // (Auto-clone in `Value::Array(vec![...])` is done by the
             // paren-balanced `cloneInArrayLiterals` walker below; running a
@@ -1750,34 +1607,12 @@ export class RustTranspilerBuilder {
                     return `${prefix}${ident}.clone()${suffix}`;
                 }],
 
-            // Same pattern for `add_element_to_object(...)` calls whose
-            // value arg is a bare identifier.
-            //   add_element_to_object(..., x); → ... x.clone());
-            [/(\badd_element_to_object\([^,]+,\s*[^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
-                (whole: string, prefix: string, ident: string, suffix: string) => {
-                    if (ident === 'self') return whole;
-                    return `${prefix}${ident}.clone()${suffix}`;
-                }],
 
-            // `append_to_array(&mut X, ident)` — clone the second arg.
-            [/(\bappend_to_array\([^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
-                (whole: string, prefix: string, ident: string, suffix: string) => {
-                    if (ident === 'self' || ident === 'true' || ident === 'false') return whole;
-                    return `${prefix}${ident}.clone()${suffix}`;
-                }],
 
             // `m.insert("X", is_true(&Y) && ...)` — wrap bool exprs in Value::Bool.
             [/(\bm\.insert\([^,]+,\s*)(!?is_true\([^;]+?)(\)\s*;)/g,
                 '$1Value::Bool($2)$3'],
 
-            // `Value::Int(<float literal>)` — the transpiler emits `1e-8`
-            // as Int but it's a float. Detect scientific or decimal notation
-            // and route to Value::Float.
-            [/Value::Int\(([0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)\)/g,
-                (_: string, n: string) => {
-                    if (n.includes('.') || /[eE]/.test(n)) return `Value::Float(${n})`;
-                    return `Value::Int(${n})`;
-                }],
 
             // `return self;` (chained methods) — `self` isn't a Value.
             [/^(\s*)return\s+self\s*;/gm, '$1return Value::Null;'],
@@ -1803,92 +1638,13 @@ export class RustTranspilerBuilder {
             // Look-ahead pattern: stop short of `.`, `(`, `=`, or `[`.
             [/(?<!&)\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\b(?![.\(\[]|\s*=[^=])/g,
                 (_: string, name: string) => `self.${name}.clone()`],
-            // Undo double-clone if we accidentally matched again.
-            [/\.clone\(\)\.clone\(\)/g, '.clone()'],
 
-            // Array destructuring assignment: TS `[a, b] = expr` was emitted
-            // by the transpiler as `Value::Array(vec![a, b]) = expr;` which
-            // is invalid Rust. Rewrite to a temp + element-wise reads. We
-            // strip any `.clone()` suffix that earlier passes may have
-            // appended — destructuring targets must be plain identifiers.
-            [/Value::Array\(vec!\[([^\]]+)\]\)\s*=\s*([^;]+);/g,
-                (_: string, names: string, expr: string) => {
-                    const ids = names.split(',')
-                        .map(s => s.trim().replace(/\.clone\(\)$/, ''))
-                        .filter(s => s.length > 0);
-                    const lines = ids.map((n, i) =>
-                        `${n} = crate::get_value(&__ad_tmp, &Value::Int(${i}));`
-                    ).join(' ');
-                    return `{ let __ad_tmp = ${expr.trim()}; ${lines} }`;
-                }],
         ];
 
         return rules;
     }
 
-    /**
-     * String-aware rewrite of bare hash-algorithm identifiers
-     * (`sha256`, `sha512`, `sha384`, `md5`, …) — imported strings in
-     * TS — into `Value::Str("…")`. Skips string literals so an algo
-     * name inside a literal (e.g. deribit's `'deri-hmac-sha256 id='`)
-     * isn't corrupted.
-     */
-    rewriteHashAlgoConstants(content: string): string {
-        const algos = 'sha256|sha512|sha384|sha224|sha3|sha1|md5|keccak|ed25519|ripemd160|secp256k1|p256';
-        const re = new RegExp(`(?<![:.\\w])\\b(${algos})\\b(?![:.\\w(])`, 'g');
-        const repl = 'Value::Str("$1".to_string())';
-        // Walk char-by-char, skipping string literals AND comments — a
-        // stray `"` inside a `// "json": ...` comment would otherwise
-        // desync the tracker for the rest of the file. The regex is
-        // applied only to genuine code segments.
-        let out = '';
-        let i = 0, codeStart = 0;
-        const n = content.length;
-        while (i < n) {
-            const c = content[i];
-            const c2 = i + 1 < n ? content[i + 1] : '';
-            if (c === '"') {
-                out += content.slice(codeStart, i).replace(re, repl);
-                let j = i + 1, escape = false;
-                while (j < n) {
-                    const cc = content[j];
-                    if (escape) { escape = false; j++; continue; }
-                    if (cc === '\\') { escape = true; j++; continue; }
-                    if (cc === '"') { j++; break; }
-                    j++;
-                }
-                out += content.slice(i, j);
-                i = j; codeStart = j;
-                continue;
-            }
-            if (c === '/' && c2 === '/') {
-                out += content.slice(codeStart, i).replace(re, repl);
-                let j = i + 2;
-                while (j < n && content[j] !== '\n') j++;
-                out += content.slice(i, j);
-                i = j; codeStart = j;
-                continue;
-            }
-            if (c === '/' && c2 === '*') {
-                out += content.slice(codeStart, i).replace(re, repl);
-                let j = i + 2;
-                while (j < n && !(content[j] === '*' && content[j + 1] === '/')) j++;
-                j = Math.min(j + 2, n);
-                out += content.slice(i, j);
-                i = j; codeStart = j;
-                continue;
-            }
-            i++;
-        }
-        out += content.slice(codeStart).replace(re, repl);
-        return out;
-    }
 
-    getWsRegexes(): any[] {
-        return [
-            [/new (\w+)Rest\(\)/g, `crate::$1::new()`],
-        ];
-    }
 
     /**
      * Splits a call's args by commas, respecting nested parens and brackets.
@@ -2072,48 +1828,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Rewrites `NS.method(args)` calls into `crate::path::method(&args)`
-     * with paren-balanced argument parsing (handles nested parens).
-     * Used for `Math.X(...)` and `Precise.X(...)` which the transpiler
-     * emits with TS-style dot-access.
-     */
-    rewriteNamespaceCalls(content: string, ns: string, cratePath: string, refArgs: boolean): string {
-        const pattern = new RegExp(`\\b${ns}\\.([a-zA-Z_][a-zA-Z0-9_]*)\\(`);
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            out += rest.slice(0, m.index);
-            const absStart = i + m.index;
-            const name = m[1];
-            const callStart = absStart + m[0].length;
-            let depth = 1;
-            let j = callStart;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (c === '(' || c === '[' || c === '{') depth++;
-                else if (c === ')' || c === ']' || c === '}') depth--;
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart); break; }
-            const rawInside = content.slice(callStart, j);
-            // recurse so nested ns calls get rewritten too
-            const inside = this.rewriteNamespaceCalls(rawInside, ns, cratePath, refArgs);
-            const args = this.splitArgs(inside) ?? [];
-            const argList = args.map(a => {
-                const t = a.trim();
-                if (!refArgs) return t;
-                return t.startsWith('&') ? t : `&${t}`;
-            }).join(', ');
-            out += `${cratePath}::${name}(${argList})`;
-            i = j + 1;
-        }
-        return out;
-    }
 
     /**
      * Walks the source skipping string contents, finding `<ident>.<field>`
@@ -3809,140 +3523,8 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Paren-balanced walker that drops the 3rd+ args from
-     * `crate::precise::Precise::stringX(...)` calls. Our Precise wrappers
-     * accept exactly 2 args (CCXT's TS signature has an optional precision
-     * arg the wrappers ignore).
-     */
-    /**
-     * The runtime `rsa(message, key, hash)` helper takes 3 args (PKCS#1 v1.5);
-     * TS `rsa` has an optional 4th `padding` (e.g. kalshi passes `'pss'`). Trim
-     * `rsa(a, b, c, d)` back to 3 args so the call type-checks. (Padding choice
-     * is a private-signing detail not exercised by the public test suite.)
-     */
-    dropExtraRsaArgs(content: string): string {
-        const pattern = /(^|[^.:\w])rsa\(/;
-        let i = 0, out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            const lead = m[1];
-            out += rest.slice(0, m.index) + lead;
-            const callStart = i + m.index + m[0].length;
-            let depth = 1, j = callStart, inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(callStart); break; }
-            const args = this.splitArgs(this.dropExtraRsaArgs(content.slice(callStart, j))) ?? [];
-            out += `rsa(${args.slice(0, 3).join(', ')})`;
-            i = j + 1;
-        }
-        return out;
-    }
 
-    dropExtraPreciseArgs(content: string): string {
-        const pattern = /crate::precise::Precise::(string(?:Div|Mul|Add|Sub|Mod|Eq|Gt|Ge|Lt|Le|Min|Max|Abs|Neg))\(/;
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            out += rest.slice(0, m.index);
-            const absStart = i + m.index;
-            const name = m[1];
-            const callStart = absStart + m[0].length;
-            // find balanced closing paren
-            let depth = 1;
-            let j = callStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart); break; }
-            const rawInside = content.slice(callStart, j);
-            // recurse on inside so nested Precise calls get fixed too
-            const inside = this.dropExtraPreciseArgs(rawInside);
-            const args = this.splitArgs(inside) ?? [];
-            // `stringDiv(a, b, precision)` — the 3-arg form has an
-            // explicit precision; route it to `stringDivPrec` so the
-            // precision survives (dropping it changes results, e.g.
-            // `safeTicker`'s averaged price).
-            if (name === 'stringDiv' && args.length >= 3) {
-                out += `crate::precise::Precise::stringDivPrec(${args.slice(0, 3).join(', ')})`;
-                i = j + 1;
-                continue;
-            }
-            // Determine the arity of this Precise method.
-            const unaryNames = new Set(['stringAbs', 'stringNeg']);
-            const arity = unaryNames.has(name) ? 1 : 2;
-            const trimmed = args.slice(0, arity).join(', ');
-            out += `crate::precise::Precise::${name}(${trimmed})`;
-            i = j + 1;
-        }
-        return out;
-    }
 
-    /// Paren-balanced walker. Renames `Precise::stringDiv(a, b, prec)`
-    /// (three args — explicit precision) to `Precise::stringDivPrec(...)`
-    /// so the precision argument survives `dropExtraPreciseArgs`. The
-    /// two-arg form is left untouched.
-    renamePreciseStringDivPrec(content: string): string {
-        const marker = 'crate::precise::Precise::stringDiv(';
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const idx = content.indexOf(marker, i);
-            if (idx < 0) { out += content.slice(i); break; }
-            out += content.slice(i, idx);
-            const callStart = idx + marker.length;
-            let depth = 1, j = callStart, inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\') { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(idx); break; }
-            const inside = content.slice(callStart, j);
-            const args = this.splitArgs(inside) ?? [];
-            if (args.length >= 3) {
-                out += `crate::precise::Precise::stringDivPrec(${inside})`;
-            } else {
-                out += `crate::precise::Precise::stringDiv(${inside})`;
-            }
-            i = j + 1;
-        }
-        return out;
-    }
 
     /**
      * Walks `add_element_to_object(...)` statements (paren-balanced).
@@ -8606,7 +8188,6 @@ ${arms.join('\n')}
 
         // Apply Rust-specific post-processing
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
-        content = this.rewriteHashAlgoConstants(content);
         // WS-class factories take an explicit `Value` arg. Pad the
         // zero-arg `new ArrayCacheBySymbolBySide()` form transpiled
         // from TS so it matches our factory signature.
@@ -8648,14 +8229,11 @@ ${arms.join('\n')}
         }
         // String-safe rewrites that mustn't run over keys inside "..."
         // (so e.g. `'OrderNotFound': OrderNotFound` doesn't nest).
-        content = this.rewriteBareErrorClassRefs(content);
         // `throw new <localClassVar>(msg)` → dynamic create_error(...).
         content = this.rewriteDynamicThrows(content);
         // `x = get_value(...)::new(msg)` (non-throw dynamic error
         // construction, kraken/bitmex WS handleErrorMessage).
         content = this.rewriteDynamicErrorConstruction(content);
-        // Normalize `jwt(...)` free-function calls to exactly 3 args.
-        content = this.normalizeJwtCalls(content);
         // Method names used as values (uncalled) → Value::Null.
         content = this.rewriteMethodRefsAsNull(content, ws);
         // Wrap bool exprs flowing into Value-arg positions.
@@ -8677,9 +8255,6 @@ ${arms.join('\n')}
         content = this.rewriteImplicitApiCalls(content, className);
         content = this.closeImplicitApiCalls(content);
         content = this.cloneInRefSlices(content);
-        content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
-        content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
-        content = this.dropExtraPreciseArgs(content);
         // Recover from the rust-port's stateful methodSignatures leak:
         // call sites that wrap trailing args in `&[...]` for a method
         // whose inherent def actually has fixed Value args get re-expanded.
@@ -8818,9 +8393,6 @@ ${arms.join('\n')}
         // arg lists for `self.<mut>(... )` so the two borrows don't
         // conflict at the call site.
         content = this.hoistSelfArgFromMutCall(content);
-        if (isPrediction) {
-            content = this.dropExtraRsaArgs(content);
-        }
 
         // Clone bare-identifier args passed to known cache / order-book
         // methods on local variables (`candles.get_limit(symbol, limit)`,
@@ -8903,10 +8475,6 @@ ${arms.join('\n')}
         // Box async-method recursion cycles — must run AFTER `.await` has
         // been appended, so the `.await` lands outside the `Box::pin(...)`.
         content = this.boxRecursiveAsyncCalls(content);
-
-        if (ws) {
-            content = this.regexAll(content, this.getWsRegexes());
-        }
 
         // Go-style inheritance: `super.X(...)` (emitted by the ast as
         // `self.super_x(...)`) on a subclass routes straight to the
@@ -9651,8 +9219,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         // ── 2. apply post-processing regexes ──────────────────────────────────
         basePart = this.regexAll(basePart, this.getRustRegexes(asyncMethods));
-        basePart = this.rewriteHashAlgoConstants(basePart);
-        basePart = this.rewriteBareErrorClassRefs(basePart);
         basePart = this.rewriteDynamicThrows(basePart);
         basePart = this.wrapBoolValueArgs(basePart);
         // Collapse consecutive `impl Exchange { } impl Exchange { }` blocks
@@ -9662,8 +9228,6 @@ impl std::ops::DerefMut for ${coreName} {
         ]);
 
         // Rewrite `Math.X(...)` and `Precise.X(...)` calls (paren-balanced).
-        basePart = this.rewriteNamespaceCalls(basePart, 'Math',    'crate::runtime::Math',     true);
-        basePart = this.rewriteNamespaceCalls(basePart, 'Precise', 'crate::precise::Precise',  true);
 
         // Try/catch handling: use `rewriteTryCatchAsync` (which lowers the AST's
         // `catch_unwind` marker to `futures::FutureExt::catch_unwind` and, crucially,
@@ -9692,7 +9256,6 @@ impl std::ops::DerefMut for ${coreName} {
         // Drop trailing precision arg from `Precise::stringX(a, b, precision)`
         // — our Precise wrappers accept 2 args only. The 3-arg variants in
         // TS use the 3rd as an optional precision hint. Paren-balanced.
-        basePart = this.dropExtraPreciseArgs(basePart);
 
         // Wrap variadic call sites for the hand-written above-marker methods
         // (safe_value/safe_string/extend/omit/...) into the `&[Value]` shape.
@@ -10163,22 +9726,11 @@ impl std::ops::DerefMut for ${coreName} {
                         .map((m: any) => m.name)
                 );
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
-                content = this.rewriteHashAlgoConstants(content);
-                content = this.rewriteBareErrorClassRefs(content);
             content = this.rewriteDynamicThrows(content);
                 content = this.rewriteDynamicThrows(content);
-                content = this.normalizeJwtCalls(content);
                 content = this.wrapBoolValueArgs(content);
                 // catch_unwind keeps the catch body, so a test can assert that a call throws
                 content = this.rewriteTryCatchAsync(content);
-                content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
-                content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
-                // `Precise::stringDiv(a, b, precision)` (3 args) →
-                // `Precise::stringDivPrec(...)` so the precision arg
-                // survives `dropExtraPreciseArgs` (which would otherwise
-                // truncate `stringDiv` to its 2-arg form).
-                content = this.renamePreciseStringDivPrec(content);
-                content = this.dropExtraPreciseArgs(content);
                 content = this.wrapVariadicCalls(content, this.testVariadics());
                 content = this.autoCloneCallArgs(content);
                 content = this.cloneInArrayLiterals(content);
@@ -10650,17 +10202,10 @@ impl std::ops::DerefMut for ${coreName} {
                         .map((m: any) => m.name)
                 );
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
-                content = this.rewriteHashAlgoConstants(content);
-                content = this.rewriteBareErrorClassRefs(content);
                 content = this.rewriteDynamicThrows(content);
-                content = this.normalizeJwtCalls(content);
                 content = this.wrapBoolValueArgs(content);
                 content = this.stripCatchBlocks(content);
                 content = this.unwrapCatchUnwind(content);
-                content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
-                content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
-                content = this.renamePreciseStringDivPrec(content);
-                content = this.dropExtraPreciseArgs(content);
                 content = this.wrapVariadicCalls(content, this.testVariadics());
                 content = this.autoCloneCallArgs(content);
                 content = this.cloneInArrayLiterals(content);
@@ -11233,16 +10778,9 @@ impl std::ops::DerefMut for ${coreName} {
     runExchangeTestPipeline(content: string, asyncMethods: Set<string>): string {
         content = allocLiteralBoxes(content);
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
-        content = this.rewriteHashAlgoConstants(content);
-        content = this.rewriteBareErrorClassRefs(content);
         content = this.rewriteDynamicThrows(content);
-        content = this.normalizeJwtCalls(content);
         content = this.wrapBoolValueArgs(content);
         content = this.rewriteTryCatchAsync(content);
-        content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
-        content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
-        content = this.renamePreciseStringDivPrec(content);
-        content = this.dropExtraPreciseArgs(content);
         content = this.wrapVariadicCalls(content, this.testVariadics());
         content = this.autoCloneCallArgs(content);
         content = this.cloneInArrayLiterals(content);
@@ -11653,8 +11191,6 @@ impl std::ops::DerefMut for ${coreName} {
                 }
             }
             content = this.regexAll(content, this.getRustRegexes(asyncMethods));
-            content = this.rewriteHashAlgoConstants(content);
-            content = this.rewriteBareErrorClassRefs(content);
             content = this.wrapBoolValueArgs(content);
             // `tests.rs` needs real try/catch (e.g. broker-id tests do
             // `try { createOrder } catch { capture last_request_body }`),
@@ -11663,9 +11199,6 @@ impl std::ops::DerefMut for ${coreName} {
             content = this.rewriteDynamicSelfCalls(content);
             content = this.closeImplicitApiCalls(content);
             content = this.cloneInRefSlices(content);
-            content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
-            content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
-            content = this.dropExtraPreciseArgs(content);
             content = this.expandSliceForFixedAritySelfCalls(content);
             // `exchange` is a `Value`; the `ExchangeOps` extension trait
             // supplies its method surface. A few of those methods have
