@@ -10547,7 +10547,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, (this.options != null && this.options.ContainsKey("version") ? this.options["version"] : null));
         string? version = this.safeString(parameters, "version", defaultVersion);
-        if (((getValue(api, 0) is "utaV2")) && ((path is "market/orderbook")))
+        if (((((object)((api != null && 0 < api.Count ? api[0] : null))) is "utaV2")) && ((path is "market/orderbook")))
         {
             // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
             // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file

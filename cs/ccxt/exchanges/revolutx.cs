@@ -1314,7 +1314,7 @@ public partial class revolutx : Exchange
      * @param {boolean} singleLeg whether the order has only this leg
      * @returns {object} the leg request
      */
-    public virtual object createTriggerLegRequest(object symbol, object type, object price, object triggerPrice, object leg, object singleLeg)
+    public virtual object createTriggerLegRequest(object symbol, object type, object price, object triggerPrice, IDictionary<string, object> leg, bool? singleLeg)
     {
         string? legTriggerPrice = this.safeString2(leg, "triggerPrice", "stopPrice", triggerPrice);
         if ((legTriggerPrice == null))
@@ -1327,7 +1327,7 @@ public partial class revolutx : Exchange
         string? legPrice = this.safeString(leg, "price");
         if (((legPrice == null)) && ((type is "limit")))
         {
-            if (!isTrue(singleLeg) || ((price == null)))
+            if (singleLeg != true || ((price == null)))
             {
                 throw new ArgumentsRequired ((this.id + " createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set")) ;
             }
