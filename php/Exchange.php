@@ -394,7 +394,6 @@ class BaseExchange {
         'bybit',
         'bybiteu',
         'bybitid',
-        'bydfi',
         'cex',
         'coinbase',
         'coinbaseexchange',
