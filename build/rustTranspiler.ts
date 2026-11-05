@@ -304,139 +304,7 @@ export class RustTranspilerBuilder {
     }
 
 
-    /**
-     * `throw new <Class>(msg)` where the class is a runtime value — either
-     * a local variable (digifinex `const [ExceptionClass] = …`, lbank
-     * `const ErrorClass = …`, Waves `const Exception = …`) or a dynamic
-     * lookup (krakenfutures `throw new errors[status](…)` →
-     * `get_value(&errors,&status)::new(…)`). The transpiler emits
-     * `panic!("{}", <classExpr>::new(msg))`, treating the value as a
-     * type. Rewrite to the dynamic `create_error(class, message)` helper,
-     * paren-balanced so a `msg` containing `)` isn't truncated. Real error
-     * classes (ExchangeError, OrderNotFound, …) keep their `::new`.
-     */
-    rewriteDynamicThrows(content: string): string {
-        const errorClasses = new Set(('NotSupported,ArgumentsRequired,InvalidOrder,InvalidAddress,' +
-            'BadRequest,BadResponse,AuthenticationError,ExchangeError,ExchangeNotAvailable,' +
-            'NetworkError,DDoSProtection,RateLimitExceeded,InsufficientFunds,OrderNotFound,' +
-            'InvalidNonce,PermissionDenied,AccountNotEnabled,AccountSuspended,NotImplemented,' +
-            'OperationFailed,OperationRejected,RequestTimeout,MarginModeAlreadySet,' +
-            'ManualInteractionNeeded,UnsubscribeError,ContractUnavailable,MarketClosed,' +
-            'ExchangeClosedByUser,NullResponse,InvalidProxySettings,ChecksumError,OnMaintenance,' +
-            'BadSymbol,NoChange,CancelPending,OrderNotCached,OrderImmediatelyFillable,' +
-            'OrderNotFillable,DuplicateOrderId,RestrictedLocation,AddressPending,BaseError').split(','));
-        const marker = 'panic!("{}", ';
-        let out = '';
-        let i = 0;
-        while (i < content.length) {
-            const idx = content.indexOf(marker, i);
-            if (idx < 0) { out += content.slice(i); break; }
-            const after = idx + marker.length;
-            // Scan forward (paren-balanced) for `::new(` at depth 0 — that
-            // marks the end of the class expression.
-            let p = after, depth = 0, inStr = false, escape = false, newAt = -1;
-            while (p < content.length) {
-                const c = content[p];
-                if (escape) { escape = false; p++; continue; }
-                if (c === '\\' && inStr) { escape = true; p++; continue; }
-                if (c === '"') { inStr = !inStr; p++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[') depth++;
-                    else if (c === ')' || c === ']') { if (depth === 0) break; depth--; }
-                    else if (c === ',' && depth === 0) break;
-                    else if (depth === 0 && content.startsWith('::new(', p)) { newAt = p; break; }
-                }
-                p++;
-            }
-            if (newAt < 0) { out += content.slice(i, after); i = after; continue; }
-            const classExpr = content.slice(after, newAt).trim();
-            if (errorClasses.has(classExpr)) {
-                out += content.slice(i, after);
-                i = after;
-                continue;
-            }
-            // Walk paren-balanced over the `::new(...)` argument list.
-            let depth2 = 1;
-            let j = newAt + '::new('.length;
-            let inStr2 = false, escape2 = false;
-            while (j < content.length && depth2 > 0) {
-                const c = content[j];
-                if (escape2) { escape2 = false; j++; continue; }
-                if (c === '\\' && inStr2) { escape2 = true; j++; continue; }
-                if (c === '"') { inStr2 = !inStr2; j++; continue; }
-                if (!inStr2) { if (c === '(') depth2++; else if (c === ')') depth2--; }
-                if (depth2 === 0) break;
-                j++;
-            }
-            if (depth2 !== 0) { out += content.slice(i, after); i = after; continue; }
-            const args = content.slice(newAt + '::new('.length, j);
-            out += content.slice(i, idx) + marker +
-                `crate::exchange_errors::create_error(` +
-                `&crate::runtime::stringify_param(&(${classExpr})), ` +
-                `&crate::runtime::stringify_param(&(${args})))`;
-            i = j + 1;
-        }
-        return out;
-    }
 
-    /**
-     * Dynamic error construction outside a `throw` — e.g. kraken/bitmex WS
-     * `exception = new broad[broadKey](msg)` transpiles to
-     * `exception = get_value(&broad, &broadKey)::new(msg);`, which is not
-     * valid Rust (`::new` on an expression). Rewrite to the runtime
-     * `create_error(class, message)` helper wrapped in `Value::from` so the
-     * result stays a Value. Must run AFTER `rewriteDynamicThrows`, which
-     * consumes the `panic!`-site instances of the same pattern.
-     */
-    rewriteDynamicErrorConstruction(content: string): string {
-        const marker = 'get_value(';
-        let out = '';
-        let i = 0;
-        while (i < content.length) {
-            const idx = content.indexOf(marker, i);
-            if (idx < 0) { out += content.slice(i); break; }
-            // Walk paren-balanced over the get_value(...) argument list.
-            let depth = 1, p = idx + marker.length, inStr = false, escape = false;
-            while (p < content.length && depth > 0) {
-                const c = content[p];
-                if (escape) { escape = false; p++; continue; }
-                if (c === '\\' && inStr) { escape = true; p++; continue; }
-                if (c === '"') { inStr = !inStr; p++; continue; }
-                if (!inStr) { if (c === '(') depth++; else if (c === ')') depth--; }
-                if (depth === 0) break;
-                p++;
-            }
-            if (depth !== 0 || !content.startsWith('::new(', p + 1)) {
-                out += content.slice(i, idx + marker.length);
-                i = idx + marker.length;
-                continue;
-            }
-            const classExpr = content.slice(idx, p + 1);
-            // Walk paren-balanced over the ::new(...) argument list.
-            let depth2 = 1, j = p + 1 + '::new('.length, inStr2 = false, escape2 = false;
-            while (j < content.length && depth2 > 0) {
-                const c = content[j];
-                if (escape2) { escape2 = false; j++; continue; }
-                if (c === '\\' && inStr2) { escape2 = true; j++; continue; }
-                if (c === '"') { inStr2 = !inStr2; j++; continue; }
-                if (!inStr2) { if (c === '(') depth2++; else if (c === ')') depth2--; }
-                if (depth2 === 0) break;
-                j++;
-            }
-            if (depth2 !== 0) {
-                out += content.slice(i, idx + marker.length);
-                i = idx + marker.length;
-                continue;
-            }
-            const args = content.slice(p + 1 + '::new('.length, j);
-            out += content.slice(i, idx) +
-                `Value::from(crate::exchange_errors::create_error(` +
-                `&crate::runtime::stringify_param(&(${classExpr})), ` +
-                `&crate::runtime::stringify_param(&(${args}))))`;
-            i = j + 1;
-        }
-        return out;
-    }
 
 
     // Writes index-mutations back to their source array. TS does
@@ -1380,10 +1248,20 @@ export class RustTranspilerBuilder {
                 (_: string, obj: string, name: string) =>
                     `${obj}.${toSnakeCase(name)}(`],
 
-            // (Dynamic error construction `get_value(...)::new(msg)` and
-            // `<localVar>::new(msg)` is handled by the paren-balanced
-            // `rewriteDynamicThrows` pass — a plain regex truncates a
-            // `msg` that itself contains `)`.)
+            // Bare error references emitted by the transpiler. We only
+            // rewrite when followed by `(` (function-call position); the
+            // `::new(...)` form was already converted by the transpiler's
+            // `printNewExpression`. Skipping `::` ensures we don't double-
+            // rewrite.
+            [/\b(NotSupported|ArgumentsRequired|InvalidOrder|InvalidAddress|BadRequest|BadResponse|AuthenticationError|ExchangeError|ExchangeNotAvailable|NetworkError|DDoSProtection|RateLimitExceeded|InsufficientFunds|OrderNotFound|InvalidNonce|PermissionDenied|AccountNotEnabled|AccountSuspended|NotImplemented|OperationFailed|OperationRejected|RequestTimeout|MarginModeAlreadySet|ManualInteractionNeeded|UnsubscribeError|ContractUnavailable|MarketClosed|ExchangeClosedByUser|NullResponse|InvalidProxySettings|ChecksumError|OnMaintenance|BadSymbol|NoChange|CancelPending|OrderNotCached|OrderImmediatelyFillable|OrderNotFillable|DuplicateOrderId|RestrictedLocation|AddressPending|BaseError)\b(?=\s*\()/g, (_: string, n: string) => {
+                const snake = toSnakeCase(n);
+                return `crate::exchange_errors::${snake}`;
+            }],
+            // Clean up legacy `crate::exchange_errors::X::new(...)` patterns
+            // (the transpiler emitted `X::new(...)`, our post-proc converted
+            // X to a fn path → drop the trailing `::new`).
+            [/crate::exchange_errors::([a-z_][a-z_0-9]*)::new\(/g,
+                'crate::exchange_errors::$1('],
 
             // `get_value(&self, &key)` when not followed by `(` — dynamic
             // property access on the exchange (TS `this[key]`). Route
@@ -1394,6 +1272,13 @@ export class RustTranspilerBuilder {
             // (Dynamic method call `get_value(&self, &name)(args)` is
             // handled by a paren-balanced walker after this regex pass —
             // see `rewriteDynamicSelfCalls` in transpileBaseMethods.)
+            // `BadRequest::new(...)` style references that escaped the
+            // earlier regex (because lookahead saw `::` not `(`). Route them
+            // through the runtime constructors.
+            [/\b(NotSupported|ArgumentsRequired|InvalidOrder|InvalidAddress|BadRequest|BadResponse|AuthenticationError|ExchangeError|ExchangeNotAvailable|NetworkError|DDoSProtection|RateLimitExceeded|InsufficientFunds|OrderNotFound|InvalidNonce|PermissionDenied|AccountNotEnabled|AccountSuspended|NotImplemented|OperationFailed|OperationRejected|RequestTimeout|MarginModeAlreadySet|ManualInteractionNeeded|UnsubscribeError|ContractUnavailable|MarketClosed|ExchangeClosedByUser|NullResponse|InvalidProxySettings|ChecksumError|OnMaintenance|BadSymbol|NoChange|CancelPending|OrderNotCached|OrderImmediatelyFillable|OrderNotFillable|DuplicateOrderId|RestrictedLocation|AddressPending|BaseError)::new\(/g,
+                (_: string, n: string) => `crate::exchange_errors::${toSnakeCase(n)}(`],
+
+
             // Mark async methods with async keyword (transpiler strips it)
             ...(asyncPattern.length
                 ? [[new RegExp(`pub fn (${asyncPattern})\\(`, 'g'), 'pub async fn $1(']]
@@ -1828,6 +1713,12 @@ export class RustTranspilerBuilder {
         return out;
     }
 
+
+    getWsRegexes(): any[] {
+        return [
+            [/new (\w+)Rest\(\)/g, `crate::$1::new()`],
+        ];
+    }
 
     /**
      * Walks the source skipping string contents, finding `<ident>.<field>`
@@ -8230,10 +8121,8 @@ ${arms.join('\n')}
         // String-safe rewrites that mustn't run over keys inside "..."
         // (so e.g. `'OrderNotFound': OrderNotFound` doesn't nest).
         // `throw new <localClassVar>(msg)` → dynamic create_error(...).
-        content = this.rewriteDynamicThrows(content);
         // `x = get_value(...)::new(msg)` (non-throw dynamic error
         // construction, kraken/bitmex WS handleErrorMessage).
-        content = this.rewriteDynamicErrorConstruction(content);
         // Method names used as values (uncalled) → Value::Null.
         content = this.rewriteMethodRefsAsNull(content, ws);
         // Wrap bool exprs flowing into Value-arg positions.
@@ -8475,6 +8364,10 @@ ${arms.join('\n')}
         // Box async-method recursion cycles — must run AFTER `.await` has
         // been appended, so the `.await` lands outside the `Box::pin(...)`.
         content = this.boxRecursiveAsyncCalls(content);
+
+        if (ws) {
+            content = this.regexAll(content, this.getWsRegexes());
+        }
 
         // Go-style inheritance: `super.X(...)` (emitted by the ast as
         // `self.super_x(...)`) on a subclass routes straight to the
@@ -9219,7 +9112,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         // ── 2. apply post-processing regexes ──────────────────────────────────
         basePart = this.regexAll(basePart, this.getRustRegexes(asyncMethods));
-        basePart = this.rewriteDynamicThrows(basePart);
         basePart = this.wrapBoolValueArgs(basePart);
         // Collapse consecutive `impl Exchange { } impl Exchange { }` blocks
         // into one (per-method `impl` blocks are an artifact of transpilation).
@@ -9726,8 +9618,6 @@ impl std::ops::DerefMut for ${coreName} {
                         .map((m: any) => m.name)
                 );
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
-            content = this.rewriteDynamicThrows(content);
-                content = this.rewriteDynamicThrows(content);
                 content = this.wrapBoolValueArgs(content);
                 // catch_unwind keeps the catch body, so a test can assert that a call throws
                 content = this.rewriteTryCatchAsync(content);
@@ -10202,7 +10092,6 @@ impl std::ops::DerefMut for ${coreName} {
                         .map((m: any) => m.name)
                 );
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
-                content = this.rewriteDynamicThrows(content);
                 content = this.wrapBoolValueArgs(content);
                 content = this.stripCatchBlocks(content);
                 content = this.unwrapCatchUnwind(content);
@@ -10778,7 +10667,6 @@ impl std::ops::DerefMut for ${coreName} {
     runExchangeTestPipeline(content: string, asyncMethods: Set<string>): string {
         content = allocLiteralBoxes(content);
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
-        content = this.rewriteDynamicThrows(content);
         content = this.wrapBoolValueArgs(content);
         content = this.rewriteTryCatchAsync(content);
         content = this.wrapVariadicCalls(content, this.testVariadics());
