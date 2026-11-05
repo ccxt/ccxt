@@ -3698,7 +3698,6 @@ class NewTranspiler {
         content = nativeJavaBoxLocalsRetype(content);
         content = nativeJavaSumLongLocals(content);
         content = nativeJavaIntegralMultiplySubtract(content);
-        content = nativeJavaProvenLocalCompare(content);
         content = nativeJavaNumberDivModNeg(content);
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
@@ -5810,7 +5809,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaProvenLocalCompareSelfTest(), javaMapLocalsRetypeSelfTest(), javaBoxLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaBoxLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7198,7 +7197,6 @@ function javaBaseNativePasses (transpiler: any, body: string, sourcePath?: strin
     content = nativeJavaToLongOrNull(content);
     content = nativeJavaNestedNewMaps(content);
     content = nativeJavaTypedArithmetic(content);
-    content = nativeJavaProvenLocalCompare(content);
     content = nativeJavaBoxLocalsCoreArgs(content);
     content = nativeJavaNumberProvenCompare(content);
     content = nativeJavaRemainingCoreArgs(content);
@@ -7398,124 +7396,6 @@ function javaNumericLocalsRetypeSelfTest (): string[] {
         const out = nativeJavaNumericLocalsRetype (member (body));
         const ok = expect === undefined ? out === member (body) : out.includes (expect);
         if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
-    }
-    return problems;
-}
-
-// Compares over Object locals whose single write proves the box: `((String)s).indexOf(..)` /
-// Helpers.getIndexOf (a non-null Integer) and a same-file `this.m(..)` whose every return is `this.parseToInt(..)` (Long)
-function javaLongReturningMembers (content: string): Set<string> {
-    const out = new Set<string> ();
-    if (/^    (?:public|private|protected)[^\n(]* parseToInt\(/m.test (content)) return out;
-    const lines = content.split ('\n');
-    for (let i = 0; i < lines.length; i++) {
-        const m = lines[i].match (/^    public Object (\w+)\(/);
-        if (m === null) continue;
-        let j = i + 1, returns = 0, ok = true;
-        for (; j < lines.length && !/^    \}/.test (lines[j]); j++) {
-            if (/^\s+return\b/.test (lines[j])) { returns++; ok = ok && /^\s+return this\.parseToInt\(.*\);$/.test (lines[j]); }
-            if (/->|supplyAsync/.test (lines[j])) ok = false;
-        }
-        const redeclared = lines.filter ((l) => new RegExp ('^    (?:public|private|protected)[^\\n(]* ' + m[1] + '\\(').test (l)).length;
-        if (ok && returns > 0 && redeclared === 1) out.add (m[1]);
-        i = j;
-    }
-    return out;
-}
-
-function compareProvenLocal (member: string, name: string, longMembers: Set<string>): { kind: string, boxed: boolean, text: string, nullName?: string } | undefined {
-    const esc = name.replace (/\$/g, '\\$');
-    const decls = [ ...member.matchAll (new RegExp ('^\\s+Object ' + esc + ' = (.+);$', 'gm')) ];
-    if (decls.length !== 1) return undefined;
-    const writes = member.match (new RegExp ('(?<![\\w$.])' + esc + '\\s*(?:[-+*/%]?=(?!=)|\\+\\+|--)', 'g')) ?? [];
-    const otherDecl = new RegExp ('[\\w>\\]] ' + esc + '\\s*[,);:]').test (member) || new RegExp ('\\b' + esc + '\\s*->').test (member);
-    if (writes.length !== 1 || otherDecl) return undefined;
-    const init = decls[0][1];
-    if (/^\(\(String\)[\w$.]+\)\.indexOf\("(?:[^"\\]|\\.)*"\)$/.test (init) || /^Helpers\.getIndexOf\([\w$.]+, "(?:[^"\\]|\\.)*"\)$/.test (init)) {
-        return { kind: 'long', boxed: false, text: '((Integer) ' + name + ')' };
-    }
-    const call = init.match (/^this\.(\w+)\(/);
-    if (call !== null && longMembers.has (call[1]) && promiseAllClose (init, call[0].length - 1) === init.length - 1) {
-        return { kind: 'long', boxed: true, text: '((Long) ' + name + ')', nullName: name };
-    }
-    return undefined;
-}
-
-export function nativeJavaProvenLocalCompare (content: string): string {
-    if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
-    const lines = content.split ('\n');
-    const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
-    const longMembers = javaLongReturningMembers (content);
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
-    const re = /Helpers\.(is(?:GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual))\(/g;
-    for (let s = 0; s < starts.length; s++) {
-        const from = starts[s], to = s + 1 < starts.length ? starts[s + 1] : lines.length;
-        const member = lines.slice (from, to).join ('\n');
-        if (!member.includes ('Helpers.is')) continue;
-        const operand = (text: string) => {
-            const inner = orderedCompareStripParens (text);
-            if (/^[A-Za-z_$][\w$]*$/.test (inner) && !fields.has (inner)) {
-                const p = compareProvenLocal (member, inner, longMembers);
-                if (p !== undefined) return { ...p, mine: true };
-            }
-            const o = nonNullCompareOperand (text, member, fields, content);
-            return o === undefined ? undefined : { ...o, mine: false };
-        };
-        for (let i = from; i < to; i++) {
-            const trimmed = lines[i].trim ();
-            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-            let line = lines[i], again = true;
-            while (again) {
-                again = false;
-                re.lastIndex = 0;
-                let m;
-                while ((m = re.exec (line)) !== null) {
-                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                    if (split === undefined || split.args.length !== 2) continue;
-                    const l = operand (split.args[0]), r = operand (split.args[1]);
-                    if (l === undefined || r === undefined || !(l.mine || r.mine)) continue;
-                    let native = orderedCompareNative (m[1].replace (/^is/, ''), l, r);
-                    if (native === undefined) continue;
-                    for (const o of [ l, r ]) {
-                        if (o.mine && o.nullName !== undefined) native = native.split (o.text + ' == null').join (o.nullName + ' == null').split (o.text + ' != null').join (o.nullName + ' != null');
-                    }
-                    line = line.slice (0, m.index) + native + line.slice (split.end + 1);
-                    again = true;
-                    break;
-                }
-            }
-            lines[i] = line;
-        }
-    }
-    return lines.join ('\n');
-}
-
-function javaProvenLocalCompareSelfTest (): string[] {
-    const problems: string[] = [];
-    const member = (body: string) => `    public Object m(Long since, Object x, String s)\n    {\n${body}\n    }\n`;
-    const sbe = '    public Object rd(Object a)\n    {\n        Object r = 0;\n        return this.parseToInt(r);\n    }\n';
-    const cases: [string, string, string | undefined][] = [
-        [ 'indexOf gt', '        Object q = ((String)s).indexOf("?");\n        if (Helpers.isGreaterThan(q, 0)) {}', '((((Integer) q) > 0))' ],
-        [ 'indexOf vs length', '        Object c = ((String)s).indexOf(":");\n        boolean b = Helpers.isLessThan(c, (((long) ((String)s).length()) - 1L));', '(((Integer) c) < (((long) ((String)s).length()) - 1L))' ],
-        [ 'getIndexOf ge', '        Object c = Helpers.getIndexOf(s, ":");\n        boolean b = Helpers.isGreaterThanOrEqual(c, 0);', '(((Integer) c) >= 0)' ],
-        [ 'sbe uint', '        Object bl = this.rd(x);\n        boolean b = Helpers.isLessThan(bl, 50);\n    }\n' + sbe + '    public void z()\n    {', '(bl == null || ((Long) bl) < 50)' ],
-        [ 'sbe ge', '        Object bl = this.rd(x);\n        boolean b = Helpers.isGreaterThanOrEqual(bl, 248);\n    }\n' + sbe + '    public void z()\n    {', '(bl != null && ((Long) bl) >= 248)' ],
-        // negatives: rewritten local, Object other side, non-literal indexOf arg, unknown callee, parseToInt override
-        [ 'rewritten', '        Object q = ((String)s).indexOf("?");\n        q = x;\n        boolean b = Helpers.isGreaterThan(q, 0);', undefined ],
-        [ 'object other', '        Object q = ((String)s).indexOf("?");\n        boolean b = Helpers.isGreaterThan(q, x);', undefined ],
-        [ 'indexOf var arg', '        Object q = ((String)s).indexOf(x);\n        boolean b = Helpers.isGreaterThan(q, 0);', undefined ],
-        [ 'unknown callee', '        Object bl = this.other(x);\n        boolean b = Helpers.isLessThan(bl, 50);', undefined ],
-        [ 'parseToInt override', '        Object bl = this.rd(x);\n        boolean b = Helpers.isLessThan(bl, 50);\n    }\n' + sbe + '    public Long parseToInt(Object n)\n    {\n        return null;', undefined ],
-    ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaProvenLocalCompare (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) problems.push (`compare ${name}: ${out.slice (0, 500)}`);
     }
     return problems;
 }
