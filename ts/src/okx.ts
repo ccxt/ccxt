@@ -2595,7 +2595,7 @@ export default class okx extends Exchange {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling publicGetMarketHistoryTrades multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
@@ -2604,7 +2604,9 @@ export default class okx extends Exchange {
         }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, paramsPaginate, 'tradeId', 'after', undefined, 100) as Trade[];
+            // only the history endpoint takes the 'after' cursor, it returns trades older than that tradeId
+            const paramsHistory = this.extend ({ 'method': 'publicGetMarketHistoryTrades' }, paramsPaginate);
+            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, paramsHistory, 'tradeId', 'after', undefined, 100, true) as Trade[];
         }
         const market = this.market (symbol);
         const request: Dict = {
