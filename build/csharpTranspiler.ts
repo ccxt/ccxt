@@ -8134,54 +8134,6 @@ class NewTranspiler {
         }
         return baseMethods;
     }
-    // `this.orders` / `this.myTrades` are declared `ccxt.pro.ArrayCache` and the locals
-    // initialised from their reads print the same type (build/csharp-local-types.js#
-    // CSHARP_LOCAL_WS_MEMBER_TYPES). The printer's element WRITE always casts its receiver to
-    // `List<object>` (transpiler.js ARRAY_KEYWORD), and that class cast is CS0030 on an
-    // ArrayCache (BaseCache implements IList<object> but does not derive from List<object>).
-    // The write through `((IList<object>)name)` is the identical indexer call, so retarget
-    // only that cast, only for a receiver declared `ccxt.pro.ArrayCache` in the same method.
-    retypeCacheElementWriteCasts (content: string): string {
-        if (!content.includes ('ccxt.pro.ArrayCache ') || !content.includes ('((List<object>)')) {
-            return content;
-        }
-        const memberStart = /^    (?:public|private|protected|internal|static)\b/;
-        const declaration = /^\s*ccxt\.pro\.ArrayCache ([A-Za-z_][A-Za-z0-9_]*) = /;
-        const lines = content.split ('\n');
-        let declared = new Set<string> ();
-        let changed = 0;
-        for (let i = 0; i < lines.length; i++) {
-            if (memberStart.test (lines[i])) {
-                declared = new Set<string> (); // a new member: locals do not cross methods
-                continue;
-            }
-            const match = declaration.exec (lines[i]);
-            if (match) {
-                declared.add (match[1]);
-                continue;
-            }
-            if (declared.size === 0 || !lines[i].includes ('((List<object>)')) {
-                continue;
-            }
-            for (const name of declared) {
-                const token = '((List<object>)' + name + ')';
-                if (!lines[i].includes (token)) {
-                    continue;
-                }
-                const rewritten = lines[i].split (token).join ('((IList<object>)' + name + ')');
-                // the retarget must be a pure cast-token substitution on this line
-                if (rewritten.replaceAll ('((IList<object>)' + name + ')', token) !== lines[i]) {
-                    throw new Error (`[csharp] retypeCacheElementWriteCasts: rewrite is not a cast substitution: ${lines[i]}`);
-                }
-                lines[i] = rewritten;
-                changed++;
-            }
-        }
-        if (changed === 0) {
-            return content;
-        }
-        return lines.join ('\n');
-    }
 
     transpileBaseMethods(baseExchangeFile: string, force = true) {
         // the four generated base files all come out of this one pass; `exchanges.json`
@@ -8665,7 +8617,6 @@ class NewTranspiler {
             content = this.regexAll (content, wsRegexes);
             content = nativeDeclaredWsCalls (content);
             content = this.removeRedundantClientCasts (content);
-            content = this.replaceImportedRestClasses (content, csharpVersion.imports);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             const classNameExec = classNameRegex.exec(content);
             const className = classNameExec ? classNameExec[1] : '';
@@ -8693,7 +8644,6 @@ class NewTranspiler {
         content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey)), false);
         // the copy retypes below read `isEqual(x, null)` on `object` names; the final pass rewrites them
         content = this.dropRedundantObjectBoxCasts (content);
-        content = this.retypeCacheElementWriteCasts (content);
         content = this.retypeIdentifierCopies (content);
         content = this.dropIdentityStringCasts (content);
         // the copies retyped above are declarations the native helper pass could not see yet
@@ -8704,17 +8654,6 @@ class NewTranspiler {
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
-    }
-
-    replaceImportedRestClasses (content: string, imports: any[]) {
-        const restNamespacePrefix = this.isPrediction ? 'ccxt.prediction.' : 'ccxt.';
-        for (const imp of imports) {
-            const name = imp.name;
-            if (name.endsWith('Rest')) {
-                content = content.replaceAll(name, restNamespacePrefix + name.replace('Rest', ''));
-            }
-        }
-        return content;
     }
 
     transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, csharpResult: any, force = false, ws = false, prediction = false) {
