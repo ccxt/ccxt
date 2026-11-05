@@ -354,20 +354,6 @@ function goChan3ResolvedName (fn: string, taken: Set<string>): string {
     }
 }
 
-// `import "sync"` for a file whose ws2 switches read *sync.Map
-function goChan3ResolvedImports (content: string): string {
-    if (((content.indexOf ('case *sync.Map:') < 0) && (content.indexOf ('AsyncResult[*sync.Map]') < 0)) || /^import "sync"$|^\s+"sync"$/m.test (content)) {
-        return content;
-    }
-    // ws files import ccxt; REST files in package ccxt (W17/W20/W26) import it after the package line
-    const m = /^import ccxt "[^"]+"\n/m.exec (content) || /^package \w+\n/m.exec (content);
-    if (m === null) {
-        throw new Error ('GOCHAN3: ws2 switch needs import "sync" but the file has no ccxt import line');
-    }
-    // gofmt separates the package clause from the first import with a blank line
-    const sep = m[0].startsWith ('package ') ? '\n' : '';
-    return content.substring (0, m.index + m[0].length) + sep + 'import "sync"\n' + content.substring (m.index + m[0].length);
-}
 
 type Edit = { start: number, end: number, text: string };
 type Report = (method: string, receiver: string, reason: string, types: string[]) => void;
@@ -1707,105 +1693,11 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
     return edits.length ? goChan3Splice (content, edits) : content;
 }
 
-function goChan3Unendpoint (content: string, table: Map<string, string>): string {
-    const globalKeys = [ ...table.keys () ].filter ((k) => !k.includes ('.'));
-    if (globalKeys.length === 0) {
-        return content;
-    }
-    const alt = globalKeys.join ('|');
-    if (content.indexOf ('EndpointResult[') >= 0) {
-        const tramp = new RegExp ('^(func \\(this \\*\\w+\\) (' + alt + ')Async\\([^\\n]*\\) <-chan ((?:ccxt\\.)?))EndpointResult\\[[^\\n]+\\] \\{\\n\\tch := make\\(chan (?:ccxt\\.)?EndpointResult\\[[^\\n]+\\], 1\\)\\n\\tgo this\\.(\\w+)\\(ch(?:, [^\\n]*)?\\)\\n\\treturn ch\\n\\}\\nfunc \\(this \\*\\w+\\) \\4\\(ch chan (?:ccxt\\.)?EndpointResult\\[[^\\n]+\\]([^\\n]*\\{\\n\\tdefer close\\(ch\\)\\n\\tdefer (?:ccxt\\.)?)ReturnPanicErrorT\\(ch\\)', 'gm');
-        content = content.replace (tramp, (whole, sigPrefix, _m, q, bodyName, mid) => {
-            return sigPrefix + 'AsyncResult[any] {\n\tch := make(chan ' + q + 'AsyncResult[any], 1)\n\tgo this.' + bodyName + whole.substring (whole.indexOf ('(ch'), whole.indexOf ('\n\treturn ch\n}\nfunc ')) + '\n\treturn ch\n}\nfunc ' + whole.substring (whole.indexOf ('\nfunc ') + 6, whole.indexOf ('(ch chan ')) + '(ch chan ' + q + 'AsyncResult[any]' + mid + 'ReturnPanicError(ch)';
-        });
-        const headRe = new RegExp ('\\nfunc \\(this \\*\\w+\\) \\w+\\(ch chan ((?:ccxt\\.)?)AsyncResult\\[any\\]', 'g');
-        for (let m = headRe.exec (content); m !== null; m = headRe.exec (content)) {
-            const q = m[1];
-            const bs = m.index + 1;
-            const be = content.indexOf ('\n}\n', bs) + 3;
-            if (be < 3) continue;
-            const body = content.substring (bs, be);
-            if (body.indexOf ('EndpointResult[') < 0) continue;
-            const next = body
-                .replace (/(\t+)chValue := ([\s\S]*?)\n\1ch <- (?:ccxt\.)?EndpointResult\[[^\n]+\]\{Value: chValue, Raw: chValue\}/g, '$1ch <- ' + q + 'AsyncResult[any]{Value: $2}')
-                .replace (/ch <- (?:ccxt\.)?EndpointResult\[[^\n]+\]\{Value: ([^\n]+), Raw: \1\}/g, 'ch <- ' + q + 'AsyncResult[any]{Value: $1}')
-                .replace (/ch <- (?:ccxt\.)?EndpointResult\[[^\n]+\]\{\}/g, 'ch <- ' + q + 'AsyncResult[any]{Value: nil}');
-            if (next !== body) {
-                content = content.substring (0, bs) + next + content.substring (be);
-                headRe.lastIndex = bs + next.length;
-            }
-        }
-        const iface = new RegExp ('^(\\t(?:' + alt + ')Async\\([^\\n]*\\) <-chan ((?:ccxt\\.)?))EndpointResult\\[[^\\n]+\\]$', 'gm');
-        content = content.replace (iface, '$1AsyncResult[any]');
-    }
-    if (content.indexOf ('EndpointRaw(') >= 0) {
-        const epRaw = new RegExp ('(?<![\\w.])(?:ccxt\\.)?EndpointRaw\\(((?:this|this\\.DerivedExchange|this\\.Exchange|this\\.base)\\.(?:' + alt + ')Async\\([^()\\n]*\\))\\)', 'g');
-        content = content.replace (epRaw, '$1');
-    }
-    const recvRe = new RegExp ('^(\\t+)(r\\d*) := <-(?:this|this\\.Exchange|this\\.DerivedExchange|this\\.base|exchange)(?:\\.\\([^()\\n]+\\))?\\.(?:' + alt + ')Async\\(', 'gm');
-    for (let m = recvRe.exec (content); m !== null; m = recvRe.exec (content)) {
-        const rvar = m[2];
-        const fe = content.indexOf ('\n}\n', m.index);
-        if (fe < 0) continue;
-        const scope = content.substring (m.index + m[0].length, fe);
-        const rebind = new RegExp ('\\n\\t+' + rvar + ' := ').exec (scope);
-        const limit = (rebind === null) ? scope.length : rebind.index;
-        const sub = scope.substring (0, limit);
-        const rawRe = new RegExp ('(?<![\\w.])' + rvar + '\\.Raw\\b', 'g');
-        if (rawRe.test (sub)) {
-            const fixed = sub.replace (rawRe, rvar + '.Value');
-            content = content.substring (0, m.index + m[0].length) + fixed + scope.substring (limit) + content.substring (fe);
-        }
-    }
-    const listPromoteKeys = [ ...table.entries () ].filter (([ k, v ]) => !k.includes ('.') && (goChan3ListElem (v) !== undefined) && (v !== '[]map[string]any') && (v !== '[]string')).map (([ k ]) => k);
-    if (listPromoteKeys.length && (content.indexOf ('AsyncResult[[]map[string]any]') >= 0 || content.indexOf ('MapSliceToList(') >= 0)) {
-        const pAlt = listPromoteKeys.join ('|');
-        if (new RegExp ('(?:' + pAlt + ')Async\\(').test (content)) {
-            const pTramp = new RegExp ('^(func \\(this \\*\\w+\\) (?:' + pAlt + ')Async\\([^\\n]*\\) <-chan ((?:ccxt\\.)?))AsyncResult\\[\\[\\]map\\[string\\]any\\] \\{\\n\\tch := make\\(chan (?:ccxt\\.)?AsyncResult\\[\\[\\]map\\[string\\]any\\], 1\\)\\n(\\tgo this\\.(\\w+)\\(ch(?:, [^\\n]*)?\\)\\n\\treturn ch\\n\\}\\nfunc \\(this \\*\\w+\\) \\4\\(ch chan (?:ccxt\\.)?)AsyncResult\\[\\[\\]map\\[string\\]any\\]', 'gm');
-            content = content.replace (pTramp, '$1AsyncResult[[]any] {\n\tch := make(chan $2AsyncResult[[]any], 1)\n$3AsyncResult[[]any]');
-            const pHead = new RegExp ('\\nfunc \\(this \\*\\w+\\) \\w+\\(ch chan ((?:ccxt\\.)?)AsyncResult\\[\\[\\]any\\]', 'g');
-            for (let m = pHead.exec (content); m !== null; m = pHead.exec (content)) {
-                const q = m[1];
-                const bs = m.index + 1;
-                const be = content.indexOf ('\n}\n', bs) + 3;
-                if (be < 3) continue;
-                const body = content.substring (bs, be);
-                if (body.indexOf ('AsyncResult[[]map[string]any]') < 0) continue;
-                let next = body.replace (/AsyncResult\[\[\]map\[string\]any\]/g, 'AsyncResult[[]any]');
-                const msl = /(?<![\w.])(?:ccxt\.)?MapSliceFromList\(/g;
-                for (let sm = msl.exec (next); sm !== null; sm = msl.exec (next)) {
-                    const open = sm.index + sm[0].length - 1;
-                    const close = goChanClose (next, open);
-                    next = next.substring (0, sm.index) + next.substring (open + 1, close - 1) + next.substring (close);
-                    msl.lastIndex = sm.index;
-                }
-                if (next !== body) {
-                    content = content.substring (0, bs) + next + content.substring (be);
-                    pHead.lastIndex = bs + next.length;
-                }
-            }
-            const pIface = new RegExp ('^(\\t(?:' + pAlt + ')Async\\([^\\n]*\\) <-chan (?:ccxt\\.)?)AsyncResult\\[\\[\\]map\\[string\\]any\\]$', 'gm');
-            content = content.replace (pIface, '$1AsyncResult[[]any]');
-            const pRecv = new RegExp ('^(\\t+)(r\\d*) := <-(?:this|this\\.Exchange|this\\.DerivedExchange|this\\.BaseExchange|this\\.base|exchange)(?:\\.\\([^()\\n]+\\))?\\.(?:' + pAlt + ')Async\\(', 'gm');
-            for (let m = pRecv.exec (content); m !== null; m = pRecv.exec (content)) {
-                const rvar = m[2];
-                content = content
-                    .replace (new RegExp ('(?<![\\w.])(?:ccxt\\.)?MapSliceToList\\(' + rvar + '\\.Value\\)', 'g'), rvar + '.Value')
-                    .replace (new RegExp ('(?<![\\w.])(?:ccxt\\.)?StructListBox\\(' + rvar + '\\.Value, (?:ccxt\\.)?MapElementToMap\\)', 'g'), rvar + '.Value');
-            }
-            content = content
-                .replace (/PromiseAllTyped\[\[\]map\[string\]any, ((?:ccxt\.)?)AsyncResult\[\[\]map\[string\]any\]\]\(/g, 'PromiseAllTyped[[]any, $1AsyncResult[[]any]](')
-                .replace (/(?:ccxt\.)?StructListsToLists\((r\d*\.Value), (?:ccxt\.)?MapElementToMap\)/g, '$1');
-        }
-    }
-    return content;
-}
 
 // the shared pass: retypes tabled cores, their consumers and interface lines (idempotent)
 export function goChan3Pass (content: string, table: Map<string, string> = goChan3Table ()): string {
-    content = goChan3Unendpoint (content, table);
     const shadow = goChan3Shadow (table);
-    return goChan3StructListPass (goChan3StructPass (goChan3ResolvedImports (goChan3LowerAbsent (goChan3PassMarked (content, shadow), shadow)), table), table);
+    return goChan3StructListPass (goChan3StructPass (goChan3LowerAbsent (goChan3PassMarked (content, shadow), shadow), table), table);
 }
 
 // ===== GO-CHAN3 STRUCT LISTS (W28, D4): list-of-struct channels (`AsyncResult[[]any]` -> `AsyncResult[[]T]`) =====
