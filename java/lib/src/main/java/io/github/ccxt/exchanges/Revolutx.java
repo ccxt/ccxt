@@ -1288,11 +1288,11 @@ public class Revolutx extends RevolutxApi
                 }};
                 if (Boolean.TRUE.equals(hasTakeProfit))
                 {
-                    tpslConfig.put("take_profit", this.createTriggerLegRequest(symbol, (String) (type), price, takeProfitPrice, takeProfit, singleLeg));
+                    tpslConfig.put("take_profit", this.createTriggerLegRequest((String) (symbol), (String) (type), price, takeProfitPrice, takeProfit, singleLeg));
                 }
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
-                    tpslConfig.put("stop_loss", this.createTriggerLegRequest(symbol, (String) (type), price, stopLossPrice, stopLoss, singleLeg));
+                    tpslConfig.put("stop_loss", this.createTriggerLegRequest((String) (symbol), (String) (type), price, stopLossPrice, stopLoss, singleLeg));
                 }
                 orderConfiguration.put("tpsl", tpslConfig);
             } else if (java.util.Objects.equals(type, "limit"))
@@ -1381,7 +1381,7 @@ public class Revolutx extends RevolutxApi
      * @param {boolean} singleLeg whether the order has only this leg
      * @returns {object} the leg request
      */
-    public Object createTriggerLegRequest(Object symbol, String type, Object price, String triggerPrice, Object leg, Boolean singleLeg)
+    public Map<String, Object> createTriggerLegRequest(String symbol, String type, Object price, String triggerPrice, Object leg, Boolean singleLeg)
     {
         String legTriggerPrice = this.safeString2(leg, "triggerPrice", "stopPrice", triggerPrice);
         if (java.util.Objects.equals(legTriggerPrice, null))
