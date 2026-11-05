@@ -3565,6 +3565,7 @@ export default class okx extends Exchange {
      * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
      * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
      * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
+     * @param {int} [params.expTime] request deadline as a unix timestamp in milliseconds, OKX discards the order if the request arrives later, not supported for algo orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -3610,6 +3611,7 @@ export default class okx extends Exchange {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expTime] request deadline as a unix timestamp in milliseconds, OKX discards the orders if the request arrives later
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
@@ -3788,6 +3790,7 @@ export default class okx extends Exchange {
      * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
      * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
      * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
+     * @param {int} [params.expTime] request deadline as a unix timestamp in milliseconds, OKX discards the amendment if the request arrives later, not supported for algo orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -3836,6 +3839,7 @@ export default class okx extends Exchange {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-multiple-orders
      * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expTime] request deadline as a unix timestamp in milliseconds, OKX discards the amendments if the request arrives later
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
@@ -6855,8 +6859,31 @@ export default class okx extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const isArray = Array.isArray (params);
+        // expTime is a request header, not a body field, on the endpoints that support it
+        // https://www.okx.com/docs-v5/en/#overview-transaction-timeouts-rest-api
+        let expTime: Str = undefined;
+        if ((apiName === 'private') && (method === 'POST') && ((path === 'trade/order') || (path === 'trade/batch-orders') || (path === 'trade/amend-order') || (path === 'trade/amend-batch-orders'))) {
+            if (isArray) {
+                for (let i = 0; i < params.length; i++) {
+                    const entry = params[i];
+                    const entryExpTime = this.safeString (entry, 'expTime');
+                    if (entryExpTime !== undefined) {
+                        if ((expTime !== undefined) && (expTime !== entryExpTime)) {
+                            throw new BadRequest (this.id + ' sign() requires the same expTime for every order in a batch request');
+                        }
+                        expTime = entryExpTime;
+                        params[i] = this.omit (entry, 'expTime');
+                    }
+                }
+            } else {
+                expTime = this.safeString (params, 'expTime');
+            }
+        }
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
+        if ((expTime !== undefined) && !isArray) {
+            query = this.omit (query, 'expTime');
+        }
         const baseApiUrl = this.safeString (this.urls['api'], 'rest');
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -6904,6 +6931,9 @@ export default class okx extends Exchange {
                 // 'OK-TO': '',
                 // 'OK-LIMIT': '',
             };
+            if (expTime !== undefined) {
+                privateHeaders['expTime'] = expTime;
+            }
             let auth = timestamp + method + request;
             if (method === 'GET') {
                 if (Object.keys (query).length > 0) {
