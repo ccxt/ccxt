@@ -433,6 +433,8 @@ class BaseExchange(SyncExchange):
         self.open()  # ensure self.asyncio_loop is set
         self.clients = self.clients or {}
         self.ws_dial_backoff = getattr(self, 'ws_dial_backoff', None) or {}
+        if url in self.clients and self.clients[url].retired:
+            del self.clients[url]
         if url not in self.clients:
             on_message = self.handle_message
             on_error = self.on_error
@@ -487,6 +489,8 @@ class BaseExchange(SyncExchange):
             else asyncio.ensure_future(client.connect(selected_session, backoff_delay))
 
         def after(fut):
+            if fut.cancelled() or fut.exception() is not None or client.retired or self.clients.get(url) is not client:
+                return
             # todo: decouple signing from subscriptions
             options = self.safe_value(self.options, 'ws')
             cost = self.safe_value(options, 'cost', 1)
@@ -494,6 +498,8 @@ class BaseExchange(SyncExchange):
                 async def send_message():
                     if self.enableRateLimit:
                         await client.throttle(cost)
+                    if client.retired or self.clients.get(url) is not client:
+                        return
                     try:
                         await client.send(message)
                     except ConnectionError as e:
@@ -530,6 +536,8 @@ class BaseExchange(SyncExchange):
             else asyncio.ensure_future(client.connect(selected_session, backoff_delay))
 
         def after(fut):
+            if fut.cancelled() or fut.exception() is not None or client.retired or self.clients.get(url) is not client:
+                return
             # todo: decouple signing from subscriptions
             options = self.safe_value(self.options, 'ws')
             cost = self.safe_value(options, 'cost', 1)
@@ -537,6 +545,8 @@ class BaseExchange(SyncExchange):
                 async def send_message():
                     if self.enableRateLimit:
                         await client.throttle(cost)
+                    if client.retired or self.clients.get(url) is not client:
+                        return
                     try:
                         await client.send(message)
                     except ConnectionError as e:
@@ -559,6 +569,8 @@ class BaseExchange(SyncExchange):
             del self.ws_dial_backoff[client.url]
 
     def on_error(self, client, error):
+        if self.clients.get(client.url) is not client:
+            return
         # only genuine dial failures feed the per-url exponential backoff so
         # that fresh clients against a dead endpoint do not hammer it at
         # full rate, first dials used to bypass the reconnect backoff
@@ -599,6 +611,8 @@ class BaseExchange(SyncExchange):
         return remaining / 1000.0
 
     def on_close(self, client, error):
+        if self.clients.get(client.url) is not client:
+            return
         if client.error:
             # connection closed by the user or due to an error
             pass
@@ -609,9 +623,11 @@ class BaseExchange(SyncExchange):
 
     async def close_ws_clients(self):
         if self.clients:
-            await asyncio.wait([asyncio.create_task(client.close()) for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
-            for url in self.clients.copy():
-                del self.clients[url]
+            clients = tuple(self.clients.items())
+            await asyncio.wait([asyncio.create_task(client.close()) for url, client in clients], return_when=asyncio.ALL_COMPLETED)
+            for url, client in clients:
+                if self.clients.get(url) is client:
+                    del self.clients[url]
 
     async def load_order_book(self, client, messageHash, symbol, limit=None, params={}):
         if symbol not in self.orderbooks:

@@ -14,7 +14,7 @@ except ImportError:
     def json_dumps(message):
         return json.dumps(message, separators=(',', ':'))
 
-from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture
+from asyncio import sleep, ensure_future, wait_for, gather, shield, current_task, CancelledError, TimeoutError, BaseEventLoop, Future as asyncioFuture
 from ccxt import Exchange, NetworkError, RequestTimeout
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.functions import gunzip, inflate, is_json_encoded_object
@@ -87,6 +87,8 @@ class Client(object):
         else:
             self.options = config
         self.connected = Future()
+        self.open_task = None
+        self.retired = False
         # a rejected connection future may end up with no awaiter, e.g. on
         # already-subscribed watch paths or abandoned dials, retrieving the
         # exception in a done callback keeps asyncio from dumping
@@ -188,6 +190,8 @@ class Client(object):
             return 'connection reset'
 
     def receive_loop(self):
+        if self.retired:
+            return
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
         if not self.closed():
@@ -214,6 +218,8 @@ class Client(object):
                     # raise CancelledError inside this callback, so just stop
                     return
                 exception = resolved.exception()
+                if self.retired:
+                    return
                 if exception is None:
                     self.handle_message(resolved.result())
                     self.asyncio_loop.call_soon(self.receive_loop)
@@ -229,6 +235,8 @@ class Client(object):
             self.on_close(1006)
 
     async def open(self, session, backoff_delay=0):
+        if self.retired:
+            return
         # exponential backoff for consequent connections if necessary
         if backoff_delay:
             await sleep(backoff_delay)
@@ -236,8 +244,10 @@ class Client(object):
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
         self.connectionStarted = Exchange.milliseconds()
         try:
-            coroutine = self.create_connection(session)
+            coroutine = self._create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
+            if self.retired:
+                return
             self.connecting = False
             self.connectionEstablished = Exchange.milliseconds()
             self.isConnected = True
@@ -288,22 +298,43 @@ class Client(object):
             return None
         return self.connection._conn.protocol._payload._buffer
 
+    async def _create_connection(self, session):
+        if self.retired:
+            return None
+        connection = await self.create_connection(session)
+        self.connection = connection
+        if self.retired:
+            await connection.close()
+            return None
+        return connection
+
+    def _retire(self, error=None):
+        if self.retired:
+            return
+        self.retired = True
+        self.connecting = False
+        self.isConnected = False
+        self.connected.reject(error or NetworkError('WebSocket client is closed'))
+        if self.open_task is not None and self.open_task is not current_task() and not self.open_task.done():
+            self.open_task.cancel()
+
     def connect(self, session, backoff_delay=0):
-        if not self.connection and not self.connecting:
+        if not self.retired and not self.connection and not self.connecting:
             self.connecting = True
-            ensure_future(self.open(session, backoff_delay), loop=self.asyncio_loop)
+            self.open_task = ensure_future(self.open(session, backoff_delay), loop=self.asyncio_loop)
         return self.connected
 
     def on_error(self, error):
+        self._retire(error)
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
         self.error = error
         self.reject(error)
         self.on_error_callback(self, error)
-        if not self.closed():
-            ensure_future(self.close(1006), loop=self.asyncio_loop)
+        ensure_future(self.close(1006), loop=self.asyncio_loop)
 
     def on_close(self, code):
+        self._retire(self.error)
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
         if not self.error:
@@ -399,11 +430,12 @@ class Client(object):
             send_msg = message
         else:
             send_msg = json_dumps(message)
-        if self.closed():
+        if self.retired or self.closed():
             raise ConnectionError('Cannot Send Message: Connection closed before send')
         return await self.connection.send_str(send_msg)
 
     async def close(self, code=1000):
+        self._retire(self.error)
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'closing', code)
         for future in self.futures.values():
@@ -411,6 +443,16 @@ class Client(object):
         await self.aiohttp_close()
 
     async def aiohttp_close(self):
+        self._retire(self.error)
+        interrupted = False
+        if self.open_task is not None and self.open_task is not current_task():
+            completion = gather(self.open_task, return_exceptions=True)
+            while not completion.done():
+                try:
+                    await shield(completion)
+                except CancelledError:
+                    interrupted = True
+            completion.result()
         # cancel the keepalive before closing the transport, matching the php
         # client's teardown ordering, otherwise a ping tick during the close
         # await writes into the closing transport and raises out of the ping
@@ -420,6 +462,8 @@ class Client(object):
             self.ping_looper.cancel()
         if not self.closed():
             await self.connection.close()
+        if interrupted:
+            raise CancelledError
 
     async def ping_loop(self):
         if self.verbose:
