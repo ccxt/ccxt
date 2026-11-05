@@ -3138,7 +3138,7 @@ export default class coinbase extends Exchange {
      * @param {string} [params.retail_portfolio_id] portfolio uid
      * @param {boolean} [params.is_max] Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
      * @param {string} [params.tradable_balance] amount of tradable balance
-     * @param {float} [params.reduceOnly] set to true for closing a position or use closePosition
+     * @param {boolean} [params.reduceOnly] *contract markets, market orders only* closes up to amount contracts of the open position via closePosition, limit, trigger, stop-loss, take-profit, post-only and preview reduce-only orders are not supported
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -3154,8 +3154,27 @@ export default class coinbase extends Exchange {
         };
         const reduceOnly = this.safeBool (params, 'reduceOnly');
         if (reduceOnly === true) {
-            const paramsClose = this.omit (params, 'reduceOnly');
-            paramsClose['amount'] = amount;
+            if (market['contract'] !== true) {
+                throw new NotSupported (this.id + ' createOrder() reduceOnly is supported for contract markets only');
+            }
+            const reduceOnlyTrigger = this.safeStringN (params, [ 'stopPrice', 'stop_price', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+            const reduceOnlyConditional = this.safeValueN (params, [ 'stopLoss', 'takeProfit', 'order_configuration', 'attached_order_configuration' ]);
+            if ((type !== 'market') || (reduceOnlyTrigger !== undefined) || (reduceOnlyConditional !== undefined)) {
+                throw new NotSupported (this.id + ' createOrder() reduceOnly supports plain market orders only, coinbase reduces positions with a market close_position order');
+            }
+            const reduceOnlyPostOnly = this.safeBool2 (params, 'postOnly', 'post_only', false);
+            if ((reduceOnlyPostOnly === true) || (this.safeString (params, 'timeInForce') === 'PO')) {
+                throw new NotSupported (this.id + ' createOrder() reduceOnly does not support postOnly orders');
+            }
+            const reduceOnlyPreview = this.safeBool2 (params, 'preview', 'test', false);
+            if (reduceOnlyPreview === true) {
+                throw new NotSupported (this.id + ' createOrder() reduceOnly does not support preview orders');
+            }
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires an amount argument for reduceOnly orders, use closePosition() to close the whole position');
+            }
+            const paramsClose = this.omit (params, [ 'reduceOnly', 'timeInForce', 'postOnly', 'post_only', 'marginMode', 'preview', 'test', 'cost', 'end_time', 'stopDirection', 'stop_direction' ]);
+            paramsClose['size'] = this.amountToPrecision (symbol, amount);
             return await this.closePosition (symbol, side, paramsClose);
         }
         let paramsMarketBuy = undefined;
@@ -3305,7 +3324,7 @@ export default class coinbase extends Exchange {
                 request['margin_type'] = 'CROSS';
             }
         }
-        const paramsOmitted = this.omit (paramsBase, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode' ]);
+        const paramsOmitted = this.omit (paramsBase, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'reduceOnly', 'postOnly', 'post_only', 'end_time', 'marginMode' ]);
         const preview = this.safeBool2 (paramsOmitted, 'preview', 'test', false);
         let response = undefined;
         if (preview) {
@@ -4950,8 +4969,8 @@ export default class coinbase extends Exchange {
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
-     * @param {float} [params.size] the size of the position to close, optional
+     * @param {string} [params.clientOrderId] a unique id for the close order, defaults to brokerId + '-' + uuid
+     * @param {float} [params.size] the number of contracts to close, closes the whole position if omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
@@ -4959,18 +4978,23 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
-        const paramsOmitted: Dict = this.omit (params, 'clientOrderId');
+        let clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId', 'ccxt');
+            clientOrderId = brokerId + '-' + this.uuid ();
+        }
         const request: Dict = {
             'product_id': market['id'],
+            'client_order_id': clientOrderId,
         };
-        if (clientOrderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' closePosition() requires a clientOrderId parameter');
+        const size = this.safeString (params, 'size');
+        if (size !== undefined) {
+            request['size'] = this.amountToPrecision (symbol, size);
         }
-        request['client_order_id'] = clientOrderId;
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_order_id', 'size' ]);
         const response = await this.v3PrivatePostBrokerageOrdersClosePosition (this.extend (request, paramsOmitted));
         const order = this.safeDict (response, 'success_response', {});
-        return this.parseOrder (order);
+        return this.parseOrder (order, market);
     }
 
     /**
