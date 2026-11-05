@@ -616,7 +616,6 @@ export function goIntegralArithmeticSelfTest (): string[] {
     return problems;
 }
 
-
 // ----- native ordered comparisons -----
 // Ordered comparisons whose operands the Go text types: `x := <int>` locals, native int64/int/float64
 // arithmetic, `*p` derefs, and unguarded `*int64`/`*float64` identifiers via the helper's nil table.
@@ -818,7 +817,6 @@ export function goNativeCompareSelfTest (): string[] {
     }
     return problems;
 }
-
 
 // ----- tuple / counter / early-exit comparison operands -----
 // Comparison/EvalTruthy operands the comparison pass above cannot type: Handle*AndParams tuple element-0 locals, Add-only int
@@ -1124,7 +1122,6 @@ export function goPointerNonNilArithSelfTest (): string[] {
     }
     return problems;
 }
-
 
 // ----- float NaN-algebra comparisons and BaseExchange numeric fields -----
 // Ordered comparisons the passes above leave: float `<`/`<=` print the helper's own NaN algebra
@@ -1959,7 +1956,6 @@ export function goNativeDivideCheck (): string[] {
     return problems;
 }
 
-
 // ----- integral box comparisons -----
 // Ordered comparisons on `var x any = E` locals whose every write provably boxes one integral kind
 // (int literal / Add / Sum / Subtract / Multiply of non-nil integral operands, typed native arithmetic):
@@ -2204,112 +2200,6 @@ export function goBoxedIntComparisonsSelfTest (): string[] {
     return problems;
 }
 
-// ----- Multiply/Subtract: unproven calls keep the helper; import / key-alignment helpers -----
-function goAddImportUnderHeader (content: string, pkg: string): string {
-    if (new RegExp ('^import "' + pkg + '"$', 'm').test (content) || new RegExp ('^\\s*"' + pkg + '"$', 'm').test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
-    if (at < 0) {
-        throw new Error ('no generated header to import ' + pkg + ' under');
-    }
-    lines.splice (at + 2, 0, 'import "' + pkg + '"', '');
-    return lines.join ('\n');
-}
-
-// gofmt aligns composite-literal keys per section: an entry whose value now spans lines takes a
-// single blank after its colon and splits the alignment of the single-line entries around it
-const GO_MAP_KEY_LINE_RX = /^(\t+)("(?:[^"\\]|\\.)*"|\w+):( +)(.*)$/;
-
-function goInlineMulSubSingleLine (value: string): boolean {
-    const m = goArithMask (value);
-    let depth = 0;
-    for (const c of m) {
-        if ((c === '(') || (c === '[') || (c === '{')) { depth++; } else if ((c === ')') || (c === ']') || (c === '}')) { depth--; }
-    }
-    return depth === 0;
-}
-
-function goAlignKeySection (lines: string[], from: number, to: number) {
-    let width = 0;
-    for (let i = from; i < to; i++) {
-        width = Math.max (width, GO_MAP_KEY_LINE_RX.exec (lines[i])[2].length);
-    }
-    for (let i = from; i < to; i++) {
-        const m = GO_MAP_KEY_LINE_RX.exec (lines[i]);
-        lines[i] = m[1] + m[2] + ':' + ' '.repeat (width - m[2].length + 1) + m[4];
-    }
-}
-
-function goAlignMapKeys (content: string): string {
-    const lines = content.split ('\n');
-    for (let k = 0; k < lines.length; k++) {
-        const m = GO_MAP_KEY_LINE_RX.exec (lines[k]);
-        if ((m === null) || !m[4].endsWith ('func(a, b any) any {') || (m[3] === ' ')) {
-            continue;
-        }
-        lines[k] = m[1] + m[2] + ': ' + m[4];
-        const single = (i: number) => { const e = GO_MAP_KEY_LINE_RX.exec (lines[i]); return (e !== null) && (e[1] === m[1]) && goInlineMulSubSingleLine (e[4]); };
-        let up = k;
-        while ((up > 0) && single (up - 1)) { up--; }
-        goAlignKeySection (lines, up, k);
-        let end = k + 1;
-        while ((end < lines.length) && !lines[end].startsWith (m[1] + '}')) { end++; }
-        let down = end + 1;
-        while ((down < lines.length) && single (down)) { down++; }
-        goAlignKeySection (lines, end + 1, down);
-    }
-    return lines.join ('\n');
-}
-
-
-// the key-alignment helpers above are shared (exported for reuse by other passes)
-export { goAddImportUnderHeader, goInlineMulSubSingleLine, goAlignKeySection, goAlignMapKeys };
-
-
-// ----- Divide/Mod/OpNeg/Math*: unproven calls keep the helper call -----
-// The DEREF/TOFLOAT tables, the import/realign helpers and GO_IMPORT_ALIGN_MARK are reused by later passes.
-const GO_DEREF_HELPERS = [
-    'd := func(v any) any {',
-    '\tfor {',
-    '\t\tswitch p := v.(type) {',
-    '\t\tcase *any:',
-    '\t\t\tif p == nil {',
-    '\t\t\t\treturn nil',
-    '\t\t\t}',
-    '\t\t\tv = *p',
-    '\t\t\tcontinue',
-    '\t\tcase *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any:',
-    '\t\t\tif r := reflect.ValueOf(p); !r.IsZero() {',
-    '\t\t\t\treturn r.Elem().Interface()',
-    '\t\t\t}',
-    '\t\t\treturn nil',
-    '\t\tcase map[string]any, []any, []string:',
-    '\t\t\tif reflect.ValueOf(p).IsZero() {',
-    '\t\t\t\treturn nil',
-    '\t\t\t}',
-    '\t\t}',
-    '\t\treturn v',
-    '\t}',
-    '}',
-];
-const GO_TOFLOAT_HELPERS = [
-    'f := func(v any) float64 {',
-    '\tr := reflect.ValueOf(v)',
-    '\tswitch r.Kind() {',
-    '\tcase reflect.Int, reflect.Int64:',
-    '\t\treturn float64(r.Int())',
-    '\tcase reflect.Float64:',
-    '\t\treturn r.Float()',
-    '\tcase reflect.String:',
-    '\t\tif x, err := (strconv.ParseFloat)(r.String(), 64); err == nil {',
-    '\t\t\treturn x',
-    '\t\t}',
-    '\t}',
-    '\treturn math.NaN()',
-    '}',
-];
 export function goAddImport (content: string, pkg: string): string {
     if (new RegExp ('^import "' + pkg + '"$', 'm').test (content) || new RegExp ('^\\s+"' + pkg + '"$', 'm').test (content)) {
         return content;
@@ -2324,103 +2214,6 @@ export function goAddImport (content: string, pkg: string): string {
 }
 
 type GoKeyAligner = { alignGoCompositeEntries: (entries: string[]) => string[], findGoTrailingCommentStart: (line: string) => number };
-
-// a rewritten call that sits in a keyed composite-literal entry turns that entry multi-line, which
-// ends gofmt's alignment section there: re-run the printer's key alignment over the whole literal
-function goRealignKeys (lines: string[], at: number, aligner: GoKeyAligner): void {
-    const ind = /^\t*/.exec (lines[at])[0].length;
-    const depth = (l: string) => /^\t*/.exec (l)[0].length;
-    let top = at;
-    while ((top > 0) && (lines[top - 1].trim () !== '') && (depth (lines[top - 1]) >= ind)) {
-        top--;
-    }
-    let bottom = at;
-    while ((bottom + 1 < lines.length) && (lines[bottom + 1].trim () !== '') && (depth (lines[bottom + 1]) >= ind)) {
-        bottom++;
-    }
-    if ((top === 0) || !/\{$/.test (lines[top - 1]) || (depth (lines[top - 1]) !== ind - 1) || (lines[bottom + 1] === undefined) || !/^\t*\}/.test (lines[bottom + 1]) || (depth (lines[bottom + 1]) !== ind - 1)) {
-        return;
-    }
-    const entries: string[][] = [];
-    for (let k = top; k <= bottom; k++) {
-        const l = lines[k];
-        const starts = (depth (l) === ind) && !/^\t*[})\]]/.test (l);
-        if (starts) {
-            if (!/^\t*"(?:[^"\\]|\\.)*": /.test (l)) {
-                return;                 // a comment line, an unkeyed element or a spread: leave the literal alone
-            }
-            entries.push ([ l ]);
-        } else if (entries.length === 0) {
-            return;
-        } else {
-            entries[entries.length - 1].push (l);
-        }
-    }
-    const texts = entries.map ((e) => {
-        const first = e[0].replace (/^(\t*"(?:[^"\\]|\\.)*":) +/, '$1 ');
-        const all = [ first, ...e.slice (1) ];
-        const last = all[all.length - 1];
-        const ci = aligner.findGoTrailingCommentStart (last);
-        const code = (ci < 0) ? last.trimEnd () : last.slice (0, ci).trimEnd ();
-        const bare = code.endsWith (',') ? code.slice (0, -1) : code;
-        all[all.length - 1] = (ci < 0) ? bare : bare + ' ' + last.slice (ci).trimEnd ();
-        return all.join ('\n');
-    });
-    if (entries.some ((e) => !e[e.length - 1].replace (/\s*\/\/.*$/, '').trimEnd ().endsWith (','))) {
-        return;
-    }
-    const aligned = aligner.alignGoCompositeEntries (texts).join ('\n').split ('\n');
-    lines.splice (top, bottom - top + 1, ...aligned);
-}
-
-const GO_IMPORT_ALIGN_MARK = '\u0001hx4G36\u0001';
-
-
-
-// ----- ordered comparisons: unproven calls keep the helper -----
-// A comparison no typed pass proved keeps the plain IsLessThan/IsGreaterThan/... call.
-// GO_UNBOX_HELPERS / GO_EQ_HELPERS and the reflect-import helper are reused by the IsEqual pass.
-const GO_UNBOX_HELPERS = 'for _, p := range []*any{&a, &b} {\n\tfor {\n\t\tswitch (*p).(type) {\n\t\tcase *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any, *any:\n\t\t\tr := reflect.ValueOf(*p)\n\t\t\t_, again := (*p).(*any)\n\t\t\tif *p = nil; !r.IsNil() {\n\t\t\t\t*p = r.Elem().Interface()\n\t\t\t}\n\t\t\tif again && *p != nil {\n\t\t\t\tcontinue\n\t\t\t}\n\t\tcase map[string]any, []any, []string:\n\t\t\tif reflect.ValueOf(*p).IsNil() {\n\t\t\t\t*p = nil\n\t\t\t}\n\t\t}\n\t\tbreak\n\t}\n}\nnum := func(v any) (int64, float64, int) {\n\tswitch n := v.(type) {\n\tcase int:\n\t\treturn int64(n), float64(n), 1\n\tcase int64:\n\t\treturn n, float64(n), 1\n\tcase float64:\n\t\treturn 0, n, 2\n\t}\n\treturn 0, 0, 0\n}\nia, fa, ka := num(a)\nib, fb, kb := num(b)\ngt := (a != nil && b == nil) || (ka == 1 && kb == 1 && ia > ib) || (ka*kb > 1 && fa > fb)\n';
-const GO_EQ_HELPERS = 'eq := (a == nil && b == nil) || (ka == 1 && kb == 1 && ia == ib) || (ka*kb > 1 && fa == fb)\nswitch x := a.(type) {\ncase bool, string:\n\teq = x == b\ncase uint8:\n\tswitch y := b.(type) {\n\tcase uint8:\n\t\teq = x == y\n\tcase int64:\n\t\teq = int64(x) == y\n\tcase float64:\n\t\teq = float64(x) == y\n\t}\n}\nif t := reflect.TypeOf(a); t != nil && t.Kind() == reflect.Pointer && t.Elem().PkgPath() == "sync" && t.Elem().Name() == "Map" && reflect.ValueOf(a).IsNil() {\n\teq = true\n}\n';
-
-function goAddReflectImport (content: string): string {
-    if (/^import "reflect"$/m.test (content) || /^\s*"reflect"$/m.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
-    if (at < 0) {
-        return content;
-    }
-    lines.splice (at + 2, 0, 'import "reflect"', '');
-    return lines.join ('\n');
-}
-
-
-
-// ----- type checks: see the truthiness / type-check block below -----
-
-
-// ----- parse & coercion helpers -----
-// Parse & coercion helpers (ToString, StringArg, ParseInt, ToFloat64, Int64Arg): a call collapses to the plain
-// value or conversion only when the operand's single declaration (a `var` or signature param) proves a scalar
-// type the helper passes through unchanged; every other call keeps the helper.
-// ParseFloat (returns any, nil on failure) and ToFixed always keep the helper; so do `ParseInt(r.Value)`
-// (`*int64`, nil maps to math.MinInt64) and `ToString(this.Nonce())` (`any`, overridden per exchange).
-function goParseNativeCall (helper: string, type: string | undefined, arg: string): string | undefined {
-    const table: { [h: string]: { [t: string]: string } } = {
-        'ToString': { 'string': '$' },
-        'StringArg': { 'string': '$' },
-        'ParseInt': { 'int64': '$', 'int': 'int64($)' },
-        'Int64Arg': { 'int64': '$', 'int': 'int64($)' },
-        'ToFloat64': { 'float64': '$', 'int64': 'float64($)', 'int': 'float64($)' },
-    };
-    const form = (type === undefined) ? undefined : table[helper]?.[type];
-    return (form === undefined) ? undefined : form.replace ('$', arg);
-}
-
-
-
 
 // `if IsEqual(this.M(args), true) {` where M is a method of the same receiver in this file whose every
 // `return` yields a bool literal, nil or the try/catch carrier `ret__`/bare return: the value is never a pointer
@@ -2461,17 +2254,6 @@ export function goIsEqualBoolMethodCheck (): string[] {
     if (goIsEqualBoolMethod (other) !== other) { problems.push ('bool method: non-bool return rewritten'); }
     return problems;
 }
-
-// `x != nil && x != nil` / `(x == nil) || (x == nil)` from adjacent `!== undefined` / `!== null`: go vet rejects them
-function goCollapseDuplicateNilTest (text: string): string {
-    let prev = '';
-    while (prev !== text) {
-        prev = text;
-        text = text.replace (/(?<![\w.)\]])(\(?)(\w+ [!=]= nil)(\)?) (&&|\|\|) \1\2\3(?![\w.\[(])/g, '$1$2$3');
-    }
-    return text;
-}
-
 
 // ----- truthiness / type-check helpers -----
 // Truthiness / type-check helpers: a call whose single operand is a once-declared typed local or parameter prints the
@@ -2738,40 +2520,4 @@ export function goInlineStrCheck (aligner?: GoKeyAligner): string[] {
     ok (goInlineStr (typed, aligner) === typed && goInlineStr (sl, aligner) === sl, 'not idempotent');
     return problems;
 }
-
-// ----- case & affix string helpers -----
-// Case & affix string helpers (ToUpper/ToLower/Trim/StartsWith/EndsWith) on operands proven to be a plain Go
-// `string` print as the stdlib call itself (`strings.ToUpper(s)`, `strings.HasPrefix(s, p)`); any other site keeps
-// the helper call. The helpers derefScalar their operand and ToString the affix, so a native call on an `any` /
-// `*string` would change behaviour (or not compile). PadStart/PadEnd/Capitalize have no stdlib equivalent: helper.
-function goProvenString (text: string, masked: string, at: number, arg: string): boolean {
-    let t = arg.trim ();
-    while (t.startsWith ('(') && (goArithClose (goArithMask (t), 0) === t.length - 1)) {
-        t = t.slice (1, -1).trim ();
-    }
-    if (/^"(?:[^"\\\n]|\\.)*"$/.test (t) || /^`[^`]*`$/.test (t)) {
-        return true;
-    }
-    // a call whose Go return type is `string` (helpers / stdlib): the value is a plain string, never nil
-    const call = /^(?:ccxt\.)?(ToString|ToUpper|ToLower|Trim|PadStart|PadEnd|strings\.(?:ToUpper|ToLower|TrimSpace|Replace|ReplaceAll|Join|Repeat|TrimPrefix|TrimSuffix)|this\.Capitalize)\(/.exec (t);
-    if (call) {
-        const mt = goArithMask (t);
-        return goArithClose (mt, call[0].length - 1) === t.length - 1;
-    }
-    if (!/^[A-Za-z_]\w*$/.test (t)) {
-        return false;
-    }
-    const start = masked.lastIndexOf ('\nfunc ', at) + 1;
-    if (start <= 0) {
-        return false;
-    }
-    const eol = masked.indexOf ('\n', start);
-    const end = masked.indexOf ('\n}\n', start);
-    if ((eol < 0) || (end < 0) || (end < at)) {
-        return false;
-    }
-    // exactly one declaration in the enclosing func, typed `string`: Go's static typing keeps every write a string
-    return goArithDeclaredType (masked.slice (eol, end + 2), masked.slice (start, eol), t) === 'string';
-}
-
 

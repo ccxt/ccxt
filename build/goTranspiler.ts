@@ -152,7 +152,6 @@ const exchangeIds = exchanges.ids;
 const exchangeIdsWs = exchanges.ws;
 const predictionIds = exchanges.prediction || [];
 const predictionWsIds = exchanges.predictionWs || [];
-const exchangeIdsPrediction = predictionIds; // alias used by the runMain/base-method paths
 let transpiledExchanges = exchangeIds;
 
 let __dirname = new URL('.', import.meta.url).pathname;
@@ -487,58 +486,6 @@ function goParamNilCompareText (fn: string, isEqualFn: string): string {
 export function goParamNativeNilCompares (content: string, isEqualFn: string): string {
     return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goParamNilCompareText (fn, isEqualFn)) as any);
 }
-
-// One level out from the caller-fed parameter above: a local `any` boxed from a method THIS FILE
-// declares with a pointer result. The printer types a `Str` return as `*string`, so
-// `var timeInForce any = this.ParseOrderTimeInForce(…)` (mexc.go) boxes the pointer itself, and
-// the printer's own local proof (goAnyLocalHoldsPointer) only knows its helper-return table —
-// it prints a native `timeInForce == nil`, false for `(*string)(nil)`, so the guard never runs
-// and the parsed order loses its timeInForce (mexc createOrder, STATIC_RESPONSE: `[timeInForce]
-// computed: <empty> stored: IOC/FOK`). The method's Go result type is read off the text being
-// written (the only place that spells it) and IsEqual() derefs the box, which is the comparison
-// master emitted. Resolved per function body: the same name can be a proven local elsewhere.
-function goPointerReturnMethods (content: string): Set<string> {
-    const methods = new Set<string> ();
-    const signature = /\nfunc \(this \*[\w.]+\) (\w+)\([^)\n]*\) \*[\w.[\]]+ \{/g;
-    let match: RegExpExecArray | null;
-    while ((match = signature.exec (content)) !== null) {
-        methods.add (match[1]);
-    }
-    return methods;
-}
-
-function goPointerLocalNilCompareText (fn: string, methods: Set<string>, isEqualFn: string): string {
-    if (!methods.size) {
-        return fn;
-    }
-    const sigEnd = fn.indexOf ('{');
-    if (sigEnd < 0) {
-        return fn;
-    }
-    const body = fn.slice (sigEnd);
-    const callee = 'this\\.(?:Exchange\\.|BaseExchange\\.)?(?:' + Array.from (methods).join ('|') + ')\\(';
-    const anyLocals = new Set ((fn.match (/var (\w+) any\b/g) || []).map ((decl: string) => decl.split (' ')[1]));
-    const names = new Set<string> ();
-    // the declaration and the reassignment form, the two shapes the printer's local proof reads
-    const decl = new RegExp ('var (\\w+) any = ' + callee, 'g');
-    const assign = new RegExp ('(?<![.\\w*"])(\\w+) = ' + callee, 'g');
-    let match: RegExpExecArray | null;
-    while ((match = decl.exec (body)) !== null) {
-        if (anyLocals.has (match[1])) {
-            names.add (match[1]);
-        }
-    }
-    while ((match = assign.exec (body)) !== null) {
-        if (anyLocals.has (match[1])) {
-            names.add (match[1]);
-        }
-    }
-    for (const name of names) {
-        fn = fn.replace (new RegExp ('(?<![.\\w*"])' + name + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
-    }
-    return fn;
-}
-
 
 // Self-test for the caller-fed `any` parameter rule: the bare parameter keeps the deref-aware
 // helper, the GetArg-bound optional and the typed local keep the printer's native comparison,
@@ -1356,7 +1303,6 @@ function goStringLiteralSelfTest (): string[] {
     return problems;
 }
 
-
 // Self-test for the DerefScalar() redundancy proof: a shim-only local loses the wrap, and
 // every other read shape keeps it.
 function goDerefWrapSelfTest (): string[] {
@@ -1556,7 +1502,6 @@ function guardMultiSendCores (content: string): string {
     }
     return result.join ('\n');
 }
-
 
 // JS `x[key].push (v)` mutates the array the slot holds; Go cannot take the address of a
 // map slot or a slice element, so the printer copies the receiver into `retResN` and the
@@ -1768,19 +1713,6 @@ function goTextWritesName (maskedLine: string, name: string): boolean {
     return patterns.some ((rx: RegExp) => rx.test (maskedLine));
 }
 
-// a read of the local a `string` declaration cannot carry, or one that would observe the
-// box instead of the element: a nil comparison, `IsEqual(x, nil)`, a type assertion, len
-function goTextReadIsHazard (maskedLine: string, name: string): boolean {
-    const patterns = [
-        new RegExp ('\\b' + name + '\\s*[!=]=\\s*nil\\b'),
-        new RegExp ('\\bnil\\s*[!=]=\\s*' + name + '\\b'),
-        new RegExp ('\\bIsEqual\\s*\\(\\s*' + name + '\\s*,\\s*nil\\s*\\)'),
-        new RegExp ('\\b' + name + '\\s*\\.\\s*\\('),
-        new RegExp ('\\b(?:len|cap)\\s*\\(\\s*' + name + '\\s*\\)'),
-    ];
-    return patterns.some ((rx: RegExp) => rx.test (maskedLine));
-}
-
 // `var x any = [ccxt.]GetValue(s, i)` -> `var x string = s[i]` when `s` is a `[]string`
 // local and the declaration heads a counting loop bounded by `len(s)` (directly or via an
 // unwritten int local); any write to the counter or slice, or a hazard read, keeps `any`.
@@ -1796,7 +1728,6 @@ const GO_SAFE_ACCESSOR_DEFAULT_ARG_COUNT: { [name: string]: number } = {
 };
 
 const GO_ACCESS_DEREF_CONSUMERS = [ 'SafeStringPtr', 'IsEqual', 'EvalTruthy', 'IsString', 'IsArray', 'ToString', 'ParseInt', 'Add', 'GetValue' ];
-const GO_ACCESS_NON_NIL_MAP_INIT = /^(?:map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$|this\.(?:Extend|DeepExtend)\()/;
 const GO_ACCESS_SCALAR_TYPES = [ 'string', 'int64', 'float64', 'bool', 'int' ];
 // value types derefScalar passes through unchanged (it only unwraps pointers)
 const GO_ACCESS_PLAIN_VALUE_TYPES = [ ...GO_ACCESS_SCALAR_TYPES, 'map[string]any', '[]any', '[]string' ];
@@ -2801,162 +2732,6 @@ function rewriteMarketRowReads (lines: string[], masked: string[], start: number
     }
 }
 
-// `GetValue(ob, "asks"|"bids")` -> `ob.GetAsks()`/`ob.GetBids()` on a never-written, proven non-nil
-// OrderBookInterface local; a cached book read right after its create-if-absent guard is typed first.
-const GO_OB_CTOR = /^this\.(?:Indexed|Counted)?OrderBook\(.*\)$/;
-
-
-// a stored book is present at line k: an `if !(InOp(this.Orderbooks, key))` block right above that ends by
-// storing a new book (key proven non-nil) or by leaving, or an enclosing `if InOp(this.Orderbooks, key)`
-const GO_OB_STORE_WRITE = /\b(?:AddElementToObject|Remove)\(this\.Orderbooks\b|this\.Orderbooks\.(?:Store|Delete)\(/;
-
-function orderBookKeyPresent (lines: string[], start: number, k: number, ind: string, key: string, keyNonNil: (at: number) => boolean): boolean {
-    const pkg = '(?:ccxt\\.)?';
-    const negGuard = new RegExp ('^' + ind + 'if !\\(' + pkg + 'InOp\\(this\\.Orderbooks, ' + key + '\\)\\) \\{$');
-    if (lines[k - 1] === ind + '}') {
-        let open = k - 2;
-        while ((open > start) && !(lines[open].startsWith (ind) && !lines[open].startsWith (ind + '\t'))) {
-            open--;
-        }
-        if ((open <= start) || !negGuard.test (lines[open])) {
-            return false;
-        }
-        let last = k - 2;
-        while ((last > open) && /^\s*(?:\/\/.*)?$/.test (lines[last])) {
-            last--;
-        }
-        const tail = lines[last];
-        if (!tail.startsWith (ind + '\t') || tail.startsWith (ind + '\t\t')) {
-            return false;
-        }
-        const body = tail.trim ();
-        if ((body === 'return') || (body === 'continue')) {
-            return true;
-        }
-        const stored = new RegExp ('^(?:' + pkg + 'AddElementToObject\\(this\\.Orderbooks, ' + key + ', |this\\.Orderbooks\\.Store\\(' + key + ', )(.*)\\)$').exec (body);
-        if ((stored === null) || !keyNonNil (k)) {
-            return false;
-        }
-        if (GO_OB_CTOR.test (stored[1])) {
-            return true;
-        }
-        // a local declared from a book constructor in the same block
-        const local = stored[1];
-        const declRx = new RegExp ('^' + ind + '\\tvar ' + local + ' ' + pkg + 'OrderBookInterface = (.*)$');
-        for (let j = open + 1; j < last; j++) {
-            const d = declRx.exec (lines[j]);
-            if (d !== null) {
-                return GO_OB_CTOR.test (d[1]);
-            }
-        }
-        return false;
-    }
-    if (ind.length < 2) {
-        return false;
-    }
-    const outer = ind.substring (1);
-    const posGuard = new RegExp ('^' + outer + 'if ' + pkg + 'InOp\\(this\\.Orderbooks, ' + key + '\\) \\{$');
-    for (let j = k - 1; j > start; j--) {
-        if (lines[j].startsWith (ind) || /^\s*$/.test (lines[j])) {
-            if (GO_OB_STORE_WRITE.test (lines[j])) {
-                return false;
-            }
-            continue;
-        }
-        return posGuard.test (lines[j]);
-    }
-    return false;
-}
-
-function rewriteOrderBookSideReads (lines: string[], masked: string[], start: number, end: number) {
-    const maskedFunc = masked.slice (start, end + 1).join ('\n');
-    const written = (name: string, declLine: number): boolean => {
-        const w = new RegExp ('(?<![\\w.])' + name + '\\b[^\\n=(]*(?<![=!<>:])=(?!=)|&\\s*' + name + '\\b|(?<![\\w.])' + name + '\\s*(?:\\+\\+|--)');
-        for (let k = start + 1; k < end; k++) {
-            if ((k !== declLine) && w.test (masked[k])) {
-                return true;
-            }
-        }
-        return false;
-    };
-    const declLineOf = (name: string): number => {
-        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
-        if ((decl === undefined) || (decl.index === undefined)) {
-            return -1;
-        }
-        return start + maskedFunc.substring (0, decl.index).split ('\n').length - 1;
-    };
-    // the key is a string, or a *string dereferenced earlier on a line whose block encloses the read
-    const { 'blocks': blocks } = goTextBlocks (masked);
-    const keyNonNil = (key: string, at: number): boolean => {
-        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
-        if ((decl === undefined) || written (key, (decl.index === undefined) ? -1 : declLineOf (key))) {
-            return false;
-        }
-        if (decl.type === 'string') {
-            return true;
-        }
-        if (decl.type !== '*string') {
-            return false;
-        }
-        const deref = new RegExp ('(?<![\\w.)\\]])\\*' + key + '\\b');
-        for (let k = start + 1; k < at; k++) {
-            if (!deref.test (masked[k]) || /^\s*(?:if|else|for|switch|case|\})/.test (masked[k]) || /&&|\|\|/.test (masked[k])) {
-                continue;
-            }
-            const block = goTextEnclosingBlock (blocks, k);
-            if ((block !== undefined) && (block.open <= at) && (at <= block.close)) {
-                return true;
-            }
-        }
-        return false;
-    };
-    const books = new Set<string> ();
-    for (let k = start + 3; k < end; k++) {
-        const m = /^(\s*)var (\w+) any = ((?:ccxt\.)?)GetValue\(this\.Orderbooks, (\w+)\)$/.exec (lines[k]);
-        if ((m === null) || (masked[k] !== lines[k])) {
-            continue;
-        }
-        const [ , ind, name, pkg, key ] = m;
-        if (!orderBookKeyPresent (lines, start, k, ind, key, (at: number) => keyNonNil (key, at)) || (declLineOf (name) !== k) || written (name, k)
-            || written (key, declLineOf (key))) {
-            continue;
-        }
-        lines[k] = ind + 'var ' + name + ' ' + pkg + 'OrderBookInterface = ' + pkg + 'OrderBookTyped(' + pkg + 'GetValue(this.Orderbooks, ' + key + '))';
-        books.add (name);
-    }
-    const isBook = (name: string, at: number): boolean => {
-        const k = declLineOf (name);
-        if ((k < 0) || (k >= at) || written (name, k)) {
-            return false;
-        }
-        if (books.has (name)) {
-            return true;
-        }
-        const m = /^\s*var \w+ (?:ccxt\.)?OrderBookInterface = (.*)$/.exec (lines[k]);
-        return (m !== null) && (GO_OB_CTOR.test (m[1]) || /\.\((?:ccxt\.)?OrderBookInterface\)$/.test (m[1]));
-    };
-    for (let k = start + 1; k < end; k++) {
-        if (masked[k].indexOf ('GetValue(') < 0) {
-            continue;
-        }
-        const m = masked[k];
-        lines[k] = lines[k].replace (/(?<![\w.])(?:ccxt\.)?GetValue\((\w+), "(asks|bids)"\)/g, (all: string, name: string, side: string, at: number) => {
-            const head = all.substring (0, all.indexOf ('(') + 1 + name.length);
-            if ((m.substr (at, head.length) !== head) || !isBook (name, k)) {
-                return all;
-            }
-            return name + '.Get' + side[0].toUpperCase () + side.slice (1) + '()';
-        });
-        const side = /^(\s*)var (\w+) any = (\w+\.Get(?:Asks|Bids)\(\))$/.exec (lines[k]);
-        if ((side !== null) && (declLineOf (side[2]) === k) && !written (side[2], k)) {
-            const pkg = /(?:^|\n)import ccxt "/.test (lines.slice (0, start).join ('\n')) ? 'ccxt.' : '';
-            lines[k] = side[1] + 'var ' + side[2] + ' ' + pkg + 'IOrderBookSide = ' + side[3];
-        }
-    }
-}
-
-
 // the loop bound is len(slice), GetArrayLength(slice), or an int local `= len(slice)` that
 // is declared once before the loop, in a scope still open at it, and never written
 function goTextLoopBoundIsLen (maskedLines: string[], blocks: any[], depth: number[], fn: any, body: any, bound: string, slice: string, reserved: string[]): boolean {
@@ -3112,13 +2887,6 @@ function goLoopScopedStringSliceDeclaration (maskedLines: string[], blocks: any[
         return undefined;
     }
     return { 'type': '[]string', 'index': 0, 'line': maskedLines[holding[0][0]] };
-}
-
-// the pass has to run inside formatGoSource, not only in its own self-test
-function goMarketsByIdStoreWiredCheck (): string[] {
-    const src = 'package ccxt\n\nfunc (this *X) f() any {\n\tthis.Markets_by_id.Store("k", 1)\n\treturn nil\n}\n';
-    const out = formatGoSource ('selftest.go', src);
-    return out.includes ('\tthis.Markets_by_id["k"] = 1\n') ? [] : [ 'go markets-by-id write: not wired into formatGoSource: ' + out ];
 }
 
 // Bounds-guard func literal around a typed element read: the `if i >= 0 && i < len(list)` closure goes when the index
@@ -5756,7 +5524,6 @@ class NewTranspiler {
         this.setupTranspiler();
         // this.transpiler.goTranspiler.VAR_TOKEN = 'var'; // tmp fix
 
-
         this.pythonStandardLibraries = {
             'hashlib': 'hashlib',
             'math': 'math',
@@ -7039,7 +6806,6 @@ class NewTranspiler {
 
         const goErrors = intellisense (root as any, 'BaseError', GoMakeErrorFile, undefined);
 
-
         // createError function
         const caseStatements = errorNames.map(error => {
             return`\tcase "${error}":
@@ -7162,7 +6928,6 @@ ${constStatements.join('\n')}
         // sortedList.forEach( i => {
         //     console.log(i)
         // });
-
 
         // the `[ value, params ]` tuple helpers return a concrete `[]any` (see
         // coerceTupleHelperSignatures) so the destructuring holders can carry the real slice type
@@ -7411,7 +7176,6 @@ ${constStatements.join('\n')}
         }
     }
 
-
     createDynamicInstanceFile(ws = false, prediction = false, force = true){
         const subFolder = ws ? '/pro' : (prediction ? '/prediction' : '');
         const dynamicInstanceFile = `./go/v4${subFolder}/exchange_dynamic.go`;
@@ -7453,7 +7217,6 @@ ${caseStatements.join('\n')}
 
         fs.writeFileSync (dynamicInstanceFile, formatGoSource (dynamicInstanceFile, normalizeGoFileHeader (alignGoTrailingComments (file))));
     }
-
 
     createTypedInterfaceFile(force = true){
         if (skipUpToDateStage ('go', 'typed interface file', force, [
@@ -7571,7 +7334,6 @@ ${caseStatements.join('\n')}
         fs.writeFileSync (TYPED_WS_INTERFACE_FILE, formatGoSource (TYPED_WS_INTERFACE_FILE, normalizeGoFileHeader (alignGoTrailingComments (file))));
     }
 
-
     camelize(str: string) {
         var res =  str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
           if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
@@ -7579,7 +7341,6 @@ ${caseStatements.join('\n')}
         });
         return res.replaceAll('-', '');
       }
-
 
     getGoExamplesWarning() {
         return [
@@ -8705,7 +8466,6 @@ ${caseStatements.join('\n')}
             content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
         }
 
-
         if (isExtended) {
             content = content.replace(/this.Exchange.Describe/gm, `this.${baseClass}.Describe`);
         }
@@ -9256,7 +9016,6 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // apply 'getPreTranspilationRegexes' here, bcz in GO we don't have pre-transpilation regexes
                 [/exchange.JsonStringifyWithNull/g, 'JsonStringify'],
                 
-
 
                 // [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 // [ /throw new Error/g, 'throw new Exception' ],
@@ -9876,7 +9635,6 @@ async function runLocalTypeAudit () {
     process.exit (pass ? 0 : 1);
 }
 
-
 async function runMain () {
     if (process.argv.includes ('--audit-local-types')) {
         await runLocalTypeAudit ();
@@ -9984,8 +9742,6 @@ const GO_TUPLE_PLAIN_ELEMENTS: { [producer: string]: string[] } = {
 };
 // consumers that apply derefScalar to their argument first, so GetValue's own deref is redundant
 const GO_TUPLE_DEREF_CONSUMERS: string[] = [ 'MapTyped', 'ListTyped', 'SafeStringPtr', 'SafeBoolPtr', 'Float64PtrTyped' ];
-
-
 
 if (isMainEntry (import.meta.url)) {
     await runMain ();
@@ -10558,30 +10314,6 @@ function goAsyncTupleIndexSelfTest (): string[] {
     return problems;
 }
 
-
-// stub names every generated `<id>_api.go` declares only as EndpointResult[map[string]any]
-// (a name some exchange types as a list or string is left alone)
-// `var`: overwriteFileAndFolder runs from main before this module tail is evaluated
-var GO_ENDPOINT_MAP_STUBS: Set<string> | undefined;
-function goEndpointMapStubNames (): Set<string> {
-    if (GO_ENDPOINT_MAP_STUBS === undefined) {
-        const sig = /^func \(this \*\w+\) (\w+)\(args \.\.\.any\) <-chan (?:ccxt\.)?EndpointResult\[(.+)\] \{$/gm;
-        const map = new Set<string> ();
-        const other = new Set<string> ();
-        for (const dir of [ EXCHANGES_FOLDER + '/', EXCHANGES_FOLDER + '/prediction/' ]) {
-            const files = fs.existsSync (dir) ? fs.readdirSync (dir).filter ((f) => f.endsWith ('_api.go')) : [];
-            for (const f of files) {
-                const text = fs.readFileSync (dir + f, 'utf8');
-                for (let m = sig.exec (text); m !== null; m = sig.exec (text)) {
-                    ((m[2] === 'map[string]any') ? map : other).add (m[1]);
-                }
-            }
-        }
-        GO_ENDPOINT_MAP_STUBS = new Set ([ ...map ].filter ((n) => !other.has (n)));
-    }
-    return GO_ENDPOINT_MAP_STUBS;
-}
-
 // `MapTyped(this.Omit(x, ..))` with x declared map[string]any in scope is `this.OmitDict(x, ..)`:
 // Omit of a map always returns a fresh map[string]any.
 function goOmitDictOfTypedMaps (content: string): string {
@@ -10760,7 +10492,6 @@ export function goNativeEquality (content: string): string {
     return content;
 }
 
-
 function goNativeEqualitySelfTest (): string[] {
     const problems: string[] = [];
     const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
@@ -10822,8 +10553,6 @@ function goUntilReceiverNeverNil (masked: string[], start: number, k: number, ma
     }
     return goMapWriteLocalNeverNil (maskedFunc, declOf (bind[1]), bind[1], declOf) || goSelfUntilNeverNil (funcLines, bind[1], declOf);
 }
-
-
 
 // ===== native ObjectKeys / Remove on proven map[string]any locals =====
 // `var ks []string = ObjectKeys(m)` -> range collection: the helper does not sort, answers nil
@@ -12318,7 +12047,6 @@ function goTypedGvMapFunc (lines: string[], masked: string[], start: number, end
     }
 }
 
-
 // ===== native strings.* for string helpers on operands the proven-operand pass could not prove =====
 // Adds: *string locals from a defaulted this.SafeString* (never nil), *int64 from a defaulted
 // SafeInteger, this.Id, base int64 clocks, ClientInterface.GetUrl(), []string element reads, string sums.
@@ -13696,7 +13424,6 @@ function goDropRedundantTypedSelfTest (): string[] {
     return problems;
 }
 
-
 // ===== InOp(this.Markets_by_id, k) -> `if _, ok := this.Markets_by_id[k]; ...` (nil map reads ok=false) =====
 // The key must be a non-nil string at the `if`: a `string`, or a `*string` whose every write is a literal-default SafeString*
 // or that an earlier `if <k> == nil` exit guards. Lone call in an if header, `ok` unused; any other shape keeps the helper.
@@ -13789,7 +13516,6 @@ function goMarketsByIdInOpSelfTest (): string[] {
     ok (f ('', '\tvar s string = "a"\n\tif InOp(this.Markets, s) {\n\t}\n').includes ('InOp('), 'other receivers untouched');
     return problems;
 }
-
 
 // ===== exchange tuple producers return []any; their holders read slots natively =====
 // `func (this *R) M(..) any {` whose every own return (func literals aside) is a one-line
@@ -13925,7 +13651,6 @@ function goTupleProducerReadsSelfTest (): string[] {
     ok (goTupleProducerReads (pro, base).indexOf ('ccxt.MapTyped(hVariable[1])') >= 0, 'ccxt-qualified read');
     return problems;
 }
-
 
 // `MapTyped(this.Omit(x, ..))` / `MapTyped(this.MergeBalanceAccount(x, ..))` of a never-nil map x is
 // never nil: Omit of a map builds a fresh map, MergeBalanceAccount hands its first argument back
@@ -14128,7 +13853,6 @@ function goMapWriteNilGuardSelfTest (): string[] {
     }
     return problems;
 }
-
 
 // ===== plain tuple slots of exchange producers; pro files see their REST producers =====
 // Slot i of a `[]any` producer is plain when every own return's element i is derefScalar-invariant (literal, fresh map,
@@ -15352,41 +15076,6 @@ function goNeverNilMapValue (lines: string[], maskedFunc: string, decl: any, nam
     return /\)$/.test (init) && (goMapWriteGroupEnd (init, init.indexOf ('(')) === init.length) && goMapWriteMapResultCall (lines, init);
 }
 
-function goNeverNilMapValueFunc (lines: string[], masked: string[], start: number, end: number) {
-    const resolve = goBlockScopeResolver (masked, start, end);
-    const maskedFunc = masked.slice (start, end + 1).join ('\n');
-    const notRebound = (name: string): boolean => !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (name) + '\\s*=(?!=)|&\\s*' + goAccessEscape (name) + '\\b', 'm').test (maskedFunc);
-    for (let k = start + 1; k < end; k++) {
-        const m = /^(\s*)((?:ccxt\.)?AddElementToObject)\((\w+), (\w+|"[^"\\\n]*"), (\w+)\)$/.exec (masked[k]);
-        if ((m === null) || (lines[k] !== masked[k])) {
-            continue;
-        }
-        const [ , indent, , recv, key, value ] = m;
-        const declOf = (name: string) => resolve (name, k);
-        const typeOf = (name: string) => { const d = resolve (name, k); return (d === undefined) ? undefined : d.type; };
-        if ((typeOf (recv) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (recv), recv, declOf)) {
-            continue;
-        }
-        if (!goNeverNilMapValue (lines, maskedFunc, declOf (value), value)) {
-            continue;
-        }
-        let keyOut: string | undefined = undefined;
-        if (key.startsWith ('"') || (typeOf (key) === 'string')) {
-            keyOut = key;
-        } else if ((typeOf (key) === '*string') && notRebound (key)
-            && (goAccessInsideNilGuard (masked, k, key) || goEnclosingNilGuard (masked, start, k, key) || goMapWriteDominatingNilGuard (masked, start, k, key, maskedFunc, declOf)
-                || goNonNilStringPtr (lines.slice (start, end + 1).join ('\n'), key))) {
-            keyOut = '*' + key; // nil-guarded, or every write is a SafeString* call with a literal default
-        }
-        if (keyOut !== undefined) {
-            lines[k] = indent + recv + '[' + keyOut + '] = ' + value;
-            masked[k] = lines[k];
-        }
-    }
-}
-
-
-
 // `var r map[string]any = MapTyped(h[i])` where `h := this.M(..)` is h's only write and M is the single same-receiver method
 // whose every return is `[]any{..}` with a never-nil map in slot i (a never-nil local, or a map param fed a never-nil local).
 function goTupleSlotNeverNil (maskedFunc: string, init: string, declOf: (name: string) => any, depth: number): boolean {
@@ -16037,8 +15726,6 @@ function goStdlibStringHelpersCheck (): string[] {
     }
     return problems;
 }
-
-
 
 // ===== credential fields are plain Go strings =====
 // go/v4/exchange.go declares the credential fields `string`, so an absent key is "" and never a nil box: nil tests print

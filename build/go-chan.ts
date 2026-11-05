@@ -85,9 +85,6 @@ export function goChanTable (): Map<string, string> {
     return GO_CHAN_TABLE;
 }
 
-export function goChanSetTableForTest (table: Map<string, string> | undefined) {
-    GO_CHAN_TABLE = table;
-}
 
 // comments and string/rune/raw literals blanked to spaces, newlines kept (offsets match the input)
 export function goChanMask (content: string): string {
@@ -641,10 +638,6 @@ export function goChanCarrierPass (content: string, table: Map<string, string> =
     return edits.length ? goChanSplice (content, edits) : content;
 }
 
-// audit over generated Go text: per method, each core's verdict (reason '' = provable) and send types
-export function goChanAudit (content: string, report: (method: string, receiver: string, reason: string, types: string[]) => void) {
-    goChanCores (content, goChanMask (content), new Map (), report);
-}
 
 export function goChanSelfTest (): string[] {
     const problems: string[] = [];
