@@ -1318,6 +1318,9 @@ export class RustTranspilerBuilder {
             // but takes `&str`. Route to `parse_json_value`.
             [/\bself\.parse_json\(/g, 'self.parse_json_value('],
 
+            // `binaryConcat()` with no args — the base method is shaped
+            // `(first, ...rest)`; supply an empty first chunk.
+            [/\bself\.binary_concat\(\s*\)/g, 'self.binary_concat(Value::Null, &[])'],
 
             // `setProperty(this, key, value)` transpiles to
             // `self.set_property(self, key, value)` — but `self` is a typed
@@ -1376,6 +1379,10 @@ export class RustTranspilerBuilder {
             // Trailing `};` after blocks
             [/\};(\s*\n)/g, '}$1'],
 
+            // `let mut x: Value = ...` is fine, but transpiler sometimes emits
+            // `let mut : Value = X;` (missing identifier from spread / destructure).
+            // Strip those broken declarations to keep the file syntactically valid.
+            [/let mut\s+:\s+Value\s*=\s*[^;]+;\s*\n/g, '// stripped: invalid let mut\n'],
 
             // `self.X = self.Y(...)` causes borrow conflicts. Split into a
             // temp + assignment.
@@ -1387,9 +1394,16 @@ export class RustTranspilerBuilder {
             // Make all function parameters `mut` — transpiled bodies reassign
             // params frequently (`params = self.omit(params, ...)` etc).
             [/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*Value\b(?=\s*[,)])/g, 'mut $1: Value'],
+            [/\bmut\s+mut\s+/g, 'mut '],
+            // Don't apply `mut` to slice params (optional_args: &[Value]).
+            [/\bmut\s+optional_args\s*:/g, 'optional_args:'],
 
+            // `let x: Value = ...` → `let mut x: Value = ...` so transpiled
+            // bodies can reassign locals.
+            [/\blet\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*Value\s*=/g, 'let mut $1: Value ='],
             // `let params = get_arg(...)` (no annotation) — also make mut.
             [/\blet\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*get_arg\(/g, 'let mut $1 = get_arg('],
+            [/\blet\s+mut\s+mut\s+/g, 'let mut '],
 
             // Strip outer parens around bool helper calls used as full-expr
             // RHS so the wrap below catches them. `(is_X(...))` → `is_X(...)`.
@@ -1439,6 +1453,13 @@ export class RustTranspilerBuilder {
                     return `${indent}let mut ${lhs}: Value = ${rhs}.clone();`;
                 }],
 
+            // `ternary(<cond>, <a>, <bare_ident>)` — clone the trailing
+            // identifier arg.
+            [/\bternary\(([^,]+?,\s*[^,]+?,\s*)([a-zA-Z_][a-zA-Z0-9_]*)\)/g,
+                (whole: string, prefix: string, ident: string) => {
+                    if (ident === 'self') return whole;
+                    return `ternary(${prefix}${ident}.clone())`;
+                }],
 
             // `set_value(...)`, `append_to_array(...)`, and
             // `add_element_to_object(...)` take the value arg by move.
@@ -1457,6 +1478,37 @@ export class RustTranspilerBuilder {
                 (_: string, indent: string, lhs: string, expr: string) =>
                     `${indent}${lhs} = Value::Bool(${expr});`],
 
+            // Bool expressions inside `&[...]` slice literals — wrap each
+            // bool element in `Value::Bool(...)`. Match only after `, &[`
+            // (call-arg position). Element is `is_X(...)`.
+            [/([,(])\s*&\[([^;]*?)\]\)/g,
+                (whole: string, prefix: string, inside: string) => {
+                    // Only operate if inside has any `is_X(` bool call.
+                    if (!/\b(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer)\(/.test(inside)) {
+                        return whole;
+                    }
+                    // Split by commas at depth 0
+                    const parts: string[] = [];
+                    let depth = 0;
+                    let start = 0;
+                    for (let i = 0; i < inside.length; i++) {
+                        const c = inside[i];
+                        if (c === '(' || c === '[' || c === '{') depth++;
+                        else if (c === ')' || c === ']' || c === '}') depth--;
+                        else if (c === ',' && depth === 0) {
+                            parts.push(inside.slice(start, i).trim());
+                            start = i + 1;
+                        }
+                    }
+                    parts.push(inside.slice(start).trim());
+                    const wrapped = parts.map(p => {
+                        if (/^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer)\(/.test(p)) {
+                            return `Value::Bool(${p})`;
+                        }
+                        return p;
+                    }).join(', ');
+                    return `${prefix} &[${wrapped}])`;
+                }],
 
             // (Auto-clone in `Value::Array(vec![...])` is done by the
             // paren-balanced `cloneInArrayLiterals` walker below; running a
@@ -1492,12 +1544,34 @@ export class RustTranspilerBuilder {
                     return `${prefix}${ident}.clone()${suffix}`;
                 }],
 
+            // Same pattern for `add_element_to_object(...)` calls whose
+            // value arg is a bare identifier.
+            //   add_element_to_object(..., x); → ... x.clone());
+            [/(\badd_element_to_object\([^,]+,\s*[^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
+                (whole: string, prefix: string, ident: string, suffix: string) => {
+                    if (ident === 'self') return whole;
+                    return `${prefix}${ident}.clone()${suffix}`;
+                }],
 
+            // `append_to_array(&mut X, ident)` — clone the second arg.
+            [/(\bappend_to_array\([^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
+                (whole: string, prefix: string, ident: string, suffix: string) => {
+                    if (ident === 'self' || ident === 'true' || ident === 'false') return whole;
+                    return `${prefix}${ident}.clone()${suffix}`;
+                }],
 
             // `m.insert("X", is_true(&Y) && ...)` — wrap bool exprs in Value::Bool.
             [/(\bm\.insert\([^,]+,\s*)(!?is_true\([^;]+?)(\)\s*;)/g,
                 '$1Value::Bool($2)$3'],
 
+            // `Value::Int(<float literal>)` — the transpiler emits `1e-8`
+            // as Int but it's a float. Detect scientific or decimal notation
+            // and route to Value::Float.
+            [/Value::Int\(([0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)\)/g,
+                (_: string, n: string) => {
+                    if (n.includes('.') || /[eE]/.test(n)) return `Value::Float(${n})`;
+                    return `Value::Int(${n})`;
+                }],
 
             // `return self;` (chained methods) — `self` isn't a Value.
             [/^(\s*)return\s+self\s*;/gm, '$1return Value::Null;'],
@@ -1523,7 +1597,24 @@ export class RustTranspilerBuilder {
             // Look-ahead pattern: stop short of `.`, `(`, `=`, or `[`.
             [/(?<!&)\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\b(?![.\(\[]|\s*=[^=])/g,
                 (_: string, name: string) => `self.${name}.clone()`],
+            // Undo double-clone if we accidentally matched again.
+            [/\.clone\(\)\.clone\(\)/g, '.clone()'],
 
+            // Array destructuring assignment: TS `[a, b] = expr` was emitted
+            // by the transpiler as `Value::Array(vec![a, b]) = expr;` which
+            // is invalid Rust. Rewrite to a temp + element-wise reads. We
+            // strip any `.clone()` suffix that earlier passes may have
+            // appended — destructuring targets must be plain identifiers.
+            [/Value::Array\(vec!\[([^\]]+)\]\)\s*=\s*([^;]+);/g,
+                (_: string, names: string, expr: string) => {
+                    const ids = names.split(',')
+                        .map(s => s.trim().replace(/\.clone\(\)$/, ''))
+                        .filter(s => s.length > 0);
+                    const lines = ids.map((n, i) =>
+                        `${n} = crate::get_value(&__ad_tmp, &Value::Int(${i}));`
+                    ).join(' ');
+                    return `{ let __ad_tmp = ${expr.trim()}; ${lines} }`;
+                }],
         ];
 
         return rules;
