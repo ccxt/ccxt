@@ -223,11 +223,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const name = 'matches';
         const trades = await this.subscribeMultiple (name, symbolsNormalized, name, params);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
@@ -280,11 +278,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const messageHash = 'myTrades';
         const authentication = this.authenticate ();
         const trades = await this.subscribeMultiple (name, symbolsNormalized, messageHash, this.extend (params, authentication));
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
@@ -308,11 +304,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const messageHash = 'orders';
         const authentication = this.authenticate ();
         const orders = await this.subscribeMultiple (name, symbolsNormalized, messageHash, this.extend (params, authentication));
-        const first = this.safeDict (orders, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit (tradeSymbol, limit);
+            limitResolved = orders.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }

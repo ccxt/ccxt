@@ -109,11 +109,9 @@ export default class blofin extends blofinRest {
             await this.loadMarkets ();
         }
         const trades = await this.watchMultipleWrapper (true, 'trades', 'watchTradesForSymbols', symbols, params);
-        const firstMarket = this.safeDict (trades, 0);
-        const firstSymbol = this.safeString (firstMarket, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (firstSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
         return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
@@ -646,11 +644,9 @@ export default class blofin extends blofinRest {
             channel = 'orders-algo';
         }
         const orders = await this.watchMultipleWrapper (false, channel, 'watchOrdersForSymbols', symbols, paramsOmitted);
-        const first = this.safeDict (orders, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit (tradeSymbol, limit);
+            limitResolved = orders.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }

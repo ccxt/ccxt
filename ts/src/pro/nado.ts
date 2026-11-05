@@ -145,11 +145,9 @@ export default class nado extends nadoRest {
             messageHashes.push ('trade:' + market['symbol']);
         }
         const trades = await this.watchPublicMultiple ('trade', markets, messageHashes, params);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }

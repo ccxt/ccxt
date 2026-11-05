@@ -908,11 +908,9 @@ export default class backpack extends backpackRest {
             messageHashes.push ('trades:' + symbol);
         }
         const trades = await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]));
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
         return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537

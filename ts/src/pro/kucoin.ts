@@ -1142,11 +1142,9 @@ export default class kucoin extends kucoinRest {
             const messageHash = 'uta:trades:' + symbolResolved;
             const channel = 'trade';
             const trades = await this.subscribePublicUta (messageHash, channel, symbolResolved, paramsUta);
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
             let limitResolved: Int = limit;
             if (this.newUpdates) {
-                limitResolved = trades.getLimit (tradeSymbol, limit);
+                limitResolved = trades.getLimit (symbolResolved, limit);
             }
             return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
         }
@@ -1192,11 +1190,9 @@ export default class kucoin extends kucoinRest {
             subscriptionHashes.push (channelName + marketId);
         }
         const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }

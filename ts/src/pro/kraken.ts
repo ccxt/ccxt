@@ -771,9 +771,7 @@ export default class kraken extends krakenRest {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }

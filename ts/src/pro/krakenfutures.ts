@@ -262,11 +262,9 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }

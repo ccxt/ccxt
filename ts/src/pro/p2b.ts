@@ -226,11 +226,9 @@ export default class p2b extends p2bRest {
         };
         const query = this.extend (subscribe, params);
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, query, messageHashes);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }

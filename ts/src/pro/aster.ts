@@ -688,11 +688,9 @@ export default class aster extends asterRest {
             messageHashes.push ('trade::' + market['symbol']);
         }
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }

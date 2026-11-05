@@ -610,11 +610,9 @@ export default class bydfi extends bydfiRest {
             }
         }
         const orders = await this.watchPrivate (messageHashes, params);
-        const first = this.safeDict (orders, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit (tradeSymbol, limit);
+            limitResolved = orders.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }

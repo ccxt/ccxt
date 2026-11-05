@@ -360,6 +360,17 @@ function testWsCache () {
     assert (cacheSymbolId9.getLimit (undefined, outsideLimit) === 2); // watch all orders
 
     // ----------------------------------------------------------------------------
+    // test ArrayCacheBySymbolById, multi-symbol distinct id counting and global counter reset
+
+    const cacheMultiSymbolById = new ArrayCacheBySymbolById ();
+    cacheMultiSymbolById.append ({ 'symbol': 'BTC/USDT', 'id': 'btc-1', 'i': 1 });
+    cacheMultiSymbolById.append ({ 'symbol': 'ETH/USDT', 'id': 'eth-1', 'i': 1 });
+    cacheMultiSymbolById.append ({ 'symbol': 'BTC/USDT', 'id': 'btc-1', 'i': 2 });
+    assert (cacheMultiSymbolById.getLimit (undefined, 10) === 2);
+    cacheMultiSymbolById.append ({ 'symbol': 'SOL/USDT', 'id': 'sol-1', 'i': 1 });
+    assert (cacheMultiSymbolById.getLimit (undefined, 10) === 1);
+
+    // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
 
     const cacheSymbolSide = new ArrayCacheBySymbolBySide ();
@@ -672,6 +683,18 @@ function testWsCache () {
     cacheEvictSeen.append ({ 'symbol': 'BTC/USDT', 'id': 'd', 'i': 4 }); // evicts id b
     const evictGlobalCount = cacheEvictSeen.getLimit (undefined, 100);
     assert (evictGlobalCount === 2); // ids c and d - the counts track distinct ids within the retained window in both scopes
+
+    // ----------------------------------------------------------------------------
+    // multi-symbol trade streams sharing one ArrayCache: getLimit (undefined, limit)
+    // returns all new trades across all symbols without accumulating unread counts
+
+    const multiSymbolCache = new ArrayCache ();
+    multiSymbolCache.append ({ 'symbol': 'BTC/USDT', 'id': '1' });
+    multiSymbolCache.append ({ 'symbol': 'ETH/USDT', 'id': '2' });
+    assert (multiSymbolCache.getLimit (undefined, 10) === 2);
+
+    multiSymbolCache.append ({ 'symbol': 'LTC/USDT', 'id': '3' });
+    assert (multiSymbolCache.getLimit (undefined, 10) === 1);
 }
 
 export default testWsCache;

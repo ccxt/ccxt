@@ -1170,11 +1170,9 @@ export default class bitget extends bitgetRest {
             paramsRequest = this.extend (paramsCursor, { 'uta': true });
         }
         const trades = await this.watchPublicMultiple (uta, messageHashes, topics, paramsRequest);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
         if (this.handleOption ('watchTrades', 'ignoreDuplicates', true) === true) {

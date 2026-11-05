@@ -355,11 +355,9 @@ export default class cryptocom extends cryptocomRest {
             topics.push (currentTopic);
         }
         const trades = await this.watchPublicMultiple (topics, topics, params);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }

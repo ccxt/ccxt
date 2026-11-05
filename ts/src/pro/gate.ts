@@ -990,11 +990,9 @@ export default class gate extends gateRest {
         }
         const url = this.getUrlByMarket (market);
         const trades = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }

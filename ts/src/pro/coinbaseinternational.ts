@@ -1072,9 +1072,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const trades = await this.subscribe (channels, channels, isPrivate, paramsInterval);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }

@@ -248,11 +248,9 @@ export default class okx extends okxRest {
         }
         const url = this.getUrl (channel, access);
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, request, messageHashes);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }

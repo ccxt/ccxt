@@ -1346,11 +1346,9 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
-        const first = this.safeDict (trades, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
