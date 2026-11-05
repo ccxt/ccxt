@@ -8846,7 +8846,7 @@ export class BaseExchange {
 
     // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
-    async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any[]> {
+    async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined, cursorFromStart: boolean = false): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;
@@ -8906,9 +8906,10 @@ export class BaseExchange {
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = undefined; // search for the cursor
                 // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
+                // cursorFromStart: the cursor of the next page is on the first (oldest) entry of the parsed response
                 for (let j = 0; j < responseLength; j++) {
                     if (cursorValue === undefined) {
-                        const index = responseLength - j - 1;
+                        const index = cursorFromStart ? j : (responseLength - j - 1);
                         const entry = this.safeDict (response, index);
                         const info = this.safeDict (entry, 'info');
                         cursorValue = (cursorReceived === undefined) ? undefined : this.safeValue (info, cursorReceived);
@@ -8918,7 +8919,8 @@ export class BaseExchange {
                     shouldBreak = true;
                     break;
                 }
-                const lastTimestamp = this.safeInteger (last, 'timestamp');
+                const boundary = cursorFromStart ? this.safeDict (response, 0) : last;
+                const lastTimestamp = this.safeInteger (boundary, 'timestamp');
                 if (since === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchPaginatedCallCursor() requires a since argument');
                 }
