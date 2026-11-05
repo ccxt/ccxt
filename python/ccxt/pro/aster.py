@@ -294,7 +294,7 @@ class aster(ccxt.async_support.aster):
             symbol = symbolsList[i]
             market = self.market(symbol)
             suffix = ''
-            if use1sFreq is True:
+            if use1sFreq:
                 suffix = '@1s'
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('ticker:' + market['symbol'])
@@ -344,7 +344,7 @@ class aster(ccxt.async_support.aster):
             symbol = symbolsList[i]
             market = self.market(symbol)
             suffix = ''
-            if use1sFreq is True:
+            if use1sFreq:
                 suffix = '@1s'
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('unsubscribe:ticker:' + market['symbol'])
@@ -1317,7 +1317,7 @@ class aster(ccxt.async_support.aster):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
+        if (fetchBalanceSnapshot) and (awaitBalanceSnapshot):
             await client.future(typeMarketType + ':fetchBalanceSnapshot')
         messageHash = typeMarketType + ':balance'
         message = None
@@ -1328,7 +1328,7 @@ class aster(ccxt.async_support.aster):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot is True:
+        if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1418,7 +1418,7 @@ class aster(ccxt.async_support.aster):
             account['free'] = self.safe_string(entry, 'f')
             account['used'] = self.safe_string(entry, 'l')
             account['total'] = self.safe_string(entry, wallet)
-            if (accountType is not None) and (code is not None):
+            if code is not None:
                 self.balance[accountType][code] = account
         timestamp = self.safe_integer(messageValue, 'E')
         self.balance[accountType]['timestamp'] = timestamp

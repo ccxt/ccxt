@@ -748,7 +748,7 @@ export default class bitvavo extends bitvavoRest {
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -769,7 +769,8 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const nonce = this.safeInteger (message, 'nonce');
-        if ((nonce as number) > orderbook['nonce']) {
+        const currentNonce = this.safeInteger (orderbook, 'nonce');
+        if ((nonce !== undefined) && (currentNonce !== undefined) && (nonce > currentNonce)) {
             this.handleDeltas (orderbook['asks'], this.safeList (message, 'asks', []));
             this.handleDeltas (orderbook['bids'], this.safeList (message, 'bids', []));
             orderbook['nonce'] = nonce;
@@ -932,7 +933,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    async unWatchChannels (topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params = {}): Promise<any> {
+    async unWatchChannels (topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'action': 'unsubscribe',
@@ -1828,7 +1829,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const messageHash = 'authenticated';
         const authenticated = this.safeBool (message, 'authenticated', false);
-        if (authenticated === true) {
+        if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
             client.resolve (message, messageHash);
         } else {

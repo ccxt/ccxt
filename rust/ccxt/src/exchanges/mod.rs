@@ -77,8 +77,6 @@ pub mod bybit_typed;
 pub mod bybiteu_typed;
 #[cfg(feature = "bybitid")]
 pub mod bybitid_typed;
-#[cfg(feature = "bydfi")]
-pub mod bydfi_typed;
 #[cfg(feature = "cex")]
 pub mod cex_typed;
 #[cfg(feature = "coinbase")]
@@ -191,6 +189,8 @@ pub mod paymium_typed;
 pub mod phemex_typed;
 #[cfg(feature = "poloniex")]
 pub mod poloniex_typed;
+#[cfg(feature = "polymarket")]
+pub mod polymarket_typed;
 #[cfg(feature = "revolutx")]
 pub mod revolutx_typed;
 #[cfg(feature = "tokocrypto")]

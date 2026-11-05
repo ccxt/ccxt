@@ -297,7 +297,7 @@ public partial class Exchange
             return;
         }
         object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
-        object tries = 0;
+        int tries = 0;
         Exception error = null;
         try
         {
@@ -315,7 +315,7 @@ public partial class Exchange
                     client.resolve(stored, messageHash);
                     return;
                 }
-                postFixIncrement(ref tries);
+                tries++;
             }
             error = new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries."));
         }

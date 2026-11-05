@@ -555,7 +555,9 @@ class backpack(Exchange, ImplicitAPI):
         :param boolean [params.stock]: return tokenized stock assets only
         :returns dict: an associative dictionary of currencies
         """
-        stock, query = self.handle_stock_params('fetchCurrencies', params)
+        selection = self.handle_stock_params('fetchCurrencies', params)
+        stock = self.safe_bool(selection, 0, False)
+        query = self.safe_dict(selection, 1, {})
         response = await self.publicGetApiV1Assets(query)
         #
         #     [
@@ -583,7 +585,7 @@ class backpack(Exchange, ImplicitAPI):
         currencies = {}
         for i in range(0, len(response)):
             currency = self.parse_currency(response[i])
-            if (stock is not True) or (currency['type'] == 'stock'):
+            if (stock is not True) or (self.safe_string(currency, 'type') == 'stock'):
                 currencies[currency['code']] = currency
         return currencies
 
@@ -665,7 +667,9 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
-        stock, query = self.handle_stock_params('fetchMarkets', params)
+        selection = self.handle_stock_params('fetchMarkets', params)
+        stock = self.safe_bool(selection, 0, False)
+        query = self.safe_dict(selection, 1, {})
         marketType = self.safe_string(query, 'marketType')
         defaultTypes = ['SPOT', 'PERP', 'RFQ'] if (marketType is None) else [marketType]
         requestedTypes = self.safe_list(query, 'marketType', defaultTypes)
@@ -1035,7 +1039,7 @@ class backpack(Exchange, ImplicitAPI):
         quoteCode = toCode if (fromIsStock) else fromCode
         symbol = stockCode + '.RFQ/' + quoteCode
         market = self.safe_dict(self.markets, symbol)
-        if (market is None) or (market['executionModel'] != 'rfq') or (market['stock'] is not True):
+        if (market is None) or (self.safe_string(market, 'executionModel') != 'rfq') or not self.safe_bool(market, 'stock', False):
             raise BadSymbol(self.id + ' conversion requires a listed stock RFQ market: ' + symbol)
         return market
 
@@ -1053,7 +1057,7 @@ class backpack(Exchange, ImplicitAPI):
         if (fromCode is None) or (toCode is None):
             raise ArgumentsRequired(self.id + ' parseConversion() requires source and destination currencies')
         market = self.rfq_conversion_market(fromCode, toCode)
-        fromIsBase = fromCode == market['base']
+        fromIsBase = fromCode == self.safe_string(market, 'base')
         filled = self.safe_number(order, 'filled')
         cost = self.safe_number(order, 'cost')
         fee = self.safe_dict(order, 'fee')
@@ -1467,8 +1471,9 @@ class backpack(Exchange, ImplicitAPI):
             supportedLimits = [5, 10, 20, 50, 100, 500]
             requestLimit = 500
             for i in range(0, len(supportedLimits)):
-                if limit <= supportedLimits[i]:
-                    requestLimit = supportedLimits[i]
+                supportedLimit = self.safe_integer(supportedLimits, i, 0)
+                if limit <= supportedLimit:
+                    requestLimit = supportedLimit
                     break
             request['limit'] = requestLimit
         response = await self.publicGetApiV1Depth(self.extend(request, self.omit(query, 'source')))
@@ -1515,17 +1520,19 @@ class backpack(Exchange, ImplicitAPI):
         limitResolved = limit
         if (since is None) and (limit is None):
             limitResolved = defaultLimit
+        windowLimit = defaultLimit if (limit is None) else limit
+        startTime = None
         if since is None:
-            endTime = self.parse_to_int(until / 1000) if (until is not None and until is not None and until != 0) else self.seconds()
-            windowLimit = defaultLimit if (limit is None) else limit
+            endTime = self.seconds()
+            if until is not None and until is not None and until != 0:
+                endTime = self.parse_to_int(until / 1000)
             startTime = endTime - (windowLimit * duration)
-            request['startTime'] = startTime
         else:
-            request['startTime'] = self.parse_to_int(since / 1000)  # convert milliseconds to seconds
+            startTime = self.parse_to_int(since / 1000)  # convert milliseconds to seconds
+        request['startTime'] = startTime
         if until is None:
             currentMs = self.seconds()  # default to current time in seconds
-            windowLimit = defaultLimit if (limit is None) else limit
-            windowEnd = self.sum(request['startTime'], windowLimit * duration)  # sum (): `+` on a dict value is string concatenation in php
+            windowEnd = self.sum(startTime, windowLimit * duration)
             minTimestamp = min(currentMs, windowEnd)
             request['endTime'] = self.parse_to_int(minTimestamp)  # default to current time in seconds if until is not specified
         price = self.safe_string(paramsUntil, 'price')
@@ -1641,7 +1648,7 @@ class backpack(Exchange, ImplicitAPI):
         interest = self.safe_dict(response, 0, {})
         return self.parse_open_interest(interest, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     [
         #         {
@@ -2203,7 +2210,7 @@ class backpack(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'cancelled': 'cancelled',
             'confirmed': 'ok',
@@ -2906,7 +2913,7 @@ class backpack(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'New': 'open',
             'Filled': 'closed',
@@ -2918,7 +2925,7 @@ class backpack(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_side(self, side: Str):
+    def parse_order_side(self, side: Str) -> Str:
         sides = {
             'Bid': 'buy',
             'Ask': 'sell',
@@ -2938,11 +2945,10 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.privateGetApiV1Position(params)
-        positions = self.parse_positions(response)
         if self.is_empty(symbols):
-            return positions
+            return self.parse_positions(response)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized)
+        return self.parse_positions(response, symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #
@@ -3085,13 +3091,12 @@ class backpack(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         endpoint = '/' + path
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl
         requestParams = params if isinstance(params, list) else self.omit(params, ['stock', 'defaultStock', 'rfq', 'callerMethodName'])
         sortedParams = requestParams if isinstance(requestParams, list) else self.keysort(requestParams)
         headersSigned = None
@@ -3128,7 +3133,7 @@ class backpack(Exchange, ImplicitAPI):
             query = self.urlencode_with_array_repeat(sortedParams)
             if len(query) != 0:
                 endpoint += '?' + query
-        url += endpoint
+        url = apiUrl + endpoint
         headersResolved = headersSigned if (apiName == 'private') else None
         bodyResolved = None
         if (apiName == 'private') and (method != 'GET'):

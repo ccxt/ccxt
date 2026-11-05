@@ -1280,17 +1280,19 @@ export default class coinbaseexchange extends Exchange {
         const until = this.safeValue2(paramsPaginate, 'until', 'end');
         const paramsOmitted = this.omit(paramsPaginate, ['until']);
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        const cappedLimit = (limit === undefined) ? 300 : Math.min(300, limit);
+        const cappedLimit = this.parseToInt((limit === undefined) ? 300 : Math.min(limit, 300));
         const limitResolved = (since !== undefined) ? cappedLimit : limit;
         if (since !== undefined) {
             request['start'] = this.iso8601(since);
             if (until === undefined) {
-                const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
-                if (this.isRoundNumber(since % parsedTimeframeMilliseconds)) {
-                    request['end'] = this.iso8601(this.sum((cappedLimit - 1) * parsedTimeframeMilliseconds, since));
-                }
-                else {
-                    request['end'] = this.iso8601(this.sum(cappedLimit * parsedTimeframeMilliseconds, since));
+                if (parsedTimeframe !== undefined) {
+                    const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
+                    if (this.isRoundNumber(since % parsedTimeframeMilliseconds)) {
+                        request['end'] = this.iso8601(this.sum((cappedLimit * parsedTimeframeMilliseconds) - parsedTimeframeMilliseconds, since));
+                    }
+                    else {
+                        request['end'] = this.iso8601(this.sum(cappedLimit * parsedTimeframeMilliseconds, since));
+                    }
                 }
             }
             else {
@@ -1590,7 +1592,7 @@ export default class coinbaseexchange extends Exchange {
             request['time_in_force'] = timeInForce;
         }
         const postOnly = this.safeBool2(params, 'postOnly', 'post_only', false);
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = true;
         }
         const paramsOmitted = this.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice']);
@@ -2079,7 +2081,8 @@ export default class coinbaseexchange extends Exchange {
         const timestamp = this.parse8601(this.safeString(transaction, 'created_at'));
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
-        let amount = this.safeNumber(transaction, 'amount');
+        const amountRaw = this.safeNumber(transaction, 'amount');
+        let amount = amountRaw;
         let type = this.safeString(transaction, 'type');
         let address = this.safeString(details, 'crypto_address');
         address = this.safeString(transaction, 'crypto_address', address);
@@ -2093,8 +2096,8 @@ export default class coinbaseexchange extends Exchange {
             address = this.safeString(details, 'sent_to_address', address);
             const feeCost = this.safeNumber(details, 'fee');
             if (feeCost !== undefined) {
-                if (amount !== undefined) {
-                    amount -= feeCost;
+                if (amountRaw !== undefined) {
+                    amount = amountRaw - feeCost;
                 }
                 fee['cost'] = feeCost;
                 fee['currency'] = code;

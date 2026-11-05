@@ -820,7 +820,7 @@ class okx(ccxt.async_support.okx):
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         accessType = 'private'
-        if isTrigger is True:
+        if isTrigger:
             accessType = 'business'
         await self.authenticate({'access': accessType})
         symbolsNormalized = self.market_symbols(symbols, None, True, True)
@@ -1305,7 +1305,7 @@ class okx(ccxt.async_support.okx):
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -1340,10 +1340,8 @@ class okx(ccxt.async_support.okx):
         seqId = self.safe_integer(message, 'seqId')
         prevSeqId = self.safe_integer(message, 'prevSeqId')
         nonce = orderbook['nonce']
-        error = None
         if prevSeqId is not None and prevSeqId != -1 and nonce != prevSeqId:
             error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
-        if error is not None:
             del client.subscriptions[messageHash]
             if symbol is not None:
                 del self.orderbooks[symbol]
@@ -1461,10 +1459,19 @@ class okx(ccxt.async_support.okx):
         if action == 'snapshot':
             for i in range(0, len(data)):
                 update = data[i]
-                orderbook = self.order_book({}, limit)
-                self.orderbooks[symbol] = orderbook
-                orderbook['symbol'] = symbol
-                self.handle_order_book_message(client, update, orderbook, messageHash, market)
+                # reset the existing orderbook instead of replacing it: a consumer
+                # holds a reference to the old object and would never see updates
+                # after a re-subscription snapshot
+                if not (symbol in self.orderbooks):
+                    self.orderbooks[symbol] = self.order_book({}, limit)
+                orderbook = self.orderbooks[symbol]
+                timestamp = self.safe_integer(update, 'ts')
+                # rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                # price and amount only, matching handleDelta, so countOrIdKey
+                # points past the row on purpose
+                snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1, 4)
+                snapshot['nonce'] = self.safe_integer(update, 'seqId')
+                orderbook.reset(snapshot)
                 if not (messageHash in client.subscriptions):
                     break
                 client.resolve(orderbook, messageHash)
@@ -1639,9 +1646,24 @@ class okx(ccxt.async_support.okx):
         #
         arg = self.safe_dict(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
+        # merge the parsed update into the existing balance object instead of
+        # replacing it: a consumer awakened by an earlier message holds a
+        # reference to this.balance, and Client.resolve is a no-op while
+        # nobody is awaiting, so a replaced object would make updates landing
+        # in that window invisible to the consumer forever (same class as
+        # issue #26773); the free/used/total aggregates are rebuilt from the
+        # merged currencies by safeBalance
         balance = self.parseTradingBalance(message)
-        newBalance = self.deep_extend(self.balance, balance)
-        self.balance = self.safe_balance(newBalance)
+        if self.balance is None:
+            self.balance = {}
+        reserved = ['free', 'used', 'total']
+        keys = list(balance.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.in_array(key, reserved):
+                continue
+            self.balance[key] = balance[key]
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, channel)
 
     def order_to_trade(self, order: dict, market: Market = None) -> Trade:
@@ -1690,11 +1712,11 @@ class okx(ccxt.async_support.okx):
         if self.markets is None:
             await self.load_markets()
         access = 'private'
-        if isTrigger is True:
+        if isTrigger:
             access = 'business'
         await self.authenticate({'access': access})
         channel = 'orders'
-        if isTrigger is True:
+        if isTrigger:
             channel = 'orders-algo'
         messageHash = channel + '::myTrades'
         market = None
@@ -1877,7 +1899,7 @@ class okx(ccxt.async_support.okx):
         if self.markets is None:
             await self.load_markets()
         accessType = 'private'
-        if isTrigger is True:
+        if isTrigger:
             accessType = 'business'
         await self.authenticate({'access': accessType})
         market = None
@@ -1900,7 +1922,7 @@ class okx(ccxt.async_support.okx):
             'instType': uppercaseType,
         }
         channel = 'orders'
-        if isTrigger is True:
+        if isTrigger:
             channel = 'orders-algo'
         orders = await self.subscribe('private', channel, channel, symbolResolved, self.extend(request, paramsMarginMode))
         limitResolved = limit

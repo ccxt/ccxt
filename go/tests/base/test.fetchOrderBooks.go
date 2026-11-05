@@ -22,7 +22,10 @@ func testFetchOrderBooksBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreE
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	orderBooks := r.Raw
+	var orderBooks any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		orderBooks = ccxt.StructBox(r.Value, ccxt.OrderBookMapToMap)
+	}
 	AssertDictionaryResponse(exchange, method, orderBooks)
 	var orderBookKeys []string = ObjectKeys(orderBooks)
 	Assert((len(orderBookKeys) > 0), Add(Add(Add(exchange.GetId(), " "), method), " returned 0 length data"))

@@ -146,7 +146,7 @@ class extended extends \ccxt\async\extended {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -896,7 +896,7 @@ class extended extends \ccxt\async\extended {
         $client->resolve($stored, $messageHash);
     }
 
-    public function find_subscription(Client $client, string $name) {
+    public function find_subscription(Client $client, string $name): ?array {
         $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -930,9 +930,10 @@ class extended extends \ccxt\async\extended {
             return;
         }
         $type = $this->safe_string($message, 'type');
-        $data = $this->safe_value($message, 'data');
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $first = $this->safe_dict($data, 0, array());
+        $dataList = $this->safe_list($message, 'data');
+        $data = $this->safe_dict($message, 'data');
+        if ($dataList !== null) {
+            $first = $this->safe_dict($dataList, 0, array());
             $side = $this->safe_string($first, 'S');
             if ($side !== null) {
                 $this->handle_trades($client, $message);

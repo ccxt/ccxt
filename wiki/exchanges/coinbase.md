@@ -365,7 +365,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 - https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
 - https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
-- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
+- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-balance-summary
 
 
 | Param | Type | Required | Description |
@@ -1055,17 +1055,12 @@ fetch all open positions
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**
-
-- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
-- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
-
+**See**: https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/list-futures-positions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.portfolio | <code>string</code> | No | the portfolio UUID to fetch positions for |
 
 
 ```javascript
@@ -1081,18 +1076,12 @@ fetch data on a single open contract trade position
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**
-
-- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
-- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
-
+**See**: https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-position  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in, default is undefined |
+| symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.product_id | <code>string</code> | No | *futures only* the product id of the position to fetch, required for futures markets only |
-| params.portfolio | <code>string</code> | No | *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only |
 
 
 ```javascript

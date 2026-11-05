@@ -29,7 +29,7 @@ function test_watch_balance($exchange, $skipped_properties, $code) {
                 // continue;
                 $success = false;
             }
-            if ($success === false) {
+            if (!$success) {
                 continue;
             }
             test_balance($exchange, $skipped_properties, $method, $response);

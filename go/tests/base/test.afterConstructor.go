@@ -128,7 +128,7 @@ func HelperTestProperties() {
 			return nil
 		}())
 		var userAgent any = ccxt.GetValue(ExchangeProp(exchange, "userAgents"), key)
-		Assert(!ccxt.IsEqual(userAgent, nil))
+		Assert(userAgent != nil)
 	}
 	//
 	// options

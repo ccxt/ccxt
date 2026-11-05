@@ -201,7 +201,7 @@ public partial class backpack : ccxt.backpack
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = ((((kind + ":") + symbol) + "@") + topic);
             string subscriptionKey = ("marketData:" + topic);
-            object subscriptions = this.safeDict(client.subscriptions, subscriptionKey, new Dictionary<string, object>() {});
+            IDictionary<string, object> subscriptions = this.safeDict(client.subscriptions, subscriptionKey, new Dictionary<string, object>() {});
             if (isTrue(unwatch))
             {
                 subscriptions = this.omit(subscriptions, messageHash);
@@ -215,14 +215,14 @@ public partial class backpack : ccxt.backpack
                 }
             } else
             {
-                ((IDictionary<string,object>)subscriptions)[messageHash] = new Dictionary<string, object>() {
+                subscriptions[(string)messageHash] = new Dictionary<string, object>() {
                     { "symbol", symbol },
                     { "bidAsk", bidAsk },
                 };
                 messageHashes.Add(messageHash);
             }
             ((IDictionary<string,object>)client.subscriptions)[subscriptionKey] = subscriptions;
-            List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+            List<object> subscriptionHashes = new List<object>(subscriptions.Keys);
             int subscriptionsLength = subscriptionHashes.Count;
             if (!isTrue(unwatch) || ((subscriptionsLength == 0)))
             {
@@ -1338,7 +1338,7 @@ public partial class backpack : ccxt.backpack
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             Dictionary<string, object> market = this.market(symbol);
-            bool isStockMarket = ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)) || (((marketId != null)) && (((marketId.IndexOf(".US_", StringComparison.Ordinal) != -1)) || ((marketId.IndexOf(".HK_", StringComparison.Ordinal) != -1))));
+            bool isStockMarket = ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)) || (((marketId != null)) && ((marketId.IndexOf(".US_", StringComparison.Ordinal) >= 0) || (marketId.IndexOf(".HK_", StringComparison.Ordinal) >= 0)));
             int defaultSnapshotDelay = isStockMarket ? 0 : 10;
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay);
             if (isEqual(cacheLength, snapshotDelay))
@@ -1356,7 +1356,8 @@ public partial class backpack : ccxt.backpack
 
     public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
-        Int64? timestamp = this.parseToInt(((double?)this.safeInteger(delta, "T", 0) / 1000));
+        Int64? microseconds = this.safeInteger(delta, "T", 0);
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         orderbook["timestamp"] = timestamp;
         orderbook["datetime"] = this.iso8601(timestamp);
         orderbook["nonce"] = this.safeInteger(delta, "u");
@@ -1406,7 +1407,7 @@ public partial class backpack : ccxt.backpack
             {
                 return cacheLength;
             }
-            if ((isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if ((((deltaStart - 1) == null || nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
@@ -1581,7 +1582,8 @@ public partial class backpack : ccxt.backpack
     {
         string? eventVar = this.safeString(data, "e", "");
         bool quoteEvent = ((eventVar?.IndexOf("quote", StringComparison.Ordinal) ?? -1) == 0);
-        Int64? timestamp = this.parseToInt(((double?)this.safeInteger(data, "E", 0) / 1000));
+        Int64? microseconds = this.safeInteger(data, "E", 0);
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "rfqId", this.safeString(data, "R") },
             { "clientId", this.safeString(data, "C") },
@@ -1605,7 +1607,8 @@ public partial class backpack : ccxt.backpack
         parsed["info"] = data;
         if (eventVar == "rfqFilled")
         {
-            parsed["lastTradeTimestamp"] = this.parseToInt(((double?)this.safeInteger(data, "T", 0) / 1000));
+            Int64? tradeMicroseconds = this.safeInteger(data, "T", 0);
+            parsed["lastTradeTimestamp"] = this.parseToInt(((double?)tradeMicroseconds / 1000));
         }
         return parsed;
     }
@@ -1703,7 +1706,8 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> parsed = this.safeDict(new Dictionary<string, object>() {
             { "balances", response },
         }, "balances", new Dictionary<string, object>() {});
-        Int64? timestamp = this.parseToInt(((double?)this.safeInteger(data, "E", 0) / 1000));
+        Int64? microseconds = this.safeInteger(data, "E", 0);
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         parsed["timestamp"] = timestamp;
         parsed["datetime"] = this.iso8601(timestamp);
         parsed["info"] = assets;
@@ -1971,7 +1975,7 @@ public partial class backpack : ccxt.backpack
         string? side = "long";
         if ((netQuantity != null))
         {
-            if (isLessThan(netQuantity, 0))
+            if (((netQuantity == null || 0 > netQuantity)))
             {
                 side = "short";
             }
@@ -2014,7 +2018,7 @@ public partial class backpack : ccxt.backpack
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }

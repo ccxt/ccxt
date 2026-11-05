@@ -756,15 +756,13 @@ class btcbox extends btcbox$1["default"] {
         //      },
         // ]
         //
-        const orders = this.parseOrders(response, market, since, limit);
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        const extra = {};
         if (type === 'open') {
-            for (let i = 0; i < orders.length; i++) {
-                orders[i]['status'] = 'open';
-            }
+            extra['status'] = 'open';
         }
-        return orders;
+        return this.parseOrders(response, market, since, limit, extra);
     }
     /**
      * @method
@@ -839,7 +837,7 @@ class btcbox extends btcbox$1["default"] {
             return undefined; // resort to defaultErrorHandler
         }
         const result = this.safeBool(response, 'result');
-        if (result === undefined || result === true) {
+        if (result === undefined || result) {
             return undefined; // either public API (no error codes expected) or success
         }
         const code = this.safeString(response, 'code');

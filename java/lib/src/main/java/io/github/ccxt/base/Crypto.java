@@ -212,11 +212,13 @@ public final class Crypto {
 
         if (isRsa) {
             // RSxxx with private key PEM
-            byte[] sig = rsaSign(token, toString(secret), algorithm, "pkcs1");
+            String pem = (secret instanceof byte[] bytes) ? new String(bytes, StandardCharsets.UTF_8) : toString(secret);
+            byte[] sig = rsaSign(token, pem, algorithm, "pkcs1");
             signatureB64Url = Base64ToBase64Url(BinaryToBase64(sig), true);
         } else if ("ES".equals(algoType)) {
             // ES256: sign over P-256 -> r||s then base64url
-            byte[] rs = es256Sign(token, toString(secret));
+            String pem = (secret instanceof byte[] bytes) ? new String(bytes, StandardCharsets.UTF_8) : toString(secret);
+            byte[] rs = es256Sign(token, pem);
             signatureB64Url = Base64ToBase64Url(BinaryToBase64(rs), true);
         } else if ("Ed".equals(algoType)) {
             // Ed25519

@@ -632,7 +632,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'Open': 'open',
             'PartiallyFilled': 'open',
@@ -645,7 +645,7 @@ class independentreserve(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'Gtc': 'GTC',
             'Moc': 'PO',
@@ -689,9 +689,7 @@ class independentreserve(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['primaryCurrencyCode'] = market['baseId']
             request['secondaryCurrencyCode'] = market['quoteId']
-        limitResolved = limit
-        if limitResolved is None:
-            limitResolved = 50
+        limitResolved = 50 if (limit is None) else limit
         request['pageIndex'] = 1
         request['pageSize'] = limitResolved
         response = self.privatePostGetOpenOrders(self.extend(request, params))
@@ -715,9 +713,7 @@ class independentreserve(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['primaryCurrencyCode'] = market['baseId']
             request['secondaryCurrencyCode'] = market['quoteId']
-        limitResolved = limit
-        if limitResolved is None:
-            limitResolved = 50
+        limitResolved = 50 if (limit is None) else limit
         request['pageIndex'] = 1
         request['pageSize'] = limitResolved
         response = self.privatePostGetClosedOrders(self.extend(request, params))
@@ -1074,7 +1070,7 @@ class independentreserve(Exchange, ImplicitAPI):
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:

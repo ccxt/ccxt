@@ -19,6 +19,19 @@ export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: st
     'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
     'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
     'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
+    'Position': { 'names': [ 'ParsePosition', 'SafePosition' ] }, // U28
+    'Transaction': { 'names': [ 'ParseTransaction' ] }, // U29
+    'LedgerEntry': { 'names': [ 'ParseLedgerEntry', 'SafeLedgerEntry' ] }, // U29
+    'DepositAddress': { 'names': [ 'ParseDepositAddress' ] }, // gochan32-U30
+    'TransferEntry': { 'names': [ 'ParseTransfer' ] }, // gochan32-U30
+    'FundingRate': { 'names': [ 'ParseFundingRate' ] }, // gochan32 U31
+    'OpenInterest': { 'names': [ 'ParseOpenInterest', 'SafeOpenInterest' ] }, // gochan32 U31
+    'TradingFeeInterface': { 'names': [ 'ParseTradingFee' ] }, // U32
+    'Leverage': { 'names': [ 'ParseLeverage' ] }, // U32
+    'MarginMode': { 'names': [ 'ParseMarginMode' ] }, // U32
+    'Greeks': { 'names': [ 'ParseGreeks' ] }, // U32
+    'Option': { 'names': [ 'ParseOption' ] }, // U32
+    'Conversion': { 'names': [ 'ParseConversion' ] }, // U32
 };
 
 // what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
@@ -184,6 +197,15 @@ export function goStructReturnsPass (content: string): string {
         const to = toName (struct) + '(';
         if (identitySpans.has (nameAt) || content.slice (Math.max (0, m.index - to.length), m.index) === to) continue;
         const close = matchClose (content, mask, m.index + m[0].length - 1);
+        // the Value of a struct channel send (`AsyncResult[T]{Value: call}`, go-chan3) is the struct itself
+        if (new RegExp ('AsyncResult\\[(?:ccxt\\.)?' + struct + '\\]\\{Value: $').test (content.slice (Math.max (0, m.index - 80), m.index))) continue;
+        // `<T>FromMap(call)` (a struct channel send of a row builder, go-chan3) is the struct itself
+        const from = q + fromName (struct) + '(';
+        if ((content.slice (Math.max (0, m.index - from.length), m.index) === from) && (content[close + 1] === ')')) {
+            edits.push ({ 'at': m.index - from.length, 'del': from.length, 'text': '' });
+            edits.push ({ 'at': close + 1, 'del': 1, 'text': '' });
+            continue;
+        }
         edits.push ({ 'at': m.index, 'del': 0, 'text': q + toName (struct) + '(' });
         edits.push ({ 'at': close + 1, 'del': 0, 'text': ')' });
     }
@@ -220,6 +242,15 @@ export function goStructReturnsSelfTest (): string[] {
         'func (this *X) ParseContractTicker(ticker any, optionalArgs ...any) map[string]any {',
         '\treturn this.Extend(ticker, map[string]any{})',
         '}',
+        'func (this *X) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {',
+        '\treturn map[string]any{\n\t\t"txid": nil,\n\t}',
+        '}',
+        'func (this *X) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {',
+        '\treturn this.SafeLedgerEntry(map[string]any{}, nil)',
+        '}',
+        'func (this *X) Ledger() any {',
+        '\treturn this.Extend(this.DerivedExchange.ParseLedgerEntry(nil), this.ParseTransaction(nil))',
+        '}',
         '',
     ].join ('\n');
     const want = [
@@ -244,14 +275,163 @@ export function goStructReturnsSelfTest (): string[] {
         'func (this *X) ParseContractTicker(ticker any, optionalArgs ...any) ccxt.Ticker {',
         '\treturn ccxt.TickerFromMap(this.Extend(ticker, map[string]any{}))',
         '}',
+        'func (this *X) ParseTransaction(transaction any, optionalArgs ...any) ccxt.Transaction {',
+        '\treturn ccxt.TransactionFromMap(map[string]any{\n\t\t"txid": nil,\n\t})',
+        '}',
+        'func (this *X) ParseLedgerEntry(item any, optionalArgs ...any) ccxt.LedgerEntry {',
+        '\treturn this.SafeLedgerEntry(map[string]any{}, nil)',
+        '}',
+        'func (this *X) Ledger() any {',
+        '\treturn this.Extend(ccxt.LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(nil)), ccxt.TransactionToMap(this.ParseTransaction(nil)))',
+        '}',
         '',
     ].join ('\n');
+    const src2 = [
+        'package ccxt',
+        '',
+        'func (this *Y) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {',
+        '\treturn map[string]any{',
+        '\t\t"info": depositAddress,',
+        '\t}',
+        '}',
+        'func (this *Y) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {',
+        '\treturn this.Extend(transfer, map[string]any{})',
+        '}',
+        'func (this *Y) Use() any {',
+        '\treturn []any{this.ParseDepositAddress(nil), this.ParseTransfer(nil)}',
+        '}',
+        '',
+    ].join ('\n');
+    const want2 = [
+        'package ccxt',
+        '',
+        'func (this *Y) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {',
+        '\treturn DepositAddressFromMap(map[string]any{',
+        '\t\t"info": depositAddress,',
+        '\t})',
+        '}',
+        'func (this *Y) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {',
+        '\treturn TransferEntryFromMap(this.Extend(transfer, map[string]any{}))',
+        '}',
+        'func (this *Y) Use() any {',
+        '\treturn []any{DepositAddressToMap(this.ParseDepositAddress(nil)), TransferEntryToMap(this.ParseTransfer(nil))}',
+        '}',
+        '',
+    ].join ('\n');
+    const got2 = goStructReturnsPass (src2);
+    if (got2 !== want2) {
+        problems.push ('GOSTRUCT U30 self-test mismatch:\n' + got2);
+    }
+    if (goStructReturnsPass (got2) !== got2) {
+        problems.push ('GOSTRUCT U30 not idempotent');
+    }
     const got = goStructReturnsPass (src);
     if (got !== want) {
         problems.push ('GOSTRUCT self-test mismatch:\n' + got);
     }
     if (goStructReturnsPass (got) !== got) {
         problems.push ('GOSTRUCT not idempotent');
+    }
+    const posSrc = [
+        'package ccxt',
+        '',
+        'func (this *BaseExchange) SafePosition(position any) any {',
+        '\tposition = this.Extend(position, map[string]any{})',
+        '\treturn position',
+        '}',
+        'func (this *X) ParsePosition(position any, optionalArgs ...any) any {',
+        '\treturn this.SafePosition(map[string]any{',
+        '\t\t"info": position,',
+        '\t})',
+        '}',
+        'func (this *BaseExchange) ParsePositions(positions any) []any {',
+        '\tvar position map[string]any = this.Extend(this.DerivedExchange.ParsePosition(positions), nil)',
+        '\treturn []any{position}',
+        '}',
+        '',
+    ].join ('\n');
+    const posWant = [
+        'package ccxt',
+        '',
+        'func (this *BaseExchange) SafePosition(position any) Position {',
+        '\tposition = this.Extend(position, map[string]any{})',
+        '\treturn PositionFromMap(position)',
+        '}',
+        'func (this *X) ParsePosition(position any, optionalArgs ...any) Position {',
+        '\treturn this.SafePosition(map[string]any{',
+        '\t\t"info": position,',
+        '\t})',
+        '}',
+        'func (this *BaseExchange) ParsePositions(positions any) []any {',
+        '\tvar position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(positions)), nil)',
+        '\treturn []any{position}',
+        '}',
+        '',
+    ].join ('\n');
+    const posGot = goStructReturnsPass (posSrc);
+    if (posGot !== posWant) {
+        problems.push ('GOSTRUCT Position self-test mismatch:\n' + posGot);
+    }
+    if (goStructReturnsPass (posGot) !== posGot) {
+        problems.push ('GOSTRUCT Position not idempotent');
+    }
+    // gochan32 U31: FundingRate / OpenInterest (package ccxt: unqualified helpers)
+    const src31 = [
+        'package ccxt',
+        '',
+        'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {',
+        '\treturn map[string]any{',
+        '\t\t"info": contract,',
+        '\t}',
+        '}',
+        'func (this *X) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {',
+        '\treturn this.SafeOpenInterest(map[string]any{',
+        '\t\t"info": interest,',
+        '\t}, nil)',
+        '}',
+        'func (this *X) SafeOpenInterest(interest any, optionalArgs ...any) map[string]any {',
+        '\treturn this.Extend(interest, map[string]any{})',
+        '}',
+        'func (this *X) Fetch() any {',
+        '\tvar parsed any = this.DerivedExchange.ParseFundingRate(nil)',
+        '\treturn this.ParseOpenInterest(parsed)',
+        '}',
+        '',
+    ].join ('\n');
+    const want31 = [
+        'package ccxt',
+        '',
+        'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {',
+        '\treturn FundingRateFromMap(map[string]any{',
+        '\t\t"info": contract,',
+        '\t})',
+        '}',
+        'func (this *X) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {',
+        '\treturn this.SafeOpenInterest(map[string]any{',
+        '\t\t"info": interest,',
+        '\t}, nil)',
+        '}',
+        'func (this *X) SafeOpenInterest(interest any, optionalArgs ...any) OpenInterest {',
+        '\treturn OpenInterestFromMap(this.Extend(interest, map[string]any{}))',
+        '}',
+        'func (this *X) Fetch() any {',
+        '\tvar parsed any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(nil))',
+        '\treturn OpenInterestToMap(this.ParseOpenInterest(parsed))',
+        '}',
+        '',
+    ].join ('\n');
+    const got31 = goStructReturnsPass (src31);
+    if (got31 !== want31) {
+        problems.push ('GOSTRUCT U31 self-test mismatch:\n' + got31);
+    }
+    if (goStructReturnsPass (got31) !== got31) {
+        problems.push ('GOSTRUCT U31 not idempotent');
+    }
+    // struct channel sends (go-chan3): `OrderFromMap(row builder)` and a bare `AsyncResult[Order]{Value: row builder}` stay the struct
+    const chan = 'package ccxt\n\nfunc (this *X) f(ch chan AsyncResult[Order]) any {\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.ParseOrder(a))}\n\tch <- AsyncResult[Order]{Value: this.SafeOrder(a)}\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(this.ParseOrder(a), b))}\n\treturn nil\n}\n';
+    const chanOut = goStructReturnsPass (chan);
+    if (!chanOut.includes ('\tch <- AsyncResult[Order]{Value: this.ParseOrder(a)}\n\tch <- AsyncResult[Order]{Value: this.SafeOrder(a)}\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(a)), b))}\n') || (goStructReturnsPass (chanOut) !== chanOut)) {
+        problems.push ('GOSTRUCT struct channel sends:\n' + chanOut);
     }
     return problems;
 }

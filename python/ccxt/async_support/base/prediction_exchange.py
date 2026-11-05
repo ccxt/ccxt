@@ -596,7 +596,7 @@ class PredictionExchange(BaseExchange):
             missingLength = len(missing)
             wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
             loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
-            if (missingLength > 0) and (loadAll is True) and not wasWarm and not reload:
+            if (missingLength > 0) and (loadAll) and not wasWarm and not reload:
                 # same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 # request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await self.load_outcomes()
@@ -648,7 +648,7 @@ class PredictionExchange(BaseExchange):
                 if self.has_outcome(outcomeSymbol):
                     return self.safe_outcome(outcomeSymbol)
             loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
-            if (loadAll is True) and not wasWarm:
+            if (loadAll) and not wasWarm:
                 # a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 # a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 # listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1291,7 +1291,7 @@ class PredictionExchange(BaseExchange):
             results.append(trade)
         results = self.sort_by_2(results, 'timestamp', 'id')
         outcomeHandle = self.safe_string(outcomeObj, 'outcome')
-        return self.filter_by_outcome_since_limit(results, outcomeHandle, since, limit)
+        return self.filter_by_value_since_limit(results, 'outcome', outcomeHandle, since, limit, 'timestamp', False)
 
     def parse_prediction_orders(self, orders: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params: dict = {}):
         """

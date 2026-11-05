@@ -339,7 +339,7 @@ func (this *WSClient) Reject(err any, messageHash ...any) {
 	this.Client.Reject(err, messageHash...)
 }
 
-func (this *WSClient) SendAsync(message any) <-chan AsyncResult[any] {
+func (this *WSClient) SendAsync(message any) <-chan AsyncResult[bool] {
 	return this.Client.SendAsync(message)
 }
 

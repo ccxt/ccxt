@@ -278,7 +278,7 @@ class hibachi(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def get_account_id(self):
+    def get_account_id(self) -> float:
         self.check_required_credentials()
         id = self.parse_to_int(self.accountId)
         return id
@@ -324,7 +324,7 @@ class hibachi(Exchange, ImplicitAPI):
             'optionType': None,
             'precision': {
                 'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'underlyingDecimals'))),
-                'price': self.parse_number(self.safe_value(self.safe_list(market, 'orderbookGranularities', []), 0)) / 10000.0,
+                'price': self.parse_number(Precise.string_div(self.safe_string(self.safe_list(market, 'orderbookGranularities', []), 0), '10000')),
             },
             'limits': {
                 'leverage': {
@@ -861,7 +861,7 @@ class hibachi(Exchange, ImplicitAPI):
         makerFee = self.safe_number(market, 'maker', self.safe_number(self.options, 'defaultMakerFee', 0.00015))
         takerFeeValue = 0 if (takerFee is None) else takerFee
         makerFeeValue = 0 if (makerFee is None) else makerFee
-        feeRate = max(takerFeeValue, makerFeeValue)
+        feeRate = self.parse_number(Precise.string_max(self.number_to_string(takerFeeValue), self.number_to_string(makerFeeValue)))
         sideInternal = ''
         if side == 'sell':
             sideInternal = 'ASK'
@@ -981,7 +981,7 @@ class hibachi(Exchange, ImplicitAPI):
         makerFee = self.safe_number(market, 'maker', 0)
         takerFeeValue = 0 if (takerFee is None) else takerFee
         makerFeeValue = 0 if (makerFee is None) else makerFee
-        feeRate = max(takerFeeValue, makerFeeValue)
+        feeRate = self.parse_number(Precise.string_max(self.number_to_string(takerFeeValue), self.number_to_string(makerFeeValue)))
         message = self.order_message(market, nonce, feeRate, type, side, amount, price)
         signature = self.sign_message(message, self.privateKey)
         request = {
@@ -1069,7 +1069,7 @@ class hibachi(Exchange, ImplicitAPI):
             }))
         return ret
 
-    def cancel_order_request(self, id: str):
+    def cancel_order_request(self, id: str) -> dict:
         bigid = self.convert_to_big_int(id)
         idbase16 = self.int_to_base16(bigid)
         idPadded = idbase16.rjust(16, '0')
@@ -1716,7 +1716,7 @@ class hibachi(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         endpoint = '/' + self.implode_params(path, params)
         apiUrl = self.safe_string(self.urls['api'], apiName)
@@ -1767,7 +1767,7 @@ class hibachi(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'pending': 'pending',
             'claimable': 'pending',

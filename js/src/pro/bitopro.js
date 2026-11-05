@@ -327,7 +327,7 @@ export default class bitopro extends bitoproRest {
         const isMaker = this.safeBool(trade, 'isMaker');
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
-            if (isMaker === true) {
+            if (isMaker) {
                 takerOrMaker = 'maker';
             }
             else {
@@ -483,11 +483,18 @@ export default class bitopro extends bitoproRest {
         const timestamp = this.safeInteger(message, 'timestamp');
         const datetime = this.safeString(message, 'datetime');
         const currencies = Object.keys(data);
-        const result = {
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': datetime,
-        };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = datetime;
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.safeString(currencies, i);
             const balance = this.safeDict(data, currency, {});
@@ -497,10 +504,10 @@ export default class bitopro extends bitoproRest {
             account['free'] = this.safeString(balance, 'available');
             account['total'] = this.safeString(balance, 'amount');
             if (code !== undefined) {
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, event);
     }
     handleMessage(client, message) {

@@ -99,6 +99,8 @@ public partial class BaseExchange
             {
                 future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
                 (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
+                // a retired client is never reset again, so it must refuse new futures
+                rejection = rejection ?? this.error;
             }
             // settle outside the lock, the TaskCompletionSource is not
             // RunContinuationsAsynchronously so awaiter continuations can run

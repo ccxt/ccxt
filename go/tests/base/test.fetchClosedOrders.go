@@ -15,11 +15,14 @@ func testFetchClosedOrdersBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICor
 	defer ReturnPanicError(ch)
 	var method string = "fetchClosedOrders"
 
-	r := <-exchange.FetchClosedOrdersAsync(symbol)
+	r := <-exchange.(ccxt.IFetchClosedOrders).FetchClosedOrdersAsync(symbol)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	orders := r.Value
+	var orders any = nil
+	if r.Value != nil {
+		orders = ccxt.OrdersToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol)
 	var now int64 = exchange.Milliseconds()
 	for i := 0; i < GetArrayLength(orders); i++ {

@@ -401,11 +401,7 @@ class xt extends xt$1["default"] {
             throw new errors.NotSupported(this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
         const messageHash = 'unsubscribe::' + name;
-        const tickers = await this.unSubscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
-        if (this.newUpdates) {
-            return tickers;
-        }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return await this.unSubscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
     }
     /**
      * @method
@@ -1606,11 +1602,10 @@ class xt extends xt$1["default"] {
         //
         const id = this.safeString(message, 'id');
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        let unsubscribe = false;
         if (id !== undefined) {
             const subscription = this.safeDict(subscriptionsById, id, {});
-            unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
-            if (unsubscribe === true) {
+            const unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
+            if (unsubscribe) {
                 this.handleUnSubscription(client, subscription);
             }
         }

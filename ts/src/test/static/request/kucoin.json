@@ -2258,13 +2258,24 @@
             {
                 "description": "uta orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api.kucoin.com/api/ua/v1/market/orderbook?symbol=BTC-USDT&tradeType=SPOT&limit=20",
+                "url": "https://api.kucoin.com/api/ua/v2/market/orderbook?symbol=BTC-USDT&limit=20&tradeType=SPOT",
                 "input": [
                     "BTC/USDT",
                     20,
                     {
-                        "uta": true,
-                        "tradeType": "SPOT"
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.kucoin.com/api/ua/v2/market/orderbook?symbol=XBTUSDTM&limit=5&tradeType=FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    5,
+                    {
+                        "uta": true
                     }
                 ]
             }

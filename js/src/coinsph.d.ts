@@ -216,12 +216,12 @@ export default class coinsph extends Exchange {
      */
     cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderSide(status: Str): string | undefined;
-    encodeOrderSide(status: Str): string | undefined;
-    parseOrderType(status: Str): string | undefined;
-    encodeOrderType(status: Str): string | undefined;
-    parseOrderStatus(status: Str): string | undefined;
-    parseOrderTimeInForce(status: Str): string | undefined;
+    parseOrderSide(status: Str): Str;
+    encodeOrderSide(status: Str): Str;
+    parseOrderType(status: Str): Str;
+    encodeOrderType(status: Str): Str;
+    parseOrderStatus(status: Str): Str;
+    parseOrderTimeInForce(status: Str): Str;
     /**
      * @method
      * @name coinsph#fetchTradingFee
@@ -280,7 +280,7 @@ export default class coinsph extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name coinsph#fetchDepositAddress

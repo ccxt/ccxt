@@ -1062,7 +1062,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         const buyerMaker = this.safeBool2(trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
-            side = (buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
+            side = (buyerMaker) ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
         }
         else if ('side' in trade) {
@@ -1836,16 +1836,19 @@ class tokocrypto extends tokocrypto$1["default"] {
         const isPostOnlyTimeInForce = (requestedTimeInForce === 'GTX');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, params);
         // only supported for spot/margin api
-        const typeResolved = (postOnly === true) ? 'LIMIT_MAKER' : type;
+        const typeResolved = (postOnly) ? 'LIMIT_MAKER' : type;
         // post only is expressed by the order type here, not by a time force
-        const timeInForceResolved = (postOnly === true) ? undefined : requestedTimeInForce;
+        let timeInForceResolved = requestedTimeInForce;
+        if (postOnly) {
+            timeInForceResolved = undefined;
+        }
         const initialUppercaseType = typeResolved.toUpperCase();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
         const triggerKeys = (triggerPrice !== undefined) ? ['triggerPrice', 'stopPrice'] : [];
         let paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(['clientId', 'clientOrderId', 'timeInForce'], triggerKeys));
         if (triggerPrice !== undefined) {
-            if (postOnly === true) {
+            if (postOnly) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
             }
             if (uppercaseType === 'MARKET') {
@@ -2763,7 +2766,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool(response, 'success', true);
         let parsedMessage = undefined;
-        if (success !== true) {
+        if (!success) {
             const messageInner = this.safeString(response, 'msg');
             if (messageInner !== undefined) {
                 try {
@@ -2807,7 +2810,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             throw new errors.ExchangeError(feedback);
         }
-        if (success !== true) {
+        if (!success) {
             throw new errors.ExchangeError(this.id + ' ' + body);
         }
         return undefined;
@@ -2823,11 +2826,12 @@ class tokocrypto extends tokocrypto$1["default"] {
             return config['noPoolId'];
         }
         else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger(params, 'limit');
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit <= entry[0]) {
+                const entryLimit = this.safeInteger(entry, 0);
+                if ((limit !== undefined) && (entryLimit !== undefined) && (limit <= entryLimit)) {
                     return entry[1];
                 }
             }

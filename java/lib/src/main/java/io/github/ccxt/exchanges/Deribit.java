@@ -160,7 +160,7 @@ public class Deribit extends DeribitApi
                     put( "rest", "https://www.deribit.com" );
                 }} );
                 put( "www", "https://www.deribit.com" );
-                put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.deribit.com/v2", "https://github.com/deribit")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.deribit.com", "https://github.com/deribit")) );
                 put( "fees", "https://www.deribit.com/pages/information/fees" );
                 put( "referral", new HashMap<String, Object>() {{
                     put( "url", "https://www.deribit.com/reg-1189.4038" );
@@ -872,7 +872,7 @@ public class Deribit extends DeribitApi
         }
         String strike = this.safeString(optionParts, 2);
         String optionType = this.safeString(optionParts, 3);
-        Object datetime = this.convertExpireDate((String) (expiry));
+        String datetime = (String) this.convertExpireDate((String) (expiry));
         Long timestamp = this.parse8601(datetime);
         String id = ((((((base + "-") + this.convertExpireDateToMarketIdDate((String) (expiry))) + "-") + strike) + "-") + optionType);
         String symbolExpired = ((((((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType);
@@ -937,7 +937,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.deribit.com/#public-get_time
+     * @see https://docs.deribit.com/api-reference/supporting/public-get_time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -966,7 +966,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -1051,7 +1051,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.deribit.com/#public-status
+     * @see https://docs.deribit.com/api-reference/supporting/public-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -1093,7 +1093,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.deribit.com/#private-get_subaccounts
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_subaccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
@@ -1175,8 +1175,8 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchMarkets
      * @description retrieves data on all markets for deribit
-     * @see https://docs.deribit.com/#public-get_currencies
-     * @see https://docs.deribit.com/#public-get_instruments
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1390,37 +1390,37 @@ public class Deribit extends DeribitApi
                     }
                     Double minTradeAmount = this.safeNumber(market, "min_trade_amount", (Object) null);
                     Double tickSize = this.safeNumber(market, "tick_size", (Object) null);
-                    ((List<Object>)result).add(Helpers.newMap(
-                        "id", id,
-                        "symbol", symbol,
-                        "base", base,
-                        "quote", quote,
-                        "settle", settle,
-                        "baseId", baseId,
-                        "quoteId", quoteId,
-                        "settleId", settleId,
-                        "type", type,
-                        "spot", isSpot,
-                        "margin", false,
-                        "swap", swap,
-                        "future", future,
-                        "option", option,
-                        "active", this.safeBool(market, "is_active", (Object) null),
-                        "contract", !Boolean.TRUE.equals(isSpot),
-                        "linear", linear,
-                        "inverse", inverse,
-                        "taker", this.safeNumber(market, "taker_commission", (Object) null),
-                        "maker", this.safeNumber(market, "maker_commission", (Object) null),
-                        "contractSize", this.safeNumber(market, "contract_size", (Object) null),
-                        "expiry", expiry,
-                        "expiryDatetime", this.iso8601(expiry),
-                        "strike", strike,
-                        "optionType", optionType,
-                        "precision", new HashMap<String, Object>() {{
+                    ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                        j39v1.put("id", id);
+                        j39v1.put("symbol", symbol);
+                        j39v1.put("base", base);
+                        j39v1.put("quote", quote);
+                        j39v1.put("settle", settle);
+                        j39v1.put("baseId", baseId);
+                        j39v1.put("quoteId", quoteId);
+                        j39v1.put("settleId", settleId);
+                        j39v1.put("type", type);
+                        j39v1.put("spot", isSpot);
+                        j39v1.put("margin", false);
+                        j39v1.put("swap", swap);
+                        j39v1.put("future", future);
+                        j39v1.put("option", option);
+                        j39v1.put("active", this.safeBool(market, "is_active", (Object) null));
+                        j39v1.put("contract", !Boolean.TRUE.equals(isSpot));
+                        j39v1.put("linear", linear);
+                        j39v1.put("inverse", inverse);
+                        j39v1.put("taker", this.safeNumber(market, "taker_commission", (Object) null));
+                        j39v1.put("maker", this.safeNumber(market, "maker_commission", (Object) null));
+                        j39v1.put("contractSize", this.safeNumber(market, "contract_size", (Object) null));
+                        j39v1.put("expiry", expiry);
+                        j39v1.put("expiryDatetime", this.iso8601(expiry));
+                        j39v1.put("strike", strike);
+                        j39v1.put("optionType", optionType);
+                        j39v1.put("precision", new HashMap<String, Object>() {{
                             put( "amount", minTradeAmount );
                             put( "price", tickSize );
-                        }},
-                        "limits", new HashMap<String, Object>() {{
+                        }});
+                        j39v1.put("limits", new HashMap<String, Object>() {{
                             put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
@@ -1437,10 +1437,10 @@ public class Deribit extends DeribitApi
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                        }},
-                        "created", this.safeInteger(market, "creation_timestamp"),
-                        "info", market
-                    ));
+                        }});
+                        j39v1.put("created", this.safeInteger(market, "creation_timestamp"));
+                        j39v1.put("info", market);
+                        yield j39v1; } }));
                 }
             }
             return result;
@@ -1454,7 +1454,7 @@ public class Deribit extends DeribitApi
             put( "info", balance );
         }};
         List<Object> summaries = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.inOp(balance, "summaries"))
+        if ((switch ((Object)(balance)) { case List<?> j39v3 -> j39v3.contains("summaries"); case Map<?, ?> j39v2 -> j39v2.containsKey("summaries"); case null, default -> false; }))
         {
             summaries = (List<Object>) this.safeList(balance, "summaries", new ArrayList<Object>(Arrays.asList()));
         } else
@@ -1482,8 +1482,8 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.deribit.com/#private-get_account_summary
-     * @see https://docs.deribit.com/#private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1564,7 +1564,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#createDepositAddress
      * @description create a currency deposit address
-     * @see https://docs.deribit.com/#private-create_deposit_address
+     * @see https://docs.deribit.com/api-reference/wallet/private-create_deposit_address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1613,7 +1613,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.deribit.com/#private-get_current_deposit_address
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_current_deposit_address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1746,7 +1746,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.deribit.com/#public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1803,7 +1803,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
@@ -1827,9 +1827,10 @@ public class Deribit extends DeribitApi
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-                    if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, market.get("base")))
+                    String marketBase = this.safeString(market, "base");
+                    if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, marketBase))
                     {
-                        throw new BadRequest((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;
+                        throw new BadRequest((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency")) ;
                     }
                     if (java.util.Objects.equals(code, null))
                     {
@@ -1915,7 +1916,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.deribit.com/#public-get_tradingview_chart_data
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1949,8 +1950,9 @@ public class Deribit extends DeribitApi
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long now = this.milliseconds();
             // at max, it provides 5000 bars, but we set generous default here
-            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
-            Long limitResolved = (((java.util.Objects.equals(since, null)))) ? windowLimit : limit;
+            Long defaultLimit = 1000L;
+            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
+            Long limitResolved = ((((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(limit, null))))) ? defaultLimit : limit;
             Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? null : Math.max((since - 1L), 0);
             if (java.util.Objects.equals(since, null))
             {
@@ -1994,7 +1996,7 @@ public class Deribit extends DeribitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object ohlcvs = this.convertTradingViewToOHLCV(result, "ticks", "open", "high", "low", "close", "volume", true);
+            List<Object> ohlcvs = (List<Object>) this.convertTradingViewToOHLCV(result, "ticks", "open", "high", "low", "close", "volume", true);
             return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), sinceResolved, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2072,10 +2074,12 @@ public class Deribit extends DeribitApi
         {
             String feeCurrencyId = this.safeString(trade, "fee_currency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", id);
@@ -2097,8 +2101,8 @@ public class Deribit extends DeribitApi
     /**
      * @method
      * @name deribit#fetchTrades
-     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
-     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument_and_time
      * @description get the list of most recent trades for a particular symbol.
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -2179,7 +2183,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://docs.deribit.com/#private-get_account_summary
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -2315,7 +2319,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.deribit.com/#public-get_order_book
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2489,10 +2493,12 @@ public class Deribit extends DeribitApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             feeCostString = Precise.stringAbs(feeCostString);
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", marketResolved.get("base")
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", feeCostString);
+                hx4NewMap1.put("currency", marketResolved.get("base"));
+                fee = hx4NewMap1;
+            }
         }
         String rawType = this.safeString(order, "order_type");
         String type = this.parseOrderType(rawType);
@@ -2529,7 +2535,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.deribit.com/#private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2591,8 +2597,8 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#createOrder
      * @description create a trade order
-     * @see https://docs.deribit.com/#private-buy
-     * @see https://docs.deribit.com/#private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2621,9 +2627,9 @@ public class Deribit extends DeribitApi
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
             // only stop loss sell orders are allowed when price crossed from above
-            Object stopLossPrice = this.safeValue(parameters, "stopLossPrice");
+            String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             // only take profit buy orders are allowed when price crossed from below
-            Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
+            String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             String trailingAmount = this.safeString2(parameters, "trailingAmount", "trigger_offset");
             Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
             Boolean isStopLimit = java.util.Objects.equals(type, "stop_limit");
@@ -2656,7 +2662,7 @@ public class Deribit extends DeribitApi
                 request.put("trigger_offset", this.parseToNumeric(trailingAmount));
             } else if (Boolean.TRUE.equals(isStopOrder))
             {
-                Object triggerPrice = (((!java.util.Objects.equals(stopLossPrice, null)))) ? stopLossPrice : takeProfitPrice;
+                String triggerPrice = (((!java.util.Objects.equals(stopLossPrice, null)))) ? stopLossPrice : takeProfitPrice;
                 request.put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
                 request.put("trigger", trigger);
                 if (Boolean.TRUE.equals(isStopLossOrder))
@@ -2781,7 +2787,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#editOrder
      * @description edit a trade order
-     * @see https://docs.deribit.com/#private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
      * @param {string} id edit order id
      * @param {string} [symbol] unified symbol of the market to edit an order in
      * @param {string} [type] 'market' or 'limit'
@@ -2837,7 +2843,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#cancelOrder
      * @description cancels an open order
-     * @see https://docs.deribit.com/#private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
      * @param {string} id order id
      * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2866,8 +2872,8 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#cancelAllOrders
      * @description cancel all open orders
-     * @see https://docs.deribit.com/#private-cancel_all
-     * @see https://docs.deribit.com/#private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2913,8 +2919,8 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.deribit.com/#private-get_open_orders_by_currency
-     * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -2955,8 +2961,8 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.deribit.com/#private-get_order_history_by_currency
-     * @see https://docs.deribit.com/#private-get_order_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3004,7 +3010,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://docs.deribit.com/#private-get_user_trades_by_order
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3068,10 +3074,10 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.deribit.com/#private-get_user_trades_by_currency
-     * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
-     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
-     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency_and_time
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -3166,7 +3172,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://docs.deribit.com/#private-get_deposits
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_deposits
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3226,7 +3232,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.deribit.com/#private-get_withdrawals
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_withdrawals
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3338,10 +3344,12 @@ public class Deribit extends DeribitApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             type = "withdrawal";
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", code
-            );
+            {
+                HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                hx4NewMap2.put("cost", feeCost);
+                hx4NewMap2.put("currency", code);
+                fee = hx4NewMap2;
+            }
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -3442,7 +3450,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://docs.deribit.com/#private-get_position
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_position
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3497,7 +3505,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.deribit.com/#private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.currency] currency code filter for positions
@@ -3562,7 +3570,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchVolatilityHistory
      * @description fetch the historical volatility of an option market based on an underlying asset
-     * @see https://docs.deribit.com/#public-get_historical_volatility
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_historical_volatility
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
@@ -3636,7 +3644,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://docs.deribit.com/#private-get_transfers
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_transfers
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -3709,8 +3717,8 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://docs.deribit.com/#private-submit_transfer_to_user
-     * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
+     * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_user
+     * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_subaccount
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -3821,7 +3829,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#withdraw
      * @description make a withdrawal
-     * @see https://docs.deribit.com/#private-withdraw
+     * @see https://docs.deribit.com/api-reference/wallet/private-withdraw
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -3890,7 +3898,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees
-     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -3937,7 +3945,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://docs.deribit.com/#public-get_funding_rate_value
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_value
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
@@ -3979,7 +3987,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchFundingRateHistory
      * @description fetch the current funding rate
-     * @see https://docs.deribit.com/#public-get_funding_rate_history
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
@@ -4014,20 +4022,16 @@ public class Deribit extends DeribitApi
             Long duration = (((long) this.parseTimeframe(eachItemDuration)) * 1000L);
             Long now = this.milliseconds();
             Long month = ((((30L * 24L) * 60L) * 60L) * 1000L);
-            Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? (now - month) : since;
+            Long defaultSince = (now - month);
+            Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? defaultSince : since;
             Object time = (((java.util.Objects.equals(since, null)))) ? now : (since + month);
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instrument_name", market.get("id"));
             request.put("start_timestamp", (sinceResolved - 1L));
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end_timestamp");
             Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("end_timestamp", until);
-            } else
-            {
-                request.put("end_timestamp", time);
-            }
+            Object endTimestamp = (((!java.util.Objects.equals(until, null)))) ? until : time;
+            request.put("end_timestamp", endTimestamp);
             Boolean isPaginationCall = (paramsUntil.containsKey("isDeribitPaginationCall"));
             Map<String, Object> paramsOmitted = paramsUntil;
             if (Boolean.TRUE.equals(isPaginationCall))
@@ -4040,8 +4044,8 @@ public class Deribit extends DeribitApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a limit argument")) ;
                 }
-                Object maxUntil = this.sum(sinceResolved, (limit * duration));
-                request.put("end_timestamp", Helpers.mathMin(request.get("end_timestamp"), maxUntil));
+                Long maxUntil = this.parseToInt(this.sum(sinceResolved, (limit * duration)));
+                request.put("end_timestamp", ((((!(endTimestamp == null && maxUntil == null) && endTimestamp == null || (maxUntil != null && !(((Number) endTimestamp).doubleValue() >= maxUntil)))))) ? endTimestamp : maxUntil);
             }
             Map<String, Object> response = (this.publicGetGetFundingRateHistory(this.extend(request, paramsOmitted))).join();
             //
@@ -4121,7 +4125,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_settlements_by_currency
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -4218,7 +4222,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchMyLiquidations
      * @description retrieves the users liquidated positions
-     * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_settlement_history_by_instrument
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -4319,7 +4323,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchGreeks
      * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-     * @see https://docs.deribit.com/#public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
@@ -4462,7 +4466,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchOption
      * @description fetches option data that is commonly found in an option chain
-     * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -4524,7 +4528,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchOptionChain
      * @description fetches data for an underlying asset that is commonly found in an option chain
-     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
      * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -4637,7 +4641,7 @@ public class Deribit extends DeribitApi
      * @method
      * @name deribit#fetchOpenInterest
      * @description Retrieves the open interest of a symbol
-     * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}

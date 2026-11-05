@@ -723,27 +723,36 @@ export default class btcturk extends Exchange {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
         };
         const until = this.safeInteger(params, 'until', this.milliseconds());
-        request['to'] = this.parseToInt((until / 1000));
+        const untilSeconds = this.parseToInt((until / 1000));
+        request['to'] = untilSeconds;
         if (since !== undefined) {
             request['from'] = this.parseToInt(since / 1000);
         }
-        let limitDefaulted = limit;
-        if ((since === undefined) && (limit === undefined)) {
-            limitDefaulted = 100; // default value
+        let limitResolved = undefined;
+        if (limit !== undefined) {
+            limitResolved = limit;
+            if (limit > 11000) {
+                limitResolved = 11000; // max 11000 candles diapason can be covered
+            }
         }
-        const limitResolved = (limitDefaulted !== undefined) ? Math.min(limitDefaulted, 11000) : undefined; // max 11000 candles diapason can be covered
+        else if (since === undefined) {
+            limitResolved = 100; // default value
+        }
         if (limitResolved !== undefined) {
             if (timeframe === '1y') { // difficult with leap years
                 throw new BadRequest(this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe(timeframe);
-            const limitSeconds = seconds * (limitResolved - 1);
+            const limitCount = (limit === undefined) ? 100 : Math.min(limit, 11000);
+            const limitSeconds = seconds * (limitCount - 1);
             if (since !== undefined) {
                 const to = this.parseToInt(since / 1000) + limitSeconds;
-                request['to'] = Math.min(request['to'], to);
+                if (to < untilSeconds) {
+                    request['to'] = to;
+                }
             }
             else {
-                request['from'] = this.parseToInt(0 / 1000) - limitSeconds;
+                request['from'] = 0 - limitSeconds;
             }
         }
         const response = await this.graphGetKlinesHistory(this.extend(request, params));

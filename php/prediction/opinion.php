@@ -191,9 +191,9 @@ class opinion extends Exchange {
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         $seenEvents = array();
         $eventsList = array();
-        $page = 1;
-        $fetchedRawCount = 0;
-        while (true) {
+        // every raw (unflattened) row fetched so far, so its length is the raw fetched count
+        $fetchedRawRows = array();
+        for ($page = 1; $page <= $maxPages; $page++) {
             $request = array(
                 'marketType' => 2, // all - both standalone binaries and categorical parents
                 'limit' => $pageLimit,
@@ -203,17 +203,17 @@ class opinion extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $rawMarkets = $this->safe_list($result, 'list', array());
             $rawMarketsLength = count($rawMarkets);
-            $fetchedRawCount = $this->sum($fetchedRawCount, $rawMarketsLength);
             // categorical parents expand into several flatMarkets entries each, so the raw,
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
             // flatMarkets.length - otherwise expansion makes the comparison meaningless
             $total = $this->safe_integer($result, 'total');
             for ($i = 0; $i < $rawMarketsLength; $i++) {
                 $raw = $rawMarkets[$i];
+                $fetchedRawRows[] = $raw;
                 $marketType = $this->safe_integer($raw, 'marketType');
                 if ($marketType === 1) {
                     $event = $this->parse_event($raw);
-                    $childMarkets = $event['markets'];
+                    $childMarkets = $this->safe_list($event, 'markets', array());
                     $childMarketsLength = count($childMarkets);
                     for ($ci = 0; $ci < $childMarketsLength; $ci++) {
                         $flatMarkets[] = $childMarkets[$ci];
@@ -228,10 +228,10 @@ class opinion extends Exchange {
                 }
             }
             $collectedLength = count($flatMarkets);
+            $fetchedRawCount = count($fetchedRawRows);
             if (($rawMarketsLength < $pageLimit) || ($page >= $maxPages) || (($total !== null) && ($fetchedRawCount >= $total)) || (($userLimit !== null) && ($collectedLength >= $userLimit))) {
                 break;
             }
-            $page = $this->sum($page, 1);
         }
         $this->set_events($eventsList);
         $flatMarketsLength = count($flatMarkets);
@@ -435,25 +435,17 @@ class opinion extends Exchange {
             return $this->apply_event_fetch_params(array( $single ), $params, $queries);
         }
         $rest = $this->omit($params, array( 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ));
-        $pageLimit = $this->safe_integer($this->options, 'defaultFetchEventsLimit', 20);
-        $userLimit = $this->safe_integer($params, 'limit');
+        $pageLimit = $this->parse_to_int($this->safe_integer($this->options, 'defaultFetchEventsLimit', 20));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
-        $fetchCap = $this->safe_integer($this->options, 'maxFetchEventsResults', 100);
-        if ($userLimit !== null) {
-            $fetchCap = $userLimit;
-        }
+        $fetchCap = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'maxFetchEventsResults', 100));
         $maxPages = $this->safe_integer($this->options, 'maxEventsPages', 50);
         $rawEvents = array();
-        $page = 1;
-        $fetchedRawCount = 0;
-        while (true) {
-            $reqLimit = $pageLimit;
-            $remaining = $fetchCap - $fetchedRawCount;
-            if ($remaining < $reqLimit) {
-                $reqLimit = $remaining;
-            }
+        for ($page = 1; $page <= $maxPages; $page++) {
+            $fetchedSoFar = count($rawEvents);
+            $remaining = $this->parse_to_int($fetchCap - $fetchedSoFar);
+            $reqLimit = ($remaining < $pageLimit) ? $remaining : $pageLimit;
             if ($reqLimit <= 0) {
                 break;
             }
@@ -466,15 +458,15 @@ class opinion extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $pageEvents = $this->safe_list($result, 'list', array());
             $pageEventsLength = count($pageEvents);
-            $fetchedRawCount = $this->sum($fetchedRawCount, $pageEventsLength);
             for ($i = 0; $i < $pageEventsLength; $i++) {
                 $rawEvents[] = $pageEvents[$i];
             }
+            // rawEvents holds every row fetched so far, so its length is the raw fetched count
+            $fetchedRawCount = count($rawEvents);
             $total = $this->safe_integer($result, 'total');
             if (($pageEventsLength < $reqLimit) || ($page >= $maxPages) || (($total !== null) && ($fetchedRawCount >= $total)) || ($fetchedRawCount >= $fetchCap)) {
                 break;
             }
-            $page = $this->sum($page, 1);
         }
         $rawEventsLength = count($rawEvents);
         $parsedEvents = array();
@@ -524,7 +516,7 @@ class opinion extends Exchange {
         return $event;
     }
 
-    public function parse_event(array $rawEvent): mixed {
+    public function parse_event(array $rawEvent): array {
         /**
          * @ignore
          * parses a raw opinion categorical market (with nested childMarkets) into the unified event shape
@@ -995,10 +987,13 @@ class opinion extends Exchange {
         return '0x' . $this->remove0x_prefix($sig['r']) . $this->remove0x_prefix($sig['s']) . $this->int_to_base16($sig['v']);
     }
 
-    public function opinion_order_raw_amounts(bool $isMarket, string $side, ?float $amount, ?float $price, float $decimals): array {
+    public function opinion_order_raw_amounts(bool $isMarket, string $side, ?float $amount, ?float $price, ?int $decimals): array {
         $decimalsStr = '1';
-        for ($i = 0; $i < $decimals; $i++) {
-            $decimalsStr = $decimalsStr . '0';
+        if ($decimals !== null) {
+            $decimalsCount = $this->parse_to_int($decimals);
+            for ($i = 0; $i < $decimalsCount; $i++) {
+                $decimalsStr = $decimalsStr . '0';
+            }
         }
         $amountStr = $this->number_to_string($amount);
         if ($isMarket && ($side === 'BUY')) {
@@ -1159,7 +1154,7 @@ class opinion extends Exchange {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        $status = ($canceled === true) ? 'canceled' : null;
+        $status = ($canceled) ? 'canceled' : null;
         return $this->safe_prediction_order(array( 'id' => $id, 'status' => $status, 'info' => $response ));
     }
 
@@ -1530,10 +1525,10 @@ class opinion extends Exchange {
         $response = Async\await($this->opinionPrivateGetPositionsUserWalletAddress($this->extend($request, $params)));
         $result = $this->safe_dict($response, 'result', array());
         $positions = $this->safe_list($result, 'list', array());
-        $parsed = $this->parse_prediction_positions($positions);
         if ($outcomesLength === 0) {
-            return $parsed;
+            return $this->parse_prediction_positions($positions);
         }
+        $parsed = $this->parse_prediction_positions($positions);
         $wantedTokenIds = array();
         // copy to a plain list so the strict null checks see one shape
         $outcomesList = ($outcomes === null) ? array() : $outcomes;
@@ -1800,7 +1795,7 @@ class opinion extends Exchange {
         }
     }
 
-    public function opinion_outcome_by_market_id_side(?int $marketId, ?int $outcomeSide): mixed {
+    public function opinion_outcome_by_market_id_side(?int $marketId, ?int $outcomeSide): ?array {
         /**
          * @ignore
          * resolves a cached outcome object from the numeric $marketId . $outcomeSide (1 yes / 2 no) the user channels report instead of a tokenId - cache-only, returns null on a cold cache
@@ -1880,7 +1875,7 @@ class opinion extends Exchange {
         $this->orderbooks[$sym] = $orderbook;
     }
 
-    public function handle_order_book(mixed $client, array $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "marketId": 2764,
@@ -1935,7 +1930,7 @@ class opinion extends Exchange {
         return Async\await($this->subscribe_opinion_channel($messageHash, 'market.last.price', $marketId));
     }
 
-    public function handle_ticker(mixed $client, array $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1992,7 +1987,7 @@ class opinion extends Exchange {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(mixed $client, array $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -2095,7 +2090,7 @@ class opinion extends Exchange {
         return null;
     }
 
-    public function handle_order(mixed $client, array $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
         //         "orderUpdateType": "orderConfirm",
@@ -2192,7 +2187,7 @@ class opinion extends Exchange {
         return $this->filter_by_value_since_limit($trades, 'outcome', $sym, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_my_trade(mixed $client, array $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         //     {
         //         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",
@@ -2264,7 +2259,7 @@ class opinion extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('opinion'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('opinion'), string $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request $url and attaches the apikey/EIP-712 authentication headers for private endpoints

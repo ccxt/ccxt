@@ -246,7 +246,7 @@ export default class whitebit extends whitebitRest {
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -479,7 +479,7 @@ export default class whitebit extends whitebitRest {
         //       "id": null
         //   }
         //
-        const trade = this.safeValue (message, 'params');
+        const trade = this.safeList (message, 'params', []);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCache (limit);
@@ -729,7 +729,7 @@ export default class whitebit extends whitebitRest {
         }, marketResolved);
     }
 
-    parseWsOrderType (status: any): string {
+    parseWsOrderType (status: Str): Str {
         const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
@@ -783,7 +783,7 @@ export default class whitebit extends whitebitRest {
         return await this.watchPrivate (messageHash, method, [], paramsAwaitBalanceSnapshot);
     }
 
-    setBalanceCache (client: Client, type: Str, subscriptionHash: any) {
+    setBalanceCache (client: Client, type: Str, subscriptionHash: string) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -797,7 +797,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async loadBalanceSnapshot (client: any, messageHash: any, type: any, subscriptionHash: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: Str, subscriptionHash: string) {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance = this.extend (response, this.balance);
         // don't remove the future from the .futures cache
@@ -934,7 +934,7 @@ export default class whitebit extends whitebitRest {
             const market = this.market (symbol);
             const marketId = market['id'];
             const isSubscribed = this.safeBool (subscription, marketId, false);
-            if (isSubscribed !== true) {
+            if (!isSubscribed) {
                 if (marketId !== undefined) {
                     subscription[marketId] = true;
                 }

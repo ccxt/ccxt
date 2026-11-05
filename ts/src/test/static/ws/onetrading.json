@@ -1,0 +1,169 @@
+{
+    "exchange": "onetrading",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchBalance": [
+            {
+                "description": "balances snapshot followed by a second snapshot - snapshots arriving while no consumer is awaiting must still reach the object handed to the consumer (same class as issue 26773); frame shape from the documented BALANCES_SNAPSHOT payload",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledRS": "the rust Value runtime is copy-on-write (Arc-backed dicts) - the in-place merge detaches from the clone the consumer received at resolve time, and the typed watch_balance wrapper additionally copies into a Balances struct (Balances::from_value), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "input": [],
+                "url": "wss://streams.fast.onetrading.com",
+                "messages": [
+                    {
+                        "channel_name": "SYSTEM",
+                        "type": "AUTHENTICATED",
+                        "time": "2026-10-20T13:39:15.447488Z"
+                    },
+                    {
+                        "channels": [
+                            {
+                                "name": "ACCOUNT_HISTORY"
+                            }
+                        ],
+                        "type": "SUBSCRIPTIONS",
+                        "time": "2026-10-20T13:39:16.948282Z"
+                    },
+                    {
+                        "channels": [
+                            {
+                                "name": "ACCOUNT_HISTORY"
+                            }
+                        ],
+                        "type": "SUBSCRIPTIONS",
+                        "time": "2026-10-20T13:39:16.948282Z"
+                    },
+                    {
+                        "channels": [
+                            {
+                                "name": "ACCOUNT_HISTORY"
+                            }
+                        ],
+                        "type": "SUBSCRIPTIONS",
+                        "time": "2026-10-20T13:39:16.948282Z"
+                    },
+                    {
+                        "account_id": "b355abb8-aaae-4fae-903c-c60ff74723c6",
+                        "type": "BALANCES_SNAPSHOT",
+                        "channel_name": "ACCOUNT_HISTORY",
+                        "time": "2026-10-20T13:39:17.155Z",
+                        "balances": [
+                            {
+                                "account_id": "b355abb8-aaae-4fae-903c-c60ff74723c6",
+                                "currency_code": "BTC",
+                                "change": "0",
+                                "available": "10.0",
+                                "locked": "1.1234567",
+                                "sequence": 1,
+                                "time": "2026-10-20T13:39:17.155Z"
+                            },
+                            {
+                                "account_id": "b355abb8-aaae-4fae-903c-c60ff74723c6",
+                                "currency_code": "ETH",
+                                "change": "0",
+                                "available": "10.0",
+                                "locked": "1.1234567",
+                                "sequence": 2,
+                                "time": "2026-10-20T13:39:17.155Z"
+                            }
+                        ]
+                    },
+                    {
+                        "account_id": "b355abb8-aaae-4fae-903c-c60ff74723c6",
+                        "type": "BALANCES_SNAPSHOT",
+                        "channel_name": "ACCOUNT_HISTORY",
+                        "time": "2026-10-20T13:39:27.155Z",
+                        "balances": [
+                            {
+                                "account_id": "b355abb8-aaae-4fae-903c-c60ff74723c6",
+                                "currency_code": "BTC",
+                                "change": "2.0",
+                                "available": "12.0",
+                                "locked": "1.1234567",
+                                "sequence": 3,
+                                "time": "2026-10-20T13:39:27.155Z"
+                            },
+                            {
+                                "account_id": "b355abb8-aaae-4fae-903c-c60ff74723c6",
+                                "currency_code": "ETH",
+                                "change": "0",
+                                "available": "10.0",
+                                "locked": "1.1234567",
+                                "sequence": 4,
+                                "time": "2026-10-20T13:39:27.155Z"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "type": "AUTHENTICATE",
+                        "api_token": "key"
+                    },
+                    {
+                        "type": "SUBSCRIBE",
+                        "bp_remaining_quota": 200,
+                        "channels": [
+                            {
+                                "name": "ACCOUNT_HISTORY"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "account_id": "b355abb8-aaae-4fae-903c-c60ff74723c6",
+                        "type": "BALANCES_SNAPSHOT",
+                        "channel_name": "ACCOUNT_HISTORY",
+                        "time": "2026-10-20T13:39:27.155Z",
+                        "balances": [
+                            {
+                                "account_id": "b355abb8-aaae-4fae-903c-c60ff74723c6",
+                                "currency_code": "BTC",
+                                "change": "2.0",
+                                "available": "12.0",
+                                "locked": "1.1234567",
+                                "sequence": 3,
+                                "time": "2026-10-20T13:39:27.155Z"
+                            },
+                            {
+                                "account_id": "b355abb8-aaae-4fae-903c-c60ff74723c6",
+                                "currency_code": "ETH",
+                                "change": "0",
+                                "available": "10.0",
+                                "locked": "1.1234567",
+                                "sequence": 4,
+                                "time": "2026-10-20T13:39:27.155Z"
+                            }
+                        ]
+                    },
+                    "BTC": {
+                        "free": 12,
+                        "used": 1.1234567,
+                        "total": 13.1234567
+                    },
+                    "ETH": {
+                        "free": 10,
+                        "used": 1.1234567,
+                        "total": 11.1234567
+                    },
+                    "free": {
+                        "BTC": 12,
+                        "ETH": 10
+                    },
+                    "used": {
+                        "BTC": 1.1234567,
+                        "ETH": 1.1234567
+                    },
+                    "total": {
+                        "BTC": 13.1234567,
+                        "ETH": 11.1234567
+                    }
+                }
+            }
+        ]
+    }
+}

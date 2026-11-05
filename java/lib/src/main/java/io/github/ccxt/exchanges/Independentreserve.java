@@ -477,36 +477,36 @@ public class Independentreserve extends IndependentreserveApi
                     {
                         continue;
                     }
-                    Object id = Helpers.add(Helpers.add(baseId, "/"), quoteId);
-                    ((List<Object>)result).add(Helpers.newMap(
-                        "id", id,
-                        "symbol", ((base + "/") + quote),
-                        "base", base,
-                        "quote", quote,
-                        "settle", null,
-                        "baseId", baseId,
-                        "quoteId", quoteId,
-                        "settleId", null,
-                        "type", "spot",
-                        "spot", true,
-                        "margin", false,
-                        "swap", false,
-                        "future", false,
-                        "option", false,
-                        "active", null,
-                        "contract", false,
-                        "linear", null,
-                        "inverse", null,
-                        "contractSize", null,
-                        "expiry", null,
-                        "expiryDatetime", null,
-                        "strike", null,
-                        "optionType", null,
-                        "precision", new HashMap<String, Object>() {{
+                    Object id = ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(((Object) (switch ((Object) (baseId)) { case null -> (Object) ("null" + ("/")); case Double hx4J40v0 -> (Object) (hx4J40v0 + 0.0); case Object hx4J40v0 -> (Object) (String.valueOf(hx4J40v0) + ("/")); })), quoteId);
+                    ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                        j39v2.put("id", id);
+                        j39v2.put("symbol", ((base + "/") + quote));
+                        j39v2.put("base", base);
+                        j39v2.put("quote", quote);
+                        j39v2.put("settle", null);
+                        j39v2.put("baseId", baseId);
+                        j39v2.put("quoteId", quoteId);
+                        j39v2.put("settleId", null);
+                        j39v2.put("type", "spot");
+                        j39v2.put("spot", true);
+                        j39v2.put("margin", false);
+                        j39v2.put("swap", false);
+                        j39v2.put("future", false);
+                        j39v2.put("option", false);
+                        j39v2.put("active", null);
+                        j39v2.put("contract", false);
+                        j39v2.put("linear", null);
+                        j39v2.put("inverse", null);
+                        j39v2.put("contractSize", null);
+                        j39v2.put("expiry", null);
+                        j39v2.put("expiryDatetime", null);
+                        j39v2.put("strike", null);
+                        j39v2.put("optionType", null);
+                        j39v2.put("precision", new HashMap<String, Object>() {{
                             put( "amount", null );
                             put( "price", null );
-                        }},
-                        "limits", new HashMap<String, Object>() {{
+                        }});
+                        j39v2.put("limits", new HashMap<String, Object>() {{
                             put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
@@ -523,13 +523,13 @@ public class Independentreserve extends IndependentreserveApi
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                        }},
-                        "created", null,
-                        "info", Helpers.newMap(
-                            "primaryCurrencyCode", baseId,
-                            "secondaryCurrencyCode", quoteId
-                        )
-                    ));
+                        }});
+                        j39v2.put("created", null);
+                        j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                            j39v1.put("primaryCurrencyCode", baseId);
+                            j39v1.put("secondaryCurrencyCode", quoteId);
+                            yield j39v1; } }));
+                        yield j39v2; } }));
                 }
             }
             return result;
@@ -542,7 +542,7 @@ public class Independentreserve extends IndependentreserveApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "CurrencyCode");
@@ -911,11 +911,7 @@ public class Independentreserve extends IndependentreserveApi
                 request.put("primaryCurrencyCode", market.get("baseId"));
                 request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
-            Long limitResolved = limit;
-            if (java.util.Objects.equals(limitResolved, null))
-            {
-                limitResolved = 50L;
-            }
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50L : limit;
             request.put("pageIndex", 1);
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
@@ -952,11 +948,7 @@ public class Independentreserve extends IndependentreserveApi
                 request.put("primaryCurrencyCode", market.get("baseId"));
                 request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
-            Long limitResolved = limit;
-            if (java.util.Objects.equals(limitResolved, null))
-            {
-                limitResolved = 50L;
-            }
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50L : limit;
             request.put("pageIndex", 1);
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();

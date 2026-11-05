@@ -866,7 +866,7 @@ class coincheck(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # withdrawals
             'pending': 'pending',
@@ -947,7 +947,7 @@ class coincheck(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         bodySigned = None
         headersSigned = None
@@ -989,7 +989,7 @@ class coincheck(Exchange, ImplicitAPI):
         #     {"success":false,"error":"invalid authentication"}
         #
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             error = self.safe_string(response, 'error')
             feedback = self.id + ' ' + self.json(response)
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)

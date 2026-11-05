@@ -275,8 +275,8 @@ export default class p2b extends p2bRest {
         //        "id": null
         //    }
         //
-        let data = this.safeList(message, 'params');
-        data = this.safeList(data, 0);
+        const params = this.safeList(message, 'params');
+        const data = this.safeList(params, 0);
         const method = this.safeString(message, 'method');
         const splitMethod = method.split('.');
         const channel = this.safeString(splitMethod, 0);
@@ -437,7 +437,7 @@ export default class p2b extends p2bRest {
             this.orderbooks[symbol] = this.orderBook({}, limit);
             orderbook = this.orderbooks[symbol];
         }
-        if (isFullUpdate === true) {
+        if (isFullUpdate) {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger

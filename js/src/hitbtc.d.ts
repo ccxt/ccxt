@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, List, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterest, OpenInterests, DepositWithdrawFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, NullableDict, List, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterest, OpenInterests, DepositWithdrawFees } from './base/types.js';
 /**
  * @class hitbtc
  * @augments Exchange
@@ -109,7 +109,7 @@ export default class hitbtc extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     fetchTransactionsHelper(types: Str, code: Str, since: Int, limit: Int, params: Dict): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str): Str;
     parseTransactionType(type: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
@@ -342,7 +342,7 @@ export default class hitbtc extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     createOrderRequest(market: Dict, marketType: string, type: OrderType, side: OrderSide, amount: Num, price?: Num, marginMode?: Str, params?: Dict): [Dict, Dict];
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -370,7 +370,7 @@ export default class hitbtc extends Exchange {
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict | List, currency?: Currency): TransferEntry;
-    convertCurrencyNetwork(code: string, amount: Num, fromNetwork: any, toNetwork: any, params?: Dict): Promise<Dict>;
+    convertCurrencyNetwork(code: string, amount: Num, fromNetwork: string, toNetwork: string, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name hitbtc#withdraw
@@ -435,7 +435,7 @@ export default class hitbtc extends Exchange {
      */
     fetchPosition(symbol: string, params?: Dict): Promise<Position>;
     parsePosition(position: Dict, market?: Market): Position;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name hitbtc#fetchOpenInterests
@@ -467,7 +467,7 @@ export default class hitbtc extends Exchange {
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
-    modifyMarginHelper(symbol: string, amount: any, type: Str, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: number, type: Str, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -532,7 +532,7 @@ export default class hitbtc extends Exchange {
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name hitbtc#closePosition

@@ -19,7 +19,10 @@ func testFetchDepositWithdrawalsBody(ch chan ccxt.AsyncResult[any], exchange ccx
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	transactions := r.Value
+	var transactions any = nil
+	if r.Value != nil {
+		transactions = ccxt.TransactionsToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, transactions, code)
 	var now int64 = exchange.Milliseconds()
 	for i := 0; i < GetArrayLength(transactions); i++ {
