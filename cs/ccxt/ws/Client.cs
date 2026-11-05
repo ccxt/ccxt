@@ -70,7 +70,7 @@ public partial class BaseExchange
 
         public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
 
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true, bool deflate = true)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -87,6 +87,31 @@ public partial class BaseExchange
             {
                 var webProxy = new WebProxy(proxy);
                 webSocket.Options.Proxy = webProxy;
+            }
+            if (deflate)
+            {
+                this.OfferDeflate();
+            }
+        }
+
+        // offer permessage-deflate (RFC 7692), as the JS `ws` client, the python client and browsers do: some gateways
+        // (e.g. nado behind cloudflare) refuse a handshake without the Sec-WebSocket-Extensions offer, and servers that
+        // don't support it ignore it. ClientWebSocketOptions.DangerousDeflateOptions exists from .NET 6 on, past the
+        // netstandard targets, so it's set by reflection where the runtime has it
+        private void OfferDeflate()
+        {
+            var property = typeof(ClientWebSocketOptions).GetProperty("DangerousDeflateOptions");
+            if (property == null || !property.CanWrite)
+            {
+                return;
+            }
+            try
+            {
+                property.SetValue(this.webSocket.Options, Activator.CreateInstance(property.PropertyType));
+            }
+            catch (Exception)
+            {
+                // left without compression, as before
             }
         }
 
