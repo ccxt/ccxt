@@ -249,7 +249,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                         this.bidsasks.remove(symbol);
                     } else
                     {
-                        ((Map<String,Object>)this.tickers).remove(symbol);
+                        this.tickers.remove(symbol);
                     }
                 } else
                 {
@@ -382,9 +382,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             if (((String)messageHash).indexOf("ticker") >= 0)
             {
                 String symbol = messageHash.replaceFirst("unsubscribe:ticker:", "");
-                if (((Map<?, ?>)this.tickers).containsKey(symbol))
+                if (this.tickers.containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.tickers).remove(symbol);
+                    this.tickers.remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("bidask") >= 0)
             {

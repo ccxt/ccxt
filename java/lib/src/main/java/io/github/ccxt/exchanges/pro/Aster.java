@@ -520,7 +520,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             String messageHash = ("ticker:" + symbol);
             this.tickers.put(symbol, parsed);
-            client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
+            client.resolve((symbol == null || this.tickers == null ? null : this.tickers.get(symbol)), messageHash);
         }
     }
 

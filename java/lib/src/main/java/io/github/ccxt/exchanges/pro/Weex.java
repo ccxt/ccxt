@@ -398,7 +398,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("ticker::" + symbol);
         this.tickers.put(symbol, ticker);
-        client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
+        client.resolve((symbol == null || this.tickers == null ? null : this.tickers.get(symbol)), messageHash);
     }
 
     public Ticker parseWsTicker(Object ticker, Map<String, Object> market)

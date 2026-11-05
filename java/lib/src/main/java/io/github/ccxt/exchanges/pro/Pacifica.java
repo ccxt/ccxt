@@ -1689,7 +1689,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         List<Object> symbols = (this.tickers == null ? new ArrayList<Object>() : new ArrayList<Object>(this.tickers.keySet()));
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            ((Map<String,Object>)this.tickers).remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
+            this.tickers.remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
         }
     }
 

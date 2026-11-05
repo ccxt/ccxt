@@ -3588,9 +3588,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String symbol = (String) market.get("symbol");
         String messageHash = ("unsubscribe:ticker:" + this.safeString(market, "symbol", ""));
         String subMessageHash = ("ticker:" + symbol);
-        if (((Map<?, ?>)this.tickers).containsKey(symbol))
+        if (this.tickers.containsKey(symbol))
         {
-            ((Map<String,Object>)this.tickers).remove(symbol);
+            this.tickers.remove(symbol);
         }
         if (client.subscriptions.containsKey(subMessageHash))
         {

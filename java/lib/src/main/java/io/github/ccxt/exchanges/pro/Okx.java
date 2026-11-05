@@ -3352,9 +3352,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String subMessageHash = ((channel + "::") + symbol);
         String messageHash = ("unsubscribe:ticker:" + symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
-        if (((Map<?, ?>)this.tickers).containsKey(symbol))
+        if (this.tickers.containsKey(symbol))
         {
-            ((Map<String,Object>)this.tickers).remove((String)symbol);
+            this.tickers.remove((String)symbol);
         }
     }
 

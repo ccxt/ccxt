@@ -2277,11 +2277,11 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                     List<Object> symbols = (this.tickers == null ? new ArrayList<Object>() : new ArrayList<Object>(this.tickers.keySet()));
                     for (var j = 0; j < ((List<?>)symbols).size(); j++)
                     {
-                        ((Map<String,Object>)this.tickers).remove((String)(symbols == null || j < 0 || j >= symbols.size() ? null : symbols.get(j)));
+                        this.tickers.remove((String)(symbols == null || j < 0 || j >= symbols.size() ? null : symbols.get(j)));
                     }
-                } else if (((Map<?, ?>)this.tickers).containsKey(symbol))
+                } else if (this.tickers.containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.tickers).remove(symbol);
+                    this.tickers.remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("bidask") >= 0)
             {
