@@ -268,6 +268,10 @@ trait ClientTrait {
             if (!$client->error) {
                 $client->error = $error; // on_close must not treat this as a server disconnect
             }
+            // on_error rejects every remaining pending future with the error
+            // instead of cancelling them, see
+            // https://github.com/ccxt/ccxt/issues/30876
+            $client->on_error($error);
             $client->close();
             if (array_key_exists($client->url, $this->clients) && $this->clients[$client->url] === $client) {
                 unset($this->clients[$client->url]);
