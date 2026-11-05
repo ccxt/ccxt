@@ -3391,7 +3391,7 @@ class coinbaseinternational extends Exchange {
             $baseApiUrl = 'https://www.deribit.com/api/v2';
         }
         $url = $baseApiUrl . '/' . $rpcMethod;
-        $requestHeaders = null;
+        $requestHeaders = array();
         if ($isNativeDeribit && (($path === 'get_leverage') || ($path === 'set_leverage'))) {
             throw new NotSupported($this->id . ' ' . $rpcMethod . ' is only documented on the Coinbase gateway');
         }

@@ -70,7 +70,7 @@ public partial class BaseExchange
 
         public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
 
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true, bool validateServerSsl = true)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -87,6 +87,21 @@ public partial class BaseExchange
             {
                 var webProxy = new WebProxy(proxy);
                 webSocket.Options.Proxy = webProxy;
+            }
+            if (!validateServerSsl)
+            {
+                System.Net.Security.RemoteCertificateValidationCallback acceptAll = (sender, certificate, chain, errors) => true;
+#if NETSTANDARD2_0
+                // the netstandard2.0 surface lacks the property, but .NET Core 2.1+ runtimes have it
+                var callbackProperty = typeof(ClientWebSocketOptions).GetProperty("RemoteCertificateValidationCallback");
+                if (callbackProperty == null)
+                {
+                    throw new NotSupported("validateServerSsl = false is not supported for websockets on this runtime");
+                }
+                callbackProperty.SetValue(webSocket.Options, acceptAll);
+#else
+                webSocket.Options.RemoteCertificateValidationCallback = acceptAll;
+#endif
             }
         }
 

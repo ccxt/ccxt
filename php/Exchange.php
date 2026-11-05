@@ -2183,11 +2183,11 @@ class BaseExchange {
         }
 
         curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-        if (!$this->validateClientSsl) {
+        if (!$this->validateClientSsl || !$this->validateServerSsl) {
             curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
         }
         if (!$this->validateServerSsl) {
-            curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, 0);
         }
 
         curl_setopt($this->curl, CURLOPT_ENCODING, '');

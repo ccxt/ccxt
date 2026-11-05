@@ -1435,16 +1435,19 @@ export class BaseExchange {
                 finalAgent = httpProxyAgent;
             }
             const wsThrottler = new Throttler(this.tokenBucket);
+            const connectionOptions = {
+                'agent': finalAgent, // add support for proxies
+            };
+            if (!this.shouldValidateServerSsl()) {
+                connectionOptions['rejectUnauthorized'] = false;
+            }
             const options = this.deepExtend(this.streaming, {
                 'log': (this.log !== undefined) ? this.log.bind(this) : this.log,
                 'ping': (this.ping !== undefined) ? this.ping.bind(this) : this.ping,
                 'throttle': wsThrottler.throttle.bind(wsThrottler),
                 'verbose': this.verbose,
                 'throttler': wsThrottler,
-                // add support for proxies
-                'options': {
-                    'agent': finalAgent,
-                },
+                'options': connectionOptions,
                 'decompressBinary': this.safeBool(this.options, 'decompressBinary', true),
             }, wsOptions);
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);

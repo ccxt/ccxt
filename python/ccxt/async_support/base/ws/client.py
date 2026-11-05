@@ -387,9 +387,12 @@ class Client(object):
         # Sec-WebSocket-Extensions offer; servers that don't support it simply ignore it.
         # can be disabled per exchange via options['ws'] = {'compress': 0}
         compress = self.options.get('compress', 15)
+        connect_kwargs = {}
+        if self.options.get('validateServerSsl', True) is False:
+            connect_kwargs['ssl'] = False
         if (self.proxy):
-            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, proxy=self.proxy, max_msg_size=10485760).__aenter__()
-        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, max_msg_size=10485760).__aenter__()
+            connect_kwargs['proxy'] = self.proxy
+        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, max_msg_size=10485760, **connect_kwargs).__aenter__()
 
     async def send(self, message):
         if self.verbose:
