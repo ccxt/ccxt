@@ -309,10 +309,6 @@ function nativeGetValue(content: string, stats?: NativeGetValueStats): string {
 }
 
 /**
- * The literal key set of a fresh dict literal, or undefined when any insert key
- * is computed (then neither the set nor marker-freeness is static).
- */
-/**
  * The `Vec<Value>` expression inside an array-valued `Value` constructor, or
  * undefined when the initializer is a call whose result must be unwrapped.
  */
@@ -579,6 +575,23 @@ function splitArgs (text: string): string[] | undefined {
 }
 
 /** Index just past the closing `)` of the call whose `(` is at `open`. */
+/** Index of the bracket closing an already-open one, scanning from `from` (string-aware); `content.length` if none.
+ *  `escapeAnywhere`: a backslash outside a string literal also skips the next char. */
+function balancedCloseIndex(content: string, from: number, escapeAnywhere = false): number {
+    let depth = 1, inStr = false, escape = false;
+    for (let j = from; j < content.length; j++) {
+        const c = content[j];
+        if (escape) { escape = false; continue; }
+        if (c === '\\' && (inStr || escapeAnywhere)) { escape = true; continue; }
+        if (c === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') depth--;
+        if (depth === 0) return j;
+    }
+    return content.length;
+}
+
 function closeParenAt (content: string, open: number): number {
     let depth = 0, inStr = false, esc = false;
     for (let i = open; i < content.length; i++) {
@@ -3270,10 +3283,8 @@ function boolCalleeSafeBoolDefault (call: string): boolean | undefined {
 }
 
 // Hand-written (non-generated) helpers whose every return is `Value::Bool`:
-// exchange_stubs.rs `in_array`/`is_json_encoded_object`, precise.rs `stringEq|Gt|Ge|Lt|Le|Equals`
-// (`vbool` and the early `any_null` arm both build `Value::Bool`).
+// exchange_stubs.rs `in_array`/`is_json_encoded_object`.
 const BOOL_CALLEE_BASE = /^(?:in_array|is_json_encoded_object)$/;
-const BOOL_CALLEE_PRECISE = /^string(?:Eq|Gt|Ge|Lt|Le|Equals)$/;
 
 type BoolCalleeVariants = Set<'bool' | 'int' | 'float' | 'str' | 'null'>
 
@@ -4778,7 +4789,6 @@ function plainDictChains(content: string): string {
 // field, which stores exactly what `get_value` returns. A key the method writes through keeps the helper method-wide.
 
 const CLIENT_HANDLE_KEYS = ['subscriptions', 'futures', 'rejections', 'url'];
-const CLIENT_HANDLE_MAX_LINE = 400; // the generated tree's long-line budget
 const CLIENT_HANDLE_TYPE = 'crate::pro::ws_client::ClientHandle';
 
 /** Blank out comments and string bodies, keeping every index in place. */
@@ -4820,157 +4830,8 @@ function clientHandleMask(src: string): string {
     return out;
 }
 
-/** `[start, end)` of every top-level `pub fn` body plus its header text. */
-function clientHandleFnBodies(masked: string): Array<{ fnStart: number, open: number, close: number, header: string }> {
-    const out: Array<{ fnStart: number, open: number, close: number, header: string }> = [];
-    const rx = /\bpub\s+(?:async\s+)?fn\s+[A-Za-z_][A-Za-z0-9_]*\s*\(/g;
-    let m: RegExpExecArray | null;
-    while ((m = rx.exec(masked)) !== null) {
-        const open = masked.indexOf('{', m.index);
-        if (open < 0) break;
-        // A `;` between the signature and the `{` means this is a trait decl.
-        if (masked.slice(m.index, open).includes(';')) continue;
-        let depth = 1;
-        let j = open + 1;
-        while (j < masked.length && depth > 0) {
-            const c = masked[j];
-            if (c === '"') {
-                j++;
-                while (j < masked.length && masked[j] !== '"') { j += masked[j] === '\\' ? 2 : 1; }
-            } else if (c === '{') depth++;
-            else if (c === '}') depth--;
-            if (depth === 0) break;
-            j++;
-        }
-        if (depth !== 0) break;
-        out.push({ fnStart: m.index, open, close: j, header: masked.slice(m.index, open) });
-        rx.lastIndex = j;
-    }
-    return out;
-}
-
-/** Brace depth of `masked` at `idx` (0 = fn-body top level). */
-function clientHandleDepthAt(masked: string, idx: number): number {
-    let d = 0;
-    for (let i = 0; i < idx; i++) {
-        if (masked[i] === '{') d++;
-        else if (masked[i] === '}') d--;
-    }
-    return d;
-}
-
-/** Index just past the `;` that ends the statement starting at `from`, or -1. */
-function clientHandleStatementEnd(masked: string, from: number): number {
-    let paren = 0, bracket = 0, brace = 0;
-    for (let i = from; i < masked.length; i++) {
-        const c = masked[i];
-        if (c === '(') paren++;
-        else if (c === ')') paren--;
-        else if (c === '[') bracket++;
-        else if (c === ']') bracket--;
-        else if (c === '{') brace++;
-        else if (c === '}') brace--;
-        else if (c === ';' && paren === 0 && bracket === 0 && brace === 0) return i + 1;
-    }
-    return -1;
-}
-
 /**
- * `let mut client: Value = self.client(...)` at fn-body top level: the index
- * just past its `;`. Two declarations in one body, one nested in a block, or a
- * body that rebinds `client` later all leave the method a plain `Value`.
- */
-function clientHandleLocalDecl(bodyMask: string): { start: number, end: number } | null {
-    const rx = /let\s+mut\s+client\s*:\s*Value\s*=/g;
-    let m: RegExpExecArray | null;
-    let found: { start: number, end: number } | null = null;
-    while ((m = rx.exec(bodyMask)) !== null) {
-        if (found !== null) return null;
-        if (clientHandleDepthAt(bodyMask, m.index) !== 0) return null;
-        const end = clientHandleStatementEnd(bodyMask, m.index);
-        if (end < 0) return null;
-        found = { start: m.index, end };
-    }
-    return found;
-}
-
-function clientHandleViewsMasked(content: string): string {
-    if (!content.includes('&client')) return content;
-    const masked = clientHandleMask(content);
-    const bodies = clientHandleFnBodies(masked);
-    // Edits are applied right-to-left so earlier indices stay valid.
-    const edits: Array<{ at: number, del: number, text: string }> = [];
-    for (const b of bodies) {
-        const bodyText = content.slice(b.open + 1, b.close);
-        const bodyMask = masked.slice(b.open + 1, b.close);
-        let scopeStart = 0;   // first index in the body the handle is in scope at
-        let insertAt = b.open + 1;
-        if (/\bclient\s*:\s*Value\b/.test(b.header)) {
-            // A reassigned or re-let `client` no longer names the param the handle was built from.
-            if (/(?<![\w.])client\s*=[^=]/.test(bodyMask)) continue;
-            if (/\blet\s+(?:mut\s+)?client\b/.test(bodyMask)) continue;
-        } else {
-            // `let mut client: Value = self.client(...)` — the venue builds a
-            // handle for its own subscription; bind the view right after it.
-            const decl = clientHandleLocalDecl(bodyMask);
-            if (decl === null) continue;
-            scopeStart = decl.end;
-            insertAt = b.open + 1 + decl.end;
-            if (/(?<![\w.])client\s*=[^=]/.test(bodyMask.slice(decl.end))) continue;
-        }
-        let needsMut = false;
-        const perKey: Array<{ at: number, del: number, text: string }> = [];
-        for (const key of CLIENT_HANDLE_KEYS) {
-            // Pipeline text carries the allocating literal spelling
-            // (`Value::Str("k".to_string())`); the borrow form is restored only
-            // at write time, so both spellings must match here.
-            const rx = new RegExp('get_value\\(\\s*&client\\s*,\\s*&Value::Str\\("' + key + '"\\.(?:into|to_string)\\(\\)\\)\\s*\\)', 'g');
-            const reads: RegExpExecArray[] = [];
-            const writes: RegExpExecArray[] = [];
-            let m: RegExpExecArray | null;
-            while ((m = rx.exec(bodyText)) !== null) {
-                if (m.index < scopeStart) continue;
-                const before = bodyMask.slice(Math.max(0, m.index - 12), m.index);
-                (/(?<![\w.])&mut\s*$/.test(before) ? writes : reads).push(m);
-            }
-            if (reads.length === 0 && writes.length === 0) continue;
-            // A read after the first write would see the field's mutation where
-            // the helper saw a fresh snapshot: keep those (and only those) calls.
-            const firstWrite = writes.length > 0 ? writes[0].index : Number.MAX_SAFE_INTEGER;
-            for (const h of reads) {
-                if (h.index >= firstWrite) continue;
-                if (bodyMask[h.index] === ' ') continue; // inside a comment
-                perKey.push({ at: b.open + 1 + h.index, del: h[0].length, text: '__ch.' + key + '.clone()' });
-            }
-            for (const h of writes) {
-                if (bodyMask[h.index] === ' ') continue;
-                needsMut = true;
-                perKey.push({ at: b.open + 1 + h.index, del: h[0].length, text: '__ch.' + key });
-            }
-        }
-        if (perKey.length === 0) continue;
-        edits.push(...perKey);
-        const firstNl = bodyText.indexOf('\n');
-        const indent = insertAt === b.open + 1
-            ? (firstNl < 0
-                ? '        '
-                : (bodyText.slice(firstNl + 1).match(/^[ ]*/) ?? '        ')[0] || '        ')
-            : (bodyText.slice(bodyText.lastIndexOf('\n', insertAt - b.open - 2) + 1).match(/^[ ]*/) ?? [''])[0];
-        edits.push({
-            at: insertAt,
-            del: 0,
-            text: '\n' + indent + 'let ' + (needsMut ? 'mut ' : '') + '__ch = ' + CLIENT_HANDLE_TYPE + '::from_value(client.clone());',
-        });
-    }
-    if (edits.length === 0) return content;
-    edits.sort((x, y) => y.at - x.at);
-    let out = content;
-    for (const e of edits) out = out.slice(0, e.at) + e.text + out.slice(e.at + e.del);
-    return out;
-}
-
-/**
- * Same rewrite, driven by line structure instead of a masked character walk.
+ * The ClientHandle view rewrite, driven by line structure.
  * A method starts on a `pub fn …(` line that sits directly inside an `impl`
  * block, and ends where the brace depth returns to that level; brace counting
  * skips comment and string spans per line.
@@ -8285,15 +8146,6 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * Remove a whole `pub (async )?fn <snakeName>(...) { ... }` method block
-     * from generated Rust. Used to drop transpiled base methods that we keep
-     * as hand-written stubs in `exchange_stubs.rs` instead (e.g. the WS-only
-     * `loadOrderBook`, whose body uses `client`/orderbook-cache constructs that
-     * don't belong in — and don't parse cleanly for — the REST base). Returns
-     * the content unchanged if the method isn't found. Brace-balanced so a
-     * `{` inside the body/docstring doesn't cut the block short.
-     */
-    /**
      * Base methods that stay hand-written in `exchange_stubs.rs` and must be
      * stripped from the transpiled `exchange_generated.rs` to avoid duplicate
      * definitions. `load_order_book` is a WS-only orderbook-cache helper whose
@@ -8705,41 +8557,6 @@ export class RustTranspilerBuilder {
         }
 
         return wrapResult(inner);
-    }
-
-    /**
-     * Converts a parameter list from methodsTypes to a Rust parameter string.
-     */
-    paramsToRust(methodName: string, params: any[]): string {
-        if (!params || params.length === 0) return '';
-
-        const hasOptional = params.some(p => p.isOptional || p.initializer !== undefined);
-        const hasOnlyParams = params.length === 1 && params[0].name === 'params';
-
-        if (hasOnlyParams) {
-            return 'params: crate::Value';
-        }
-
-        const parts = params.map(p => {
-            const name = p.name === 'type' ? 'type_arg' : p.name;
-            const snakeName = toSnakeCase(name);
-            const isOpt = p.isOptional || p.initializer !== undefined;
-            const rawType = p.type ? this.jsTypeToRust(methodName, p.type) : 'crate::Value';
-            return isOpt ? `${snakeName}: Option<${rawType}>` : `${snakeName}: ${rawType}`;
-        });
-
-        // Optional parameters as variadic using a trailing params option
-        if (hasOptional) {
-            const required = params.filter(p => !p.isOptional && p.initializer === undefined);
-            const reqParts = required.map(p => {
-                const snakeName = toSnakeCase(p.name === 'type' ? 'type_arg' : p.name);
-                const rawType = p.type ? this.jsTypeToRust(methodName, p.type) : 'crate::Value';
-                return `${snakeName}: ${rawType}`;
-            });
-            return [...reqParts, 'params: crate::Value'].join(', ');
-        }
-
-        return parts.join(', ');
     }
 
     // ── post-processing regexes ───────────────────────────────────────────────
@@ -9199,20 +9016,8 @@ export class RustTranspilerBuilder {
             const name = m[2];
             const absStart = i + m.index + lead.length;
             const callStart = absStart + name.length + 1; // past `name(`
-            let depth = 1, j = callStart, inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\') { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += lead + content.slice(absStart); break; }
+            const j = balancedCloseIndex(content, callStart, true);
+            if (j >= content.length) { out += lead + content.slice(absStart); break; }
             const rawInside = content.slice(callStart, j);
             const inside = this.wrapFreeVariadicCalls(rawInside, fixedArities); // recurse
             const args = this.splitArgs(inside);
@@ -9429,12 +9234,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Walks every `fn <name>(&self, …)` (brace-balanced) and, if the body
-     * assigns to a `self.<field>`, promotes the receiver to `&mut self`.
-     * The transpiler emits `&self` for methods it thinks are read-only,
-     * but several `TestMainClass` methods mutate instance fields.
-     */
     /**
      * Strip `.await` from `.<method>(…)` call sites whose target is
      * a Value-stub method that returns Value (not a future). Used by
@@ -9816,19 +9615,7 @@ export class RustTranspilerBuilder {
             // Receiver must be a bare identifier ending right before `.`.
             const recvMatch = content.slice(0, idx).match(/([a-zA-Z_][a-zA-Z0-9_]*)$/);
             const callStart = idx + marker.length;
-            let depth = 1, j = callStart, inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\') { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
+            const j = balancedCloseIndex(content, callStart, true);
             const recv = recvMatch ? recvMatch[1] : '';
             const inside = content.slice(callStart, j);
             // Only hoist when the arg reads the same receiver.
@@ -10019,8 +9806,8 @@ export class RustTranspilerBuilder {
      * `self.call_method(Value::Str("<name>"), __API__&[` marker form that
      * closeImplicitApiCalls() balances.
      */
-    rewriteImplicitApiCalls(content: string, className: string): string {
-        const abstractPath = `./ts/src/abstract/${className}.ts`;
+    rewriteImplicitApiCalls(content: string, className: string, isPrediction = false): string {
+        const abstractPath = `./ts/src/abstract/${isPrediction ? 'prediction/' : ''}${className}.ts`;
         if (!fs.existsSync(abstractPath)) return content;
         const abstractSrc = fs.readFileSync(abstractPath, 'utf8');
         // Generated method heads look like:
@@ -10049,17 +9836,6 @@ export class RustTranspilerBuilder {
         });
     }
 
-    /**
-     * Removes `} catch Exception e { ... }` blocks that the transpiler
-     * emits from TS try/catch. Brace-balanced — drops the entire catch body.
-     */
-    /**
-     * After `stripCatchBlocks` removes the `if let Err(_e) = _try_result {…}`
-     * catch handler, the leftover try wrapper is
-     *   `let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| { … }));`
-     * which doesn't allow `.await` inside the closure. Unwrap the whole
-     * statement to a plain block, since panics will just propagate.
-     */
     /**
      * The ast-transpiler's methodSignatures map persists across files,
      * so a later class can pick up an earlier class's "optional param"
@@ -10107,22 +9883,8 @@ export class RustTranspilerBuilder {
             const name = m[1];
             if (!fixedArities.has(name)) continue;
             // Find balanced close.
-            let depth = 1;
-            let j = m.index + m[0].length;
-            let inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) continue;
+            const j = balancedCloseIndex(content, m.index + m[0].length);
+            if (j >= content.length) continue;
             const inside = content.slice(m.index + m[0].length, j);
             const args = this.splitArgs(inside);
             if (!args || args.length < 1) continue;
@@ -10213,24 +9975,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Properly transpiles `try { … } catch (e) { … }` instead of
-     * discarding the catch (what `stripCatchBlocks` + `unwrapCatchUnwind`
-     * do). The ast-transpiler emits the sync form:
-     *
-     *   let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| { <try> }));
-     *   if let Err(_e) = _try_result { <catch> }
-     *
-     * A sync closure can't `.await`, so for an async try body this pass
-     * rewrites it to the future-based form:
-     *
-     *   let _try_result = futures::FutureExt::catch_unwind(
-     *       std::panic::AssertUnwindSafe(async { <try> })).await;
-     *   if let Err(_e) = _try_result { <catch> }
-     *
-     * The catch body is preserved either way. Used by the test-main
-     * pipeline so `try { createOrder } catch { capture }` keeps working.
-     */
     /**
      * Innermost `fn` containing `idx` returns `()` (no `->` in its header)?
      * Drives the void-aware try/catch emission below: WS handlers
@@ -10508,33 +10252,6 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * Rewrites `<receiver>.<live_method>(args)` → `crate::live_dispatch::dispatch(&<receiver>, "<method>", vec![args])`.
-     *
-     * Mirrors Go's `exchange ccxt.ICoreExchange` typed parameter: the
-     * transpiler retypes the exchange-method call to go through the
-     * interface vtable to the real Core. In Rust we don't have a vtable
-     * trait — instead we route through the live_dispatch cache keyed by
-     * the exchange's id field. Same effective result: tests run the same
-     * code a user gets from `ccxt`, no hand-written ExchangeOps surface
-     * to maintain.
-     *
-     * Only LIVE methods are rewritten. Pure helpers (`safe_value`,
-     * `parse_number`, etc.) stay on the Value via ExchangeOps because
-     * they work on the snapshot data, not on a cached Core.
-     *
-     * Arg spreading: `&[a, b]` (variadic-slice form emitted upstream)
-     * is flattened into the vec — `dispatch(&ex, "m", vec![a, b])`
-     * rather than `vec![a, b, &[a, b]]`.
-     */
-    /**
-     * Hot-path rewrite: when a `safe_*` reader is called with a literal
-     * string key wrapped in `Value::Str("KEY".to_string())`, route it to
-     * a `_k` variant that takes `&str` directly. Saves two String
-     * allocations per call (the key Value + the key_str re-extraction
-     * inside `safe_value`) — meaningful in parsers that loop over
-     * thousands of items, where every parsed field is a `safe_*` call.
-     */
-    /**
      * Upstream's Java port introduced a `const finalX = X; // java req`
      * idiom in ~14 TS files where the alias is later mutated independently
      * (Java's mutable locals). TS does value-copy semantics so the original
@@ -10549,108 +10266,6 @@ export class RustTranspilerBuilder {
             /^(\s*let\s+(?:mut\s+)?\w+\s*:\s*Value\s*=\s*)(\w+)(\s*;\s*\/\/\s*java\s*req\s*)$/gm,
             (_, lhs, ident, tail) => `${lhs}${ident}.clone()${tail}`,
         );
-    }
-
-    /**
-     * Per-file pass for transpiled test files: when an `async fn NAME(...)`
-     * is declared in the same file and called bare elsewhere (no `self.` /
-     * receiver, no leading `crate::…`), pad missing args with `Value::Null`
-     * and append `.await`. Covers patterns the upstream Java port introduced
-     * such as `const x = fetchTickersHelperTest(a, b, c);` where the TS
-     * source omits the optional `argParams = {}` and the `await` (the
-     * Promise is collected by a later `Promise.all`). Rust can neither
-     * hold a Future in a `Value` nor skip an `.await`, so we serialise.
-     */
-    rewriteLocalAsyncFnCalls(content: string): string {
-        // 1. Collect `async fn NAME(...)` declarations and their arity.
-        const decls = new Map<string, number>(); // name → param count
-        const declRe = /\basync\s+fn\s+([a-zA-Z_]\w*)\s*\(([^)]*)\)/g;
-        let m: RegExpExecArray | null;
-        while ((m = declRe.exec(content)) !== null) {
-            const name = m[1];
-            const params = m[2].trim();
-            const arity = params === '' ? 0 : params.split(',').length;
-            decls.set(name, arity);
-        }
-        if (decls.size === 0) return content;
-
-        // 2. Walk every NAME( ... ) call. Paren-balanced; skips method calls
-        //    (preceded by `.` or `::`), strings, already-awaited calls.
-        const out: string[] = [];
-        let i = 0;
-        while (i < content.length) {
-            const restStart = i;
-            // Find next identifier( pattern
-            const re = /([a-zA-Z_]\w*)\s*\(/g;
-            re.lastIndex = i;
-            const found = re.exec(content);
-            if (!found) { out.push(content.slice(i)); break; }
-            const name = found[1];
-            const matchStart = found.index;
-            const callOpen = re.lastIndex - 1; // index of '('
-            out.push(content.slice(restStart, matchStart));
-            // Reject if preceded by '.' or ':' (method call / path), or
-            // if this IS the function declaration itself (preceded by
-            // `fn `). Look back a short window for `fn ` (after stripping
-            // trailing whitespace just before the name).
-            const prev = matchStart > 0 ? content[matchStart - 1] : '';
-            const prev2 = matchStart > 1 ? content[matchStart - 2] : '';
-            const isMethodCall = prev === '.' || (prev === ':' && prev2 === ':');
-            const lookback = content.slice(Math.max(0, matchStart - 12), matchStart);
-            const isDeclaration = /\bfn\s+$/.test(lookback);
-            if (isMethodCall || isDeclaration || !decls.has(name)) {
-                // Copy the identifier and continue past it
-                out.push(content.slice(matchStart, callOpen + 1));
-                i = callOpen + 1;
-                continue;
-            }
-            // Paren-balance to find the closing ')'
-            let depth = 1;
-            let j = callOpen + 1;
-            let inStr = false;
-            let escape = false;
-            let commaCount = 0; // top-level commas between matched parens
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                    else if (c === ',' && depth === 1) commaCount++;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) {
-                // Unbalanced — bail, copy rest verbatim.
-                out.push(content.slice(matchStart));
-                i = content.length;
-                break;
-            }
-            const innerStart = callOpen + 1;
-            const innerEnd = j; // index of ')'
-            const inner = content.slice(innerStart, innerEnd);
-            const actualArgs = inner.trim() === '' ? 0 : commaCount + 1;
-            const arity = decls.get(name)!;
-            // Pad missing args with `Value::Null`.
-            let padded = inner;
-            if (actualArgs < arity) {
-                const padN = arity - actualArgs;
-                const pads = Array.from({ length: padN }, () => 'Value::Null').join(', ');
-                padded = inner === ''
-                    ? pads
-                    : inner.replace(/\s*$/, '') + ', ' + pads;
-            }
-            // Already-followed by `.await`? skip await injection.
-            const tail = content.slice(innerEnd + 1);
-            const alreadyAwaited = /^\s*\.await\b/.test(tail);
-            const callText = `${name}(${padded})` + (alreadyAwaited ? '' : '.await');
-            out.push(callText);
-            i = innerEnd + 1;
-        }
-        return out.join('');
     }
 
     /**
@@ -10673,23 +10288,8 @@ export class RustTranspilerBuilder {
             const absStart = i + m.index;
             out += rest.slice(0, m.index);
             const callStart = absStart + m[0].length;
-            let depth = 1;
-            let j = callStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\') { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) {
+            const j = balancedCloseIndex(content, callStart, true);
+            if (j >= content.length) {
                 out += content.slice(absStart);
                 break;
             }
@@ -10887,12 +10487,6 @@ export class RustTranspilerBuilder {
 
 
 
-    /**
-     * Walks `add_element_to_object(...)` statements (paren-balanced).
-     * When the first arg includes `&mut X` (directly or via `get_value_mut`)
-     * and any later arg references X (via `.clone()` or `&X`), splits the
-     * call into a temp + statement so the borrows don't overlap.
-     */
     /**
      * Wraps bool-typed expressions with `Value::Bool(...)` when they
      * appear in argument positions that expect a `Value` (e.g.
@@ -12753,23 +12347,8 @@ export class RustTranspilerBuilder {
             const start = m.index;
             const openParen = start + m[0].length - 1;
             // Find matching close paren, respecting strings/parens.
-            let depth = 1;
-            let j = openParen + 1;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) break;
+            const j = balancedCloseIndex(content, openParen + 1);
+            if (j >= content.length) break;
             const inside = content.slice(openParen + 1, j);
             const args = this.splitArgs(inside);
             if (!args) { continue; }
@@ -12797,22 +12376,8 @@ export class RustTranspilerBuilder {
             const start = m.index;
             const objName = m[1];
             // Walk to the matching closing `)` of this get_value call.
-            let depth = 1;
-            let j = m.index + m[0].length;
-            let inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { re.lastIndex = m.index + m[0].length; continue; }
+            const j = balancedCloseIndex(content, m.index + m[0].length);
+            if (j >= content.length) { re.lastIndex = m.index + m[0].length; continue; }
             // After the `)`, check if next non-space is `=` followed by an expr ending in `;`.
             let k = j + 1;
             while (k < content.length && (content[k] === ' ' || content[k] === '\t')) k++;
@@ -12861,14 +12426,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * `&mut self.<field>.clone()` takes `&mut` of a throwaway copy — the
-     * mutation is silently lost (this broke `enableDemoTrading`'s
-     * `urls['api'] = urls['demo']` swap). Inside `&mut self` methods the
-     * `.clone()` is safe to drop so the real field is mutated. `&self`
-     * methods are left alone — there `&mut self.field` wouldn't compile;
-     * those need a separate receiver-promotion fix.
-     */
     /**
      * Promote sync `std::panic::catch_unwind(AssertUnwindSafe(|| { … }))`
      * to the async variant when the body contains `.await`. The async
@@ -13273,24 +12830,6 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * Fix the "mutating-a-clone" bug for nested-key writes on `self.<field>`.
-     *
-     * TS source like `this.options['k1'][k2] = v` is emitted as
-     *   `get_value_mut(&mut self.options.clone(), <k1>)`
-     * inside an `add_element_to_object(...)` call. The `&mut … .clone()` was
-     * added so the borrow checker would accept the expression, but it
-     * mutably borrows a *temporary* clone — the assignment never reaches
-     * `self.options`. The transpiled bitstamp / kraken / okx / … parsers
-     * that accumulate per-call state into `self.options` silently fail
-     * (`parse_currency` looks up the just-written key and gets `Value::Null`).
-     *
-     * Rewrite to an unsafe-pointer cast that forges `&mut self.<field>` from
-     * `&self`. Inner `Arc<HashMap>` mutation goes through `Arc::make_mut`
-     * (copy-on-write) so concurrent clones held elsewhere see their
-     * consistent snapshot. Mirrors the existing `coerce_to_mut_unsafe`
-     * pattern in `exchange_stubs.rs` (used by `set_*`/`init_*` helpers).
-     */
-    /**
      * `self.call_method(Value::Str("<name>".to_string()), <args>)` →
      * `self.<name>(<args>)`. Routes implicit-API call sites through the
      * typed wrapper methods generated by `build/generateImplicitAPI.ts`
@@ -13309,23 +12848,8 @@ export class RustTranspilerBuilder {
             // From end of head match, paren-balance to find the closing `)`
             // of `call_method(...)`. Args start at re.lastIndex.
             const argsStart = head.lastIndex;
-            let depth = 1; // already inside the outer `(`
-            let j = argsStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) {
+            const j = balancedCloseIndex(content, argsStart);
+            if (j >= content.length) {
                 // Unbalanced — bail, keep verbatim.
                 continue;
             }
@@ -13367,23 +12891,8 @@ export class RustTranspilerBuilder {
             out += rest.slice(0, m.index);
             const absStart = i + m.index;
             const callStart = absStart + m[0].length;
-            let depth = 1;
-            let j = callStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart); break; }
+            const j = balancedCloseIndex(content, callStart);
+            if (j >= content.length) { out += content.slice(absStart); break; }
             const rawInside = content.slice(callStart, j);
             const inside = this.cloneInTernary(rawInside);
             const args = this.splitArgs(inside) ?? [];
@@ -13416,23 +12925,8 @@ export class RustTranspilerBuilder {
             out += content.slice(i, matchStart);
             out += prefix === '(' ? '(&[' : ', &[';
             // Find the matching `]` (balance brackets/parens/braces).
-            let depth = 1;
-            let j = m.index + m[0].length;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(matchStart); break; }
+            const j = balancedCloseIndex(content, m.index + m[0].length);
+            if (j >= content.length) { out += content.slice(matchStart); break; }
             const inside = content.slice(m.index + m[0].length, j);
             // Recurse so nested slices get processed too.
             const insideRec = this.cloneInRefSlices(inside);
@@ -13707,23 +13201,8 @@ export class RustTranspilerBuilder {
             out += rest.slice(0, m.index);
             const absStart = i + m.index;
             const callStart = absStart + m[0].length;
-            let depth = 1;
-            let j = callStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\') { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart); break; }
+            const j = balancedCloseIndex(content, callStart, true);
+            if (j >= content.length) { out += content.slice(absStart); break; }
             const rawInside = content.slice(callStart, j);
             const inside = this.autoCloneCallArgs(rawInside); // recurse first
             const args = this.splitArgs(inside) ?? [];
@@ -14003,20 +13482,8 @@ export class RustTranspilerBuilder {
             out += rest.slice(0, m.index);
             const absStart = i + m.index;
             const callStart = absStart + m[0].length;
-            let depth = 1, j = callStart, inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\') { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart); break; }
+            const j = balancedCloseIndex(content, callStart, true);
+            if (j >= content.length) { out += content.slice(absStart); break; }
             const rawInside = content.slice(callStart, j);
             const inside = this.cloneNonFirstIdentArgs(rawInside, heads); // recurse
             const args = this.splitArgs(inside) ?? [];
@@ -14049,23 +13516,8 @@ export class RustTranspilerBuilder {
             const absStart = i + m.index;
             const name = m[1];
             const callStart = absStart + m[0].length;
-            let depth = 1;
-            let j = callStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart); break; }
+            const j = balancedCloseIndex(content, callStart);
+            if (j >= content.length) { out += content.slice(absStart); break; }
             const callText = content.slice(absStart, j + 1);
             // Check if `.await` already follows
             const tail = content.slice(j + 1);
@@ -14078,54 +13530,6 @@ export class RustTranspilerBuilder {
             i = j + 1;
         }
         return out;
-    }
-
-    /**
-     * Walks `return self.<async_fn>(...);` calls and appends `.await` so the
-     * caller awaits the future. Uses paren-balanced parsing.
-     */
-    appendAwaitToReturns(content: string, asyncSet: Set<string>): string {
-        const lines = content.split('\n');
-        const re = /^(\s*)return\s+self\.([a-zA-Z_][a-zA-Z0-9_]*)\(/;
-        for (let i = 0; i < lines.length; i++) {
-            const m = lines[i].match(re);
-            if (!m) continue;
-            const name = m[2];
-            if (!asyncSet.has(name)) continue;
-            // Find balanced closing paren in this line (or following lines).
-            let depth = 0;
-            let started = false;
-            let inStr = false;
-            let escape = false;
-            let line = i;
-            let col = m[0].length - 1; // position of opening (
-            outer: while (line < lines.length) {
-                const text = lines[line];
-                for (let c = (line === i ? col : 0); c < text.length; c++) {
-                    const ch = text[c];
-                    if (escape) { escape = false; continue; }
-                    if (ch === '\\') { escape = true; continue; }
-                    if (ch === '"') { inStr = !inStr; continue; }
-                    if (inStr) continue;
-                    if (ch === '(') { depth++; started = true; }
-                    else if (ch === ')') {
-                        depth--;
-                        if (started && depth === 0) {
-                            // Append .await right after closing paren (before
-                            // any trailing `;` on same line).
-                            const before = text.slice(0, c + 1);
-                            const after  = text.slice(c + 1);
-                            // Skip if already followed by .await
-                            if (after.trimStart().startsWith('.await')) break outer;
-                            lines[line] = before + '.await' + after;
-                            break outer;
-                        }
-                    }
-                }
-                line++;
-            }
-        }
-        return lines.join('\n');
     }
 
     // Tests that failed to transpile and were therefore dropped from the suite.
@@ -14193,45 +13597,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Names of Exchange methods that derived exchanges commonly override.
-     * For each, we inject a "virt_call first" preamble: if the derived
-     * dispatcher returns Some(v), the method short-circuits with that.
-     */
-    virtualMethodNames(): Set<string> {
-        return new Set([
-            // parsers — the dominant overrides
-            'parse_ticker', 'parse_trade', 'parse_order', 'parse_market',
-            'parse_ohlcv', 'parse_order_book', 'parse_balance',
-            'parse_position', 'parse_funding_rate', 'parse_deposit',
-            'parse_withdrawal', 'parse_ledger_entry', 'parse_transfer',
-            'parse_currency', 'parse_bid_ask', 'parse_open_interest',
-            'parse_liquidation', 'parse_funding_rate_history',
-            'parse_margin_modification', 'parse_account', 'parse_fee',
-            'parse_fees', 'parse_my_trade', 'parse_settlement',
-            // signers and request-builders
-            'sign', 'handle_errors', 'nonce',
-            // fetch endpoints — overridden per-exchange
-            'fetch_markets', 'fetch_currencies', 'fetch_ticker',
-            'fetch_tickers', 'fetch_trades', 'fetch_ohlcv',
-            'fetch_order_book', 'fetch_balance', 'fetch_order',
-            'fetch_orders', 'fetch_open_orders', 'fetch_closed_orders',
-            'fetch_my_trades', 'fetch_funding_rate', 'fetch_funding_rates',
-            'fetch_position', 'fetch_positions', 'fetch_deposits',
-            'fetch_withdrawals', 'fetch_ledger', 'fetch_trading_fee',
-            'fetch_trading_fees', 'fetch_status', 'fetch_time',
-        ]);
-    }
-
-    /**
-     * For each Exchange.ts method whose name is in `virtualMethodNames`,
-     * inject a preamble that forwards to the derived exchange via the
-     * `DerivedExchange` trait. Mirrors Go's `this.DerivedExchange.ParseX(...)`.
-     *
-     * Only methods in the trait's signature list get rewritten; the
-     * trait's default impl returns Value::Null when the derived doesn't
-     * override.
-     */
     /**
      * Names of async Exchange methods that derived exchanges commonly
      * override. For each, we inject a preamble that calls
@@ -15153,30 +14518,6 @@ ${arms.join('\n')}
         return out.join('\n');
     }
 
-    /**
-     * Produces a `match`-arm for the virtual dispatcher. Skips async methods
-     * for now (they need `block_on` or returning a Future, both of which
-     * complicate the dispatcher signature) — Exchange's parse/sign methods
-     * are sync anyway, which is where the inheritance gap actually bites.
-     */
-    dispatchArmFor(sig: { name: string, isAsync: boolean, paramKinds: string[] }): string {
-        if (sig.isAsync) return '';
-        const reads: string[] = [];
-        let i = 0;
-        for (const k of sig.paramKinds) {
-            if (k === 'value') {
-                reads.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
-                i++;
-            } else if (k === 'slice') {
-                // Slice gathers all remaining args.
-                reads.push(`&args[${i}..]`);
-                i = sig.paramKinds.length; // consume all
-                break;
-            }
-        }
-        return `            "${sig.name}" => this.${sig.name}(${reads.join(', ')}),`;
-    }
-
     // ── exchange file creation ────────────────────────────────────────────────
 
     createRustExchange(className: string, rustResult: any, ws = false, isPrediction = false): string {
@@ -15297,7 +14638,7 @@ ${arms.join('\n')}
         // Data-driven implicit-API rewrite for endpoints the hardcoded
         // prefix regex missed — must run before closeImplicitApiCalls so
         // its `__API__&[` markers get balanced.
-        content = this.rewriteImplicitApiCalls(content, className);
+        content = this.rewriteImplicitApiCalls(content, className, isPrediction);
         content = this.closeImplicitApiCalls(content);
         content = this.cloneInRefSlices(content);
         // Recover from the rust-port's stateful methodSignatures leak:
@@ -17328,11 +16669,6 @@ impl std::ops::DerefMut for ${coreName} {
     }
 
     /**
-     * Emits `rust/tests/base_ws/mod.rs` listing every transpiled WS
-     * base test plus a `run_all()` aggregator. The aggregator mirrors
-     * `testBaseWs` from `ts/src/pro/test/base/tests.init.ts`.
-     */
-    /**
      * Walk through every call site whose opening `(` is matched by
      * `headRe`, balance-parse the arg list (so nested `Value::Int(5)`
      * etc. count), then append `.clone()` to each bare-identifier arg.
@@ -17510,22 +16846,8 @@ impl std::ops::DerefMut for ${coreName} {
             const idx = content.indexOf(marker, i);
             if (idx < 0) { out += content.slice(i); break; }
             out += content.slice(i, idx + marker.length);
-            let depth = 1;
-            let j = idx + marker.length;
-            let inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(idx + marker.length); break; }
+            const j = balancedCloseIndex(content, idx + marker.length);
+            if (j >= content.length) { out += content.slice(idx + marker.length); break; }
             const inner = content.slice(idx + marker.length, j).trim();
             // Don't double-wrap if it already starts with `is_true`.
             if (inner.startsWith('is_true(') || inner.startsWith('ccxt::runtime::is_true(')) {
