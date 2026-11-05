@@ -1955,13 +1955,22 @@ class bybit extends \ccxt\async\bybit {
         $marketId = $this->safe_string_2($liquidation, 'symbol', 's');
         $marketResolved = $this->safe_market($marketId, $market, '', 'contract');
         $timestamp = $this->safe_integer_2($liquidation, 'updatedTime', 'T');
+        // bybit sends the side of the liquidated position (Buy - a long was liquidated),
+        // the unified side is the side of the liquidation order, as on binance and okx
+        $positionSide = $this->safe_string_lower_2($liquidation, 'side', 'S');
+        $side = null;
+        if ($positionSide === 'buy') {
+            $side = 'sell';
+        } elseif ($positionSide === 'sell') {
+            $side = 'buy';
+        }
         return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $marketResolved['symbol'],
             'contracts' => $this->safe_number_2($liquidation, 'size', 'v'),
             'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'price' => $this->safe_number_2($liquidation, 'price', 'p'),
-            'side' => $this->safe_string_lower_2($liquidation, 'side', 'S'),
+            'side' => $side,
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,

@@ -3509,11 +3509,11 @@ impl BitstampCore {
         //         "timestamp": "1644406050"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product_k(contract.clone(), "timestamp", Value::Float(0.001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(contract.clone(), "timestamp", Value::Int(1000), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
-        m.insert("symbol".to_string(), Value::Null);
+        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market]));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));

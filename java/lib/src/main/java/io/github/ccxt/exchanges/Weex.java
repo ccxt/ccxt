@@ -1885,7 +1885,7 @@ public class Weex extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
-     * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
+     * @param {boolean} [params.historical] whether to fetch historical klines (default is false, forced to true when since or until is set because the recent klines endpoints ignore time filters). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
@@ -1897,7 +1897,7 @@ public class Weex extends WeexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long maxHistoricalLimit = 100L;
+            Integer maxHistoricalLimit = 100;
             Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
@@ -1906,7 +1906,7 @@ public class Weex extends WeexApi
                 Map<String, Object> paramsExtended = this.extend(paramsPaginate, new HashMap<String, Object>() {{
                     put( "historical", true );
                 }});
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsExtended, maxHistoricalLimit)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsExtended, Long.valueOf(maxHistoricalLimit))).join();
             }
             Long until = this.safeInteger(paramsPaginate, "until");
             Pair<Boolean, Map<String, Object>> historicalparamsHistoricalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchOHLCV", "historical", false);
@@ -1924,7 +1924,11 @@ public class Weex extends WeexApi
             List<Object> response = null;
             // hardcap threshold
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 1000);
-            if (Boolean.TRUE.equals(historical))
+            // the recent-klines endpoints ignore startTime and endTime and only ever return the
+            // latest candles, so a request bounded by since or until has to go through the history
+            // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
+            Boolean useHistory = Boolean.TRUE.equals(historical) || (!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null));
+            if (Boolean.TRUE.equals(useHistory))
             {
                 if (!java.util.Objects.equals(priceType, null))
                 {
@@ -1932,36 +1936,40 @@ public class Weex extends WeexApi
                 }
                 Object startTime = since;
                 Object endTime = until;
+                Long now = this.milliseconds();
                 if ((java.util.Objects.equals(since, null)) || (java.util.Objects.equals(until, null)))
                 {
-                    Long now = this.milliseconds();
                     Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                    Long timeDelta = (((long) maxHistoricalLimit) * duration);
+                    // the history endpoint returns at most maxHistoricalLimit candles and serves the
+                    // newest ones inside the window, so a wider window would silently drop the candles
+                    // right after since, keep the window at what one call can return
+                    Object historyLimit = maxHistoricalLimit;
                     if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0))
                     {
-                        if ((limit > 1000))
-                        {
-                            timeDelta = (1000L * duration);
-                        } else
-                        {
-                            timeDelta = (limit * duration);
-                        }
+                        historyLimit = (limit == null || maxHistoricalLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxHistoricalLimit).doubleValue() ? (Object) (limit) : (Object) (maxHistoricalLimit)));
                     }
+                    Object timeDelta = ((((Number) historyLimit).longValue()) * duration);
                     if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null)))
                     {
                         endTime = now;
-                        startTime = (now - timeDelta);
+                        startTime = (now - (((Number) timeDelta).longValue()));
                     } else if (java.util.Objects.equals(since, null))
                     {
                         if (java.util.Objects.equals(until, null))
                         {
                             throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a since or until argument")) ;
                         }
-                        startTime = (until - timeDelta);
+                        startTime = (until - (((Number) timeDelta).longValue()));
                     } else
                     {
-                        endTime = (since + timeDelta);
+                        // this.sum, a bare + is string concatenation in the php port
+                        endTime = this.sum(since, timeDelta);
                     }
+                }
+                // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
+                if ((!java.util.Objects.equals(endTime, null)) && (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(endTime, now)))
+                {
+                    endTime = now;
                 }
                 request.put("startTime", startTime);
                 request.put("endTime", endTime);

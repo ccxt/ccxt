@@ -1440,6 +1440,18 @@ class bybit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
+            'currencies' => array(
+                'EUR' => $this->safe_currency_structure(array( 'id' => 'EUR', 'code' => 'EUR', 'precision' => $this->parse_number('0.01'), 'type' => 'fiat' )),
+                'CHF' => $this->safe_currency_structure(array( 'id' => 'CHF', 'code' => 'CHF', 'precision' => $this->parse_number('0.01'), 'type' => 'fiat' )),
+                'PLN' => $this->safe_currency_structure(array( 'id' => 'PLN', 'code' => 'PLN', 'precision' => $this->parse_number('0.01'), 'type' => 'fiat' )),
+                'ARS' => $this->safe_currency_structure(array( 'id' => 'ARS', 'code' => 'ARS', 'precision' => $this->parse_number('0.01'), 'type' => 'fiat' )),
+                'COP' => $this->safe_currency_structure(array( 'id' => 'COP', 'code' => 'COP', 'precision' => $this->parse_number('0.01'), 'type' => 'fiat' )),
+                'USD' => $this->safe_currency_structure(array( 'id' => 'USD', 'code' => 'USD', 'precision' => $this->parse_number('0.01'), 'type' => 'fiat' )),
+                'CLP' => $this->safe_currency_structure(array( 'id' => 'CLP', 'code' => 'CLP', 'precision' => $this->parse_number('0.01'), 'type' => 'fiat' )),
+                'PEN' => $this->safe_currency_structure(array( 'id' => 'PEN', 'code' => 'PEN', 'precision' => $this->parse_number('0.01'), 'type' => 'fiat' )),
+                'BOB' => $this->safe_currency_structure(array( 'id' => 'BOB', 'code' => 'BOB', 'precision' => $this->parse_number('0.01'), 'type' => 'fiat' )),
+                'BRL' => $this->safe_currency_structure(array( 'id' => 'BRL', 'code' => 'BRL', 'precision' => $this->parse_number('0.01'), 'type' => 'fiat' )),
+            ),
             'rollingWindowSize' => 5000.0, // According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         ));
     }

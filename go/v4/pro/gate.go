@@ -68,7 +68,7 @@ func (this *Gate) DescribeData() any {
 			"watchPositions":                  true,
 			"unWatchTicker":                   false,
 			"unWatchTickers":                  false,
-			"unWatchOHLCV":                    false,
+			"unWatchOHLCV":                    true,
 			"unWatchOHLCVForSymbols":          false,
 			"unWatchOrderBook":                true,
 			"unWatchOrderBookForSymbols":      false,
@@ -1660,6 +1660,99 @@ func (this *Gate) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
+	return nil
+}
+
+/**
+ * @method
+ * @name gate#unWatchOHLCV
+ * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unsubscription request
+ */
+func (this *Gate) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Gate) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
+	_ = timeframe
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var marketId *string = ccxt.SafeStringPtr(market["id"])
+	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var messageType any = this.GetTypeByMarket(market)
+	var channel any = ccxt.Add(messageType, ".candlesticks")
+	var subMessageHash string = "candles:" + *interval + ":" + *symbolValue
+	var messageHash string = "unsubscribe:candles:" + *interval + ":" + *symbolValue
+	var url any = this.GetUrlByMarket(market)
+	var requestId int64 = this.RequestId()
+	var request map[string]any = map[string]any{
+		"id":      requestId,
+		"time":    this.Seconds(),
+		"channel": channel,
+		"event":   "unsubscribe",
+		"payload": []any{interval, marketId},
+	}
+	// mirrors the subscription shape base cleanCache() expects for ohlcv
+	// (same pattern as binance unWatchOHLCVForSymbols), so the ohlcvs
+	// cache entry is dropped when the unsubscribe is acknowledged
+	// handleOHLCV keys the cache by findTimeframe (interval), so the
+	// exchange interval id is mapped back to the cache key here -
+	// this matters for aliased timeframes such as gate's '1w': '7d'
+	// an unsupported timeframe falls back to the caller's key, matching
+	// the previous no-op cleanup instead of an undefined cache key
+	var cacheTimeframe *string = this.FindTimeframe(interval)
+	var subscription map[string]any = map[string]any{
+		"id":          strconv.FormatInt(requestId, 10),
+		"topic":       "ohlcv",
+		"unsubscribe": true,
+		"symbols":     []any{symbolValue},
+		"symbolsAndTimeframes": []any{[]any{symbolValue, func() any {
+			if cacheTimeframe != nil {
+				return cacheTimeframe
+			}
+			return timeframe
+		}()}},
+		"messageHashes":    []any{messageHash},
+		"subMessageHashes": []any{subMessageHash},
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	r1 := <-this.WatchMultiple(url, []any{messageHash}, message, []any{messageHash}, subscription)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Gate) HandleOHLCV(client any, message map[string]any) {
@@ -4002,6 +4095,32 @@ func (this *Gate) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) (
 	}
 	var res []ccxt.OHLCV = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name gate#unWatchOHLCV
+ * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unsubscription request
+ */
+func (this *Gate) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**

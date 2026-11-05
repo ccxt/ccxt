@@ -9675,6 +9675,7 @@ func (this *Okx) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRat
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch funding history for
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Okx) FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingHistory] {
@@ -9709,6 +9710,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
+		request["instId"] = market["id"]
 		if market["contract"] == true {
 			if market["linear"] == true {
 				request["ctType"] = "linear"
@@ -9719,19 +9721,28 @@ func (this *Okx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 			}
 		}
 	}
+	if since != nil {
+		request["begin"] = since
+	}
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	var symbolResolved *string = func() *string {
 		if market != nil {
 			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()
-	typeVar, query := this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
+	typeVar, query := this.HandleMarketTypeAndParams("fetchFundingHistory", market, paramsUntil)
 	if typeVar != nil && *typeVar == "swap" {
-		request["instType"] = this.ConvertToInstrumentType(typeVar)
+		requestUntil["instType"] = func() any {
+			if v := this.ConvertToInstrumentType(typeVar); v != nil {
+				return *v
+			}
+			return nil
+		}()
 	}
 	// AccountBillsArchive has the same cost as AccountBills but supports three months of data
 
-	r1 := <-this.PrivateGetAccountBillsArchive(this.Extend(request, query))
+	r1 := <-this.PrivateGetAccountBillsArchive(this.Extend(requestUntil, query))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -10564,11 +10575,11 @@ func (this *Okx) reduceMarginBody(ch chan AsyncResult[MarginModification], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes780815 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes780815 == nil {
+	var retRes781415 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes781415 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes780815)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes781415)}
 	}
 	return nil
 }
@@ -10598,11 +10609,11 @@ func (this *Okx) addMarginBody(ch chan AsyncResult[MarginModification], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes782215 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes782215 == nil {
+	var retRes782815 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes782815 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes782215)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes782815)}
 	}
 	return nil
 }
@@ -14665,6 +14676,7 @@ func (this *Okx) FetchFundingRates(options ...FetchFundingRatesOptions) (Funding
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch funding history for
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Okx) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {

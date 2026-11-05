@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide
 from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.precise import Precise
 
 
@@ -71,6 +72,22 @@ class paradex(ccxt.async_support.paradex):
         self.options['requestId'] = requestId
         return requestId
 
+    def subscribe_request(self, channel: str) -> dict:
+        """
+ @ignore
+        builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+        :param str channel: the channel to subscribe to
+        :returns dict: the subscribe request
+        """
+        return {
+            'jsonrpc': '2.0',
+            'id': self.request_id(),
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        }
+
     async def authenticate(self, params: dict = {}):
         url = self.get_ws_url()
         client = self.client(url)
@@ -79,15 +96,19 @@ class paradex(ccxt.async_support.paradex):
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             token = await self.authenticateRest()
+            requestId = self.request_id()
             request = {
                 'jsonrpc': '2.0',
-                'id': self.request_id(),
+                'id': requestId,
                 'method': 'auth',
                 'params': {
                     'bearer': token,
                 },
             }
-            self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+            subscription = {
+                'id': requestId,
+            }
+            self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
         return await future
 
     def handle_authentication_message(self, client: Client, message: dict):
@@ -98,12 +119,37 @@ class paradex(ccxt.async_support.paradex):
         #         "result": { "node_id": "73cf456f7cb78d59" }
         #     }
         #
+        # the future stays resolved, so later private watches on this connection skip the auth request
+        future = self.safe_value(client.futures, 'authenticated')
+        if future is not None:
+            future.resolve(True)
+
+    def handle_request_reply(self, client: Client, message: dict):
+        #
+        # auth
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 1,
+        #         "result": { "node_id": "73cf456f7cb78d59" }
+        #     }
+        #
+        # subscribe
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 2,
+        #         "result": { "channel": "orders.ALL" }
+        #     }
+        #
+        # only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
+        requestId = self.safe_string(message, 'id')
+        authSubscription = self.safe_dict(client.subscriptions, 'authenticated')
+        authRequestId = self.safe_string(authSubscription, 'id')
         result = self.safe_dict(message, 'result')
-        if result is not None:
-            # client.resolve (true, messageHash);
-            future = self.safe_value(client.futures, 'authenticated')
-            if future is not None:
-                future.resolve(True)
+        isAuth = ((requestId is not None) and (requestId == authRequestId)) or (self.safe_string(result, 'node_id') is not None)
+        if isAuth:
+            self.handle_authentication_message(client, message)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -126,14 +172,12 @@ class paradex(ccxt.async_support.paradex):
         else:
             messageHash += 'ALL'
         url = self.get_ws_url()
-        request = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': messageHash,
-            },
+        request = self.subscribe_request(messageHash)
+        subscription = {
+            'id': request['id'],
+            'messageHashes': [messageHash],
         }
-        trades = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        trades = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = trades.getLimit(symbol, limit)
@@ -192,14 +236,12 @@ class paradex(ccxt.async_support.paradex):
         market = self.market(symbol)
         messageHash = self.get_order_book_channel(market['id'])
         url = self.get_ws_url()
-        request = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': messageHash,
-            },
+        request = self.subscribe_request(messageHash)
+        subscription = {
+            'id': request['id'],
+            'messageHashes': [messageHash],
         }
-        orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
         return orderbook.limit()
 
     def handle_order_book(self, client: Client, message: dict):
@@ -281,15 +323,13 @@ class paradex(ccxt.async_support.paradex):
         # option too, thousands of messages a second, all decoded only to be filtered out
         channel = 'markets_summary.' + market['id']
         url = self.get_ws_url()
-        request = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        }
         messageHash = 'markets_summary.' + market['symbol']
-        return await self.watch(url, messageHash, self.deep_extend(request, params), channel)
+        request = self.subscribe_request(channel)
+        subscription = {
+            'id': request['id'],
+            'messageHashes': [messageHash],
+        }
+        return await self.watch(url, messageHash, self.deep_extend(request, params), channel, subscription)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -306,13 +346,6 @@ class paradex(ccxt.async_support.paradex):
         symbolsNormalized = self.market_symbols(symbols)
         channel = 'markets_summary'
         url = self.get_ws_url()
-        request = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        }
         messageHashes = []
         if symbolsNormalized is not None and isinstance(symbolsNormalized, list):
             for i in range(0, len(symbolsNormalized)):
@@ -320,7 +353,11 @@ class paradex(ccxt.async_support.paradex):
                 messageHashes.append(messageHash)
         else:
             messageHashes.append(channel)
-        newTicker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
+        request = self.subscribe_request(channel)
+        subscription = {
+            'id': request['id'],
+        }
+        newTicker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes, subscription)
         if self.newUpdates:
             result = {}
             newTickerSymbol = self.safe_string(newTicker, 'symbol')
@@ -354,14 +391,12 @@ class paradex(ccxt.async_support.paradex):
         else:
             channel += 'ALL'
         url = self.get_ws_url()
-        request = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        request = self.subscribe_request(channel)
+        subscription = {
+            'id': request['id'],
+            'messageHashes': [messageHash],
         }
-        orders = await self.watch(url, messageHash, self.deep_extend(request, params), channel)
+        orders = await self.watch(url, messageHash, self.deep_extend(request, params), channel, subscription)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = orders.getLimit(symbolResolved, limit)
@@ -434,14 +469,12 @@ class paradex(ccxt.async_support.paradex):
         else:
             channel += 'ALL'
         url = self.get_ws_url()
-        request = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        request = self.subscribe_request(channel)
+        subscription = {
+            'id': request['id'],
+            'messageHashes': [messageHash],
         }
-        trades = await self.watch(url, messageHash, self.deep_extend(request, params), channel)
+        trades = await self.watch(url, messageHash, self.deep_extend(request, params), channel, subscription)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = trades.getLimit(symbolResolved, limit)
@@ -505,13 +538,6 @@ class paradex(ccxt.async_support.paradex):
         # one channel carries every market
         channel = 'positions'
         url = self.get_ws_url()
-        request = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        }
         messageHashes = []
         symbolsLength = 0
         if symbolsNormalized is not None:
@@ -521,7 +547,12 @@ class paradex(ccxt.async_support.paradex):
         else:
             for i in range(0, symbolsLength):
                 messageHashes.append(channel + ':' + (symbolsNormalized)[i])
-        newPositions = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), [channel])
+        request = self.subscribe_request(channel)
+        subscription = {
+            'id': request['id'],
+            'messageHashes': messageHashes,
+        }
+        newPositions = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), [channel], subscription)
         if self.newUpdates:
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbolsNormalized, since, limit, True)
@@ -594,14 +625,13 @@ class paradex(ccxt.async_support.paradex):
         await self.authenticate()
         channel = 'account'
         url = self.get_ws_url()
-        request = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        messageHash = 'balance'
+        request = self.subscribe_request(channel)
+        subscription = {
+            'id': request['id'],
+            'messageHashes': [messageHash],
         }
-        return await self.watch(url, 'balance', self.deep_extend(request, params), channel)
+        return await self.watch(url, messageHash, self.deep_extend(request, params), channel, subscription)
 
     def handle_balance(self, client: Client, message: dict):
         #
@@ -721,15 +751,13 @@ class paradex(ccxt.async_support.paradex):
         symbolValue = self.symbol(symbol)
         channel = 'funding_data'
         url = self.get_ws_url()
-        request = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        }
         messageHash = channel + '.' + symbolValue
-        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        request = self.subscribe_request(channel)
+        subscription = {
+            'id': request['id'],
+            'messageHashes': [messageHash],
+        }
+        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
 
     async def watch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -746,13 +774,6 @@ class paradex(ccxt.async_support.paradex):
         symbolsNormalized = self.market_symbols(symbols)
         channel = 'funding_data'
         url = self.get_ws_url()
-        request = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        }
         messageHashes = []
         if symbolsNormalized is not None:
             symbolsLength = len(symbolsNormalized)
@@ -764,7 +785,11 @@ class paradex(ccxt.async_support.paradex):
                 messageHashes.append(channel)  # if an empty array is passed, subscribe to all funding rates
         else:
             messageHashes.append(channel)
-        newFundingRates = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
+        request = self.subscribe_request(channel)
+        subscription = {
+            'id': request['id'],
+        }
+        newFundingRates = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes, subscription)
         if self.newUpdates:
             result = {}
             newFundingRatesSymbol = self.safe_string(newFundingRates, 'symbol')
@@ -1334,15 +1359,39 @@ class paradex(ccxt.async_support.paradex):
         error = self.safe_dict(message, 'error')
         if error is None:
             return True
-        else:
+        try:
+            feedback = self.id + ' ' + self.json(error)
             errorCode = self.safe_string(error, 'code')
             if errorCode is not None:
-                feedback = self.id + ' ' + self.json(error)
-                self.throw_exactly_matched_exception(self.exceptions['exact'], '-32600', feedback)
-                messageString = self.safe_string(error, 'message')
-                if messageString is not None:
-                    self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
-            return False
+                self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            messageString = self.safe_string(error, 'message')
+            if messageString is not None:
+                self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+            raise ExchangeError(feedback)
+        except Exception as e:
+            # the subscription of every request sent keeps its id, so the request this error answers is found
+            # by it. A failed subscribe or auth is forgotten, so that the next watch sends it again
+            requestId = self.safe_string(message, 'id')
+            handled = False
+            if requestId is not None:
+                subscribeHashes = list(client.subscriptions.keys())
+                for i in range(0, len(subscribeHashes)):
+                    subscribeHash = subscribeHashes[i]
+                    subscription = self.safe_dict(client.subscriptions, subscribeHash)
+                    if self.safe_string(subscription, 'id') == requestId:
+                        handled = True
+                        del client.subscriptions[subscribeHash]
+                        # watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
+                        messageHashes = self.safe_list(subscription, 'messageHashes', [subscribeHash])
+                        for j in range(0, len(messageHashes)):
+                            client.reject(e, messageHashes[j])
+            if not handled:
+                # not a reply to a known request, every watcher on the connection gets the error,
+                # and the next private watch authenticates again instead of waiting on a rejected future
+                if 'authenticated' in client.subscriptions:
+                    del client.subscriptions['authenticated']
+                client.reject(e)
+        return False
 
     def handle_message(self, client: Client, message: object):
         parsedMessage = message
@@ -1382,7 +1431,7 @@ class paradex(ccxt.async_support.paradex):
         #
         result = self.safe_dict(parsedMessage, 'result')
         if result is not None:
-            self.handle_authentication_message(client, parsedMessage)
+            self.handle_request_reply(client, parsedMessage)
             return
         data = self.safe_dict(parsedMessage, 'params')
         if data is not None:

@@ -6719,6 +6719,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch funding history for
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         if self.markets is None:
@@ -6804,6 +6805,7 @@ class okx(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            request['instId'] = market['id']
             if market['contract'] is True:
                 if market['linear'] is True:
                     request['ctType'] = 'linear'
@@ -6811,12 +6813,15 @@ class okx(Exchange, ImplicitAPI):
                 else:
                     request['ctType'] = 'inverse'
                     request['ccy'] = market['baseId']
+        if since is not None:
+            request['begin'] = since
+        requestUntil, paramsUntil = self.handle_until_option('end', request, params)
         symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
-        type, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
+        type, query = self.handle_market_type_and_params('fetchFundingHistory', market, paramsUntil)
         if type == 'swap':
-            request['instType'] = self.convert_to_instrument_type(type)
+            requestUntil['instType'] = self.convert_to_instrument_type(type)
         # AccountBillsArchive has the same cost as AccountBills but supports three months of data
-        response = await self.privateGetAccountBillsArchive(self.extend(request, query))
+        response = await self.privateGetAccountBillsArchive(self.extend(requestUntil, query))
         #
         #    {
         #        "bal": "0.0242946200998573",

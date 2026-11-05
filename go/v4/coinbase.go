@@ -99,7 +99,7 @@ func (this *Coinbase) Describe() any {
 			"fetchIsolatedBorrowRate":                false,
 			"fetchIsolatedBorrowRates":               false,
 			"fetchIsolatedPositions":                 false,
-			"fetchL2OrderBook":                       false,
+			"fetchL2OrderBook":                       true,
 			"fetchLedger":                            true,
 			"fetchLeverage":                          false,
 			"fetchLeverages":                         false,
@@ -7154,6 +7154,18 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) []any {
 	}
 	return parsedPositions
 }
+
+/**
+ * @method
+ * @name coinbase#isEddsaApiKey
+ * @ignore
+ * @description checks whether the secret is a v2 (Ed25519) CDP api key secret
+ * @returns {boolean} true if the secret is an Ed25519 key
+ */
+func (this *Coinbase) IsEddsaApiKey() bool {
+	// using the size might be fragile, so we add an option to force v2 cloud api key if needed
+	return (GetLength(this.Secret) == 88) || (*this.SafeBool(this.Options, "v2CloudAPiKey", false)) || EndsWith(this.Secret, "=")
+}
 func (this *Coinbase) CreateAuthToken(seconds any, optionalArgs ...any) string {
 	// v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
 	// v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
@@ -7279,8 +7291,7 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) any {
 			// v2: 'GET' require payload in the signature
 			// https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
 			var isCloudAPiKey bool = (GetIndexOf(this.ApiKey, "organizations/") >= 0) || (StartsWith(this.Secret, "-----BEGIN"))
-			// using the size might be fragile, so we add an option to force v2 cloud api key if needed
-			var isV2CloudAPiKey bool = (GetLength(this.Secret) == 88) || (*this.SafeBool(this.Options, "v2CloudAPiKey", false)) || EndsWith(this.Secret, "=")
+			var isV2CloudAPiKey bool = this.IsEddsaApiKey()
 			if isCloudAPiKey || isV2CloudAPiKey {
 				if isCloudAPiKey && StartsWith(this.ApiKey, "-----BEGIN") {
 					panic(ArgumentsRequired(this.Id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key"))

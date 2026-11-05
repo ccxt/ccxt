@@ -38,6 +38,8 @@ func (this *Lbank) Describe() any {
 			"watchOrders":           true,
 			"watchOrderBook":        true,
 			"watchOHLCV":            true,
+			"unWatchOHLCV":          true,
+			"unWatchTrades":         true,
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
@@ -78,6 +80,64 @@ func (this *Lbank) CheckContractMarket(market any, methodName string) {
 	if (!ccxt.IsEqual(market, nil)) && (ccxt.GetValue(market, "contract") == true) {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(this.Id+" "+methodName+"() does not support ", ccxt.GetValue(market, "type")), " markets yet")))
 	}
+}
+
+/**
+ * @ignore
+ * @method
+ * @description sends an unsubscribe request and drops the subscription and its cache
+ * @param {string} subHash the messageHash the watch method subscribed with
+ * @param {object} request the unsubscribe request
+ * @param {object} subscription the cache to clean, see cleanCache
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true
+ */
+func (this *Lbank) UnSubscribeAsync(subHash any, request any, subscription any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unSubscribeBody(ch, subHash, request, subscription, optionalArgs...)
+	return ch
+}
+func (this *Lbank) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash any, request any, subscription any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
+	var client ccxt.ClientInterface = this.Client(url)
+	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subHash) {
+
+		{
+			func(this *Lbank) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *Lbank) any {
+							// catch block:
+							panic(ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id+" could not unsubscribe ", subHash), ", the websocket connection is not open")))
+
+						}(this)
+					}
+				}()
+				// try block:
+
+				r := <-client.(ccxt.ClientInterface).SendAsync(this.DeepExtend(request, params))
+				if r.Err != nil {
+					panic(r.Err)
+				}
+				return nil
+			}(this)
+
+		}
+	}
+	// lbank does not acknowledge an unsubscribe, it just stops streaming the channel,
+	// so the subscription is cleaned up as soon as the request is sent
+	this.CleanCache(subscription)
+	this.CleanUnsubscription(ccxt.AsClient(client), subHash, ccxt.Add("unsubscribe:", subHash))
+
+	ch <- ccxt.AsyncResult[bool]{Value: true}
+	return nil
 }
 
 /**
@@ -219,6 +279,62 @@ func (this *Lbank) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
+
+/**
+ * @method
+ * @name lbank#unWatchOHLCV
+ * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @param {string} symbol unified symbol of the market to unwatch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
+ */
+func (this *Lbank) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Lbank) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
+	_ = timeframe
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	this.CheckContractMarket(market, "unWatchOHLCV")
+	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
+	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
+	var timeframeId *string = this.SafeString(timeframes, timeframe)
+	if timeframeId == nil {
+		panic(ccxt.BadRequest(this.Id + " unWatchOHLCV() does not support the " + timeframe + " timeframe"))
+	}
+	var request map[string]any = map[string]any{
+		"action":    "unsubscribe",
+		"subscribe": "kbar",
+		"kbar":      timeframeId,
+		"pair":      market["id"],
+	}
+	var subscription map[string]any = map[string]any{
+		"topic":                "ohlcv",
+		"symbolsAndTimeframes": []any{[]any{market["symbol"], timeframe}},
+	}
+
+	r1 := <-this.UnSubscribeAsync("ohlcv:"+market["symbol"].(string)+":"+*timeframeId, request, subscription, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
+	return nil
+}
 func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 	//
 	// request
@@ -289,13 +405,18 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
 		stored.(ccxt.Appender).Append(parsed)
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fetchOHLCV:"+*symbol+":", timeframeId))
+		var messageHash any = ccxt.Add("fetchOHLCV:"+*symbol+":", timeframeId)
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	} else {
 		var rawOHLCV map[string]any = ccxt.SafeMapTyped(message, "kbar")
 		var timeframeId *string = this.SafeString(rawOHLCV, "slot")
 		var datetime *string = this.SafeString(rawOHLCV, "t")
 		var parsed []any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
+		var messageHash any = ccxt.Add("ohlcv:"+*symbol+":", timeframeId)
+		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
+			// a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
+			return
+		}
 		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -305,7 +426,6 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
 		stored.(ccxt.Appender).Append(parsed)
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv:"+*symbol+":", timeframeId))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
@@ -626,6 +746,52 @@ func (this *Lbank) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.SortBy(result, "timestamp"))} // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
 	return nil
 }
+
+/**
+ * @method
+ * @name lbank#unWatchTrades
+ * @see https://www.lbank.com/en-US/docs/index.html#trade-record
+ * @description unWatches the list of most recent trades for a particular symbol
+ * @param {string} symbol unified symbol of the market to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
+ */
+func (this *Lbank) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Lbank) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	this.CheckContractMarket(market, "unWatchTrades")
+	var request map[string]any = map[string]any{
+		"action":    "unsubscribe",
+		"subscribe": "trade",
+		"pair":      market["id"],
+	}
+	var subscription map[string]any = map[string]any{
+		"topic":   "trades",
+		"symbols": []any{market["symbol"]},
+	}
+
+	r1 := <-this.UnSubscribeAsync("trades:"+market["symbol"].(string), request, subscription, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
+	return nil
+}
 func (this *Lbank) HandleTrades(client any, message map[string]any) {
 	//
 	// request
@@ -656,13 +822,18 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId)
 	var market map[string]any = this.SafeMarket(marketId)
+	var rawTrade any = this.SafeDict(message, "trade")
+	var subHash string = "trades:" + *symbol
+	if (rawTrade != nil) && !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subHash)) {
+		// a trade lbank pushed before it processed an unWatchTrades, which it does not acknowledge
+		return
+	}
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var rawTrade map[string]any = ccxt.SafeMapTyped(message, "trade")
 	var rawTrades []any = ccxt.SafeListTypedDefault(message, "trades", []any{rawTrade})
 	for i := 0; i < len(rawTrades); i++ {
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(func() any {
@@ -1489,6 +1660,30 @@ func (this *Lbank) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) 
 
 /**
  * @method
+ * @name lbank#unWatchOHLCV
+ * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @param {string} symbol unified symbol of the market to unwatch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
+ */
+func (this *Lbank) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
  * @name lbank#fetchTickerWs
  * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -1585,6 +1780,29 @@ func (this *Lbank) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions
 	}
 	var res []ccxt.Trade = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name lbank#unWatchTrades
+ * @see https://www.lbank.com/en-US/docs/index.html#trade-record
+ * @description unWatches the list of most recent trades for a particular symbol
+ * @param {string} symbol unified symbol of the market to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
+ */
+func (this *Lbank) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**

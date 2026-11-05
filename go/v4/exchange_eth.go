@@ -92,6 +92,7 @@ type Cancel struct {
 type CancelMessage struct {
 	Type    string   `json:"type" msgpack:"type"`
 	Cancels []Cancel `json:"cancels" msgpack:"cancels"`
+	F       *bool    `json:"f,omitempty" msgpack:"f,omitempty"` // optional fast flag, must be absent when false
 }
 
 // Transfer
@@ -249,6 +250,7 @@ type CancelByCloidItem struct {
 type CancelByCloidMessage struct {
 	Type    string              `json:"type" msgpack:"type"`
 	Cancels []CancelByCloidItem `json:"cancels" msgpack:"cancels"`
+	F       *bool               `json:"f,omitempty" msgpack:"f,omitempty"` // optional fast flag, must be absent when false
 }
 
 // =====================================  Hyperliquid Structs ===================================== //

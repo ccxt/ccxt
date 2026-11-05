@@ -50,6 +50,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 put( "watchOrders", true );
                 put( "watchOrderBook", true );
                 put( "watchOHLCV", true );
+                put( "unWatchOHLCV", true );
+                put( "unWatchTrades", true );
             }} );
             put( "urls", new HashMap<String, Object>() {{
                 put( "api", new HashMap<String, Object>() {{
@@ -96,6 +98,42 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             throw new NotSupported((((((this.id + " ") + methodName) + "() does not support ") + market.get("type")) + " markets yet")) ;
         }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description sends an unsubscribe request and drops the subscription and its cache
+     * @param {string} subHash the messageHash the watch method subscribed with
+     * @param {object} request the unsubscribe request
+     * @param {object} subscription the cache to clean, see cleanCache
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true
+     */
+    public CompletableFuture<Object> unSubscribe(Object subHash, Map<String, Object> request, Map<String, Object> subscription, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            Client client = this.client(url);
+            if (((Map<?, ?>)client.subscriptions).containsKey(subHash))
+            {
+                try
+                {
+                    (client.send(this.deepExtend(request, parameters))).join();
+                } catch(Exception e)
+                {
+                    throw new NetworkError((((this.id + " could not unsubscribe ") + subHash) + ", the websocket connection is not open")) ;
+                }
+            }
+            // lbank does not acknowledge an unsubscribe, it just stops streaming the channel,
+            // so the subscription is cleaned up as soon as the request is sent
+            this.cleanCache(subscription);
+            this.cleanUnsubscription(client, (String) (subHash), ("unsubscribe:" + subHash), false);
+            return true;
+        });
+
     }
 
     /**
@@ -194,6 +232,48 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     }
 
+    /**
+     * @method
+     * @name lbank#unWatchOHLCV
+     * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
+     */
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            this.checkContractMarket((Map<String, Object>) (market), "unWatchOHLCV");
+            Map<String, Object> watchOHLCVOptions = (Map<String, Object>) this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(watchOHLCVOptions, "timeframes", new HashMap<String, Object>() {{}});
+            String timeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            if (java.util.Objects.equals(timeframeId, null))
+            {
+                throw new BadRequest((((this.id + " unWatchOHLCV() does not support the ") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + " timeframe")) ;
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("action", "unsubscribe");
+            request.put("subscribe", "kbar");
+            request.put("kbar", timeframeId);
+            request.put("pair", market.get("id"));
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "topic", "ohlcv" );
+                put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
+            }};
+            return (this.unSubscribe(((("ohlcv:" + market.get("symbol")) + ":") + timeframeId), (Map<String, Object>) (request), (Map<String, Object>) (subscription), parameters)).join();
+        });
+
+    }
+
     public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
@@ -275,6 +355,12 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             String timeframeId = this.safeString(rawOHLCV, "slot");
             String datetime = this.safeString(rawOHLCV, "t");
             List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(datetime), this.safeNumber(rawOHLCV, "o", (Object) null), this.safeNumber(rawOHLCV, "h", (Object) null), this.safeNumber(rawOHLCV, "l", (Object) null), this.safeNumber(rawOHLCV, "c", (Object) null), this.safeNumber(rawOHLCV, "v", (Object) null)));
+            String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
+            if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+            {
+                // a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
+                return;
+            }
             Object timeframe = this.findTimeframe(timeframeId, timeframes);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
@@ -285,7 +371,6 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
             }
             stored.append(parsed);
-            String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         }
     }
@@ -517,6 +602,40 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     }
 
+    /**
+     * @method
+     * @name lbank#unWatchTrades
+     * @see https://www.lbank.com/en-US/docs/index.html#trade-record
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
+     */
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            this.checkContractMarket((Map<String, Object>) (market), "unWatchTrades");
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "action", "unsubscribe" );
+                put( "subscribe", "trade" );
+                put( "pair", market.get("id") );
+            }};
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "topic", "trades" );
+                put( "symbols", new ArrayList<Object>(Arrays.asList(market.get("symbol"))) );
+            }};
+            return (this.unSubscribe(("trades:" + market.get("symbol")), (Map<String, Object>) (request), (Map<String, Object>) (subscription), parameters)).join();
+        });
+
+    }
+
     public void handleTrades(Client client, Map<String, Object> message)
     {
         //
@@ -548,6 +667,13 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(message, "trade", (Object) null);
+        String subHash = ("trades:" + symbol);
+        if ((!java.util.Objects.equals(rawTrade, null)) && !(((Map<?, ?>)client.subscriptions).containsKey(subHash)))
+        {
+            // a trade lbank pushed before it processed an unWatchTrades, which it does not acknowledge
+            return;
+        }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -555,7 +681,6 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(message, "trade", (Object) null);
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList(rawTrade)));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {

@@ -28,6 +28,26 @@ export default class blofin extends blofinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    /**
+     * @method
+     * @name blofin#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://docs.blofin.com/index.html#ws-trades-channel
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    /**
+     * @method
+     * @name blofin#unWatchTradesForSymbols
+     * @description unWatches the list of most recent trades for a list of symbols
+     * @see https://docs.blofin.com/index.html#ws-trades-channel
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleTrades(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -112,6 +132,27 @@ export default class blofin extends blofinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: Dict): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    /**
+     * @method
+     * @name blofin#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
+    /**
+     * @method
+     * @name blofin#unWatchOHLCVForSymbols
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: Dict): Promise<any>;
     handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
@@ -180,6 +221,8 @@ export default class blofin extends blofinRest {
     watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): void;
     watchMultipleWrapper(isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray?: any, params?: Dict): Promise<any>;
+    unsubscribeMultipleWrapper(channelName: string, callerMethodName: string, symbolsArray: any, params?: Dict): Promise<any>;
+    handleUnsubscription(client: Client, message: Dict): void;
     getSubscriptionRequest(args: List): Dict;
     handleMessage(client: Client, message: any): void;
     authenticate(params?: Dict): Promise<void>;

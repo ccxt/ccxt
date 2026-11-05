@@ -85,7 +85,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "watchPositions", true );
                 put( "unWatchTicker", false );
                 put( "unWatchTickers", false );
-                put( "unWatchOHLCV", false );
+                put( "unWatchOHLCV", true );
                 put( "unWatchOHLCVForSymbols", false );
                 put( "unWatchOrderBook", true );
                 put( "unWatchOrderBookForSymbols", false );
@@ -1381,6 +1381,67 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name gate#unWatchOHLCV
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unsubscription request
+     */
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            String marketId = (String) market.get("id");
+            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            String messageType = this.getTypeByMarket((Map<String, Object>) (market));
+            String channel = (messageType + ".candlesticks");
+            String subMessageHash = ((("candles:" + interval) + ":") + symbolValue);
+            String messageHash = ((("unsubscribe:candles:" + interval) + ":") + symbolValue);
+            Object url = this.getUrlByMarket(market);
+            Long requestId = this.requestId();
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "id", requestId );
+                put( "time", Gate.this.seconds() );
+                put( "channel", channel );
+                put( "event", "unsubscribe" );
+                put( "payload", new ArrayList<Object>(Arrays.asList(interval, marketId)) );
+            }};
+            // mirrors the subscription shape base cleanCache() expects for ohlcv
+            // (same pattern as binance unWatchOHLCVForSymbols), so the ohlcvs
+            // cache entry is dropped when the unsubscribe is acknowledged;
+            // handleOHLCV keys the cache by findTimeframe (interval), so the
+            // exchange interval id is mapped back to the cache key here -
+            // this matters for aliased timeframes such as gate's '1w': '7d';
+            // an unsupported timeframe falls back to the caller's key, matching
+            // the previous no-op cleanup instead of an undefined cache key
+            String cacheTimeframe = this.findTimeframe(interval, (Object) null);
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("id", String.valueOf(requestId));
+            subscription.put("topic", "ohlcv");
+            subscription.put("unsubscribe", true);
+            subscription.put("symbols", new ArrayList<Object>(Arrays.asList(symbolValue)));
+            subscription.put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, (((!java.util.Objects.equals(cacheTimeframe, null)))) ? cacheTimeframe : java.util.Objects.requireNonNullElse(timeframe, "1m"))))));
+            subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)));
+            subscription.put("subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash)));
+            Map<String, Object> message = this.extend(request, parameters);
+            return (this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), message, new ArrayList<Object>(Arrays.asList(messageHash)), subscription)).join();
+        });
 
     }
 

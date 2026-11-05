@@ -32,6 +32,8 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'watchOrders': True,
                 'watchOHLCV': True,
                 'watchMyTrades': False,
+                'unWatchTrades': True,
+                'unWatchOHLCV': True,
                 'createOrderWs': True,
                 'cancelOrderWs': True,
                 'fetchOpenOrdersWs': True,
@@ -165,6 +167,41 @@ class hitbtc(ccxt.async_support.hitbtc):
             'id': requestId,
         }
         return await self.watch_multiple(url, messageHashes, request, messageHashes, subscription)
+
+    async def un_subscribe_public(self, name: str, messageHashPrefix: str, symbols: list[str], subscription: dict, params: dict = {}):
+        """
+ @ignore
+        unsubscribes from a public websocket channel
+        :param str name: websocket endpoint name
+        :param str messageHashPrefix: prefix of the message hashes the matching watch method subscribed with
+        :param str[] symbols: unified CCXT symbols
+        :param dict subscription: the topic and symbols of the caches to clean once the unsubscribe is acknowledged
+        :param dict [params]: extra parameters specific to the hitbtc api
+        :returns boolean: True once the exchange acknowledges the unsubscribe
+        """
+        url = self.urls['api']['ws']['public']
+        subMessageHashes = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            subMessageHash = messageHashPrefix + '::' + symbols[i]
+            subMessageHashes.append(subMessageHash)
+            messageHashes.append('unsubscribe:' + subMessageHash)
+        requestId = self.incrementing_nonce()
+        request = {
+            'method': 'unsubscribe',
+            'id': requestId,
+            'ch': name,
+            'params': {
+                'symbols': self.market_ids(symbols),
+            },
+        }
+        unsubscription = self.extend(subscription, {
+            'id': requestId,
+            'unsubscribe': True,
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+        })
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes, unsubscription)
 
     async def subscribe_private(self, name: str, symbol: Str = None, params: dict = {}):
         """
@@ -617,6 +654,24 @@ class hitbtc(ccxt.async_support.hitbtc):
             limitResolved = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp')
 
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+        """
+        unWatches the list of most recent trades for a particular symbol
+
+        https://api.hitbtc.com/#subscribe-to-trades
+
+        :param str symbol: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: True once hitbtc acknowledges the unsubscribe
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        subscription = {
+            'topic': 'trades',
+            'symbols': [market['symbol']],
+        }
+        return await self.un_subscribe_public('trades', 'trades', [market['symbol']], subscription, params)
+
     def handle_trades(self, client: Client, message: dict) -> dict:
         #
         #    {
@@ -735,11 +790,32 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         if limit is not None:
             request['params']['limit'] = limit
-        ohlcv = await self.subscribe_public(name, 'candles', [symbol], self.deep_extend(request, params))
+        ohlcv = await self.subscribe_public(name, name, [symbol], self.deep_extend(request, params))
         limitResolved = limit
         if self.newUpdates:
             limitResolved = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limitResolved, 0)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://api.hitbtc.com/#subscribe-to-candles
+
+        :param str symbol: unified symbol of the market to unwatch the OHLCV data for
+        :param str [timeframe]: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: True once hitbtc acknowledges the unsubscribe
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        period = self.safe_string(self.timeframes, timeframe, timeframe)
+        name = 'candles/' + period
+        subscription = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [[market['symbol'], timeframe]],
+        }
+        return await self.un_subscribe_public(name, name, [market['symbol']], subscription, params)
 
     def handle_ohlcv(self, client: Client, message: dict) -> dict:
         #
@@ -793,10 +869,12 @@ class hitbtc(ccxt.async_support.hitbtc):
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
-            ohlcvs = self.parse_ws_ohlcvs(data[marketId], market)
-            for j in range(0, len(ohlcvs)):
-                stored.append(ohlcvs[j])
-            messageHash = 'candles::' + symbol
+            # parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
+            rawOhlcvs = self.safe_list(data, marketId, [])
+            for j in range(0, len(rawOhlcvs)):
+                parsed = self.parse_ws_ohlcv(rawOhlcvs[j], market)
+                stored.append(parsed)
+            messageHash = channel + '::' + symbol
             client.resolve(stored, messageHash)
         return message
 
@@ -1329,6 +1407,10 @@ class hitbtc(ccxt.async_support.hitbtc):
                 method(client, message)
         else:
             result = self.safe_value(message, 'result')
+            resultChannel = self.safe_string(result, 'ch')
+            if resultChannel is not None:
+                self.handle_un_subscription(client, message)
+                return
             clientOrderId = self.safe_string(result, 'client_order_id')
             if clientOrderId is not None:
                 self.handle_order_request(client, message)
@@ -1340,6 +1422,34 @@ class hitbtc(ccxt.async_support.hitbtc):
                 arrayLength = len(result)
                 if (arrayLength == 0) or ('client_order_id' in first):
                     self.handle_order_request(client, message)
+
+    def handle_un_subscription(self, client: Client, message: dict):
+        #
+        # hitbtc answers subscribe and unsubscribe requests alike, listing the symbols still subscribed on the channel
+        #
+        #    {
+        #        "result": {
+        #            "ch": "trades",
+        #            "subscriptions": [ "ETHUSDT" ]
+        #        },
+        #        "id": 1793679985268
+        #    }
+        #
+        # the answers can arrive in a different order than the requests, so they are matched by id
+        #
+        id = self.safe_string(message, 'id')
+        subscriptionHashes = list(client.subscriptions.keys())
+        for i in range(0, len(subscriptionHashes)):
+            subscription = client.subscriptions[subscriptionHashes[i]]
+            isUnSubscription = self.safe_bool(subscription, 'unsubscribe', False)
+            subscriptionId = self.safe_string(subscription, 'id')
+            if isUnSubscription and (subscriptionId is not None) and (subscriptionId == id):
+                subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+                messageHashes = self.safe_list(subscription, 'messageHashes', [])
+                for j in range(0, len(subMessageHashes)):
+                    self.clean_unsubscription(client, subMessageHashes[j], messageHashes[j])
+                self.clean_cache(subscription)
+                return
 
     def handle_authenticate(self, client: Client, message: dict) -> dict:
         #

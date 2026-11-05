@@ -386,6 +386,7 @@ public class Lighter extends LighterApi
             put( "httpExceptions", new HashMap<String, Object>() {{}} );
             put( "exceptions", new HashMap<String, Object>() {{
                 put( "exact", new HashMap<String, Object>() {{
+                    put( "20001", BadRequest.class );
                     put( "21146", ExchangeError.class );
                     put( "21500", ExchangeError.class );
                     put( "21501", ExchangeError.class );
@@ -458,10 +459,12 @@ public class Lighter extends LighterApi
                     put( "21904", InvalidOrder.class );
                     put( "21905", InvalidOrder.class );
                     put( "21906", InvalidOrder.class );
+                    put( "22400", BadRequest.class );
                     put( "23000", RateLimitExceeded.class );
                     put( "23001", RateLimitExceeded.class );
                     put( "23002", RateLimitExceeded.class );
                     put( "23003", RateLimitExceeded.class );
+                    put( "29404", BadRequest.class );
                 }} );
                 put( "broad", new HashMap<String, Object>() {{}} );
             }} );
@@ -4289,7 +4292,7 @@ public class Lighter extends LighterApi
         //     }
         //
         String code = this.safeString(response, "code");
-        String message = this.safeString(response, "msg");
+        String message = this.safeString(response, "message");
         if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0") && !java.util.Objects.equals(code, "200"))
         {
             String feedback = ((this.id + " ") + body);

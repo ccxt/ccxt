@@ -3273,7 +3273,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         """
         # Myriad has no OHLCV websocket channel, so build candles from the live trade stream
         trades = await self.watch_trades(outcome, since, limit, params)
-        ohlcvc = self.build_ohlcv(trades, timeframe, 0, 2147483647)
+        ohlcvc = self.build_ohlcvc(trades, timeframe, 0, 2147483647)
         result = []
         ohlcvcLength = len(ohlcvc)
         for i in range(0, ohlcvcLength):

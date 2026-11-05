@@ -111,7 +111,7 @@ class gemini extends \ccxt\async\gemini {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $trades = Async\await($this->helper_for_watch_multiple_construct('trades', $symbols, $params));
-        $first = $this->safe_list($trades, 0);
+        $first = $this->safe_dict($trades, 0);
         $tradeSymbol = $this->safe_string($first, 'symbol');
         $limitResolved = $limit;
         if ($this->newUpdates) {

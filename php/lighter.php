@@ -257,6 +257,7 @@ class lighter extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '20001' => '\\ccxt\\BadRequest', // invalid param
                     '21146' => '\\ccxt\\ExchangeError', // system account cannot be an integrator
                     '21500' => '\\ccxt\\ExchangeError', // transaction not found
                     '21501' => '\\ccxt\\ExchangeError', // invalid tx info
@@ -329,10 +330,12 @@ class lighter extends Exchange {
                     '21904' => '\\ccxt\\InvalidOrder', // invalid deleverage size
                     '21905' => '\\ccxt\\InvalidOrder', // invalid deleverage price
                     '21906' => '\\ccxt\\InvalidOrder', // invalid deleverage side
+                    '22400' => '\\ccxt\\BadRequest', // invalid timestamps: end_timestamp must be greater than start_timestamp
                     '23000' => '\\ccxt\\RateLimitExceeded', // Too Many Requests!
                     '23001' => '\\ccxt\\RateLimitExceeded', // Too Many Subscriptions!
                     '23002' => '\\ccxt\\RateLimitExceeded', // Too Many Different Accounts!
                     '23003' => '\\ccxt\\RateLimitExceeded', // Too Many Connections!
+                    '29404' => '\\ccxt\\BadRequest', // not found
                 ),
                 'broad' => array(
                 ),
@@ -3470,7 +3473,7 @@ class lighter extends Exchange {
         //     }
         //
         $code = $this->safe_string($response, 'code');
-        $message = $this->safe_string($response, 'msg');
+        $message = $this->safe_string($response, 'message');
         if ($code !== null && $code !== '0' && $code !== '200') {
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);

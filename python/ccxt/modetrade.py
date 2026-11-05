@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -90,7 +90,9 @@ class modetrade(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -1194,6 +1196,82 @@ class modetrade(Exchange, ImplicitAPI):
             ticker = self.extend({'timestamp': timestamp}, row)
             result.append(self.parse_ticker(ticker))
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
+
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 81559.8,
+        #         "mark_price": 81542.2,
+        #         "open_interest": 42.65602,
+        #         "24h_open": 81606.8,
+        #         "24h_close": 81518.1,
+        #         "24h_high": 81706.7,
+        #         "24h_low": 81069.9,
+        #         "24h_volume": 65.48965,
+        #         "24h_amount": 5333323.390584
+        #     }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(interest, 'timestamp')
+        return self.safe_open_interest({
+            'symbol': marketResolved['symbol'],
+            'openInterestAmount': self.safe_number(interest, 'open_interest'),
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, marketResolved)
+
+    def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
+        """
+        retrieves the open interest of a contract trading pair
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
+        data = self.safe_dict(response, 'data', {})
+        timestamp = self.safe_integer(response, 'timestamp')
+        interest = self.extend({'timestamp': timestamp}, data)
+        return self.parse_open_interest(interest, market)
+
+    def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:
+        """
+        retrieves the open interest for a list of contract trading pairs
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict: a dictionary of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        response = self.v1PublicGetPublicFutures(params)
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol', '')
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            interest = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_open_interest(interest))
+        return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_income(self, income: dict, market: Market = None) -> dict:
         #

@@ -2501,6 +2501,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->vaultAddress] the vault address for order
          * @param {string} [$params->subAccountAddress] sub account user address
          * @param {boolean} [$params->twap] whether the order to cancel is a twap order, (default is false)
+         * @param {boolean} [$params->fast] whether to send the cancel with the fast flag, rejected for trigger $orders, prioritized in the mempool in a future network upgrade, (default is false)
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($this->safe_bool($params, 'twap', false)) {
@@ -2524,6 +2525,7 @@ class hyperliquid extends Exchange {
          * @param {string|string[]} [$params->clientOrderId] client order $ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @param {string} [$params->vaultAddress] the vault address
          * @param {string} [$params->subAccountAddress] sub account user address
+         * @param {boolean} [$params->fast] whether to send the cancel with the fast flag, rejected for trigger $orders, prioritized in the mempool in a future network upgrade, (default is false)
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->check_required_credentials();
@@ -2635,11 +2637,13 @@ class hyperliquid extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params]
+         * @param {boolean} [$params->fast] whether to send the cancel with the $fast flag, rejected for trigger orders, (default is false)
          * @return {array} the raw $request object to be sent to the exchange
          */
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
-        $params2 = $this->omit($params, array( 'clientOrderId', 'client_id' ));
+        $fast = $this->safe_bool($params, 'fast', false);
+        $params2 = $this->omit($params, array( 'clientOrderId', 'client_id', 'fast' ));
         $nonce = $this->incrementing_nonce();
         $request = array(
             'nonce' => $nonce,
@@ -2673,6 +2677,10 @@ class hyperliquid extends Exchange {
             }
         }
         $cancelAction['cancels'] = $cancelReq;
+        if ($fast) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            $cancelAction['f'] = true;
+        }
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
@@ -2697,6 +2705,7 @@ class hyperliquid extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->vaultAddress] the vault address
          * @param {string} [$params->subAccountAddress] sub account user address
+         * @param {boolean} [$params->fast] whether to send the cancel with the $fast flag, rejected for trigger $orders, prioritized in the mempool in a future network upgrade, (default is false)
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structures~
          */
         $this->check_required_credentials();
@@ -2739,6 +2748,11 @@ class hyperliquid extends Exchange {
         }
         $cancelAction['type'] = $cancelByCloid ? 'cancelByCloid' : 'cancel';
         $cancelAction['cancels'] = $cancelReq;
+        $fast = $this->safe_bool($params, 'fast', false);
+        if ($fast) {
+            // "f" must be omitted when false, actions hashed with "f": false are rejected
+            $cancelAction['f'] = true;
+        }
         $vaultAddressOption = $this->handle_option_string_and_params_2($params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress')[0];
         $vaultAddress = $this->format_vault_address($vaultAddressOption);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);

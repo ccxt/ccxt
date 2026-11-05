@@ -111,7 +111,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.90'; }
+    static { this.ccxtVersion = '4.5.92'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -6174,7 +6174,7 @@ class BaseExchange {
                 if (candleTimestamp === undefined) {
                     throw new errors.ExchangeError(this.id + ' buildOHLCVC() missing candle timestamp');
                 }
-                isNewCandle = openingTime >= candleTimestamp + ms;
+                isNewCandle = openingTime >= this.sum(candleTimestamp, ms);
             }
             if (isNewCandle) {
                 // moved to a new timeframe -> create a new candle from opening trade

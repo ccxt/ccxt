@@ -541,7 +541,7 @@ public partial class coinbaseinternational : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "route", "auto" },
-                { "brokerId", "nfqkvdjp" },
+                { "brokerId", "ccxt" },
                 { "portfolio", "" },
                 { "accessTokenRefreshRatio", 0.8 },
                 { "networksById", new Dictionary<string, object>() {
@@ -3763,7 +3763,7 @@ public partial class coinbaseinternational : Exchange
             baseApiUrl = "https://www.deribit.com/api/v2";
         }
         string url = ((baseApiUrl + "/") + (rpcMethod));
-        Dictionary<string, object> requestHeaders = null;
+        Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
         if (isNativeDeribit && (((path == "get_leverage")) || ((path == "set_leverage"))))
         {
             throw new NotSupported ((((this.id + " ") + (rpcMethod)) + " is only documented on the Coinbase gateway")) ;

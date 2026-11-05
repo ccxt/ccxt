@@ -6,8 +6,18 @@ export default class paradex extends paradexRest {
     getWsUrl(): string;
     getOrderBookChannel(marketId: Str): string;
     requestId(): number;
+    /**
+     * @ignore
+     * @method
+     * @name paradex#subscribeRequest
+     * @description builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+     * @param {string} channel the channel to subscribe to
+     * @returns {object} the subscribe request
+     */
+    subscribeRequest(channel: string): Dict;
     authenticate(params?: Dict): Promise<any>;
     handleAuthenticationMessage(client: Client, message: Dict): void;
+    handleRequestReply(client: Client, message: Dict): void;
     /**
      * @method
      * @name paradex#watchTrades

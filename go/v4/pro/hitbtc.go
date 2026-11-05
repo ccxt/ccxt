@@ -38,6 +38,8 @@ func (this *Hitbtc) DescribeData() any {
 			"watchOrders":           true,
 			"watchOHLCV":            true,
 			"watchMyTrades":         false,
+			"unWatchTrades":         true,
+			"unWatchOHLCV":          true,
 			"createOrderWs":         true,
 			"cancelOrderWs":         true,
 			"fetchOpenOrdersWs":     true,
@@ -203,6 +205,59 @@ func (this *Hitbtc) subscribePublicBody(ch chan ccxt.AsyncResult[any], name any,
 		panic(r1.Err)
 	}
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	return nil
+}
+
+/**
+ * @ignore
+ * @method
+ * @description unsubscribes from a public websocket channel
+ * @param {string} name websocket endpoint name
+ * @param {string} messageHashPrefix prefix of the message hashes the matching watch method subscribed with
+ * @param {string[]} symbols unified CCXT symbols
+ * @param {object} subscription the topic and symbols of the caches to clean once the unsubscribe is acknowledged
+ * @param {object} [params] extra parameters specific to the hitbtc api
+ * @returns {boolean} true once the exchange acknowledges the unsubscribe
+ */
+func (this *Hitbtc) UnSubscribePublicAsync(name string, messageHashPrefix string, symbols any, subscription any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.unSubscribePublicBody(ch, name, messageHashPrefix, symbols, subscription, optionalArgs...)
+	return ch
+}
+func (this *Hitbtc) unSubscribePublicBody(ch chan ccxt.AsyncResult[any], name string, messageHashPrefix string, symbols any, subscription any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var subMessageHashes []any = []any{}
+	var messageHashes []any = []any{}
+	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
+		var subMessageHash any = ccxt.Add(messageHashPrefix+"::", ccxt.GetValue(symbols, i))
+		subMessageHashes = append(subMessageHashes, subMessageHash)
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:", subMessageHash))
+	}
+	var requestId any = this.IncrementingNonce()
+	var request map[string]any = map[string]any{
+		"method": "unsubscribe",
+		"id":     requestId,
+		"ch":     name,
+		"params": map[string]any{
+			"symbols": this.MarketIds(symbols),
+		},
+	}
+	var unsubscription map[string]any = this.Extend(subscription, map[string]any{
+		"id":               requestId,
+		"unsubscribe":      true,
+		"subMessageHashes": subMessageHashes,
+		"messageHashes":    messageHashes,
+	})
+
+	r := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes, unsubscription)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
 
@@ -908,6 +963,56 @@ func (this *Hitbtc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp"))}
 	return nil
 }
+
+/**
+ * @method
+ * @name hitbtc#unWatchTrades
+ * @description unWatches the list of most recent trades for a particular symbol
+ * @see https://api.hitbtc.com/#subscribe-to-trades
+ * @param {string} symbol unified symbol of the market to unwatch the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} true once hitbtc acknowledges the unsubscribe
+ */
+func (this *Hitbtc) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hitbtc) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var market map[string]any = this.Market(symbol)
+	var subscription map[string]any = map[string]any{
+		"topic":   "trades",
+		"symbols": []any{market["symbol"]},
+	}
+
+	r1 := <-this.UnSubscribePublicAsync("trades", "trades", []any{market["symbol"]}, subscription, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
+	return nil
+}
 func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 	//
 	//    {
@@ -1069,7 +1174,7 @@ func (this *Hitbtc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		ccxt.AddElementToObject(request["params"], "limit", limit)
 	}
 
-	r := <-this.SubscribePublicAsync(name, "candles", []any{symbol}, this.DeepExtend(request, params))
+	r := <-this.SubscribePublicAsync(name, name, []any{symbol}, this.DeepExtend(request, params))
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1080,6 +1185,61 @@ func (this *Hitbtc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0))}
+	return nil
+}
+
+/**
+ * @method
+ * @name hitbtc#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://api.hitbtc.com/#subscribe-to-candles
+ * @param {string} symbol unified symbol of the market to unwatch the ccxt.OHLCV data for
+ * @param {string} [timeframe] the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} true once hitbtc acknowledges the unsubscribe
+ */
+func (this *Hitbtc) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hitbtc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
+	_ = timeframe
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var market map[string]any = this.Market(symbol)
+	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var name string = "candles/" + *period
+	var subscription map[string]any = map[string]any{
+		"topic":                "ohlcv",
+		"symbolsAndTimeframes": []any{[]any{market["symbol"], timeframe}},
+	}
+
+	r1 := <-this.UnSubscribePublicAsync(name, name, []any{market["symbol"]}, subscription, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
@@ -1142,11 +1302,18 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
-		var ohlcvs any = this.ParseWsOHLCVs(data[marketId], market)
-		for j := 0; j < ccxt.GetArrayLength(ohlcvs); j++ {
-			stored.(ccxt.Appender).Append(ccxt.GetValue(ohlcvs, j))
+		// parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
+		var rawOhlcvs []any = ccxt.SafeListTyped(data, marketId)
+		for j := 0; j < len(rawOhlcvs); j++ {
+			var parsed any = this.ParseWsOHLCV(func() any {
+				if j >= 0 && j < len(rawOhlcvs) {
+					return ccxt.DerefScalar(rawOhlcvs[j])
+				}
+				return nil
+			}(), market)
+			stored.(ccxt.Appender).Append(parsed)
 		}
-		var messageHash string = "candles::" + *symbol
+		var messageHash string = *channel + "::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	return message
@@ -2018,6 +2185,11 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 		}
 	} else {
 		var result any = this.SafeValue(message, "result")
+		var resultChannel *string = this.SafeString(result, "ch")
+		if resultChannel != nil {
+			this.HandleUnSubscription(client, message)
+			return
+		}
 		var clientOrderId *string = this.SafeString(result, "client_order_id")
 		if clientOrderId != nil {
 			this.HandleOrderRequest(client, message)
@@ -2032,6 +2204,47 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 			if (arrayLength == 0) || (func() bool { _, ok := first["client_order_id"]; return ok }()) {
 				this.HandleOrderRequest(client, message)
 			}
+		}
+	}
+}
+func (this *Hitbtc) HandleUnSubscription(client any, message any) {
+	//
+	// hitbtc answers subscribe and unsubscribe requests alike, listing the symbols still subscribed on the channel
+	//
+	//    {
+	//        "result": {
+	//            "ch": "trades",
+	//            "subscriptions": [ "ETHUSDT" ]
+	//        },
+	//        "id": 1793679985268
+	//    }
+	//
+	// the answers can arrive in a different order than the requests, so they are matched by id
+	//
+	var id *string = this.SafeString(message, "id")
+	var subscriptionHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	for i := 0; i < len(subscriptionHashes); i++ {
+		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHashes[i])
+		var isUnSubscription *bool = this.SafeBool(subscription, "unsubscribe", false)
+		var subscriptionId *string = this.SafeString(subscription, "id")
+		if (isUnSubscription != nil && *isUnSubscription) && (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {
+			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+			for j := 0; j < len(subMessageHashes); j++ {
+				this.CleanUnsubscription(ccxt.AsClient(client), func() any {
+					if j >= 0 && j < len(subMessageHashes) {
+						return ccxt.DerefScalar(subMessageHashes[j])
+					}
+					return nil
+				}(), func() any {
+					if j >= 0 && j < len(messageHashes) {
+						return ccxt.DerefScalar(messageHashes[j])
+					}
+					return nil
+				}())
+			}
+			this.CleanCache(subscription)
+			return
 		}
 	}
 }
@@ -2284,6 +2497,29 @@ func (this *Hitbtc) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
 
 /**
  * @method
+ * @name hitbtc#unWatchTrades
+ * @description unWatches the list of most recent trades for a particular symbol
+ * @see https://api.hitbtc.com/#subscribe-to-trades
+ * @param {string} symbol unified symbol of the market to unwatch the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} true once hitbtc acknowledges the unsubscribe
+ */
+func (this *Hitbtc) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
  * @name hitbtc#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @see https://api.hitbtc.com/#subscribe-to-candles
@@ -2307,6 +2543,30 @@ func (this *Hitbtc) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	}
 	var res []ccxt.OHLCV = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name hitbtc#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://api.hitbtc.com/#subscribe-to-candles
+ * @param {string} symbol unified symbol of the market to unwatch the ccxt.OHLCV data for
+ * @param {string} [timeframe] the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} true once hitbtc acknowledges the unsubscribe
+ */
+func (this *Hitbtc) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**

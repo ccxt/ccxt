@@ -131,7 +131,7 @@ public class Blofin extends BlofinApi
                 put( "fetchOpenInterestHistory", false );
                 put( "fetchOpenOrder", null );
                 put( "fetchOpenOrders", true );
-                put( "fetchOrder", null );
+                put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
                 put( "fetchOrderBooks", false );
                 put( "fetchOrders", false );
@@ -568,7 +568,12 @@ public class Blofin extends BlofinApi
                         put( "untilDays", 100000 );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrder", null );
+                    put( "fetchOrder", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "trigger", false );
+                        put( "trailing", false );
+                        put( "symbolRequired", true );
+                    }} );
                     put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
@@ -627,7 +632,9 @@ public class Blofin extends BlofinApi
                     put( "linear", new HashMap<String, Object>() {{
                         put( "extends", "forDerivatives" );
                     }} );
-                    put( "inverse", null );
+                    put( "inverse", new HashMap<String, Object>() {{
+                        put( "extends", "forDerivatives" );
+                    }} );
                 }} );
                 put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
@@ -2201,6 +2208,67 @@ public class Blofin extends BlofinApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
+            }
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instId", market.get("id") );
+            }};
+            Boolean isTpsl = (Boolean) this.safeBool2(parameters, "tpsl", "TPSL", false);
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
+            if (!java.util.Objects.equals(clientOrderId, null))
+            {
+                request.put("clientOrderId", clientOrderId);
+            } else if (java.util.Objects.equals(isTpsl, true))
+            {
+                request.put("tpslId", id);
+            } else
+            {
+                request.put("orderId", id);
+            }
+            Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "tpsl", "TPSL")));
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(isTpsl, true))
+            {
+                response = (this.privateGetTradeOrderTpslDetail(this.extend(request, query))).join();
+            } else
+            {
+                response = (this.privateGetTradeOrderDetail(this.extend(request, query))).join();
+            }
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            if (java.util.Objects.equals(data, null))
+            {
+                throw new OrderNotFound(((this.id + " fetchOrder() could not find order ") + id)) ;
+            }
+            return this.parseOrder(data, market);
+        }).thenApply(Order::new);
 
     }
 

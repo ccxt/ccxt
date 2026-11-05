@@ -736,7 +736,6 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -1639,7 +1638,7 @@ public partial class toobit : Exchange
      * @name toobit#fetchLastPrices
      * @description fetches the last price for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
@@ -1693,7 +1692,7 @@ public partial class toobit : Exchange
      * @name toobit#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}

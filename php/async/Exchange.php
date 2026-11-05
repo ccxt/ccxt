@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.90';
+$version = '4.5.92';
 
 class BaseExchange extends \ccxt\BaseExchange {
 
-    const VERSION = '4.5.90';
+    const VERSION = '4.5.92';
 
     public $browser;
     public $marketsLoading = null;
@@ -4460,7 +4460,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 if ($candleTimestamp === null) {
                     throw new ExchangeError($this->id . ' buildOHLCVC() missing candle timestamp');
                 }
-                $isNewCandle = $openingTime >= $candleTimestamp . $ms;
+                $isNewCandle = $openingTime >= $this->sum($candleTimestamp, $ms);
             }
             if ($isNewCandle) {
                 // moved to a new timeframe -> create a new candle from opening trade

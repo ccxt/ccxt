@@ -1791,7 +1791,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
-     * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
+     * @param {boolean} [params.historical] whether to fetch historical klines (default is false, forced to true when since or until is set because the recent klines endpoints ignore time filters). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchContractOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1830,7 +1830,11 @@ public partial class weex : Exchange
         List<object> response = null;
         // hardcap threshold
         object limitResolved = ((limit == null)) ? null : mathMin(limit, 1000);
-        if ((historical == true))
+        // the recent-klines endpoints ignore startTime and endTime and only ever return the
+        // latest candles, so a request bounded by since or until has to go through the history
+        // endpoint, which honours both (endTime = since + limit * timeframeVar when until is absent)
+        bool useHistory = (historical == true) || ((since != null)) || ((until != null));
+        if (useHistory)
         {
             if ((priceType != null))
             {
@@ -1838,25 +1842,23 @@ public partial class weex : Exchange
             }
             object startTime = since;
             object endTime = until;
+            Int64 now = this.milliseconds();
             if (((since == null)) || ((until == null)))
             {
-                Int64 now = this.milliseconds();
                 Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                Int64? timeDelta = (maxHistoricalLimit * duration);
+                // the history endpoint returns at most maxHistoricalLimit candles and serves the
+                // newest ones inside the window, so a wider window would silently drop the candles
+                // right after since, keep the window at what one call can return
+                object historyLimit = maxHistoricalLimit;
                 if ((limit != null) && (limit != null) && (limit != 0))
                 {
-                    if ((limit > 1000))
-                    {
-                        timeDelta = (1000 * duration);
-                    } else
-                    {
-                        timeDelta = (limit * duration);
-                    }
+                    historyLimit = mathMin(limit, maxHistoricalLimit);
                 }
+                object timeDelta = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(historyLimit, duration);
                 if (((since == null)) && ((until == null)))
                 {
                     endTime = now;
-                    startTime = (now - timeDelta);
+                    startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(now, timeDelta);
                 } else if ((since == null))
                 {
                     if ((until == null))
@@ -1866,8 +1868,14 @@ public partial class weex : Exchange
                     startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(until, timeDelta);
                 } else
                 {
-                    endTime = add(since, timeDelta);
+                    // this.sum, a bare + is string concatenation in the php port
+                    endTime = this.sum(since, timeDelta);
                 }
+            }
+            // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
+            if ((!(endTime == null)) && (isGreaterThan(endTime, now)))
+            {
+                endTime = now;
             }
             request["startTime"] = startTime;
             request["endTime"] = endTime;

@@ -7129,6 +7129,7 @@ export default class okx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -7217,6 +7218,7 @@ export default class okx extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            request['instId'] = market['id'];
             if (market['contract'] === true) {
                 if (market['linear'] === true) {
                     request['ctType'] = 'linear';
@@ -7228,13 +7230,17 @@ export default class okx extends Exchange {
                 }
             }
         }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
         const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
-        const [type, query] = this.handleMarketTypeAndParams('fetchFundingHistory', market, params);
+        const [type, query] = this.handleMarketTypeAndParams('fetchFundingHistory', market, paramsUntil);
         if (type === 'swap') {
-            request['instType'] = this.convertToInstrumentType(type);
+            requestUntil['instType'] = this.convertToInstrumentType(type);
         }
         // AccountBillsArchive has the same cost as AccountBills but supports three months of data
-        const response = await this.privateGetAccountBillsArchive(this.extend(request, query));
+        const response = await this.privateGetAccountBillsArchive(this.extend(requestUntil, query));
         //
         //    {
         //        "bal": "0.0242946200998573",

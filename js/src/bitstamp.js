@@ -1998,10 +1998,10 @@ export default class bitstamp extends Exchange {
         //         "timestamp": "1644406050"
         //     }
         //
-        const timestamp = this.safeIntegerProduct(contract, 'timestamp', 0.001);
+        const timestamp = this.safeIntegerProduct(contract, 'timestamp', 1000);
         return {
             'info': contract,
-            'symbol': undefined,
+            'symbol': this.safeSymbol(undefined, market),
             'fundingRate': this.safeNumber(contract, 'funding_rate'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

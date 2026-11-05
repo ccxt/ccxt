@@ -997,7 +997,7 @@ impl CoinbaseinternationalCore {
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("route".to_string(), Value::Str("auto".into()));
-        m.insert("brokerId".to_string(), Value::Str("nfqkvdjp".into()));
+        m.insert("brokerId".to_string(), Value::Str("ccxt".into()));
         m.insert("portfolio".to_string(), Value::Str("".into()));
         m.insert("accessTokenRefreshRatio".to_string(), Value::Float(0.8));
         m.insert("networksById".to_string(), Value::Map({
@@ -1527,8 +1527,8 @@ impl CoinbaseinternationalCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_555: bool = true;
-            while { if !__for_first_555 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_555 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawNetworks.len() as i64) as f64) } {
+            let mut __for_first_552: bool = true;
+            while { if !__for_first_552 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_552 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawNetworks.len() as i64) as f64) } {
             let mut rawNetwork: Value = rawNetworks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "resource_name", &[]);
             let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1895,8 +1895,8 @@ impl CoinbaseinternationalCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_556: bool = true;
-            while { if !__for_first_556 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_556 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsResolved.len() as i64) as f64) } {
+            let mut __for_first_553: bool = true;
+            while { if !__for_first_553 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_553 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsResolved.len() as i64) as f64) } {
             let mut symbol: Value = self.safe_string(symbolsResolved.clone(), i.clone(), &[]);
             if (symbol == Value::Null) {
                 continue;
@@ -2083,8 +2083,8 @@ impl CoinbaseinternationalCore {
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_557: bool = true;
-                    while { if !__for_first_557 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_557 = false; i.as_f64().unwrap_or(f64::NAN) < ((depths.len() as i64) as f64) } {
+                    let mut __for_first_554: bool = true;
+                    while { if !__for_first_554 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_554 = false; i.as_f64().unwrap_or(f64::NAN) < ((depths.len() as i64) as f64) } {
                     if limit.as_f64().unwrap_or(f64::NAN) <= depths.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_f64().unwrap_or(f64::NAN) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("depth".into(), depths.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)); }
                         break;
@@ -2461,8 +2461,8 @@ impl CoinbaseinternationalCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_558: bool = true;
-            while { if !__for_first_558 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_558 = false; i.as_f64().unwrap_or(f64::NAN) < ((summaries.len() as i64) as f64) } {
+            let mut __for_first_555: bool = true;
+            while { if !__for_first_555 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_555 = false; i.as_f64().unwrap_or(f64::NAN) < ((summaries.len() as i64) as f64) } {
             let mut data: Value = self.safe_dict(summaries.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId, &[]);
@@ -2962,8 +2962,8 @@ impl CoinbaseinternationalCore {
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_559: bool = true;
-            while { if !__for_first_559 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_559 = false; i.as_f64().unwrap_or(f64::NAN) < ((logs.len() as i64) as f64) } {
+            let mut __for_first_556: bool = true;
+            while { if !__for_first_556 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_556 = false; i.as_f64().unwrap_or(f64::NAN) < ((logs.len() as i64) as f64) } {
             let mut transaction: Value = logs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {
@@ -4477,7 +4477,10 @@ impl CoinbaseinternationalCore {
             baseApiUrl = Value::Str("https://www.deribit.com/api/v2".into());
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseApiUrl, Value::Str("/".into())).into()), rpcMethod).into());
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         if isNativeDeribit.as_bool() == Some(true) && ((path.as_str() == Some("get_leverage")) || (path.as_str() == Some("set_leverage"))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), rpcMethod).into()), Value::Str(" is only documented on the Coinbase gateway".into()))));
         }

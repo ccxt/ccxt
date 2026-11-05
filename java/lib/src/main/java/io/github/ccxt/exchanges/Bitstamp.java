@@ -2803,10 +2803,10 @@ public class Bitstamp extends BitstampApi
         //         "timestamp": "1644406050"
         //     }
         //
-        Long timestamp = this.safeIntegerProduct(contract, "timestamp", 0.001);
+        Long timestamp = this.safeIntegerProduct(contract, "timestamp", 1000);
         return new HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", null );
+            put( "symbol", Bitstamp.this.safeSymbol(null, market, (String) null, (String) null) );
             put( "fundingRate", Bitstamp.this.safeNumber(contract, "funding_rate", (Object) null) );
             put( "timestamp", timestamp );
             put( "datetime", Bitstamp.this.iso8601(timestamp) );

@@ -8773,6 +8773,7 @@ public class Okx extends OkxApi
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -8795,6 +8796,7 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
+                request.put("instId", market.get("id"));
                 if (java.util.Objects.equals(market.get("contract"), true))
                 {
                     if (java.util.Objects.equals(market.get("linear"), true))
@@ -8808,16 +8810,23 @@ public class Okx extends OkxApi
                     }
                 }
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("begin", since);
+            }
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
-            Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, paramsUntil, (String) null);
             String type = typequeryVariable.first();
             Map<String, Object> query = typequeryVariable.second();
             if (java.util.Objects.equals(type, "swap"))
             {
-                request.put("instType", this.convertToInstrumentType(type));
+                requestUntil.put("instType", this.convertToInstrumentType(type));
             }
             // AccountBillsArchive has the same cost as AccountBills but supports three months of data
-            Map<String, Object> response = (this.privateGetAccountBillsArchive(this.extend(request, query))).join();
+            Map<String, Object> response = (this.privateGetAccountBillsArchive(this.extend(requestUntil, query))).join();
             //
             //    {
             //        "bal": "0.0242946200998573",

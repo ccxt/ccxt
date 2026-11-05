@@ -553,9 +553,6 @@ class toobit extends Exchange {
     public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
-         *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
-         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
@@ -1462,7 +1459,7 @@ class toobit extends Exchange {
          * fetches the last price for multiple markets
          *
          * @see https://api-docs.toobit.com/api/spot-$market-data.html#symbol-price-ticker
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#symbol-price-ticker
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1510,7 +1507,7 @@ class toobit extends Exchange {
          * fetches the bid and ask price and volume for multiple markets
          *
          * @see https://api-docs.toobit.com/api/spot-$market-data.html#symbol-order-book-ticker
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#symbol-order-book-ticker
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

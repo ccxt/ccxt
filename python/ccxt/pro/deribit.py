@@ -83,7 +83,7 @@ class deribit(ccxt.async_support.deribit):
     async def watch_balance(self, params: dict = {}) -> Balances:
         """
 
-        https://docs.deribit.com/#user-portfolio-currency
+        https://docs.deribit.com/subscriptions/user/userportfoliocurrency
 
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -166,7 +166,7 @@ class deribit(ccxt.async_support.deribit):
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
-        https://docs.deribit.com/#ticker-instrument_name-interval
+        https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
 
         watches a price ticker, a statistical calculation with the information for a specific market.
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -199,7 +199,7 @@ class deribit(ccxt.async_support.deribit):
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
-        https://docs.deribit.com/#ticker-instrument_name-interval
+        https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
@@ -281,7 +281,7 @@ class deribit(ccxt.async_support.deribit):
     async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
-        https://docs.deribit.com/#quote-instrument_name
+        https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
 
         watches best bid & ask for symbols
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
@@ -360,7 +360,7 @@ class deribit(ccxt.async_support.deribit):
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.deribit.com/#trades-instrument_name-interval
+        https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -376,7 +376,7 @@ class deribit(ccxt.async_support.deribit):
         """
         get the list of most recent trades for a list of symbols
 
-        https://docs.deribit.com/#trades-instrument_name-interval
+        https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
 
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -441,7 +441,7 @@ class deribit(ccxt.async_support.deribit):
         """
         get the list of trades associated with the user
 
-        https://docs.deribit.com/#user-trades-instrument_name-interval
+        https://docs.deribit.com/subscriptions/user/usertradesinstrument_nameinterval
 
         :param str symbol: unified symbol of the market to fetch trades for. Use 'any' to watch all trades
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -522,7 +522,7 @@ class deribit(ccxt.async_support.deribit):
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
-        https://docs.deribit.com/#book-instrument_name-group-depth-interval
+        https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
 
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -538,7 +538,7 @@ class deribit(ccxt.async_support.deribit):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.deribit.com/#book-instrument_name-group-depth-interval
+        https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
 
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
@@ -669,7 +669,7 @@ class deribit(ccxt.async_support.deribit):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
-        https://docs.deribit.com/#user-orders-instrument_name-raw
+        https://docs.deribit.com/subscriptions/user/userordersinstrument_nameraw
 
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -758,7 +758,7 @@ class deribit(ccxt.async_support.deribit):
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
-        https://docs.deribit.com/#chart-trades-instrument_name-resolution
+        https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
 
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -778,7 +778,7 @@ class deribit(ccxt.async_support.deribit):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://docs.deribit.com/#chart-trades-instrument_name-resolution
+        https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch

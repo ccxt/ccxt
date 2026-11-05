@@ -288,7 +288,7 @@ public partial class krakenfutures : ccxt.krakenfutures
     {
         parameters ??= new Dictionary<string, object>();
         object trades = await this.watchMultiHelper("trade", "trade", symbols, null, parameters);
-        List<object> first = this.safeList(trades, 0);
+        IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)

@@ -56,7 +56,7 @@ public partial class gate : ccxt.gate
                 { "watchPositions", true },
                 { "unWatchTicker", false },
                 { "unWatchTickers", false },
-                { "unWatchOHLCV", false },
+                { "unWatchOHLCV", true },
                 { "unWatchOHLCVForSymbols", false },
                 { "unWatchOrderBook", true },
                 { "unWatchOrderBookForSymbols", false },
@@ -1268,6 +1268,66 @@ public partial class gate : ccxt.gate
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+    }
+
+    /**
+     * @method
+     * @name gate#unWatchOHLCV
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unsubscription request
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    {
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        object messageType = this.getTypeByMarket(market);
+        string? channel = ((string)add(messageType, ".candlesticks"));
+        string subMessageHash = ((("candles:" + interval) + ":") + symbolValue);
+        string messageHash = ((("unsubscribe:candles:" + interval) + ":") + symbolValue);
+        string? url = this.getUrlByMarket(market);
+        Int64 requestId = this.requestId();
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "id", requestId },
+            { "time", this.seconds() },
+            { "channel", channel },
+            { "event", "unsubscribe" },
+            { "payload", new List<object>() {interval, marketId} },
+        };
+        // mirrors the subscription shape base cleanCache() expects for ohlcv
+        // (same pattern as binance unWatchOHLCVForSymbols), so the ohlcvs
+        // cache entry is dropped when the unsubscribe is acknowledged;
+        // handleOHLCV keys the cache by findTimeframe (interval), so the
+        // exchange interval id is mapped back to the cache key here -
+        // this matters for aliased timeframes such as gate's '1w': '7d';
+        // an unsupported timeframeVar falls back to the caller's key, matching
+        // the previous no-op cleanup instead of an undefined cache key
+        string? cacheTimeframe = this.findTimeframe(interval);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", requestId.ToString() },
+            { "topic", "ohlcv" },
+            { "unsubscribe", true },
+            { "symbols", new List<object>() {symbolValue} },
+            { "symbolsAndTimeframes", new List<object>() {new List<object>() {symbolValue, ((cacheTimeframe != null)) ? cacheTimeframe : timeframeVar}} },
+            { "messageHashes", new List<object>() {messageHash} },
+            { "subMessageHashes", new List<object>() {subMessageHash} },
+        };
+        Dictionary<string, object> message = this.extend(request, parameters);
+        return await this.watchMultiple(url, new List<object>() {messageHash}, message, new List<object>() {messageHash}, subscription);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)

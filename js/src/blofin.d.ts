@@ -190,6 +190,20 @@ export default class blofin extends Exchange {
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     /**
      * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
+    /**
+     * @method
      * @name blofin#fetchOpenOrders
      * @description Fetch orders that are still open
      * @see https://blofin.com/docs#get-active-orders

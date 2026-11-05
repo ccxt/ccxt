@@ -26,6 +26,9 @@ export default class kraken extends krakenRest {
                 'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
@@ -766,11 +769,52 @@ export default class kraken extends krakenRest {
         const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
         let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeList(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+    }
+    /**
+     * @method
+     * @name kraken#unWatchTrades
+     * @description stop watching the list of most recent trades for a particular symbol
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string} symbol unified symbol of the market to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
+    /**
+     * @method
+     * @name kraken#unWatchTradesForSymbols
+     * @description stop watching the list of most recent trades for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        await this.loadMarkets();
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, false);
+        const unsubMessageHashes = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            unsubMessageHashes.push('unsubscribe:' + this.getMessageHash('trade', undefined, symbolsNormalized[i]));
+        }
+        const request = {
+            'method': 'unsubscribe',
+            'params': {
+                'channel': 'trade',
+                'symbol': symbolsNormalized,
+            },
+            'req_id': this.requestId(),
+        };
+        request['params'] = this.deepExtend(request['params'], params);
+        const url = this.urls['api']['ws']['publicV2'];
+        // kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+        return await this.watchMultiple(url, unsubMessageHashes, request, unsubMessageHashes);
     }
     /**
      * @method
@@ -844,6 +888,35 @@ export default class kraken extends krakenRest {
             limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return this.filterBySinceLimit(ohlcv, since, limitResolved, 'timestamp', true);
+    }
+    /**
+     * @method
+     * @name kraken#unWatchOHLCV
+     * @description stop watching historical candlestick data for a market
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+     * @param {string} symbol unified symbol of the market to stop watching the candles for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const symbolValue = market['symbol'];
+        const interval = this.safeString(this.timeframes, timeframe, timeframe);
+        const unsubMessageHash = 'unsubscribe:' + this.getMessageHash('ohlcv', interval, symbolValue);
+        const unsubscribe = {
+            'method': 'unsubscribe',
+            'params': {
+                'channel': 'ohlc',
+                'symbol': [symbolValue],
+                'interval': this.safeValue(this.timeframes, timeframe, timeframe),
+            },
+            'req_id': this.requestId(),
+        };
+        const request = this.deepExtend(unsubscribe, params);
+        const url = this.urls['api']['ws']['publicV2'];
+        return await this.watch(url, unsubMessageHash, request, unsubMessageHash);
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);
@@ -1630,6 +1703,37 @@ export default class kraken extends krakenRest {
         //     delete client.futures[requestId];
         // }
     }
+    handleUnsubscriptionStatus(client, message) {
+        //
+        // one acknowledgement per symbol in the unsubscribe request
+        //
+        //     {
+        //         "method": "unsubscribe",
+        //         "req_id": 4,
+        //         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        //         "success": true,
+        //         "time_in": "2026-10-26T16:12:36.610481Z",
+        //         "time_out": "2026-10-26T16:12:36.610502Z"
+        //     }
+        //
+        const result = this.safeDict(message, 'result', {});
+        const channel = this.safeString(result, 'channel');
+        const symbol = this.safeSymbol(this.safeString(result, 'symbol'));
+        if (channel === 'trade') {
+            const subMessageHash = this.getMessageHash('trade', undefined, symbol);
+            this.cleanCache({ 'topic': 'trades', 'symbols': [symbol] });
+            this.cleanUnsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash);
+        }
+        else if (channel === 'ohlc') {
+            const interval = this.safeInteger(result, 'interval');
+            const timeframe = this.findTimeframe(interval);
+            const subMessageHash = this.getMessageHash('ohlcv', undefined, symbol);
+            const unsubMessageHash = 'unsubscribe:' + this.getMessageHash('ohlcv', this.numberToString(interval), symbol);
+            this.cleanCache({ 'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]] });
+            this.cleanUnsubscription(client, subMessageHash, unsubMessageHash);
+        }
+        return message;
+    }
     handleErrorMessage(client, message) {
         //
         //     {
@@ -1699,6 +1803,7 @@ export default class kraken extends krakenRest {
                 'heartbeat': this.handleHeartbeat,
                 'systemStatus': this.handleSystemStatus,
                 'subscriptionStatus': this.handleSubscriptionStatus,
+                'unsubscribe': this.handleUnsubscriptionStatus,
                 'add_order': this.handleCreateEditOrder,
                 'amend_order': this.handleCreateEditOrder,
                 'cancel_order': this.handleCancelOrder,

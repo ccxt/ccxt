@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.90';
+$version = '4.5.92';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.90';
+    const VERSION = '4.5.92';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.90';
+    public static $ccxt_version = '4.5.92';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -7114,7 +7114,7 @@ class BaseExchange {
                 if ($candleTimestamp === null) {
                     throw new ExchangeError($this->id . ' buildOHLCVC() missing candle timestamp');
                 }
-                $isNewCandle = $openingTime >= $candleTimestamp . $ms;
+                $isNewCandle = $openingTime >= $this->sum($candleTimestamp, $ms);
             }
             if ($isNewCandle) {
                 // moved to a new timeframe -> create a new candle from opening trade

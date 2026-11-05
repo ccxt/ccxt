@@ -2679,10 +2679,10 @@ public partial class bitstamp : Exchange
         //         "timestamp": "1644406050"
         //     }
         //
-        Int64? timestamp = this.safeIntegerProduct(contract, "timestamp", 0.001);
+        Int64? timestamp = this.safeIntegerProduct(contract, "timestamp", 1000);
         return new Dictionary<string, object>() {
             { "info", contract },
-            { "symbol", null },
+            { "symbol", this.safeSymbol(null, market) },
             { "fundingRate", this.safeNumber(contract, "funding_rate") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

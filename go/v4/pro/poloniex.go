@@ -24,26 +24,29 @@ func newPoloniex() *Poloniex {
 func (this *Poloniex) Describe() any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
-			"ws":                    true,
-			"watchOHLCV":            true,
-			"watchOrderBook":        true,
-			"watchTicker":           true,
-			"watchTickers":          true,
-			"watchTrades":           true,
-			"watchTradesForSymbols": true,
-			"watchBalance":          true,
-			"watchStatus":           false,
-			"watchOrders":           true,
-			"watchMyTrades":         true,
-			"createOrderWs":         true,
-			"editOrderWs":           false,
-			"fetchOpenOrdersWs":     false,
-			"fetchOrderWs":          false,
-			"cancelOrderWs":         true,
-			"cancelOrdersWs":        true,
-			"cancelAllOrdersWs":     true,
-			"fetchTradesWs":         false,
-			"fetchBalanceWs":        false,
+			"ws":                      true,
+			"watchOHLCV":              true,
+			"watchOrderBook":          true,
+			"watchTicker":             true,
+			"watchTickers":            true,
+			"watchTrades":             true,
+			"watchTradesForSymbols":   true,
+			"unWatchOHLCV":            true,
+			"unWatchTrades":           true,
+			"unWatchTradesForSymbols": true,
+			"watchBalance":            true,
+			"watchStatus":             false,
+			"watchOrders":             true,
+			"watchMyTrades":           true,
+			"createOrderWs":           true,
+			"editOrderWs":             false,
+			"fetchOpenOrdersWs":       false,
+			"fetchOrderWs":            false,
+			"cancelOrderWs":           true,
+			"cancelOrdersWs":          true,
+			"cancelAllOrdersWs":       true,
+			"fetchTradesWs":           false,
+			"fetchBalanceWs":          false,
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
@@ -238,6 +241,53 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, mes
 		panic(r.Err)
 	}
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @ignore
+ * @method
+ * @description unsubscribes from a public websocket channel
+ * @param {string} name name of the channel
+ * @param {string[]} symbols CCXT market symbols
+ * @param {string[]} messageHashes unique identifiers resolved once the exchange acknowledges the unsubscribe
+ * @param {object} [params] extra parameters specific to the poloniex api
+ * @returns {object} true once the exchange acknowledges the unsubscribe
+ */
+func (this *Poloniex) UnSubscribeAsync(name any, symbols any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unSubscribeBody(ch, name, symbols, messageHashes, optionalArgs...)
+	return ch
+}
+func (this *Poloniex) unSubscribeBody(ch chan ccxt.AsyncResult[bool], name any, symbols any, messageHashes any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var request map[string]any = map[string]any{
+		"event":   "unsubscribe",
+		"channel": []any{name},
+		"symbols": this.MarketIds(symbols),
+	}
+
+	r := <-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 
@@ -602,6 +652,51 @@ func (this *Poloniex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 
 /**
  * @method
+ * @name poloniex#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+ * @param {string} symbol unified symbol of the market to unwatch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Poloniex) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Poloniex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
+	_ = timeframe
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
+	var channel *string = this.SafeString(timeframes, timeframe, timeframe)
+	if channel == nil {
+		panic(ccxt.BadRequest(this.Id + " unWatchOHLCV cannot take a timeframe of " + timeframe))
+	}
+	var market map[string]any = this.Market(symbol)
+	var messageHash *string = ccxt.SafeStringPtr("unsubscribe:" + *channel + "::" + market["symbol"].(string))
+
+	r1 := <-this.UnSubscribeAsync(channel, []any{market["symbol"]}, []any{messageHash}, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
+	return nil
+}
+
+/**
+ * @method
  * @name poloniex#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
@@ -810,6 +905,75 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
+	return nil
+}
+
+/**
+ * @method
+ * @name poloniex#unWatchTrades
+ * @description unWatches the list of most recent trades for a particular symbol
+ * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+ * @param {string} symbol unified symbol of the market to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Poloniex) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Poloniex) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name poloniex#unWatchTradesForSymbols
+ * @description unWatches the list of most recent trades for a list of symbols
+ * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+ * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Poloniex) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesForSymbolsBody(ch, symbols, optionalArgs...)
+	return ch
+}
+func (this *Poloniex) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
+	var name string = "trades"
+	var messageHashes []any = []any{}
+	for i := 0; i < len(symbolsNormalized); i++ {
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:"+name+"::", symbolsNormalized[i]))
+	}
+
+	r1 := <-this.UnSubscribeAsync(name, symbolsNormalized, messageHashes, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 
@@ -1439,9 +1603,9 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 					ccxt.AddElementToObject(previousOrder, "trades", []any{})
 				}
-				retRes96620 := ccxt.GetValue(previousOrder, "trades")
-				ccxt.AppendToArray(&retRes96620, trade)
-				ccxt.AddElementToObject(previousOrder, "trades", retRes96620)
+				retRes105020 := ccxt.GetValue(previousOrder, "trades")
+				ccxt.AppendToArray(&retRes105020, trade)
+				ccxt.AddElementToObject(previousOrder, "trades", retRes105020)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 				var totalCost any = "0"
 				var totalAmount any = "0"
@@ -1825,6 +1989,10 @@ func (this *Poloniex) HandleMessage(client any, message any) {
 	if event != nil && *event == "pong" {
 		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	}
+	if event != nil && *event == "unsubscribe" {
+		this.HandleUnsubscription(client, message)
+		return
+	}
 	var methods map[string]any = map[string]any{
 		"candles_minute_1":  this.HandleOHLCV,
 		"candles_minute_5":  this.HandleOHLCV,
@@ -1866,6 +2034,36 @@ func (this *Poloniex) HandleMessage(client any, message any) {
 		var dataLength int = len(data)
 		if dataLength > 0 {
 			ccxt.CallDynamically(method, client, message)
+		}
+	}
+}
+func (this *Poloniex) HandleUnsubscription(client any, message any) {
+	//
+	//    {
+	//        "event": "unsubscribe",
+	//        "channel": "trades",
+	//        "symbols": [ "ETH_USDT", "BTC_USDT" ]
+	//    }
+	//
+	var channel *string = this.SafeString(message, "channel")
+	var marketIds []any = ccxt.SafeListTyped(message, "symbols")
+	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
+	var timeframe *string = this.FindTimeframe(channel, timeframes)
+	for i := 0; i < len(marketIds); i++ {
+		var symbol *string = this.SafeSymbol(this.SafeString(marketIds, i))
+		var subMessageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
+		if channel != nil && *channel == "trades" {
+			this.CleanCache(map[string]any{
+				"topic":   "trades",
+				"symbols": []any{symbol},
+			})
+			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, ccxt.Add("unsubscribe:", subMessageHash))
+		} else if timeframe != nil {
+			this.CleanCache(map[string]any{
+				"topic":                "ohlcv",
+				"symbolsAndTimeframes": []any{[]any{symbol, timeframe}},
+			})
+			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, ccxt.Add("unsubscribe:", subMessageHash))
 		}
 	}
 }
@@ -2131,6 +2329,30 @@ func (this *Poloniex) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 
 /**
  * @method
+ * @name poloniex#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+ * @param {string} symbol unified symbol of the market to unwatch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Poloniex) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
  * @name poloniex#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
@@ -2227,6 +2449,52 @@ func (this *Poloniex) WatchTradesForSymbols(symbols []string, options ...ccxt.Wa
 	}
 	var res []ccxt.Trade = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name poloniex#unWatchTrades
+ * @description unWatches the list of most recent trades for a particular symbol
+ * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+ * @param {string} symbol unified symbol of the market to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Poloniex) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name poloniex#unWatchTradesForSymbols
+ * @description unWatches the list of most recent trades for a list of symbols
+ * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+ * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Poloniex) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**

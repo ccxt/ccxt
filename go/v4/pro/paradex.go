@@ -75,6 +75,25 @@ func (this *Paradex) RequestId() int64 {
 	this.Options.Store("requestId", requestId)
 	return requestId
 }
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#subscribeRequest
+ * @description builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+ * @param {string} channel the channel to subscribe to
+ * @returns {object} the subscribe request
+ */
+func (this *Paradex) SubscribeRequest(channel any) map[string]any {
+	return map[string]any{
+		"jsonrpc": "2.0",
+		"id":      this.RequestId(),
+		"method":  "subscribe",
+		"params": map[string]any{
+			"channel": channel,
+		},
+	}
+}
 func (this *Paradex) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, optionalArgs...)
@@ -97,15 +116,19 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 			panic(r.Err)
 		}
 		var token *string = ccxt.SafeStringPtr(r.Value)
+		var requestId int64 = this.RequestId()
 		var request map[string]any = map[string]any{
 			"jsonrpc": "2.0",
-			"id":      this.RequestId(),
+			"id":      requestId,
 			"method":  "auth",
 			"params": map[string]any{
 				"bearer": token,
 			},
 		}
-		this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)
+		var subscription map[string]any = map[string]any{
+			"id": requestId,
+		}
+		this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)
 	}
 
 	r1 := <-future.(*ccxt.Future).Await()
@@ -132,13 +155,38 @@ func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
 	//         "result": { "node_id": "73cf456f7cb78d59" }
 	//     }
 	//
+	// the future stays resolved, so later private watches on this connection skip the auth request
+	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+	if future != nil {
+		future.(*ccxt.Future).Resolve(true)
+	}
+}
+func (this *Paradex) HandleRequestReply(client any, message any) {
+	//
+	// auth
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "id": 1,
+	//         "result": { "node_id": "73cf456f7cb78d59" }
+	//     }
+	//
+	// subscribe
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "id": 2,
+	//         "result": { "channel": "orders.ALL" }
+	//     }
+	//
+	// only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
+	var requestId *string = this.SafeString(message, "id")
+	var authSubscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
+	var authRequestId *string = this.SafeString(authSubscription, "id")
 	var result map[string]any = ccxt.SafeMapTyped(message, "result")
-	if result != nil {
-		// client.resolve (true, messageHash)
-		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
-		if future != nil {
-			future.(*ccxt.Future).Resolve(true)
-		}
+	var isAuth bool = ((requestId != nil) && (requestId == authRequestId || (requestId != nil && authRequestId != nil && *requestId == *authRequestId))) || (this.SafeString(result, "node_id") != nil)
+	if isAuth {
+		this.HandleAuthenticationMessage(client, message)
 	}
 }
 
@@ -182,15 +230,13 @@ func (this *Paradex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		messageHash = ccxt.Add(messageHash, "ALL")
 	}
 	var url any = this.GetWsUrl()
-	var request map[string]any = map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "subscribe",
-		"params": map[string]any{
-			"channel": messageHash,
-		},
+	var request map[string]any = this.SubscribeRequest(messageHash)
+	var subscription map[string]any = map[string]any{
+		"id":            request["id"],
+		"messageHashes": []any{messageHash},
 	}
 
-	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)
+	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -275,15 +321,13 @@ func (this *Paradex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	var market map[string]any = this.Market(symbol)
 	var messageHash any = this.GetOrderBookChannel(market["id"])
 	var url any = this.GetWsUrl()
-	var request map[string]any = map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "subscribe",
-		"params": map[string]any{
-			"channel": messageHash,
-		},
+	var request map[string]any = this.SubscribeRequest(messageHash)
+	var subscription map[string]any = map[string]any{
+		"id":            request["id"],
+		"messageHashes": []any{messageHash},
 	}
 
-	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)
+	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -389,16 +433,14 @@ func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	// option too, thousands of messages a second, all decoded only to be filtered out
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("markets_summary.", market["id"]))
 	var url any = this.GetWsUrl()
-	var request map[string]any = map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "subscribe",
-		"params": map[string]any{
-			"channel": channel,
-		},
-	}
 	var messageHash *string = ccxt.SafeStringPtr("markets_summary." + market["symbol"].(string))
+	var request map[string]any = this.SubscribeRequest(channel)
+	var subscription map[string]any = map[string]any{
+		"id":            request["id"],
+		"messageHashes": []any{messageHash},
+	}
 
-	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), channel)
+	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), channel, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -447,13 +489,6 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var channel string = "markets_summary"
 	var url any = this.GetWsUrl()
-	var request map[string]any = map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "subscribe",
-		"params": map[string]any{
-			"channel": channel,
-		},
-	}
 	var messageHashes []any = []any{}
 	if (symbolsNormalized != nil) && true {
 		for i := 0; i < len(symbolsNormalized); i++ {
@@ -463,8 +498,12 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	} else {
 		messageHashes = append(messageHashes, channel)
 	}
+	var request map[string]any = this.SubscribeRequest(channel)
+	var subscription map[string]any = map[string]any{
+		"id": request["id"],
+	}
 
-	r1 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes)
+	r1 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -549,15 +588,13 @@ func (this *Paradex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		channel = ccxt.Add(channel, "ALL")
 	}
 	var url any = this.GetWsUrl()
-	var request map[string]any = map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "subscribe",
-		"params": map[string]any{
-			"channel": channel,
-		},
+	var request map[string]any = this.SubscribeRequest(channel)
+	var subscription map[string]any = map[string]any{
+		"id":            request["id"],
+		"messageHashes": []any{messageHash},
 	}
 
-	r2 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), channel)
+	r2 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), channel, subscription)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -670,15 +707,13 @@ func (this *Paradex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		channel = ccxt.Add(channel, "ALL")
 	}
 	var url any = this.GetWsUrl()
-	var request map[string]any = map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "subscribe",
-		"params": map[string]any{
-			"channel": channel,
-		},
+	var request map[string]any = this.SubscribeRequest(channel)
+	var subscription map[string]any = map[string]any{
+		"id":            request["id"],
+		"messageHashes": []any{messageHash},
 	}
 
-	r2 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), channel)
+	r2 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), channel, subscription)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -776,13 +811,6 @@ func (this *Paradex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	// one channel carries every market
 	var channel string = "positions"
 	var url any = this.GetWsUrl()
-	var request map[string]any = map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "subscribe",
-		"params": map[string]any{
-			"channel": channel,
-		},
-	}
 	var messageHashes []any = []any{}
 	var symbolsLength int = 0
 	if symbolsNormalized != nil {
@@ -800,8 +828,13 @@ func (this *Paradex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 			}()))
 		}
 	}
+	var request map[string]any = this.SubscribeRequest(channel)
+	var subscription map[string]any = map[string]any{
+		"id":            request["id"],
+		"messageHashes": messageHashes,
+	}
 
-	r2 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), []any{channel})
+	r2 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), []any{channel}, subscription)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -915,15 +948,14 @@ func (this *Paradex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	}
 	var channel string = "account"
 	var url any = this.GetWsUrl()
-	var request map[string]any = map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "subscribe",
-		"params": map[string]any{
-			"channel": channel,
-		},
+	var messageHash string = "balance"
+	var request map[string]any = this.SubscribeRequest(channel)
+	var subscription map[string]any = map[string]any{
+		"id":            request["id"],
+		"messageHashes": []any{messageHash},
 	}
 
-	r2 := <-this.Watch(url, "balance", this.DeepExtend(request, params), channel)
+	r2 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), channel, subscription)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -1077,16 +1109,14 @@ func (this *Paradex) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingR
 	var symbolValue any = this.Symbol(symbol)
 	var channel string = "funding_data"
 	var url any = this.GetWsUrl()
-	var request map[string]any = map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "subscribe",
-		"params": map[string]any{
-			"channel": channel,
-		},
-	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", symbolValue))
+	var request map[string]any = this.SubscribeRequest(channel)
+	var subscription map[string]any = map[string]any{
+		"id":            request["id"],
+		"messageHashes": []any{messageHash},
+	}
 
-	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)
+	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1135,13 +1165,6 @@ func (this *Paradex) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]c
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var channel string = "funding_data"
 	var url any = this.GetWsUrl()
-	var request map[string]any = map[string]any{
-		"jsonrpc": "2.0",
-		"method":  "subscribe",
-		"params": map[string]any{
-			"channel": channel,
-		},
-	}
 	var messageHashes []any = []any{}
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
@@ -1156,8 +1179,12 @@ func (this *Paradex) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]c
 	} else {
 		messageHashes = append(messageHashes, channel)
 	}
+	var request map[string]any = this.SubscribeRequest(channel)
+	var subscription map[string]any = map[string]any{
+		"id": request["id"],
+	}
 
-	r1 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes)
+	r1 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1899,18 +1926,70 @@ func (this *Paradex) HandleErrorMessage(client any, message any) bool {
 	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	if error == nil {
 		return true
-	} else {
-		var errorCode *string = this.SafeString(error, "code")
-		if errorCode != nil {
+	}
+
+	{
+		func(this *Paradex) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *Paradex) any {
+						// catch block:
+						// the subscription of every request sent keeps its id, so the request this error answers is found
+						// by it. A failed subscribe or auth is forgotten, so that the next watch sends it again
+						var requestId *string = this.SafeString(message, "id")
+						var handled bool = false
+						if requestId != nil {
+							var subscribeHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+							for i := 0; i < len(subscribeHashes); i++ {
+								var subscribeHash string = subscribeHashes[i]
+								var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+								if this.SafeString(subscription, "id") == requestId || (this.SafeString(subscription, "id") != nil && requestId != nil && *this.SafeString(subscription, "id") == *requestId) {
+									handled = true
+									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+									// watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
+									var messageHashes []any = ccxt.SafeListTypedDefault(subscription, "messageHashes", []any{subscribeHash})
+									for j := 0; j < len(messageHashes); j++ {
+										client.(ccxt.ClientInterface).Reject(e, func() any {
+											if j >= 0 && j < len(messageHashes) {
+												return ccxt.DerefScalar(messageHashes[j])
+											}
+											return nil
+										}())
+									}
+								}
+							}
+						}
+						if !handled {
+							// not a reply to a known request, every watcher on the connection gets the error,
+							// and the next private watch authenticates again instead of waiting on a rejected future
+							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated") {
+								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
+							}
+							client.(ccxt.ClientInterface).Reject(e)
+						}
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
 			var feedback string = this.Id + " " + this.Json(error)
-			this.ThrowExactlyMatchedException(this.Exceptions["exact"], "-32600", feedback)
+			var errorCode *string = this.SafeString(error, "code")
+			if errorCode != nil {
+				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
+			}
 			var messageString *string = this.SafeString(error, "message")
 			if messageString != nil {
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], messageString, feedback)
 			}
-		}
-		return false
+			panic(ccxt.ExchangeError(feedback))
+
+		}(this)
+
 	}
+	return false
 }
 func (this *Paradex) HandleMessage(client any, message any) {
 	var parsedMessage any = message
@@ -1953,7 +2032,7 @@ func (this *Paradex) HandleMessage(client any, message any) {
 	//
 	var result map[string]any = ccxt.SafeMapTyped(parsedMessage, "result")
 	if result != nil {
-		this.HandleAuthenticationMessage(client, parsedMessage)
+		this.HandleRequestReply(client, parsedMessage)
 		return
 	}
 	var data map[string]any = ccxt.SafeMapTyped(parsedMessage, "params")

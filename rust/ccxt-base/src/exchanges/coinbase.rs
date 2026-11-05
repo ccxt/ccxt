@@ -165,6 +165,7 @@ impl crate::exchange_generated::ExchangeBase for CoinbaseCore {
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "find_account_id" => self.find_account_id(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "is_eddsa_api_key" => self.is_eddsa_api_key(),
                 "nonce" => self.nonce(),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_contract_market" => self.parse_contract_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -292,7 +293,7 @@ impl CoinbaseCore {
         m.insert("fetchIsolatedBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedPositions".to_string(), Value::Bool(false));
-        m.insert("fetchL2OrderBook".to_string(), Value::Bool(false));
+        m.insert("fetchL2OrderBook".to_string(), Value::Bool(true));
         m.insert("fetchLedger".to_string(), Value::Bool(true));
         m.insert("fetchLeverage".to_string(), Value::Bool(false));
         m.insert("fetchLeverages".to_string(), Value::Bool(false));
@@ -1363,8 +1364,8 @@ impl CoinbaseCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_529: bool = true;
-            while { if !__for_first_529 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_529 = false; i.as_f64().unwrap_or(f64::NAN) < ((portfolios.len() as i64) as f64) } {
+            let mut __for_first_526: bool = true;
+            while { if !__for_first_526 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_526 = false; i.as_f64().unwrap_or(f64::NAN) < ((portfolios.len() as i64) as f64) } {
             let mut portfolio: Value = portfolios.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1479,8 +1480,8 @@ impl CoinbaseCore {
             self.load_accounts(&[]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_530: bool = true;
-                while { if !__for_first_530 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_530 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.accounts.len() as i64) as f64) } {
+                let mut __for_first_527: bool = true;
+                while { if !__for_first_527 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_527 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.accounts.len() as i64) as f64) } {
                 let mut account: Value = self.accounts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (self.safe_string_k(account.clone(), "code", &[]).as_str() == code.as_str()) && (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("wallet")) {
                     accountId = self.safe_string_k(account, "id", &[]);
@@ -2201,8 +2202,8 @@ impl CoinbaseCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_532: bool = true;
-            while { if !__for_first_532 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_532 = false; i.as_f64().unwrap_or(f64::NAN) < ((baseIds.len() as i64) as f64) } {
+            let mut __for_first_529: bool = true;
+            while { if !__for_first_529 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_529 = false; i.as_f64().unwrap_or(f64::NAN) < ((baseIds.len() as i64) as f64) } {
             let mut baseId: Value = baseIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             if (base == Value::Null) {
@@ -2216,8 +2217,8 @@ impl CoinbaseCore {
             if (type_var.as_str() == Some("crypto")) {
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_531: bool = true;
-                    while { if !__for_first_531 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_531 = false; j.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+                    let mut __for_first_528: bool = true;
+                    while { if !__for_first_528 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_528 = false; j.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
                     let mut quoteCurrency: Value = data.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut quoteId: Value = self.safe_string_k(quoteCurrency.clone(), "id", &[]);
                     let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -2460,8 +2461,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_533: bool = true;
-            while { if !__for_first_533 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_533 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_530: bool = true;
+            while { if !__for_first_530 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_530 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut spotMarket: Value = self.parse_spot_market(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), feeTier.clone());
             if (spotMarket != Value::Null) {
                 result.push(spotMarket);
@@ -2471,8 +2472,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut futureData: Value = self.safe_list_k(expiringFutures, "products", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_534: bool = true;
-            while { if !__for_first_534 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_534 = false; i.as_f64().unwrap_or(f64::NAN) < ((futureData.len() as i64) as f64) } {
+            let mut __for_first_531: bool = true;
+            while { if !__for_first_531 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_531 = false; i.as_f64().unwrap_or(f64::NAN) < ((futureData.len() as i64) as f64) } {
             let mut futureMarket: Value = self.parse_contract_market(futureData.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), expiringFeeTier.clone());
             if (futureMarket != Value::Null) {
                 result.push(futureMarket);
@@ -2482,8 +2483,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut perpetualData: Value = self.safe_list_k(perpetualFutures, "products", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_535: bool = true;
-            while { if !__for_first_535 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_535 = false; i.as_f64().unwrap_or(f64::NAN) < ((perpetualData.len() as i64) as f64) } {
+            let mut __for_first_532: bool = true;
+            while { if !__for_first_532 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_532 = false; i.as_f64().unwrap_or(f64::NAN) < ((perpetualData.len() as i64) as f64) } {
             let mut perpetualMarket: Value = self.parse_contract_market(perpetualData.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), perpetualFeeTier.clone());
             if (perpetualMarket != Value::Null) {
                 result.push(perpetualMarket);
@@ -2493,8 +2494,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut newMarkets: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_536: bool = true;
-            while { if !__for_first_536 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_536 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+            let mut __for_first_533: bool = true;
+            while { if !__for_first_533 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_533 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut market: Value = result.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             let mut info: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3006,8 +3007,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_537: bool = true;
-            while { if !__for_first_537 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_537 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
+            let mut __for_first_534: bool = true;
+            while { if !__for_first_534 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_534 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
             let mut currency: Value = currencies.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut assetId: Option<String> = self.safe_string_k(currency.clone(), "asset_id", &[]).as_str().map(str::to_owned);
             let mut id: Value = self.safe_string2(currency.clone(), Value::Str("id".into()), Value::Str("code".into()), &[]);
@@ -3070,8 +3071,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_538: bool = true;
-            while { if !__for_first_538 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_538 = false; i.as_f64().unwrap_or(f64::NAN) < ((ratesIds.len() as i64) as f64) } {
+            let mut __for_first_535: bool = true;
+            while { if !__for_first_535 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_535 = false; i.as_f64().unwrap_or(f64::NAN) < ((ratesIds.len() as i64) as f64) } {
             let mut currencyId: Value = ratesIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (code == Value::Null) || !(matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -3176,8 +3177,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut delimiter: Value = Value::Str("-".into());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_539: bool = true;
-            while { if !__for_first_539 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_539 = false; i.as_f64().unwrap_or(f64::NAN) < ((baseIds.len() as i64) as f64) } {
+            let mut __for_first_536: bool = true;
+            while { if !__for_first_536 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_536 = false; i.as_f64().unwrap_or(f64::NAN) < ((baseIds.len() as i64) as f64) } {
             let mut baseId: Value = baseIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, delimiter).into()), quoteId).into());
             let mut market: Value = self.safe_market(&[marketId, Value::Null, delimiter.clone()]);
@@ -3268,8 +3269,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_540: bool = true;
-            while { if !__for_first_540 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_540 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_537: bool = true;
+            while { if !__for_first_537 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_537 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "product_id", &[]);
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Str("-".into())]);
@@ -3608,8 +3609,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut b: Value = Value::Int(0);
-            let mut __for_first_541: bool = true;
-            while { if !__for_first_541 { if let Value::Int(n) = &mut b { *n += 1; } } __for_first_541 = false; b.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_538: bool = true;
+            while { if !__for_first_538 { if let Value::Int(n) = &mut b { *n += 1; } } __for_first_538 = false; b.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), b.clone(), &[]);
             let mut type_var: Value = self.safe_string_k(balance.clone(), "type", &[]);
             if self.in_array(type_var.clone(), accounts.clone()).as_bool() == Some(true) {
@@ -4224,8 +4225,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.load_accounts(&[Value::Bool(false), params]).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_542: bool = true;
-            while { if !__for_first_542 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_542 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.accounts.len() as i64) as f64) } {
+            let mut __for_first_539: bool = true;
+            while { if !__for_first_539 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_539 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.accounts.len() as i64) as f64) } {
             let mut account: Value = self.accounts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(account.clone(), "code", &[]).as_str() == code.as_str()) {
                 return self.safe_string_k(account, "id", &[]);
@@ -4884,8 +4885,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orders: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_543: bool = true;
-            while { if !__for_first_543 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_543 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_540: bool = true;
+            while { if !__for_first_540 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_540 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut success: Value = self.safe_bool(orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("success".into()), &[]);
             if (success.as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() has failed, check your arguments and parameters".into()))));
@@ -6277,8 +6278,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_544: bool = true;
-            while { if !__for_first_544 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_544 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            let mut __for_first_541: bool = true;
+            while { if !__for_first_541 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_541 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let __ws_arg_43 = self.parse_deposit_method_id(ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut id: Value = self.extend(__ws_arg_43, &[params.clone()]);
             result.push(id);
@@ -6794,8 +6795,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_545: bool = true;
-            while { if !__for_first_545 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_545 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.symbols.len() as i64) as f64) } {
+            let mut __for_first_542: bool = true;
+            while { if !__for_first_542 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_542 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.symbols.len() as i64) as f64) } {
             let mut symbol: Value = self.symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             if (isSpot && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) || (!isSpot && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true))) {
@@ -6860,8 +6861,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut parsedPositions: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_546: bool = true;
-            while { if !__for_first_546 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_546 = false; i.as_f64().unwrap_or(f64::NAN) < ((spotPositions.len() as i64) as f64) } {
+            let mut __for_first_543: bool = true;
+            while { if !__for_first_543 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_543 = false; i.as_f64().unwrap_or(f64::NAN) < ((spotPositions.len() as i64) as f64) } {
             let mut position: Value = spotPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currencyCode: Value = self.safe_string_k(position.clone(), "asset", &[Value::Str("Unknown".into())]);
             let mut availableBalanceStr: Value = self.safe_string_k(position.clone(), "available_to_trade_fiat", &[Value::Str("0".into())]);
@@ -6912,6 +6913,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         return Value::from(parsedPositions);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name coinbase#isEddsaApiKey
+ * @ignore
+ * @description checks whether the secret is a v2 (Ed25519) CDP api key secret
+ * @returns {boolean} true if the secret is an Ed25519 key
+ */
+    pub fn is_eddsa_api_key(&self) -> Value {
+        return Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).as_bool() == Some(true) || (self.secret.as_str().is_some_and(|__s| __s.ends_with("="))));
 
     Value::Null
 }
@@ -7049,9 +7063,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 let mut isCloudAPiKey: bool = (Value::Int(self.apiKey.as_str().and_then(|__s| __s.find("organizations/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (self.secret.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN")));
-                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                let mut isV2CloudAPiKey: Value = Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).as_bool() == Some(true) || (self.secret.as_str().is_some_and(|__s| __s.ends_with("="))));
-                if isCloudAPiKey || matches!(&isV2CloudAPiKey, Value::Bool(true)) {
+                let mut isV2CloudAPiKey: Value = self.is_eddsa_api_key();
+                if isCloudAPiKey || isV2CloudAPiKey.as_bool() == Some(true) {
                     if isCloudAPiKey && (self.apiKey.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN"))) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));
                     }
@@ -7073,7 +7086,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     //     'uri': uri,
                     //     'iat': seconds,
                     // }
-                    let mut token: Value = self.create_auth_token(seconds, &[method.clone(), url.clone(), isV2CloudAPiKey.clone()]);
+                    let mut token: Value = self.create_auth_token(seconds, &[method.clone(), url.clone(), isV2CloudAPiKey]);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into());
                 }  else {
