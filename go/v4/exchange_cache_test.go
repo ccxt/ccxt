@@ -2,6 +2,34 @@ package ccxt
 
 import "testing"
 
+func TestOrderCacheTypedLocalPreservesStorage(t *testing.T) {
+	for _, nested := range []bool{false, true} {
+		var original any = NewArrayCache(10)
+		if nested {
+			original = NewArrayCacheBySymbolById(10)
+		}
+		original.(Appender).Append(map[string]any{"symbol": "BTC/USDT", "id": "old"})
+		cache := AsArrayCacheBySymbolById(original)
+		cache.Clear()
+		cache.Append(map[string]any{"symbol": "BTC/USDT", "id": "new"})
+		cache.Append(map[string]any{"symbol": "BTC/USDT", "id": "new"})
+		rows := AsArrayCache(original).ToArray()
+		if len(rows) != 1 || GetValue(rows[0], "id") != "new" {
+			t.Fatalf("nested=%v: original cache did not see the snapshot replacement: %v", nested, rows)
+		}
+		want := int64(2)
+		if nested {
+			want = 1
+			if cache != original {
+				t.Fatal("concrete order cache was replaced")
+			}
+		}
+		if got := cache.GetLimit("BTC/USDT", nil); got == nil || *got != want {
+			t.Fatalf("nested=%v: update-counting mode changed: got %v, want %d", nested, got, want)
+		}
+	}
+}
+
 // Pins the Cache.ts counter split (#29869 / kroitor on #29895):
 // newUpdatesBySymbol is an int count; seenUpdatesBySymbol holds distinct ids/sides.
 // GetLimit reads the int. Do not call GetLimit in the middle of a window you still

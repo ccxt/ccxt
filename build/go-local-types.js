@@ -6849,6 +6849,75 @@ function installCcxtGoUnifiedStringDerefArgs (goTranspiler) {
     };
 }
 
+const CCXT_GO_CACHE_TYPES = [ 'ArrayCacheByTimestamp', 'ArrayCacheBySymbolById', 'ArrayCacheBySymbolBySide' ];
+
+// Exchange cache fields are boxed in Go. Honor an explicit cache assertion on a
+// local used only for cache methods, without depending on the local's name.
+function ccxtGoCacheLocalType (goTranspiler, initializer) {
+    const declaration = initializer?.parent;
+    if (!goSourceIsWsTree (initializer) || (initializer?.kind !== ts.SyntaxKind.AsExpression)
+        || (declaration?.kind !== ts.SyntaxKind.VariableDeclaration)
+        || (declaration.name?.kind !== ts.SyntaxKind.Identifier)
+        || (initializer.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression)
+        || (initializer.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword)
+        || (initializer.type?.kind !== ts.SyntaxKind.TypeReference)
+        || (initializer.type.typeName?.kind !== ts.SyntaxKind.Identifier)) {
+        return undefined;
+    }
+    const name = initializer.type.typeName.text;
+    let source = initializer;
+    while (source.parent !== undefined) {
+        source = source.parent;
+    }
+    const imported = source.statements?.flatMap ((s) => {
+        if ((s.kind !== ts.SyntaxKind.ImportDeclaration) || (s.moduleSpecifier?.text !== '../base/ws/Cache.js')) {
+            return [];
+        }
+        return s.importClause?.namedBindings?.elements ?? [];
+    }).find ((s) => s.name.text === name);
+    const cacheType = imported?.propertyName?.text ?? imported?.name?.text;
+    const scope = goTranspiler.goEnclosingFunction (declaration);
+    if (!CCXT_GO_CACHE_TYPES.includes (cacheType) || (scope === undefined)) {
+        return undefined;
+    }
+    const typeShadowed = goTranspiler.hasNodeWhere (scope, (n) =>
+        [ ts.SyntaxKind.VariableDeclaration, ts.SyntaxKind.Parameter ].includes (n.kind) && (n.name?.text === cacheType));
+    if (typeShadowed) {
+        return undefined;
+    }
+    return goTranspiler.goDeclaredLocalTypeIfSafe (declaration, '*' + cacheType, (n) => {
+        const access = n.parent;
+        const call = access?.parent;
+        return (access?.kind === ts.SyntaxKind.PropertyAccessExpression) && (access.expression === n)
+            && [ 'clear', 'append' ].includes (access.name.text)
+            && (call?.kind === ts.SyntaxKind.CallExpression) && (call.expression === access)
+            && (access.questionDotToken === undefined) && (call.questionDotToken === undefined);
+    });
+}
+
+function installCcxtGoCacheLocals (goTranspiler) {
+    const print = goTranspiler.printVariableDeclarationList;
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = print.call (this, node, identation);
+        const declaration = node.declarations?.[0];
+        const goType = ccxtGoCacheLocalType (this, declaration?.initializer);
+        if (goType === undefined) {
+            return printed;
+        }
+        const name = this.printNode (declaration.name, 0);
+        // Only unbox if the printer accepted the local type; reject filters may
+        // still have kept it as any.
+        if (!printed.includes ('var ' + name + ' ' + goType + ' = ')) {
+            return printed;
+        }
+        if (goType === '*ArrayCacheBySymbolById') {
+            const valueAt = printed.lastIndexOf (' = ') + 3;
+            return printed.slice (0, valueAt) + 'AsArrayCacheBySymbolById(' + printed.slice (valueAt) + ')';
+        }
+        return printed + '.(' + goType + ')';
+    };
+}
+
 export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = undefined) {
     if (goTranspiler === undefined || goTranspiler.__ccxtGoLocalTypesInstalled) {
         return;
@@ -6893,7 +6962,8 @@ export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = unde
         }
         // the pro-tree-only callees are gated on the source file, so the same
         // transpiler instance can serve the REST, ws and prediction runs unchanged
-        const familyType = ccxtGoFamilyCallType (this, initializer, printedValue) ?? ccxtGoBaseFieldType (this, initializer, printedValue);
+        const familyType = ccxtGoFamilyCallType (this, initializer, printedValue) ?? ccxtGoBaseFieldType (this, initializer, printedValue)
+            ?? ccxtGoCacheLocalType (this, initializer);
         if (familyType !== undefined) {
             return familyType;
         }
@@ -6952,6 +7022,7 @@ export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = unde
     installCcxtGoNilDeclaredStringJoins (goTranspiler);
     installCcxtGoNilDeclaredValueJoins (goTranspiler);
     installCcxtGoTernaryCast (goTranspiler);
+    installCcxtGoCacheLocals (goTranspiler);
     installCcxtGoNilDeclaredJoin (goTranspiler);
     if (typeof goTranspiler.printVariableDeclarationList === 'function'
         && typeof goTranspiler.goEnclosingFunction === 'function'
