@@ -200,7 +200,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> candle = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Object parsed = this.parseWsOHLCV(candle, market);
+            List<Object> parsed = (List<Object>) this.parseWsOHLCV(candle, market);
             stored.append(parsed);
         }
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
@@ -360,7 +360,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         List<Object> data = (List<Object>) this.safeList(message, "data", (Object) null);
         if (!java.util.Objects.equals(data, null))
         {
@@ -895,7 +895,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
         Boolean snapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", true);
-        if (java.util.Objects.equals(snapshot, true))
+        if (Boolean.TRUE.equals(snapshot))
         {
             String messageHash = ((type + ":") + "fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))

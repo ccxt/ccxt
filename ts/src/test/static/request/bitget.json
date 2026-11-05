@@ -205,6 +205,23 @@
         ],
         "createOrder": [
             {
+                "description": "stock perpetual uses derivative order endpoint",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-order",
+                "input": ["AAPL/USDT:USDT", "limit", "buy", 1, 250, { "marginMode": "cross", "stock": true }],
+                "output": {
+                    "symbol": "AAPLUSDT",
+                    "orderType": "limit",
+                    "price": "250",
+                    "force": "GTC",
+                    "marginCoin": "USDT",
+                    "size": "1",
+                    "productType": "USDT-FUTURES",
+                    "marginMode": "crossed",
+                    "side": "buy"
+                }
+            },
+            {
                 "description": "limit tk order type 2",
                 "method": "createOrder",
                 "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
@@ -682,6 +699,70 @@
                     }
                 ],
                 "output": { "symbol": "LTCUSDT", "orderType": "limit", "price": "100", "force": "GTC", "marginCoin": "USDT", "size": "0.2", "productType": "USDT-FUTURES", "presetStopLossPrice": "90", "presetStopLossExecutePrice": "89", "presetStopSurplusPrice": "120", "presetStopSurplusExecutePrice": "119", "marginMode": "crossed", "side": "buy" }
+            },
+            {
+                "description": "tokenized stock createOrder",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-reality-order",
+                "input": [
+                    "RGOOGL/USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    330
+                ],
+                "output": "{\"category\":\"SPOT\",\"symbol\":\"RGOOGLUSDT\",\"qty\":\"1\",\"side\":\"buy\",\"price\":\"330\",\"orderType\":\"limit\",\"timeInForce\":\"gtc\"}"
+            },
+            {
+                "description": "createOrder derives stock from market despite stock=false",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-reality-order",
+                "input": [
+                    "RGOOGL/USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    330,
+                    {
+                        "stock": false
+                    }
+                ],
+                "output": "{\"category\":\"SPOT\",\"symbol\":\"RGOOGLUSDT\",\"qty\":\"1\",\"side\":\"buy\",\"price\":\"330\",\"orderType\":\"limit\",\"timeInForce\":\"gtc\"}",
+                "options": {
+                    "stock": false,
+                    "createOrder": {
+                        "stock": false
+                    }
+                }
+            },
+            {
+                "description": "createOrder derives stock from market despite stock=true",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v2/spot/trade/place-order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0002,
+                    25000,
+                    {
+                        "stock": true
+                    }
+                ],
+                "output": {
+                    "symbol": "BTCUSDT",
+                    "orderType": "limit",
+                    "price": "25000",
+                    "force": "GTC",
+                    "side": "buy",
+                    "size": "0.0002"
+                },
+                "options": {
+                    "stock": true,
+                    "createOrder": {
+                        "stock": true
+                    }
+                }
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -1453,6 +1534,17 @@
                         "type": "funding"
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://api.bitget.com/api/v3/account/assets",
+                "input": [
+                    {
+                        "stock": true
+                    }
+                ],
+                "output": null
             }
         ],
         "transfer": [
@@ -1672,6 +1764,13 @@
         ],
         "cancelOrder": [
             {
+                "description": "stock perpetual uses derivative cancel endpoint",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/cancel-order",
+                "input": ["123", "AAPL/USDT:USDT", { "stock": true }],
+                "output": { "symbol": "AAPLUSDT", "orderId": "123", "productType": "USDT-FUTURES" }
+            },
+            {
                 "description": "Spot cancel order",
                 "method": "cancelOrder",
                 "url": "https://api.bitget.com/api/v2/spot/trade/cancel-order",
@@ -1823,6 +1922,57 @@
                     }
                 ],
                 "output": { "symbol": "BTCUSDT", "productType": "USDT-FUTURES", "orderIdList": [ { "clientOid": "a1b2c3" } ], "planType": "track_plan" }
+            },
+            {
+                "description": "tokenized stock cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-reality-order",
+                "input": [
+                    "1473934618137948160",
+                    "RGOOGL/USDT"
+                ],
+                "output": "{\"symbol\":\"RGOOGLUSDT\",\"orderId\":\"1473934618137948160\"}"
+            },
+            {
+                "description": "cancelOrder derives stock from market despite stock=false",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-reality-order",
+                "input": [
+                    "1473934618137948160",
+                    "RGOOGL/USDT",
+                    {
+                        "stock": false
+                    }
+                ],
+                "output": "{\"symbol\":\"RGOOGLUSDT\",\"orderId\":\"1473934618137948160\"}",
+                "options": {
+                    "stock": false,
+                    "cancelOrder": {
+                        "stock": false
+                    }
+                }
+            },
+            {
+                "description": "cancelOrder derives stock from market despite stock=true",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v2/spot/trade/cancel-order",
+                "input": [
+                    "1112183589322526722",
+                    "BTC/USDT",
+                    {
+                        "stock": true
+                    }
+                ],
+                "output": {
+                    "symbol": "BTCUSDT",
+                    "orderId": "1112183589322526722"
+                },
+                "options": {
+                    "stock": true,
+                    "cancelOrder": {
+                        "stock": true
+                    }
+                }
             }
         ],
         "cancelOrders": [
@@ -2051,6 +2201,13 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "stock perpetual uses derivative candle endpoint",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=AAPLUSDT&granularity=2H&limit=10&productType=USDT-FUTURES",
+                "input": ["AAPL/USDT:USDT", "2h", null, 10, { "stock": true }],
+                "output": null
+            },
             {
                 "description": "uta history limit capped at 100",
                 "method": "fetchOHLCV",
@@ -2438,6 +2595,60 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=RGOOGLUSDT&interval=1m&limit=3&category=SPOT",
+                "input": [
+                    "RGOOGL/USDT",
+                    "1m",
+                    null,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV derives stock from market despite stock=false",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=RGOOGLUSDT&interval=1m&limit=3&category=SPOT",
+                "input": [
+                    "RGOOGL/USDT",
+                    "1m",
+                    null,
+                    3,
+                    {
+                        "stock": false
+                    }
+                ],
+                "output": null,
+                "options": {
+                    "stock": false,
+                    "fetchOHLCV": {
+                        "stock": false
+                    }
+                }
+            },
+            {
+                "description": "fetchOHLCV derives stock from market despite stock=true",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/spot/market/candles?symbol=BTCUSDT&granularity=3min&limit=100",
+                "input": [
+                    "BTC/USDT",
+                    "3m",
+                    null,
+                    100,
+                    {
+                        "stock": true
+                    }
+                ],
+                "output": null,
+                "options": {
+                    "stock": true,
+                    "fetchOHLCV": {
+                        "stock": true
+                    }
+                }
             }
         ],
         "fetchCanceledAndClosedOrders": [
@@ -2459,6 +2670,13 @@
             }
         ],
         "fetchOrderBook": [
+            {
+                "description": "stock perpetual uses derivative orderbook endpoint",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitget.com/api/v2/mix/market/merge-depth?symbol=AAPLUSDT&limit=5&productType=USDT-FUTURES",
+                "input": ["AAPL/USDT:USDT", 5, { "stock": true }],
+                "output": null
+            },
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
@@ -2504,9 +2722,62 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitget.com/api/v3/account/reality-orderbook?symbol=RGOOGLUSDT",
+                "input": [
+                    "RGOOGL/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOrderBook derives stock from market despite stock=false",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitget.com/api/v3/account/reality-orderbook?symbol=RGOOGLUSDT",
+                "input": [
+                    "RGOOGL/USDT",
+                    null,
+                    {
+                        "stock": false
+                    }
+                ],
+                "output": null,
+                "options": {
+                    "stock": false,
+                    "fetchOrderBook": {
+                        "stock": false
+                    }
+                }
+            },
+            {
+                "description": "fetchOrderBook derives stock from market despite stock=true",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitget.com/api/v2/spot/market/orderbook?symbol=BTCUSDT&limit=5",
+                "input": [
+                    "BTC/USDT",
+                    5,
+                    {
+                        "stock": true
+                    }
+                ],
+                "options": {
+                    "stock": true,
+                    "fetchOrderBook": {
+                        "stock": true
+                    }
+                }
             }
         ],
         "fetchTrades": [
+            {
+                "description": "stock perpetual uses derivative trades endpoint",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v2/mix/market/fills-history?symbol=AAPLUSDT&limit=5&productType=USDT-FUTURES",
+                "input": ["AAPL/USDT:USDT", null, 5, { "stock": true }],
+                "output": null
+            },
             {
                 "description": "fetch spot trades",
                 "method": "fetchTrades",
@@ -2582,6 +2853,56 @@
                         "marginMode": "cross"
                     }
                 ]
+            },
+            {
+                "description": "tokenized stocks fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v3/account/reality-fills?limit=3&symbol=RGOOGLUSDT",
+                "input": [
+                    "RGOOGL/USDT",
+                    null,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTrades derives stock from market despite stock=false",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v3/account/reality-fills?limit=3&symbol=RGOOGLUSDT",
+                "input": [
+                    "RGOOGL/USDT",
+                    null,
+                    3,
+                    {
+                        "stock": false
+                    }
+                ],
+                "output": null,
+                "options": {
+                    "stock": false,
+                    "fetchTrades": {
+                        "stock": false
+                    }
+                }
+            },
+            {
+                "description": "fetchTrades derives stock from market despite stock=true",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v2/spot/market/fills-history?symbol=BTCUSDT&limit=5",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    5,
+                    {
+                        "stock": true
+                    }
+                ],
+                "options": {
+                    "stock": true,
+                    "fetchTrades": {
+                        "stock": true
+                    }
+                }
             }
         ],
         "fetchTradingFee": [
@@ -2977,6 +3298,13 @@
         ],
         "fetchTicker": [
             {
+                "description": "stock perpetual uses derivative ticker endpoint",
+                "method": "fetchTicker",
+                "url": "https://api.bitget.com/api/v2/mix/market/ticker?symbol=AAPLUSDT&productType=USDT-FUTURES",
+                "input": ["AAPL/USDT:USDT", { "stock": true }],
+                "output": null
+            },
+            {
                 "description": "Swap ticker",
                 "method": "fetchTicker",
                 "url": "https://api.bitget.com/api/v2/mix/market/ticker?symbol=BTCUSDT&productType=USDT-FUTURES",
@@ -3013,6 +3341,50 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=RGOOGLUSDT&category=SPOT",
+                "input": [
+                    "RGOOGL/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTicker derives stock from market despite stock=false",
+                "method": "fetchTicker",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=RGOOGLUSDT&category=SPOT",
+                "input": [
+                    "RGOOGL/USDT",
+                    {
+                        "stock": false
+                    }
+                ],
+                "output": null,
+                "options": {
+                    "stock": false,
+                    "fetchTicker": {
+                        "stock": false
+                    }
+                }
+            },
+            {
+                "description": "fetchTicker derives stock from market despite stock=true",
+                "method": "fetchTicker",
+                "url": "https://api.bitget.com/api/v2/spot/market/tickers?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "stock": true
+                    }
+                ],
+                "options": {
+                    "stock": true,
+                    "fetchTicker": {
+                        "stock": true
+                    }
+                }
             }
         ],
         "fetchTickers": [
@@ -3109,6 +3481,17 @@
                         "subType": "linear"
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=RGOOGLUSDT&category=SPOT",
+                "input": [
+                    [
+                        "RGOOGL/USDT"
+                    ]
+                ],
+                "output": null
             }
         ],
         "fetchFundingRateHistory": [

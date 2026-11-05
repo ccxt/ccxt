@@ -185,7 +185,7 @@ def test_market(exchange, skipped_properties, method, market):
         assert (market['settle'] is None) and (market['settleId'] is None), '"settle" must be undefined when "contract" is false' + log_text
     # future, swap and option should be mutually exclusive
     if market['future']:
-        assert (market['swap'] is not True) and (market['option'] is not True) and (is_index is not True), 'market swap and option must be false when "future" is true' + log_text
+        assert (market['swap'] is not True) and (market['option'] is not True) and (not is_index), 'market swap and option must be false when "future" is true' + log_text
     elif market['swap']:
         assert (future is not True) and (option is not True), 'market future and option must be false when "swap" is true' + log_text
     elif market['option']:

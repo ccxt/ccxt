@@ -7,7 +7,6 @@ import "strings"
 
 type Latoken struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newLatoken() *Latoken {
@@ -51,6 +50,7 @@ func (this *Latoken) Describe() any {
 			"fetchBorrowRateHistory":         false,
 			"fetchBorrowRates":               false,
 			"fetchBorrowRatesPerSymbol":      false,
+			"fetchClosedOrders":              "emulated",
 			"fetchCrossBorrowRate":           false,
 			"fetchCrossBorrowRates":          false,
 			"fetchCurrencies":                true,
@@ -392,6 +392,31 @@ func (this *Latoken) Describe() any {
 				"ACCOUNT_TYPE_WALLET": "wallet",
 				"ACCOUNT_TYPE_SPOT":   "spot",
 			},
+			"networks": map[string]any{
+				"BEP20":    "BSC_TOKEN",
+				"TRC20":    "TRON",
+				"ADA":      "ADA_TOKEN",
+				"ALGO":     "ALGO_TOKEN",
+				"ARBITRUM": "ARB_TOKEN",
+				"AVAXC":    "AVAXC_TOKEN",
+				"BASE":     "BASE_TOKEN",
+				"CELO":     "CELO_TOKEN",
+				"EOS":      "EOS_TOKEN",
+				"FTM":      "FTM_TOKEN",
+				"MATIC":    "MATIC_TOKEN",
+				"OP":       "OP_TOKEN",
+				"QTUM":     "QTUM_TOKEN",
+				"SOL":      "SOL_TOKEN",
+				"TON":      "TON_TOKEN",
+				"VET":      "VECHAIN_TOKEN",
+				"WAVES":    "WAVES_TOKEN",
+				"XDC":      "XDC_TOKEN",
+				"XLM":      "XLM_TOKEN",
+				"XRP":      "XRP_TOKEN",
+			},
+			"networksById": map[string]any{
+				"BSC": "BEP20",
+			},
 			"fetchTradingFee": map[string]any{
 				"method": "fetchPrivateTradingFee",
 			},
@@ -419,7 +444,7 @@ func (this *Latoken) Describe() any {
 					"selfTradePrevention":    false,
 					"trailing":               false,
 					"leverage":               false,
-					"marketBuyByCost":        true,
+					"marketBuyByCost":        false,
 					"marketBuyRequiresPrice": false,
 					"iceberg":                false,
 				},
@@ -440,11 +465,19 @@ func (this *Latoken) Describe() any {
 				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          nil,
-					"trigger":        false,
+					"trigger":        true,
 					"trailing":       false,
 					"symbolRequired": true,
 				},
-				"fetchOrders": nil,
+				"fetchOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          nil,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"trigger":        true,
+					"trailing":       false,
+					"symbolRequired": false,
+				},
 				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            1000,
@@ -518,22 +551,22 @@ func (this *Latoken) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Latoken) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp527 := <-this.PublicGetPair(params)
-	if listEp527.Err != nil {
-		panic(listEp527.Err)
+	listEp560 := <-this.PublicGetPair(params)
+	if listEp560.Err != nil {
+		panic(listEp560.Err)
 	}
-	var response []any = listEp527.Value
+	var response []any = listEp560.Value
 	//
 	//     [
 	//         {
@@ -641,7 +674,7 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
 
@@ -649,26 +682,29 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
  * @method
  * @name latoken#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+ * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Latoken) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Latoken) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	// sequential on purpose - with Promise.all the static request harness records
+	// whichever call finished last, which differs between the sync and async ports
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp654 := <-this.PublicGetCurrency(params)
-	if listEp654.Err != nil {
-		panic(listEp654.Err)
+	listEp691 := <-this.PublicGetCurrency(params)
+	if listEp691.Err != nil {
+		panic(listEp691.Err)
 	}
-	var response []any = listEp654.Value
-
+	var response []any = listEp691.Value
 	//
 	//     [
 	//         {
@@ -701,7 +737,54 @@ func (this *Latoken) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs 
 	//         },
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseCurrencies(response)}
+	//     [
+	//         {
+	//             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+	//             "tag":"USDT",
+	//             "bindings":[
+	//                 {
+	//                     "minAmount":"5.000000000000000000",
+	//                     "maxAmount":"0",
+	//                     "fee":"3.000000000000000000",
+	//                     "percentFee":"0.250000000000000000",
+	//                     "providerName":"ERC20",
+	//                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+	//                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+	//                     "deflation":"0"
+	//                 },
+	//             ]
+	//         },
+	//     ]
+	//
+	// no params on this one - they belong to the currency request, not to the bindings
+
+	listEp745 := <-this.PublicGetTransactionBindings()
+	if listEp745.Err != nil {
+		panic(listEp745.Err)
+	}
+	var bindingsResponse []any = listEp745.Value
+	var bindingsById map[string]any = this.IndexBy(bindingsResponse, "id")
+	var rawCurrencies []any = this.ToArray(response)
+	var merged []any = []any{}
+	for i := 0; i < len(rawCurrencies); i++ {
+		var rawCurrency any = func() any {
+			if i >= 0 && i < len(rawCurrencies) {
+				return DerefScalar(rawCurrencies[i])
+			}
+			return nil
+		}()
+		var bindingEntry map[string]any = SafeMapTyped(bindingsById, this.SafeString(rawCurrency, "id"))
+		var bindings []any = SafeListTyped(bindingEntry, "bindings")
+		var mergedCurrency any = rawCurrency
+		if bindings != nil {
+			mergedCurrency = this.Extend(rawCurrency, map[string]any{
+				"bindings": bindings,
+			})
+		}
+		merged = append(merged, mergedCurrency)
+	}
+
+	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(merged)}
 	return nil
 }
 func (this *Latoken) ParseCurrency(currency any) map[string]any {
@@ -710,6 +793,49 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(tag)
 	var currencyType *string = this.SafeString(currency, "type")
 	var isCrypto bool = ((currencyType != nil && *currencyType == "CURRENCY_TYPE_CRYPTO") || (currencyType != nil && *currencyType == "CURRENCY_TYPE_IEO"))
+	var bindings []any = SafeListTyped(currency, "bindings")
+	var networks map[string]any = map[string]any{}
+	for i := 0; i < len(bindings); i++ {
+		var binding any = func() any {
+			if i >= 0 && i < len(bindings) {
+				return DerefScalar(bindings[i])
+			}
+			return nil
+		}()
+		var networkId *string = this.SafeString(binding, "providerName")
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
+		// the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+		// entries would land on the same unified code - keep the first one for a
+		// deterministic binding id, since withdrawals resolve the chain through it
+		if (networkCode != nil) && !(func() bool {
+			if networkCode == nil {
+				return false
+			}
+			_, ok := networks[*networkCode]
+			return ok
+		}()) {
+			networks[*networkCode] = map[string]any{
+				"info":      binding,
+				"id":        this.SafeString(binding, "id"),
+				"network":   networkCode,
+				"active":    nil,
+				"deposit":   nil,
+				"withdraw":  nil,
+				"fee":       this.SafeNumber(binding, "fee"),
+				"precision": nil,
+				"limits": map[string]any{
+					"deposit": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(binding, "minAmount"),
+						"max": nil,
+					},
+				},
+			}
+		}
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":   id,
 		"code": code,
@@ -724,7 +850,7 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
 		"active":    (this.SafeString(currency, "status") != nil && *this.SafeString(currency, "status") == "CURRENCY_STATUS_ACTIVE"),
 		"deposit":   nil,
 		"withdraw":  nil,
-		"fee":       this.SafeNumber(currency, "fee"),
+		"fee":       nil,
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))),
 		"limits": map[string]any{
 			"amount": map[string]any{
@@ -736,7 +862,7 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
 				"max": nil,
 			},
 		},
-		"networks": map[string]any{},
+		"networks": networks,
 	})
 }
 
@@ -748,12 +874,12 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Latoken) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Latoken) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -811,10 +937,8 @@ func (this *Latoken) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 		var currencyId *string = this.SafeString(balance, "currency")
 		var timestamp *int64 = this.SafeInteger(balance, "timestamp")
 		if timestamp != nil {
-			if IsEqual(maxTimestamp, nil) {
+			if (IsEqual(maxTimestamp, nil)) || (IsGreaterThan(timestamp, maxTimestamp)) {
 				maxTimestamp = timestamp
-			} else {
-				maxTimestamp = mathMax(maxTimestamp, timestamp)
 			}
 		}
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -828,7 +952,7 @@ func (this *Latoken) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 	result["timestamp"] = maxTimestamp
 	result["datetime"] = this.Iso8601(maxTimestamp)
 
-	ch <- AsyncResult[any]{Value: this.SafeBalance(result)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.SafeBalance(result).(map[string]any))}
 	return nil
 }
 
@@ -842,12 +966,12 @@ func (this *Latoken) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Latoken) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Latoken) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -932,7 +1056,7 @@ func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 		"bid": bids,
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(filtered, symbol, nil, "bid", "ask", "price", "quantity")}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(filtered, symbol, nil, "bid", "ask", "price", "quantity"))}
 	return nil
 }
 func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1008,12 +1132,12 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Latoken) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Latoken) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Latoken) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1057,7 +1181,7 @@ func (this *Latoken) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//        "updateTimestamp": 1693965231406
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 
@@ -1070,12 +1194,12 @@ func (this *Latoken) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Latoken) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Latoken) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1090,11 +1214,11 @@ func (this *Latoken) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 	}
 
-	listEp1054 := <-this.PublicGetTicker(params)
-	if listEp1054.Err != nil {
-		panic(listEp1054.Err)
+	listEp1174 := <-this.PublicGetTicker(params)
+	if listEp1174.Err != nil {
+		panic(listEp1174.Err)
 	}
-	var response []any = listEp1054.Value
+	var response []any = listEp1174.Value
 
 	//
 	//    [
@@ -1118,7 +1242,7 @@ func (this *Latoken) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	//        }
 	//    ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbols)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbols))}
 	return nil
 }
 func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1235,12 +1359,12 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Latoken) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Latoken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1265,11 +1389,11 @@ func (this *Latoken) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		request["limit"] = mathMin(limit, 100) // default 100, limit 100
 	}
 
-	listEp1222 := <-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))
-	if listEp1222.Err != nil {
-		panic(listEp1222.Err)
+	listEp1342 := <-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))
+	if listEp1342.Err != nil {
+		panic(listEp1342.Err)
 	}
-	var response []any = listEp1222.Value
+	var response []any = listEp1342.Value
 
 	//
 	//     [
@@ -1278,7 +1402,7 @@ func (this *Latoken) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	//         {"id":"f43d3ec8-db94-49f3-b534-91dbc2779296","isMakerBuyer":true,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.00","quantity":"0.41738","cost":"1851.0803","timestamp":1635854640323,"makerBuyer":true},
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
 }
 
@@ -1292,12 +1416,12 @@ func (this *Latoken) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Latoken) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[TradingFeeInterface] {
+	ch := make(chan AsyncResult[TradingFeeInterface], 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1312,11 +1436,11 @@ func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes99819 map[string]any = r.Value
-		if retRes99819 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes110619 map[string]any = StructResultMap(r.Value, TradingFeeInterfaceToMap)
+		if retRes110619 == nil {
+			ch <- AsyncResult[TradingFeeInterface]{}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes99819}
+			ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(retRes110619)}
 		}
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFee" {
@@ -1325,25 +1449,25 @@ func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes100019 map[string]any = r1.Value
-		if retRes100019 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes110819 map[string]any = StructResultMap(r1.Value, TradingFeeInterfaceToMap)
+		if retRes110819 == nil {
+			ch <- AsyncResult[TradingFeeInterface]{}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes100019}
+			ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(retRes110819)}
 		}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " not support this method"))
 	}
 }
-func (this *Latoken) FetchPublicTradingFeeAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Latoken) FetchPublicTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[TradingFeeInterface] {
+	ch := make(chan AsyncResult[TradingFeeInterface], 1)
 	go this.fetchPublicTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchPublicTradingFeeBody(ch chan EndpointResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Latoken) fetchPublicTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -1373,25 +1497,24 @@ func (this *Latoken) fetchPublicTradingFeeBody(ch chan EndpointResult[map[string
 	//         "take": "FEE_SCHEME_TAKE_PROPORTION"
 	//     }
 	//
-	chValue := map[string]any{
+	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
 		"info":       response,
 		"symbol":     market["symbol"],
 		"maker":      this.SafeNumber(response, "makerFee"),
 		"taker":      this.SafeNumber(response, "takerFee"),
 		"percentage": nil,
 		"tierBased":  nil,
-	}
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	})}
 	return nil
 }
-func (this *Latoken) FetchPrivateTradingFeeAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Latoken) FetchPrivateTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[TradingFeeInterface] {
+	ch := make(chan AsyncResult[TradingFeeInterface], 1)
 	go this.fetchPrivateTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchPrivateTradingFeeBody(ch chan EndpointResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Latoken) fetchPrivateTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -1421,15 +1544,14 @@ func (this *Latoken) fetchPrivateTradingFeeBody(ch chan EndpointResult[map[strin
 	//         "take": "FEE_SCHEME_TAKE_PROPORTION"
 	//     }
 	//
-	chValue := map[string]any{
+	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
 		"info":       response,
 		"symbol":     market["symbol"],
 		"maker":      this.SafeNumber(response, "makerFee"),
 		"taker":      this.SafeNumber(response, "takerFee"),
 		"percentage": nil,
 		"tierBased":  nil,
-	}
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	})}
 	return nil
 }
 
@@ -1445,12 +1567,12 @@ func (this *Latoken) fetchPrivateTradingFeeBody(ch chan EndpointResult[map[strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Latoken) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Latoken) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1511,7 +1633,7 @@ func (this *Latoken) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
 }
 func (this *Latoken) ParseOrderStatus(status *string) *string {
@@ -1613,19 +1735,9 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var message *string = this.SafeString(order, "message")
 	if message != nil {
-		if func() int {
-			if message == nil {
-				return -1
-			}
-			return strings.Index(*message, "cancel")
-		}() >= 0 {
+		if strings.Index(*message, "cancel") >= 0 {
 			status = SafeStringPtr("canceled")
-		} else if func() int {
-			if message == nil {
-				return -1
-			}
-			return strings.Index(*message, "accept")
-		}() >= 0 {
+		} else if strings.Index(*message, "accept") >= 0 {
 			status = SafeStringPtr("open")
 		}
 	}
@@ -1669,12 +1781,12 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {boolean} [params.trigger] true if fetching trigger orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Latoken) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Latoken) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1706,18 +1818,18 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	}
 	if isTrigger != nil && *isTrigger == true {
 
-		listEp1625 := <-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
-		if listEp1625.Err != nil {
-			panic(listEp1625.Err)
+		listEp1735 := <-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
+		if listEp1735.Err != nil {
+			panic(listEp1735.Err)
 		}
-		response = listEp1625.Value
+		response = listEp1735.Value
 	} else {
 
-		listEp1628 := <-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
-		if listEp1628.Err != nil {
-			panic(listEp1628.Err)
+		listEp1738 := <-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
+		if listEp1738.Err != nil {
+			panic(listEp1738.Err)
 		}
-		response = listEp1628.Value
+		response = listEp1738.Value
 	}
 
 	//
@@ -1742,7 +1854,7 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
 }
 
@@ -1761,12 +1873,12 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {boolean} [params.trigger] true if fetching trigger orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Latoken) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Latoken) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1798,34 +1910,34 @@ func (this *Latoken) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		request["quote"] = market["quoteId"]
 		if isTrigger != nil && *isTrigger == true {
 
-			listEp1706 := <-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
-			if listEp1706.Err != nil {
-				panic(listEp1706.Err)
+			listEp1816 := <-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
+			if listEp1816.Err != nil {
+				panic(listEp1816.Err)
 			}
-			response = listEp1706.Value
+			response = listEp1816.Value
 		} else {
 
-			listEp1709 := <-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
-			if listEp1709.Err != nil {
-				panic(listEp1709.Err)
+			listEp1819 := <-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
+			if listEp1819.Err != nil {
+				panic(listEp1819.Err)
 			}
-			response = listEp1709.Value
+			response = listEp1819.Value
 		}
 	} else {
 		if isTrigger != nil && *isTrigger == true {
 
-			listEp1714 := <-this.PrivateGetAuthStopOrder(this.Extend(request, paramsOmitted))
-			if listEp1714.Err != nil {
-				panic(listEp1714.Err)
+			listEp1824 := <-this.PrivateGetAuthStopOrder(this.Extend(request, paramsOmitted))
+			if listEp1824.Err != nil {
+				panic(listEp1824.Err)
 			}
-			response = listEp1714.Value
+			response = listEp1824.Value
 		} else {
 
-			listEp1717 := <-this.PrivateGetAuthOrder(this.Extend(request, paramsOmitted))
-			if listEp1717.Err != nil {
-				panic(listEp1717.Err)
+			listEp1827 := <-this.PrivateGetAuthOrder(this.Extend(request, paramsOmitted))
+			if listEp1827.Err != nil {
+				panic(listEp1827.Err)
 			}
-			response = listEp1717.Value
+			response = listEp1827.Value
 		}
 	}
 
@@ -1851,7 +1963,7 @@ func (this *Latoken) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
 }
 
@@ -1867,12 +1979,12 @@ func (this *Latoken) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {boolean} [params.trigger] true if fetching a trigger order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Latoken) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Latoken) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Latoken) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1928,7 +2040,7 @@ func (this *Latoken) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//         "timestamp":1635920767648
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -1951,12 +2063,12 @@ func (this *Latoken) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
  * @param {string} [params.clientOrderId] [ 0 .. 50 ] characters, client's custom order id (free field for your convenience)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Latoken) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Latoken) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Latoken) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Latoken) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2018,7 +2130,7 @@ func (this *Latoken) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//        "timestamp": 1568185507
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -2034,12 +2146,12 @@ func (this *Latoken) createOrderBody(ch chan AsyncResult[map[string]any], symbol
  * @param {boolean} [params.trigger] true if cancelling a trigger order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Latoken) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Latoken) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Latoken) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Latoken) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2084,7 +2196,7 @@ func (this *Latoken) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//         "errors": { }
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -2099,12 +2211,12 @@ func (this *Latoken) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
  * @param {boolean} [params.trigger] true if cancelling trigger orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Latoken) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Latoken) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Latoken) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2166,9 +2278,9 @@ func (this *Latoken) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//         "status":"SUCCESS"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	}))}}
+	}))})}
 	return nil
 }
 
@@ -2184,12 +2296,12 @@ func (this *Latoken) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Latoken) FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchTransactionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchTransactionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Latoken) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2246,10 +2358,10 @@ func (this *Latoken) fetchTransactionsBody(ch chan AsyncResult[any], optionalArg
 	}
 	var content []any = SafeListTypedDefault(response, "content", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(content, currency, since, limit)}
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(content, currency, since, limit))}
 	return nil
 }
-func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
+func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
@@ -2291,7 +2403,7 @@ func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) map[
 		fee["currency"] = code
 	}
 	var typeVar *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
-	return map[string]any{
+	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
@@ -2312,7 +2424,7 @@ func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) map[
 		"comment":     nil,
 		"internal":    nil,
 		"fee":         fee,
-	}
+	})
 }
 func (this *Latoken) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -2344,12 +2456,12 @@ func (this *Latoken) ParseTransactionType(typeVar *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Latoken) FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Latoken) FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[[]TransferEntry] {
+	ch := make(chan AsyncResult[[]TransferEntry], 1)
 	go this.fetchTransfersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Latoken) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2407,7 +2519,7 @@ func (this *Latoken) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 	//
 	var transfers []any = SafeListTypedDefault(response, "content", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransfers(transfers, currency, since, limit)}
+	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(transfers, currency, since, limit))}
 	return nil
 }
 
@@ -2425,12 +2537,12 @@ func (this *Latoken) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Latoken) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Latoken) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Latoken) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Latoken) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2494,10 +2606,10 @@ func (this *Latoken) transferBody(ch chan AsyncResult[map[string]any], code stri
 	//         "fee": 0
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response)}
+	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response)}
 	return nil
 }
-func (this *Latoken) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
+func (this *Latoken) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -2525,7 +2637,7 @@ func (this *Latoken) ParseTransfer(transfer any, optionalArgs ...any) map[string
 	var timestamp *int64 = this.SafeTimestamp(transfer, "timestamp")
 	var currencyId *string = this.SafeString(transfer, "currency")
 	var status *string = this.SafeString(transfer, "status")
-	return map[string]any{
+	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "id"),
 		"timestamp":   this.SafeInteger(transfer, "timestamp"),
@@ -2535,7 +2647,7 @@ func (this *Latoken) ParseTransfer(transfer any, optionalArgs ...any) map[string
 		"fromAccount": this.SafeString(transfer, "fromAccount"),
 		"toAccount":   this.SafeString(transfer, "toAccount"),
 		"status":      this.ParseTransferStatus(status),
-	}
+	})
 }
 func (this *Latoken) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -2627,7 +2739,6 @@ func (this *Latoken) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
 	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
 }
 
 // typed methods
@@ -2662,7 +2773,7 @@ func (this *Latoken) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -2670,6 +2781,8 @@ func (this *Latoken) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @method
  * @name latoken#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+ * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -2695,7 +2808,7 @@ func (this *Latoken) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -2720,7 +2833,7 @@ func (this *Latoken) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -2744,7 +2857,7 @@ func (this *Latoken) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -2768,7 +2881,7 @@ func (this *Latoken) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -2794,7 +2907,7 @@ func (this *Latoken) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -2819,7 +2932,7 @@ func (this *Latoken) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 	if r.Err != nil {
 		return TradingFeeInterface{}, r.Err
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(r.Value)
+	var res TradingFeeInterface = r.Value
 	return res, nil
 }
 func (this *Latoken) FetchPublicTradingFee(symbol string, options ...FetchPublicTradingFeeOptions) (TradingFeeInterface, error) {
@@ -2833,7 +2946,7 @@ func (this *Latoken) FetchPublicTradingFee(symbol string, options ...FetchPublic
 	if r.Err != nil {
 		return TradingFeeInterface{}, r.Err
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(r.Raw)
+	var res TradingFeeInterface = r.Value
 	return res, nil
 }
 func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPrivateTradingFeeOptions) (TradingFeeInterface, error) {
@@ -2847,7 +2960,7 @@ func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPriva
 	if r.Err != nil {
 		return TradingFeeInterface{}, r.Err
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(r.Raw)
+	var res TradingFeeInterface = r.Value
 	return res, nil
 }
 
@@ -2874,7 +2987,7 @@ func (this *Latoken) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -2902,7 +3015,7 @@ func (this *Latoken) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -2932,7 +3045,7 @@ func (this *Latoken) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -2959,7 +3072,7 @@ func (this *Latoken) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -2993,7 +3106,7 @@ func (this *Latoken) CreateOrder(symbol string, typeVar string, side string, amo
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3020,7 +3133,7 @@ func (this *Latoken) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3046,7 +3159,7 @@ func (this *Latoken) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -3073,7 +3186,7 @@ func (this *Latoken) FetchTransactions(options ...FetchTransactionsOptions) ([]T
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -3099,7 +3212,7 @@ func (this *Latoken) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []TransferEntry = NewTransferEntryArray(r.Value)
+	var res []TransferEntry = r.Value
 	return res, nil
 }
 
@@ -3128,570 +3241,6 @@ func (this *Latoken) Transfer(code string, amount float64, fromAccount string, t
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Latoken) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Latoken) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrders(ids, options...)
-}
-func (this *Latoken) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Latoken) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
-}
-func (this *Latoken) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Latoken) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Latoken) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Latoken) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.CreateDepositAddress(code, options...)
-}
-func (this *Latoken) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Latoken) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Latoken) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Latoken) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Latoken) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)
-}
-func (this *Latoken) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Latoken) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
-}
-func (this *Latoken) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Latoken) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Latoken) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrders(orders, options...)
-}
-func (this *Latoken) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Latoken) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Latoken) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Latoken) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Latoken) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Latoken) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
-}
-func (this *Latoken) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Latoken) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Latoken) FetchAccounts(params ...any) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
-func (this *Latoken) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Latoken) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchBidsAsks(options...)
-}
-func (this *Latoken) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Latoken) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Latoken) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
-}
-func (this *Latoken) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrders(options...)
-}
-func (this *Latoken) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Latoken) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Latoken) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Latoken) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Latoken) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Latoken) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Latoken) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddress(code, options...)
-}
-func (this *Latoken) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Latoken) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Latoken) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDeposits(options...)
-}
-func (this *Latoken) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Latoken) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Latoken) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
-}
-func (this *Latoken) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Latoken) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
-}
-func (this *Latoken) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Latoken) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Latoken) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Latoken) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
-	return this.exchangeTyped.FetchFundingRateHistory(options...)
-}
-func (this *Latoken) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingRates(options...)
-}
-func (this *Latoken) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Latoken) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Latoken) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Latoken) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Latoken) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
-	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Latoken) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedger(options...)
-}
-func (this *Latoken) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Latoken) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
-	return this.exchangeTyped.FetchLeverage(symbol, options...)
-}
-func (this *Latoken) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
-	return this.exchangeTyped.FetchLeverages(options...)
-}
-func (this *Latoken) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
-	return this.exchangeTyped.FetchLeverageTiers(options...)
-}
-func (this *Latoken) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Latoken) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Latoken) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Latoken) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Latoken) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Latoken) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
-	return this.exchangeTyped.FetchMarginModes(options...)
-}
-func (this *Latoken) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Latoken) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Latoken) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
-}
-func (this *Latoken) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Latoken) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Latoken) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCV(symbol, options...)
-}
-func (this *Latoken) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
-func (this *Latoken) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Latoken) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
-}
-func (this *Latoken) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Latoken) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Latoken) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Latoken) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Latoken) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Latoken) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchOrderTrades(id, options...)
-}
-func (this *Latoken) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Latoken) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
-	return this.exchangeTyped.FetchPosition(symbol, options...)
-}
-func (this *Latoken) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Latoken) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
-	return this.exchangeTyped.FetchPositionMode(options...)
-}
-func (this *Latoken) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositions(options...)
-}
-func (this *Latoken) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Latoken) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
-func (this *Latoken) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsRisk(options...)
-}
-func (this *Latoken) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Latoken) FetchStatus(params ...any) (Status, error) {
-	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Latoken) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
-}
-func (this *Latoken) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Latoken) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Latoken) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Latoken) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Latoken) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawals(options...)
-}
-func (this *Latoken) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Latoken) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
-}
-func (this *Latoken) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Latoken) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
-	return this.exchangeTyped.Withdraw(code, amount, address, options...)
-}
-func (this *Latoken) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Latoken) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Latoken) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Latoken) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Latoken) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Latoken) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Latoken) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Latoken) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Latoken) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Latoken) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Latoken) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Latoken) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Latoken) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Latoken) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Latoken) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Latoken) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Latoken) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Latoken) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Latoken) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Latoken) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Latoken) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Latoken) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Latoken) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Latoken) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Latoken) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Latoken) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Latoken) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Latoken) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Latoken) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Latoken) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Latoken) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Latoken) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Latoken) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Latoken) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Latoken) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Latoken) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Latoken) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Latoken) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Latoken) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Latoken) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Latoken) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Latoken) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Latoken) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Latoken) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Latoken) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Latoken) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Latoken) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Latoken) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Latoken) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Latoken) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Latoken) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Latoken) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Latoken) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Latoken) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Latoken) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Latoken) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Latoken) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Latoken) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Latoken) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Latoken) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Latoken) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Latoken) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Latoken) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Latoken) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Latoken) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

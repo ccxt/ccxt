@@ -223,7 +223,7 @@ class independentreserve extends independentreserve$1["default"] {
             orderbook['datetime'] = this.iso8601(timestamp);
         }
         const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-        if ((checksum === true) && (receivedSnapshot === true)) {
+        if ((checksum) && (receivedSnapshot)) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;
@@ -249,7 +249,7 @@ class independentreserve extends independentreserve$1["default"] {
                 return;
             }
         }
-        if (receivedSnapshot === true) {
+        if (receivedSnapshot) {
             client.resolve(orderbook, messageHash);
         }
     }

@@ -7,7 +7,6 @@ import "strconv"
 
 type Bitvavo struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newBitvavo() *Bitvavo {
@@ -531,22 +530,22 @@ func (this *Bitvavo) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Bitvavo) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp540 := <-this.PublicGetMarkets(params)
-	if listEp540.Err != nil {
-		panic(listEp540.Err)
+	listEp539 := <-this.PublicGetMarkets(params)
+	if listEp539.Err != nil {
+		panic(listEp539.Err)
 	}
-	var response []any = listEp540.Value
+	var response []any = listEp539.Value
 
 	//
 	//    {
@@ -567,7 +566,7 @@ func (this *Bitvavo) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 	//        "orderTypes": [ "market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit" ]
 	//    }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(response)}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(response))}
 	return nil
 }
 func (this *Bitvavo) ParseMarkets(markets any) []any {
@@ -648,22 +647,22 @@ func (this *Bitvavo) ParseMarkets(markets any) []any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Bitvavo) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp653 := <-this.PublicGetAssets(params)
-	if listEp653.Err != nil {
-		panic(listEp653.Err)
+	listEp652 := <-this.PublicGetAssets(params)
+	if listEp652.Err != nil {
+		panic(listEp652.Err)
 	}
-	var response []any = listEp653.Value
+	var response []any = listEp652.Value
 
 	//
 	//     [
@@ -698,7 +697,7 @@ func (this *Bitvavo) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs 
 	//         },
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseCurrencies(response)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(response)}
 	return nil
 }
 func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
@@ -818,12 +817,12 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitvavo) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitvavo) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -862,7 +861,7 @@ func (this *Bitvavo) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//         "timestamp":1590381666900
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 func (this *Bitvavo) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -926,12 +925,12 @@ func (this *Bitvavo) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitvavo) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -970,7 +969,7 @@ func (this *Bitvavo) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbols)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbols))}
 	return nil
 }
 
@@ -987,12 +986,12 @@ func (this *Bitvavo) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitvavo) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1016,11 +1015,11 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes83019 []any = ListTyped(r1.Value)
+		var retRes83019 []any = r1.Value
 		if retRes83019 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes83019}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes83019)}
 		}
 		return nil
 	}
@@ -1035,11 +1034,11 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp1006 := <-this.PublicGetMarketTrades(this.Extend(requestUntil, paramsUntil))
-	if listEp1006.Err != nil {
-		panic(listEp1006.Err)
+	listEp1005 := <-this.PublicGetMarketTrades(this.Extend(requestUntil, paramsUntil))
+	if listEp1005.Err != nil {
+		panic(listEp1005.Err)
 	}
-	var response []any = listEp1006.Value
+	var response []any = listEp1005.Value
 
 	//
 	//     [
@@ -1052,7 +1051,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
 }
 func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1125,7 +1124,7 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if taker != nil {
 		takerOrMaker = SafeStringPtr(func() string {
-			if taker != nil && *taker == true {
+			if taker != nil && *taker {
 				return "taker"
 			}
 			return "maker"
@@ -1167,12 +1166,12 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Bitvavo) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface] {
+	ch := make(chan AsyncResult[map[string]TradingFeeInterface], 1)
 	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1185,11 +1184,11 @@ func (this *Bitvavo) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs
 		}
 	}
 
-	listEp1149 := <-this.PrivateGetAccount(params)
-	if listEp1149.Err != nil {
-		panic(listEp1149.Err)
+	listEp1148 := <-this.PrivateGetAccount(params)
+	if listEp1148.Err != nil {
+		panic(listEp1148.Err)
 	}
-	var response []any = listEp1149.Value
+	var response []any = listEp1148.Value
 
 	//
 	//     {
@@ -1200,7 +1199,7 @@ func (this *Bitvavo) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTradingFees(response)}
+	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(this.ParseTradingFees(response))}
 	return nil
 }
 func (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) map[string]any {
@@ -1242,12 +1241,12 @@ func (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) map[string]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Bitvavo) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[TradingFeeInterface] {
+	ch := make(chan AsyncResult[TradingFeeInterface], 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1278,20 +1277,20 @@ func (this *Bitvavo) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
 	//         "maker": "0.0015"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTradingFee(response, market)}
+	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(response, market)}
 	return nil
 }
-func (this *Bitvavo) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return map[string]any{
+	return TradingFeeInterfaceFromMap(map[string]any{
 		"info":       fee,
 		"symbol":     this.SafeSymbol(nil, market),
 		"maker":      this.SafeNumber(fee, "maker"),
 		"taker":      this.SafeNumber(fee, "taker"),
 		"percentage": true,
 		"tierBased":  true,
-	}
+	})
 }
 
 /**
@@ -1304,12 +1303,12 @@ func (this *Bitvavo) ParseTradingFee(fee any, optionalArgs ...any) map[string]an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bitvavo) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitvavo) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1355,7 +1354,7 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"])
 	orderbook["nonce"] = this.SafeInteger(response, "nonce")
 
-	ch <- AsyncResult[map[string]any]{Value: orderbook}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
 	return nil
 }
 func (this *Bitvavo) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -1391,21 +1390,19 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) map[stri
 		// https://github.com/ccxt/ccxt/issues/9227
 		var duration int64 = this.ParseTimeframe(timeframe)
 		request["start"] = since
-		var sinceLimit any = func() any {
+		var sinceLimit int64 = func() int64 {
 			if limit == nil {
 				return 1440
 			}
-			return mathMin(limit, 1440)
+			return min(*limit, 1440)
 		}()
-		request["end"] = this.Sum(since, Multiply(Multiply(sinceLimit, duration), 1000))
+		request["end"] = this.Sum(since, ((sinceLimit * duration) * 1000))
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
-	var limitResolved any = limit
-	if (since != nil) && (limit == nil) {
-		limitResolved = 1440
-	}
-	if !IsEqual(limitResolved, nil) {
-		AddElementToObject(requestUntil, "limit", mathMin(limitResolved, 1440)) // default 1440, max 1440
+	if limit != nil {
+		AddElementToObject(requestUntil, "limit", mathMin(limit, 1440)) // default 1440, max 1440
+	} else if since != nil {
+		requestUntil["limit"] = 1440
 	}
 	return this.Extend(requestUntil, paramsUntil)
 }
@@ -1424,12 +1421,12 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) map[stri
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bitvavo) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1455,21 +1452,21 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes116419 []any = ListTyped(r1.Value)
-		if retRes116419 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes116219 []any = r1.Value
+		if retRes116219 == nil {
+			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes116419}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes116219)}
 		}
 		return nil
 	}
 	var request map[string]any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, paramsPaginate)
 
-	listEp1404 := <-this.PublicGetMarketCandles(request)
-	if listEp1404.Err != nil {
-		panic(listEp1404.Err)
+	listEp1401 := <-this.PublicGetMarketCandles(request)
+	if listEp1401.Err != nil {
+		panic(listEp1401.Err)
 	}
-	var response []any = listEp1404.Value
+	var response []any = listEp1401.Value
 
 	//
 	//     [
@@ -1478,7 +1475,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	//         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit))}
 	return nil
 }
 func (this *Bitvavo) ParseBalance(response any) map[string]any {
@@ -1509,12 +1506,12 @@ func (this *Bitvavo) ParseBalance(response any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Bitvavo) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1527,11 +1524,11 @@ func (this *Bitvavo) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 	}
 
-	listEp1459 := <-this.PrivateGetBalance(params)
-	if listEp1459.Err != nil {
-		panic(listEp1459.Err)
+	listEp1456 := <-this.PrivateGetBalance(params)
+	if listEp1456.Err != nil {
+		panic(listEp1456.Err)
 	}
-	var response []any = listEp1459.Value
+	var response []any = listEp1456.Value
 
 	//
 	//     [
@@ -1542,7 +1539,7 @@ func (this *Bitvavo) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
 	return nil
 }
 
@@ -1554,12 +1551,12 @@ func (this *Bitvavo) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
  */
-func (this *Bitvavo) FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]Account] {
+	ch := make(chan AsyncResult[[]Account], 1)
 	go this.fetchAccountsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1594,10 +1591,10 @@ func (this *Bitvavo) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ..
 	//
 	var accounts []any = SafeListTypedDefault(response, "items", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseAccounts(accounts)}
+	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts))}
 	return nil
 }
-func (this *Bitvavo) ParseAccount(account any) any {
+func (this *Bitvavo) ParseAccount(account any) map[string]any {
 	return map[string]any{
 		"id":   this.SafeString(account, "id"),
 		"type": this.SafeString(account, "type"),
@@ -1620,12 +1617,12 @@ func (this *Bitvavo) ParseAccount(account any) any {
  * @param {string} [params.clientRequestId] client defined unique id
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitvavo) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitvavo) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Bitvavo) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1684,7 +1681,7 @@ func (this *Bitvavo) transferBody(ch chan AsyncResult[map[string]any], code stri
 	//         "createdAt": "1700000000000"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response, currency)}
+	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
 
@@ -1701,12 +1698,12 @@ func (this *Bitvavo) transferBody(ch chan AsyncResult[map[string]any], code stri
  * @param {int} [params.until] the latest time in ms to fetch transfers for
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitvavo) FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[[]TransferEntry] {
+	ch := make(chan AsyncResult[[]TransferEntry], 1)
 	go this.fetchTransfersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1728,7 +1725,7 @@ func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["symbol"] = GetValue(currency, "id")
+		request["symbol"] = currency["id"]
 	}
 	var subaccountId *string = this.SafeString(params, "subaccountId")
 	if subaccountId == nil {
@@ -1768,7 +1765,7 @@ func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 	//
 	var items []any = SafeListTypedDefault(response, "items", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransfers(items, currency, since, limit)}
+	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(items, currency, since, limit))}
 	return nil
 }
 
@@ -1782,14 +1779,14 @@ func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitvavo) FetchTransferAsync(id string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Bitvavo) FetchTransferAsync(id string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.fetchTransferBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTransferBody(ch chan EndpointResult[map[string]any], id string, optionalArgs ...any) any {
+func (this *Bitvavo) fetchTransferBody(ch chan AsyncResult[TransferEntry], id string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1827,8 +1824,7 @@ func (this *Bitvavo) fetchTransferBody(ch chan EndpointResult[map[string]any], i
 	//         "createdAt": "1700000000000"
 	//     }
 	//
-	chValue := this.ParseTransfer(response, currency)
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
 func (this *Bitvavo) ParseTransferStatus(status *string) *string {
@@ -1839,7 +1835,7 @@ func (this *Bitvavo) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "symbol")
@@ -1859,7 +1855,7 @@ func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) map[string
 	if timestamp == nil {
 		timestamp = this.Parse8601(this.SafeString(transfer, "createdAt"))
 	}
-	return map[string]any{
+	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "transferId"),
 		"timestamp":   timestamp,
@@ -1869,7 +1865,7 @@ func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) map[string
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
 		"status":      this.ParseTransferStatus(this.SafeString(transfer, "status")),
-	}
+	})
 }
 
 /**
@@ -1881,12 +1877,12 @@ func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) map[string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bitvavo) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[DepositAddress] {
+	ch := make(chan AsyncResult[DepositAddress], 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchDepositAddressBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
+func (this *Bitvavo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1918,13 +1914,13 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	var tag *string = this.SafeString(response, "paymentId")
 	this.CheckAddress(address)
 
-	ch <- AsyncResult[any]{Value: map[string]any{
+	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
 		"info":     response,
 		"currency": code,
 		"network":  nil,
 		"address":  address,
 		"tag":      tag,
-	}}
+	})}
 	return nil
 }
 func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
@@ -2013,7 +2009,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(paramsCost, "createOrder", "operatorId")
 	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
 	paramsOperatorId := operatorIdparamsOperatorIdVariable[1]
-	if !IsEqual(operatorId, nil) {
+	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
@@ -2053,12 +2049,12 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
  * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitvavo) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bitvavo) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2073,7 +2069,7 @@ func (this *Bitvavo) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
+	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePostOrder(request)
 	if r1.Err != nil {
@@ -2121,10 +2117,10 @@ func (this *Bitvavo) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//          "postOnly":false
 	//      }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -2157,7 +2153,7 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 		request["orderId"] = id
 	}
 	var operatorId any = GetValue(this.HandleOptionAndParams(paramsOmitted, "editOrder", "operatorId"), 0)
-	if !IsEqual(operatorId, nil) {
+	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
@@ -2180,12 +2176,12 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitvavo) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitvavo) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2202,7 +2198,7 @@ func (this *Bitvavo) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePutOrder(request)
 	if r1.Err != nil {
@@ -2210,7 +2206,7 @@ func (this *Bitvavo) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]any {
@@ -2232,7 +2228,7 @@ func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
 	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
 	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
-	if !IsEqual(operatorId, nil) {
+	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
@@ -2250,12 +2246,12 @@ func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitvavo) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Bitvavo) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2283,7 +2279,7 @@ func (this *Bitvavo) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -2296,12 +2292,12 @@ func (this *Bitvavo) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2324,17 +2320,17 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
 	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
 	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
-	if !IsEqual(operatorId, nil) {
+	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
 
-	listEp2199 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))
-	if listEp2199.Err != nil {
-		panic(listEp2199.Err)
+	listEp2196 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))
+	if listEp2196.Err != nil {
+		panic(listEp2196.Err)
 	}
-	var response []any = listEp2199.Value
+	var response []any = listEp2196.Value
 
 	//
 	//     [
@@ -2343,7 +2339,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
 	return nil
 }
 
@@ -2357,12 +2353,12 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
  * @returns {object} the api result
  */
-func (this *Bitvavo) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan AsyncResult[any], timeout int64, optionalArgs ...any) any {
+func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any], timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2395,7 +2391,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan AsyncResult[any], timeout 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Raw
+	response := r1.Value
 
 	//
 	//     {
@@ -2403,7 +2399,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan AsyncResult[any], timeout 
 	//         "timeOfExpirySeconds": 17202139111
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: response}
+	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
 
@@ -2417,12 +2413,12 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan AsyncResult[any], timeout 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitvavo) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2488,7 +2484,7 @@ func (this *Bitvavo) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//         "disableMarketProtection":false
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) map[string]any {
@@ -2527,12 +2523,12 @@ func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) map[string]any {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2560,22 +2556,22 @@ func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes193919 []any = ListTyped(r1.Value)
-		if retRes193919 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes193719 []any = r1.Value
+		if retRes193719 == nil {
+			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes193919}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes193719)}
 		}
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.FetchOrdersRequest(symbol, since, limit, paramsPaginate)
 
-	listEp2416 := <-this.PrivateGetOrders(request)
-	if listEp2416.Err != nil {
-		panic(listEp2416.Err)
+	listEp2413 := <-this.PrivateGetOrders(request)
+	if listEp2413.Err != nil {
+		panic(listEp2413.Err)
 	}
-	var response []any = listEp2416.Value
+	var response []any = listEp2413.Value
 
 	//
 	//     [
@@ -2613,7 +2609,7 @@ func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
 }
 
@@ -2628,12 +2624,12 @@ func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2658,11 +2654,11 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		request["market"] = market["id"]
 	}
 
-	listEp2496 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
-	if listEp2496.Err != nil {
-		panic(listEp2496.Err)
+	listEp2493 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
+	if listEp2493.Err != nil {
+		panic(listEp2493.Err)
 	}
-	var response []any = listEp2496.Value
+	var response []any = listEp2493.Value
 
 	//
 	//     [
@@ -2700,7 +2696,7 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
 }
 func (this *Bitvavo) ParseOrderStatus(status *string) *string {
@@ -2861,12 +2857,12 @@ func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) map[string]any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bitvavo) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2894,22 +2890,22 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes221019 []any = ListTyped(r1.Value)
-		if retRes221019 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes220819 []any = r1.Value
+		if retRes220819 == nil {
+			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes221019}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes220819)}
 		}
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.FetchMyTradesRequest(symbol, since, limit, paramsPaginate)
 
-	listEp2732 := <-this.PrivateGetTrades(request)
-	if listEp2732.Err != nil {
-		panic(listEp2732.Err)
+	listEp2729 := <-this.PrivateGetTrades(request)
+	if listEp2729.Err != nil {
+		panic(listEp2729.Err)
 	}
-	var response []any = listEp2732.Value
+	var response []any = listEp2729.Value
 
 	//
 	//     [
@@ -2928,7 +2924,7 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
 }
 
@@ -2945,12 +2941,12 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {int} [params.page] the page number for the transaction history
  * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
  */
-func (this *Bitvavo) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[[]LedgerEntry] {
+	ch := make(chan AsyncResult[[]LedgerEntry], 1)
 	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3011,7 +3007,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...a
 	//
 	var items []any = SafeListTypedDefault(response, "items", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseLedger(items, currency, since, limit)}
+	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(items, currency, since, limit))}
 	return nil
 }
 func (this *Bitvavo) ParseLedgerEntryType(typeVar *string) *string {
@@ -3026,7 +3022,7 @@ func (this *Bitvavo) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var rawType *string = this.SafeString(item, "type")
@@ -3099,18 +3095,23 @@ func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optional
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Bitvavo) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	tagWithdrawTag := func() any {
+		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
@@ -3136,8 +3137,7 @@ func (this *Bitvavo) withdrawBody(ch chan EndpointResult[map[string]any], code s
 	//         "amount": "1.5"
 	//     }
 	//
-	chValue := this.ParseTransaction(response, currency)
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
 func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) map[string]any {
@@ -3153,7 +3153,7 @@ func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) map[string]any
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["symbol"] = GetValue(currency, "id")
+		request["symbol"] = currency["id"]
 	}
 	if since != nil {
 		request["start"] = since
@@ -3175,12 +3175,12 @@ func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) map[string]any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3204,11 +3204,11 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		currency = this.Currency(code)
 	}
 
-	listEp3009 := <-this.PrivateGetWithdrawalHistory(request)
-	if listEp3009.Err != nil {
-		panic(listEp3009.Err)
+	listEp3006 := <-this.PrivateGetWithdrawalHistory(request)
+	if listEp3006.Err != nil {
+		panic(listEp3006.Err)
 	}
-	var response []any = listEp3009.Value
+	var response []any = listEp3006.Value
 
 	//
 	//     [
@@ -3224,9 +3224,9 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit, map[string]any{
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit, map[string]any{
 		"type": "withdrawal",
-	})}
+	}))}
 	return nil
 }
 func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) map[string]any {
@@ -3242,7 +3242,7 @@ func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) map[string]any {
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["symbol"] = GetValue(currency, "id")
+		request["symbol"] = currency["id"]
 	}
 	if since != nil {
 		request["start"] = since
@@ -3264,12 +3264,12 @@ func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3293,11 +3293,11 @@ func (this *Bitvavo) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		currency = this.Currency(code)
 	}
 
-	listEp3091 := <-this.PrivateGetDepositHistory(request)
-	if listEp3091.Err != nil {
-		panic(listEp3091.Err)
+	listEp3088 := <-this.PrivateGetDepositHistory(request)
+	if listEp3088.Err != nil {
+		panic(listEp3088.Err)
 	}
-	var response []any = listEp3091.Value
+	var response []any = listEp3088.Value
 
 	//
 	//     [
@@ -3311,9 +3311,9 @@ func (this *Bitvavo) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit, map[string]any{
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit, map[string]any{
 		"type": "deposit",
-	})}
+	}))}
 	return nil
 }
 func (this *Bitvavo) ParseTransactionStatus(status *string) *string {
@@ -3330,7 +3330,7 @@ func (this *Bitvavo) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitvavo) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
 	//
 	// withdraw
 	//
@@ -3389,7 +3389,7 @@ func (this *Bitvavo) ParseTransaction(transaction any, optionalArgs ...any) map[
 		typeVar = "deposit"
 	}
 	var tag *string = this.SafeString(transaction, "paymentId")
-	return map[string]any{
+	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
@@ -3410,9 +3410,9 @@ func (this *Bitvavo) ParseTransaction(transaction any, optionalArgs ...any) map[
 		"network":     nil,
 		"comment":     nil,
 		"internal":    nil,
-	}
+	})
 }
-func (this *Bitvavo) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
+func (this *Bitvavo) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[string]any {
 	//
 	//   {
 	//       "symbol": "1INCH",
@@ -3469,12 +3469,12 @@ func (this *Bitvavo) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Bitvavo) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitvavo) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]DepositWithdrawFee] {
+	ch := make(chan AsyncResult[map[string]DepositWithdrawFee], 1)
 	go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]DepositWithdrawFee], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -3489,11 +3489,11 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 		}
 	}
 
-	listEp3280 := <-this.PublicGetAssets(params)
-	if listEp3280.Err != nil {
-		panic(listEp3280.Err)
+	listEp3277 := <-this.PublicGetAssets(params)
+	if listEp3277.Err != nil {
+		panic(listEp3277.Err)
 	}
-	var response []any = listEp3280.Value
+	var response []any = listEp3277.Value
 
 	//
 	//   [
@@ -3514,7 +3514,7 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], opti
 	//       },
 	//   ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseDepositWithdrawFees(response, codes, "symbol")}
+	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(response, codes, "symbol"))}
 	return nil
 }
 func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
@@ -3608,7 +3608,6 @@ func (this *Bitvavo) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
 	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
 }
 
 // typed methods
@@ -3643,7 +3642,7 @@ func (this *Bitvavo) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -3684,7 +3683,7 @@ func (this *Bitvavo) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -3708,7 +3707,7 @@ func (this *Bitvavo) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -3736,7 +3735,7 @@ func (this *Bitvavo) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -3753,7 +3752,7 @@ func (this *Bitvavo) FetchTradingFees(params ...any) (TradingFees, error) {
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
 }
 
@@ -3777,7 +3776,7 @@ func (this *Bitvavo) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 	if r.Err != nil {
 		return TradingFeeInterface{}, r.Err
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(r.Value)
+	var res TradingFeeInterface = r.Value
 	return res, nil
 }
 
@@ -3802,7 +3801,7 @@ func (this *Bitvavo) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -3831,7 +3830,7 @@ func (this *Bitvavo) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -3848,7 +3847,7 @@ func (this *Bitvavo) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -3865,7 +3864,7 @@ func (this *Bitvavo) FetchAccounts(params ...any) ([]Account, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Account = NewAccountArray(r.Value)
+	var res []Account = r.Value
 	return res, nil
 }
 
@@ -3894,7 +3893,7 @@ func (this *Bitvavo) Transfer(code string, amount float64, fromAccount string, t
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 
@@ -3922,7 +3921,7 @@ func (this *Bitvavo) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []TransferEntry = NewTransferEntryArray(r.Value)
+	var res []TransferEntry = r.Value
 	return res, nil
 }
 
@@ -3947,7 +3946,7 @@ func (this *Bitvavo) FetchTransfer(id string, options ...FetchTransferOptions) (
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Raw)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 
@@ -3971,7 +3970,7 @@ func (this *Bitvavo) FetchDepositAddress(code string, options ...FetchDepositAdd
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 
@@ -4010,7 +4009,7 @@ func (this *Bitvavo) CreateOrder(symbol string, typeVar string, side string, amo
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -4039,7 +4038,7 @@ func (this *Bitvavo) EditOrder(id string, symbol string, typeVar string, side st
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -4064,7 +4063,7 @@ func (this *Bitvavo) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -4088,7 +4087,7 @@ func (this *Bitvavo) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -4113,7 +4112,7 @@ func (this *Bitvavo) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrd
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -4138,7 +4137,7 @@ func (this *Bitvavo) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -4166,7 +4165,7 @@ func (this *Bitvavo) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -4192,7 +4191,7 @@ func (this *Bitvavo) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -4220,7 +4219,7 @@ func (this *Bitvavo) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -4248,7 +4247,7 @@ func (this *Bitvavo) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []LedgerEntry = NewLedgerEntryArray(r.Value)
+	var res []LedgerEntry = r.Value
 	return res, nil
 }
 
@@ -4275,7 +4274,7 @@ func (this *Bitvavo) Withdraw(code string, amount float64, address string, optio
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Raw)
+	var res Transaction = r.Value
 	return res, nil
 }
 
@@ -4301,7 +4300,7 @@ func (this *Bitvavo) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -4327,7 +4326,7 @@ func (this *Bitvavo) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -4351,537 +4350,6 @@ func (this *Bitvavo) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
 	if r.Err != nil {
 		return DepositWithdrawFees{}, r.Err
 	}
-	var res DepositWithdrawFees = NewDepositWithdrawFees(r.Value)
+	var res DepositWithdrawFees = DepositWithdrawFees{DepositWithdrawFees: r.Value}
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Bitvavo) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Bitvavo) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrders(ids, options...)
-}
-func (this *Bitvavo) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Bitvavo) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Bitvavo) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Bitvavo) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Bitvavo) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.CreateDepositAddress(code, options...)
-}
-func (this *Bitvavo) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Bitvavo) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Bitvavo) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Bitvavo) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Bitvavo) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)
-}
-func (this *Bitvavo) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Bitvavo) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
-}
-func (this *Bitvavo) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Bitvavo) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Bitvavo) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrders(orders, options...)
-}
-func (this *Bitvavo) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Bitvavo) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Bitvavo) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Bitvavo) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Bitvavo) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Bitvavo) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Bitvavo) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Bitvavo) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Bitvavo) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchBidsAsks(options...)
-}
-func (this *Bitvavo) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Bitvavo) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Bitvavo) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
-}
-func (this *Bitvavo) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrders(options...)
-}
-func (this *Bitvavo) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Bitvavo) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Bitvavo) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Bitvavo) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Bitvavo) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Bitvavo) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Bitvavo) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Bitvavo) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Bitvavo) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Bitvavo) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Bitvavo) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Bitvavo) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
-}
-func (this *Bitvavo) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Bitvavo) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Bitvavo) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Bitvavo) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
-	return this.exchangeTyped.FetchFundingRateHistory(options...)
-}
-func (this *Bitvavo) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingRates(options...)
-}
-func (this *Bitvavo) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Bitvavo) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Bitvavo) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Bitvavo) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Bitvavo) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
-	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Bitvavo) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Bitvavo) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
-	return this.exchangeTyped.FetchLeverage(symbol, options...)
-}
-func (this *Bitvavo) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
-	return this.exchangeTyped.FetchLeverages(options...)
-}
-func (this *Bitvavo) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
-	return this.exchangeTyped.FetchLeverageTiers(options...)
-}
-func (this *Bitvavo) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Bitvavo) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Bitvavo) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Bitvavo) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Bitvavo) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Bitvavo) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
-	return this.exchangeTyped.FetchMarginModes(options...)
-}
-func (this *Bitvavo) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Bitvavo) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Bitvavo) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
-}
-func (this *Bitvavo) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Bitvavo) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Bitvavo) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
-func (this *Bitvavo) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Bitvavo) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
-}
-func (this *Bitvavo) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Bitvavo) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Bitvavo) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Bitvavo) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Bitvavo) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Bitvavo) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchOrderTrades(id, options...)
-}
-func (this *Bitvavo) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Bitvavo) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
-	return this.exchangeTyped.FetchPosition(symbol, options...)
-}
-func (this *Bitvavo) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Bitvavo) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
-	return this.exchangeTyped.FetchPositionMode(options...)
-}
-func (this *Bitvavo) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositions(options...)
-}
-func (this *Bitvavo) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Bitvavo) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
-func (this *Bitvavo) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsRisk(options...)
-}
-func (this *Bitvavo) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Bitvavo) FetchStatus(params ...any) (Status, error) {
-	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Bitvavo) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Bitvavo) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Bitvavo) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Bitvavo) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Bitvavo) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Bitvavo) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
-}
-func (this *Bitvavo) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Bitvavo) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Bitvavo) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Bitvavo) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Bitvavo) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Bitvavo) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Bitvavo) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Bitvavo) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Bitvavo) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Bitvavo) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Bitvavo) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Bitvavo) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Bitvavo) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Bitvavo) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Bitvavo) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitvavo) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Bitvavo) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Bitvavo) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Bitvavo) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Bitvavo) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Bitvavo) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Bitvavo) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Bitvavo) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Bitvavo) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Bitvavo) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Bitvavo) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Bitvavo) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Bitvavo) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Bitvavo) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Bitvavo) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Bitvavo) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Bitvavo) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Bitvavo) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Bitvavo) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Bitvavo) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Bitvavo) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Bitvavo) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Bitvavo) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Bitvavo) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Bitvavo) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Bitvavo) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Bitvavo) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Bitvavo) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Bitvavo) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Bitvavo) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Bitvavo) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Bitvavo) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Bitvavo) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Bitvavo) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Bitvavo) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Bitvavo) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Bitvavo) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Bitvavo) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Bitvavo) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Bitvavo) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Bitvavo) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Bitvavo) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Bitvavo) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Bitvavo) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Bitvavo) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Bitvavo) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Bitvavo) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Bitvavo) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Bitvavo) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Bitvavo) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Bitvavo) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

@@ -67,9 +67,10 @@ class bitfinex(ccxt.async_support.bitfinex):
         }
         result = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, {'checksum': False})
         checksum = self.safe_bool(self.options, 'checksum', True)
-        if (checksum is True) and (channel == 'book'):
+        if (checksum) and (channel == 'book'):
             sub = client.subscriptions[messageHash]
-            if (sub is not None) and (sub['checksum'] is not True):
+            subChecksum = self.safe_bool(sub, 'checksum')
+            if (sub is not None) and (subChecksum is not True):
                 client.subscriptions[messageHash]['checksum'] = True
                 await client.send({
                     'event': 'conf',
@@ -103,7 +104,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
 
-    async def subscribe_private(self, messageHash: object):
+    async def subscribe_private(self, messageHash: str):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
@@ -540,7 +541,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #     ]
         #  ]
         #
-        ticker = self.safe_value(message, 1)
+        ticker = self.safe_list(message, 1)
         marketId = self.safe_string(subscription, 'symbol')
         market = self.safe_market(marketId)
         symbol = self.safe_symbol(marketId)
@@ -550,7 +551,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         self.tickers[symbol] = parsed
         client.resolve(parsed, messageHash)
 
-    def parse_ws_ticker(self, ticker: list, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, ticker: list | None, market: Market = None) -> Ticker:
         #
         #     [
         #         236.62,        // 1 BID float Price of last highest bid
@@ -659,27 +660,27 @@ class bitfinex(ccxt.async_support.bitfinex):
                 self.orderbooks[symbol] = self.counted_order_book({}, limit)
             orderbook = self.orderbooks[symbol]
             if isRaw:
-                deltas = message[1]
+                deltas = self.safe_list(message, 1, [])
                 for i in range(0, len(deltas)):
                     delta = deltas[i]
-                    delta2 = delta[2]
-                    size = -delta2 if (delta2 < 0) else delta2
-                    side = 'asks' if (delta2 < 0) else 'bids'
+                    delta2 = self.safe_number(delta, 2)
+                    size = -delta2 if (delta2 is not None and delta2 < 0) else delta2
+                    side = 'asks' if (delta2 is not None and delta2 < 0) else 'bids'
                     bookside = orderbook[side]
                     idString = self.safe_string(delta, 0)
                     price = self.safe_float(delta, 1)
                     bookside.storeArray([price, size, idString])
             else:
-                deltas = message[1]
+                deltas = self.safe_list(message, 1, [])
                 for i in range(0, len(deltas)):
                     delta = self.safe_list(deltas, i)
-                    amount = self.safe_number(delta, 2)
-                    if amount is None:
+                    deltaAmount = self.safe_number(delta, 2)
+                    if deltaAmount is None:
                         continue
                     counter = self.safe_number(delta, 1)
                     price = self.safe_number(delta, 0)
-                    size = -amount if (amount < 0) else amount
-                    side = 'asks' if (amount < 0) else 'bids'
+                    size = -deltaAmount if (deltaAmount < 0) else deltaAmount
+                    side = 'asks' if (deltaAmount < 0) else 'bids'
                     bookside = orderbook[side]
                     bookside.storeArray([price, size, counter])
             orderbook['symbol'] = symbol
@@ -690,9 +691,9 @@ class bitfinex(ccxt.async_support.bitfinex):
             orderbookItem = self.orderbooks[symbol]
             if isRaw:
                 price = self.safe_string(deltas, 1)
-                deltas2 = deltas[2]
-                size = -deltas2 if (deltas2 < 0) else deltas2
-                side = 'asks' if (deltas2 < 0) else 'bids'
+                deltas2 = self.safe_number(deltas, 2)
+                size = -deltas2 if (deltas2 is not None and deltas2 < 0) else deltas2
+                side = 'asks' if (deltas2 is not None and deltas2 < 0) else 'bids'
                 bookside = orderbookItem[side]
                 # price = 0 means that you have to remove the order from your book
                 amount = size if Precise.string_gt(price, '0') else '0'
@@ -735,8 +736,9 @@ class bitfinex(ccxt.async_support.bitfinex):
                 stringArray.append(self.number_to_string(bids[i][1]))
             if ask is not None:
                 stringArray.append(self.number_to_string(asks[i][idToCheck]))
-                aski1 = asks[i][1]
-                stringArray.append(self.number_to_string(-aski1))
+                aski1 = self.safe_number(ask, 1)
+                if aski1 is not None:
+                    stringArray.append(self.number_to_string(-aski1))
         payload = ':'.join(stringArray)
         localChecksum = self.crc32(payload, True)
         responseChecksum = self.safe_integer(message, 2)
@@ -829,7 +831,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         if updateType == 'ws':
             data = self.safe_list(message, 2)
         else:
-            data = [self.safe_value(message, 2)]
+            data = [self.safe_list(message, 2)]
         updatedTypes = {}
         for i in range(0, len(data)):
             rawBalance = data[i]
@@ -849,7 +851,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             messageHash = 'balance:' + type
             client.resolve(self.balance[type], messageHash)
 
-    def parse_ws_balance(self, balance: object):
+    def parse_ws_balance(self, balance: list):
         #
         #     [
         #         "exchange",
@@ -1196,7 +1198,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         #    }
         #
         if isinstance(message, list):
-            if message[1] == 'hb':
+            heartbeat = self.safe_string(message, 1)
+            if heartbeat == 'hb':
                 return  # skip heartbeats within subscription channels for now
             subscription = self.safe_dict(client.subscriptions, channelId, {})
             channel = self.safe_string(subscription, 'channel')

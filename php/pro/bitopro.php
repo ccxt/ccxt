@@ -351,7 +351,7 @@ class bitopro extends \ccxt\async\bitopro {
         $isMaker = $this->safe_bool($trade, 'isMaker');
         $takerOrMaker = null;
         if ($isMaker !== null) {
-            if ($isMaker === true) {
+            if ($isMaker) {
                 $takerOrMaker = 'maker';
             } else {
                 $takerOrMaker = 'taker';
@@ -519,11 +519,18 @@ class bitopro extends \ccxt\async\bitopro {
         $timestamp = $this->safe_integer($message, 'timestamp');
         $datetime = $this->safe_string($message, 'datetime');
         $currencies = is_array($data) ? array_keys($data) : array();
-        $result = array(
-            'info' => $data,
-            'timestamp' => $timestamp,
-            'datetime' => $datetime,
-        );
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $this->balance['info'] = $data;
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $datetime;
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $this->safe_string($currencies, $i);
             $balance = $this->safe_dict($data, $currency, array());
@@ -533,10 +540,10 @@ class bitopro extends \ccxt\async\bitopro {
             $account['free'] = $this->safe_string($balance, 'available');
             $account['total'] = $this->safe_string($balance, 'amount');
             if ($code !== null) {
-                $result[$code] = $account;
+                $this->balance[$code] = $account;
             }
         }
-        $this->balance = $this->safe_balance($result);
+        $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, $event);
     }
 

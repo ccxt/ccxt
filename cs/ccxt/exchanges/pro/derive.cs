@@ -133,7 +133,7 @@ public partial class derive : ccxt.derive
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            object subscription = ((topic == null)) ? null : getValue(client.subscriptions, topic);
+            object subscription = ((topic == null)) ? null : (client.subscriptions != null && topic != null && client.subscriptions.ContainsKey(topic) ? client.subscriptions[topic] : null);
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
@@ -585,11 +585,9 @@ public partial class derive : ccxt.derive
             Int64 requestId = this.requestId(url);
             string? now = this.numberToString(this.nonce());
             string signature = this.signMessage(now, this.privateKey);
-            string? deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
-            if (((deriveWalletAddress == null)) || (deriveWalletAddress == ""))
-            {
-                deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
-            }
+            string? configuredWalletAddress = this.safeString(this.options, "deriveWalletAddress");
+            // v3: the owner wallet is the user's own EOA
+            string? deriveWalletAddress = (((configuredWalletAddress == null)) || (configuredWalletAddress == "")) ? this.walletAddress : configuredWalletAddress;
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", requestId },
                 { "method", "public/login" },
@@ -1114,12 +1112,7 @@ public partial class derive : ccxt.derive
         {
             this.balance = new Dictionary<string, object>() {};
         }
-        IDictionary<string, object> subBalance = this.safeDict(this.balance, subaccountIdKey);
-        if ((subBalance == null))
-        {
-            Dictionary<string, object> emptySubBalance = new Dictionary<string, object>() {};
-            subBalance = emptySubBalance;
-        }
+        IDictionary<string, object> subBalance = this.safeDict(this.balance, subaccountIdKey, new Dictionary<string, object>() {});
         bool updated = false;
         List<object> positionUpdates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
@@ -1166,7 +1159,7 @@ public partial class derive : ccxt.derive
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // {
@@ -1176,7 +1169,7 @@ public partial class derive : ccxt.derive
         //
         if (!((message != null && ((IDictionary<string, object>)message).ContainsKey("error"))))
         {
-            return ((bool?)((object)(false)));
+            return false;
         }
         IDictionary<string, object> errorMessage = this.safeDict(message, "error");
         string? errorCode = this.safeString(errorMessage, "code");
@@ -1188,7 +1181,7 @@ public partial class derive : ccxt.derive
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
                 throw new ExchangeError (feedback) ;
             }
-            return ((bool?)((object)(false)));
+            return false;
         } catch(Exception error)
         {
             if (error is AuthenticationError)
@@ -1203,13 +1196,13 @@ public partial class derive : ccxt.derive
             {
                 client.reject(error);
             }
-            return ((bool?)((object)(true)));
+            return true;
         }
     }
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }

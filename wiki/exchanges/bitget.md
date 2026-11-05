@@ -9,6 +9,7 @@
 * [enableDemoTrading](#enabledemotrading)
 * [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
+* [parseMarket](#parsemarket)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarketLeverageTiers](#fetchmarketleveragetiers)
 * [fetchDeposits](#fetchdeposits)
@@ -168,10 +169,30 @@ retrieves data on all markets for bitget
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock markets |
 
 
 ```javascript
 bitget.fetchMarkets (params?)
+```
+
+
+<a name="parseMarket" id="parsemarket"></a>
+
+### parseMarket{docsify-ignore}
+parses a classic or uta instrument into a unified market
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [market structure](https://docs.ccxt.com/?id=market-structure)
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| market | <code>object</code> | the exchange instrument |
+
+
+```javascript
+bitget.parseMarket (market)
 ```
 
 
@@ -403,6 +424,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 - https://www.bitget.com/api-doc/spot/market/Get-Orderbook
 - https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
 - https://www.bitget.com/api-doc/uta/public/OrderBook
+- https://www.bitget.com/api-doc/uta/reality/market/Reality-OrderBook
 
 
 | Param | Type | Required | Description |
@@ -486,6 +508,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock tickers |
 | params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 
@@ -510,6 +533,7 @@ get the list of most recent trades for a particular symbol
 - https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
 - https://www.bitget.com/api-doc/contract/market/Get-Fills-History
 - https://www.bitget.com/api-doc/uta/public/Fills
+- https://www.bitget.com/api-doc/uta/reality/market/Reality-Fills
 
 
 | Param | Type | Required | Description |
@@ -648,6 +672,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.uta | <code>string</code> | No | set to true for the unified trading account (uta), defaults to false |
 | params.type | <code>string</code> | No | 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot') |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock account balances |
 
 
 ```javascript
@@ -701,6 +726,7 @@ create a trade order
 - https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
 - https://www.bitget.com/api-doc/uta/trade/Place-Order
 - https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+- https://www.bitget.com/api-doc/uta/reality/trade/Place-Reality-Order
 
 
 | Param | Type | Required | Description |
@@ -839,6 +865,7 @@ cancels an open order
 - https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
 - https://www.bitget.com/api-doc/uta/trade/Cancel-Order
 - https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+- https://www.bitget.com/api-doc/uta/reality/trade/Cancel-Reality-Order
 
 
 | Param | Type | Required | Description |
@@ -2526,6 +2553,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 | params.instType | <code>string</code> | No | one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.marginMode | <code>string</code> | No | 'isolated' or 'cross' for watching spot margin balances |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true for tokenized stock balances, defaults to false |
 
 
 ```javascript

@@ -568,9 +568,6 @@ class toobit extends Exchange {
     private function do_fetch_status($params = array()) {
         /**
          * the latest known information on the availability of the exchange API
-         *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
-         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
@@ -834,8 +831,9 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $response = $this->safe_dict($this->options, 'exchangeInfo');
-        if ($response !== null) {
+        $cachedInfo = $this->safe_dict($this->options, 'exchangeInfo');
+        $response = $cachedInfo;
+        if ($cachedInfo !== null) {
             $this->options['exchangeInfo'] = null; // reset it to avoid using old cached data
         } else {
             $response = Async\await($this->commonGetApiV1ExchangeInfo($params));
@@ -1206,18 +1204,11 @@ class toobit extends Exchange {
         $isBuyer = $this->safe_bool($trade, 'isBuyer');
         $side = null;
         $isBuyerMaker = $this->safe_bool($trade, 'ibm');
-        if ($isBuyerMaker === null) {
-            $isBuyerTaker = $this->safe_bool($trade, 'm');
-            if ($isBuyerTaker !== null) {
-                $isBuyerMaker = !$isBuyerTaker;
-            }
-        }
+        $isBuyerTaker = $this->safe_bool($trade, 'm');
         if ($isBuyerMaker !== null) {
-            if ($isBuyerMaker) {
-                $side = 'sell';
-            } else {
-                $side = 'buy';
-            }
+            $side = ($isBuyerMaker === true) ? 'sell' : 'buy';
+        } elseif ($isBuyerTaker !== null) {
+            $side = ($isBuyerTaker === true) ? 'buy' : 'sell';
         } else {
             if ($isBuyer === true) {
                 $side = 'buy';
@@ -1306,8 +1297,11 @@ class toobit extends Exchange {
         } elseif ($isPriceKlines && ($since !== null)) {
             // mark and index klines walk backwards from `to` and ignore a lone `from`
             $duration = $this->parse_timeframe($timeframe);
-            $requestedLimit = ($limit === null) ? 2000 : $limit; // exchange default
-            $request['to'] = $this->sum($since, $duration * $requestedLimit * 1000);
+            if ($limit === null) {
+                $request['to'] = $this->sum($since, $duration * 2000 * 1000); // exchange default limit
+            } else {
+                $request['to'] = $this->sum($since, $duration * $limit * 1000);
+            }
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1473,9 +1467,10 @@ class toobit extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $last = $this->safe_string($ticker, 'c');
         $baseVolume = $this->safe_string($ticker, 'v');
-        if (($marketResolved['contract'] === true) && ($marketResolved['contractSize'] !== null)) {
+        $contractSize = $this->safe_number($marketResolved, 'contractSize');
+        if (($marketResolved['contract'] === true) && ($contractSize !== null)) {
             // 'v' counts contracts, and a ticker reports base volume
-            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($marketResolved['contractSize']));
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($contractSize));
         }
         return $this->safe_ticker(array(
             'symbol' => $marketResolved['symbol'],
@@ -1511,7 +1506,7 @@ class toobit extends Exchange {
          * fetches the last price for multiple markets
          *
          * @see https://api-docs.toobit.com/api/spot-$market-data.html#symbol-price-ticker
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#symbol-price-ticker
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1563,7 +1558,7 @@ class toobit extends Exchange {
          * fetches the bid and ask price and volume for multiple markets
          *
          * @see https://api-docs.toobit.com/api/spot-$market-data.html#symbol-order-book-ticker
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#symbol-order-book-ticker
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1604,7 +1599,7 @@ class toobit extends Exchange {
             $results[] = $ticker;
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
 
     public function parse_bid_ask_custom(array $ticker): array {
@@ -1909,7 +1904,7 @@ class toobit extends Exchange {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
         list($isPostOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsCost);
-        if ($isPostOnly === true) {
+        if ($isPostOnly) {
             $request['type'] = 'LIMIT_MAKER';
         } else {
             $request['type'] = strtoupper($type);
@@ -1948,7 +1943,7 @@ class toobit extends Exchange {
             $request['priceType'] = 'MARKET';
         }
         list($isPostOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsReduceOnly);
-        if ($isPostOnly === true) {
+        if ($isPostOnly) {
             $request['timeInForce'] = 'LIMIT_MAKER';
         }
         $values = $this->handle_trigger_prices_and_params($symbol, $paramsPostOnly);
@@ -1967,7 +1962,7 @@ class toobit extends Exchange {
         );
         if ($hasStopLoss) {
             $request['stopLoss'] = $this->safe_value($stopLoss, 'triggerPrice');
-            $limitPrice = $this->safe_value($stopLoss, 'price');
+            $limitPrice = $this->safe_string($stopLoss, 'price');
             if ($limitPrice !== null) {
                 $request['slOrderType'] = 'LIMIT';
                 $request['slLimitPrice'] = $this->price_to_precision($symbol, $limitPrice);
@@ -1979,7 +1974,7 @@ class toobit extends Exchange {
         }
         if ($hasTakeProfit) {
             $request['takeProfit'] = $this->safe_value($takeProfit, 'triggerPrice');
-            $limitPrice = $this->safe_value($takeProfit, 'price');
+            $limitPrice = $this->safe_string($takeProfit, 'price');
             if ($limitPrice !== null) {
                 $request['tpOrderType'] = 'LIMIT';
                 $request['tpLimitPrice'] = $this->price_to_precision($symbol, $limitPrice);
@@ -2072,10 +2067,8 @@ class toobit extends Exchange {
             }
             $rawSideLower = $this->safe_string($sideParts, 0);
         }
+        // omitZero already maps '0.0' to undefined
         $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
-        if ($triggerPrice === '0.0') {
-            $triggerPrice = null;
-        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'orderId'),
@@ -2106,7 +2099,7 @@ class toobit extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'PENDING_NEW' => 'open',
             'NEW' => 'open',
@@ -2122,7 +2115,7 @@ class toobit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $status) {
+    public function parse_order_type(?string $status): ?string {
         $statuses = array(
             'MARKET' => 'market',
             'LIMIT' => 'limit',
@@ -2989,7 +2982,7 @@ class toobit extends Exchange {
         return $this->filter_by_currency_since_limit($sorted, $currencyCode, $since, $limit);
     }
 
-    public function parse_transaction_with_type(array $transaction, ?array $currency = null, ?string $transactType = null) {
+    public function parse_transaction_with_type(array $transaction, ?array $currency = null, ?string $transactType = null): array {
         $result = $this->parse_transaction($transaction, $currency);
         if ($transactType !== null) {
             $result['type'] = $transactType;
@@ -3081,7 +3074,7 @@ class toobit extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status, ?string $type = null) {
+    public function parse_transaction_status(?string $status, ?string $type = null): ?string {
         $statusesByType = array(
             'deposit' => array(
                 '2' => 'ok', // DEPOSIT_CAN_WITHDRAW
@@ -3421,7 +3414,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {

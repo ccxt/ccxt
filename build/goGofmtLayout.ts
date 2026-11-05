@@ -505,10 +505,12 @@ function goVisitLayout (n: GoNode | null, depth: number, out: GoLayout) {
 }
 
 // one simple statement (go/printer stmt(): assignments are depth 1, or 2 when both sides are lists)
-function goLayoutSimpleStmt (parser: GoLineParser, out: GoLayout) {
+// `base` is the expression depth the statement starts at: 1 for a whole statement, deeper
+// for a line that continues one already inside brackets (a called multi-line func literal)
+function goLayoutSimpleStmt (parser: GoLineParser, out: GoLayout, base: number = 1) {
     if (parser.is ('range')) {
         parser.p += 1;
-        goVisitLayout (parser.parseExpr (), 1, out);
+        goVisitLayout (parser.parseExpr (), base, out);
         return;
     }
     const lhs = parser.parseExprList ();
@@ -524,27 +526,27 @@ function goLayoutSimpleStmt (parser: GoLineParser, out: GoLayout) {
         }
         const depth = (lhs.length > 1 && rhs.length > 1) ? 2 : 1;
         for (const x of lhs.concat (rhs)) {
-            goVisitLayout (x, depth, out);
+            goVisitLayout (x, Math.max (depth, base), out);
         }
     } else if (parser.is ('++') || parser.is ('--')) {
         parser.p += 1;
-        goVisitLayout (lhs[0], 2, out);
+        goVisitLayout (lhs[0], Math.max (2, base), out);
     } else if (parser.is ('<-')) {
         parser.p += 1;
-        goVisitLayout (lhs[0], 1, out);
-        goVisitLayout (parser.parseExpr (), 1, out);
+        goVisitLayout (lhs[0], base, out);
+        goVisitLayout (parser.parseExpr (), base, out);
     } else if (parser.is (':') && lhs.length === 1) {
         parser.p += 1;                        // a `key: value` element of a composite literal body
-        goVisitLayout (lhs[0], 1, out);
+        goVisitLayout (lhs[0], base, out);
         if (!parser.atEnd ()) {
-            goVisitLayout (parser.is ('{') ? parser.parseCompositeBody () : parser.parseExpr (), 1, out);
+            goVisitLayout (parser.is ('{') ? parser.parseCompositeBody () : parser.parseExpr (), base, out);
             if (parser.is (',')) {
                 parser.p += 1;
             }
         }
     } else {
         for (const x of lhs) {
-            goVisitLayout (x, 1, out);
+            goVisitLayout (x, base, out);
         }
     }
 }
@@ -564,8 +566,46 @@ function goLayoutHeader (parser: GoLineParser, out: GoLayout) {
     parser.expect ('{');
 }
 
-function goLayoutStatement (toks: GoTok[]): GoLayout | null {
+function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
     const out: GoLayout = { 'blank': new Map (), 'colon': new Map () };
+    // `}(args) + x`: a multi-line func literal being called, so the line continues an
+    // expression. The `}` closes the literal and is its operand, so swap in a stand-in
+    // identifier and lay the line out as the expression it is; token indices are unchanged.
+    if ((toks.length > 1) && (toks[0].kind === 'op') && (toks[0].text === '}') &&
+            (toks[1].kind === 'op') && (toks[1].text === '(')) {
+        const shim = toks.slice ();
+        shim[0] = { 'kind': 'id', 'text': '_', 'start': toks[0].start, 'end': toks[0].end };
+        // the line may also close a control header whose condition is that call
+        // (`}(args)) {`); drop the trailing brace and any paren opened on an earlier
+        // line, so what is left is exactly one balanced expression
+        let end = shim.length;
+        if ((end > 1) && (shim[end - 1].kind === 'op') && (shim[end - 1].text === '{')) {
+            end -= 1;
+        }
+        let depth = 0;
+        for (let k = 0; k < end; k++) {
+            const t = shim[k];
+            if (t.kind !== 'op') {
+                continue;
+            }
+            if ((t.text === '(') || (t.text === '[')) {
+                depth += 1;
+            } else if ((t.text === ')') || (t.text === ']')) {
+                depth -= 1;
+                if (depth < 0) {          // closes a bracket from an earlier line
+                    end = k;
+                    break;
+                }
+            }
+        }
+        const parser = new GoLineParser (shim.slice (0, end));
+        try {
+            goLayoutSimpleStmt (parser, out, base);
+            return parser.atEnd () ? out : null;
+        } catch (e) {
+            return null;
+        }
+    }
     const parser = new GoLineParser (toks);
     try {
         if (parser.is ('}')) {
@@ -651,19 +691,87 @@ function goApplyLayout (line: string, toks: GoTok[], layout: GoLayout): string {
     return out;
 }
 
+// number of comma-separated entries in the bracket frame opened at `open`, looking past the
+// end of the line when the frame stays open: 1 for a single argument, 0 when it is empty.
+// `rest` is the source from `open` onwards, so a multi-line argument list is counted whole.
+function goCountFrameArgs (rest: string, open: number): number {
+    let depth = 0;
+    let entries = 0;
+    let seen = false;
+    for (let i = open + 1; i < rest.length; i++) {
+        const c = rest[i];
+        if (c === '"' || c === '\'' || c === '`') {
+            let j = i + 1;
+            while (j < rest.length && rest[j] !== c) {
+                j += (rest[j] === '\\') ? 2 : 1;
+            }
+            i = j;
+            seen = true;
+        } else if (c === '/' && rest[i + 1] === '/') {
+            const nl = rest.indexOf ('\n', i);
+            if (nl < 0) {
+                break;
+            }
+            i = nl;
+        } else if (c === '(' || c === '[' || c === '{') {
+            depth += 1;
+        } else if (c === ')' || c === ']' || c === '}') {
+            if (depth === 0) {
+                return (seen || entries > 0) ? entries + 1 : 0;
+            }
+            depth -= 1;
+            seen = true;
+        } else if (c === ',' && depth === 0) {
+            entries += 1;
+        } else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
+            seen = true;
+        }
+    }
+    return (seen || entries > 0) ? entries + 1 : 0;
+}
+
 // per line: true when the line starts inside a `{` body (a block or a composite literal, not a
-// struct/interface type) and outside any raw string or block comment
-function goLayoutLineContexts (lines: string[]): boolean[] {
+// struct/interface type) and outside any raw string or block comment, plus the bracket depth
+// each line starts at
+function goLayoutLineContexts (lines: string[]): { 'inBody': boolean[], 'depths': number[] } {
     const result: boolean[] = [];
+    const depths: number[] = [];
     const stack: string[] = [];
     let inRaw = false;
     let inBlockComment = false;
     let lastSignificant = '';
     let lastWord = '';
     let continued = false;
+    // offset of each line in `joined`, so a frame's argument list can be scanned across lines
+    const joined = lines.join ('\n');
+    const lineStart: number[] = [];
+    let at = 0;
     for (const line of lines) {
+        lineStart.push (at);
+        at += line.length + 1;
+    }
+    for (let ln = 0; ln < lines.length; ln++) {
+        const line = lines[ln];
         const top = stack[stack.length - 1];
         result.push (!inRaw && !inBlockComment && !continued && top === '{');
+        // brackets still open under the innermost block: a line continuing an expression
+        // from inside them starts that many levels deep, as go/printer counts depth. Only
+        // multi-argument call parens add a level, matching goCountFrameArgsText. A line
+        // closing a func literal starts at the literal's own `{`, so that frame is skipped.
+        let open = 0;
+        let top2 = stack.length - 1;
+        if ((top2 >= 0) && (stack[top2] === '{') && line.trimStart ().startsWith ('}')) {
+            top2 -= 1;
+        }
+        for (let s = top2; s >= 0; s--) {
+            if (stack[s] === '{' || stack[s] === 'T') {
+                break;
+            }
+            if (stack[s] !== 'g') {
+                open += 1;
+            }
+        }
+        depths.push (open);
         const startedInside = inRaw || inBlockComment;
         for (let i = 0; i < line.length; i++) {
             const c = line[i];
@@ -702,7 +810,14 @@ function goLayoutLineContexts (lines: string[]): boolean[] {
                 continue;
             }
             if (c === '(' || c === '[') {
-                stack.push (c);
+                // go/printer adds a level for a `[` and for a call paren with more than one
+                // argument; a grouping paren or a one-argument call keeps the level
+                let adds = (c === '[');
+                if (c === '(') {
+                    const isCall = (i > 0) && /[A-Za-z0-9_)\]}"'`]/.test (line.slice (0, i).replace (/[ \t]+$/, '').slice (-1));
+                    adds = isCall && (goCountFrameArgs (joined, lineStart[ln] + i) > 1);
+                }
+                stack.push (adds ? c : 'g');
             } else if (c === '{') {
                 stack.push ((lastWord === 'struct' || lastWord === 'interface') ? 'T' : '{');
             } else if (c === ')' || c === ']' || c === '}') {
@@ -720,19 +835,20 @@ function goLayoutLineContexts (lines: string[]): boolean[] {
                 }
             }
         }
-        // a line ending in an operator or a separator continues its expression on the next line
-        continued = startedInside || inRaw || inBlockComment || /[-+*/%&|^<>=!,.:]/.test (lastSignificant);
+        // a line ending in an operator or a separator continues its expression on the next
+        // line, except a trailing comma directly inside a `{` body: there each element is
+        // laid out on its own, as go/printer walks composite literal elements separately
+        const elementComma = (lastSignificant === ',') && (stack[stack.length - 1] === '{');
+        continued = startedInside || inRaw || inBlockComment ||
+            (!elementComma && /[-+*/%&|^<>=!,.:]/.test (lastSignificant));
     }
-    return result;
+    return { 'inBody': result, 'depths': depths };
 }
 
 export function goGofmtBinarySpacing (content: string): string {
     const lines = content.split ('\n');
-    const inBody = goLayoutLineContexts (lines);
+    const ctx = goLayoutLineContexts (lines);
     for (let l = 0; l < lines.length; l++) {
-        if (!inBody[l]) {
-            continue;
-        }
         const toks = goLexLine (lines[l]);
         if (toks === null) {
             continue;
@@ -741,7 +857,15 @@ export function goGofmtBinarySpacing (content: string): string {
         if (code.length === 0) {
             continue;
         }
-        const layout = goLayoutStatement (code);
+        // a called multi-line func literal continues the expression it sits in, so it is laid
+        // out at the depth of the brackets still open around it, plus one for the literal's
+        // own frame; every other line is a statement of its own and starts in a block body
+        const literalCall = (code.length > 1) && (code[0].kind === 'op') && (code[0].text === '}') &&
+            (code[1].kind === 'op') && (code[1].text === '(');
+        if (!ctx.inBody[l] && !literalCall) {
+            continue;
+        }
+        const layout = goLayoutStatement (code, literalCall ? ctx.depths[l] + 1 : 1);
         if (layout !== null && (layout.blank.size > 0 || layout.colon.size > 0)) {
             lines[l] = goApplyLayout (lines[l], toks, layout);
         }

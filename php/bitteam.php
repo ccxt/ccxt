@@ -470,7 +470,7 @@ class bitteam extends Exchange {
         $minCost = null;
         $currenciesValuedInUsd = $this->handle_option('fetchMarkets', 'currenciesValuedInUsd', array());
         $quoteInUsd = $this->safe_bool($currenciesValuedInUsd, $quote, false);
-        if ($quoteInUsd === true) {
+        if ($quoteInUsd) {
             $settings = $this->safe_dict($market, 'settings', array());
             $minCost = $this->safe_number($settings, 'limit_usd');
         }
@@ -1379,7 +1379,7 @@ class bitteam extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'accepted' => 'open',
             'executed' => 'closed',
@@ -1401,7 +1401,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_value_to_pricision(array $valueObject, string $valueKey, ?array $preciseObject, string $precisionKey) {
+    public function parse_value_to_pricision(array $valueObject, string $valueKey, ?array $preciseObject, string $precisionKey): ?string {
         $valueRawString = $this->safe_string($valueObject, $valueKey);
         $precisionRawString = $this->safe_string($preciseObject, $precisionKey);
         if ($valueRawString === null || $precisionRawString === null) {
@@ -2418,7 +2418,7 @@ class bitteam extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'approving' => 'pending',
             'success' => 'ok',
@@ -2426,7 +2426,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);

@@ -74,7 +74,7 @@ public partial class pacifica : ccxt.pacifica
             headers["PF-API-KEY"] = key;
         } else
         {
-            if (!isEqual(this.handleOption("setupApiKeyHeaders", "apiKey"), null))
+            if (!(this.handleOption("setupApiKeyHeaders", "apiKey") == null))
             {
                 headers["PF-API-KEY"] = (this.options.ContainsKey("apiKey") ? this.options["apiKey"] : null);
             }
@@ -121,7 +121,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -217,7 +217,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -290,7 +290,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -334,7 +334,7 @@ public partial class pacifica : ccxt.pacifica
             string? orderId = this.safeString(order, "i");
             string? clientOrderId = this.safeString(order, "I");
             string? status = null;
-            if (((error != null)) || ((success != true)))
+            if (((error != null)) || (success != true))
             {
                 status = "closed";
             } else
@@ -386,7 +386,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -455,7 +455,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -506,7 +506,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -553,7 +553,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -673,7 +673,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -717,7 +717,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -766,7 +766,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -819,7 +819,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -967,7 +967,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -1015,7 +1015,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -1192,7 +1192,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -1243,7 +1243,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -1345,7 +1345,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -1395,7 +1395,7 @@ public partial class pacifica : ccxt.pacifica
         {
             urlKey = "test";
         }
-        string? url = this.safeString(getValue(getValue(this.urls, urlKey), "ws"), "public");
+        string? url = this.safeString(getValue((this.urls != null && urlKey != null && ((IDictionary<string, object>)this.urls).ContainsKey(urlKey) ? ((IDictionary<string, object>)this.urls)[urlKey] : null), "ws"), "public");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
@@ -1652,7 +1652,7 @@ public partial class pacifica : ccxt.pacifica
         //     }
         // }
         //
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -1684,7 +1684,7 @@ public partial class pacifica : ccxt.pacifica
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (getIndexOf(topic, keys[i]) >= 0)
+            if ((topic?.IndexOf((string)keys[i], StringComparison.Ordinal) ?? -1) >= 0)
             {
                 object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

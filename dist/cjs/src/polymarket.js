@@ -386,7 +386,7 @@ class polymarket extends polymarket$1["default"] {
         //
         const cancelOnly = this.safeBool(response, 'cancel_only', false);
         return {
-            'status': (cancelOnly === true) ? 'maintenance' : 'ok',
+            'status': (cancelOnly) ? 'maintenance' : 'ok',
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -878,7 +878,7 @@ class polymarket extends polymarket$1["default"] {
         const isTaker = this.safeBool(trade, 'taker');
         let takerOrMaker = undefined;
         if (isTaker !== undefined) {
-            takerOrMaker = (isTaker === true) ? 'taker' : 'maker';
+            takerOrMaker = (isTaker) ? 'taker' : 'maker';
         }
         const feeCost = this.safeString(trade, 'fee');
         let fee = undefined;
@@ -1013,7 +1013,7 @@ class polymarket extends polymarket$1["default"] {
         const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetInfoTickers(params);
         const result = this.parseFundingRates(response);
-        return this.filterByArray(result, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(result, 'symbol', symbolsNormalized, false), 'symbol');
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -1154,7 +1154,7 @@ class polymarket extends polymarket$1["default"] {
         const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetInfoTickers(params);
         const result = this.parseOpenInterests(response);
-        return this.filterByArray(result, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(result, 'symbol', symbolsNormalized, false), 'symbol');
     }
     parseOpenInterest(interest, market = undefined) {
         //
@@ -1285,7 +1285,7 @@ class polymarket extends polymarket$1["default"] {
         if (price !== undefined) {
             priceString = this.priceToPrecision(symbol, price);
         }
-        const reduceOnlyValue = (reduceOnly === true) ? true : undefined;
+        const reduceOnlyValue = (reduceOnly) ? true : undefined;
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
@@ -1697,7 +1697,7 @@ class polymarket extends polymarket$1["default"] {
         const isBuy = this.safeBool(order, 'buy');
         let side = undefined;
         if (isBuy !== undefined) {
-            side = (isBuy === true) ? 'buy' : 'sell';
+            side = (isBuy) ? 'buy' : 'sell';
         }
         const price = this.omitZero(this.safeString2(order, 'price', 'p'));
         let type = undefined;
@@ -1856,7 +1856,7 @@ class polymarket extends polymarket$1["default"] {
         const isCross = this.safeBool(position, 'cross');
         let marginMode = undefined;
         if (isCross !== undefined) {
-            marginMode = (isCross === true) ? 'cross' : 'isolated';
+            marginMode = (isCross) ? 'cross' : 'isolated';
         }
         const timestamp = this.safeInteger(position, 'timestamp');
         const roe = this.safeString(position, 'return_on_equity');
@@ -2377,7 +2377,7 @@ class polymarket extends polymarket$1["default"] {
         const isCross = this.safeBool(leverage, 'cross');
         let marginMode = undefined;
         if (isCross !== undefined) {
-            marginMode = (isCross === true) ? 'cross' : 'isolated';
+            marginMode = (isCross) ? 'cross' : 'isolated';
         }
         const value = this.safeInteger(leverage, 'leverage');
         return {

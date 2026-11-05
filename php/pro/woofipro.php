@@ -379,8 +379,9 @@ class woofipro extends \ccxt\async\woofipro {
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->parse_ws_bid_ask($this->extend($data[$i], array( 'ts' => $timestamp )));
-            if ($ticker['symbol'] !== null) {
-                $this->tickers[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $this->tickers[$tickerSymbol] = $ticker;
             }
             $result[] = $ticker;
         }
@@ -744,7 +745,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $topic = 'executionreport';
-        if ($trigger === true) {
+        if ($trigger) {
             $topic = 'algoexecutionreport';
         }
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
@@ -793,7 +794,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $topic = 'executionreport';
-        if ($trigger === true) {
+        if ($trigger) {
             $topic = 'algoexecutionreport';
         }
         $paramsOmitted = $this->omit($params, 'stop');
@@ -1368,7 +1369,7 @@ class woofipro extends \ccxt\async\woofipro {
         $client->resolve($this->balance, 'balance');
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //

@@ -376,8 +376,8 @@ impl PolymarketCore {
         let mut willSend: bool = false;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_623: bool = true;
-            while { if !__for_first_623 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_623 = false; i.as_f64().unwrap_or(f64::NAN) < ((hashesToCheck.len() as i64) as f64) } {
+            let mut __for_first_627: bool = true;
+            while { if !__for_first_627 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_627 = false; i.as_f64().unwrap_or(f64::NAN) < ((hashesToCheck.len() as i64) as f64) } {
             if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &hashesToCheck.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))) {
                 willSend = true;
             }
@@ -406,7 +406,7 @@ impl PolymarketCore {
             m
         });
         let mut pending: Value = self.extend(basePending, &[context]);
-        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("req:".into()), to_string_val(&id)).into()), pending);
+        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), pending);
         return self.extend(request, &[params]);
 
     Value::Null
@@ -478,6 +478,8 @@ impl PolymarketCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "book::1",
@@ -492,23 +494,23 @@ impl PolymarketCore {
         //
         // every frame is a full snapshot of the top twenty levels, deltas are never sent
         //
-        let mut ch: Value = self.safe_string_k(message.clone(), "ch", &[Value::Str("".into())]);
-        let mut parts: Value = split(&ch, &Value::Str("::".into()));
+        let mut ch: Value = (match message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
+        let mut parts: Value = Value::Array(ch.as_str().map(|__s| __s.split("::").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut marketId: Value = self.safe_string(parts, Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut snapshot: Value = self.parse_order_book(data, symbol.clone(), &[timestamp, Value::Str("b".into()), Value::Str("a".into())]);
-        add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), self.safe_integer_k(message, "sq", &[]));
-        if !(in_op(&self.orderbooks, &symbol)) {
+        add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), (match message.get("sq") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut ob: Value = self.order_book(&[snapshot.clone()]);
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
         }
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         orderbook.reset(snapshot);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         client.resolve(&[orderbook, messageHash]);
@@ -595,27 +597,27 @@ impl PolymarketCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut channels: Value = Value::from(vec![]);
+        let mut channels: Vec<Value> = Vec::new();
         if (symbolsNormalized == Value::Null) {
-            append_to_array(&mut messageHashes, Value::Str("tickers".into()));
-            append_to_array(&mut channels, Value::Str("tickers::all".into()));
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str("tickers".into())); }
+            channels.push(Value::Str("tickers::all".into()));
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_624: bool = true;
-                while { if !__for_first_624 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_624 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_628: bool = true;
+                while { if !__for_first_628 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_628 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
-                append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str("tickers::".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
+                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
+                channels.push(Value::Str(format!("{}{}", Value::Str("tickers::".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
             }
             }
         }
-        let mut request: Value = self.send_subscription(Value::Str("sub".into()), channels, messageHashes.clone(), messageHashes.clone(), &[Value::Map({
+        let mut request: Value = self.send_subscription(Value::Str("sub".into()), Value::from(channels), messageHashes.clone(), messageHashes.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), params]);
         let mut newTicker: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -629,6 +631,8 @@ impl PolymarketCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "tickers::1",
@@ -647,14 +651,14 @@ impl PolymarketCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut marketId: Value = self.safe_string_k(data.clone(), "iid", &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_k(message, "ts", &[]);
+        let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut ticker: Value = self.safe_ticker(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -691,22 +695,22 @@ impl PolymarketCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut channels: Value = Value::from(vec![]);
+        let mut channels: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_625 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_629: bool = true;
+            while { if !__for_first_629 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_629 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str("bbo::".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
+            channels.push(Value::Str(format!("{}{}", Value::Str("bbo::".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
         }
         }
-        let mut request: Value = self.send_subscription(Value::Str("sub".into()), channels, messageHashes.clone(), messageHashes.clone(), &[Value::Map({
+        let mut request: Value = self.send_subscription(Value::Str("sub".into()), Value::from(channels), messageHashes.clone(), messageHashes.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), params]);
         let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -720,6 +724,8 @@ impl PolymarketCore {
 }
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "bbo::1",
@@ -735,14 +741,14 @@ impl PolymarketCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut marketId: Value = self.safe_string_k(data.clone(), "iid", &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_k(message, "ts", &[]);
+        let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut ticker: Value = self.safe_ticker(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -789,7 +795,7 @@ impl PolymarketCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut limitResolved: Value = limit;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved, limitResolved.clone());
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -831,6 +837,8 @@ impl PolymarketCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "trades::1",
@@ -851,7 +859,7 @@ impl PolymarketCore {
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        let mut data: Value = self.safe_value_k(message, "data", &[]);
+        let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         let mut rows: Value = Value::from(vec![]);
         if (matches!(&data, Value::Arr(_))) {
             rows = data.clone();
@@ -869,16 +877,16 @@ impl PolymarketCore {
         let mut marketId: Value = self.safe_string_k(first, "iid", &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if !(in_op(&self.trades, &symbol)) {
+        if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         }
-        let mut trades: Value = get_value(&self.trades, &symbol);
+        let mut trades: Value = self.trades.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_626: bool = true;
-            while { if !__for_first_626 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_626 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_630: bool = true;
+            while { if !__for_first_630 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_630 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -974,7 +982,7 @@ impl PolymarketCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut limitResolved: Value = limit;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolResolved, limitResolved.clone());
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
@@ -1024,6 +1032,8 @@ impl PolymarketCore {
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "klines::1::1h",
@@ -1037,8 +1047,8 @@ impl PolymarketCore {
         //
         // only the candles touched by fresh trades are included, the array can be empty
         //
-        let mut ch: Value = self.safe_string_k(message.clone(), "ch", &[Value::Str("".into())]);
-        let mut parts: Value = split(&ch, &Value::Str("::".into()));
+        let mut ch: Value = (match message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
+        let mut parts: Value = Value::Array(ch.as_str().map(|__s| __s.split("::").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut interval: Value = self.safe_string(parts, Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
@@ -1047,27 +1057,27 @@ impl PolymarketCore {
         if (timeframe == Value::Null) {
             return;
         }
-        let mut rows: Value = self.safe_list_k(message, "data", &[Value::from(vec![])]);
+        let mut rows: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         if (rowsLength == 0.0) {
             return;
         }
-        if !(in_op(&self.ohlcvs, &symbol)) {
+        if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
         }
-        if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
+        if !(in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCacheByTimestamp::new(limit);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored);
         }
-        let mut ohlcv: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
+        let mut ohlcv: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_627: bool = true;
-            while { if !__for_first_627 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_627 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_631: bool = true;
+            while { if !__for_first_631 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_631 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut parsed: Value = self.parse_ohlcv(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             ohlcv.append(parsed);
         }
@@ -1104,7 +1114,7 @@ impl PolymarketCore {
                     m.insert("subMessageHashes".to_string(), Value::from(vec![messageHash.clone()]));
                 m
             });
-            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("req:".into()), to_string_val(&id)).into()), pending);
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), pending);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
@@ -1166,7 +1176,7 @@ impl PolymarketCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut orders: Value = self.watch(url, messageHash, &[request, Value::Str("orders".into())]).await;
         let mut limitResolved: Value = limit;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limitResolved.clone());
         }
         return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
@@ -1175,6 +1185,8 @@ impl PolymarketCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "orders",
@@ -1197,7 +1209,7 @@ impl PolymarketCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message, "data", &[]);
+        let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         let mut rows: Value = Value::from(vec![]);
         if (matches!(&data, Value::Arr(_))) {
             rows = data.clone();
@@ -1219,8 +1231,8 @@ impl PolymarketCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_628: bool = true;
-            while { if !__for_first_628 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_628 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_632: bool = true;
+            while { if !__for_first_632 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1237,8 +1249,8 @@ impl PolymarketCore {
         let mut symbolKeys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_629: bool = true;
-            while { if !__for_first_629 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_629 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
+            let mut __for_first_633: bool = true;
+            while { if !__for_first_633 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_633 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
             let mut symbol: Value = symbolKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())]);
         }
@@ -1281,7 +1293,7 @@ impl PolymarketCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut trades: Value = self.watch(url, messageHash, &[request, Value::Str("fills".into())]).await;
         let mut limitResolved: Value = limit;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limitResolved.clone());
         }
         return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
@@ -1290,6 +1302,8 @@ impl PolymarketCore {
 }
 
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "fills",
@@ -1316,7 +1330,7 @@ impl PolymarketCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(message, "data", &[]);
+        let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         let mut rows: Value = Value::from(vec![]);
         if (matches!(&data, Value::Arr(_))) {
             rows = data.clone();
@@ -1338,8 +1352,8 @@ impl PolymarketCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_630 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_634: bool = true;
+            while { if !__for_first_634 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_634 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1356,8 +1370,8 @@ impl PolymarketCore {
         let mut symbolKeys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_631: bool = true;
-            while { if !__for_first_631 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_631 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
+            let mut __for_first_635: bool = true;
+            while { if !__for_first_635 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_635 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
             let mut symbol: Value = symbolKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into())]);
         }
@@ -1392,7 +1406,7 @@ impl PolymarketCore {
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
         let mut cache: Value = self.positions.clone();
-        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && (cache == Value::Null) {
+        if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (cache == Value::Null) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
@@ -1404,7 +1418,7 @@ impl PolymarketCore {
     m
 }), params, subscribeHashes]);
         let mut newPositions: Value = self.watch(url, Value::Str("positions".into()), &[request, Value::Str("portfolio".into())]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             return self.filter_by_symbols_since_limit(newPositions, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized, since, limit, Value::Bool(true)]);
@@ -1418,7 +1432,7 @@ impl PolymarketCore {
             return;
         }
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
-        if is_equal(&fetchPositionsSnapshot, &Value::Bool(true)) {
+        if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
             if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
@@ -1435,8 +1449,8 @@ impl PolymarketCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_632: bool = true;
-            while { if !__for_first_632 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+            let mut __for_first_636: bool = true;
+            while { if !__for_first_636 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             cache.append(positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1471,7 +1485,7 @@ impl PolymarketCore {
         let mut fetchBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
         let mut awaitBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(true)]);
         let mut balanceLoaded: bool = matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"));
-        if (is_equal(&fetchBalanceSnapshot, &Value::Bool(true))) && (is_equal(&awaitBalanceSnapshot, &Value::Bool(true))) && (!balanceLoaded) {
+        if ((match &(fetchBalanceSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && ((match &(awaitBalanceSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (!balanceLoaded) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchBalanceSnapshot".into())])).await;
@@ -1493,7 +1507,7 @@ impl PolymarketCore {
             return;
         }
         let mut fetchBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
-        if is_equal(&fetchBalanceSnapshot, &Value::Bool(true)) {
+        if (match &(fetchBalanceSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str("fetchBalanceSnapshot".into());
             if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
@@ -1516,6 +1530,8 @@ impl PolymarketCore {
 }
 
     pub fn handle_portfolio(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "ch": "portfolio",
@@ -1553,10 +1569,10 @@ impl PolymarketCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
@@ -1566,8 +1582,8 @@ impl PolymarketCore {
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_633: bool = true;
-            while { if !__for_first_633 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_633 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_637: bool = true;
+            while { if !__for_first_637 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_637 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1578,7 +1594,7 @@ impl PolymarketCore {
                 m
             })]);
             let mut position: Value = self.parse_position(extended, &[]);
-            append_to_array(&mut newPositions, position.clone());
+            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
             cache.append(position);
         }
         }
@@ -1665,8 +1681,8 @@ impl PolymarketCore {
         let mut errorMessage: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_634: bool = true;
-            while { if !__for_first_634 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_634 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_638: bool = true;
+            while { if !__for_first_638 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_638 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1681,8 +1697,8 @@ impl PolymarketCore {
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), errorMessage)));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_635: bool = true;
-                while { if !__for_first_635 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_635 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+                let mut __for_first_639: bool = true;
+                while { if !__for_first_639 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_639 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
                 client.reject(&[Value::from(error.clone()), messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
@@ -1707,21 +1723,21 @@ impl PolymarketCore {
             let mut symbol: Value = self.safe_string_k(pending.clone(), "symbol", &[]);
             if (symbol != Value::Null) {
                 if (topic.as_deref() == Some("orderbook")) {
-                    if (in_op(&self.orderbooks, &symbol)) {
-                        remove(&mut self.orderbooks, &symbol);
+                    if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }
                 }  else if (topic.as_deref() == Some("trades")) {
-                    if (in_op(&self.trades, &symbol)) {
-                        remove(&mut self.trades, &symbol);
+                    if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }
                 }  else if (topic.as_deref() == Some("ticker")) {
-                    if (in_op(&self.tickers, &symbol)) {
-                        remove(&mut self.tickers, &symbol);
+                    if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }
                 }  else if (topic.as_deref() == Some("ohlcv")) {
                     let mut timeframe: Value = self.safe_string_k(pending, "timeframe", &[]);
-                    if (timeframe != Value::Null) && (in_op(&self.ohlcvs, &symbol)) {
-                        if (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
+                    if (timeframe != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                        if (in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
                             remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
                         }
                     }
@@ -1729,8 +1745,8 @@ impl PolymarketCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_636: bool = true;
-                while { if !__for_first_636 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+                let mut __for_first_640: bool = true;
+                while { if !__for_first_640 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_640 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
                 self.clean_unsubscription(client.clone(), subMessageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             }
             }
@@ -1743,7 +1759,7 @@ impl PolymarketCore {
             self.handle_ack(client.clone(), message.clone());
             return;
         }
-        let mut parts: Value = split(&ch, &Value::Str("::".into()));
+        let mut parts: Value = Value::Array(ch.as_str().map(|__s| __s.split("::").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut family: Value = self.safe_string(parts, Value::Int(0), &[Value::Str("".into())]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

@@ -42,27 +42,26 @@ func testWatchTradesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 				}()
 				// try block:
 
-				r := <-exchange.WatchTradesAsync(symbol)
+				r := <-exchange.(ccxt.IWatchTrades).WatchTradesAsync(symbol)
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				var rValueBox any = nil
-				if r.Value != nil {
-					rValueBox = r.Value
+				if r.Value == nil {
+					response = nil
+				} else {
+					response = ccxt.TradesToList(r.Value)
 				}
-				response = (UnWrapType(rValueBox))
-				PanicOnError(response)
 				return nil
 			}()
 
 		}
 		now = exchange.Milliseconds()
-		if success == true {
+		if success {
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response)
 			for i := 0; i < GetArrayLength(response); i++ {
 				TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now, true)
 			}
-			if IsGreaterThan((now - startTime), maxIdleTime) {
+			if (now - startTime) > int64(maxIdleTime) {
 				idle = true
 			}
 		}

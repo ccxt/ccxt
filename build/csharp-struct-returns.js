@@ -346,7 +346,18 @@ function mapFieldOf (struct) {
 function insideNestedFunction (s, mask, body0, pos) {
     // a `=>` lambda or delegate between the method body start and pos at a shallower brace
     const text = s.slice (body0, pos);
-    return /=>\s*\{[^}]*$/.test (text) || /delegate\s*\(/.test (text.slice (-400));
+    return /=>\s*\{[^}]*$/.test (text) || /delegate\s*\(/.test (text.slice (-400)) || insideOpenLambdaBlock (s, mask, body0, pos);
+}
+
+// hx4 C34: brace-aware twin — a `=> {` block still open at pos (its body may hold nested `{ }`)
+function insideOpenLambdaBlock (s, mask, body0, pos) {
+    const stack = [];
+    for (let i = body0; i < pos; i++) {
+        if (!mask[i]) continue;
+        if (s[i] === '{') stack.push (/=>\s*$/.test (s.slice (Math.max (body0, i - 8), i)));
+        else if (s[i] === '}') stack.pop ();
+    }
+    return stack.includes (true);
 }
 
 // untyped read of a field: nested structs go back through their From* funnel (map rows)

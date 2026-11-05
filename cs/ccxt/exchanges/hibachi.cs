@@ -12,7 +12,7 @@ public partial class hibachi : Exchange
             { "name", "Hibachi" },
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 100 },
-            { "userAgent", getValue(this.userAgents, "chrome") },
+            { "userAgent", (this.userAgents != null && this.userAgents.ContainsKey("chrome") ? this.userAgents["chrome"] : null) },
             { "certified", false },
             { "pro", false },
             { "dex", true },
@@ -373,7 +373,7 @@ public partial class hibachi : Exchange
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "underlyingDecimals"))) },
-                { "price", (this.parseNumber(this.safeValue(this.safeList(market, "orderbookGranularities", new List<object>() {}), 0)) / 10000) },
+                { "price", this.parseNumber(Precise.stringDiv(this.safeString(this.safeList(market, "orderbookGranularities", new List<object>() {}), 0), "10000")) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -995,7 +995,7 @@ public partial class hibachi : Exchange
         double? makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
         double? takerFeeValue = ((takerFee == null)) ? 0 : takerFee;
         double? makerFeeValue = ((makerFee == null)) ? 0 : makerFee;
-        double? feeRate = ((double?)mathMax(takerFeeValue, makerFeeValue));
+        double? feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         string sideInternal = "";
         if ((side == "sell"))
         {
@@ -1039,7 +1039,7 @@ public partial class hibachi : Exchange
         {
             request["triggerPrice"] = triggerPrice;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"}));
         return this.extend(request, paramsOmitted);
     }
 
@@ -1144,7 +1144,7 @@ public partial class hibachi : Exchange
         double? makerFee = this.safeNumber(market, "maker", 0);
         double? takerFeeValue = ((takerFee == null)) ? 0 : takerFee;
         double? makerFeeValue = ((makerFee == null)) ? 0 : makerFee;
-        double? feeRate = ((double?)mathMax(takerFeeValue, makerFeeValue));
+        double? feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         string signature = this.signMessage(message, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1458,7 +1458,7 @@ public partial class hibachi : Exchange
             string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
             string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
             string v = this.intToBase16((signature != null && signature.ContainsKey("v") ? signature["v"] : null));
-            return add(add((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0")));
+            return ((((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0"))));
         }
     }
 

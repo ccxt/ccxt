@@ -365,7 +365,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_with_method('privateGetWithdrawals', code, since, limit, params)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'Accepted': 'pending',
             'Pending Authorization': 'pending',
@@ -1108,7 +1108,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'cost': float(feeCost),
         }
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'Accepted': 'open',
             'Placed': 'open',
@@ -1361,7 +1361,7 @@ class btcmarkets(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         requestHeaders = None
         requestBody = None

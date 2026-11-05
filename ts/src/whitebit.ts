@@ -1080,10 +1080,10 @@ export default class whitebit extends Exchange {
         //
         const result: Dict = {};
         // Process all markets from the loaded markets cache
-        const markets = this.markets;
-        if (markets === undefined) {
+        if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
+        const markets = this.markets;
         const marketIds = Object.keys (markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -1095,14 +1095,7 @@ export default class whitebit extends Exchange {
             const symbol = marketSymbol;
             // Filter by symbols if specified
             if (symbols !== undefined) {
-                let symbolFound = false;
-                for (let j = 0; j < symbols.length; j++) {
-                    if (symbols[j] === symbol) {
-                        symbolFound = true;
-                        break;
-                    }
-                }
-                if (!symbolFound) {
+                if (!this.inArray (symbol, symbols)) {
                     continue; // Skip symbols not in requested list
                 }
             }
@@ -1115,7 +1108,7 @@ export default class whitebit extends Exchange {
             const hasAmountLimits = (amountLimits !== undefined) && (amountLimits !== null) && this.safeNumber (amountLimits, 'min') !== undefined && this.safeNumber (amountLimits, 'max') !== undefined;
             const hasPriceLimits = (priceLimits !== undefined) && (priceLimits !== null) && this.safeNumber (priceLimits, 'min') !== undefined && this.safeNumber (priceLimits, 'max') !== undefined;
             const hasCostLimits = (costLimits !== undefined) && (costLimits !== null) && this.safeNumber (costLimits, 'min') !== undefined && this.safeNumber (costLimits, 'max') !== undefined;
-            if ((hasAmountLimits === true) && (hasPriceLimits === true) && (hasCostLimits === true)) {
+            if ((hasAmountLimits) && (hasPriceLimits) && (hasCostLimits)) {
                 result[symbol] = {
                     'info': market,
                     'limits': {
@@ -1251,17 +1244,18 @@ export default class whitebit extends Exchange {
             };
             // Add fee information if available
             if (feeData !== undefined) {
-                const depositFee = feeData['deposit'];
-                const withdrawFee = feeData['withdraw'];
+                const depositFee = this.safeDict (feeData, 'deposit');
+                const withdrawFee = this.safeDict (feeData, 'withdraw');
                 if ((depositFee !== undefined) && (depositFee !== null)) {
                     const depositFeeData: Dict = {
                         'fixed': this.safeNumber (depositFee, 'fixed'),
                     };
-                    if ((depositFee['flex'] !== undefined) && (depositFee['flex'] !== null)) {
+                    const depositFlex = this.safeDict (depositFee, 'flex');
+                    if (depositFlex !== undefined) {
                         depositFeeData['flex'] = {
-                            'min': this.safeNumber (depositFee['flex'], 'min_fee'),
-                            'max': this.safeNumber (depositFee['flex'], 'max_fee'),
-                            'percent': this.safeNumber (depositFee['flex'], 'percent'),
+                            'min': this.safeNumber (depositFlex, 'min_fee'),
+                            'max': this.safeNumber (depositFlex, 'max_fee'),
+                            'percent': this.safeNumber (depositFlex, 'percent'),
                         };
                     }
                     limits['deposit']['fee'] = depositFeeData;
@@ -1270,19 +1264,21 @@ export default class whitebit extends Exchange {
                     const withdrawFeeData: Dict = {
                         'fixed': this.safeNumber (withdrawFee, 'fixed'),
                     };
-                    if ((withdrawFee['flex'] !== undefined) && (withdrawFee['flex'] !== null)) {
+                    const withdrawFlex = this.safeDict (withdrawFee, 'flex');
+                    if (withdrawFlex !== undefined) {
                         withdrawFeeData['flex'] = {
-                            'min': this.safeNumber (withdrawFee['flex'], 'min_fee'),
-                            'max': this.safeNumber (withdrawFee['flex'], 'max_fee'),
-                            'percent': this.safeNumber (withdrawFee['flex'], 'percent'),
+                            'min': this.safeNumber (withdrawFlex, 'min_fee'),
+                            'max': this.safeNumber (withdrawFlex, 'max_fee'),
+                            'percent': this.safeNumber (withdrawFlex, 'percent'),
                         };
                     }
                     limits['withdraw']['fee'] = withdrawFeeData;
                 }
             }
             // Add network-specific limits if available
-            if (currency['networks'] !== undefined) {
-                limits['networks'] = currency['networks'];
+            const currencyNetworks = this.safeDict (currency, 'networks');
+            if (currencyNetworks !== undefined) {
+                limits['networks'] = currencyNetworks;
             }
             result[code] = {
                 'info': currency,
@@ -1477,7 +1473,7 @@ export default class whitebit extends Exchange {
             request['market'] = market['id'];
         }
         // Try active orders first (if enabled)
-        if (checkActive === true) {
+        if (checkActive) {
             try {
                 const response = await this.v4PrivatePostOrders (this.extend (request, paramsOmitted));
                 // Search for order in active orders response (array format)
@@ -1498,7 +1494,7 @@ export default class whitebit extends Exchange {
             }
         }
         // Try executed orders (if enabled)
-        if (checkExecuted === true) {
+        if (checkExecuted) {
             try {
                 const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, paramsOmitted));
                 // Search for order in executed orders response (object format)
@@ -1899,15 +1895,14 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const maxLimit = 1440;
-        const sinceLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
-        const limitResolved = (since !== undefined) ? sinceLimit : limit;
+        const cappedLimit = ((limit === undefined) || (limit > 1440)) ? 1440 : limit;
+        const limitResolved = (since !== undefined) ? cappedLimit : limit;
         if (since !== undefined) {
             const start = this.parseToInt (since / 1000);
             request['start'] = start;
         }
-        if (limitResolved !== undefined) {
-            request['limit'] = Math.min (limitResolved, 1440);
+        if ((since !== undefined) || (limit !== undefined)) {
+            request['limit'] = cappedLimit;
         }
         const response = await this.v1PublicGetKline (this.extend (request, params));
         //
@@ -2323,7 +2318,7 @@ export default class whitebit extends Exchange {
         const sortedOrders = this.sortBy (allOrders, 'timestamp', true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
         if (limit !== undefined && sortedOrders.length > limit) {
-            return sortedOrders.slice (0, limit);
+            return this.arraySlice (sortedOrders, 0, limit);
         }
         return sortedOrders;
     }
@@ -2544,7 +2539,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const marketIds = Object.keys (response);
-        let results: List = [];
+        const results: List = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketNew = this.safeMarket (marketId, undefined, '_');
@@ -2554,12 +2549,11 @@ export default class whitebit extends Exchange {
                 results.push (this.extend (order, { 'status': 'closed' }));
             }
         }
-        results = this.sortBy (results, 'timestamp');
-        results = this.filterBySymbolSinceLimit (results, symbolResolved, since, limit);
-        return results as Order[];
+        const sorted = this.sortBy (results, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit) as Order[];
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'limit': 'limit',
             'market': 'market',
@@ -2678,7 +2672,7 @@ export default class whitebit extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'CANCELED': 'canceled',
             'OPEN': 'open',
@@ -3143,10 +3137,8 @@ export default class whitebit extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
         };
-        let uniqueId = this.safeValue (paramsWithdrawTag, 'uniqueId');
-        if (uniqueId === undefined) {
-            uniqueId = this.uuid22 ();
-        }
+        const uniqueIdParam = this.safeValue (paramsWithdrawTag, 'uniqueId');
+        const uniqueId = (uniqueIdParam === undefined) ? this.uuid22 () : uniqueIdParam;
         request['uniqueId'] = uniqueId;
         if (tag !== undefined) {
             request['memo'] = tag;
@@ -3233,7 +3225,7 @@ export default class whitebit extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             '1': 'pending',
             '2': 'pending',
@@ -4268,9 +4260,9 @@ export default class whitebit extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const query = this.omit (params, this.extractParams (path));
-        const version = this.safeValue (api, 0);
+        const version = this.safeString (api, 0, '');
         const accessibility = this.safeString (api, 1);
         const publicHeaders: Dict = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
@@ -4356,7 +4348,7 @@ export default class whitebit extends Exchange {
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             const success = this.safeBool (response, 'success', true);
-            if (success !== true) {
+            if (!success) {
                 const errMsg = this.safeDict (response, 'message', {});
                 const errKeys = Object.keys (errMsg);
                 const errKeysLength = errKeys.length;

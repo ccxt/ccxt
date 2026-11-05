@@ -75,7 +75,9 @@ public partial class modetrade : Exchange
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
@@ -1105,11 +1107,6 @@ public partial class modetrade : Exchange
         string? amount = this.safeString(trade, "executed_quantity");
         string? order_id = this.safeString(trade, "order_id");
         Dictionary<string, object> fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
-        string? feeCost = this.safeString(fee, "cost");
-        if (((feeCost != null)) && ((fee != null)))
-        {
-            fee["cost"] = feeCost;
-        }
         string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
         string? id = this.safeString(trade, "id");
@@ -1204,7 +1201,7 @@ public partial class modetrade : Exchange
         string? fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
         string? nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
         string? millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
-        object fundingSymbol = ((marketValue != null)) ? getValue(marketValue, "symbol") : null;
+        string? fundingSymbol = this.safeString(marketValue, "symbol");
         return new Dictionary<string, object>() {
             { "info", fundingRate },
             { "symbol", fundingSymbol },
@@ -1558,6 +1555,102 @@ public partial class modetrade : Exchange
             result.Add(ccxt.BaseExchange.FromTicker(this.parseTicker(ticker)));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
+    }
+
+    public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "open_interest": 42.65602,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        string? marketId = this.safeString(interest, "symbol");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Int64? timestamp = this.safeInteger(interest, "timestamp");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
+            { "openInterestAmount", this.safeNumber(interest, "open_interest") },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "info", interest },
+        }, marketResolved);
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        Dictionary<string, object> response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        Int64? timestamp = this.safeInteger(response, "timestamp");
+        Dictionary<string, object> interest = this.extend(new Dictionary<string, object>() {
+            { "timestamp", timestamp },
+        }, data);
+        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(interest, market));
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<ccxt.OpenInterests> FetchOpenInterests(IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        Dictionary<string, object> response = await this.v1PublicGetPublicFutures(parameters);
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
+        Int64? timestamp = this.safeInteger(response, "timestamp");
+        List<object> result = new List<object>() {};
+        for (int i = 0; i < rows.Count; i++)
+        {
+            object row = rows[i];
+            string? marketId = this.safeString(row, "symbol", "");
+            if (((this.markets_by_id == null)) || !(((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
+            {
+                continue;
+            }
+            Dictionary<string, object> interest = this.extend(new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            }, row);
+            result.Add(this.parseOpenInterest(interest));
+        }
+        return ccxt.BaseExchange.ToOpenInterests(this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol"));
     }
 
     public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
@@ -1979,7 +2072,7 @@ public partial class modetrade : Exchange
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         if ((status != null))
         {
@@ -2059,7 +2152,8 @@ public partial class modetrade : Exchange
         bool hasStopLoss = (stopLoss != null);
         bool hasTakeProfit = (takeProfit != null);
         string? algoType = this.safeString(parameters, "algoType");
-        bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || (!isEqual(this.safeValue(parameters, "childOrders"), null));
+        object paramsChildOrders = this.safeValue(parameters, "childOrders");
+        bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || ((paramsChildOrders != null));
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -2157,7 +2251,7 @@ public partial class modetrade : Exchange
             }
             request["child_orders"] = new List<object>() {outterOrder};
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"}));
         return this.extend(request, paramsOmitted);
     }
 
@@ -2198,7 +2292,8 @@ public partial class modetrade : Exchange
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || (!isEqual(this.safeValue(parameters, "childOrders"), null));
+        object childOrders = this.safeValue(parameters, "childOrders");
+        bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((childOrders != null));
         Dictionary<string, object> response = null;
         if (isConditional)
         {
@@ -2247,7 +2342,8 @@ public partial class modetrade : Exchange
             string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
             IDictionary<string, object> takeProfit = this.safeDict(orderParams, "takeProfit");
-            bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || (!isEqual(this.safeValue(orderParams, "childOrders"), null));
+            object childOrders = this.safeValue(orderParams, "childOrders");
+            bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((childOrders != null));
             if (isConditional)
             {
                 throw new NotSupported ((this.id + " createOrders() only support non-stop order")) ;
@@ -2315,7 +2411,8 @@ public partial class modetrade : Exchange
         {
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        bool isConditional = ((triggerPrice != null)) || (!isEqual(this.safeValue(parameters, "childOrders"), null));
+        object childOrders = this.safeValue(parameters, "childOrders");
+        bool isConditional = ((triggerPrice != null)) || ((childOrders != null));
         string orderQtyKey = "order_quantity";
         if (isConditional)
         {
@@ -2334,7 +2431,7 @@ public partial class modetrade : Exchange
         {
             request[(string)orderQtyKey] = this.amountToPrecision(symbol, amount);
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"}));
         Dictionary<string, object> response = null;
         if (isConditional)
         {
@@ -2364,7 +2461,7 @@ public partial class modetrade : Exchange
                 request["order_type"] = orderType;
             }
             string? clientOrderId = this.safeStringN(paramsOmitted, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
-            object paramsOrder = this.omit(paramsOmitted, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"});
+            Dictionary<string, object> paramsOrder = this.omit(paramsOmitted, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"});
             if ((clientOrderId != null))
             {
                 request["client_order_id"] = clientOrderId;
@@ -2406,8 +2503,8 @@ public partial class modetrade : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (((trigger != true)) && ((symbol == null)))
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
+        if ((trigger != true) && ((symbol == null)))
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
@@ -2426,7 +2523,7 @@ public partial class modetrade : Exchange
         string? clientOrderIdUnified = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
         string? clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "client_order_id", clientOrderIdUnified);
         bool isByClientOrder = (clientOrderIdExchangeSpecific != null);
-        object paramsClientOrder = this.omit(paramsOmitted, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
+        Dictionary<string, object> paramsClientOrder = this.omit(paramsOmitted, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
         Dictionary<string, object> response = null;
         if ((trigger == true))
         {
@@ -2504,7 +2601,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         List<object> clientOrderIds = this.safeListN(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         if ((clientOrderIds != null))
@@ -2547,7 +2644,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbol != null))
         {
@@ -2610,7 +2707,7 @@ public partial class modetrade : Exchange
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"}));
         Dictionary<string, object> response = null;
         if ((trigger == true))
         {
@@ -2691,7 +2788,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-        int maxLimit = ((isTrigger == true)) ? 100 : 500;
+        int maxLimit = isTrigger == true ? 100 : 500;
         (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
@@ -2713,7 +2810,7 @@ public partial class modetrade : Exchange
         }
         if ((limit != null))
         {
-            request["size"] = mathMin(limit, maxLimit);
+            request["size"] = Math.Min(limit.Value, maxLimit);
         } else
         {
             request["size"] = maxLimit;
@@ -3045,7 +3142,7 @@ public partial class modetrade : Exchange
             request["size"] = limit;
         }
         string? transactionType = this.safeString(parameters, "type");
-        object paramsOmitted = this.omit(parameters, "type");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
         if ((transactionType != null))
         {
             request["type"] = transactionType;
@@ -3311,7 +3408,7 @@ public partial class modetrade : Exchange
         //         "success":true
         //     }
         //
-        object paramsOmitted = this.omit(parameters, "side"); // request-side filter, not a unified transaction field
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "side")); // request-side filter, not a unified transaction field
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit, paramsOmitted));
     }
 
@@ -3332,9 +3429,9 @@ public partial class modetrade : Exchange
         return this.safeNumber(data, "withdraw_nonce");
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
-        return ("0x" + (this.hash(message, keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
     public virtual string signHash(object hash, object privateKey)
@@ -3435,7 +3532,7 @@ public partial class modetrade : Exchange
             { "verifyingContract", verifyingContractAddress },
             { "message", withdrawRequest },
         };
-        object paramsOmitted = this.omit(parameters, "chainId");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "chainId"));
         Dictionary<string, object> response = await this.v1PrivatePostWithdrawRequest(this.extend(request, paramsOmitted));
         //
         //     {
@@ -3763,7 +3860,7 @@ public partial class modetrade : Exchange
             if (isPostOrPut && isOrder)
             {
                 bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
-                if ((isSandboxMode != true))
+                if (isSandboxMode != true)
                 {
                     string? brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
                     if ((path == "batch-order"))
@@ -3802,14 +3899,14 @@ public partial class modetrade : Exchange
             if ((method == "POST") || (method == "PUT"))
             {
                 signedBody = this.json(paramsSigned);
-                auth = add(auth, signedBody);
+                auth = (auth + (signedBody));
                 signedHeaders["content-type"] = "application/json";
             } else
             {
                 if ((new List<object>(paramsSigned.Keys)).Count > 0)
                 {
                     url = url + ("?" + this.urlencode(paramsSigned));
-                    auth = add(auth, ("?" + this.rawencode(paramsSigned)));
+                    auth = (auth + (("?" + this.rawencode(paramsSigned))));
                 }
                 signedHeaders["content-type"] = "application/x-www-form-urlencoded";
                 signedBody = ((method == "DELETE")) ? "" : null;

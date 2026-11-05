@@ -122,7 +122,7 @@ export default class coinbase extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
-                'fetchL2OrderBook': false,
+                'fetchL2OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverages': false,
@@ -815,7 +815,7 @@ export default class coinbase extends Exchange {
             await this.loadAccounts();
             for (let i = 0; i < this.accounts.length; i++) {
                 const account = this.accounts[i];
-                if (account['code'] === code && account['type'] === 'wallet') {
+                if ((this.safeString(account, 'code') === code) && (this.safeString(account, 'type') === 'wallet')) {
                     accountId = this.safeString(account, 'id');
                     break;
                 }
@@ -955,7 +955,7 @@ export default class coinbase extends Exchange {
         const [currencyType, paramsCurrencyType] = this.handleOptionStringAndParams(params, 'fetchWithdrawals', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType);
-            return this.filterByArray(results, 'type', 'withdrawal', false);
+            return this.toArray(this.filterByArray(results, 'type', 'withdrawal', false));
         }
         return await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, paramsCurrencyType);
     }
@@ -976,7 +976,7 @@ export default class coinbase extends Exchange {
         const [currencyType, paramsCurrencyType] = this.handleOptionStringAndParams(params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType);
-            return this.filterByArray(results, 'type', 'deposit', false);
+            return this.toArray(this.filterByArray(results, 'type', 'deposit', false));
         }
         return await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, paramsCurrencyType);
     }
@@ -996,7 +996,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets();
         }
         const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
-        return this.filterByArray(results, 'type', ['deposit', 'withdrawal'], false);
+        return this.toArray(this.filterByArray(results, 'type', ['deposit', 'withdrawal'], false));
     }
     parseTransactionStatus(status) {
         const statuses = {
@@ -1900,7 +1900,7 @@ export default class coinbase extends Exchange {
             'swap': isSwap,
             'future': !isSwap,
             'option': false,
-            'active': tradingDisabled !== true,
+            'active': !tradingDisabled,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -2554,7 +2554,7 @@ export default class coinbase extends Exchange {
         if ((marketType === 'future') || (marketType === 'swap')) {
             response = await this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, paramsMarketType));
         }
-        else if ((isV3 === true) || (method === 'v3PrivateGetBrokerageAccounts')) {
+        else if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
             request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType));
             // an explicit params.cursor means the caller pages manually
@@ -2684,18 +2684,17 @@ export default class coinbase extends Exchange {
         const data = this.safeList(response, 'data', []);
         const ledger = this.parseLedger(data, currency, since, limit);
         const length = ledger.length;
-        if (length === 0) {
-            return ledger;
+        if (length > 0) {
+            const lastIndex = length - 1;
+            const last = this.safeDict(ledger, lastIndex);
+            const pagination = this.safeDict(response, 'pagination', {});
+            const cursor = this.safeString(pagination, 'next_starting_after');
+            if ((cursor !== undefined) && (cursor !== '')) {
+                last['info']['next_starting_after'] = cursor;
+                ledger[lastIndex] = last;
+            }
         }
-        const lastIndex = length - 1;
-        const last = this.safeDict(ledger, lastIndex);
-        const pagination = this.safeDict(response, 'pagination', {});
-        const cursor = this.safeString(pagination, 'next_starting_after');
-        if ((cursor !== undefined) && (cursor !== '')) {
-            last['info']['next_starting_after'] = cursor;
-            ledger[lastIndex] = last;
-        }
-        return ledger;
+        return this.toArray(ledger);
     }
     parseLedgerEntryStatus(status) {
         const types = {
@@ -3034,8 +3033,8 @@ export default class coinbase extends Exchange {
         await this.loadAccounts(false, params);
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
-            if (account['code'] === code) {
-                return account['id'];
+            if (this.safeString(account, 'code') === code) {
+                return this.safeString(account, 'id');
             }
         }
         return undefined;
@@ -3304,7 +3303,7 @@ export default class coinbase extends Exchange {
         const paramsOmitted = this.omit(paramsBase, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode']);
         const preview = this.safeBool2(paramsOmitted, 'preview', 'test', false);
         let response = undefined;
-        if (preview === true) {
+        if (preview) {
             request = this.omit(request, 'client_order_id');
             response = await this.v3PrivatePostBrokerageOrdersPreview(this.extend(request, this.omit(paramsOmitted, ['preview', 'test'])));
         }
@@ -3623,7 +3622,7 @@ export default class coinbase extends Exchange {
         }
         const preview = this.safeBool2(params, 'preview', 'test', false);
         let response = undefined;
-        if (preview === true) {
+        if (preview) {
             response = await this.v3PrivatePostBrokerageOrdersEditPreview(this.extend(request, this.omit(params, ['preview', 'test'])));
         }
         else {
@@ -3953,10 +3952,13 @@ export default class coinbase extends Exchange {
             await this.loadMarkets();
         }
         const maxLimit = 300;
-        const limitValue = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        let limitValue = this.parseToInt(maxLimit);
+        if ((limit !== undefined) && (limit < maxLimit)) {
+            limitValue = this.parseToInt(limit);
+        }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, maxLimit - 1);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, 299);
         }
         const market = this.market(symbol);
         const request = {
@@ -5167,7 +5169,10 @@ export default class coinbase extends Exchange {
             const availableBalance = this.parseNumber(availableBalanceStr);
             const totalBalanceFiatStr = this.safeString(position, 'total_balance_fiat', '0');
             const totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
-            const holdAmount = totalBalanceFiat - availableBalance;
+            let holdAmount = 0;
+            if ((totalBalanceFiat !== undefined) && (availableBalance !== undefined) && (totalBalanceFiat > availableBalance)) {
+                holdAmount = totalBalanceFiat - availableBalance;
+            }
             const costBasisDict = this.safeDict(position, 'cost_basis', {});
             const costBasisStr = this.safeString(costBasisDict, 'value', '0');
             const averageEntryPriceDict = this.safeDict(position, 'average_entry_price', {});
@@ -5175,7 +5180,7 @@ export default class coinbase extends Exchange {
             const positionData = {
                 'currency': currencyCode,
                 'available_balance': availableBalance,
-                'hold_amount': holdAmount > 0 ? holdAmount : 0,
+                'hold_amount': holdAmount,
                 'wallet_name': portfolioName,
                 'account_id': portfolioUuid,
                 'account_uuid': this.safeString(position, 'account_uuid', ''),
@@ -5199,6 +5204,17 @@ export default class coinbase extends Exchange {
             parsedPositions.push(positionData);
         }
         return parsedPositions;
+    }
+    /**
+     * @method
+     * @name coinbase#isEddsaApiKey
+     * @ignore
+     * @description checks whether the secret is a v2 (Ed25519) CDP api key secret
+     * @returns {boolean} true if the secret is an Ed25519 key
+     */
+    isEddsaApiKey() {
+        // using the size might be fragile, so we add an option to force v2 cloud api key if needed
+        return this.secret.length === 88 || this.safeBool(this.options, 'v2CloudAPiKey', false) || this.secret.endsWith('=');
     }
     createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
@@ -5310,8 +5326,7 @@ export default class coinbase extends Exchange {
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 const isCloudAPiKey = (this.apiKey.indexOf('organizations/') >= 0) || (this.secret.startsWith('-----BEGIN'));
-                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                const isV2CloudAPiKey = this.secret.length === 88 || this.safeBool(this.options, 'v2CloudAPiKey', false) || this.secret.endsWith('=');
+                const isV2CloudAPiKey = this.isEddsaApiKey();
                 if (isCloudAPiKey || isV2CloudAPiKey) {
                     if (isCloudAPiKey && this.apiKey.startsWith('-----BEGIN')) {
                         throw new ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
@@ -5339,7 +5354,7 @@ export default class coinbase extends Exchange {
                     authorizationString = 'Bearer ' + token;
                 }
                 else {
-                    const nonce = this.nonce();
+                    const nonce = this.parseToInt(this.nonce());
                     const timestamp = this.parseToInt(nonce / 1000);
                     const timestampString = timestamp.toString();
                     const auth = timestampString + method + savedPath + payload;

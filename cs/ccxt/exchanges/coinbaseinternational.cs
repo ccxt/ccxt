@@ -15,7 +15,7 @@ public partial class coinbaseinternational : Exchange
             { "pro", true },
             { "rateLimit", 100 },
             { "version", "v2" },
-            { "userAgent", getValue(this.userAgents, "chrome") },
+            { "userAgent", (this.userAgents != null && this.userAgents.ContainsKey("chrome") ? this.userAgents["chrome"] : null) },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
                 { "spot", true },
@@ -541,7 +541,7 @@ public partial class coinbaseinternational : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "route", "auto" },
-                { "brokerId", "nfqkvdjp" },
+                { "brokerId", "ccxt" },
                 { "portfolio", "" },
                 { "accessTokenRefreshRatio", 0.8 },
                 { "networksById", new Dictionary<string, object>() {
@@ -794,8 +794,7 @@ public partial class coinbaseinternational : Exchange
         //     }
         //
         List<object> instruments = this.safeList(response, "result", new List<object>() {});
-        IList<object> parsedMarkets = this.parseMarkets(instruments);
-        return ccxt.BaseExchange.ToMarketInterfaceList(parsedMarkets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(instruments));
     }
 
     public override Dictionary<string, object> parseMarket(object market)
@@ -1342,7 +1341,7 @@ public partial class coinbaseinternational : Exchange
             Dictionary<string, object> ticker = ccxt.BaseExchange.FromTicker(await this.FetchTicker(symbol, paramsResolved));
             tickers[(string)symbol] = ticker;
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbolsResolved, true));
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbolsResolved));
     }
 
     /**
@@ -2232,13 +2231,12 @@ public partial class coinbaseinternational : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        IList<object> positions = this.parsePositions(result);
         if (this.isEmpty(symbols))
         {
-            return ccxt.BaseExchange.ToPositionList(positions);
+            return ccxt.BaseExchange.ToPositionList(this.parsePositions(result));
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(positions, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbolsNormalized));
     }
 
     /**
@@ -2487,7 +2485,7 @@ public partial class coinbaseinternational : Exchange
     public virtual object getOrderAmount(object market, object amount)
     {
         string? exchangeAmount = this.numberToString(amount);
-        if (this.isNativeDeribitCredentials() && (isEqual(getValue(market, "contract"), true)))
+        if (this.isNativeDeribitCredentials() && ((getValue(market, "contract") is true)))
         {
             exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
         }
@@ -2539,7 +2537,7 @@ public partial class coinbaseinternational : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " createOrder() requires a buy or sell side argument")) ;
             }
-            if ((!isEqual(this.safeNumber(paramsResolved, "stopLossPrice"), null)) || (!isEqual(this.safeNumber(paramsResolved, "takeProfitPrice"), null)))
+            if ((!(this.safeNumber(paramsResolved, "stopLossPrice") == null)) || (!(this.safeNumber(paramsResolved, "takeProfitPrice") == null)))
             {
                 throw new NotSupported ((this.id + " createOrder() supports triggerPrice, not stopLossPrice or takeProfitPrice")) ;
             }
@@ -2791,7 +2789,7 @@ public partial class coinbaseinternational : Exchange
         object remaining = null;
         if (((filled != null)) && ((amount != null)))
         {
-            remaining = subtract(amount, filled);
+            remaining = (amount - filled);
         }
         double? price = this.safeNumber(order, "price");
         double? average = this.safeNumber(order, "average_price");
@@ -3017,7 +3015,7 @@ public partial class coinbaseinternational : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("editOrder", parameters);
-        if (this.isNativeDeribitCredentials() && ((amount == null)) && (isEqual(this.safeNumber(paramsResolved, "contracts"), null)))
+        if (this.isNativeDeribitCredentials() && ((amount == null)) && ((this.safeNumber(paramsResolved, "contracts") == null)))
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires amount or params.contracts on Deribit")) ;
         }
@@ -3610,13 +3608,13 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
      * @returns {string} signed JWT
      */
-    public virtual string createAuthToken(object seconds, object method = null, object url = null, bool? useEddsa = null)
+    public virtual string createAuthToken(object seconds, object method = null, string? url = null, bool? useEddsa = null)
     {
         useEddsa ??= false;
         object uri = null;
         if ((url != null))
         {
-            uri = add(add(method, " "), ((string)url).Replace("https://", (string)""));
+            uri = add(add(method, " "), url.Replace("https://", (string)""));
             int quesPos = getIndexOf(uri, "?");
             if (quesPos > 0)
             {
@@ -3681,7 +3679,7 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [params.forceRefresh] ignore the cached token and request a new one
      * @returns {string} a Deribit gateway access token
      */
-    public async virtual Task<object> authenticateV2(object parameters = null)
+    public async virtual Task<object> authenticateV2(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("authenticateV2", parameters);
@@ -3723,7 +3721,7 @@ public partial class coinbaseinternational : Exchange
         }
         double? ratio = this.safeNumber(this.options, "accessTokenRefreshRatio");
         double? refreshRatio = ((ratio == null)) ? 0.8 : ratio;
-        Int64? tokenRefreshInMilliseconds = this.parseToInt(multiply((expiresIn * 1000), refreshRatio));
+        Int64? tokenRefreshInMilliseconds = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((expiresIn * 1000), refreshRatio));
         this.token = accessToken;
         this.options["v2AccessToken"] = accessToken;
         this.options["v2TokenExpires"] = this.sum(now, tokenRefreshInMilliseconds);
@@ -3743,7 +3741,7 @@ public partial class coinbaseinternational : Exchange
         {
             return token;
         }
-        if ((isEqual(this.token, null)) || (isEqual(this.token, "")))
+        if (((this.token == null)) || ((this.token is "")))
         {
             return null;
         }
@@ -3759,13 +3757,13 @@ public partial class coinbaseinternational : Exchange
         object rpcMethod = add(add(access, "/"), path);
         object requestParams = this.handleRouteAndParams("sign", parameters);
         bool isNativeDeribit = this.isNativeDeribitCredentials();
-        object baseApiUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest", "");
         if (isNativeDeribit)
         {
             baseApiUrl = "https://www.deribit.com/api/v2";
         }
-        object url = add(add(baseApiUrl, "/"), rpcMethod);
-        Dictionary<string, object> requestHeaders = null;
+        string url = ((baseApiUrl + "/") + (rpcMethod));
+        Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
         if (isNativeDeribit && (((path == "get_leverage")) || ((path == "set_leverage"))))
         {
             throw new NotSupported ((((this.id + " ") + (rpcMethod)) + " is only documented on the Coinbase gateway")) ;
@@ -3818,10 +3816,10 @@ public partial class coinbaseinternational : Exchange
         }
         if ((method == "GET"))
         {
-            object requestUrl = url;
+            string requestUrl = url;
             if ((new List<object>(((IDictionary<string,object>)requestParams).Keys)).Count > 0)
             {
-                requestUrl = add(requestUrl, ("?" + this.urlencode(requestParams)));
+                requestUrl = requestUrl + ("?" + this.urlencode(requestParams));
             }
             return new Dictionary<string, object>() {
                 { "url", requestUrl },
@@ -3884,8 +3882,8 @@ public partial class coinbaseinternational : Exchange
         bool deribit = this.resolveRoute(route);
         bool? previousBackend = this.safeBool(this.options, "routeBackend");
         bool configuredBackend = this.isNativeDeribitCredentials();
-        bool hasToken = !isEqual(this.getV2AccessToken(), null);
-        bool hasWsState = !isEqual(this.safeInteger(this.options, "wsAuthRefreshAt"), null);
+        bool hasToken = !(this.getV2AccessToken() == null);
+        bool hasWsState = !(this.safeInteger(this.options, "wsAuthRefreshAt") == null);
         if (((previousBackend != null)) && ((previousBackend != deribit)))
         {
             throw new BadRequest ((this.id + " cannot switch route backend on an initialized instance; use a separate exchange instance")) ;
@@ -3942,7 +3940,7 @@ public partial class coinbaseinternational : Exchange
         {
             throw new BadRequest ((this.id + " route must be auto, deribit, or coinbase")) ;
         }
-        if (((this.apiKey == null)) || (isEqual(this.apiKey, "")) || ((this.secret == null)) || (isEqual(this.secret, "")))
+        if (((this.apiKey == null)) || ((this.apiKey == "")) || ((this.secret == null)) || ((this.secret == "")))
         {
             return false;
         }

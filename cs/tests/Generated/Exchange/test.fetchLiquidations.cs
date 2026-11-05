@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchLiquidations(BaseExchange exchange, object skippedProperties, object code)
     {
         string method = "fetchLiquidations";
-        if (isEqual(getValue(exchange.has, "fetchLiquidations"), null) || isEqual(getValue(exchange.has, "fetchLiquidations"), false))
+        if ((getValue(exchange.has, "fetchLiquidations") == null) || (getValue(exchange.has, "fetchLiquidations") is false))
         {
             return true;
         }

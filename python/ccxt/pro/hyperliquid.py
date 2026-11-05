@@ -459,7 +459,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        userAddress = None
         userAddressResult = self.handlePublicAddress('watchMyTrades', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
@@ -561,7 +560,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             await self.load_markets()
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only')
-        userAddress = None
         userAddressResult = self.handlePublicAddress('unWatchMyTrades', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
@@ -1034,19 +1032,17 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         """
         if self.markets is None:
             await self.load_markets()
-        userAddress = None
         userAddressResult = self.handlePublicAddress('watchBalance', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, paramsValue)
-        isUnifiedEnabled = None
         unifiedResult = await self.isUnifiedEnabled('watchBalance', userAddress, False, paramsMarketType)
         isUnifiedEnabled = self.safe_bool(unifiedResult, 0)
         paramsValue2 = self.safe_dict(unifiedResult, 1, paramsMarketType)
         dex = self.safe_string(paramsValue2, 'dex')
         isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
         topic = 'clearinghouseState'
-        if isSpot is True:
+        if isSpot:
             topic = 'spotState'
         messageHash = topic + '::balance'
         url = self.urls['api']['ws']['public']
@@ -1054,7 +1050,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'type': topic,
             'user': userAddress,
         }
-        if isSpot is True:
+        if isSpot:
             if isUnifiedEnabled is True:
                 subscription['isPortfolioMargin'] = True
         else:
@@ -1071,7 +1067,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         await self.wait_for_pending_unsubscribe(url, topic)
         return await self.watch(url, messageHash, message, topic)
 
-    async def un_watch_balance(self, params={}) -> object:
+    async def un_watch_balance(self, params: dict = {}) -> object:
         """
         unWatches balance
 
@@ -1083,19 +1079,17 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']['public']
-        userAddress = None
         userAddressResult = self.handlePublicAddress('unWatchBalance', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
         type, paramsMarketType = self.handle_market_type_and_params('unWatchBalance', None, paramsValue)
-        isUnifiedEnabled = None
         unifiedResult = await self.isUnifiedEnabled('unWatchBalance', userAddress, False, paramsMarketType)
         isUnifiedEnabled = self.safe_bool(unifiedResult, 0)
         paramsValue2 = self.safe_dict(unifiedResult, 1, paramsMarketType)
         dex = self.safe_string(paramsValue2, 'dex')
         isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
         topic = 'clearinghouseState'
-        if isSpot is True:
+        if isSpot:
             topic = 'spotState'
         messageHash = 'unsubscribe' + ':' + topic
         request = {
@@ -1260,7 +1254,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         """
         if self.markets is None:
             await self.load_markets()
-        userAddress = None
         userAddressResult = self.handlePublicAddress('watchPositions', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
@@ -1345,7 +1338,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             raise NotSupported(self.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders')
         messageHash = 'unsubscribe:clearinghouseState'
         url = self.urls['api']['ws']['public']
-        userAddress = None
         userAddressResult = self.handlePublicAddress('unWatchPositions', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
@@ -1374,7 +1366,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         """
         if self.markets is None:
             await self.load_markets()
-        userAddress = None
         userAddressResult = self.handlePublicAddress('watchOrders', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)
@@ -1427,7 +1418,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             raise NotSupported(self.id + ' unWatchOrders() does not support a symbol argument, unWatch from all markets only')
         messageHash = 'unsubscribe:order'
         url = self.urls['api']['ws']['public']
-        userAddress = None
         userAddressResult = self.handlePublicAddress('unWatchOrders', params)
         userAddress = self.safe_string(userAddressResult, 0)
         paramsValue = self.safe_dict(userAddressResult, 1, params)

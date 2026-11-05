@@ -178,7 +178,7 @@ class polymarket extends \ccxt\async\polymarket {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "ch": "book::1",
@@ -304,7 +304,7 @@ class polymarket extends \ccxt\async\polymarket {
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "ch": "tickers::1",
@@ -377,7 +377,7 @@ class polymarket extends \ccxt\async\polymarket {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
         //         "ch": "bbo::1",
@@ -472,7 +472,7 @@ class polymarket extends \ccxt\async\polymarket {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "ch": "trades::1",
@@ -631,7 +631,7 @@ class polymarket extends \ccxt\async\polymarket {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "ch": "klines::1::1h",
@@ -754,7 +754,7 @@ class polymarket extends \ccxt\async\polymarket {
         return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
         //         "ch": "orders",
@@ -847,7 +847,7 @@ class polymarket extends \ccxt\async\polymarket {
         return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
         //         "ch": "fills",
@@ -1045,7 +1045,7 @@ class polymarket extends \ccxt\async\polymarket {
         $client->resolve($this->balance, 'balance');
     }
 
-    public function handle_portfolio(Client $client, mixed $message) {
+    public function handle_portfolio(Client $client, array $message) {
         //
         //     {
         //         "ch": "portfolio",

@@ -326,7 +326,7 @@ class coinbaseinternational extends Exchange {
             ),
             'options' => array(
                 'route' => 'auto', // deribit for native Deribit, coinbase for Coinbase, auto detects known native key formats
-                'brokerId' => 'nfqkvdjp',
+                'brokerId' => 'ccxt',
                 'portfolio' => '', // default portfolio id
                 'accessTokenRefreshRatio' => 0.8, // refresh the bearer token after 80% of expires_in
                 'networksById' => array(
@@ -582,8 +582,7 @@ class coinbaseinternational extends Exchange {
         //     }
         //
         $instruments = $this->safe_list($response, 'result', array());
-        $parsedMarkets = $this->parse_markets($instruments);
-        return $parsedMarkets;
+        return $this->parse_markets($instruments);
     }
 
     public function parse_market(array $market): array {
@@ -1100,7 +1099,7 @@ class coinbaseinternational extends Exchange {
             $ticker = Async\await($this->fetch_ticker($symbol, $paramsResolved));
             $tickers[$symbol] = $ticker;
         }
-        return $this->filter_by_array($tickers, 'symbol', $symbolsResolved, true);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbolsResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -1914,7 +1913,7 @@ class coinbaseinternational extends Exchange {
 
     private function do_fetch_positions(?array $symbols = null, $params = array()) {
         /**
-         * fetch all open $positions
+         * fetch all open positions
          *
          * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
          * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
@@ -1963,12 +1962,11 @@ class coinbaseinternational extends Exchange {
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
-        $positions = $this->parse_positions($result);
         if ($this->is_empty($symbols)) {
-            return $positions;
+            return $this->parse_positions($result);
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($positions, 'symbol', $symbolsNormalized);
+        return $this->parse_positions($result, $symbolsNormalized);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2550,7 +2548,7 @@ class coinbaseinternational extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'open' => 'open',
             'cancelled' => 'canceled',
@@ -2561,7 +2559,7 @@ class coinbaseinternational extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'stop_limit' => 'limit',
             'take_limit' => 'limit',
@@ -3383,17 +3381,17 @@ class coinbaseinternational extends Exchange {
         return $this->token;
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array()): array {
+    public function sign(string $path, mixed $api = 'public', string $method = 'GET', $params = array()): array {
         $access = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) ? $api[0] : $api;
         $rpcMethod = $access . '/' . $path;
         $requestParams = $this->handle_route_and_params('sign', $params);
         $isNativeDeribit = $this->is_native_deribit_credentials();
-        $baseApiUrl = $this->urls['api']['rest'];
+        $baseApiUrl = $this->safe_string($this->urls['api'], 'rest', '');
         if ($isNativeDeribit) {
             $baseApiUrl = 'https://www.deribit.com/api/v2';
         }
         $url = $baseApiUrl . '/' . $rpcMethod;
-        $requestHeaders = null;
+        $requestHeaders = array();
         if ($isNativeDeribit && (($path === 'get_leverage') || ($path === 'set_leverage'))) {
             throw new NotSupported($this->id . ' ' . $rpcMethod . ' is only documented on the Coinbase gateway');
         }

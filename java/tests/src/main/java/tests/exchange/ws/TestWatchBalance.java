@@ -39,7 +39,7 @@ public class TestWatchBalance extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (java.util.Objects.equals(success, false))
+            if (!Boolean.TRUE.equals(success))
             {
                 continue;
             }

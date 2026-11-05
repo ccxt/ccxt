@@ -241,7 +241,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
         $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-        if (($checksum === true) && ($receivedSnapshot === true)) {
+        if (($checksum) && ($receivedSnapshot)) {
             $storedAsks = $orderbook['asks'];
             $storedBids = $orderbook['bids'];
             $asksLength = count($storedAsks);
@@ -267,7 +267,7 @@ class independentreserve extends \ccxt\async\independentreserve {
                 return;
             }
         }
-        if ($receivedSnapshot === true) {
+        if ($receivedSnapshot) {
             $client->resolve($orderbook, $messageHash);
         }
     }
@@ -289,7 +289,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }

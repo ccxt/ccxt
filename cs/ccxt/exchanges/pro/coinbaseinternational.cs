@@ -276,7 +276,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return ccxt.BaseExchange.ToBalances(await this.subscribe(new List<object>() {channel}, new List<object>() {"balance"}, true, paramsCurrency));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
@@ -352,7 +352,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return await this.unSubscribe(new List<object>() {channel}, true, paramsInterval);
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel");
@@ -484,7 +484,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return await this.unSubscribe(new List<object>() {channel}, true, paramsInterval);
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message)
+    public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         if ((this.orders == null))
         {
@@ -602,7 +602,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return await this.unSubscribe(channels, true, paramsInterval);
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         if ((this.positions == null))
         {
@@ -988,7 +988,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), channel);
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
@@ -1159,7 +1159,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         IDictionary<string, object> timeframes = this.safeDict(wsOptions, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(resolution, timeframes);
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        if (isEqual(this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe), null))
+        if ((this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe) == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
@@ -1291,7 +1291,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return await this.unSubscribe(channels, (interval is "raw"), paramsInterval);
     }
 
-    public virtual object handleTrades(WebSocketClient client, object message)
+    public virtual object handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel", "");
@@ -1473,7 +1473,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = isGrouped ? this.orderBook(new Dictionary<string, object>() {}, limit) : this.countedOrderBook(new Dictionary<string, object>() {}, limit);
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        if (!isGrouped && (type != "snapshot") && (isEqual(getValue(orderbook, "nonce"), null)))
+        if (!isGrouped && (type != "snapshot") && ((((object)((orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))) == null)))
         {
             return;
         }
@@ -1484,11 +1484,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         } else
         {
             Int64? previousChangeId = this.safeInteger(data, "prev_change_id");
-            if ((type != "snapshot") && (!isEqual(getValue(orderbook, "nonce"), null)) && (!isEqual(previousChangeId, getValue(orderbook, "nonce"))))
+            if ((type != "snapshot") && (!(((object)((orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))) == null)) && (!isEqual(previousChangeId, (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))))
             {
                 // drop the stale book and reject only this channels future
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
-                if ((client.subscriptions != null && channel != null && client.subscriptions.ContainsKey(channel)))
+                if ((client.subscriptions != null && channel is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(channel);
                 }
@@ -1590,7 +1590,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return ((bool?)((object)(true)));
     }
 
-    public async virtual Task handleHeartbeat(WebSocketClient client, object message)
+    public async virtual Task handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? data = this.safeString(parameters, "data");
@@ -1607,7 +1607,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -1684,7 +1684,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         double? ratio = this.safeNumber(this.options, "wsAuthRefreshRatio");
         double? refreshRatio = ((ratio == null)) ? 0.8 : ratio;
         Int64 now = this.milliseconds();
-        this.options["wsAuthRefreshAt"] = this.sum(now, this.parseToInt(multiply((expiresIn * 1000), refreshRatio)));
+        this.options["wsAuthRefreshAt"] = this.sum(now, this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((expiresIn * 1000), refreshRatio)));
         client.lastPong = now;
         client.resolve(result, "authenticated");
     }

@@ -56,7 +56,7 @@ export default class apex extends apexRest {
     getWsPrivateUrl(): string;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name apex#watchTicker

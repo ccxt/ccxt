@@ -252,7 +252,10 @@ class kalshi extends kalshi$1["default"] {
         let cursor = undefined;
         // don't request a full 1000-market page (3+ MB) when the caller wants fewer
         const pageLimit = this.safeInteger(this.options, 'marketsPageLimit', 1000);
-        const limit = Math.min(maxMarkets, pageLimit);
+        let limit = pageLimit;
+        if (maxMarkets < pageLimit) {
+            limit = maxMarkets;
+        }
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
@@ -270,14 +273,11 @@ class kalshi extends kalshi$1["default"] {
                 const parsed = this.parseBinaryMarketToOutcomes(raw);
                 const eventTicker = this.safeString(raw, 'event_ticker');
                 const eventTitle = this.safeString(raw, 'title', eventTicker);
-                let eventKey = undefined;
-                if (eventTitle !== undefined && eventTitle !== '') {
-                    eventKey = this.shortenSlug(eventTitle);
-                }
+                const eventKey = (eventTitle !== undefined && eventTitle !== '') ? this.shortenSlug(eventTitle) : '';
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push(m);
-                    if ((eventKey !== undefined) && (eventKey !== '')) {
+                    if (eventKey !== '') {
                         if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -331,15 +331,11 @@ class kalshi extends kalshi$1["default"] {
         // inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
         // never satisfies `< 0` and id-form inputs take the wrong branch
         if (outcomeSymbol.indexOf(':') < 0) {
-            // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
-            // transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks
-            // the python transpiler — this form emits strlen()/len() correctly in both
-            const symbolLength = this.parseToInt(outcomeSymbol.length);
-            const suffix = outcomeSymbol.slice(symbolLength - 3);
-            const isNo = (suffix === '-NO');
+            // endsWith + negative slice: no .length arithmetic (php count() / python slice traps)
+            const isNo = outcomeSymbol.endsWith('-NO');
             let baseTicker = outcomeSymbol;
             if (isNo) {
-                baseTicker = outcomeSymbol.slice(0, symbolLength - 3);
+                baseTicker = outcomeSymbol.slice(0, -3);
             }
             let response = undefined;
             try {
@@ -416,12 +412,9 @@ class kalshi extends kalshi$1["default"] {
             if (outcomeSymbol.indexOf(':') >= 0) {
                 continue;
             }
-            // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
-            const symbolLength = this.parseToInt(outcomeSymbol.length);
-            const suffix = outcomeSymbol.slice(symbolLength - 3);
             let baseTicker = outcomeSymbol;
-            if (suffix === '-NO') {
-                baseTicker = outcomeSymbol.slice(0, symbolLength - 3);
+            if (outcomeSymbol.endsWith('-NO')) {
+                baseTicker = outcomeSymbol.slice(0, -3);
             }
             if (!(baseTicker in seen)) {
                 seen[baseTicker] = true;
@@ -433,20 +426,20 @@ class kalshi extends kalshi$1["default"] {
         }
         const chunkSize = this.safeInteger(this.options, 'fetchOutcomesBatchSize', 100);
         const tickersLength = tickers.length;
-        let startIndex = 0;
-        while (startIndex < tickersLength) {
-            let endIndex = this.sum(startIndex, chunkSize);
-            if (endIndex > tickersLength) {
-                endIndex = tickersLength;
-            }
-            const chunk = [];
-            for (let i = startIndex; i < endIndex; i++) {
-                chunk.push(tickers[i]);
+        const lastTickerIndex = tickersLength - 1;
+        let chunk = [];
+        // flush a request every chunkSize tickers and once more for the trailing partial chunk
+        for (let ti = 0; ti < tickersLength; ti++) {
+            chunk.push(tickers[ti]);
+            const chunkLength = chunk.length;
+            if ((chunkLength < chunkSize) && (ti < lastTickerIndex)) {
+                continue;
             }
             const request = {
                 'tickers': chunk.join(','),
                 'limit': chunkSize,
             };
+            chunk = [];
             const response = await this.kalshiPublicGetMarkets(request);
             const rawMarkets = this.safeList(response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
@@ -457,7 +450,6 @@ class kalshi extends kalshi$1["default"] {
                 this.markets[parsed['market']] = parsed;
                 this.indexMarketOutcomes(parsed);
             }
-            startIndex = this.sum(startIndex, chunkSize);
         }
         for (let i = 0; i < outcomeSymbols.length; i++) {
             if (!this.hasOutcome(outcomeSymbols[i])) {
@@ -772,7 +764,7 @@ class kalshi extends kalshi$1["default"] {
         //         }
         //     }
         //
-        const raw = this.safeValue(response, 'market', response);
+        const raw = this.safeDict(response, 'market', response);
         return this.parsePredictionTicker(raw, outcomeObj);
     }
     /**
@@ -790,7 +782,7 @@ class kalshi extends kalshi$1["default"] {
         //
         const tradingActive = this.safeBool(response, 'trading_active', false);
         return {
-            'status': (tradingActive === true) ? 'ok' : 'maintenance',
+            'status': (tradingActive) ? 'ok' : 'maintenance',
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -902,8 +894,8 @@ class kalshi extends kalshi$1["default"] {
         //
         const marketAny = market;
         const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
-        const outcomeLabel = (market !== undefined && market !== null) ? this.safeString(market, 'label', this.safeString(market['info'], 'outcomeLabel', 'YES')) : 'YES';
-        const isNo = outcomeLabel.toUpperCase() === 'NO';
+        const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper(market, 'label', this.safeStringUpper(market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const isNo = outcomeLabel === 'NO';
         const timestamp = this.parse8601(this.safeString(raw, 'updated_time'));
         const outcome = this.safeString(outcomeObj, 'outcome');
         const yesAsk = this.safeNumber(raw, 'yes_ask_dollars');
@@ -1019,20 +1011,20 @@ class kalshi extends kalshi$1["default"] {
         const chunkSize = this.safeInteger(this.options, 'fetchTickersBatchSize', 100);
         const result = {};
         const tickersLength = tickers.length;
-        let startIndex = 0;
-        while (startIndex < tickersLength) {
-            let endIndex = this.sum(startIndex, chunkSize);
-            if (endIndex > tickersLength) {
-                endIndex = tickersLength;
-            }
-            const chunk = [];
-            for (let i = startIndex; i < endIndex; i++) {
-                chunk.push(tickers[i]);
+        const lastTickerIndex = tickersLength - 1;
+        let chunk = [];
+        // flush a request every chunkSize tickers and once more for the trailing partial chunk
+        for (let ti = 0; ti < tickersLength; ti++) {
+            chunk.push(tickers[ti]);
+            const chunkLength = chunk.length;
+            if ((chunkLength < chunkSize) && (ti < lastTickerIndex)) {
+                continue;
             }
             const request = {
                 'tickers': chunk.join(','),
                 'limit': chunkSize,
             };
+            chunk = [];
             const response = await this.kalshiPublicGetMarkets(this.extend(request, params));
             const rawMarkets = this.safeList(response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
@@ -1050,7 +1042,6 @@ class kalshi extends kalshi$1["default"] {
                     }
                 }
             }
-            startIndex = this.sum(startIndex, chunkSize);
         }
         return result;
     }
@@ -1068,7 +1059,7 @@ class kalshi extends kalshi$1["default"] {
         await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
         const ticker = this.safeString(outcomeObj['info'], 'ticker');
-        const isNo = outcomeObj['label'] === 'NO';
+        const isNo = this.safeString(outcomeObj, 'label') === 'NO';
         const request = {
             'ticker': ticker,
         };
@@ -1085,7 +1076,7 @@ class kalshi extends kalshi$1["default"] {
         //         }
         //     }
         //
-        const book = this.safeValue(response, 'orderbook_fp', response);
+        const book = this.safeDict(response, 'orderbook_fp', response);
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         const rawYes = this.safeList(book, 'yes_dollars', []);
         const rawNo = this.safeList(book, 'no_dollars', []);
@@ -1188,7 +1179,10 @@ class kalshi extends kalshi$1["default"] {
         }
         else {
             const defaultLimit = this.safeInteger(this.options, 'defaultFetchOHLCVLimit', 200);
-            const candlesCount = (limit !== undefined) ? limit : defaultLimit;
+            let candlesCount = defaultLimit;
+            if (limit !== undefined) {
+                candlesCount = limit;
+            }
             request['end_ts'] = now;
             request['start_ts'] = now - (candlesCount * tf);
         }
@@ -1345,15 +1339,12 @@ class kalshi extends kalshi$1["default"] {
     parsePredictionTrade(trade, market = undefined) {
         const id = this.safeString(trade, 'trade_id');
         const ts = this.parse8601(this.safeString(trade, 'created_time'));
-        const priceDollars = this.safeNumber2(trade, 'yes_price_dollars', 'price_dollars');
         const priceCents = this.safeNumber2(trade, 'yes_price', 'price');
-        let price = undefined;
-        if (priceDollars !== undefined) {
-            price = priceDollars;
+        let centsPrice = undefined;
+        if (priceCents !== undefined) {
+            centsPrice = priceCents / 100;
         }
-        else if (priceCents !== undefined) {
-            price = priceCents / 100;
-        }
+        const price = this.safeNumber2(trade, 'yes_price_dollars', 'price_dollars', centsPrice);
         const amountFp = this.safeNumber2(trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber(trade, 'count', amountFp);
         const rawSide = this.safeStringLower(trade, 'taker_side');
@@ -1431,10 +1422,8 @@ class kalshi extends kalshi$1["default"] {
         for (let i = 0; i < fillsLength; i++) {
             trades.push(this.parseMyTrade(fills[i], outcomeObj));
         }
-        let wantedOutcome = undefined;
-        if (outcome !== undefined) {
-            wantedOutcome = this.safeString(this.outcome(outcome), 'outcome');
-        }
+        const wantedOutcomeObj = (outcome !== undefined) ? this.outcome(outcome) : {};
+        const wantedOutcome = this.safeString(wantedOutcomeObj, 'outcome');
         const result = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -1472,25 +1461,18 @@ class kalshi extends kalshi$1["default"] {
             side = 'sell';
         }
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
-        let price = undefined;
+        let centsKey = 'yes_price';
+        let dollarsKey = 'yes_price_dollars';
         if (sideLeg === 'no') {
-            price = this.safeNumber(fill, 'no_price_dollars');
-            if (price === undefined) {
-                const noCents = this.safeNumber(fill, 'no_price');
-                if (noCents !== undefined) {
-                    price = noCents / 100;
-                }
-            }
+            centsKey = 'no_price';
+            dollarsKey = 'no_price_dollars';
         }
-        else {
-            price = this.safeNumber(fill, 'yes_price_dollars');
-            if (price === undefined) {
-                const yesCents = this.safeNumber(fill, 'yes_price');
-                if (yesCents !== undefined) {
-                    price = yesCents / 100;
-                }
-            }
+        const legCents = this.safeNumber(fill, centsKey);
+        let centsPrice = undefined;
+        if (legCents !== undefined) {
+            centsPrice = legCents / 100;
         }
+        const price = this.safeNumber(fill, dollarsKey, centsPrice);
         const amount = this.safeNumber2(fill, 'count_fp', 'count');
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
@@ -1498,7 +1480,7 @@ class kalshi extends kalshi$1["default"] {
         }
         const isTaker = this.safeBool(fill, 'is_taker', true);
         let takerOrMaker = 'maker';
-        if (isTaker === true) {
+        if (isTaker) {
             takerOrMaker = 'taker';
         }
         const feeCost = this.safeNumber(fill, 'fee_cost');
@@ -1582,10 +1564,10 @@ class kalshi extends kalshi$1["default"] {
         const positions = this.safeList(response, 'market_positions', []);
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
-        const parsed = this.parsePredictionPositions(positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions(positions);
         }
+        const parsed = this.parsePredictionPositions(positions);
         const wantedTickers = {};
         if (outcomes === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchPositions() missing outcomes');
@@ -1635,10 +1617,8 @@ class kalshi extends kalshi$1["default"] {
         for (let i = 0; i < rawSettlementsLength; i++) {
             parsed.push(this.parseSettlement(rawSettlements[i]));
         }
-        let wantedOutcome = undefined;
-        if (outcome !== undefined) {
-            wantedOutcome = this.safeString(this.outcome(outcome), 'outcome');
-        }
+        const wantedOutcomeObj = (outcome !== undefined) ? this.outcome(outcome) : {};
+        const wantedOutcome = this.safeString(wantedOutcomeObj, 'outcome');
         const result = [];
         for (let i = 0; i < parsed.length; i++) {
             const settlement = parsed[i];
@@ -1662,7 +1642,7 @@ class kalshi extends kalshi$1["default"] {
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
         const yesCount = this.safeNumber2(settlement, 'yes_count_fp', 'yes_count', 0);
         const noCount = this.safeNumber2(settlement, 'no_count_fp', 'no_count', 0);
-        const heldYes = (yesCount >= noCount);
+        const heldYes = !(noCount > yesCount);
         let heldLabel = 'NO';
         if (heldYes) {
             heldLabel = 'YES';
@@ -1681,13 +1661,12 @@ class kalshi extends kalshi$1["default"] {
         const marketResult = this.safeStringUpper(settlement, 'market_result');
         const won = (marketResult === heldLabel);
         // kalshi reports money as dollar keys on V2, else cents
-        let payout = this.safeNumber(settlement, 'revenue_dollars');
-        if (payout === undefined) {
-            const revenueCents = this.safeNumber(settlement, 'revenue');
-            if (revenueCents !== undefined) {
-                payout = revenueCents / 100;
-            }
+        const revenueCents = this.safeNumber(settlement, 'revenue');
+        let centsPayout = undefined;
+        if (revenueCents !== undefined) {
+            centsPayout = revenueCents / 100;
         }
+        const payout = this.safeNumber(settlement, 'revenue_dollars', centsPayout);
         let costKey = 'no_total_cost';
         if (heldYes) {
             costKey = 'yes_total_cost';
@@ -1696,13 +1675,12 @@ class kalshi extends kalshi$1["default"] {
         if (heldYes) {
             costDollarsKey = 'yes_total_cost_dollars';
         }
-        let cost = this.safeNumber(settlement, costDollarsKey);
-        if (cost === undefined) {
-            const costCents = this.safeNumber(settlement, costKey);
-            if (costCents !== undefined) {
-                cost = costCents / 100;
-            }
+        const costCents = this.safeNumber(settlement, costKey);
+        let centsCost = undefined;
+        if (costCents !== undefined) {
+            centsCost = costCents / 100;
         }
+        const cost = this.safeNumber(settlement, costDollarsKey, centsCost);
         let pnl = undefined;
         if ((payout !== undefined) && (cost !== undefined)) {
             pnl = payout - cost;
@@ -1875,7 +1853,7 @@ class kalshi extends kalshi$1["default"] {
             await this.loadOutcome(outcome);
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend({ 'order_id': id }, params));
-        return this.parsePredictionOrder(this.safeValue(response, 'order', response));
+        return this.parsePredictionOrder(this.safeDict(response, 'order', response));
     }
     /**
      * @ignore
@@ -2000,7 +1978,7 @@ class kalshi extends kalshi$1["default"] {
         await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
         const ticker = this.safeString(outcomeObj['info'], 'ticker');
-        const isNo = (outcomeObj['label'] === 'NO');
+        const isNo = (this.safeString(outcomeObj, 'label') === 'NO');
         const isBuy = (side === 'buy');
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
@@ -2009,13 +1987,10 @@ class kalshi extends kalshi$1["default"] {
         if (isBuy) {
             bookSide = 'bid';
         }
-        let yesPrice = price;
         if (isNo) {
             bookSide = (isBuy) ? 'ask' : 'bid';
-            if (price !== undefined) {
-                yesPrice = this.parseNumber(Precise["default"].stringSub('1', this.numberToString(price)));
-            }
         }
+        const yesPrice = (isNo && (price !== undefined)) ? this.parseNumber(Precise["default"].stringSub('1', this.numberToString(price))) : price;
         const isMarket = (type === 'market');
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
@@ -2069,7 +2044,7 @@ class kalshi extends kalshi$1["default"] {
         if (remainingCount !== undefined) {
             order['remaining'] = remainingCount;
         }
-        if (order['status'] === undefined) {
+        if (this.safeString(order, 'status') === undefined) {
             let resolvedStatus = 'open';
             if ((remainingCount !== undefined) && (remainingCount === 0)) {
                 resolvedStatus = 'closed';
@@ -2128,10 +2103,10 @@ class kalshi extends kalshi$1["default"] {
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
         const order = this.parsePredictionOrder(this.safeDict(response, 'order', response), outcomeObj);
-        if (order['id'] === undefined) {
+        if (this.safeString(order, 'id') === undefined) {
             order['id'] = id;
         }
-        if (order['status'] === undefined) {
+        if (this.safeString(order, 'status') === undefined) {
             order['status'] = 'canceled';
         }
         return order;
@@ -2249,8 +2224,7 @@ class kalshi extends kalshi$1["default"] {
             const parsedEvent = this.parseEvent(rawEvents[di]);
             result.push(parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
-            const parsedMarketsRaw = parsedEvent['markets'];
-            const parsedMarkets = (parsedMarketsRaw !== undefined) ? parsedMarketsRaw : [];
+            const parsedMarkets = parsedEvent['markets'];
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
                 const m = parsedMarkets[mi];
@@ -2301,9 +2275,12 @@ class kalshi extends kalshi$1["default"] {
         }
         const rawEvents = [];
         const eventTickersLength = eventTickers.length;
+        const hasLimit = (limit !== undefined);
+        const limitOrZero = hasLimit ? limit : 0;
+        const limitValue = this.parseToInt(limitOrZero);
         for (let ei = 0; ei < eventTickersLength; ei++) {
             const collectedLength = rawEvents.length;
-            if ((limit !== undefined) && (collectedLength >= limit)) {
+            if (hasLimit && (collectedLength >= limitValue)) {
                 break;
             }
             // the series search can rank a ticker whose /events/{ticker} endpoint 404s (a series-only
@@ -2332,7 +2309,8 @@ class kalshi extends kalshi$1["default"] {
     async fetchRawEventByTicker(ticker, params = {}) {
         const request = { 'event_ticker': ticker, 'with_nested_markets': true };
         const response = await this.kalshiPublicGetEventsEventTicker(this.extend(request, params));
-        const fullEvent = this.safeDict(response, 'event', response);
+        // a typed copy of the event row: the caller-facing dict is never the raw response
+        const fullEvent = this.extend({}, this.safeDict(response, 'event', response));
         const nestedMarkets = this.safeList(fullEvent, 'markets');
         if (nestedMarkets === undefined) {
             fullEvent['markets'] = this.safeList(response, 'markets', []);
@@ -2389,7 +2367,7 @@ class kalshi extends kalshi$1["default"] {
         const ordered = [];
         const collectedLength = collected.length;
         for (let ci = 0; ci < collectedLength; ci++) {
-            const st = collected[ci];
+            const st = this.safeString(collected, ci);
             const already = this.safeString(seen, st);
             if ((st !== undefined) && (st !== '') && (already === undefined)) {
                 seen[st] = st;
@@ -2412,18 +2390,22 @@ class kalshi extends kalshi$1["default"] {
     async fetchSeriesEvents(seriesTickers, status, limit, rest = {}) {
         const rawEvents = [];
         const seriesTickersLength = seriesTickers.length;
-        const pageLimit = this.safeInteger(this.options, 'defaultFetchEventsLimit', 200);
+        const pageLimit = this.parseToInt(this.safeInteger(this.options, 'defaultFetchEventsLimit', 200));
         const maxPages = this.safeInteger(this.options, 'maxEventPagesPerSeries', 20);
+        const hasLimit = (limit !== undefined);
+        const limitOrZero = hasLimit ? limit : 0;
+        const limitValue = this.parseToInt(limitOrZero);
         for (let si = 0; si < seriesTickersLength; si++) {
             const collectedLength = rawEvents.length;
-            if ((limit !== undefined) && (collectedLength >= limit)) {
+            if (hasLimit && (collectedLength >= limitValue)) {
                 break;
             }
             let cursor = undefined;
             for (let page = 0; page < maxPages; page++) {
                 let reqLimit = pageLimit;
-                if (limit !== undefined) {
-                    const remaining = limit - rawEvents.length;
+                if (hasLimit && (limitValue !== undefined)) {
+                    const collectedSoFar = rawEvents.length;
+                    const remaining = this.parseToInt(limitValue - collectedSoFar);
                     if (remaining < reqLimit) {
                         reqLimit = remaining;
                     }
@@ -2448,7 +2430,7 @@ class kalshi extends kalshi$1["default"] {
                 }
                 cursor = this.safeString(response, 'cursor');
                 const collectedAfterPage = rawEvents.length;
-                if ((limit !== undefined) && (collectedAfterPage >= limit)) {
+                if (hasLimit && (collectedAfterPage >= limitValue)) {
                     break;
                 }
                 if ((cursor === undefined) || (cursor === '') || (pageEventsLength < reqLimit)) {
@@ -2553,10 +2535,12 @@ class kalshi extends kalshi$1["default"] {
         // resolved and the resolution deadline are aggregated from the child markets too
         let totalVolume = 0;
         let totalLiquidity = 0;
-        let earliestCreated = undefined;
+        // seeded from the first market, which the loop re-reads, so the min/max stays the same
+        const firstMarket = this.safeDict(rawMarkets, 0, {});
+        let earliestCreated = this.parse8601(this.safeString(firstMarket, 'open_time'));
         let anyActive = false;
         let allResolved = true;
-        let latestClose = undefined;
+        let latestClose = this.parse8601(this.safeString(firstMarket, 'close_time'));
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = rawMarkets[i];
             const parsed = this.parseMarket(rawMarket);

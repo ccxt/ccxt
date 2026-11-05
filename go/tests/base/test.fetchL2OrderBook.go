@@ -19,7 +19,10 @@ func testFetchL2OrderBookBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	orderBook := r.Raw
+	var orderBook any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		orderBook = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
+	}
 	TestOrderBook(exchange, skippedProperties, method, orderBook, symbol)
 
 	ch <- ccxt.AsyncResult[any]{Value: true}

@@ -971,9 +971,8 @@ class bithumb(Exchange, ImplicitAPI):
             marketIdsChunks = []
             promises = []
             # the exchange rejects more than 200 market ids per request
-            maxMarketIdsPerRequest = self.safe_integer(self.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200)
-            if (maxMarketIdsPerRequest is None) or (maxMarketIdsPerRequest < 1):
-                maxMarketIdsPerRequest = 200
+            maxMarketIdsOption = self.safe_integer(self.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200)
+            maxMarketIdsPerRequest = self.parse_to_int(200 if ((maxMarketIdsOption is None) or (maxMarketIdsOption < 1)) else maxMarketIdsOption)
             marketIdsChunk = []
             for i in range(0, marketIdsLength):
                 marketIdsChunk.append(marketIds[i])
@@ -1103,7 +1102,7 @@ class bithumb(Exchange, ImplicitAPI):
                     currencyId = currencyIds[j]
                     ticker = data[currencyId]
                     base = self.safe_currency_code(currencyId)
-                    if (base is None) or (quote is None):
+                    if base is None:
                         continue
                     symbol = base + '/' + quote
                     market = self.safe_market(symbol)
@@ -1396,22 +1395,28 @@ class bithumb(Exchange, ImplicitAPI):
         #     }
         #
         # a workaround for their bug in date format, hours are not 0-padded
-        timestamp = self.safe_integer(trade, 'timestamp')
-        isGenerationTwo = (timestamp is not None)
+        generationTwoTimestamp = self.safe_integer(trade, 'timestamp')
+        timestamp = generationTwoTimestamp
+        isGenerationTwo = (generationTwoTimestamp is not None)
         transactionDatetime = self.safe_string(trade, 'transaction_date')
         if transactionDatetime is not None:
             parts = transactionDatetime.split(' ')
             numParts = len(parts)
             if numParts > 1:
                 transactionDate = parts[0]
-                transactionTime = parts[1]
-                if len(transactionTime) < 8:
-                    transactionTime = '0' + transactionTime
-                timestamp = self.parse8601(transactionDate + ' ' + transactionTime)
+                rawTransactionTime = self.safe_string(parts, 1, '')
+                transactionTime = rawTransactionTime
+                if len(rawTransactionTime) < 8:
+                    transactionTime = '0' + rawTransactionTime
+                kstTimestamp = self.parse8601(transactionDate + ' ' + transactionTime)
+                timestamp = kstTimestamp
+                if (kstTimestamp is not None) and (not isGenerationTwo):
+                    timestamp = kstTimestamp - 9 * 3600000  # they report UTC + 9 hours, server in Korean timezone
             else:
-                timestamp = self.safe_integer_product(trade, 'transaction_date', 0.001)
-        if (timestamp is not None) and (not isGenerationTwo):
-            timestamp -= 9 * 3600000  # they report UTC + 9 hours, server in Korean timezone
+                productTimestamp = self.safe_integer_product(trade, 'transaction_date', 0.001)
+                timestamp = productTimestamp
+                if (productTimestamp is not None) and (not isGenerationTwo):
+                    timestamp = productTimestamp - 9 * 3600000  # they report UTC + 9 hours, server in Korean timezone
         type = None
         side = self.safe_string_lower_2(trade, 'ask_bid', 'type')
         if side == 'bid':
@@ -1424,9 +1429,8 @@ class bithumb(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'market')
         marketResolved = self.safe_market(marketId, market)
         priceString = self.safe_string_2(trade, 'price', 'trade_price')
-        amountString = self.safe_string(trade, 'trade_volume')
-        if amountString is None:
-            amountString = self.fix_comma_number(self.safe_string_2(trade, 'units_traded', 'units'))
+        tradeVolume = self.safe_string(trade, 'trade_volume')
+        amountString = self.fix_comma_number(self.safe_string_2(trade, 'units_traded', 'units')) if (tradeVolume is None) else tradeVolume
         costString = self.safe_string(trade, 'total')
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
@@ -1558,8 +1562,8 @@ class bithumb(Exchange, ImplicitAPI):
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(symbol, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
-        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
-        market = self.market(orderSymbols[0])
+        symbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(symbols[0])
         request = {
             'batch_orders': ordersRequests,
         }
@@ -1628,18 +1632,15 @@ class bithumb(Exchange, ImplicitAPI):
             if side == 'buy':
                 typeRequest = 'price'
                 # for market buy it requires the amount of quote currency to spend
-                cost = self.safe_string(paramsOrder, 'cost')
+                costParam = self.safe_string(paramsOrder, 'cost')
                 createMarketBuyOrderRequiresPrice, paramsRequiresPrice = self.handle_option_bool_and_params(self.omit(paramsOrder, 'cost'), 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 paramsOrder = paramsRequiresPrice
+                amountString = self.number_to_string(amount)
+                cost = amountString if (costParam is None) else costParam
                 if createMarketBuyOrderRequiresPrice:
-                    if (price is None) and (cost is None):
+                    if (price is None) and (costParam is None):
                         raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
-                    else:
-                        amountString = self.number_to_string(amount)
-                        priceString = self.number_to_string(price)
-                        cost = Precise.string_mul(amountString, priceString)
-                else:
-                    cost = self.number_to_string(amount) if (cost is None) else cost
+                    cost = Precise.string_mul(amountString, self.number_to_string(price))
                 request['price'] = self.price_to_precision(symbol, cost)
             else:
                 request['volume'] = self.amount_to_precision(symbol, amount)
@@ -1928,7 +1929,7 @@ class bithumb(Exchange, ImplicitAPI):
         parsedOrder = self.extend(data, orderData)
         return self.parse_order(parsedOrder, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'Pending': 'open',
             'Completed': 'closed',
@@ -2676,7 +2677,7 @@ class bithumb(Exchange, ImplicitAPI):
         statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    async def fetch_withdrawal_whitelist(self, params: dict = {}) -> object:
+    async def fetch_withdrawal_whitelist(self, params: dict = {}) -> list[object]:
         """
         fetch a list of allowed withdrawal addresses
 
@@ -3036,7 +3037,7 @@ class bithumb(Exchange, ImplicitAPI):
             'tag': self.safe_string(response, 'secondary_address'),
         }
 
-    def fix_comma_number(self, numberStr: Str):
+    def fix_comma_number(self, numberStr: Str) -> Str:
         # some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if numberStr is None:
             return None
@@ -3048,7 +3049,7 @@ class bithumb(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def urlencode_with_array_brackets(self, query: dict):
+    def urlencode_with_array_brackets(self, query: dict) -> str:
         keys = list(query.keys())
         result = ''
         for i in range(0, len(keys)):
@@ -3073,7 +3074,7 @@ class bithumb(Exchange, ImplicitAPI):
                 result += encodedKey + '=' + encodedValue
         return result
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         requestHeaders = None
         requestBody = None
@@ -3121,11 +3122,11 @@ class bithumb(Exchange, ImplicitAPI):
                 token = self.jwt(request, self.encode(self.secret), 'sha256')
                 requestHeaders['Authorization'] = 'Bearer ' + token
             else:
-                requestBody = self.urlencode(self.extend({
+                encodedBody = self.urlencode(self.extend({
                     'endpoint': endpoint,
                 }, query))
                 # bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                bodyParts = requestBody.split('%20')
+                bodyParts = encodedBody.split('%20')
                 requestBody = '+'.join(bodyParts)
                 nonce = str(self.nonce())
                 auth = endpoint + "\0" + requestBody + "\0" + nonce  # eslint-disable-line quotes
