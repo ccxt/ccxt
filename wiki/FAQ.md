@@ -409,6 +409,8 @@ instance = new ccxt.interactivebrokers ({
 
 #### Use IBKR with Web-Api with Client-Portal Gateway
 
+If your account is not permitted to generate credentials for WebApi, then you can use local IBKR bridge where you will not need api-keys. At first, download repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/archive/refs/heads/master.zip and run it as noted there. After that, you can use:
+
 ```
 instance = new ccxt.interactivebrokers ({
   "options": {
