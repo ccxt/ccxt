@@ -3443,10 +3443,6 @@ function nativeGuardedListElementReadsSelfTest (): string[] {
 // Semantic post-passes over the printer text: a leaked body goroutine, a missing type
 // assertion and an unbounded element read are fixed here; layout is the printer's job and
 // is gofmt-clean except where an emitter splices operand text into a call it prints.
-// Balance is a Go map[string]any, so an entry read prints `any` and compares natively against nil
-function goBalanceEntryNilCompares (content: string): string {
-    return content.replace (/(!?)(?<![\w])(?:ccxt\.)?IsEqual\(this\.Balance\[(\w+)\], nil\)/g, ((_m: string, not: string, key: string) => '(this.Balance[' + key + ']' + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
-}
 
 // A resolved watch value as statements at indent `ind` (first line unindented): `var <v> T` + a type switch over
 // `expr` + the typed send. `direct` (a typed twin, or a struct carrier whose `<T>FromMap` builder coerces the box
@@ -3539,7 +3535,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goBlockScopedDeclPass (content);
     goTupleSlotNeverNil.file = undefined;
     content = w8ClientTableCalls (w8ClientFuturesReads (w8FuturesPairInOp (goTypedInopClientMaps (content))));
-    content = goFieldInOp (content);
     content = goBaseFieldReads (content);
     content = goNativeKeysAndRemove (content);
     content = goTypedTypepredIsArray (content);
@@ -3562,7 +3557,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goPromiseAllSlotReads (content);  // promiseAll destructure slots, once the receive prints ListTyped(r.Value)
     content = goPromiseAllLoopReads (content);  // loop-built task lists read back under the same len() bound
     content = goPromiseAllSelfBoundReads (content);  // GetValue(h, i) inside `for i < len(h)`
-    content = goBalanceEntryNilCompares (content);  // this.Balance[k] is printed by the owner passes above
     content = goTupleSlotDerefs (content);
     content = goMarketsByIdInOp (content);
     content = gb09CredentialStrings (content);  // the credential fields are plain strings
@@ -5213,7 +5207,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (path.endsWith ('.go')) {
         content = goDropRedundantTyped (goStructReturnsPass (content));
     }
-    content = content;
     // layout last: the passes above splice operands (derefs, natives) after spacing and the
     // comment columns were computed; recompute both from the final text
     if (path.endsWith ('.go')) {
@@ -7414,7 +7407,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goInlineTypeChecks (goInlineStr (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goFieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))), goCompositeKeyAligner ())), goCompositeKeyAligner ()))), baseFile.stdlibImports)));
+            fs.writeFileSync (goPredictionBase, goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goInlineTypeChecks (goInlineStr (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))), goCompositeKeyAligner ())), goCompositeKeyAligner ()))), baseFile.stdlibImports)));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -9895,7 +9888,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedTypepredSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (goTypedArrSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goFieldInOpSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goInlineTypeChecksCheck (goCompositeKeyAligner ())).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goInlineStrCheck (goCompositeKeyAligner ())).concat (goInlineStrWiredCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goBaseFieldReadsCheck ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goMarketsByIdInOpSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
+        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedTypepredSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (goTypedArrSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goInlineTypeChecksCheck (goCompositeKeyAligner ())).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goInlineStrCheck (goCompositeKeyAligner ())).concat (goInlineStrWiredCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goBaseFieldReadsCheck ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goMarketsByIdInOpSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10768,6 +10761,7 @@ export function goNativeEquality (content: string): string {
     return content;
 }
 
+
 function goNativeEqualitySelfTest (): string[] {
     const problems: string[] = [];
     const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
@@ -10784,8 +10778,6 @@ function goNativeEqualitySelfTest (): string[] {
     ok (rb.indexOf ('IsEqual(t, true)') >= 0, 'a rebound bool keeps the helper: ' + rb);
     const fields = f ('\tif IsEqual(this.Orders, nil) || !IsEqual(this.Positions, nil) || IsEqual(this.ApiKey, nil) || IsEqual(this.Balance, nil) {\n\t}\n');
     ok (fields.indexOf ('if (this.Orders == nil) || (this.Positions != nil) || IsEqual(this.ApiKey, nil) || (this.Balance == nil) {') >= 0, 'cache fields only: ' + fields);
-    const entry = goBalanceEntryNilCompares ('\tif ccxt.IsEqual(this.Balance[accountType], nil) || !IsEqual(this.Balance[k], nil) || IsEqual(this.Options[k], nil) {\n');
-    ok (entry === '\tif (this.Balance[accountType] == nil) || (this.Balance[k] != nil) || IsEqual(this.Options[k], nil) {\n', 'Balance entries compare natively: ' + entry);
     const folded = f ('\tif IsEqual(this.RateLimit, nil) || (!IsEqual(this.Id, nil) && (this.RateLimit == -1)) {\n\t}\n');
     ok (folded.indexOf ('if (this.RateLimit == -1) {') >= 0, 'typed RateLimit/Id fields fold: ' + folded);
     ok (f ('\tif IsEqual(this.ApiKey, nil) || IsEqual(this.Name, nil) {\n\t}\n').indexOf ('IsEqual(this.ApiKey, nil)') >= 0, 'other fields keep the helper');
@@ -13705,68 +13697,6 @@ function goDropRedundantTypedSelfTest (): string[] {
     return problems;
 }
 
-// InOp(this.<F>, k) on a hand-written map[string]any BaseExchange field -> `if _, ok := this.<F>[k]; ...` (a nil map reads
-// ok=false like the helper); lone call in an if header, literal or declared-string key, `ok` unused. Else keeps the helper.
-function goFieldInOp (content: string): string {
-    const fieldRx = /(?<![\w.])(?:ccxt\.)?InOp\(this\.(?:Urls|HttpExceptions|Timeframes|Has|Features|Clients|WsClientsSnapshot\(\)), /;
-    if (!fieldRx.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    let start = -1;
-    let maskedFunc = '';
-    let offsets: number[] = [];
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = lines[k].startsWith ('func (this *') ? k : -1;
-            let end = k;
-            while ((end < lines.length) && (lines[end] !== '}')) {
-                end++;
-            }
-            maskedFunc = masked.slice (k, end + 1).join ('\n');
-            offsets = [];
-            let o = 0;
-            for (let j = k; (j <= end) && (j < lines.length); j++) {
-                offsets.push (o);
-                o += masked[j].length + 1;
-            }
-            continue;
-        }
-        if (lines[k] === '}') {
-            start = -1;
-            continue;
-        }
-        if ((start < 0) || /\bok\b/.test (maskedFunc)) {
-            continue;
-        }
-        const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
-        const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
-        if ((cond === null) || (calls.length !== 1)) {
-            continue;
-        }
-        const at = calls[0].index;
-        const call = /^(?:ccxt\.)?InOp\((this\.(?:Urls|HttpExceptions|Timeframes|Has|Features|Clients|WsClientsSnapshot\(\))), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
-        if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
-            continue;
-        }
-        const [ all, recv, key ] = call;
-        if (!key.startsWith ('"')) {
-            const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
-            if ((decl === undefined) || (decl.type !== 'string') || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
-                continue;
-            }
-        }
-        let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + all.length);
-        rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
-        lines[k] = cond[1] + '_, ok := ' + recv + '[' + key + ']; ' + rest;
-        masked[k] = lines[k];
-    }
-    return lines.join ('\n');
-}
 
 // ===== InOp(this.Markets_by_id, k) -> `if _, ok := this.Markets_by_id[k]; ...` (nil map reads ok=false) =====
 // The key must be a non-nil string at the `if`: a `string`, or a `*string` whose every write is a literal-default SafeString*
@@ -13861,24 +13791,6 @@ function goMarketsByIdInOpSelfTest (): string[] {
     return problems;
 }
 
-function goFieldInOpSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('go field in op self: ' + message); } };
-    const f = (sig: string, body: string) => goFieldInOp ('func (this *X) H(' + sig + ') {\n' + body + '}\n');
-    ok (f ('', '\tif InOp(this.Urls, "test") {\n\t}\n').includes ('\tif _, ok := this.Urls["test"]; ok {'), 'literal key');
-    ok (f ('', '\t} else if InOp(this.Urls, "apiBackup") {\n').includes ('\t} else if _, ok := this.Urls["apiBackup"]; ok {'), 'else-if');
-    ok (f ('code any', '\tvar s string = ToString(code)\n\tif (IsLessThan(code, 400)) || !(InOp(this.HttpExceptions, s)) {\n\t}\n').includes ('\tif _, ok := this.HttpExceptions[s]; (IsLessThan(code, 400)) || !ok {'), 'string local key');
-    ok (f ('url string', '\tif (this.Clients != nil) && (ccxt.InOp(this.Clients, url)) {\n\t}\n').includes ('\tif _, ok := this.Clients[url]; (this.Clients != nil) && ok {'), 'string param key, ccxt prefix');
-    ok (f ('t any', '\tif InOp(this.Features, t) {\n\t}\n').includes ('InOp('), 'any key keeps InOp');
-    ok (f ('t *string', '\tif InOp(this.Timeframes, t) {\n\t}\n').includes ('InOp('), '*string key keeps InOp');
-    ok (f ('', '\tif InOp(this.Markets, "a") {\n\t}\n').includes ('InOp('), 'sync.Map field keeps InOp');
-    ok (f ('', '\tvar b bool = InOp(this.Has, "a")\n').includes ('InOp('), 'bool init keeps InOp');
-    ok (f ('', '\tif InOp(this.Has, "a") || InOp(this.Urls, "b") {\n\t}\n').includes ('InOp('), 'two calls keep InOp');
-    ok (f ('', '\t_, ok := m["x"]\n\tif InOp(this.Urls, "a") && ok {\n\t}\n').includes ('InOp('), 'ok in func keeps InOp');
-    ok (f ('', '\tif InOp(this.Has, s) {\n\t}\n\tvar s string = "a"\n').includes ('InOp('), 'key declared after keeps InOp');
-    ok (goFieldInOp ('func H(this any) {\n\tif InOp(this.Urls, "a") {\n\t}\n}\n').includes ('InOp('), 'non-method keeps InOp');
-    return problems;
-}
 
 // ===== exchange tuple producers return []any; their holders read slots natively =====
 // `func (this *R) M(..) any {` whose every own return (func literals aside) is a one-line
@@ -14857,7 +14769,7 @@ function goBaseNativePasses (content: string): string {
     content = nativeTypedContainerAccess (goTypedAddElemRetypeMapLocals (content));
     content = goBlockScopedDeclPass (content);
     goTupleSlotNeverNil.file = undefined;
-    content = goNativeKeysAndRemove (goFieldInOp (w8ClientTableCalls (w8ClientFuturesReads (w8FuturesPairInOp (goTypedInopClientMaps (content))))));
+    content = goNativeKeysAndRemove (w8ClientTableCalls (w8ClientFuturesReads (w8FuturesPairInOp (goTypedInopClientMaps (content)))));
     content = goBaseFieldReads (content);
     content = goPlainBoxIsEqual (goProvenLocalIsEqual (goIsEqualSafeLiteral (content)));
     content = goTypedLenNative (goNativeStringAdds (goIntegralBoxComparisons (goGuardedDivide (goFloatFieldComparisons (goTupleTruthyComparisons (goNativeCompare (goInt64RetypeArith (content))))))));
