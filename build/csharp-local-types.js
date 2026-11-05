@@ -1040,7 +1040,6 @@ const CSHARP_STRING_RETURN_METHODS_VENUE_HELPERS = {
 };
 Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_VENUE_HELPERS);
 
-
 // Further non-async names whose every declaration returns a string or null: the names below have
 // byte-identical bodies; those in the boundary table have one object-boxed return proven
 // string-or-null and take the boundary cast.
@@ -5067,7 +5066,6 @@ function handlerTableReadType (csharp, initializer, context) {
     }
     return 'Delegate';
 }
-
 
 // Call results whose runtime box is the named type on every return path of every definition,
 // so the printed `object` call carries an exact cast back. Keyed on `this.<name>` calls; the

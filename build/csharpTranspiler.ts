@@ -188,7 +188,6 @@ function csharpArgumentCount (args: string): number {
     return count
 }
 
-
 // ===== native getArrayLength / inOp / getValue on a receiver the EMITTED text declares =====
 //
 // The printer's helper-to-native arms (csharpDeclaredLengthExpression / csharpNativeInExpression)
@@ -1532,17 +1531,6 @@ const SNAPSHOT_CORES: Record<string, { type: string; helper: string; predictionT
     },
 };
 
-
-
-
-
-
-
-
-
-
-
-
 // the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
 // structures, so the same method name is typed differently there — no invariance conflict
 // struct families that have a reverse `FromX` / `FromXList` helper in
@@ -1678,8 +1666,6 @@ const SYNC_TYPED_CORES: Record<string, string> = {
     'createExpiredOptionMarket': 'Dictionary<string, object>',
 };
 
-
-
 // Core parameters that name a DICTIONARY ROW (`parse*(object row, …)`, `object currency`), keyed by
 // position, with NO call-site wrap: every caller in cs/** already passes a Dictionary<string, object>
 // or null. Names whose callers pass `getValue(list, i)` or an `object` local stay out (needs a new cast).
@@ -1724,7 +1710,6 @@ const CORE_IDICT_ARGS: Record<string, number[]> = {
     'parseWsUtaTicker': [ 0 ],
     'parseWsUtaTrade': [ 0 ],
 };
-
 
 // Collection-returning helpers whose every return site yields a list (or null) at runtime but
 // whose generated declaration still said `object`. Every site was checked mechanically (a
@@ -2045,7 +2030,6 @@ const CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE = /^\s*IList<object>\s+([A-Za-z_]\
 // to this alias, so the other shadow families keep the base behaviour.
 const CORE_ARG_SHADOW_TAG_ALIASES = [ 'tagVar' ];
 
-
 // Declarations the scanned body carries for the family above: element-0 holders of the audited
 // helpers, dictionary locals and plain `object` locals.
 type CoreArgShadowTagContext = {
@@ -2235,19 +2219,9 @@ const WS_HANDLER_IDICT_MESSAGE: Record<string, string[]> = {
 // invariant), matching the hand-written base Exchange.cs. No `Var` shadow: every body write is a literal or
 // dict producer. The table lives in build/csharp-local-types.js so the printer reads these positions too.
 
-
 // Methods whose trailing `parameters` is typed `Dictionary<string, object> parameters = null`.
 // C# overrides are invariant on parameter types, so a name is listed only when every declaration
 // of it is rewritten by the same pass and no body/call site needs a non-dict value.
-
-
-
-
-
-
-
-
-
 
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 // the fine-split moves the 62 symbol-based trading methods onto the concrete `Exchange` tier
@@ -2880,7 +2854,6 @@ function csharpReturnIsAlreadyTyped (expr: string, targetType: string, content: 
     return false
 }
 
-
 // the suffixed C# literal a numeric core parameter takes for a plain numeric literal argument:
 // `1L` -> Int64 / Int64?, `0d` -> double / double?. '' when the operand is not such a literal
 function csharpNumericLiteralFor (helper: string, argument: string): string {
@@ -3036,7 +3009,6 @@ class NewTranspiler {
         this.setupTranspiler()
         // this.transpiler.csharpTranspiler.VAR_TOKEN = 'var'; // tmp fix
 
-
         this.pythonStandardLibraries = {
             'hashlib': 'hashlib',
             'math': 'math',
@@ -3051,8 +3023,6 @@ class NewTranspiler {
         return [
             [/new (\w+)Rest\(\)/, 'new ccxt.$1()'],
             [/return await (\w+);/gm, 'return await ($1 as Exchange.Future);'],
-            // [/typeof\(client\)/gm, 'client'],
-            // [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
             [/new\sgetValue\((\w+),\s(\w+)\)\((\w+)\)/gm, 'this.newException(getValue($1, $2), $3)'],
             [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
@@ -3071,13 +3041,11 @@ class NewTranspiler {
             [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCache)$2'],
             [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
             [/(\w+)(\.storeArray\(.+\))/gm, '($1 as IOrderBookSide)$2'],
-            // [/(.+)\.store\((.+),(.+)\)/gm, '($1 as OrderBookSide).store($2,$3)'],
             [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
             [/(\w+)(\.limit\(\))/gm, '($1 as IOrderBook)$2'],
             [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
             [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
             [/this\.delay\(([^,\n]+),([^,\n]+),([^\n]+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
-            // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
             [/future(\.reject.+)/gm, '((Future)future)$1'],
             [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
@@ -3093,7 +3061,6 @@ class NewTranspiler {
             [/callDynamically\((\w+) as (WebSocketClient|Future), "resolve", new object\[\] \{(.+)\}\);/gm, '($1 as $2).resolve($3);'],
         ]
     }
-
 
     // c# custom method
     customCSharpPropAssignment(node: any, identation: any) {
@@ -3298,9 +3265,6 @@ class NewTranspiler {
             // infrastructure types (IOrderBook, ArrayCache, ...) from ccxt.pro
             values.push ("using ccxt.pro;");
         }
-        // if (ws) {
-        //     values.push("using System.Reflection;");
-        // }
         return values;
     }
 
@@ -3680,7 +3644,6 @@ class NewTranspiler {
     // the prediction tier is detected from the emitted content, not from `this.isPrediction`:
     // the recursive prediction pass and the main pass both reach these files, and only the text
     // reliably says which class hierarchy the method is being emitted into
-
 
     // `List<OrderBook>` -> `List<ccxt.OrderBook>`. Required because ccxt.pro declares its own
     // OrderBook / Trade classes, which would otherwise win name resolution inside pro files
@@ -6554,7 +6517,6 @@ class NewTranspiler {
         return -1;
     }
 
-
     // the [from, to) range(s) to delete for the cast at `at` (index of the `((string)` in the
     // masked line), or null when the operand's static type is not provably `string`. The first
     // range is the cast token; a wrapper adds a second range for its closing `)`.
@@ -8048,7 +8010,6 @@ class NewTranspiler {
             return Array.from (generator (map, parent, generate, classes))
         }
 
-
         // CSHARP ----------------------------------------------------------------
 
         // ---------------------------------------------------------------------
@@ -8269,7 +8230,6 @@ class NewTranspiler {
         this.createCSharpWrappers('BaseExchange', GLOBAL_WRAPPER_FILE, baseTierWrapperTypes)
         this.createCSharpWrappers('Exchange', GLOBAL_TRADING_WRAPPER_FILE, exchangeTierWrapperTypes)
 
-
         // custom transformations needed for c#
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
@@ -8284,12 +8244,9 @@ class NewTranspiler {
         // generated `object` signature only erased the string it already returns; the local-typing
         // classifier (build/csharp-local-types.js) relies on the honest `string` here.
         baseClass = baseClass.replaceAll(/public virtual object implodeHostname\(object url\)/g, 'public virtual string implodeHostname(object url)');
-        // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
-        // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(exact, str)(((string)message));", "this.throwDynamicException(exact, str, message);"); // tmp fix for c#
         // baseClass = baseClass.replace("throw new getValue(exact, str)(message);", "throw new Exception ((string) message);"); // tmp fix for c#
-
 
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
@@ -8402,7 +8359,6 @@ class NewTranspiler {
         });
         return res.replaceAll('-', '');
       }
-
 
     getCsharpExamplesWarning() {
         return [
@@ -8545,7 +8501,6 @@ class NewTranspiler {
         if (baseOnly) {
             return;
         }
-
 
         await this.transpileTests(force)
 
@@ -8754,8 +8709,6 @@ class NewTranspiler {
     replaceImportedRestClasses (content: string, imports: any[]) {
         const restNamespacePrefix = this.isPrediction ? 'ccxt.prediction.' : 'ccxt.';
         for (const imp of imports) {
-            // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
-            // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
             const name = imp.name;
             if (name.endsWith('Rest')) {
                 content = content.replaceAll(name, restNamespacePrefix + name.replace('Rest', ''));
@@ -8883,12 +8836,10 @@ class NewTranspiler {
         content = this.regexAll (content, [
             [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
             [/assert/g, 'Assert'],
-            // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim ()
 
         const contentLines = content.split ('\n');
         const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
-
 
         const file = [
             'using ccxt;',
@@ -9041,7 +8992,6 @@ class NewTranspiler {
         const csharp = this.transpiler.transpileCSharp(fs.readFileSync (files.tsFile).toString ());
         // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
         let contentIndentend = csharp.content;
-
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
@@ -10309,7 +10259,6 @@ export function csharpNativeEmissionSelfTest (): string[] {
     problems.push (...nonNullDivModNegateSelfTest ());
     return problems.concat (stringAddEqualityTruthSelfTest ());
 }
-
 
 // final-text pass: `for (object i = <int>; …; postFixIncrement(ref i))` counters whose every read normalises
 // the box become `Int64 i … i++`; `prefixUnaryNeg(ref x)` on a numeric parameter copy / single-use
