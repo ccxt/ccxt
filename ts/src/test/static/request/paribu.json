@@ -1,0 +1,317 @@
+{
+    "exchange": "paribu",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "my trades with since and limit",
+                "method": "fetchMyTrades",
+                "url": "https://api.paribu.com/trades/history?filter_market=btc_tl&begin_date=2025-10-09&per_page=50",
+                "input": [
+                    "BTC/TRY",
+                    1760000000000,
+                    50
+                ],
+                "output": null
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "USDT withdrawal on TRC20, internal travel rule platform",
+                "method": "withdraw",
+                "url": "https://api.paribu.com/withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "TXyzExampleAddress000000000000000000",
+                    {
+                        "network": "TRC20",
+                        "declaration_platform": "internal"
+                    }
+                ],
+                "output": "{\"currency\":\"usdt\",\"amount\":\"10\",\"address\":\"TXyzExampleAddress000000000000000000\",\"network\":\"trx\",\"declaration_platform\":\"internal\"}"
+            }
+        ],
+        "fetchWithdrawal": [
+            {
+                "description": "fetch withdrawal by id",
+                "method": "fetchWithdrawal",
+                "url": "https://api.paribu.com/withdraw/019e5186-e497-725a-9aab-971b4f0560f0",
+                "input": [
+                    "019e5186-e497-725a-9aab-971b4f0560f0"
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "deposits and withdrawals with until",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://api.paribu.com/transfers/history?filter_currency=usdt&begin_date=2025-10-09&end_date=2025-10-20&page_size=25",
+                "input": [
+                    "USDT",
+                    1760000000000,
+                    25,
+                    {
+                        "until": 1761000000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "USDT withdrawals with limit",
+                "method": "fetchWithdrawals",
+                "url": "https://api.paribu.com/transfers/history?filter_currency=usdt&page_size=10&filter_direction=withdraw",
+                "input": [
+                    "USDT",
+                    null,
+                    10
+                ],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "TRY deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.paribu.com/transfers/history?filter_only_fiat=true&filter_direction=deposit",
+                "input": [
+                    "TRY"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders in a market",
+                "method": "fetchOpenOrders",
+                "url": "https://api.paribu.com/open-orders?market=btc_tl",
+                "input": [
+                    "BTC/TRY"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order by id",
+                "method": "fetchOrder",
+                "url": "https://api.paribu.com/order/019e5186-e497-725a-9aab-971b4f0560f0",
+                "input": [
+                    "019e5186-e497-725a-9aab-971b4f0560f0"
+                ],
+                "output": null
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders in a market",
+                "method": "cancelAllOrders",
+                "url": "https://api.paribu.com/order?type=all&market=btc_tl",
+                "input": [
+                    "BTC/TRY"
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel by clientOrderId (v2 endpoint)",
+                "method": "cancelOrder",
+                "url": "https://api.paribu.com/v2/order?market=btc_tl&origClientOrderId=paribu-test-1",
+                "input": [
+                    "paribu-test-1",
+                    "BTC/TRY",
+                    {
+                        "clientOrderId": "paribu-test-1"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel by id",
+                "method": "cancelOrder",
+                "url": "https://api.paribu.com/order/019e5186-e497-725a-9aab-971b4f0560f0",
+                "input": [
+                    "019e5186-e497-725a-9aab-971b4f0560f0"
+                ],
+                "output": null
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "market buy by cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.paribu.com/order",
+                "input": [
+                    "BTC/TRY",
+                    500
+                ],
+                "output": "{\"market\":\"btc_tl\",\"trade\":\"buy\",\"type\":\"market\",\"total\":\"500\"}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "stop limit sell with triggerPrice",
+                "method": "createOrder",
+                "url": "https://api.paribu.com/order",
+                "input": [
+                    "BTC/TRY",
+                    "limit",
+                    "sell",
+                    0.001,
+                    3890000,
+                    {
+                        "triggerPrice": 3900000
+                    }
+                ],
+                "output": "{\"market\":\"btc_tl\",\"trade\":\"sell\",\"type\":\"limit\",\"price\":\"3890000\",\"amount\":\"0.001\",\"condition\":\"3900000\"}"
+            },
+            {
+                "description": "stop market sell with triggerPrice",
+                "method": "createOrder",
+                "url": "https://api.paribu.com/order",
+                "input": [
+                    "BTC/TRY",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "triggerPrice": 3900000
+                    }
+                ],
+                "output": "{\"market\":\"btc_tl\",\"trade\":\"sell\",\"type\":\"market\",\"amount\":\"0.001\",\"condition\":\"3900000\"}"
+            },
+            {
+                "description": "market sell by amount",
+                "method": "createOrder",
+                "url": "https://api.paribu.com/order",
+                "input": [
+                    "BTC/TRY",
+                    "market",
+                    "sell",
+                    0.001
+                ],
+                "output": "{\"market\":\"btc_tl\",\"trade\":\"sell\",\"type\":\"market\",\"amount\":\"0.001\"}"
+            },
+            {
+                "description": "market buy, total from amount * price",
+                "method": "createOrder",
+                "url": "https://api.paribu.com/order",
+                "input": [
+                    "BTC/TRY",
+                    "market",
+                    "buy",
+                    0.001,
+                    4000000
+                ],
+                "output": "{\"market\":\"btc_tl\",\"trade\":\"buy\",\"type\":\"market\",\"total\":\"4000\"}"
+            },
+            {
+                "description": "limit sell IOC with clientOrderId (v2 endpoint)",
+                "method": "createOrder",
+                "url": "https://api.paribu.com/v2/order",
+                "input": [
+                    "BTC/TRY",
+                    "limit",
+                    "sell",
+                    0.001,
+                    4200000,
+                    {
+                        "timeInForce": "IOC",
+                        "clientOrderId": "paribu-test-1"
+                    }
+                ],
+                "output": "{\"market\":\"btc_tl\",\"trade\":\"sell\",\"type\":\"limit\",\"price\":\"4200000\",\"amount\":\"0.001\",\"time_in_force\":\"IOC\",\"newClientOrderId\":\"paribu-test-1\"}"
+            },
+            {
+                "description": "post only limit buy (limit_maker)",
+                "method": "createOrder",
+                "url": "https://api.paribu.com/order",
+                "input": [
+                    "BTC/TRY",
+                    "limit",
+                    "buy",
+                    0.001,
+                    4000000,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"market\":\"btc_tl\",\"trade\":\"buy\",\"type\":\"limit_maker\",\"price\":\"4000000\",\"amount\":\"0.001\"}"
+            },
+            {
+                "description": "limit buy",
+                "method": "createOrder",
+                "url": "https://api.paribu.com/order",
+                "input": [
+                    "BTC/TRY",
+                    "limit",
+                    "buy",
+                    0.001,
+                    4000000
+                ],
+                "output": "{\"market\":\"btc_tl\",\"trade\":\"buy\",\"type\":\"limit\",\"price\":\"4000000\",\"amount\":\"0.001\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.paribu.com/user/assets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "recent trades with limit",
+                "method": "fetchTrades",
+                "url": "https://api.paribu.com/trades?market=btc_tl&limit=5",
+                "input": [
+                    "BTC/TRY",
+                    null,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "order book with limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.paribu.com/orderbook?market=btc_tl&limit=5",
+                "input": [
+                    "BTC/TRY",
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker BTC/USDT",
+                "method": "fetchTicker",
+                "url": "https://api.paribu.com/market/ticker?market=btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot ticker BTC/TRY",
+                "method": "fetchTicker",
+                "url": "https://api.paribu.com/market/ticker?market=btc_tl",
+                "input": [
+                    "BTC/TRY"
+                ],
+                "output": null
+            }
+        ]
+    },
+    "outputType": "both"
+}
