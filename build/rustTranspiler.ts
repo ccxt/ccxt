@@ -15722,7 +15722,7 @@ impl std::ops::DerefMut for ${coreName} {
             // run the sequence watcher which drains one frame per watch call.
             content = content.replace(
                 /let mut promises: Value = Value::(?:List|from)\(vec!\[self\.inject_ws_messages\(.+?\)\.await, (self\.watch_and_assert_sequence\(.+?\))\.await\]\);/,
-                'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::from(vec![Value::Bool(true), $1.await]);',
+                'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::from(vec![Value::Bool(true), $1.await]); drainWsWatchMessages(&mut exchange, url.clone(), method.clone(), input.clone()).await;',
             );
             // `extend_exchange_options` takes `&mut self` — hoist any arg
             // that also reads the receiver out of the call.
