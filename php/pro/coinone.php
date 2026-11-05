@@ -370,7 +370,7 @@ class coinone extends \ccxt\async\coinone {
         $isSellerMaker = $this->safe_bool($trade, 'is_seller_maker');
         $side = null;
         if ($isSellerMaker !== null) {
-            $side = ($isSellerMaker === true) ? 'sell' : 'buy';
+            $side = ($isSellerMaker) ? 'sell' : 'buy';
         }
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');

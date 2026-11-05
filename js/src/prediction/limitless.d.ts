@@ -40,8 +40,8 @@ export default class limitless extends Exchange {
      * @param {object[]} rawRows raw listing rows, single-market and group rows mixed
      * @returns {object[]} raw single-market rows only
      */
-    expandGroupRows(rawRows: any[]): any[];
-    parseEvent(event: Dict): any;
+    expandGroupRows(rawRows: any[]): Dict[];
+    parseEvent(event: Dict): PredictionEvent;
     /**
      * @method
      * @name limitless#fetchTicker
@@ -230,10 +230,10 @@ export default class limitless extends Exchange {
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     createOrder(outcome: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<PredictionOrder>;
-    signOrderRequest(signRequest: Dict, marketSymbol: any): string;
+    signOrderRequest(signRequest: Dict, marketSymbol: Str): string;
     hashMessage(message: any): string;
-    signHash(hash: any, privateKey: any): string;
-    signMessage(message: any, privateKey: any): string;
+    signHash(hash: string, privateKey: string): string;
+    signMessage(message: any, privateKey: string): string;
     signEvmTransaction(tx: Dict, privateKey: string): string;
     /**
      * @method

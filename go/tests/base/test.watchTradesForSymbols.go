@@ -53,14 +53,14 @@ func testWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.
 				if r.Value == nil {
 					response = nil
 				} else {
-					response = r.Value
+					response = ccxt.TradesToList(r.Value)
 				}
 				return nil
 			}()
 
 		}
 		now = exchange.Milliseconds()
-		if (success == true) && (!IsEqual(response, nil)) {
+		if (success) && (!IsEqual(response, nil)) {
 			Assert(IsArray(response), Add(Add(logText, "must return an array. "), exchange.Json(response)))
 			for i := 0; i < GetArrayLength(response); i++ {
 				var trade any = GetValue(response, i)

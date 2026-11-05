@@ -241,7 +241,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channel = 'user.portfolio.' + currency
         return await self.subscribe([channel], ['balance'], True, paramsCurrency)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
         parsed = self.parse_balance(data)
@@ -297,7 +297,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             channel = 'user.trades.' + self.market_id(symbol) + '.' + interval
         return await self.un_subscribe([channel], True, paramsInterval)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         params = self.safe_dict(message, 'params', {})
         channel = self.safe_string(params, 'channel')
         data = self.safe_list(params, 'data', [])
@@ -392,7 +392,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             channel = 'user.orders.' + self.market_id(symbol) + '.' + interval
         return await self.un_subscribe([channel], True, paramsInterval)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -471,7 +471,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             channels.append('user.changes.any.any.' + interval)
         return await self.un_subscribe(channels, True, paramsInterval)
 
-    def handle_positions(self, client: Client, message: object):
+    def handle_positions(self, client: Client, message: dict):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         params = self.safe_dict(message, 'params', {})
@@ -762,7 +762,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             channels.append('quote.' + self.market_id(symbolsResolved[i]))
         return await self.un_subscribe(channels, False, paramsResolved)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
         ticker = self.parse_ticker(data)
@@ -771,7 +771,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         self.tickers[symbol] = ticker
         client.resolve(ticker, channel)
 
-    def handle_bid_ask(self, client: Client, message: object):
+    def handle_bid_ask(self, client: Client, message: dict):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
         ticker = self.parse_ws_bid_ask(data)
@@ -895,7 +895,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             channels.append('chart.trades.' + market['id'] + '.' + resolution)
         return await self.un_subscribe(channels, False, paramsResolved)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         params = self.safe_dict(message, 'params', {})
         messageHash = self.safe_string(params, 'channel', '')
         parts = messageHash.split('.')
@@ -1015,7 +1015,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             channels.append('trades.' + self.market_id(symbolsResolved[i]) + '.' + interval)
         return await self.un_subscribe(channels, interval == 'raw', paramsInterval)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         params = self.safe_dict(message, 'params', {})
         channel = self.safe_string(params, 'channel', '')
         data = self.safe_list(params, 'data', [])
@@ -1133,7 +1133,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             channels.append('book.' + self.market_id(symbols[i]) + '.' + descriptor)
         return await self.un_subscribe(channels, interval == 'raw', paramsChannel)
 
-    def handle_order_book(self, client: object, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
         type = self.safe_string(data, 'type', 'snapshot')
@@ -1203,7 +1203,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         elif action == 'delete':
             bookside.storeArray([price, amount, 0])
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         deltasLength = len(deltas)
         for i in range(0, deltasLength):
             self.handle_delta(bookside, deltas[i])
@@ -1229,7 +1229,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             client.reject(e, messageHash)
         return True
 
-    async def handle_heartbeat(self, client: Client, message: object):
+    async def handle_heartbeat(self, client: Client, message: dict):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_string(params, 'data')
         if data == 'test_request':
@@ -1284,7 +1284,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
                 return
             client.resolve(self.safe_value(message, 'result', message), requestId)
 
-    def handle_authentication_message(self, client: Client, message: object):
+    def handle_authentication_message(self, client: Client, message: dict):
         #
         #     {
         #         "jsonrpc": "2.0",

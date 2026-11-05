@@ -823,7 +823,7 @@ public partial class alpaca : Exchange
             { "symbols", marketId },
             { "loc", loc },
         };
-        object paramsOmitted = this.omit(parameters, new List<object>() {"loc", "method"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"loc", "method"}));
         List<object> symbolTrades = null;
         if (method == "marketPublicGetV1beta3CryptoLocTrades")
         {
@@ -990,10 +990,10 @@ public partial class alpaca : Exchange
         (bool?, object) paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = paginatequeryVariable.Item1;
         query = paginatequeryVariable.Item2;
-        object paginationCalls = 10;
-        (Int64?, object) paginationCallsqueryVariable = this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10);
-        paginationCalls = paginationCallsqueryVariable.Item1;
-        query = paginationCallsqueryVariable.Item2;
+        (Int64?, object) paginationCallsqueryPaginationVariable = this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10);
+        Int64? paginationCalls = paginationCallsqueryPaginationVariable.Item1;
+        IDictionary<string, object> queryPagination = ((IDictionary<string, object>)paginationCallsqueryPaginationVariable.Item2);
+        query = queryPagination;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
@@ -1053,7 +1053,7 @@ public partial class alpaca : Exchange
             {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 string? pageToken = this.safeString(response, "next_page_token");
-                for (int i = 1; isLessThan(i, paginationCalls); i++)
+                for (int i = 1; (i < paginationCalls); i++)
                 {
                     int ohlcvsLength = (ohlcvs?.Count ?? 0);
                     if (((pageToken == null)) || (((limit != null)) && ((limit == null || ohlcvsLength >= limit))))
@@ -1171,7 +1171,7 @@ public partial class alpaca : Exchange
             { "symbols", String.Join(",", ids.ToArray()) },
             { "loc", loc },
         };
-        object paramsOmitted = this.omit(parameters, "loc");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "loc"));
         Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, paramsOmitted));
         //
         //     {
@@ -1262,7 +1262,7 @@ public partial class alpaca : Exchange
             }, market);
             results.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(results, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(results, "symbol", symbolsNormalized));
     }
 
     public virtual string? generateClientOrderId(object parameters)
@@ -1382,7 +1382,7 @@ public partial class alpaca : Exchange
         if ((triggerPrice != null))
         {
             string? newType = null;
-            if (getIndexOf(type, "limit") >= 0)
+            if (type.IndexOf("limit", StringComparison.Ordinal) >= 0)
             {
                 newType = "stop_limit";
             } else
@@ -1392,7 +1392,7 @@ public partial class alpaca : Exchange
             request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
             request["type"] = newType;
         }
-        if (getIndexOf(type, "limit") >= 0)
+        if (type.IndexOf("limit", StringComparison.Ordinal) >= 0)
         {
             request["limit_price"] = this.priceToPrecision(symbol, price);
         }
@@ -2111,7 +2111,7 @@ public partial class alpaca : Exchange
             currency = this.currency(code);
         }
         bool sandboxMode = this.isSandboxModeEnabled || (this.safeBool(this.options, "sandboxMode", false) == true);
-        if ((sandboxMode == true))
+        if (sandboxMode)
         {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
@@ -2208,7 +2208,8 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchTransactionsHelper("BOTH", code, since, limit, parameters);
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("BOTH", code, since, limit, parameters));
+        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
     /**
@@ -2225,7 +2226,8 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchTransactionsHelper("INCOMING", code, since, limit, parameters);
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("INCOMING", code, since, limit, parameters));
+        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
     /**
@@ -2242,7 +2244,8 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters);
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters));
+        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -2518,7 +2521,7 @@ public partial class alpaca : Exchange
             {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 int baseLength = (positionSymbol.Length - 3);
-                if ((baseLength > 0) && (isEqual(slice(positionSymbol, baseLength, null), "USD")))
+                if ((baseLength > 0) && ((((object)(slice(positionSymbol, baseLength, null))) is "USD")))
                 {
                     baseId = slice(positionSymbol, 0, baseLength);
                 }
@@ -2551,7 +2554,7 @@ public partial class alpaca : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
-        if (isEqual(getValue(api, 1), "private"))
+        if ((getValue(api, 1) is "private"))
         {
             this.checkRequiredCredentials();
             headersValue["APCA-API-KEY-ID"] = this.apiKey;
@@ -2602,7 +2605,8 @@ public partial class alpaca : Exchange
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             string codeAsString = code.ToString();
-            if ((isLessThan(code, 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))
+            Int64? statusCode = this.parseToInt(code);
+            if ((((statusCode == null || statusCode < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {
                 throw new ExchangeError (feedback) ;
             }

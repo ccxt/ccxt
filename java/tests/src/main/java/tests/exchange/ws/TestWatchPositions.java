@@ -46,7 +46,7 @@ public class TestWatchPositions extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (java.util.Objects.equals(success, true))
+            if (Boolean.TRUE.equals(success))
             {
                 if (java.util.Objects.equals(response, null))
                 {
@@ -78,7 +78,7 @@ public class TestWatchPositions extends BaseTest {
                 // continue;
                 success2 = false;
             }
-            if (java.util.Objects.equals(success2, true))
+            if (Boolean.TRUE.equals(success2))
             {
                 Assert((positionsForSymbols instanceof List), ((((exchange.id + " ") + method) + " must return an array, returned ") + exchange.json(positionsForSymbols)));
                 // max theoretical 4 positions: two for one-way-mode and two for two-way mode

@@ -22,15 +22,13 @@ func TestExchangeStruct(types reflect.Type, links map[string]interface{}) {
 }
 
 // the typed sync methods (FetchTicker) and the channel methods (FetchTickerAsync) live on the
-// same struct: a regular venue embeds Exchange plus an exchangeTyped delegate for the unified
-// methods it does not override, a derived venue embeds its parent by value, and a ws venue embeds
-// its REST twin by pointer.
+// same struct: a regular venue embeds Exchange and gets the base typed methods by promotion, a
+// derived venue embeds its parent by value, and a ws venue embeds its REST twin by pointer.
 func TestStructs() {
 
 	restLinks := map[string]map[string]interface{}{
 		"binance": map[string]interface{}{
-			"Exchange":      "ccxt.Exchange",
-			"exchangeTyped": "*ccxt.ExchangeTyped",
+			"Exchange": "ccxt.Exchange",
 		},
 		"binanceusdm": map[string]interface{}{
 			"Binance": "ccxt.Binance",

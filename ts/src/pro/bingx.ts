@@ -312,12 +312,7 @@ export default class bingx extends bingxRest {
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        let inverse: boolean = false;
-        if (isInverse === undefined) {
-            inverse = marketResolved['inverse'] === true;
-        } else {
-            inverse = isInverse;
-        }
+        const inverse = (isInverse === true) || ((isInverse === undefined) && (marketResolved['inverse'] === true));
         const baseVolumeKey = inverse ? 'm' : 'v';
         return this.safeTicker ({
             'symbol': marketResolved['symbol'],
@@ -885,7 +880,7 @@ export default class bingx extends bingxRest {
         const marketOptions = this.safeDict (this.options, marketType);
         const timeframes = this.safeDict (marketOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
-        if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
             const subscriptionHash = dataType;
             const subscription = this.safeDict (client.subscriptions, subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
@@ -1320,7 +1315,7 @@ export default class bingx extends bingxRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
-            if ((contracts as number) > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append (position);
             }
         }
@@ -1506,7 +1501,7 @@ export default class bingx extends bingxRest {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
-        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
+        if ((listenKeyRefreshRate !== undefined) && (time - lastAuthenticatedTime > listenKeyRefreshRate)) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             // different keys and the key rides the private url, so losers
@@ -1943,7 +1938,7 @@ export default class bingx extends bingxRest {
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
-        if (isUnSubMessage === true) {
+        if (isUnSubMessage) {
             this.handleUnSubscription (client, subscription);
         }
         return message;

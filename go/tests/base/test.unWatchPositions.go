@@ -16,7 +16,7 @@ func createOrderAfterDelayBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICor
 
 	<-exchange.Sleep(3000)
 
-	r := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "market", "buy", 0.001)
+	r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "market", "buy", 0.001)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -61,30 +61,28 @@ func testUnWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 			// try block:
 			// First call uses snapshot
 
-			r := <-exchange.WatchPositionsAsync()
+			r := <-exchange.(ccxt.IWatchPositions).WatchPositionsAsync()
 			if r.Err != nil {
 				panic(r.Err)
 			}
-			var rValueBox any = nil
-			if r.Value != nil {
-				rValueBox = r.Value
+			if r.Value == nil {
+				positionsSubscription = nil
+			} else {
+				positionsSubscription = ccxt.PositionsToList(r.Value)
 			}
-			positionsSubscription = (UnWrapType(rValueBox))
-			PanicOnError(positionsSubscription)
 			// trigger a position update
 			exchange.Spawn(CreateOrderAfterDelayAsync, exchange)
 			// Second call uses subscription
 
-			r1 := <-exchange.WatchPositionsAsync()
+			r1 := <-exchange.(ccxt.IWatchPositions).WatchPositionsAsync()
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var r1ValueBox any = nil
-			if r1.Value != nil {
-				r1ValueBox = r1.Value
+			if r1.Value == nil {
+				positionsSubscription = nil
+			} else {
+				positionsSubscription = ccxt.PositionsToList(r1.Value)
 			}
-			positionsSubscription = (UnWrapType(r1ValueBox))
-			PanicOnError(positionsSubscription)
 			return nil
 		}()
 		if chSent {
@@ -184,28 +182,26 @@ func testUnWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 			}()
 			// try block:
 
-			r4 := <-exchange.WatchPositionsAsync()
+			r4 := <-exchange.(ccxt.IWatchPositions).WatchPositionsAsync()
 			if r4.Err != nil {
 				panic(r4.Err)
 			}
-			var r4ValueBox any = nil
-			if r4.Value != nil {
-				r4ValueBox = r4.Value
+			if r4.Value == nil {
+				resubscribeResponse = nil
+			} else {
+				resubscribeResponse = ccxt.PositionsToList(r4.Value)
 			}
-			resubscribeResponse = (UnWrapType(r4ValueBox))
-			PanicOnError(resubscribeResponse)
 			exchange.Spawn(CreateOrderAfterDelayAsync, exchange)
 
-			r5 := <-exchange.WatchPositionsAsync()
+			r5 := <-exchange.(ccxt.IWatchPositions).WatchPositionsAsync()
 			if r5.Err != nil {
 				panic(r5.Err)
 			}
-			var r5ValueBox any = nil
-			if r5.Value != nil {
-				r5ValueBox = r5.Value
+			if r5.Value == nil {
+				resubscribeResponse = nil
+			} else {
+				resubscribeResponse = ccxt.PositionsToList(r5.Value)
 			}
-			resubscribeResponse = (UnWrapType(r5ValueBox))
-			PanicOnError(resubscribeResponse)
 			return nil
 		}()
 		if chSent {

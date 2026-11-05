@@ -327,6 +327,7 @@ declare abstract class kucoin extends _kucoin {
     utaGetUserMyIp(params?: {}): Promise<Dict>;
     utaGetMarketFiatPrice(params?: {}): Promise<Dict>;
     utaV2GetMarketFundingRate(params?: {}): Promise<Dict>;
+    utaV2GetMarketOrderbook(params?: {}): Promise<Dict>;
     utaPrivateGetMarketOrderbook(params?: {}): Promise<Dict>;
     utaPrivateGetAccountBalance(params?: {}): Promise<Dict>;
     utaPrivateGetAccountTransferQuota(params?: {}): Promise<Dict>;

@@ -553,7 +553,7 @@ public class Bitteam extends BitteamApi
         Double minCost = null;
         Object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new HashMap<String, Object>() {{}});
         Boolean quoteInUsd = (Boolean) this.safeBool(currenciesValuedInUsd, quote, false);
-        if (java.util.Objects.equals(quoteInUsd, true))
+        if (Boolean.TRUE.equals(quoteInUsd))
         {
             Map<String, Object> settings = (Map<String, Object>) this.safeDict(market, "settings", new HashMap<String, Object>() {{}});
             minCost = this.safeNumber(settings, "limit_usd", (Object) null);
@@ -1575,7 +1575,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseValueToPricision(Map<String, Object> valueObject, Object valueKey, Object preciseObject, Object precisionKey)
+    public String parseValueToPricision(Map<String, Object> valueObject, String valueKey, Object preciseObject, String precisionKey)
     {
         String valueRawString = this.safeString(valueObject, valueKey);
         String precisionRawString = this.safeString(preciseObject, precisionKey);
@@ -1583,7 +1583,7 @@ public class Bitteam extends BitteamApi
         {
             return null;
         }
-        Object precisionString = this.parsePrecision(precisionRawString);
+        String precisionString = (String) this.parsePrecision(precisionRawString);
         return Precise.stringMul(valueRawString, precisionString);
     }
 
@@ -2336,7 +2336,7 @@ public class Bitteam extends BitteamApi
 
     /**
      * @method
-     * @name betteam#fetchBalance
+     * @name bitteam#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2721,9 +2721,9 @@ public class Bitteam extends BitteamApi
         {
             return null;
         }
-        if (!Helpers.isEqual(code, 200))
+        if (!(code != null && ((Number) code).doubleValue() == 200))
         {
-            if (Helpers.isEqual(code, 404))
+            if ((code != null && ((Number) code).doubleValue() == 404))
             {
                 if ((((String)url).indexOf("/ccxt/order/") >= 0) && (java.util.Objects.equals(method, "GET")))
                 {

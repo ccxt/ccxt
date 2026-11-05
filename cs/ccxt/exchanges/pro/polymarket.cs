@@ -96,7 +96,7 @@ public partial class polymarket : ccxt.polymarket
         bool willSend = false;
         for (int i = 0; i < getArrayLength(hashesToCheck); i++)
         {
-            if (!(inOp(client.subscriptions, getValue(hashesToCheck, i))))
+            if (!((client.subscriptions != null && getValue(hashesToCheck, i) is string inOpKey3 && client.subscriptions.ContainsKey(inOpKey3))))
             {
                 willSend = true;
             }
@@ -173,7 +173,7 @@ public partial class polymarket : ccxt.polymarket
         return await this.watch(url, messageHash, request, messageHash);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -299,7 +299,7 @@ public partial class polymarket : ccxt.polymarket
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -373,7 +373,7 @@ public partial class polymarket : ccxt.polymarket
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -466,7 +466,7 @@ public partial class polymarket : ccxt.polymarket
         return await this.watch(url, messageHash, request, messageHash);
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -636,7 +636,7 @@ public partial class polymarket : ccxt.polymarket
         return await this.watch(url, messageHash, request, messageHash);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -696,7 +696,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} resolves once the connection is authenticated
      */
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object credentials = await this.loadProxyCredentials();
@@ -766,7 +766,7 @@ public partial class polymarket : ccxt.polymarket
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -867,7 +867,7 @@ public partial class polymarket : ccxt.polymarket
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1007,7 +1007,7 @@ public partial class polymarket : ccxt.polymarket
             cache.append(positions[i]);
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1070,7 +1070,7 @@ public partial class polymarket : ccxt.polymarket
         Dictionary<string, object> balance = ccxt.BaseExchange.FromBalances(await this.FetchBalance());
         this.balance = this.extend(this.balance, balance);
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(this.balance);
@@ -1078,7 +1078,7 @@ public partial class polymarket : ccxt.polymarket
         client.resolve(this.balance, "balance");
     }
 
-    public virtual void handlePortfolio(WebSocketClient client, object message)
+    public virtual void handlePortfolio(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

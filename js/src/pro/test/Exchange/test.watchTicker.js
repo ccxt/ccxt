@@ -27,7 +27,7 @@ async function testWatchTicker(exchange, skippedProperties, symbol) {
             success = false;
         }
         now = exchange.milliseconds();
-        if ((success === true) && (response !== undefined)) {
+        if ((success) && (response !== undefined)) {
             assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + symbol + ' must return a dictionary. ' + exchange.json(response));
             testTicker(exchange, skippedProperties, method, response, symbol);
             if ((now - startTime) > maxIdleTime) {

@@ -618,7 +618,7 @@ public class Coinspot extends CoinspotApi
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object currencies = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
-                List<Object> currencyIds = Helpers.objectKeys(currencies);
+                List<Object> currencyIds = ((List<Object>) switch ((Object)(currencies)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                 {
                     Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
@@ -634,7 +634,7 @@ public class Coinspot extends CoinspotApi
             }
         } else
         {
-            List<Object> currencyIds = Helpers.objectKeys(balances);
+            List<Object> currencyIds = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
                 Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
@@ -1191,11 +1191,13 @@ public class Coinspot extends CoinspotApi
             requestBody = this.json(this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters));
-            requestHeaders = Helpers.newMap(
-                "Content-Type", "application/json",
-                "key", this.apiKey,
-                "sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512())
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("Content-Type", "application/json");
+                hx4NewMap0.put("key", this.apiKey);
+                hx4NewMap0.put("sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512()));
+                requestHeaders = hx4NewMap0;
+            }
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();

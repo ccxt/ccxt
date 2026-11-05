@@ -337,8 +337,8 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // only supports a limit of 150 at this time
-        Int64? limitValue = ((limit == null)) ? 150 : limit;
-        string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".mbp.") + ((object)limitValue).ToString());
+        int limitValue = 150;
+        string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".mbp.150");
         string? api = this.safeString(this.options, "api", "api");
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -491,7 +491,8 @@ public partial class bittrade : ccxt.bittrade
         {
             return orderbook;
         }
-        if ((isLessThanOrEqual(prevSeqNum, getValue(orderbook, "nonce"))) && (isGreaterThan(seqNum, getValue(orderbook, "nonce"))))
+        Int64? nonce = this.safeInteger(orderbook, "nonce");
+        if (((nonce != null)) && ((prevSeqNum == null || prevSeqNum <= nonce)) && ((seqNum != null && (nonce == null || seqNum > nonce))))
         {
             List<object> asks = this.safeList(tick, "asks", new List<object>() {});
             List<object> bids = this.safeList(tick, "bids", new List<object>() {});
@@ -530,8 +531,12 @@ public partial class bittrade : ccxt.bittrade
         //     }
         //
         string? messageHash = this.safeString(message, "ch");
-        object ch = this.safeValue(message, "ch");
-        List<object> parts = ((string)ch).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string? ch = this.safeString(message, "ch");
+        if ((ch == null))
+        {
+            return;
+        }
+        List<object> parts = ch.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         string? symbol = this.safeSymbol(marketId);
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
@@ -540,7 +545,7 @@ public partial class bittrade : ccxt.bittrade
             // no active subscription holds a book for this symbol, drop the delta
             return;
         }
-        if (isEqual(getValue(orderbook, "nonce"), null))
+        if ((this.safeInteger(orderbook, "nonce") == null))
         {
             (orderbook as ccxt.pro.OrderBook).cache.Add(message);
         } else
@@ -639,8 +644,12 @@ public partial class bittrade : ccxt.bittrade
         //         }
         //     }
         //
-        object ch = this.safeValue(message, "ch");
-        List<object> parts = ((string)ch).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string? ch = this.safeString(message, "ch");
+        if ((ch == null))
+        {
+            return;
+        }
+        List<object> parts = ch.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? type = this.safeString(parts, 0);
         if (type == "market")
         {
@@ -723,7 +732,7 @@ public partial class bittrade : ccxt.bittrade
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}

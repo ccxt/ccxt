@@ -2254,10 +2254,33 @@
             {
                 "description": "fetch funding history linear swap",
                 "method": "fetchFundingHistory",
-                "url": "https://www.okx.com/api/v5/account/bills-archive?type=8&ctType=linear&ccy=USDT&instType=SWAP",
+                "url": "https://www.okx.com/api/v5/account/bills-archive?type=8&instId=BTC-USDT-SWAP&ctType=linear&ccy=USDT&instType=SWAP",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
+                    null
+                ]
+            },
+            {
+                "description": "fetch funding history linear swap with since and until",
+                "method": "fetchFundingHistory",
+                "url": "https://www.okx.com/api/v5/account/bills-archive?type=8&instId=BTC-USDT-SWAP&ctType=linear&ccy=USDT&begin=1792368000000&end=1792454400000&instType=SWAP",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "until": 1792454400000
+                    }
+                ]
+            },
+            {
+                "description": "fetch funding history inverse swap with since",
+                "method": "fetchFundingHistory",
+                "url": "https://www.okx.com/api/v5/account/bills-archive?type=8&instId=BTC-USD-SWAP&ctType=inverse&ccy=BTC&begin=1792368000000&instType=SWAP",
+                "input": [
+                    "BTC/USD:BTC",
+                    1792368000000,
                     null
                 ]
             }

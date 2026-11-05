@@ -616,7 +616,11 @@ export default class bitbank extends Exchange {
         const windowLimit = (limit === undefined) ? 1000 : limit;
         const limitResolved = (since === undefined) ? windowLimit : limit;
         const duration = this.parseTimeframe (timeframe);
-        const sinceResolved = (since === undefined) ? this.milliseconds () - duration * 1000 * windowLimit : since;
+        let windowMs = duration * 1000 * 1000;
+        if (limit !== undefined) {
+            windowMs = duration * 1000 * limit;
+        }
+        const sinceResolved = (since === undefined) ? this.milliseconds () - windowMs : since;
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -724,7 +728,7 @@ export default class bitbank extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'UNFILLED': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -1091,14 +1095,14 @@ export default class bitbank extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = this.implodeHostname (apiUrl) + '/';
+        let url: string = this.implodeHostname (apiUrl) + '/';
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         if ((apiName === 'public') || (apiName === 'markets')) {
@@ -1117,20 +1121,21 @@ export default class bitbank extends Exchange {
             const requestTime = this.milliseconds ().toString ();
             const timeWindow = this.safeString (this.options, 'timeWindow', '5000');
             const nonce = this.incrementingNonce ().toString ();
-            let auth = nonce;
+            let auth: string = nonce;
             if (isTimeWindow) {
                 auth = requestTime + timeWindow;
             }
             url += this.version + '/' + this.implodeParams (path, params);
             if (method === 'POST') {
-                requestBody = this.json (query);
-                auth += requestBody;
+                const jsonBody = this.json (query);
+                requestBody = jsonBody;
+                auth += jsonBody;
             } else {
                 auth += '/' + this.version + '/' + path;
                 if (Object.keys (query).length > 0) {
-                    query = this.urlencode (query);
-                    url += '?' + query;
-                    auth += '?' + query;
+                    const queryString = this.urlencode (query);
+                    url += '?' + queryString;
+                    auth += '?' + queryString;
                 }
             }
             requestHeaders = {

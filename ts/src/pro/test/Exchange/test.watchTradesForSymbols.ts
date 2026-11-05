@@ -25,7 +25,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
             success = false;
         }
         now = exchange.milliseconds ();
-        if ((success === true) && (response !== undefined)) {
+        if ((success) && (response !== undefined)) {
             assert (Array.isArray (response), logText + 'must return an array. ' + exchange.json (response));
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i];

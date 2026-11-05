@@ -372,7 +372,7 @@ export default class nado extends nadoRest {
     createPublicSubscriptionRequest(method: string, streamType: Str, market?: Market, id?: Int, params?: Dict): Dict;
     watchPublicMultiple(streamType: Str, markets: Market[], messageHashes: string[], params?: Dict, subscriptionParams?: Dict[] | undefined): Promise<any>;
     unWatchPublic(streamType: Str, market: Market, messageHash: string, params?: Dict): Promise<any>;
-    unWatchPublicMultiple(streamType: Str, markets: Market[], messageHashes: string[], params?: Dict, subscriptionParams?: Dict[] | undefined): Promise<any[]>;
+    unWatchPublicMultiple(streamType: Str, markets: Market[], messageHashes: string[], params?: Dict, subscriptionParams?: Dict[] | undefined): Promise<boolean>;
     parseWsTimestamp(message: Dict, key: string): Int;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     parseWsMyTrade(trade: Dict, market?: Market): Trade;

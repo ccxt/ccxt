@@ -30,7 +30,7 @@ func testWatchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchan
 	}
 	var limit int = 10
 	var duration int64 = exchange.ParseTimeframe(chosenTimeframeKey)
-	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
+	var since int64 = (exchange.Milliseconds() - (duration * int64(limit) * 1000)) - 1000
 	var maxIdleTime int = 5000
 	var idle bool = false
 	for (now < ends) && !idle {
@@ -57,16 +57,15 @@ func testWatchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchan
 				}()
 				// try block:
 
-				r := <-exchange.WatchOHLCVAsync(StringArg(symbol), chosenTimeframeKey, since, limit)
+				r := <-exchange.(ccxt.IWatchOHLCV).WatchOHLCVAsync(StringArg(symbol), chosenTimeframeKey, since, limit)
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				var rValueBox any = nil
-				if r.Value != nil {
-					rValueBox = r.Value
+				if r.Value == nil {
+					response = nil
+				} else {
+					response = ccxt.OHLCVsToList(r.Value)
 				}
-				response = (UnWrapType(rValueBox))
-				PanicOnError(response)
 				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 				}
@@ -75,12 +74,12 @@ func testWatchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchan
 
 		}
 		now = exchange.Milliseconds()
-		if (success == true) && (!IsEqual(response, nil)) {
+		if (success) && (!IsEqual(response, nil)) {
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
 			for i := 0; i < GetArrayLength(response); i++ {
 				TestOHLCV(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
 			}
-			if IsGreaterThan((now - startTime), maxIdleTime) {
+			if (now - startTime) > int64(maxIdleTime) {
 				idle = true
 			}
 		}

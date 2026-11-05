@@ -1108,7 +1108,8 @@ class cex(Exchange, ImplicitAPI):
             'orderId': int(id),
         }
         result = await self.fetch_open_orders(symbol, None, None, self.extend(request, params))
-        return result[0]
+        order = self.safe_dict(result, 0)
+        return order
 
     async def fetch_closed_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1127,9 +1128,10 @@ class cex(Exchange, ImplicitAPI):
             'orderId': int(id),
         }
         result = await self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
-        return result[0]
+        order = self.safe_dict(result, 0)
+        return order
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
@@ -1537,7 +1539,7 @@ class cex(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'rejected': 'rejected',
             'pending': 'pending',
@@ -1716,7 +1718,7 @@ class cex(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:

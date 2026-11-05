@@ -700,6 +700,72 @@ abstract class bitget extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_uta_get_v3_stockplus_market_static($params = array()) {
+        return $this->request('v3/stockplus/market/static', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_uta_get_v3_stockplus_market_quote($params = array()) {
+        return $this->request('v3/stockplus/market/quote', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_uta_get_v3_stockplus_market_intraday($params = array()) {
+        return $this->request('v3/stockplus/market/intraday', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_uta_get_v3_stockplus_market_depth($params = array()) {
+        return $this->request('v3/stockplus/market/depth', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>|string>
+     */
+    public function public_uta_get_v3_stockplus_market_candlestick($params = array()) {
+        return $this->request('v3/stockplus/market/candlestick', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>|string>
+     */
+    public function public_uta_get_v3_stockplus_market_history_candlestick($params = array()) {
+        return $this->request('v3/stockplus/market/history-candlestick', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_uta_get_v3_stockplus_market_trade($params = array()) {
+        return $this->request('v3/stockplus/market/trade', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_uta_get_v3_stockplus_market_option_quote($params = array()) {
+        return $this->request('v3/stockplus/market/option-quote', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_uta_get_v3_stockplus_market_option_chain_info($params = array()) {
+        return $this->request('v3/stockplus/market/option-chain-info', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_uta_get_v3_stockplus_market_option_expiry_date($params = array()) {
+        return $this->request('v3/stockplus/market/option-expiry-date', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_uta_get_v3_stockplus_market_option_volume($params = array()) {
+        return $this->request('v3/stockplus/market/option-volume', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_uta_get_v3_reality_market_stock_info($params = array()) {
         return $this->request('v3/reality/market/stock-info', array('public', 'uta'), 'GET', $params, array("cost" => 20));
     }
@@ -3850,6 +3916,72 @@ abstract class bitget extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_uta_get_v3_account_reality_orderbook($params = array()) {
+        return $this->request('v3/account/reality-orderbook', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_get_v3_account_reality_fills($params = array()) {
+        return $this->request('v3/account/reality-fills', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_get_v3_stockplus_asset_transfer_records($params = array()) {
+        return $this->request('v3/stockplus/asset/transfer-records', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_get_v3_stockplus_asset_account($params = array()) {
+        return $this->request('v3/stockplus/asset/account', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_get_v3_stockplus_asset_stock_position($params = array()) {
+        return $this->request('v3/stockplus/asset/stock-position', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_get_v3_stockplus_asset_cash_flow($params = array()) {
+        return $this->request('v3/stockplus/asset/cash-flow', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_get_v3_stockplus_trade_today_orders($params = array()) {
+        return $this->request('v3/stockplus/trade/today-orders', array('private', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_get_v3_stockplus_trade_history_orders($params = array()) {
+        return $this->request('v3/stockplus/trade/history-orders', array('private', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_get_v3_stockplus_trade_order_detail($params = array()) {
+        return $this->request('v3/stockplus/trade/order-detail', array('private', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_get_v3_stockplus_trade_today_executions($params = array()) {
+        return $this->request('v3/stockplus/trade/today-executions', array('private', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_get_v3_stockplus_trade_history_executions($params = array()) {
+        return $this->request('v3/stockplus/trade/history-executions', array('private', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_uta_get_v3_tax_records($params = array()) {
         return $this->request('v3/tax/records', array('private', 'uta'), 'GET', $params, array("cost" => 20));
     }
@@ -3978,18 +4110,6 @@ abstract class bitget extends \ccxt\async\Exchange {
      */
     public function private_uta_get_v3_account_funding_financial_records($params = array()) {
         return $this->request('v3/account/funding-financial-records', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_account_reality_orderbook($params = array()) {
-        return $this->request('v3/account/reality-orderbook', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_account_reality_fills($params = array()) {
-        return $this->request('v3/account/reality-fills', array('private', 'uta'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -4194,60 +4314,6 @@ abstract class bitget extends \ccxt\async\Exchange {
      */
     public function private_uta_get_v3_stockplus_market_candlestick($params = array()) {
         return $this->request('v3/stockplus/market/candlestick', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_stockplus_trade_today_orders($params = array()) {
-        return $this->request('v3/stockplus/trade/today-orders', array('private', 'uta'), 'GET', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_stockplus_trade_history_orders($params = array()) {
-        return $this->request('v3/stockplus/trade/history-orders', array('private', 'uta'), 'GET', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_stockplus_trade_order_detail($params = array()) {
-        return $this->request('v3/stockplus/trade/order-detail', array('private', 'uta'), 'GET', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_stockplus_trade_today_executions($params = array()) {
-        return $this->request('v3/stockplus/trade/today-executions', array('private', 'uta'), 'GET', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_stockplus_trade_history_executions($params = array()) {
-        return $this->request('v3/stockplus/trade/history-executions', array('private', 'uta'), 'GET', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_stockplus_asset_account($params = array()) {
-        return $this->request('v3/stockplus/asset/account', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_stockplus_asset_cash_flow($params = array()) {
-        return $this->request('v3/stockplus/asset/cash-flow', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_stockplus_asset_stock_position($params = array()) {
-        return $this->request('v3/stockplus/asset/stock-position', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_get_v3_stockplus_asset_transfer_records($params = array()) {
-        return $this->request('v3/stockplus/asset/transfer-records', array('private', 'uta'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -4458,6 +4524,30 @@ abstract class bitget extends \ccxt\async\Exchange {
      */
     public function private_uta_post_v3_loan_revise_pledge($params = array()) {
         return $this->request('v3/loan/revise-pledge', array('private', 'uta'), 'POST', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_post_v3_stockplus_asset_transfer($params = array()) {
+        return $this->request('v3/stockplus/asset/transfer', array('private', 'uta'), 'POST', $params, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_post_v3_stockplus_trade_place_order($params = array()) {
+        return $this->request('v3/stockplus/trade/place-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_post_v3_stockplus_trade_modify_order($params = array()) {
+        return $this->request('v3/stockplus/trade/modify-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_uta_post_v3_stockplus_trade_cancel_order($params = array()) {
+        return $this->request('v3/stockplus/trade/cancel-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -4692,30 +4782,6 @@ abstract class bitget extends \ccxt\async\Exchange {
      */
     public function private_uta_post_v3_user_sub_account_agent_create($params = array()) {
         return $this->request('v3/user/sub-account/agent-create', array('private', 'uta'), 'POST', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_post_v3_stockplus_trade_place_order($params = array()) {
-        return $this->request('v3/stockplus/trade/place-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_post_v3_stockplus_trade_cancel_order($params = array()) {
-        return $this->request('v3/stockplus/trade/cancel-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_post_v3_stockplus_trade_modify_order($params = array()) {
-        return $this->request('v3/stockplus/trade/modify-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function private_uta_post_v3_stockplus_asset_transfer($params = array()) {
-        return $this->request('v3/stockplus/asset/transfer', array('private', 'uta'), 'POST', $params, array("cost" => 4));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -5442,6 +5508,72 @@ abstract class bitget extends \ccxt\async\Exchange {
      */
     public function publicUtaGetV3MarketFuturesAccountLongShort($params = array()) {
         return $this->request('v3/market/futures-account-long-short', array('public', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicUtaGetV3StockplusMarketStatic($params = array()) {
+        return $this->request('v3/stockplus/market/static', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicUtaGetV3StockplusMarketQuote($params = array()) {
+        return $this->request('v3/stockplus/market/quote', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicUtaGetV3StockplusMarketIntraday($params = array()) {
+        return $this->request('v3/stockplus/market/intraday', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicUtaGetV3StockplusMarketDepth($params = array()) {
+        return $this->request('v3/stockplus/market/depth', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>|string>
+     */
+    public function publicUtaGetV3StockplusMarketCandlestick($params = array()) {
+        return $this->request('v3/stockplus/market/candlestick', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>|string>
+     */
+    public function publicUtaGetV3StockplusMarketHistoryCandlestick($params = array()) {
+        return $this->request('v3/stockplus/market/history-candlestick', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicUtaGetV3StockplusMarketTrade($params = array()) {
+        return $this->request('v3/stockplus/market/trade', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicUtaGetV3StockplusMarketOptionQuote($params = array()) {
+        return $this->request('v3/stockplus/market/option-quote', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicUtaGetV3StockplusMarketOptionChainInfo($params = array()) {
+        return $this->request('v3/stockplus/market/option-chain-info', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicUtaGetV3StockplusMarketOptionExpiryDate($params = array()) {
+        return $this->request('v3/stockplus/market/option-expiry-date', array('public', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicUtaGetV3StockplusMarketOptionVolume($params = array()) {
+        return $this->request('v3/stockplus/market/option-volume', array('public', 'uta'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -8596,6 +8728,72 @@ abstract class bitget extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateUtaGetV3AccountRealityOrderbook($params = array()) {
+        return $this->request('v3/account/reality-orderbook', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaGetV3AccountRealityFills($params = array()) {
+        return $this->request('v3/account/reality-fills', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaGetV3StockplusAssetTransferRecords($params = array()) {
+        return $this->request('v3/stockplus/asset/transfer-records', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaGetV3StockplusAssetAccount($params = array()) {
+        return $this->request('v3/stockplus/asset/account', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaGetV3StockplusAssetStockPosition($params = array()) {
+        return $this->request('v3/stockplus/asset/stock-position', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaGetV3StockplusAssetCashFlow($params = array()) {
+        return $this->request('v3/stockplus/asset/cash-flow', array('private', 'uta'), 'GET', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaGetV3StockplusTradeTodayOrders($params = array()) {
+        return $this->request('v3/stockplus/trade/today-orders', array('private', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaGetV3StockplusTradeHistoryOrders($params = array()) {
+        return $this->request('v3/stockplus/trade/history-orders', array('private', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaGetV3StockplusTradeOrderDetail($params = array()) {
+        return $this->request('v3/stockplus/trade/order-detail', array('private', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaGetV3StockplusTradeTodayExecutions($params = array()) {
+        return $this->request('v3/stockplus/trade/today-executions', array('private', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaGetV3StockplusTradeHistoryExecutions($params = array()) {
+        return $this->request('v3/stockplus/trade/history-executions', array('private', 'uta'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateUtaGetV3TaxRecords($params = array()) {
         return $this->request('v3/tax/records', array('private', 'uta'), 'GET', $params, array("cost" => 20));
     }
@@ -8724,18 +8922,6 @@ abstract class bitget extends \ccxt\async\Exchange {
      */
     public function privateUtaGetV3AccountFundingFinancialRecords($params = array()) {
         return $this->request('v3/account/funding-financial-records', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3AccountRealityOrderbook($params = array()) {
-        return $this->request('v3/account/reality-orderbook', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3AccountRealityFills($params = array()) {
-        return $this->request('v3/account/reality-fills', array('private', 'uta'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -8940,60 +9126,6 @@ abstract class bitget extends \ccxt\async\Exchange {
      */
     public function privateUtaGetV3StockplusMarketCandlestick($params = array()) {
         return $this->request('v3/stockplus/market/candlestick', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3StockplusTradeTodayOrders($params = array()) {
-        return $this->request('v3/stockplus/trade/today-orders', array('private', 'uta'), 'GET', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3StockplusTradeHistoryOrders($params = array()) {
-        return $this->request('v3/stockplus/trade/history-orders', array('private', 'uta'), 'GET', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3StockplusTradeOrderDetail($params = array()) {
-        return $this->request('v3/stockplus/trade/order-detail', array('private', 'uta'), 'GET', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3StockplusTradeTodayExecutions($params = array()) {
-        return $this->request('v3/stockplus/trade/today-executions', array('private', 'uta'), 'GET', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3StockplusTradeHistoryExecutions($params = array()) {
-        return $this->request('v3/stockplus/trade/history-executions', array('private', 'uta'), 'GET', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3StockplusAssetAccount($params = array()) {
-        return $this->request('v3/stockplus/asset/account', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3StockplusAssetCashFlow($params = array()) {
-        return $this->request('v3/stockplus/asset/cash-flow', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3StockplusAssetStockPosition($params = array()) {
-        return $this->request('v3/stockplus/asset/stock-position', array('private', 'uta'), 'GET', $params, array("cost" => 2));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaGetV3StockplusAssetTransferRecords($params = array()) {
-        return $this->request('v3/stockplus/asset/transfer-records', array('private', 'uta'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -9204,6 +9336,30 @@ abstract class bitget extends \ccxt\async\Exchange {
      */
     public function privateUtaPostV3LoanRevisePledge($params = array()) {
         return $this->request('v3/loan/revise-pledge', array('private', 'uta'), 'POST', $params, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaPostV3StockplusAssetTransfer($params = array()) {
+        return $this->request('v3/stockplus/asset/transfer', array('private', 'uta'), 'POST', $params, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaPostV3StockplusTradePlaceOrder($params = array()) {
+        return $this->request('v3/stockplus/trade/place-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaPostV3StockplusTradeModifyOrder($params = array()) {
+        return $this->request('v3/stockplus/trade/modify-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateUtaPostV3StockplusTradeCancelOrder($params = array()) {
+        return $this->request('v3/stockplus/trade/cancel-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -9438,30 +9594,6 @@ abstract class bitget extends \ccxt\async\Exchange {
      */
     public function privateUtaPostV3UserSubAccountAgentCreate($params = array()) {
         return $this->request('v3/user/sub-account/agent-create', array('private', 'uta'), 'POST', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaPostV3StockplusTradePlaceOrder($params = array()) {
-        return $this->request('v3/stockplus/trade/place-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaPostV3StockplusTradeCancelOrder($params = array()) {
-        return $this->request('v3/stockplus/trade/cancel-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaPostV3StockplusTradeModifyOrder($params = array()) {
-        return $this->request('v3/stockplus/trade/modify-order', array('private', 'uta'), 'POST', $params, array("cost" => 20));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function privateUtaPostV3StockplusAssetTransfer($params = array()) {
-        return $this->request('v3/stockplus/asset/transfer', array('private', 'uta'), 'POST', $params, array("cost" => 4));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

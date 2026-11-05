@@ -267,7 +267,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    unWatchBalance(params?: {}): Promise<any>;
+    unWatchBalance(params?: Dict): Promise<any>;
     handleBalance(client: Client, message: Dict): void;
     parseWsBalance(balance: Dict, accountType?: Str): void;
     /**

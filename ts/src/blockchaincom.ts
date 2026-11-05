@@ -1273,7 +1273,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const requestPath = '/' + this.implodeParams (path, params);
         const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], apiName);

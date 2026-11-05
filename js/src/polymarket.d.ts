@@ -1,5 +1,5 @@
 import Exchange from './abstract/polymarket.js';
-import type { Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
+import type { NullableDict, Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
 /**
  * @class polymarket
  * @description Polymarket perpetual futures - a hybrid dex with an off-chain order book and on-chain settlement of collateral. The venue trades linear perpetual contracts on crypto, indices, equities and commodities, quoted using USD and collateralized exclusively with pUSD. The prediction-market CLOB is a separate product, integrated separately under ccxt.prediction.polymarket
@@ -171,7 +171,7 @@ export default class polymarket extends Exchange {
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
     fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name polymarket#fetchTradingFees
@@ -194,7 +194,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict with the signable row and the body entry
      */
-    createOrderRequest(market: Market, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Dict;
+    createOrderRequest(market: Market, type: OrderType, side: OrderSide, amount: any, price?: any, params?: Dict): Dict;
     /**
      * @method
      * @name polymarket#createOrder
@@ -476,7 +476,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    modifyMarginHelper(symbol: string, amount: any, type: string, params?: {}): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: any, type: string, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name polymarket#addMargin
@@ -510,7 +510,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
      */
-    createProxyCredentials(params?: {}): Promise<Dict>;
+    createProxyCredentials(params?: Dict): Promise<Dict>;
     /**
      * @method
      * @ignore
@@ -519,7 +519,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
      */
-    loadProxyCredentials(params?: {}): Promise<Dict>;
+    loadProxyCredentials(params?: Dict): Promise<Dict>;
     /**
      * @method
      * @ignore
@@ -529,7 +529,7 @@ export default class polymarket extends Exchange {
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    signPerpsOp(signable: any, bodyOp: any, params?: {}): Promise<Dict>;
+    signPerpsOp(signable: any, bodyOp: any, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @ignore

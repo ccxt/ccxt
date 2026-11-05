@@ -92,7 +92,7 @@ export default class sxbet extends Exchange {
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    parseEvent(fixtureId: string, rawMarkets: any[]): any;
+    parseEvent(fixtureId: string, rawMarkets: any[]): PredictionEvent;
     /**
      * @ignore
      * @method
@@ -149,7 +149,7 @@ export default class sxbet extends Exchange {
      * @param {string} hex the hex string, no '0x' prefix
      * @returns {int} the parsed integer
      */
-    hexToInt(hex: string): number;
+    hexToInt(hex: string): int;
     /**
      * @ignore
      * @method
@@ -491,7 +491,7 @@ export default class sxbet extends Exchange {
     pong(client: Client, message?: any): Promise<void>;
     subscribeSxbetChannel(messageHash: string, channel: string): Promise<any>;
     handleMessage(client: Client, message: any): void;
-    handleCentrifugoFrame(client: Client, msg: any): void;
+    handleCentrifugoFrame(client: Client, msg: Dict): void;
     /**
      * @method
      * @name sxbet#watchOrderBook

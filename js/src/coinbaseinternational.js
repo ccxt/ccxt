@@ -323,7 +323,7 @@ export default class coinbaseinternational extends Exchange {
             },
             'options': {
                 'route': 'auto', // deribit for native Deribit, coinbase for Coinbase, auto detects known native key formats
-                'brokerId': 'nfqkvdjp',
+                'brokerId': 'ccxt',
                 'portfolio': '', // default portfolio id
                 'accessTokenRefreshRatio': 0.8, // refresh the bearer token after 80% of expires_in
                 'networksById': {
@@ -569,8 +569,7 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const instruments = this.safeList(response, 'result', []);
-        const parsedMarkets = this.parseMarkets(instruments);
-        return parsedMarkets;
+        return this.parseMarkets(instruments);
     }
     parseMarket(market) {
         const instrumentName = this.safeString(market, 'instrument_name');
@@ -1066,7 +1065,7 @@ export default class coinbaseinternational extends Exchange {
             const ticker = await this.fetchTicker(symbol, paramsResolved);
             tickers[symbol] = ticker;
         }
-        return this.filterByArray(tickers, 'symbol', symbolsResolved, true);
+        return this.filterByArrayTickers(tickers, 'symbol', symbolsResolved);
     }
     /**
      * @method
@@ -1899,12 +1898,11 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const result = this.safeList(response, 'result', []);
-        const positions = this.parsePositions(result);
         if (this.isEmpty(symbols)) {
-            return positions;
+            return this.parsePositions(result);
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArrayPositions(positions, 'symbol', symbolsNormalized);
+        return this.parsePositions(result, symbolsNormalized);
     }
     /**
      * @method
@@ -3255,12 +3253,12 @@ export default class coinbaseinternational extends Exchange {
         const rpcMethod = access + '/' + path;
         let requestParams = this.handleRouteAndParams('sign', params);
         const isNativeDeribit = this.isNativeDeribitCredentials();
-        let baseApiUrl = this.urls['api']['rest'];
+        let baseApiUrl = this.safeString(this.urls['api'], 'rest', '');
         if (isNativeDeribit) {
             baseApiUrl = 'https://www.deribit.com/api/v2';
         }
         const url = baseApiUrl + '/' + rpcMethod;
-        let requestHeaders = undefined;
+        let requestHeaders = {};
         if (isNativeDeribit && ((path === 'get_leverage') || (path === 'set_leverage'))) {
             throw new NotSupported(this.id + ' ' + rpcMethod + ' is only documented on the Coinbase gateway');
         }

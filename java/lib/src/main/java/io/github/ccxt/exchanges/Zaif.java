@@ -979,10 +979,12 @@ public class Zaif extends ZaifApi
         Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", currencyResolved.get("code")
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", currencyResolved.get("code"));
+                fee = hx4NewMap0;
+            }
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
@@ -1093,7 +1095,7 @@ public class Zaif extends ZaifApi
             throw new ExchangeError(feedback) ;
         }
         Boolean success = (Boolean) this.safeBool(response, "success", true);
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             throw new ExchangeError(feedback) ;
         }

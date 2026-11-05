@@ -79,8 +79,8 @@ public partial class mudrex : ccxt.mudrex
         string messageHash = ("ticker:" + symbolValue);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         this.setBrokerHeaders();
-        object baseIdString = (!isEqual((market.ContainsKey("baseId") ? market["baseId"] : null), null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
-        object quoteIdString = (!isEqual((market.ContainsKey("quoteId") ? market["quoteId"] : null), null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
+        object baseIdString = (!((market.ContainsKey("baseId") ? market["baseId"] : null) == null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
+        object quoteIdString = (!((market.ContainsKey("quoteId") ? market["quoteId"] : null) == null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
         object assetId = (((string)baseIdString).ToLower() + ((string)quoteIdString).ToLower());
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", this.requestId() },
@@ -108,8 +108,8 @@ public partial class mudrex : ccxt.mudrex
             {
                 Dictionary<string, object> market = this.market(symbolsNormalized[i]);
                 messageHashes.Add(("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
-                object baseIdString = (!isEqual((market.ContainsKey("baseId") ? market["baseId"] : null), null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
-                object quoteIdString = (!isEqual((market.ContainsKey("quoteId") ? market["quoteId"] : null), null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
+                object baseIdString = (!((market.ContainsKey("baseId") ? market["baseId"] : null) == null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
+                object quoteIdString = (!((market.ContainsKey("quoteId") ? market["quoteId"] : null) == null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
                 assets.Add((((string)baseIdString).ToLower() + ((string)quoteIdString).ToLower()));
             }
         }
@@ -148,7 +148,7 @@ public partial class mudrex : ccxt.mudrex
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? priceType = this.safeString(parameters, "price");
-        object paramsOmitted = this.omit(parameters, "price");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "price"));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         if (interval != "1s" && interval != "1m")
         {
@@ -159,8 +159,8 @@ public partial class mudrex : ccxt.mudrex
         {
             prefix = "markKline";
         }
-        object streamBaseId = (!isEqual((market.ContainsKey("baseId") ? market["baseId"] : null), null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
-        object streamQuoteId = (!isEqual((market.ContainsKey("quoteId") ? market["quoteId"] : null), null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
+        object streamBaseId = (!((market.ContainsKey("baseId") ? market["baseId"] : null) == null)) ? (market.ContainsKey("baseId") ? market["baseId"] : null) : "";
+        object streamQuoteId = (!((market.ContainsKey("quoteId") ? market["quoteId"] : null) == null)) ? (market.ContainsKey("quoteId") ? market["quoteId"] : null) : "";
         string stream = (((((prefix + "@") + interval) + "@") + ((string)streamBaseId).ToLower()) + ((string)streamQuoteId).ToLower());
         string messageHash = stream;
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));

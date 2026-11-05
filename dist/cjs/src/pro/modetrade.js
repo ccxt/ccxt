@@ -191,10 +191,11 @@ class modetrade extends modetrade$1["default"] {
         //         "count": 3689
         //     }
         //
+        const timestamp = this.safeInteger(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': this.safeSymbol(undefined, market),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
             'bid': undefined,
@@ -236,8 +237,7 @@ class modetrade extends modetrade$1["default"] {
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
         const timestamp = this.safeInteger(message, 'ts');
-        data['date'] = timestamp;
-        const ticker = this.parseWsTicker(data, market);
+        const ticker = this.parseWsTicker(this.extend(data, { 'timestamp': timestamp }), market);
         ticker['symbol'] = market['symbol'];
         this.tickers[market['symbol']] = ticker;
         client.resolve(ticker, topic);
@@ -294,7 +294,7 @@ class modetrade extends modetrade$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const marketId = this.safeString(data[i], 'symbol');
             const market = this.safeMarket(marketId);
-            const ticker = this.parseWsTicker(this.extend(data[i], { 'date': timestamp }), market);
+            const ticker = this.parseWsTicker(this.extend(data[i], { 'timestamp': timestamp }), market);
             this.tickers[market['symbol']] = ticker;
             result.push(ticker);
         }
@@ -692,7 +692,7 @@ class modetrade extends modetrade$1["default"] {
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let topic = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreport';
         }
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
@@ -734,7 +734,7 @@ class modetrade extends modetrade$1["default"] {
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let topic = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreport';
         }
         const paramsOmitted = this.omit(params, 'stop');
@@ -1055,7 +1055,7 @@ class modetrade extends modetrade$1["default"] {
         }
         return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
-    setPositionsCache(client, type, symbols = undefined) {
+    setPositionsCache(client, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -1321,7 +1321,7 @@ class modetrade extends modetrade$1["default"] {
         }
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message) === true) {
+        if (this.handleErrorMessage(client, message)) {
             return;
         }
         const methods = {

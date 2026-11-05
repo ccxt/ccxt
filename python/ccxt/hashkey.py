@@ -2114,7 +2114,7 @@ class hashkey(Exchange, ImplicitAPI):
         status = self.safe_string(transaction, 'status')  # for fetchDeposits
         if status is None:
             success = self.safe_bool(transaction, 'success', False)  # for withdraw
-            if success is True:
+            if success:
                 status = 'ok'
             else:
                 addressUrl = self.safe_string(transaction, 'addressUrl')  # for fetchWithdrawals
@@ -2155,7 +2155,7 @@ class hashkey(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             '1': 'pending',
             '2': 'pending',
@@ -2212,7 +2212,7 @@ class hashkey(Exchange, ImplicitAPI):
         currencyId = self.safe_string(currency, 'id')
         status = None
         success = self.safe_bool(transfer, 'success', False)
-        if success is True:
+        if success:
             status = 'ok'
         return {
             'id': self.safe_string(transfer, 'orderId'),
@@ -2267,7 +2267,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_account_type(self, type: Str):
+    def parse_account_type(self, type: Str) -> Str:
         types = {
             '1': 'spot account',
             '3': 'swap account',
@@ -3605,7 +3605,7 @@ class hashkey(Exchange, ImplicitAPI):
                 reduceOnly = True
         return [side, reduceOnly]
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -4281,7 +4281,7 @@ class hashkey(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:

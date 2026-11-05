@@ -920,7 +920,7 @@ class bitvavo(Exchange, ImplicitAPI):
         taker = self.safe_bool(trade, 'taker')
         takerOrMaker = None
         if taker is not None:
-            takerOrMaker = 'taker' if (taker is True) else 'maker'
+            takerOrMaker = 'taker' if (taker) else 'maker'
         feeCostString = self.safe_string(trade, 'fee')
         fee = None
         if feeCostString is not None:
@@ -1109,11 +1109,10 @@ class bitvavo(Exchange, ImplicitAPI):
             sinceLimit = 1440 if (limit is None) else min(limit, 1440)
             request['end'] = self.sum(since, sinceLimit * duration * 1000)
         requestUntil, paramsUntil = self.handle_until_option('end', request, params)
-        limitResolved = limit
-        if (since is not None) and (limit is None):
-            limitResolved = 1440
-        if limitResolved is not None:
-            requestUntil['limit'] = min(limitResolved, 1440)  # default 1440, max 1440
+        if limit is not None:
+            requestUntil['limit'] = min(limit, 1440)  # default 1440, max 1440
+        elif since is not None:
+            requestUntil['limit'] = 1440
         return self.extend(requestUntil, paramsUntil)
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
@@ -1931,7 +1930,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'new': 'open',
             'canceled': 'canceled',
@@ -2161,7 +2160,7 @@ class bitvavo(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'items', [])
         return self.parse_ledger(items, currency, since, limit)
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'buy': 'trade',
             'sell': 'trade',
@@ -2357,7 +2356,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'awaiting_processing': 'pending',
             'awaiting_email_confirmation': 'pending',
@@ -2449,7 +2448,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #   {
         #       "symbol": "1INCH",
@@ -2526,7 +2525,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'symbol')
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         requestHeaders = None
         requestBody = None

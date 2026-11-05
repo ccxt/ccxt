@@ -16,7 +16,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     /**
      * @method
      * @name coinbaseinternational#fetchMarkets
@@ -28,7 +28,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.currency] settlement currency filter, defaults to any on Deribit
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -40,7 +40,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(currency: Dict): CurrencyInterface;
     /**
      * @method
@@ -107,7 +107,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name coinbaseinternational#fetchTicker
@@ -119,7 +119,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     parseTicker(ticker: object, market?: Market): Ticker;
     /**
      * @method
@@ -133,7 +133,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<import("./base/types.js").OrderBook>;
     /**
      * @method
      * @name coinbaseinternational#fetchBalance
@@ -146,7 +146,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.code] unified currency code for a native Deribit single account summary
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -163,7 +163,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     /**
      * @method
@@ -208,7 +208,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name coinbaseinternational#fetchWithdrawals
@@ -435,7 +435,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {boolean} [params.forceRefresh] ignore the cached token and request a new one
      * @returns {string} a Deribit gateway access token
      */
-    authenticateV2(params?: {}): Promise<Str>;
+    authenticateV2(params?: Dict): Promise<Str>;
     /**
      * @ignore
      * @method

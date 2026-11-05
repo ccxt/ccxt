@@ -66,12 +66,13 @@ public partial class bitfinex : ccxt.bitfinex
             { "checksum", false },
         });
         bool? checksum = this.safeBool(this.options, "checksum", true);
-        if (((checksum == true)) && ((channel is "book")))
+        if ((checksum == true) && ((channel is "book")))
         {
-            object sub = getValue(client.subscriptions, messageHash);
-            if (((sub != null)) && (!isEqual(getValue(sub, "checksum"), true)))
+            object sub = (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey((string)messageHash) ? client.subscriptions[(string)messageHash] : null);
+            bool? subChecksum = this.safeBool(sub, "checksum");
+            if (((sub != null)) && ((subChecksum != true)))
             {
-                ((IDictionary<string,object>)getValue(client.subscriptions, messageHash))["checksum"] = true;
+                ((IDictionary<string,object>)(client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey((string)messageHash) ? client.subscriptions[(string)messageHash] : null))["checksum"] = true;
                 await client.send(new Dictionary<string, object>() {
                     { "event", "conf" },
                     { "flags", 131072 },
@@ -290,7 +291,7 @@ public partial class bitfinex : ccxt.bitfinex
         int ohlcvsLength = (ohlcvs?.Count ?? 0);
         for (Int64 i = 0; i < ohlcvsLength; i++)
         {
-            object ohlcv = getValue(ohlcvs, ((ohlcvsLength - i) - 1));
+            object ohlcv = (ohlcvs != null && ((ohlcvsLength - i) - 1) < ohlcvs.Count ? ohlcvs[(int)((ohlcvsLength - i) - 1)] : null);
             IList<object> parsed = this.parseOHLCV(ohlcv, market);
             stored.append(parsed);
         }
@@ -493,7 +494,7 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 Int64 index = ((length - i) - 1);
                 ccxt.Trade parsed = this.parseWsTrade(new Dictionary<string, object>() {
-                    { "result", getValue(trades, index) },
+                    { "result", (trades != null && index < trades.Count ? trades[(int)index] : null) },
                 }, market);
                 stored.append(ccxt.BaseExchange.FromTrade(parsed));
             }
@@ -657,7 +658,7 @@ public partial class bitfinex : ccxt.bitfinex
         //     ]
         //  ]
         //
-        object ticker = this.safeValue(message, 1);
+        List<object> ticker = this.safeList(message, 1);
         string? marketId = this.safeString(subscription, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeSymbol(marketId);
@@ -796,34 +797,34 @@ public partial class bitfinex : ccxt.bitfinex
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             if (isRaw)
             {
-                object deltas = getValue(message, 1);
-                for (int i = 0; i < getArrayLength(deltas); i++)
+                List<object> deltas = this.safeList(message, 1, new List<object>() {});
+                for (int i = 0; i < deltas.Count; i++)
                 {
-                    object delta = getValue(deltas, i);
-                    object delta2 = getValue(delta, 2);
-                    object size = (isLessThan(delta2, 0)) ? prefixUnaryNeg(ref delta2) : delta2;
-                    string side = (isLessThan(delta2, 0)) ? "asks" : "bids";
-                    object bookside = getValue(orderbook, side);
+                    object delta = deltas[i];
+                    double? delta2 = this.safeNumber(delta, 2);
+                    object size = (!(delta2 == null) && isLessThan(delta2, 0)) ? (delta2 = -delta2) : delta2;
+                    string side = (!(delta2 == null) && isLessThan(delta2, 0)) ? "asks" : "bids";
+                    object bookside = (orderbook != null && side != null && orderbook.ContainsKey(side) ? orderbook[side] : null);
                     string? idString = this.safeString(delta, 0);
                     double? price = this.safeFloat(delta, 1);
                     (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, idString});
                 }
             } else
             {
-                object deltas = getValue(message, 1);
-                for (int i = 0; i < getArrayLength(deltas); i++)
+                List<object> deltas = this.safeList(message, 1, new List<object>() {});
+                for (int i = 0; i < deltas.Count; i++)
                 {
                     List<object> delta = this.safeList(deltas, i);
-                    object amount = this.safeNumber(delta, 2);
-                    if (isEqual(amount, null))
+                    double? deltaAmount = this.safeNumber(delta, 2);
+                    if ((deltaAmount == null))
                     {
                         continue;
                     }
                     double? counter = this.safeNumber(delta, 1);
                     double? price = this.safeNumber(delta, 0);
-                    object size = (isLessThan(amount, 0)) ? prefixUnaryNeg(ref amount) : amount;
-                    string side = (isLessThan(amount, 0)) ? "asks" : "bids";
-                    object bookside = getValue(orderbook, side);
+                    object size = (isLessThan(deltaAmount, 0)) ? (deltaAmount = -deltaAmount) : deltaAmount;
+                    string side = (isLessThan(deltaAmount, 0)) ? "asks" : "bids";
+                    object bookside = (orderbook != null && side != null && orderbook.ContainsKey(side) ? orderbook[side] : null);
                     (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, counter});
                 }
             }
@@ -837,10 +838,10 @@ public partial class bitfinex : ccxt.bitfinex
             if (isRaw)
             {
                 string? price = this.safeString(deltas, 1);
-                object deltas2 = getValue(deltas, 2);
-                object size = (isLessThan(deltas2, 0)) ? prefixUnaryNeg(ref deltas2) : deltas2;
-                string side = (isLessThan(deltas2, 0)) ? "asks" : "bids";
-                object bookside = getValue(orderbookItem, side);
+                double? deltas2 = this.safeNumber(deltas, 2);
+                object size = (!(deltas2 == null) && isLessThan(deltas2, 0)) ? (deltas2 = -deltas2) : deltas2;
+                string side = (!(deltas2 == null) && isLessThan(deltas2, 0)) ? "asks" : "bids";
+                object bookside = (orderbookItem != null && side != null && orderbookItem.ContainsKey(side) ? orderbookItem[side] : null);
                 // price = 0 means that you have to remove the order from your book
                 object amount = Precise.stringGt(price, "0") ? size : "0";
                 string? idString = this.safeString(deltas, 0);
@@ -852,7 +853,7 @@ public partial class bitfinex : ccxt.bitfinex
                 string? price = this.safeString(deltas, 0);
                 string? size = Precise.stringLt(amount, "0") ? Precise.stringNeg(amount) : amount;
                 string side = Precise.stringLt(amount, "0") ? "asks" : "bids";
-                object bookside = getValue(orderbookItem, side);
+                object bookside = (orderbookItem != null && side != null && orderbookItem.ContainsKey(side) ? orderbookItem[side] : null);
                 (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)});
             }
             client.resolve(orderbook, messageHash);
@@ -875,8 +876,8 @@ public partial class bitfinex : ccxt.bitfinex
         }
         int depth = 25; // covers the first 25 bids and asks
         List<object> stringArray = new List<object>() {};
-        object bids = GetValue(book, "bids");
-        object asks = GetValue(book, "asks");
+        object bids = (book != null && book.ContainsKey("bids") ? book["bids"] : null);
+        object asks = (book != null && book.ContainsKey("asks") ? book["asks"] : null);
         string? prec = this.safeString(subscription, "prec", "P0");
         bool isRaw = (prec == "R0");
         int idToCheck = isRaw ? 2 : 0;
@@ -893,8 +894,11 @@ public partial class bitfinex : ccxt.bitfinex
             if ((ask != null))
             {
                 stringArray.Add(this.numberToString(getValue(getValue(asks, i), idToCheck)));
-                object aski1 = getValue(getValue(asks, i), 1);
-                stringArray.Add(this.numberToString(prefixUnaryNeg(ref aski1)));
+                double? aski1 = this.safeNumber(ask, 1);
+                if ((aski1 != null))
+                {
+                    stringArray.Add(this.numberToString((aski1 = -aski1)));
+                }
             }
         }
         string payload = String.Join(":", stringArray.ToArray());
@@ -1004,7 +1008,7 @@ public partial class bitfinex : ccxt.bitfinex
             data = this.safeList(message, 2);
         } else
         {
-            data = new List<object> {this.safeValue(message, 2)};
+            data = new List<object> {this.safeList(message, 2)};
         }
         Dictionary<string, object> updatedTypes = new Dictionary<string, object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
@@ -1443,7 +1447,8 @@ public partial class bitfinex : ccxt.bitfinex
         //
         if (((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            if (isEqual(getValue(message, 1), "hb"))
+            string? heartbeat = this.safeString(message, 1);
+            if (heartbeat == "hb")
             {
                 return;  // skip heartbeats within subscription channels for now
             }

@@ -457,7 +457,7 @@ public partial class bitopro : ccxt.bitopro
 
     public virtual void authenticate(object url)
     {
-        if (((this.clients != null)) && (inOp(this.clients, url)))
+        if (((this.clients != null)) && ((this.clients != null && url != null && this.clients.ContainsKey((string)url))))
         {
             return;
         }
@@ -541,11 +541,19 @@ public partial class bitopro : ccxt.bitopro
         Int64? timestamp = this.safeInteger(message, "timestamp");
         string? datetime = this.safeString(message, "datetime");
         List<object> currencies = new List<object>(data.Keys);
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", data },
-            { "timestamp", timestamp },
-            { "datetime", datetime },
-        };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        this.balance["info"] = data;
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = datetime;
         for (int i = 0; i < currencies.Count; i++)
         {
             string? currency = this.safeString(currencies, i);
@@ -557,10 +565,10 @@ public partial class bitopro : ccxt.bitopro
             account["total"] = this.safeString(balance, "amount");
             if ((code != null))
             {
-                result[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, eventVar);
     }
 

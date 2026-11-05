@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            if (((success == true)) && ((response != null)))
+            if ((success) && ((response != null)))
             {
                 assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(logText, "must return an array. "), exchange.json(response)));
                 for (int i = 0; i < getArrayLength(response); i++)

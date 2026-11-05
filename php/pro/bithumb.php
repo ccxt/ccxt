@@ -347,9 +347,10 @@ class bithumb extends \ccxt\async\bithumb {
         $time = $this->safe_string($ticker, 'time', '');
         $kstDatetime = mb_substr($date, 0, 4 - 0) . '-' . mb_substr($date, 4, 6 - 4) . '-' . mb_substr($date, 6, 8 - 6) . 'T' . mb_substr($time, 0, 2 - 0) . ':' . mb_substr($time, 2, 4 - 2) . ':' . mb_substr($time, 4, 6 - 4);
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        $timestamp = $this->parse8601($kstDatetime);
-        if ($timestamp !== null) {
-            $timestamp = ($timestamp - 32400000);
+        $timestamp = null;
+        $kstTimestamp = $this->parse8601($kstDatetime);
+        if ($kstTimestamp !== null) {
+            $timestamp = $kstTimestamp - 32400000;
         }
         $marketId = $this->safe_string($ticker, 'symbol');
         return $this->safe_ticker(array(
@@ -732,7 +733,11 @@ class bithumb extends \ccxt\async\bithumb {
         $marketId = $this->safe_string($trade, 'symbol');
         $datetime = $this->safe_string($trade, 'contDtm');
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        $timestamp = $this->parse_to_int($this->parse8601($datetime)) - 32400000;
+        $timestamp = null;
+        $kstTimestamp = $this->parse8601($datetime);
+        if ($kstTimestamp !== null) {
+            $timestamp = $kstTimestamp - 32400000;
+        }
         $sideId = $this->safe_string($trade, 'buySellGb');
         return $this->safe_trade(array(
             'id' => null,

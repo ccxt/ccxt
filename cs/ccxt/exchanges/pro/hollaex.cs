@@ -260,10 +260,10 @@ public partial class hollaex : ccxt.hollaex
         // }
         //
         string? channel = this.safeString(message, "topic");
-        object rawTrades = this.safeValue(message, "data");
+        List<object> rawTrades = this.safeList(message, "data", new List<object>() {});
         // usually the first message is an empty array
         // when the user does not have any trades yet
-        int dataLength = getArrayLength(rawTrades);
+        int dataLength = rawTrades.Count;
         if ((dataLength == 0))
         {
             return;
@@ -275,9 +275,9 @@ public partial class hollaex : ccxt.hollaex
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawTrades); i++)
+        for (int i = 0; i < rawTrades.Count; i++)
         {
-            object trade = getValue(rawTrades, i);
+            object trade = rawTrades[i];
             ccxt.Trade parsed = this.parseTrade(trade);
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
             object symbol = getValue(trade, "symbol");
@@ -481,8 +481,8 @@ public partial class hollaex : ccxt.hollaex
         //     }
         //
         string? messageHash = this.safeString(message, "topic");
-        object data = this.safeValue(message, "data");
-        List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        List<object> keys = new List<object>(data.Keys);
         Int64? timestamp = this.safeTimestamp(message, "time");
         this.balance["info"] = data;
         this.balance["timestamp"] = timestamp;
@@ -529,7 +529,8 @@ public partial class hollaex : ccxt.hollaex
         object expires = this.safeString(this.options, "ws-expires");
         if ((expires == null))
         {
-            Int64? timeout = parseInt(((object)(divide(this.timeout, 1000))).ToString());
+            Int64? timeoutMs = this.parseToInt(this.timeout);
+            Int64? timeout = this.parseToInt(((double?)timeoutMs / 1000));
             expires = this.sum(this.seconds(), timeout);
             if ((expires == null))
             {
@@ -668,7 +669,7 @@ public partial class hollaex : ccxt.hollaex
         //         }
         //     }
         //
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }

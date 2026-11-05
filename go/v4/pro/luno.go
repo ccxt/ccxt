@@ -55,12 +55,12 @@ func (this *Luno) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Luno) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Luno) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Luno) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, optionalArgs ...any) any {
+func (this *Luno) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -105,7 +105,7 @@ func (this *Luno) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, o
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
 func (this *Luno) HandleTrades(client any, message map[string]any, subscription map[string]any) {
@@ -133,7 +133,7 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsEqual(stored, nil) {
+	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
@@ -145,7 +145,7 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 			}
 			return nil
 		}()
-		var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(rawTrade, market)))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade, market))
 		stored.(ccxt.Appender).Append(trade)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
@@ -305,7 +305,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Luno) CustomParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
+func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol any, optionalArgs ...any) any {
 	var timestamp *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
 	var bidsKey string = ccxt.GetArgString(optionalArgs, 1, "bids")
@@ -460,12 +460,12 @@ func (this *Luno) HandleBookDelta(orderbook any, message any) {
  * @param {string} tradedAmount the traded amount in base currency, as a string
  * @returns {boolean} true if the order was found in this side, false otherwise
  */
-func (this *Luno) ReduceOrderVolume(orderSide any, orderId any, tradedAmount any) bool {
+func (this *Luno) ReduceOrderVolume(orderSide any, orderId *string, tradedAmount *string) bool {
 	var sideLength int = ccxt.GetArrayLength(orderSide)
 	for i := 0; i < sideLength; i++ {
 		var order any = ccxt.GetValue(orderSide, i)
 		var entryId *string = this.SafeString(order, 2)
-		if ccxt.IsEqual(entryId, orderId) {
+		if entryId == orderId || (entryId != nil && orderId != nil && *entryId == *orderId) {
 			var price *float64 = this.SafeNumber(order, 0)
 			var currentAmount *string = this.SafeString(order, 1)
 			var remainingAmount *string = ccxt.Precise.StringSub(currentAmount, tradedAmount)
@@ -491,7 +491,7 @@ func (this *Luno) ReduceOrderVolume(orderSide any, orderId any, tradedAmount any
  * @param {string} symbol unified market symbol of the book
  * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
  */
-func (this *Luno) IsOrderBookDeltaInSequence(client any, message any, symbol any) bool {
+func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any, symbol any) bool {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var storedNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if storedNonce == nil {
@@ -598,7 +598,7 @@ func (this *Luno) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 

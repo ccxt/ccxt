@@ -19,7 +19,10 @@ func testFetchMarketLeverageTiersBody(ch chan ccxt.AsyncResult[any], exchange cc
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	tiers := r.Value
+	var tiers any = nil
+	if r.Value != nil {
+		tiers = ccxt.LeverageTiersToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol)
 	for j := 0; j < GetArrayLength(tiers); j++ {
 		TestLeverageTier(exchange, skippedProperties, method, GetValue(tiers, j))

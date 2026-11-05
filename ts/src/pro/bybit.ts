@@ -210,7 +210,7 @@ export default class bybit extends bybitRest {
             const unified = await this.isUnifiedEnabled ();
             const isUnifiedMargin = this.safeBool (unified, 0, false);
             const isUnifiedAccount = this.safeBool (unified, 1, false);
-            if (isUsdcSettled && (isUnifiedMargin !== true) && (isUnifiedAccount !== true)) {
+            if (isUsdcSettled && (!isUnifiedMargin) && (!isUnifiedAccount)) {
                 url = url[accessibility]['usdc'];
             } else {
                 url = url[accessibility]['contract'];
@@ -826,7 +826,7 @@ export default class bybit extends bybitRest {
         //         "type": "snapshot"
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeList (message, 'data', []);
         const topic = this.safeString (message, 'topic', '');
         const topicParts = topic.split ('.');
         const topicLength = topicParts.length;
@@ -971,12 +971,14 @@ export default class bybit extends bybitRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         let channel = 'orderbook.';
-        let limit = this.safeInteger (params, 'limit');
-        const paramsOmitted: Dict = (limit !== undefined) ? this.omit (params, 'limit') : params;
-        if (limit === undefined) {
+        const limitParam = this.safeInteger (params, 'limit');
+        const paramsOmitted: Dict = (limitParam !== undefined) ? this.omit (params, 'limit') : params;
+        let defaultLimit = 500;
+        if (limitParam === undefined) {
             const firstMarket = this.market (symbolsNormalized[0]);
-            limit = (firstMarket['spot'] === true) ? 50 : 500;
+            defaultLimit = (firstMarket['spot'] === true) ? 50 : 500;
         }
+        const limit = (limitParam === undefined) ? defaultLimit : limitParam;
         channel += limit.toString ();
         const subMessageHashes: string[] = [];
         const messageHashes: string[] = [];
@@ -1043,7 +1045,7 @@ export default class bybit extends bybitRest {
         //     }
         //
         const topic = this.safeString (message, 'topic', '');
-        const limit = topic.split ('.')[1];
+        const limit = this.safeString (topic.split ('.'), 1);
         const isSpot = client.url.indexOf ('spot') >= 0;
         const type = this.safeString (message, 'type');
         const isSnapshot = (type === 'snapshot');
@@ -1089,7 +1091,7 @@ export default class bybit extends bybitRest {
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -1215,7 +1217,7 @@ export default class bybit extends bybitRest {
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeList (message, 'data', []);
         const topic = this.safeString (message, 'topic', '');
         const trades = data;
         const parts = topic.split ('.');
@@ -1857,13 +1859,22 @@ export default class bybit extends bybitRest {
         const marketId = this.safeString2 (liquidation, 'symbol', 's');
         const marketResolved: Market = this.safeMarket (marketId, market, '', 'contract');
         const timestamp = this.safeInteger2 (liquidation, 'updatedTime', 'T');
+        // bybit sends the side of the liquidated position (Buy - a long was liquidated),
+        // the unified side is the side of the liquidation order, as on binance and okx
+        const positionSide = this.safeStringLower2 (liquidation, 'side', 'S');
+        let side: Str = undefined;
+        if (positionSide === 'buy') {
+            side = 'sell';
+        } else if (positionSide === 'sell') {
+            side = 'buy';
+        }
         return this.safeLiquidation ({
             'info': liquidation,
             'symbol': marketResolved['symbol'],
             'contracts': this.safeNumber2 (liquidation, 'size', 'v'),
             'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'price': this.safeNumber2 (liquidation, 'price', 'p'),
-            'side': this.safeStringLower2 (liquidation, 'side', 'S'),
+            'side': side,
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -2111,7 +2122,7 @@ export default class bybit extends bybitRest {
             'spot': 'outboundAccountInfo',
             'unified': 'wallet',
         };
-        if (isUnifiedAccount === true) {
+        if (isUnifiedAccount) {
             // unified account
             if (subType === 'inverse') {
                 messageHash += ':contract';
@@ -2119,7 +2130,7 @@ export default class bybit extends bybitRest {
                 messageHash += ':unified';
             }
         }
-        if ((isUnifiedMargin !== true) && (isUnifiedAccount !== true)) {
+        if ((!isUnifiedMargin) && (!isUnifiedAccount)) {
             // normal account using v5
             if (type === 'spot') {
                 messageHash += ':spot';
@@ -2127,7 +2138,7 @@ export default class bybit extends bybitRest {
                 messageHash += ':contract';
             }
         }
-        if (isUnifiedMargin === true) {
+        if (isUnifiedMargin) {
             // unified margin account using v5
             if (type === 'spot') {
                 messageHash += ':spot';
@@ -2544,7 +2555,7 @@ export default class bybit extends bybitRest {
                 throw new ExchangeError (feedback);
             }
             const success = this.safeBool (message, 'success');
-            if ((success !== undefined) && (success !== true)) {
+            if ((success !== undefined) && (!success)) {
                 const ret_msg = this.safeString (message, 'ret_msg');
                 const request = this.safeDict (message, 'request', {});
                 const op = this.safeString (request, 'op');

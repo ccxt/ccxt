@@ -8,7 +8,7 @@ import { ExchangeError, AuthenticationError, BadRequest, BadSymbol, RateLimitExc
 import { TICK_SIZE, ROUND, TRUNCATE, SIGNIFICANT_DIGITS } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, Endpoint, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
+import type { NullableDict, Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, Endpoint, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -388,7 +388,7 @@ export default class polymarket extends Exchange {
         //
         const cancelOnly = this.safeBool (response, 'cancel_only', false);
         return {
-            'status': (cancelOnly === true) ? 'maintenance' : 'ok',
+            'status': (cancelOnly) ? 'maintenance' : 'ok',
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -889,7 +889,7 @@ export default class polymarket extends Exchange {
         const isTaker = this.safeBool (trade, 'taker');
         let takerOrMaker: Str = undefined;
         if (isTaker !== undefined) {
-            takerOrMaker = (isTaker === true) ? 'taker' : 'maker';
+            takerOrMaker = (isTaker) ? 'taker' : 'maker';
         }
         const feeCost = this.safeString (trade, 'fee');
         let fee = undefined;
@@ -1027,7 +1027,7 @@ export default class polymarket extends Exchange {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetInfoTickers (params);
         const result = this.parseFundingRates (response);
-        return this.filterByArray (result, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (result, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -1172,10 +1172,10 @@ export default class polymarket extends Exchange {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetInfoTickers (params);
         const result = this.parseOpenInterests (response);
-        return this.filterByArray (result, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (result, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined) {
         //
         //     {
         //         "instrument_id": 1,
@@ -1266,7 +1266,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict with the signable row and the body entry
      */
-    createOrderRequest (market: Market, type: OrderType, side: OrderSide, amount: any, price: any = undefined, params = {}): Dict {
+    createOrderRequest (market: Market, type: OrderType, side: OrderSide, amount: any, price: any = undefined, params: Dict = {}): Dict {
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingPercent', 'trailingAmount' ]);
         const attached = this.safeValueN (params, [ 'stopLoss', 'takeProfit' ]);
         if ((triggerPrice !== undefined) || (attached !== undefined)) {
@@ -1305,7 +1305,7 @@ export default class polymarket extends Exchange {
         if (price !== undefined) {
             priceString = this.priceToPrecision (symbol, price);
         }
-        const reduceOnlyValue = (reduceOnly === true) ? true : undefined;
+        const reduceOnlyValue = (reduceOnly) ? true : undefined;
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
@@ -1724,7 +1724,7 @@ export default class polymarket extends Exchange {
         const isBuy = this.safeBool (order, 'buy');
         let side: Str = undefined;
         if (isBuy !== undefined) {
-            side = (isBuy === true) ? 'buy' : 'sell';
+            side = (isBuy) ? 'buy' : 'sell';
         }
         const price = this.omitZero (this.safeString2 (order, 'price', 'p'));
         let type: Str = undefined;
@@ -1886,7 +1886,7 @@ export default class polymarket extends Exchange {
         const isCross = this.safeBool (position, 'cross');
         let marginMode: Str = undefined;
         if (isCross !== undefined) {
-            marginMode = (isCross === true) ? 'cross' : 'isolated';
+            marginMode = (isCross) ? 'cross' : 'isolated';
         }
         const timestamp = this.safeInteger (position, 'timestamp');
         const roe = this.safeString (position, 'return_on_equity');
@@ -2419,7 +2419,7 @@ export default class polymarket extends Exchange {
         const isCross = this.safeBool (leverage, 'cross');
         let marginMode: Str = undefined;
         if (isCross !== undefined) {
-            marginMode = (isCross === true) ? 'cross' : 'isolated';
+            marginMode = (isCross) ? 'cross' : 'isolated';
         }
         const value = this.safeInteger (leverage, 'leverage');
         return {
@@ -2527,7 +2527,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    async modifyMarginHelper (symbol: string, amount: any, type: string, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: string, params: Dict = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const instrumentId = this.parseToInt (market['id']);
@@ -2617,7 +2617,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
      */
-    async createProxyCredentials (params = {}): Promise<Dict> {
+    async createProxyCredentials (params: Dict = {}): Promise<Dict> {
         this.checkRequiredCredentials ();
         // the session key derives from an ecdsa signature under the wallet
         // key over a timestamped nonce - unpredictable without the wallet
@@ -2688,7 +2688,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
      */
-    async loadProxyCredentials (params = {}): Promise<Dict> {
+    async loadProxyCredentials (params: Dict = {}): Promise<Dict> {
         const credentials = this.safeDict (this.options, 'proxyCredentials');
         if (credentials !== undefined) {
             const expires = this.safeInteger (credentials, 'expires');
@@ -2713,7 +2713,7 @@ export default class polymarket extends Exchange {
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    async signPerpsOp (signable: any, bodyOp: any, params = {}): Promise<Dict> {
+    async signPerpsOp (signable: any, bodyOp: any, params: Dict = {}): Promise<Dict> {
         const credentials = await this.loadProxyCredentials ();
         const packed = this.packb (signable);
         const dataHash = this.hashMessage (packed);
@@ -2830,7 +2830,7 @@ export default class polymarket extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiType = api[0];
         let url = this.urls['api'][apiType] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));

@@ -356,19 +356,19 @@ class delta(Exchange, ImplicitAPI):
         quote = 'USDT'
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
+        hasSlash = symbol.find('/') > -1
         base = None
-        expiry = None
         optionType = None
-        if symbol.find('/') > -1:
+        if hasSlash:
             base = self.safe_string(symbolBase, 0)
-            expiry = self.safe_string(optionParts, 1)
             optionType = self.safe_string(optionParts, 3)
         else:
             base = self.safe_string(optionParts, 1)
-            expiry = self.safe_string(optionParts, 3)
             optionType = self.safe_string(optionParts, 0)
-        if expiry is not None:
-            expiry = expiry[4:] + expiry[2:4] + expiry[0:2]
+        rawExpiry = self.safe_string(optionParts, 1 if hasSlash else 3)
+        expiry = None
+        if rawExpiry is not None:
+            expiry = rawExpiry[4:] + rawExpiry[2:4] + rawExpiry[0:2]
         settle = quote
         strike = self.safe_string(optionParts, 2)
         datetime = self.convert_expire_date(expiry)
@@ -637,7 +637,7 @@ class delta(Exchange, ImplicitAPI):
             self.options['marketsByNumericId'] = self.index_by_stringified_numeric_id(self.markets)
         return markets
 
-    def index_by_stringified_numeric_id(self, input: dict):
+    def index_by_stringified_numeric_id(self, input: dict) -> dict:
         result = {}
         if input is None:
             return None
@@ -1622,22 +1622,26 @@ class delta(Exchange, ImplicitAPI):
         }
         duration = self.parse_timeframe(timeframe)
         limitValue = 2000
+        windowSeconds = 2000 * duration
         if limit is not None and limit is not None and limit != 0:
             limitValue = limit  # max 2000
+            windowSeconds = limit * duration
         until = self.safe_integer_product(params, 'until', 0.001)
-        untilIsDefined = (until is not None)
+        untilIsDefined = until is not None
         if untilIsDefined:
             until = self.parse_to_int(until)
         if since is None:
-            end = until if untilIsDefined else self.seconds()
+            end = self.seconds()
+            if untilIsDefined:
+                end = self.parse_to_int(until)
             request['end'] = end
             if end is None:
                 raise ExchangeError(self.id + ' fetchOHLCV() missing end')
-            request['start'] = end - limitValue * duration
+            request['start'] = end - windowSeconds
         else:
             start = self.parse_to_int(since / 1000)
             request['start'] = start
-            request['end'] = until if untilIsDefined else self.sum(start, limitValue * duration)
+            request['end'] = until if untilIsDefined else self.sum(start, windowSeconds)
         price = self.safe_string(params, 'price')
         if price == 'mark':
             request['symbol'] = 'MARK:' + market['id']
@@ -1842,7 +1846,7 @@ class delta(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'open': 'open',
             'pending': 'open',
@@ -2452,7 +2456,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_ledger(result, currency, since, limit)
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'pnl': 'pnl',
             'deposit': 'transaction',
@@ -2959,7 +2963,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "close": 894.0,
@@ -4044,7 +4048,7 @@ class delta(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
         apiUrl = self.safe_string(self.urls['api'], apiName)

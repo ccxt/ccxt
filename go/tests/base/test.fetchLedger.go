@@ -19,7 +19,10 @@ func testFetchLedgerBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	items := r.Value
+	var items any = nil
+	if r.Value != nil {
+		items = ccxt.LedgerEntriesToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
 	var now int64 = exchange.Milliseconds()
 	for i := 0; i < GetArrayLength(items); i++ {
