@@ -1747,11 +1747,8 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 					// add cost here |
 					//               |
 					//               V
-					if throttleFunc, ok := client.Throttle.(func(any) error); ok {
-						if err := throttleFunc(cost); err != nil {
-							client.OnError(err)
-							return
-						}
+					if throttler, ok := client.Throttle.(*Throttler); ok {
+						<-throttler.Throttle(cost)
 					}
 				}
 				if err := (<-client.SendAsync(message)).Err; err != nil {
@@ -2078,10 +2075,8 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 					// add cost here |
 					//               |
 					//               V
-					if throttleFunc, ok := client.Throttle.(func(any) error); ok {
-						if err := throttleFunc(cost); err != nil {
-							client.OnError(err)
-						}
+					if throttler, ok := client.Throttle.(*Throttler); ok {
+						<-throttler.Throttle(cost)
 					}
 				}
 				if err := (<-client.SendAsync(message)).Err; err != nil {
