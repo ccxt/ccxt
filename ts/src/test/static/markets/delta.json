@@ -1138,7 +1138,7 @@
             "cost": {}
         },
         "expiry": 1711713600000,
-        "expiryDatetime": "2024-03-29T12:00:00Z",
+        "expiryDatetime": "2024-03-29T12:00:00.000Z",
         "strike": 65000,
         "optionType": "put",
         "created": 1707499801000,
