@@ -1896,7 +1896,7 @@ export default class hitbtc extends Exchange {
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('until', request, paramsPaginate);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('till', request, paramsPaginate);
         if (limit !== undefined) {
             requestUntil['limit'] = Math.min (limit, 1000);
         }
@@ -2976,7 +2976,7 @@ export default class hitbtc extends Exchange {
             // 'limit': 100,
             // 'offset': 0,
         };
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('until', request, paramsPaginate);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('till', request, paramsPaginate);
         if (symbol !== undefined) {
             market = this.market (symbol);
             requestUntil['symbols'] = market['id'];
