@@ -733,7 +733,10 @@ export default class paradex extends paradexRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
         const channel = 'markets_summary';
         const messageHashes: string[] = [];
         let newTicker: any = undefined;
@@ -880,7 +883,10 @@ export default class paradex extends paradexRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
         const url = this.getWsUrl ();
         const channels: string[] = [];
         const messageHashes: string[] = [];
@@ -1718,7 +1724,10 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        let stringsLength = 0;
+        if (strings !== undefined) {
+            stringsLength = strings.length;
+        }
         if (stringsLength < 1) {
             return undefined;
         }
