@@ -1435,9 +1435,8 @@ export default class aster extends asterRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const type: Str = undefined;
-        const [ typeMarketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
-        if (type === undefined) {
+        const [ typeMarketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        if (typeMarketType === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBalance() requires a market type');
         }
         await this.authenticate (typeMarketType, paramsMarketType);
@@ -1788,9 +1787,8 @@ export default class aster extends asterRest {
             symbolResolved = this.safeString (market, 'symbol');
         }
         let messageHash = 'orders';
-        const type: Str = undefined;
-        const [ typeMarketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params, type);
-        if (type === undefined) {
+        const [ typeMarketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        if (typeMarketType === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a market type');
         }
         await this.authenticate (typeMarketType, paramsMarketType);
@@ -1832,9 +1830,8 @@ export default class aster extends asterRest {
             symbolResolved = this.safeString (market, 'symbol');
         }
         let messageHash = 'myTrades';
-        const type: Str = undefined;
-        const [ typeMarketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, type);
-        if (type === undefined) {
+        const [ typeMarketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        if (typeMarketType === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a market type');
         }
         await this.authenticate (typeMarketType, paramsMarketType);
