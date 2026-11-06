@@ -3289,8 +3289,6 @@ export function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
-    // first, so goChanCarrierPass and the local classifiers see the typed parser signatures
-    content = retypeGoProvenParseMethods (content);
     content = goOmitTupleMapReturns (content);
     content = guardMultiSendCores (content);
     content = nativeAppendWriteBack (content);
@@ -4490,34 +4488,27 @@ function goFunctionLevelReturnExprs (body: string): string[] | undefined {
     return exprs;
 }
 
-/**
- * Retypes every declaration of goProvenParseMapMethods() from `any` to `map[string]any`. A def is
- * proven when each function-level return is a map literal, `this.Extend(..)` or a call of a method of
- * the same family (itself retyped), or a local declared once from such an expression and never
- * reassigned (that local is typed too); a def with no return must end in panic (base stubs). None of
- * these can return nil. Go interfaces pin one signature, so an unproven def throws instead of staying `any`.
- */
-// describe() is a dictionary on every tier (TS `describe (): Dict`): base, every venue and the ws/prediction
-// tiers return a map literal or `this.DeepExtend(..)`, never nil. The base files bypass formatGoSource, so the
-// two base writes call this directly.
-export function retypeGoDescribe (content: string): string {
-    // mergeBalanceAccount hands its first argument back (a balance map, TS `Dict`), so its return is a map
-    content = retypeGoProvenFamily (content, [ 'MergeBalanceAccount' ], 'map[string]any', 'MapTyped', []);
-    return retypeGoProvenFamily (content, [ 'Describe' ], 'map[string]any', 'MapTyped', [ 'Extend', 'DeepExtend' ]);
-}
-
-export function retypeGoProvenParseMethods (content: string): string {
-    content = retypeGoDescribe (content);
+// Return families the printer retypes from `any` (config `provenReturnFamilies`, ast retypeGoProvenFamily).
+// A def is proven when each function-level return is a `type` literal, a call of `calls` (its own family
+// included), a struct->map converter, or a local declared once from such an expression and never
+// reassigned (typed too); a def with no return must end in panic. None of these can return nil. Go
+// interfaces pin one signature, so an unproven def throws instead of staying `any`.
+// describe() is a dictionary on every tier; mergeBalanceAccount hands its first argument back (a balance map).
+function goProvenReturnFamilies (): any[] {
     const lists = goProvenListMethods ();
-    content = retypeGoProvenFamily (content, lists, '[]any', 'this.ToArray', lists.concat ([ 'ArraySlice', 'ToArray', 'SortBy', 'SortBy2', 'ArrayConcat' ]));
     const maps = goProvenParseMapMethods ().concat (goProvenMapCollectionMethods ());
     // proven dict producers the struct-returns pass retypes itself: a family def may return one,
     // but they are not members of this family (their `any` stub is the struct pass's to retype)
     const calleeOnly = [ 'SafeTrade', 'ParseTrade' ];
-    content = retypeGoProvenFamily (content, maps, 'map[string]any', 'MapTyped', maps.concat (calleeOnly, [ 'Extend', 'DeepExtend', 'IndexBy' ]));
     // dydx/hitbtc/lighter/pacifica/toobit build a pair list, so only these two dispatchers retype
     const builders = [ 'CreateRegularOrderRequest', 'CreateTriggerOrderRequest', 'CreateSpotOrderRequest', 'CreateSwapOrderRequest' ];
-    return retypeGoProvenFamily (content, [ 'CreateOrderRequest' ], 'map[string]any', 'MapTyped', builders, 'Deepcoin|Hashkey');
+    return [
+        { 'names': [ 'MergeBalanceAccount' ], 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': [] },
+        { 'names': [ 'Describe' ], 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': [ 'Extend', 'DeepExtend' ] },
+        { 'names': lists, 'type': '[]any', 'paramWrap': 'this.ToArray', 'calls': lists.concat ([ 'ArraySlice', 'ToArray', 'SortBy', 'SortBy2', 'ArrayConcat' ]) },
+        { 'names': maps, 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': maps.concat (calleeOnly, [ 'Extend', 'DeepExtend', 'IndexBy' ]) },
+        { 'names': [ 'CreateOrderRequest' ], 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': builders, 'receivers': 'Deepcoin|Hashkey' },
+    ];
 }
 
 // list producers (base + every override): TS `X[]`; a returned `array` parameter is coerced with ToArray (caches too)
@@ -4561,119 +4552,6 @@ function goProvenMapCollectionMethods (): string[] {
         'SetApiCredentials' ]; // W20: opinion/polymarket return their creds map literal
 }
 
-// `X` is a balance local: declared once as a map literal, and every later write keeps the same map
-// (`X = this.MergeBalanceAccount(X, ..)` / `X = this.SafeBalance(X)` both return their first
-// argument, bare or inside the printer's `MapTyped(..)` box cast)
-export function goBalanceLocalIsMap (body: string, name: string): boolean {
-    if ((body.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length !== 1) {
-        return false;
-    }
-    if (!new RegExp ('\\n\\t+var ' + name + ' (?:any|map\\[string\\]any) = map\\[string\\]any\\{').test (body)) {
-        return false;
-    }
-    if (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^\\n=]*)?:=|\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (body)) {
-        return false;
-    }
-    const writes = body.match (new RegExp ('(^|[^\\w.])' + name + '\\s*[-+*/:]?=[^=][^\\n]*', 'gm')) || [];
-    const keeps = new RegExp ('^[^\\w.]?' + name + ' = (?:MapTyped\\()?this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)\\)?$)');
-    return writes.every ((w) => keeps.test (w));
-}
-
-// one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,
-// or (paramWrap) a parameter of the def wrapped in the coercion
-function retypeGoProvenFamily (content: string, names: string[], type: string, paramWrap: string, calls: string[], receivers = '\\w+'): string {
-    const literal = type + '{';
-    const provenCall = new RegExp ('^(?:ccxt\\.)?this\\.(?:DerivedExchange\\.|base\\.)?(?:' + calls.join ('|') + ')\\(');
-    // the struct->map converters are package-level functions (no `this.` receiver)
-    const provenConverter = new RegExp ('^(?:ccxt\\.)?(?:' + GO_PROVEN_STRUCT_TO_MAP_CALLS.join ('|') + ')\\(');
-    const proven = (e: string) => e.startsWith (literal) || provenCall.test (e) || provenConverter.test (e);
-    const typeRe = type.replace (/[[\]]/g, '\\$&');
-    const head = new RegExp ('\\nfunc \\(this \\*(' + receivers + ')\\) (' + names.join ('|') + ')\\(([^)\\n]*)\\) any \\{\\n', 'g');
-    let out = '';
-    let cursor = 0;
-    for (let m = head.exec (content); m !== null; m = head.exec (content)) {
-        const open = m.index + m[0].length - 1;
-        const close = content.indexOf ('\n}\n', open);
-        const body = (close < 0) ? '' : content.substring (open, close + 1);
-        const exprs = goFunctionLevelReturnExprs (body);
-        const where = m[1] + '.' + m[2];
-        if ((close < 0) || (exprs === undefined)) {
-            throw new Error ('retypeGoProvenParseMethods: cannot scan ' + where);
-        }
-        if (!exprs.length && !/(^|\n)\tpanic\([^\n]*\)\n$/.test (body)) {
-            throw new Error ('retypeGoProvenParseMethods: ' + where + ' has no return and does not end in panic');
-        }
-        let newBody = body;
-        const params = m[3].split (',').map ((p) => p.trim ().split (' ')[0]);
-        for (const expr of exprs) {
-            if (proven (expr)) {
-                continue;
-            }
-            const balance = /^this\.SafeBalance\((\w+)\)$/.exec (expr);
-            if ((type === 'map[string]any') && (balance !== null) && goBalanceLocalIsMap (newBody, balance[1])) {
-                newBody = newBody.replace (new RegExp ('\\n(\\t+)return this\\.SafeBalance\\(' + balance[1] + '\\)\\n', 'g'), '\n$1return this.SafeBalance(' + balance[1] + ').(map[string]any)\n');
-                continue;
-            }
-            const local = /^\w+$/.test (expr) ? expr : undefined;
-            if ((local !== undefined) && params.includes (local) && !new RegExp ('\\n\\t+(?:var ' + local + '\\b|' + local + ' :?=)').test (newBody)) {
-                newBody = newBody.replace (new RegExp ('\\n(\\t+)return ' + local + '\\n', 'g'), '\n$1return ' + paramWrap + '(' + local + ')\n');
-                continue;
-            }
-            const declRe = (local === undefined) ? undefined : new RegExp ('\\n(\\t+)var ' + local + ' (any|' + typeRe + ') = ([^\\n]*)');
-            const decl = (declRe === undefined) ? null : declRe.exec (newBody);
-            // the multi-assignment alternative stops at the first `=` and never crosses a call's
-            // parentheses: `GetValue(x, "k"), nil)) && (y !=` is a comparison, not a write of `x`
-            const writes = (local === undefined) ? [] : (newBody.match (new RegExp ('(^|[^\\w.])' + local + '(\\s*[-+*/]?=[^=]|\\s*:=|\\s*,\\s*[A-Za-z_][\\w.[\\]]*\\s*=[^=])', 'gm')) || []);
-            const nilWrites = (local === undefined) ? [] : (newBody.match (new RegExp ('(^|[^\\w.])' + local + ' = nil\\b', 'gm')) || []);
-            const declCount = (local === undefined) ? 0 : (newBody.match (new RegExp ('\\bvar ' + local + '\\b', 'g')) || []).length;
-            // a local the printer already typed `type` compiles whatever its writes; nil writes stay rejected
-            const typedOk = (decl !== null) && (decl[2] === type) && (proven (decl[3]) || (nilWrites.length === 0) && (decl[3] !== 'nil'));
-            const anyOk = (decl !== null) && proven (decl[3]) && (writes.length === 0);
-            if ((decl === null) || (declCount !== 1) || !(typedOk || anyOk)) {
-                throw new Error ('retypeGoProvenParseMethods: ' + where + ' returns unproven `' + expr.split ('\n')[0] + '`');
-            }
-            newBody = newBody.replace (declRe, '\n$1var ' + local + ' ' + type + ' = $3');
-        }
-        out += content.substring (cursor, m.index) + m[0].replace (/ any \{\n$/, ' ' + type + ' {') + newBody;
-        cursor = close + 1;
-    }
-    return out + content.substring (cursor);
-}
-
-function goProvenParseSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('typed-parse: ' + msg); } };
-    const fn = (name: string, body: string) => '\nfunc (this *X) ' + name + '(order any, optionalArgs ...any) any {\n' + body + '}\n';
-    const throws = (text: string) => { try { retypeGoProvenParseMethods (text); return false; } catch (e) { return true; } };
-    ok (retypeGoProvenParseMethods (fn ('ParseOrder', '\treturn this.SafeOrder(map[string]any{\n\t\t"a": 1,\n\t}, market)\n')).includes (') ParseOrder(order any, optionalArgs ...any) map[string]any {'), 'safe call');
-    ok (retypeGoProvenParseMethods (fn ('ParseTicker', '\tpanic(NotSupported("x"))\n')).includes (') map[string]any {'), 'panic stub');
-    ok (retypeGoProvenParseMethods (fn ('ParseOrder', '\tvar r any = this.SafeOrder(order)\n\treturn r\n')).includes ('\tvar r map[string]any = this.SafeOrder(order)'), 'returned local typed');
-    ok (retypeGoProvenParseMethods (fn ('ParseOrder', '\tf := func() any {\n\t\treturn nil\n\t}\n\t_ = f\n\treturn map[string]any{}\n')).includes ('map[string]any {'), 'closure return ignored');
-    ok (throws (fn ('ParseOrder', '\tif order == nil {\n\t\treturn nil\n\t}\n\treturn this.SafeOrder(order)\n')), 'nil return rejected');
-    ok (throws (fn ('ParseOrder', '\tvar r any = this.SafeOrder(order)\n\tr = nil\n\treturn r\n')), 'reassigned local rejected');
-    ok (throws (fn ('ParseOrder', '\treturn this.SafeString(order, "x")\n')), 'other call rejected');
-    ok (throws (fn ('ParseTicker', '\t_ = 1\n')), 'no return no panic rejected');
-    ok (throws (fn ('ParseOrder', '\tif a {\n\t\tvar r any = this.SafeOrder(order)\n\t\t_ = r\n\t}\n\tvar r any = this.SafeString(order, "x")\n\treturn r\n')), 'shadowed local rejected');
-    ok (retypeGoProvenParseMethods (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = this.MergeBalanceAccount(result, c, a)\n\treturn this.SafeBalance(result)\n')).includes ('\treturn this.SafeBalance(result).(map[string]any)\n'), 'merged balance local');
-    ok (throws (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = this.MergeBalanceAccount(other, c, a)\n\treturn this.SafeBalance(result)\n')), 'foreign merge rejected');
-    ok (throws (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = order\n\treturn this.SafeBalance(result)\n')), 'rewritten balance local rejected');
-    ok (retypeGoProvenParseMethods (fn ('ParseWidget', '\treturn nil\n')).includes (') any {'), 'other method untouched');
-    // the ws dict parsers return a struct->map converter call, which is a dictionary
-    ok (retypeGoProvenParseMethods (fn ('ParseWsOrder', '\treturn ccxt.OrderToMap(this.SafeOrder(map[string]any{\n\t\t\"a\": 1,\n\t}, market))\n')).includes (') ParseWsOrder(order any, optionalArgs ...any) map[string]any {'), 'ws parser converter call');
-    // a comparison is not a write of the returned local
-    ok (retypeGoProvenParseMethods (fn ('ParseWsTicker', '\tvar r any = ccxt.TickerToMap(this.SafeTicker(map[string]any{}))\n\tif r != nil {\n\t\t_ = r\n\t}\n\tif GetValue(r, \"a\"), 1 != 2 {\n\t\t_ = r\n\t}\n\treturn r\n')).includes ('\tvar r map[string]any = ccxt.TickerToMap('), 'comparison is not a write');
-    ok (throws (fn ('ParseWsTrade', '\tif order == nil {\n\t\treturn nil\n\t}\n\treturn ccxt.TradeToMap(this.SafeTrade(order))\n')), 'ws parser nil return rejected');
-    // MapTyped around a struct->map converter is the identity
-    ok (dropNoOpMapTyped ('\tvar p map[string]any = MapTyped(PositionToMap(this.ParsePosition(p)))\n') === '\tvar p map[string]any = PositionToMap(this.ParsePosition(p))\n', 'converter wrap dropped');
-    ok (dropNoOpMapTyped ('\tvar b map[string]any = MapTyped(this.SafeBalance(p))\n') === '\tvar b map[string]any = MapTyped(this.SafeBalance(p))\n', 'a still-untyped callee keeps its wrap');
-    // a second Market/Currency wrap around a base row builder is the identity
-    ok (dropNoOpMapTyped ('\treturn MarketTyped(this.Exchange.SafeMarket(id))\n') === '\treturn this.Exchange.SafeMarket(id)\n', 'base row wrap dropped');
-    ok (dropNoOpMapTyped ('\treturn MarketTyped(this.SafeMarket(id))\n') === '\treturn MarketTyped(this.SafeMarket(id))\n', 'an override keeps its wrap');
-    const omitFn = (ret: string) => '\nfunc (this *X) H(m string, optionalArgs ...any) any {\n\tr, p := this.HandleOptionStringAndParams(a, m, \"route\", \"auto\")\n\t_ = r\n\t' + ret + '\n}\n';
-    ok (goOmitTupleMapReturns (omitFn ('return this.Omit(p, []any{\"route\"})')).includes ('...any) map[string]any {') && goOmitTupleMapReturns (omitFn ('return this.Omit(p, []any{\"route\"})')).includes ('return this.OmitDict(p,'), 'tuple omit return');
-    ok (goOmitTupleMapReturns (omitFn ('return this.Omit(q, []any{\"route\"})')) === omitFn ('return this.Omit(q, []any{\"route\"})'), 'foreign omit return untouched');
-    return problems;
-}
 
 // base methods whose every return path is already a MarketTyped/CurrencyTyped row, so a
 // second wrapper around their call is the identity (the helper hands back the same map for a plain row).
@@ -5734,9 +5612,12 @@ class NewTranspiler {
                 // the ws watch family's symbols list prints `[]string`/`[][]string`
                 "unifiedSliceParams": GO_UNIFIED_SLICE_PARAMS,
                 // ===== RF-go-6-C =====
-                // generated base/venue methods whose Go result is uniformly `[]any` (retypeGoProvenParseMethods
+                // generated base/venue methods whose Go result is uniformly `[]any` (the printer's provenReturnFamilies
                 // proves every override); the printer types a local initialised by one of them as `[]any`
                 "generatedListCallees": goProvenListMethods (),
+                // return families the printer retypes on the emitted signature (base + every override)
+                "provenReturnFamilies": goProvenReturnFamilies (),
+                "provenStructToMapCalls": GO_PROVEN_STRUCT_TO_MAP_CALLS,
                 "asyncMapRowListCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === '[]map[string]any').map (([ name ]) => name),
                 "asyncTickerMapCallees": [ ...goChan3Table () ].filter (([ name, type ]) => (type === 'map[string]Ticker') && !name.includes ('.')).map (([ name ]) => name),
                 // ===== end RF-go-6-C =====
@@ -7060,7 +6941,7 @@ ${constStatements.join('\n')}
             const file = goAnyLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
-            this.writeGeneratedOnce (goExchangeBase, this.declareBaseFileStdlibImports (goBaseNativePasses (retypeGoDescribe (file)), baseFile.stdlibImports));
+            this.writeGeneratedOnce (goExchangeBase, this.declareBaseFileStdlibImports (goBaseNativePasses (file), baseFile.stdlibImports));
         }
     }
 
@@ -7168,7 +7049,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goInlineStr (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))), goCompositeKeyAligner ())))), baseFile.stdlibImports)));
+            fs.writeFileSync (goPredictionBase, goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goInlineStr (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file)))))))), goCompositeKeyAligner ())))), baseFile.stdlibImports)));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -9642,7 +9523,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goInlineStrCheck (goCompositeKeyAligner ())).concat (goInlineStrWiredCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goMarketsByIdInOpSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
+        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goInlineStrCheck (goCompositeKeyAligner ())).concat (goInlineStrWiredCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goMarketsByIdInOpSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);

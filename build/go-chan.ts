@@ -11,7 +11,7 @@ const GO_CHAN_TABLE_FILE = path.join (path.dirname (fileURLToPath (import.meta.u
 export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.Extend': 'map[string]any', 'this.DeepExtend': 'map[string]any', 'this.ParseToInt': 'int64', 'this.Json': 'string',
     'this.IndexBy': 'map[string]any',
-    // retyped by goTranspiler.ts#retypeGoProvenParseMethods (base + every override)
+    // retyped by the printer's provenReturnFamilies (base + every override)
     'this.ParseCurrencies': 'map[string]any', 'this.DerivedExchange.ParseCurrencies': 'map[string]any', 'this.ParseCurrenciesCustom': 'map[string]any', 'this.ArraysConcat': '[]any',
     'OrderToMap': 'map[string]any', 'TickerToMap': 'map[string]any', 'TradeToMap': 'map[string]any', 'StructToMap': 'map[string]any',
     'PositionToMap': 'map[string]any', 'TransactionToMap': 'map[string]any', 'LedgerEntryToMap': 'map[string]any', 'DepositAddressToMap': 'map[string]any',
@@ -34,7 +34,7 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.SafeNumber': '*float64', 'this.SafeNumber2': '*float64', 'this.SafeNumberN': '*float64',
     'this.InsertMissingCandles': '[]any', 'this.DerivedExchange.InsertMissingCandles': '[]any',
     'this.ParseTradingViewOHLCV': '[]any', 'this.DerivedExchange.ParseTradingViewOHLCV': '[]any',
-    // venue balance parsers retyped by goTranspiler.ts#retypeGoProvenParseMethods (goProvenMapCollectionMethods)
+    // venue balance parsers retyped by the printer's provenReturnFamilies (goProvenMapCollectionMethods)
     ...Object.fromEntries ([ 'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
         'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', 'ParseBalanceList' ]
         .flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])),
