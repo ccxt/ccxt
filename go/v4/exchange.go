@@ -2,7 +2,8 @@ package ccxt
 
 import (
 	"crypto/rand"
-	"encoding/hex"
+	"crypto/tls"
+	"encoding/base64"	"encoding/hex"
 	"encoding/json"
 	j "encoding/json"
 	"errors"
@@ -71,6 +72,7 @@ type BaseExchange struct {
 	Verbose                bool
 	UserAgent              string
 	EnableRateLimit        bool
+	ValidateServerSsl      bool // false disables tls certificate and hostname verification for REST and WS
 	Url                    string
 	Hostname               string
 	BaseCurrencies         *sync.Map
@@ -131,6 +133,8 @@ type BaseExchange struct {
 
 	httpClient   *http.Client
 	lastProxyURL string
+	// ValidateServerSsl value the current httpClient transport was built for
+	transportValidatesServerSsl bool
 
 	HttpProxy            interface{}
 	Http_proxy           interface{}
@@ -295,11 +299,22 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)
 	transport := newDualStackTransport()
+	transport.TLSClientConfig = this.tlsClientConfig()
+	this.transportValidatesServerSsl = this.ValidateServerSsl
 
 	this.httpClient = &http.Client{
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
+}
+
+// tlsClientConfig returns the tls config every REST transport and WS dialer
+// uses, nil keeps the Go defaults (full certificate and hostname verification)
+func (this *BaseExchange) tlsClientConfig() *tls.Config {
+	if this.ValidateServerSsl {
+		return nil
+	}
+	return &tls.Config{InsecureSkipVerify: true} //nolint:gosec // opt-in via ValidateServerSsl = false
 }
 
 func (this *BaseExchange) Init(userConfig map[string]any) {
@@ -753,6 +768,82 @@ func (this *BaseExchange) ValueIsDefined(v any) bool {
 
 func (this *BaseExchange) ConvertToSafeDictionary(data any) any {
 	return data
+}
+
+// ReadDhParam reads a PEM-encoded DH parameters file (DER SEQUENCE { INTEGER prime, INTEGER generator }) and returns the prime as a hex string
+func (this *BaseExchange) ReadDhParam(path any) string {
+	pem := this.ReadFile(path)
+	cleaned := regexp.MustCompile(`-----[^-]+-----|\s`).ReplaceAllString(pem, "")
+	der, err := base64.StdEncoding.DecodeString(cleaned)
+	if err != nil {
+		panic(ExchangeError(this.Id + " readDhParam() invalid base64 in the DH_param file: " + err.Error()))
+	}
+	pos := 0
+	readByte := func() int {
+		if pos >= len(der) {
+			panic(ExchangeError(this.Id + " readDhParam() unexpected end of the DH_param file"))
+		}
+		b := int(der[pos])
+		pos++
+		return b
+	}
+	readLen := func() int {
+		length := readByte()
+		if length&0x80 != 0 {
+			n := length & 0x7f
+			length = 0
+			for i := 0; i < n; i++ {
+				length = (length << 8) | readByte()
+			}
+		}
+		return length
+	}
+	readInt := func() string {
+		if readByte() != 0x02 {
+			panic(ExchangeError(this.Id + " readDhParam() expected INTEGER while reading DH_param file"))
+		}
+		length := readLen()
+		if pos+length > len(der) {
+			panic(ExchangeError(this.Id + " readDhParam() unexpected end of the DH_param file"))
+		}
+		hexValue := hex.EncodeToString(der[pos : pos+length])
+		pos += length
+		return strings.TrimPrefix(hexValue, "00") // strip sign byte
+	}
+	if readByte() != 0x30 {
+		panic(ExchangeError(this.Id + " readDhParam() expected SEQUENCE while reading DH_param file"))
+	}
+	readLen()
+	prime := readInt()
+	readInt() // generator
+	return prime
+}
+
+// ModPow returns (base ^ exponent) mod modulus; arguments may be *big.Int, integers, decimal or 0x-prefixed hex strings, result is a decimal string (same form as ConvertToBigInt)
+func (this *BaseExchange) ModPow(base any, exponent any, modulus any) any {
+	b := parseStarknetBigInt(base)
+	e := parseStarknetBigInt(exponent)
+	m := parseStarknetBigInt(modulus)
+	if b == nil || e == nil || m == nil || m.Sign() == 0 {
+		panic(ExchangeError(this.Id + " modPow() invalid arguments"))
+	}
+	return new(big.Int).Exp(b, e, m).String()
+}
+
+// BigToBytes returns big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+func (this *BaseExchange) BigToBytes(value any) []byte {
+	v := parseStarknetBigInt(value)
+	if v == nil {
+		panic(ExchangeError(this.Id + " bigToBytes() invalid value"))
+	}
+	hexValue := v.Text(16)
+	if len(hexValue)%2 == 1 {
+		hexValue = "0" + hexValue
+	}
+	if first, _ := strconv.ParseInt(hexValue[0:1], 16, 64); first >= 8 {
+		hexValue = "00" + hexValue // prepend the sign byte
+	}
+	return this.Base16ToBinary(hexValue)
 }
 
 // a present option value of another type is a user error: panic instead of coercing
@@ -1616,7 +1707,7 @@ func (this *BaseExchange) UpdateProxySettings() {
 		}
 		// rebuild the transport only when the proxy URL changes, otherwise a
 		// fresh transport (and connection pool) is created on every request
-		if proxyUrlStr != this.lastProxyURL || this.httpClient.Transport == nil {
+		if proxyUrlStr != this.lastProxyURL || this.httpClient.Transport == nil || this.transportValidatesServerSsl != this.ValidateServerSsl {
 			proxyURLParsed, _ := url.Parse(proxyUrlStr)
 			this.httpClient.Transport = &http.Transport{
 				Proxy:               http.ProxyURL(proxyURLParsed),
@@ -1624,9 +1715,18 @@ func (this *BaseExchange) UpdateProxySettings() {
 				MaxConnsPerHost:     8,                                // hard ceiling per target host
 				MaxIdleConnsPerHost: 4,                                // reuse pool
 				IdleConnTimeout:     90 * time.Second,
+				TLSClientConfig:     this.tlsClientConfig(),
 			}
 			this.lastProxyURL = proxyUrlStr
+			this.transportValidatesServerSsl = this.ValidateServerSsl
 		}
+	} else if this.transportValidatesServerSsl != this.ValidateServerSsl {
+		// no proxy: ValidateServerSsl was flipped after construction, rebuild the direct transport
+		transport := newDualStackTransport()
+		transport.TLSClientConfig = this.tlsClientConfig()
+		this.httpClient.Transport = transport
+		this.lastProxyURL = ""
+		this.transportValidatesServerSsl = this.ValidateServerSsl
 	}
 }
 
@@ -1837,6 +1937,9 @@ func (this *BaseExchange) SetProxyAgents(httpProxy any, httpsProxy any, socksPro
 			Dial: dialer.Dial,
 		}
 	}
+	if transport != nil {
+		transport.TLSClientConfig = this.tlsClientConfig()
+	}
 
 	return transport, nil
 }
@@ -1930,7 +2033,8 @@ func (this *BaseExchange) Client(url any) *WSClient {
 			"Verbose":  this.Verbose,
 			"Throttle": NewThrottler(this.TokenBucket),
 			"Options": map[string]any{
-				"Agent": finalAgent,
+				"Agent":             finalAgent,
+				"ValidateServerSsl": this.ValidateServerSsl,
 			},
 			"DecompressBinary": this.SafeBool(this.Options, "decompressBinary", true),
 		},

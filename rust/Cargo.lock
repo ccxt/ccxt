@@ -230,6 +230,7 @@ dependencies = [
  "rmpv",
  "rsa",
  "rust_decimal",
+ "rustls",
  "serde_json",
  "sha1",
  "sha2",

@@ -113,6 +113,7 @@ import htx from  './src/htx.js'
 import hyperliquid from  './src/hyperliquid.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
+import interactivebrokers from  './src/interactivebrokers.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
@@ -198,6 +199,7 @@ import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
 import hyperliquidPro from  './src/pro/hyperliquid.js'
 import independentreservePro from  './src/pro/independentreserve.js'
+import interactivebrokersPro from  './src/pro/interactivebrokers.js'
 import krakenPro from  './src/pro/kraken.js'
 import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
@@ -306,6 +308,7 @@ const exchanges = {
     'hyperliquid':            hyperliquid,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
+    'interactivebrokers':     interactivebrokers,
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
@@ -391,6 +394,7 @@ const pro = {
     'htx':                    htxPro,
     'hyperliquid':            hyperliquidPro,
     'independentreserve':     independentreservePro,
+    'interactivebrokers':     interactivebrokersPro,
     'kraken':                 krakenPro,
     'krakenfutures':          krakenfuturesPro,
     'kucoin':                 kucoinPro,
@@ -679,6 +683,7 @@ export {
     hyperliquid,
     independentreserve,
     indodax,
+    interactivebrokers,
     kraken,
     krakenfutures,
     kucoin,

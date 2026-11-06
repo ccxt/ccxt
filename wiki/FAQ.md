@@ -386,6 +386,48 @@ For example, while orders can be placed normally, cancelling an order on dYdX do
 
 CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
 
+### How to use the InteractiveBrokers in CCXT?
+
+As opposed to typical exchanges in CCXT, InteractiveBrokers has a different kind of API infrastructure. Users can use IBKR Web-Api with either Oauth or a special Gateway app. However note, due to the IBKR limitations, user can only have one active session - if you login the ibkr website, your running ibkr instance might switch off. Users can add addition profiles ("users") in account management, however each of them would need separate data-subscriptions or whatever, like a separate account.
+
+#### Use IBKR Web-Api with Oauth 1.0
+
+The access to the Web-API seems not available to all retail users. You should visit https://ndcdyn.interactivebrokers.com/oauth/ where you can generate credenials. If that page shows error message like `Oauth1.0 is only available to institutional clients` (![example screenshot](https://i.imgur.com/vu8JXK9.png)), then you might need at first to go through [this process](https://www.interactivebrokers.com/docs/web-api/authentication/oauth-1a/first-party-oauth/registration-process) and mail them that you want to use programmatic access. If you are rejected for Oauth access, then skip to the next paragraph, but if you are approved, then you will be able to generate api-keys (![example screenshot](https://i.imgur.com/pSHadxF.png)). However after generation it might up to 24 hours to become activated by IBKR system. Then set these credentials for exchange instance:
+
+```
+instance = new ccxt.interactivebrokers ({
+  "apiKey":"______ACCESS_TOKEN______",
+  "secret":"______ACCESS_TOKEN_SECRET______",
+  "options": {
+    "consumer_key": "______VALUE_HERE______",
+    "signaturePemPath": "______PATH_TO_FILE______",
+    "encryptionPemPath": "______PATH_TO_FILE______",
+    "dhParamPemPath": "______PATH_TO_FILE______"
+  }
+})
+```
+
+#### Use IBKR with Web-Api with Client-Portal Gateway
+
+If your account is not permitted to generate credentials for WebApi, then you can use local IBKR bridge where you will not need api-keys. You need to download `Client-Portal Gateway`, either one of the ways:
+- A) Here is a handy dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ (append `archive/refs/heads/master.zip` to download it directly) and run it as noted in repo description. 
+- B) You can manually download the files from: https://www.interactivebrokers.com/docs/web-api/authentication/cpgw/installation-authentication and follow instructions shown there. Also note, in this case, you will need to manually re-run gateway after every device restart or alike cases, that's why Dockerized approach is preferred for flexibility.
+
+After you are running CP Gateway, you can use:
+
+```
+instance = new ccxt.interactivebrokers ({
+  "options": {
+    "useGateway": true,
+    //  if custom port needed, add the below field
+    // "gatewayUrl": "https://localhost:5000/",
+  },
+  "validateServerSsl": false, // because the IBRK CP gateway runs at self-signed https://localhost:5000
+})
+```
+
+Note, Client-Portal gateway needs slighly more maintenance, specifically it might need you to manaully login once in every 24 hours at https://localhost:5000
+
 ### How to use the GRVT Exchange in CCXT?
 
 GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.

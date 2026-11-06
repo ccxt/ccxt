@@ -237,6 +237,25 @@ public partial class BaseExchange
         }
     }
 
+    private bool validateServerSslValue = true;
+    // false disables tls certificate and hostname verification for REST and WS
+    public bool validateServerSsl
+    {
+        get
+        {
+            return this.validateServerSslValue;
+        }
+        set
+        {
+            var changed = this.validateServerSslValue != value;
+            this.validateServerSslValue = value;
+            if (changed && this.httpClient != null)
+            {
+                this.initHttpClient(); // the handler's certificate validation is fixed at construction
+            }
+        }
+    }
+
     void initializeProperties(Dictionary<string, object> userConfig = null)
     {
         var properties = this.describe();
@@ -316,6 +335,7 @@ public partial class BaseExchange
         this.httpsProxy = SafeString(extendedProperties, "httpsProxy");
         this.httpProxy = SafeString(extendedProperties, "httpProxy");
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
+        this.validateServerSsl = SafeValue(extendedProperties, "validateServerSsl") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
         this.features = SafeValue(extendedProperties, "features", features) as dict;
         this.rollingWindowSize = (int)(SafeInteger(extendedProperties, "rollingWindowSize") ?? 0.0);

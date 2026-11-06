@@ -5838,11 +5838,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes704115 map[string]any = r.Value
-	if retRes704115 == nil {
+	var retRes710915 map[string]any = r.Value
+	if retRes710915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes704115}
+		ch <- AsyncResult[map[string]any]{Value: retRes710915}
 	}
 	return nil
 }
@@ -11776,11 +11776,11 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 		panic(r.Err)
 	}
 	listRecv11330, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1047815 []any = listRecv11330
-	if retRes1047815 == nil {
+	var retRes1054615 []any = listRecv11330
+	if retRes1054615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1047815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1054615)}
 	}
 	return nil
 }

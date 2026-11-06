@@ -24,6 +24,7 @@ import (
 )
 
 func Sha1() string      { return "sha1" }
+func sha1() string      { return "sha1" }
 func Sha256() string    { return "sha256" }
 func sha256() string    { return "sha256" }
 func Sha384() string    { return "sha384" }
@@ -533,6 +534,38 @@ func Ecdsa(request any, secret any, curveFunc func() string, hashFunc func() str
 	result["v"] = recoveryId
 
 	return result
+}
+
+// DecryptPrivateKey: RSA PKCS#1 v1.5 decryption of a base64-encoded ciphertext with a PEM RSA private key
+// (PKCS#1 or PKCS#8), same as node's crypto.privateDecrypt({ key, padding: RSA_PKCS1_PADDING }, base64.decode(secret))
+func (this *BaseExchange) DecryptPrivateKey(encryptionPrivKey any, encryptionSecret any) []byte {
+	block, _ := pem.Decode([]byte(derefScalar(encryptionPrivKey).(string)))
+	if block == nil {
+		panic(ExchangeError("decryptPrivateKey() could not read a PEM block from the private key"))
+	}
+	var key *rsaHash.PrivateKey
+	if parsed, err := x509.ParsePKCS1PrivateKey(block.Bytes); err == nil {
+		key = parsed
+	} else {
+		parsed8, err8 := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err8 != nil {
+			panic(err8)
+		}
+		rsaKey, ok := parsed8.(*rsaHash.PrivateKey)
+		if !ok {
+			panic(ExchangeError("decryptPrivateKey() the PEM does not contain an RSA private key"))
+		}
+		key = rsaKey
+	}
+	cipherText, err := base64.StdEncoding.DecodeString(derefScalar(encryptionSecret).(string))
+	if err != nil {
+		panic(err)
+	}
+	plain, err := rsaHash.DecryptPKCS1v15(rand.Reader, key, cipherText)
+	if err != nil {
+		panic(err)
+	}
+	return plain
 }
 
 func parseECPrivateKey(pemPriv []byte) *ecdsa.PrivateKey {
