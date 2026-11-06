@@ -1098,7 +1098,7 @@ public partial class whitebit : ccxt.whitebit
         // the handshake gate subscriptions['authenticated'] is only registered after the awaited
         // token fetch, so concurrent cold callers would each burn a private REST call and push
         // their own authorize frame. the flight lives in client.futures of the handshake client
-        // under a non-messageHash key and settles only via client.resolve () / ((WebSocketClient)client).reject ()
+        // under a non-messageHash key and settles only via client.resolve () / client.reject ()
         string messageHash = "authenticateFlight";
         if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
@@ -1118,8 +1118,8 @@ public partial class whitebit : ccxt.whitebit
         }
         // register the flight BEFORE the first await, so a caller arriving
         // during the fetch or the authorize round-trip finds it and waits
-        // instead of re-leading, and so ((WebSocketClient)client).reject () below always has a
-        // waiter and can never park the error in ((WebSocketClient)client).rejections
+        // instead of re-leading, and so client.reject () below always has a
+        // waiter and can never park the error in client.rejections
         var future = client.reusableFuture(messageHash);
         try
         {
@@ -1155,8 +1155,8 @@ public partial class whitebit : ccxt.whitebit
             // parks a rejected future under the same key when the dial fails,
             // and either one left behind would make every later authenticate ()
             // replay that failure. the stale future is settled through
-            // ((WebSocketClient)client).reject () - guarded, so it always has a waiter and the
-            // error is never parked in ((WebSocketClient)client).rejections
+            // client.reject () - guarded, so it always has a waiter and the
+            // error is never parked in client.rejections
             if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);

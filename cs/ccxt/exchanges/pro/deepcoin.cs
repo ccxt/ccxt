@@ -191,7 +191,7 @@ public partial class deepcoin : ccxt.deepcoin
         // https://github.com/ccxt/ccxt/issues/29393: the key rides the private ws url query string, so racing
         // acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
         // check-then-fetch (acquire vs extend) is the critical section; the flight IS the client.futures entry,
-        // settled through client.resolve / ((WebSocketClient)client).reject so the registry is only mutated inside the client (one lock in go)
+        // settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
         string messageHash = "authenticate";
         var client = this.client("authenticationFlights");
         if ((client.futures != null && client.futures.ContainsKey(messageHash)))

@@ -1352,7 +1352,7 @@ public partial class kraken : ccxt.kraken
             // mint a separate token. client.futures is the flight registry
             // itself, namespaced away from the real subscription keys on the
             // same client that already caches the token, and settlement goes
-            // through client.resolve () / ((WebSocketClient)client).reject () so every write to
+            // through client.resolve () / client.reject () so every write to
             // that map stays behind the client's own lock
             string messageHash = "authenticateFlight";
             if ((client.futures != null && client.futures.ContainsKey(messageHash)))

@@ -976,7 +976,7 @@ public partial class bitrue : ccxt.bitrue
             // stream url, so racing fetches mint several listenKeys and the
             // losers dial '/stream?listenKey=' + an orphaned key whose
             // subscriptions never deliver. the flight is registered in
-            // client.futures and settled through client.resolve/((WebSocketClient)client).reject,
+            // client.futures and settled through client.resolve/client.reject,
             // so every mutation of that map happens under the ws client's own
             // lock rather than through an unsynchronized map write
             string messageHash = "authenticateFlight";

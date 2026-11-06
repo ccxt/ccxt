@@ -1153,7 +1153,7 @@ public partial class lbank : ccxt.lbank
         // concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
         // subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
         // overwritten. the flight lives in client.futures of this exchange's own ws client under
-        // a key that is not a messageHash, and settles via client.resolve / ((WebSocketClient)client).reject only
+        // a key that is not a messageHash, and settles via client.resolve / client.reject only
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));

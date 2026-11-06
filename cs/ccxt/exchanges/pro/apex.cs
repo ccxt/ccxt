@@ -1095,7 +1095,7 @@ public partial class apex : ccxt.apex
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed"): the original subscription
                 // is still active and delivering data on this socket. Without
-                // this short-circuit the catch-clause's `((WebSocketClient)client).reject(error,
+                // this short-circuit the catch-clause's `client.reject(error,
                 // messageHash)` rejects every in-flight future on the connection
                 // because apex doesn't echo a `reqId` on these warnings.
                 if ((ret_msg != null) && ret_msg.IndexOf("already subscribed", StringComparison.Ordinal) >= 0)

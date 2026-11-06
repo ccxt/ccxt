@@ -1724,7 +1724,7 @@ public partial class bingx : ccxt.bingx
             // different keys and the key rides the private url, so losers
             // connect their watchers to an orphaned stream. client.futures is
             // the registry: client.future () is the atomic check-and-insert
-            // and client.resolve () / ((WebSocketClient)client).reject () settle and remove the
+            // and client.resolve () / client.reject () settle and remove the
             // entry under the same lock in every port
             string messageHash = "authenticate";
             var client = this.client("authenticationFlights");

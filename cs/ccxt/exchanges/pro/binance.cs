@@ -3583,7 +3583,7 @@ public partial class binance : ccxt.binance
             // user-data url embeds the listenKey, so no real client exists
             // before the fetch and no listenKey-free parking url is needed.
             // client.futures is the registry: client.future () is the atomic
-            // check-and-insert and client.resolve () / ((WebSocketClient)client).reject () settle
+            // check-and-insert and client.resolve () / client.reject () settle
             // and remove the entry under the same lock in every port
             string messageHash = ("authenticate:" + type);
             var client = this.client("authenticationFlights");

@@ -1064,7 +1064,7 @@ public partial class bitvavo : ccxt.bitvavo
             this.cleanUnsubscription(client, subHash, key);
             // bitvavo resolves-and-deletes the data futures on every message, so at
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
-            // stashes the error in ((WebSocketClient)client).rejections instead - that stale entry
+            // stashes the error in client.rejections instead - that stale entry
             // would immediately reject the next subscribe's fresh future, so clear it here
             if ((client.rejections != null && client.rejections.ContainsKey(subHash)))
             {

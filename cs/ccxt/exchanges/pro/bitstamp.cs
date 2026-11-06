@@ -1108,7 +1108,7 @@ public partial class bitstamp : ccxt.bitstamp
             // tokens are short lived (valid_sec is 60), so this burns the
             // private endpoint and only the last write survives.
             // the flight is registered in client.futures and settled through
-            // client.resolve / ((WebSocketClient)client).reject, so every mutation of that map
+            // client.resolve / client.reject, so every mutation of that map
             // goes through the client's own accessors in the ported languages
             string messageHash = "authenticateFlight";
             var client = this.client("authenticationFlights");

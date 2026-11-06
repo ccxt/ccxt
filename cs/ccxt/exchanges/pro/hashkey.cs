@@ -925,7 +925,7 @@ public partial class hashkey : ccxt.hashkey
         // getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
         // subscriptions never deliver. the flight is registered in
         // client.futures and settled through client.resolve () /
-        // ((WebSocketClient)client).reject (), so every mutation of the futures map goes through
+        // client.reject (), so every mutation of the futures map goes through
         // the client's own accessors
         string messageHash = "authenticateFlight";
         var client = this.client("authenticationFlights");

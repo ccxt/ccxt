@@ -1344,7 +1344,7 @@ public partial class toobit : ccxt.toobit
             // https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
             // so the flight must not live on that client or later callers would look at a different one.
             // client.futures is the registry: client.future () is the atomic check-and-insert and
-            // client.resolve () / ((WebSocketClient)client).reject () settle and remove the entry under the same lock in every port
+            // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
             string messageHash = "authenticate";
             var client = this.client("authenticationFlights");
             if ((client.futures != null && client.futures.ContainsKey(messageHash)))
