@@ -1,10 +1,13 @@
 ﻿namespace Example;
 
 using ccxt;
+
 using System;
 using System.Threading.Tasks;
+
 using dict = Dictionary<string, object>;
 using list = List<object>;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -51,27 +54,51 @@ public static class Program
         }
     }
 
+    // mirrors cli.ts loadSettingsAndCreateExchange: keys.json provides the defaults,
+    // keys.local.json overrides it (shallow, per top-level exchange entry), and the
+    // whole entry (credentials AND options etc.) goes into the exchange constructor
+    public static dict LoadSettings(string exchangeId)
+    {
+        var allSettings = new dict();
+        var fileNames = new string[] { "keys.json", "keys.local.json" };
+        foreach (var fileName in fileNames)
+        {
+            // repo root (cwd of `npm run cli.cs`) first, then ../../ for runs from cs/cli
+            var candidatePaths = new string[] { fileName, "./../../" + fileName };
+            foreach (var candidatePath in candidatePaths)
+            {
+                if (!File.Exists(candidatePath))
+                {
+                    continue;
+                }
+                try
+                {
+                    var parsed = JsonHelper.Deserialize(File.ReadAllText(candidatePath)) as dict;
+                    if (parsed != null)
+                    {
+                        foreach (var entry in parsed)
+                        {
+                            allSettings[entry.Key] = entry.Value;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error parsing {candidatePath}: {e.Message}");
+                }
+            }
+        }
+        if (allSettings.ContainsKey(exchangeId) && allSettings[exchangeId] is dict exchangeSettings)
+        {
+            return exchangeSettings;
+        }
+        return new dict();
+    }
+
     public static void SetCredentials(BaseExchange instance)
     {
-        JObject localKeys = null;
-        try
-        {
-            if (File.Exists("keys.local.json"))
-            {
-                var jsonText = File.ReadAllText("keys.local.json");
-                localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
-            }
-            if (File.Exists("./../../keys.local.json"))
-            {
-                var jsonText = File.ReadAllText("./../../keys.local.json");
-                localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
-            }
-        }
-        catch (JsonException je)
-        {
-            Console.WriteLine($"Error parsing keys.local.json: {je.Message}");
-        }
-
+        // keys.json / keys.local.json are applied through the constructor (LoadSettings),
+        // this only fills credentials still missing from environment variables
         var credentials = instance.requiredCredentials as dict;
         foreach (var credential in credentials)
         {
@@ -80,35 +107,25 @@ public static class Program
             var boolValue = (bool)value;
             if (boolValue)
             {
-                string credentialValue = null;
-
-                // The instance ID in lowercase is used as the key in the JSON file
-                var instanceIdKey = instance.id.ToLower();
-                if (localKeys != null && localKeys.ContainsKey(instanceIdKey))
+                var property = instance.GetType().GetProperty(key);
+                if (property == null)
                 {
-                    var instanceCredentials = localKeys[instanceIdKey] as JObject;
-                    // The specific credential key is sought within the instance's credentials
-                    if (instanceCredentials.ContainsKey(key))
-                    {
-                        credentialValue = instanceCredentials[key].ToString();
-                    }
+                    continue;
                 }
-
-                // If the credential is not found in the JSON file, fall back to environment variables
-                if (credentialValue == null)
+                var currentValue = property.GetValue(instance) as string;
+                if (!string.IsNullOrEmpty(currentValue))
                 {
-                    var parsedKey = instance.id.ToUpper() + "_" + key.ToUpper();
-                    credentialValue = Environment.GetEnvironmentVariable(parsedKey);
-                    if (credentialValue != null && credentialValue.StartsWith("-----BEGIN"))
-                    {
-                        credentialValue = credentialValue.Replace("\\n", "\n");
-                    }
+                    continue;
                 }
-
-                // If a value was found, set the property on the instance
+                var parsedKey = instance.id.ToUpper() + "_" + key.ToUpper();
+                var credentialValue = Environment.GetEnvironmentVariable(parsedKey);
+                if (credentialValue != null && credentialValue.StartsWith("-----BEGIN"))
+                {
+                    credentialValue = credentialValue.Replace("\\n", "\n");
+                }
                 if (credentialValue != null)
                 {
-                    instance.GetType().GetProperty(key).SetValue(instance, credentialValue, null);
+                    property.SetValue(instance, credentialValue, null);
                 }
             }
         }
@@ -201,7 +218,8 @@ public static class Program
         // in one class — never route them through ccxt.pro even for watch* methods
         var isPredictionOnly = predictionOnlyIds.Contains(exchangeName);
         var exchangeNameAdapted = ((isWsMethod || isWsCrudeMethod) && !forcePrediction && !isPredictionOnly) ? "ccxt.pro." + exchangeName : exchangeName;
-        var instance = Exchange.DynamicallyCreateInstance(exchangeNameAdapted, null, false, forcePrediction);
+        var settings = LoadSettings(exchangeName.ToLower());
+        var instance = Exchange.DynamicallyCreateInstance(exchangeNameAdapted, settings, false, forcePrediction);
 
         InitOptions(instance, flags);
         SetCredentials(instance);
