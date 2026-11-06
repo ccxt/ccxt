@@ -414,7 +414,7 @@ export default class interactivebrokers extends Exchange {
                         'STK': [ 'NYSE' ], // "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0, SMART;AMEX;BATS;BOX;CBOE;CBOE2;EDGX;EMERALD;…2;NASDAQBX;NASDAQOM; OTC,IDEAL,IBFX,UBSFX,JPMCFX,DBKFX,CITIFX,BARCFX,RBSFX,RBCFX,BOAFX,HSBCFX,GSFX,IDEALFX,NOMFX,MSFX,BARC2FX,ETFFX,NATIXISFX,NOM2FX,CSFX,DBK2FX,RBS2FX,UBS2FX,BOA2FX,GS2FX,JPMC2FX,RBC2FX,SCBFX,CITADELFX,KNIGHTFX,HSBC2FX,CBKFX,SCB2FX,CBK2FX,NOM3FX,BNPFX,BNP2FX,VIRTUFX,ANZFX,ANZ2FX,XTXFX,FXSETTLE,TDFX,WFFX,CITI2FX,IBCMSCFX,WF2FX,BNYFX,BNY2FX,PEARL;PHLX;PSE;SAPPHIRE
                         // 'CRYPTO': [ 'PAXOS', 'ZEROHASH', 'ZEROHASHE' ],
                     },
-                    'types': [ 'crypto', 'forex', 'swap', 'future' ], // 'crypto', 'forex', 'swap', 'future', 'cfd', 'stock'
+                    'types': [ 'crypto', 'forex', 'swap', 'future', 'cfd', 'stock' ], // 'crypto', 'forex', 'swap', 'future', 'cfd', 'stock'
                     'stockAmountIncrement': '1',
                     'forexAmountIncrement': '1',
                     'cryptoAmountIncrement': '0.00000001',
@@ -494,6 +494,7 @@ export default class interactivebrokers extends Exchange {
                     'cfdExchanges': [ 'IBUSCFD', 'IBCFD' ], // us and non-us cfds, on duplicate symbols the last exchange wins
                     'forexCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
                     'defaultMinCost': 1,
+                    'endpointRetries': 3,
                 },
                 'fetchTickers': {
                     // 31 last, 55 symbol, 70 high, 71 low, 82 change, 83 change %, 84 bid, 85 ask size, 86 ask, 88 bid size,
@@ -1351,6 +1352,19 @@ export default class interactivebrokers extends Exchange {
         return result;
     }
 
+    async secdefEnpointCall (secdefRequest: Dict) {
+        const retries = this.safeInteger (this.options['fetchMarkets'], 'endpointRetries', 3);
+        for (let i = 0; i < retries; i++) {
+            try {
+                return await this.webapiGetV1ApiTrsrvSecdef (secdefRequest);
+            } catch (e) {
+                if (i === retries - 1) {
+                    throw e;
+                }
+            }
+        }
+    }
+
     async fetchWithDetails (plainEntries: Dict) {
         const detailIds = Object.keys (plainEntries);
         const entries: Dict[] = [];
@@ -1367,7 +1381,7 @@ export default class interactivebrokers extends Exchange {
             const secdefRequest: Dict = {
                 'conids': chunk.join (','),
             };
-            promises.push (this.webapiGetV1ApiTrsrvSecdef (secdefRequest));
+            promises.push (this.secdefEnpointCall (secdefRequest));
             offset = end;
         }
         const responses = await Promise.all (promises);
